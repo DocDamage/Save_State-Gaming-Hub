@@ -1,0 +1,13 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  SaveState.Core -> C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\bin\Debug\net9.0\SaveState.Core.dll
+  SaveState.UI -> C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\bin\Debug\net9.0\SaveState.UI.dll
+  SaveState.App -> C:\Users\Doc\Desktop\SaveState2\src\SaveState.App\bin\Debug\net9.0\SaveState.App.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:03.04
+
+Workload updates are available. Run `dotnet workload list` for more information.

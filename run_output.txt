@@ -1,0 +1,11 @@
+[13:17:19 INF] Executed DbCommand (8ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+[13:17:19 FTL] Application terminated unexpectedly
+Avalonia.Markup.Xaml.XamlLoadException: No precompiled XAML found for SaveState.UI.App, make sure to specify x:Class and include your XAML file as AvaloniaResource
+   at Avalonia.Markup.Xaml.AvaloniaXamlLoader.Load(Object obj)
+   at SaveState.UI.App.Initialize() in C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\App.axaml.cs:line 16
+   at Avalonia.AppBuilder.SetupUnsafe()
+   at Avalonia.AppBuilder.Setup()
+   at Avalonia.AppBuilder.SetupWithLifetime(IApplicationLifetime lifetime)
+   at Avalonia.ClassicDesktopStyleApplicationLifetimeExtensions.StartWithClassicDesktopLifetime(AppBuilder builder, String[] args, Action`1 lifetimeBuilder)
+   at SaveState.App.Program.Main(String[] args) in C:\Users\Doc\Desktop\SaveState2\src\SaveState.App\Program.cs:line 50

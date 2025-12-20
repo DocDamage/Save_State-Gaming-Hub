@@ -1,0 +1,19 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\Services\OpenAiService.cs(90,18): error CS9006: The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\SaveState.Core.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\Services\OpenAiService.cs(90,20): error CS1733: Expected expression [C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\SaveState.Core.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\Services\OpenAiService.cs(130,17): error CS9006: The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\SaveState.Core.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\Services\OpenAiService.cs(130,19): error CS1733: Expected expression [C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\SaveState.Core.csproj]
+
+Build FAILED.
+
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\Services\OpenAiService.cs(90,18): error CS9006: The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\SaveState.Core.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\Services\OpenAiService.cs(90,20): error CS1733: Expected expression [C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\SaveState.Core.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\Services\OpenAiService.cs(130,17): error CS9006: The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\SaveState.Core.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\Services\OpenAiService.cs(130,19): error CS1733: Expected expression [C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\SaveState.Core.csproj]
+    0 Warning(s)
+    4 Error(s)
+
+Time Elapsed 00:00:01.13
+
+Workload updates are available. Run `dotnet workload list` for more information.

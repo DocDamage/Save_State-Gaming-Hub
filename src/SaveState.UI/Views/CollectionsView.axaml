@@ -1,0 +1,159 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.UI.ViewModels"
+             x:Class="SaveState.UI.Views.CollectionsView"
+             x:DataType="vm:CollectionsViewModel">
+
+    <Grid ColumnDefinitions="300, *">
+        <!-- Left Panel - Collections List -->
+        <Border Grid.Column="0" Background="#1A1A1A" Padding="15">
+            <Grid RowDefinitions="Auto, Auto, *, Auto">
+                <!-- Header -->
+                <TextBlock Grid.Row="0" Text="📁 Collections" FontSize="20" FontWeight="Bold" Margin="0,0,0,15"/>
+                
+                <!-- Create New -->
+                <Border Grid.Row="1" Background="#2A2A2A" CornerRadius="8" Padding="12" Margin="0,0,0,15">
+                    <StackPanel Spacing="10">
+                        <TextBox Text="{Binding NewCollectionName}"
+                                 Watermark="Collection name..."
+                                 Height="32"/>
+                        <TextBox Text="{Binding NewCollectionDescription}"
+                                 Watermark="Description (optional)"
+                                 Height="32"/>
+                        <Button Content="➕ Create Collection"
+                                Command="{Binding CreateCollectionCommand}"
+                                Background="#BB86FC"
+                                Foreground="White"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Collections List -->
+                <ListBox Grid.Row="2" 
+                         ItemsSource="{Binding Collections}"
+                         SelectedItem="{Binding SelectedCollection}"
+                         Background="Transparent">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="*, Auto" Margin="5">
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                    <TextBlock FontSize="11" Opacity="0.6">
+                                        <Run Text="{Binding Games.Count}"/>
+                                        <Run Text=" games"/>
+                                    </TextBlock>
+                                </StackPanel>
+                                <Button Grid.Column="1" 
+                                        Content="🗑️"
+                                        Command="{Binding $parent[UserControl].((vm:CollectionsViewModel)DataContext).DeleteCollectionCommand}"
+                                        CommandParameter="{Binding}"
+                                        Background="Transparent"
+                                        Padding="5"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                
+                <!-- Status -->
+                <TextBlock Grid.Row="3" Text="{Binding StatusMessage}" 
+                           FontSize="11" Opacity="0.7" 
+                           TextWrapping="Wrap" Margin="0,10,0,0"/>
+            </Grid>
+        </Border>
+        
+        <!-- Right Panel - Collection Games -->
+        <Border Grid.Column="1" Background="#121212" Padding="20">
+            <Grid RowDefinitions="Auto, Auto, *">
+                <!-- Collection Header -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="15" Margin="0,0,0,15">
+                    <TextBlock Text="{Binding SelectedCollection.Name, FallbackValue='Select a Collection'}" 
+                               FontSize="24" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding SelectedCollection.Description}" 
+                               VerticalAlignment="Center" Opacity="0.6"/>
+                </StackPanel>
+                
+                <!-- Add Game Row -->
+                <Border Grid.Row="1" Background="#2A2A2A" CornerRadius="8" Padding="12" Margin="0,0,0,15"
+                        IsVisible="{Binding SelectedCollection, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <ComboBox Grid.Column="0"
+                                  ItemsSource="{Binding AllGames}"
+                                  SelectedItem="{Binding SelectedGameToAdd}"
+                                  HorizontalAlignment="Stretch"
+                                  PlaceholderText="Select a game to add...">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock Text="{Binding Title}"/>
+                                        <TextBlock Text="{Binding Source}" Opacity="0.5" FontSize="11"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <Button Grid.Column="1"
+                                Content="➕ Add"
+                                Command="{Binding AddGameToCollectionCommand}"
+                                Background="#03DAC6"
+                                Foreground="#1E1E1E"
+                                Margin="10,0,0,0"/>
+                    </Grid>
+                </Border>
+                
+                <!-- Games in Collection -->
+                <ScrollViewer Grid.Row="2">
+                    <ItemsControl ItemsSource="{Binding CollectionGames}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#2A2A2A" CornerRadius="8" Padding="12" Margin="0,0,0,10">
+                                    <Grid ColumnDefinitions="Auto, *, Auto">
+                                        <!-- Game Icon -->
+                                        <Border Grid.Column="0" Width="60" Height="60" CornerRadius="5" 
+                                                ClipToBounds="True" Margin="0,0,15,0">
+                                            <Border Background="#3A3A3A">
+                                                <TextBlock Text="🎮" FontSize="24" 
+                                                           HorizontalAlignment="Center" 
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+                                        </Border>
+                                        
+                                        <!-- Game Info -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="16"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                                <Border Background="#BB86FC" CornerRadius="3" Padding="6,2">
+                                                    <TextBlock Text="{Binding Source}" FontSize="10" Foreground="White"/>
+                                                </Border>
+                                                <TextBlock Text="{Binding Platform.Name}" FontSize="12" Opacity="0.6" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        
+                                        <!-- Remove Button -->
+                                        <Button Grid.Column="2"
+                                                Content="✖️ Remove"
+                                                Command="{Binding $parent[UserControl].((vm:CollectionsViewModel)DataContext).RemoveGameFromCollectionCommand}"
+                                                CommandParameter="{Binding}"
+                                                Background="#CF6679"
+                                                Foreground="White"
+                                                VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+                
+                <!-- Empty State -->
+                <StackPanel Grid.Row="2" 
+                            IsVisible="{Binding !CollectionGames.Count}"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Spacing="10">
+                    <TextBlock Text="📂" FontSize="48" HorizontalAlignment="Center"/>
+                    <TextBlock Text="No games in this collection" HorizontalAlignment="Center" Opacity="0.6"/>
+                    <TextBlock Text="Use the dropdown above to add games" HorizontalAlignment="Center" FontSize="12" Opacity="0.4"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,14 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  SaveState.Core -> C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\bin\Debug\net9.0\SaveState.Core.dll
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\Views/MainWindow.axaml(49,36,49,36): Avalonia error AVLN2000: Unable to resolve "BoolConverters.ToString" as static field, property, constant or enum value Line 49, position 36. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+
+Build FAILED.
+
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\Views/MainWindow.axaml(49,36,49,36): Avalonia error AVLN2000: Unable to resolve "BoolConverters.ToString" as static field, property, constant or enum value Line 49, position 36. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:02.72
+
+Workload updates are available. Run `dotnet workload list` for more information.

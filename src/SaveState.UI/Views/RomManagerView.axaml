@@ -1,0 +1,185 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.UI.ViewModels"
+             x:Class="SaveState.UI.Views.RomManagerView"
+             x:DataType="vm:RomManagerViewModel">
+
+    <ScrollViewer Padding="30">
+        <StackPanel Spacing="20" MaxWidth="800">
+            <TextBlock Text="ROM Manager" FontSize="28" FontWeight="Bold" Margin="0,0,0,10"/>
+            
+            <!-- Emulators Section -->
+            <Border Background="#2A2A2A" CornerRadius="10" Padding="20">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="Emulators" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="Configure emulators for launching ROMs" Opacity="0.7"/>
+                    
+                    <!-- Existing Emulators -->
+                    <ItemsControl ItemsSource="{Binding Emulators}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#1E1E1E" CornerRadius="5" Padding="15" Margin="0,5">
+                                    <Grid ColumnDefinitions="*, Auto">
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding ExecutablePath}" 
+                                                       FontSize="11" Opacity="0.6" 
+                                                       TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock FontSize="11" Opacity="0.5">
+                                                <Run Text="Platforms: "/>
+                                                <Run Text="{Binding SupportedPlatforms}"/>
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <Border Grid.Column="1" 
+                                                Background="#BB86FC" 
+                                                CornerRadius="3" 
+                                                Padding="8,4"
+                                                IsVisible="{Binding IsDefault}"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="Default" FontSize="10" Foreground="White"/>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    
+                    <Separator Margin="0,10"/>
+                    
+                    <!-- Add New Emulator -->
+                    <TextBlock Text="Add New Emulator" FontWeight="SemiBold"/>
+                    <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto, Auto, Auto">
+                        <TextBox Grid.Row="0" Grid.Column="0" 
+                                 Text="{Binding NewEmulatorName}"
+                                 Watermark="Emulator Name (e.g., RetroArch)"
+                                 Margin="0,0,10,10"/>
+                        
+                        <TextBox Grid.Row="1" Grid.Column="0"
+                                 Text="{Binding NewEmulatorPath}"
+                                 Watermark="Path to executable"
+                                 Margin="0,0,10,10"/>
+                        <Button Grid.Row="1" Grid.Column="1"
+                                Content="Browse"
+                                Command="{Binding BrowseEmulatorCommand}"
+                                Margin="0,0,0,10"/>
+                        
+                        <TextBox Grid.Row="2" Grid.ColumnSpan="2"
+                                 Text="{Binding NewEmulatorArgs}"
+                                 Watermark="Arguments (use {rom} for ROM path)"
+                                 Margin="0,0,0,10"/>
+                        
+                        <TextBox Grid.Row="3" Grid.Column="0"
+                                 Text="{Binding NewEmulatorPlatforms}"
+                                 Watermark="Supported platforms (e.g., NES,SNES,GB)"
+                                 Margin="0,0,10,0"/>
+                        <Button Grid.Row="3" Grid.Column="1"
+                                Content="Add"
+                                Command="{Binding AddEmulatorCommand}"
+                                Background="#03DAC6"
+                                Foreground="#1E1E1E"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+            
+            <!-- ROM Folders Section -->
+            <Border Background="#2A2A2A" CornerRadius="10" Padding="20">
+                <StackPanel Spacing="15">
+                    <StackPanel Orientation="Horizontal" Spacing="15">
+                        <TextBlock Text="ROM Folders" FontSize="18" FontWeight="SemiBold"/>
+                        <Button Content="Scan All"
+                                Command="{Binding ScanAllCommand}"
+                                IsEnabled="{Binding !IsScanning}"
+                                Background="#BB86FC"
+                                Foreground="White"
+                                Padding="15,5"/>
+                    </StackPanel>
+                    <TextBlock Text="Add folders containing your ROM files" Opacity="0.7"/>
+                    
+                    <!-- Existing Folders -->
+                    <ItemsControl ItemsSource="{Binding RomFolders}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#1E1E1E" CornerRadius="5" Padding="15" Margin="0,5">
+                                    <Grid ColumnDefinitions="*, Auto, Auto">
+                                        <StackPanel Grid.Column="0">
+                                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                                <Border Background="#BB86FC" CornerRadius="3" Padding="6,2">
+                                                    <TextBlock Text="{Binding PlatformName}" 
+                                                               FontSize="11" FontWeight="Bold"/>
+                                                </Border>
+                                                <TextBlock Text="{Binding RomCount}" Opacity="0.6">
+                                                    <TextBlock.Text>
+                                                        <MultiBinding StringFormat="{}{0} ROMs">
+                                                            <Binding Path="RomCount"/>
+                                                        </MultiBinding>
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Path}" 
+                                                       FontSize="11" Opacity="0.6" 
+                                                       TextTrimming="CharacterEllipsis"
+                                                       Margin="0,5,0,0"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="2" 
+                                                Content="🔄 Scan"
+                                                Command="{Binding $parent[UserControl].((vm:RomManagerViewModel)DataContext).ScanRomFolderCommand}"
+                                                CommandParameter="{Binding}"
+                                                Background="Transparent"
+                                                Margin="10,0,0,0"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    
+                    <Separator Margin="0,10"/>
+                    
+                    <!-- Add New Folder -->
+                    <TextBlock Text="Add ROM Folder" FontWeight="SemiBold"/>
+                    <Grid ColumnDefinitions="Auto, *, Auto, Auto" RowDefinitions="Auto">
+                        <ComboBox Grid.Column="0"
+                                  ItemsSource="{Binding AvailablePlatforms}"
+                                  SelectedItem="{Binding SelectedPlatform}"
+                                  Width="120"
+                                  Margin="0,0,10,0"/>
+                        <TextBox Grid.Column="1"
+                                 Text="{Binding NewRomFolderPath}"
+                                 Watermark="Path to ROM folder"
+                                 Margin="0,0,10,0"/>
+                        <Button Grid.Column="2"
+                                Content="Browse"
+                                Command="{Binding BrowseRomFolderCommand}"
+                                Margin="0,0,10,0"/>
+                        <Button Grid.Column="3"
+                                Content="Add"
+                                Command="{Binding AddRomFolderCommand}"
+                                Background="#03DAC6"
+                                Foreground="#1E1E1E"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+            
+            <!-- Status -->
+            <TextBlock Text="{Binding StatusMessage}" 
+                       Foreground="#03DAC6"
+                       HorizontalAlignment="Center"/>
+            
+            <!-- Preset Emulators -->
+            <Border Background="#1E1E1E" CornerRadius="10" Padding="20">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="💡 Popular Emulators" FontWeight="SemiBold"/>
+                    <TextBlock TextWrapping="Wrap" Opacity="0.7">
+                        • RetroArch - Multi-system (NES, SNES, GB, GBA, Genesis, PS1, etc.)
+                        • Dolphin - GameCube, Wii
+                        • PCSX2 - PlayStation 2
+                        • RPCS3 - PlayStation 3
+                        • Cemu - Wii U
+                        • Ryujinx / Yuzu - Nintendo Switch
+                        • DeSmuME - Nintendo DS
+                        • Citra - Nintendo 3DS
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option csharp_namespace = "SaveState.Core.Ipc";
+
+package savestate;
+
+service SaveStateIpc {
+  rpc SendCommand (CommandRequest) returns (CommandResponse);
+}
+
+message CommandRequest {
+  string command = 1;
+  repeated string args = 2;
+}
+
+message CommandResponse {
+  bool success = 1;
+  string message = 2;
+}

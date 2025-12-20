@@ -1,0 +1,116 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.UI.ViewModels"
+             x:Class="SaveState.UI.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+    <ScrollViewer Padding="30">
+        <StackPanel Spacing="20" MaxWidth="600">
+            <TextBlock Text="Settings" FontSize="28" FontWeight="Bold" Margin="0,0,0,20"/>
+            
+            <!-- Appearance Section -->
+            <Border Background="#2A2A2A" CornerRadius="10" Padding="20">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="Appearance" FontSize="18" FontWeight="SemiBold"/>
+                    
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Dark Theme" FontWeight="SemiBold"/>
+                            <TextBlock Text="Switch between dark and light mode" 
+                                       FontSize="11" Opacity="0.6"/>
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" 
+                                      IsChecked="{Binding IsDarkTheme}"
+                                      OnContent="Dark" 
+                                      OffContent="Light"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+            
+            <!-- API Keys Section -->
+            <Border Background="#2A2A2A" CornerRadius="10" Padding="20">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="Metadata API Keys" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="These keys enable automatic game metadata and artwork fetching." 
+                               Opacity="0.7" TextWrapping="Wrap"/>
+                    
+                    <Separator Margin="0,10"/>
+                    
+                    <!-- IGDB / Twitch -->
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="IGDB (Twitch Developer)" FontWeight="SemiBold"/>
+                        <TextBlock Text="Get credentials from developer.twitch.tv" 
+                                   FontSize="11" Opacity="0.6"/>
+                        
+                        <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto, Auto" Margin="0,10,0,0">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Client ID:" 
+                                       VerticalAlignment="Center" Margin="0,0,10,5"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" 
+                                     Text="{Binding TwitchClientId}"
+                                     Watermark="Enter Twitch Client ID"
+                                     Margin="0,0,0,5"/>
+                            
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Secret:" 
+                                       VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" 
+                                     Text="{Binding TwitchClientSecret}"
+                                     PasswordChar="•"
+                                     Watermark="Enter Twitch Client Secret"/>
+                        </Grid>
+                    </StackPanel>
+                    
+                    <Separator Margin="0,10"/>
+                    
+                    <!-- SteamGridDB -->
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="SteamGridDB" FontWeight="SemiBold"/>
+                        <TextBlock Text="Get API key from steamgriddb.com/profile/preferences/api" 
+                                   FontSize="11" Opacity="0.6"/>
+                        
+                        <TextBox Text="{Binding SteamGridDbApiKey}"
+                                 Watermark="Enter SteamGridDB API Key"
+                                 PasswordChar="•"
+                                 Margin="0,10,0,0"/>
+                    </StackPanel>
+                    
+                    <Separator Margin="0,10"/>
+                    
+                    <!-- OpenAI -->
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="🤖 OpenAI (for AI Assistant)" FontWeight="SemiBold"/>
+                        <TextBlock Text="Get API key from platform.openai.com/api-keys" 
+                                   FontSize="11" Opacity="0.6"/>
+                        
+                        <TextBox Text="{Binding OpenAiApiKey}"
+                                 Watermark="Enter OpenAI API Key (sk-...)"
+                                 PasswordChar="•"
+                                 Margin="0,10,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            
+            <!-- Save Button -->
+            <StackPanel Orientation="Horizontal" Spacing="15" HorizontalAlignment="Right">
+                <TextBlock Text="{Binding StatusMessage}" 
+                           VerticalAlignment="Center" 
+                           Foreground="#03DAC6"/>
+                <Button Command="{Binding SaveCommand}" 
+                        Content="Save Settings"
+                        Background="#BB86FC"
+                        Foreground="White"
+                        Padding="20,10"/>
+            </StackPanel>
+            
+            <!-- Info Section -->
+            <Border Background="#1E1E1E" CornerRadius="10" Padding="20" Margin="0,20,0,0">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="ℹ️ About API Keys" FontWeight="SemiBold"/>
+                    <TextBlock TextWrapping="Wrap" Opacity="0.7">
+                        Your API keys are stored locally and never sent to any servers except the official APIs. 
+                        Both IGDB and SteamGridDB offer free API access for personal use.
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

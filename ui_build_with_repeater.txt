@@ -1,0 +1,20 @@
+  Determining projects to restore...
+  Restored C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\SaveState.Core.csproj (in 276 ms).
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj : error NU1102: Unable to find package Avalonia.Controls.ItemsRepeater with version (>= 11.3.10)
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj : error NU1102:   - Found 33 version(s) in nuget.org [ Nearest version: 11.1.5 ]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj : error NU1102:   - Found 0 version(s) in Microsoft Visual Studio Offline Packages
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj : error NU1102:   - Found 0 version(s) in C:\Program Files\dotnet\library-packs
+  Failed to restore C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj (in 697 ms).
+
+Build FAILED.
+
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj : error NU1102: Unable to find package Avalonia.Controls.ItemsRepeater with version (>= 11.3.10)
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj : error NU1102:   - Found 33 version(s) in nuget.org [ Nearest version: 11.1.5 ]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj : error NU1102:   - Found 0 version(s) in Microsoft Visual Studio Offline Packages
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj : error NU1102:   - Found 0 version(s) in C:\Program Files\dotnet\library-packs
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:01.34
+
+Workload updates are available. Run `dotnet workload list` for more information.

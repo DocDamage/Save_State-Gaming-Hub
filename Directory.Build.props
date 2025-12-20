@@ -1,0 +1,37 @@
+<Project>
+  <PropertyGroup>
+    <!-- Common properties for all projects -->
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    
+    <!-- Version information -->
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>1.0.0</InformationalVersion>
+    
+    <!-- Company and product info -->
+    <Company>SaveState</Company>
+    <Product>SaveState Reborn</Product>
+    <Copyright>Copyright © 2024</Copyright>
+    <Authors>SaveState Contributors</Authors>
+    
+    <!-- Native AOT settings (can be overridden per project) -->
+    <PublishAot>false</PublishAot>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    
+    <!-- Performance optimizations -->
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <!-- Code analysis -->
+  <PropertyGroup>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+</Project>

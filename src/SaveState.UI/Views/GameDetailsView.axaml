@@ -1,0 +1,135 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.UI.ViewModels"
+             xmlns:converters="clr-namespace:SaveState.UI.Converters"
+             x:Class="SaveState.UI.Views.GameDetailsView"
+             x:DataType="vm:GameDetailsViewModel">
+
+    <UserControl.Resources>
+        <converters:FilePathToImageConverter x:Key="FilePathToImage"/>
+    </UserControl.Resources>
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header with back button -->
+        <Border Grid.Row="0" Background="#181818" Padding="20,15">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <Button Grid.Column="0" 
+                        Command="{Binding BackCommand}"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Padding="10,5">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="←" FontSize="18"/>
+                        <TextBlock Text="Back to Library" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="{Binding StatusMessage}" 
+                               VerticalAlignment="Center" 
+                               Foreground="#03DAC6"/>
+                    <Button Command="{Binding FetchMetadataCommand}"
+                            IsEnabled="{Binding !IsLoadingMetadata}"
+                            Background="#2A2A2A"
+                            Padding="15,8">
+                        <TextBlock Text="🔄 Refresh Metadata"/>
+                    </Button>
+                    <Button Command="{Binding LaunchCommand}"
+                            Background="#BB86FC"
+                            Foreground="White"
+                            Padding="20,8">
+                        <TextBlock Text="▶ Play"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1" Padding="30">
+            <Grid ColumnDefinitions="300, *" RowDefinitions="Auto, *">
+                <!-- Cover Image -->
+                <Border Grid.Column="0" Grid.RowSpan="2"
+                        Background="#2A2A2A"
+                        CornerRadius="10"
+                        ClipToBounds="True"
+                        Width="280" Height="400"
+                        VerticalAlignment="Top">
+                    <Panel>
+                        <!-- Placeholder -->
+                        <StackPanel VerticalAlignment="Center" 
+                                    HorizontalAlignment="Center"
+                                    IsVisible="{Binding Game.CoverImage, Converter={x:Static StringConverters.IsNullOrEmpty}}">
+                            <TextBlock Text="🎮" FontSize="64" HorizontalAlignment="Center"/>
+                            <TextBlock Text="No Cover" Opacity="0.5" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                        
+                        <!-- Cover -->
+                        <Image Source="{Binding Game.CoverImage, Converter={StaticResource FilePathToImage}}"
+                               Stretch="UniformToFill"
+                               IsVisible="{Binding Game.CoverImage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                    </Panel>
+                </Border>
+
+                <!-- Game Info -->
+                <StackPanel Grid.Column="1" Grid.Row="0" Margin="30,0,0,0" Spacing="15">
+                    <TextBlock Text="{Binding Game.Title}" 
+                               FontSize="32" 
+                               FontWeight="Bold"
+                               TextWrapping="Wrap"/>
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="15">
+                        <Border Background="#BB86FC" CornerRadius="5" Padding="10,5">
+                            <TextBlock Text="{Binding Game.Source}" FontWeight="SemiBold"/>
+                        </Border>
+                        <Border Background="#03DAC6" CornerRadius="5" Padding="10,5"
+                                IsVisible="{Binding Game.IsInstalled}">
+                            <TextBlock Text="Installed" FontWeight="SemiBold" Foreground="#1E1E1E"/>
+                        </Border>
+                    </StackPanel>
+
+                    <Separator Margin="0,10"/>
+
+                    <!-- Details Grid -->
+                    <Grid ColumnDefinitions="120, *" RowDefinitions="Auto, Auto, Auto, Auto" Margin="0,10,0,0">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Platform:" Opacity="0.6"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Game.Platform.Name}"/>
+                        
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Release Date:" Opacity="0.6" Margin="0,10,0,0"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" 
+                                   Text="{Binding Game.ReleaseDate}"
+                                   Margin="0,10,0,0"/>
+                        
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Play Time:" Opacity="0.6" Margin="0,10,0,0"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" 
+                                   Text="{Binding Game.PlayTime}"
+                                   Margin="0,10,0,0"/>
+                        
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Install Path:" Opacity="0.6" Margin="0,10,0,0"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" 
+                                   Text="{Binding Game.InstallPath}"
+                                   TextTrimming="CharacterEllipsis"
+                                   Margin="0,10,0,0"/>
+                    </Grid>
+                </StackPanel>
+
+                <!-- Description -->
+                <Border Grid.Column="1" Grid.Row="1" 
+                        Background="#2A2A2A" 
+                        CornerRadius="10" 
+                        Padding="20"
+                        Margin="30,20,0,0">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Description" FontSize="18" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding Game.Description}" 
+                                   TextWrapping="Wrap"
+                                   Opacity="0.8"
+                                   IsVisible="{Binding Game.Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                        <TextBlock Text="No description available. Click 'Refresh Metadata' to fetch from IGDB."
+                                   Opacity="0.5"
+                                   IsVisible="{Binding Game.Description, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

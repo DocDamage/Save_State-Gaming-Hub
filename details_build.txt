@@ -1,0 +1,16 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  SaveState.Core -> C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\bin\Debug\net9.0\SaveState.Core.dll
+CSC : error AXN0002: Unexpected token after Markup Extension Line 99, position 36. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\Views\GameDetailsView.axaml.cs(9,9): error CS0103: The name 'InitializeComponent' does not exist in the current context [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+
+Build FAILED.
+
+CSC : error AXN0002: Unexpected token after Markup Extension Line 99, position 36. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\Views\GameDetailsView.axaml.cs(9,9): error CS0103: The name 'InitializeComponent' does not exist in the current context [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+    0 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:01.58
+
+Workload updates are available. Run `dotnet workload list` for more information.

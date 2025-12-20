@@ -1,0 +1,82 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:entities="clr-namespace:SaveState.Core.Entities;assembly=SaveState.Core"
+             xmlns:converters="clr-namespace:SaveState.UI.Converters"
+             mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="300"
+             x:Class="SaveState.UI.Controls.GameCard"
+             x:DataType="entities:Game">
+
+    <UserControl.Resources>
+        <converters:FilePathToImageConverter x:Key="FilePathToImage"/>
+    </UserControl.Resources>
+
+    <Border Background="#2A2A2A" 
+            CornerRadius="10" 
+            ClipToBounds="True" 
+            Margin="5"
+            BoxShadow="0 4 8 0 #40000000"
+            Cursor="Hand">
+        <Grid RowDefinitions="*, Auto">
+            <!-- Cover Image -->
+            <Panel Grid.Row="0" MinHeight="180">
+                <!-- Placeholder when no cover -->
+                <Border Background="#1A1A1A" IsVisible="{Binding CoverImage, Converter={x:Static StringConverters.IsNullOrEmpty}}">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="5">
+                        <TextBlock Text="🎮" FontSize="48" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding Title}" 
+                                   FontSize="12" 
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.5"
+                                   MaxWidth="150"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Actual cover image -->
+                <Image Source="{Binding CoverImage, Converter={StaticResource FilePathToImage}}" 
+                       Stretch="UniformToFill"
+                       IsVisible="{Binding CoverImage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                
+                <!-- Source badge -->
+                <Border Background="#BB86FC" 
+                        CornerRadius="5"
+                        Padding="6,2"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="5">
+                    <TextBlock Text="{Binding Source}" 
+                               FontSize="10" 
+                               FontWeight="Bold"
+                               Foreground="White"/>
+                </Border>
+                
+                <!-- Installed indicator -->
+                <Border Background="#03DAC6"
+                        CornerRadius="10"
+                        Width="10" Height="10"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Margin="8"
+                        IsVisible="{Binding IsInstalled}"
+                        ToolTip.Tip="Installed"/>
+            </Panel>
+
+            <!-- Info -->
+            <Border Grid.Row="1" Background="#1E1E1E" Padding="10">
+                <StackPanel>
+                    <TextBlock Text="{Binding Title}" 
+                               FontWeight="Bold" 
+                               TextTrimming="CharacterEllipsis"
+                               MaxLines="2"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,4,0,0">
+                        <TextBlock Text="{Binding Platform.Name}" 
+                                   FontSize="11" 
+                                   Opacity="0.6"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

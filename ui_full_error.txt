@@ -1,0 +1,14 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  SaveState.Core -> C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\bin\Debug\net9.0\SaveState.Core.dll
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\App.axaml : Avalonia error AVLN2002: Duplicate x:Class directive, SaveState.UI.App is already used in /App.axaml [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+
+Build FAILED.
+
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\App.axaml : Avalonia error AVLN2002: Duplicate x:Class directive, SaveState.UI.App is already used in /App.axaml [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:01.65
+
+Workload updates are available. Run `dotnet workload list` for more information.
