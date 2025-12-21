@@ -68,6 +68,42 @@ public partial class MainWindowViewModel : ViewModelBase
             case "Collections":
                 CurrentPage = _serviceProvider.GetRequiredService<CollectionsViewModel>();
                 break;
+            case "Fusion":
+                CurrentPage = new CharacterFusionViewModel();
+                break;
+            case "Battle":
+                CurrentPage = new CrossGameBattleViewModel();
+                break;
+            case "Mugen":
+                CurrentPage = new MugenPlayerViewModel();
+                break;
+            case "Rewind":
+                CurrentPage = new RetroRewindViewModel();
+                break;
+            case "Shaders":
+                CurrentPage = new ShaderStudioViewModel();
+                break;
+            case "Evolution":
+                CurrentPage = new MemoryEvolutionViewModel();
+                break;
+            case "Dream":
+                CurrentPage = new DreamSequenceViewModel();
+                break;
+            case "Capsule":
+                CurrentPage = new TimeCapsuleViewModel();
+                break;
+            case "Commentary":
+                CurrentPage = new LiveCommentaryViewModel();
+                break;
+            case "AiSettings":
+                CurrentPage = new AiSettingsViewModel();
+                break;
+            case "Achievements":
+                CurrentPage = new AchievementsViewModel();
+                break;
+            case "Challenges":
+                CurrentPage = new ChallengesViewModel();
+                break;
             default:
                 CurrentPage = null;
                 break;

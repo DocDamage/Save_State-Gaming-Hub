@@ -1,0 +1,25 @@
+{
+  "brand": "Space Grotesk",
+  "ui": "Inter",
+  "display": "Orbitron",
+  "mono": "JetBrains Mono",
+  "fallbacks": {
+    "brand": [
+      "Helvetica",
+      "Arial",
+      "sans-serif"
+    ],
+    "ui": [
+      "system-ui",
+      "sans-serif"
+    ],
+    "mono": [
+      "monospace"
+    ]
+  },
+  "rules": {
+    "outline_fonts": false,
+    "outline_step": "build_only",
+    "no_role_mixing": true
+  }
+}

@@ -1,0 +1,91 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SaveState.UI.ViewModels"
+             x:Class="SaveState.UI.Views.AchievementsView"
+             x:DataType="vm:AchievementsViewModel">
+    
+    <Grid RowDefinitions="Auto,*">
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" Padding="20">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel>
+                    <TextBlock Text="🏆 Achievements" FontSize="28" FontWeight="Bold" 
+                               Foreground="{DynamicResource BrandPrimaryBrush}"/>
+                    <StackPanel Orientation="Horizontal" Spacing="20" Margin="0,10,0,0">
+                        <TextBlock Text="{Binding TotalUnlocked, StringFormat='{}{0} Unlocked'}" FontSize="14"/>
+                        <TextBlock Text="|" Opacity="0.5"/>
+                        <TextBlock Text="{Binding CompletionPercent, StringFormat='{}{0:F1}% Complete'}" FontSize="14"/>
+                    </StackPanel>
+                    
+                    <!-- Progress bar -->
+                    <Border Background="{DynamicResource SurfaceLightBrush}" CornerRadius="4" 
+                            Height="8" Width="300" HorizontalAlignment="Left" Margin="0,10,0,0">
+                        <Border Background="{DynamicResource BrandPrimaryBrush}" CornerRadius="4"
+                                HorizontalAlignment="Left"
+                                Width="{Binding CompletionPercent, Converter={x:Static vm:PercentToWidthConverter.Instance}}"/>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Category filter -->
+                <ComboBox Grid.Column="1" ItemsSource="{Binding Categories}" 
+                          SelectedItem="{Binding SelectedCategory}"
+                          Width="150" VerticalAlignment="Top"/>
+            </Grid>
+        </Border>
+
+        <!-- Achievements Grid -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Achievements}" Margin="20">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Width="280" Margin="0,0,15,15" CornerRadius="12" Padding="15"
+                                Background="{DynamicResource SurfaceBrush}"
+                                Opacity="{Binding IsUnlocked, Converter={x:Static vm:BoolToOpacityConverter.Instance}}">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <!-- Icon -->
+                                <Border Grid.Column="0" Width="50" Height="50" CornerRadius="25"
+                                        Background="{DynamicResource SurfaceLightBrush}"
+                                        VerticalAlignment="Top">
+                                    <TextBlock Text="{Binding Icon}" FontSize="24" 
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                
+                                <!-- Info -->
+                                <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14"/>
+                                    <TextBlock Text="{Binding Description}" FontSize="12" 
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               TextWrapping="Wrap" MaxWidth="180"/>
+                                    
+                                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                                        <Border Background="{DynamicResource BrandPrimaryBrush}" 
+                                                CornerRadius="3" Padding="6,2">
+                                            <TextBlock Text="{Binding Rarity}" FontSize="10" Foreground="White"/>
+                                        </Border>
+                                        <TextBlock Text="{Binding XPReward, StringFormat='+{0} XP'}" 
+                                                   FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    
+                                    <!-- Progress bar for incomplete -->
+                                    <Border IsVisible="{Binding !IsUnlocked}" Margin="0,8,0,0"
+                                            Background="{DynamicResource SurfaceLightBrush}" 
+                                            CornerRadius="3" Height="6">
+                                        <Border Background="{DynamicResource BrandSecondaryBrush}" 
+                                                CornerRadius="3" HorizontalAlignment="Left"
+                                                Width="{Binding ProgressPercent}"/>
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -1,0 +1,30 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Brand Colors -->
+    <Color x:Key="BrandPrimaryColor">#00B4FF</Color>
+    <SolidColorBrush x:Key="BrandPrimaryBrush" Color="{StaticResource BrandPrimaryColor}"/>
+
+    <!-- Dark Theme Backgrounds -->
+    <Color x:Key="BackgroundColor">#0D1117</Color>
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
+    
+    <Color x:Key="SurfaceColor">#161B22</Color>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}"/>
+
+    <Color x:Key="SurfaceLightColor">#21262D</Color>
+    <SolidColorBrush x:Key="SurfaceLightBrush" Color="{StaticResource SurfaceLightColor}"/>
+
+    <!-- Text Colors -->
+    <Color x:Key="TextPrimaryColor">#E6EDF3</Color>
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
+
+    <Color x:Key="TextSecondaryColor">#8B949E</Color>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
+    
+    <!-- Functional Colors -->
+    <Color x:Key="ErrorColor">#F85149</Color>
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}"/>
+
+    <Color x:Key="SuccessColor">#2EA043</Color>
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}"/>
+</ResourceDictionary>

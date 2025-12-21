@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="512" viewBox="0 0 256 512" xmlns="http://www.w3.org/2000/svg">
+  <g id="dna_icon">
+    <path d="M64 0 C32 64, 32 192, 64 256 C96 320, 96 448, 64 512"
+          stroke="#00B4FF" stroke-width="16" fill="none"/>
+    <path d="M192 0 C224 64, 224 192, 192 256 C160 320, 160 448, 192 512"
+          stroke="#00B4FF" stroke-width="16" fill="none"/>
+    <line x1="64" y1="64" x2="192" y2="64" stroke="#00B4FF" stroke-width="10"/>
+    <line x1="64" y1="192" x2="192" y2="192" stroke="#00B4FF" stroke-width="10"/>
+    <line x1="64" y1="320" x2="192" y2="320" stroke="#00B4FF" stroke-width="10"/>
+    <line x1="64" y1="448" x2="192" y2="448" stroke="#00B4FF" stroke-width="10"/>
+  </g>
+</svg>

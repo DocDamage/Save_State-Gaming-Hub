@@ -1,0 +1,4 @@
+Phase 3 Final Renders v1
+- MP4 reference renders (GPU-style placeholders).
+- Timings and filenames are locked for drop-in replacement.
+- Alpha WebM/ProRes4444 can be generated on request.
