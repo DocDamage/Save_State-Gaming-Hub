@@ -58,9 +58,13 @@ public partial class AiSettingsViewModel : ViewModelBase
     public IAsyncRelayCommand StartOllamaCommand { get; }
     public IAsyncRelayCommand CheckSdCommand { get; }
 
-    public AiSettingsViewModel()
+    /// <summary>
+    /// Constructor for dependency injection.
+    /// </summary>
+    /// <param name="llmService">The LLM service to use.</param>
+    public AiSettingsViewModel(LlmService llmService)
     {
-        _llmService = new LlmService();
+        _llmService = llmService ?? throw new ArgumentNullException(nameof(llmService));
 
         RefreshCommand = new AsyncRelayCommand(RefreshAsync);
         DownloadModelCommand = new AsyncRelayCommand<string>(DownloadModelAsync);
@@ -69,6 +73,13 @@ public partial class AiSettingsViewModel : ViewModelBase
         CheckSdCommand = new AsyncRelayCommand(CheckStableDiffusionAsync);
 
         _ = InitializeAsync();
+    }
+    
+    /// <summary>
+    /// Design-time/fallback constructor.
+    /// </summary>
+    public AiSettingsViewModel() : this(new LlmService())
+    {
     }
 
     private async Task InitializeAsync()
