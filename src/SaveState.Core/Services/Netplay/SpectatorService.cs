@@ -185,7 +185,7 @@ namespace SaveState.Core.Services.Netplay
                     // In production: Read from network socket
                 }
                 catch (OperationCanceledException) { break; }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
         }
 

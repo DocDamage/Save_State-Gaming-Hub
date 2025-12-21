@@ -292,7 +292,7 @@ defence = {fusion.Stats.Defense}
                     File.WriteAllLines(selectDefPath, lines);
                 }
             }
-            catch { }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
         }
 
         private void LoadFusions()
@@ -324,7 +324,7 @@ defence = {fusion.Stats.Defense}
                     var charDir = Path.Combine(_engineRootPath, "chars", f.Name.ToLower().Replace(" ", "_"));
                     if (Directory.Exists(charDir)) Directory.Delete(charDir, true);
                 }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
                 _fusions.Remove(f);
                 SaveFusions();
             }

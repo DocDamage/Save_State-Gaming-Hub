@@ -79,7 +79,10 @@ namespace SaveState.Core.Services.Ai
                     return true;
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SD connection check failed: {ex.Message}");
+            }
 
             SetStatus(StableDiffusionStatus.NotInstalled);
             return false;
@@ -170,7 +173,10 @@ namespace SaveState.Core.Services.Ai
                     return seedProp.GetInt64();
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to parse seed from info: {ex.Message}");
+            }
             return -1;
         }
 
@@ -191,7 +197,10 @@ namespace SaveState.Core.Services.Ai
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to get available models: {ex.Message}");
+            }
 
             return models;
         }
@@ -213,7 +222,10 @@ namespace SaveState.Core.Services.Ai
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to get available samplers: {ex.Message}");
+            }
 
             return samplers.Count > 0 ? samplers : new List<string> 
             { 

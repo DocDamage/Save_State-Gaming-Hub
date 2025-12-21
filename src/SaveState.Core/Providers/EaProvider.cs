@@ -80,7 +80,7 @@ public class EaProvider : IGameProvider
                         });
                     }
                 }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
         }
         catch (Exception ex)

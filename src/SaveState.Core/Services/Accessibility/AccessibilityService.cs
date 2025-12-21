@@ -263,7 +263,7 @@ namespace SaveState.Core.Services.Accessibility
                     return JsonSerializer.Deserialize<AccessibilitySettings>(json) 
                         ?? new AccessibilitySettings();
                 }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
             return new AccessibilitySettings();
         }

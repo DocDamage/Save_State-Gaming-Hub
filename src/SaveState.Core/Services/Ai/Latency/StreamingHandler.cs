@@ -187,7 +187,10 @@ namespace SaveState.Core.Services.Ai.Latency
                     var response = await _generator(prompt);
                     _warmedResponses[prompt] = response;
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Response warming failed for prompt: {ex.Message}");
+                }
             });
 
             await Task.WhenAll(tasks);

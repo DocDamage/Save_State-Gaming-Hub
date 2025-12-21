@@ -79,7 +79,10 @@ namespace SaveState.Core.Services.Ai
                         if (!string.IsNullOrEmpty(output) && File.Exists(output.Split('\n')[0]))
                             return output.Split('\n')[0];
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Failed to find ollama in PATH: {ex.Message}");
+                    }
                 }
                 else if (File.Exists(path))
                 {
@@ -186,7 +189,10 @@ namespace SaveState.Core.Services.Ai
                     _ollamaProcess = null;
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to stop Ollama process: {ex.Message}");
+            }
 
             SetStatus(OllamaStatus.Stopped);
         }
@@ -229,7 +235,10 @@ namespace SaveState.Core.Services.Ai
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to get installed models: {ex.Message}");
+            }
 
             return models;
         }

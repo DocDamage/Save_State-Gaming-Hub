@@ -316,7 +316,7 @@ Make it exciting and match the gaming highlight reel style.";
                         _montages.AddRange(list);
                     }
                 }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
         }
 

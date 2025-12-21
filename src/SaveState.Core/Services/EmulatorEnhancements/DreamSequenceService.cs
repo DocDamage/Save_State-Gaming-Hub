@@ -377,7 +377,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
                     var level = JsonSerializer.Deserialize<DreamLevel>(json);
                     if (level != null) _generatedLevels.Add(level);
                 }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
         }
 

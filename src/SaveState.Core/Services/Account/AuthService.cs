@@ -255,7 +255,10 @@ namespace SaveState.Core.Services.Account
                     UserChanged?.Invoke(this, user);
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Auto-login failed: {ex.Message}");
+            }
         }
 
         private void SaveSession()
@@ -294,7 +297,10 @@ namespace SaveState.Core.Services.Account
                         }
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to load users: {ex.Message}");
+                }
             }
         }
 

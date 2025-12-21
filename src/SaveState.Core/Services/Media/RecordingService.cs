@@ -226,7 +226,7 @@ namespace SaveState.Core.Services.Media
                         _recordings.Add(recording);
                     }
                 }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
         }
     }

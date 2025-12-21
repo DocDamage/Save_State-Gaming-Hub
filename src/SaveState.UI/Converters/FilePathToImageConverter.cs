@@ -28,6 +28,7 @@ public class FilePathToImageConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        throw new NotImplementedException();
+        // One-way converter, ConvertBack not supported
+        return Avalonia.Data.BindingOperations.DoNothing;
     }
 }

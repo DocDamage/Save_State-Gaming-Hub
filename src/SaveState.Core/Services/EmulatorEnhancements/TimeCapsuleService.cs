@@ -273,7 +273,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
                         _capsules.Add(capsule);
                     }
                 }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
         }
 

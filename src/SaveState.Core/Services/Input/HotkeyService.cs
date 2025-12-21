@@ -299,7 +299,7 @@ namespace SaveState.Core.Services.Input
                         }
                     }
                 }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
         }
 

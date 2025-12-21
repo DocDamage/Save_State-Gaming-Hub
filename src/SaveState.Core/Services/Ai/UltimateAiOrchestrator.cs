@@ -693,7 +693,11 @@ namespace SaveState.Core.Services.Ai
 
             foreach (var observer in _observers)
             {
-                try { observer(evt); } catch { }
+                try { observer(evt); }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Observer notification failed: {ex.Message}");
+                }
             }
         }
 

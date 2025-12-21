@@ -109,7 +109,10 @@ namespace SaveState.Core.Services.Ai.Events
                             reactions.Add(reaction);
                         }
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Event handler failed: {ex.Message}");
+                    }
                 }
             }
 

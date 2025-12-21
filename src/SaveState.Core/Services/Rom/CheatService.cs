@@ -302,7 +302,7 @@ namespace SaveState.Core.Services.Rom
                         }
                     }
                 }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
         }
 

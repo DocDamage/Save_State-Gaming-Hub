@@ -334,7 +334,7 @@ namespace SaveState.Core.Services.Cloud
                     var json = File.ReadAllText(_manifestPath);
                     return JsonSerializer.Deserialize<SyncManifest>(json) ?? new SyncManifest();
                 }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
 
             return new SyncManifest

@@ -397,7 +397,7 @@ Recommend ONE mutation with a brief reason (15 words max).";
                         _profiles[profile.GameId] = profile;
                     }
                 }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
         }
 

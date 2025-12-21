@@ -298,7 +298,7 @@ namespace SaveState.Core.Services.Netplay
                     _ = HandleClientAsync(client, ct);
                 }
                 catch (OperationCanceledException) { break; }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
         }
 
@@ -325,7 +325,7 @@ namespace SaveState.Core.Services.Netplay
                     }
                 }
                 catch (OperationCanceledException) { break; }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
         }
 

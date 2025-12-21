@@ -548,7 +548,7 @@ namespace SaveState.Core.Services.Player
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
         }
 
         // ============ Private Helper Methods ============

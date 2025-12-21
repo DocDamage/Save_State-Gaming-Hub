@@ -316,7 +316,7 @@ namespace SaveState.Core.Services.Gamification
                         }
                     }
                 }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
         }
 

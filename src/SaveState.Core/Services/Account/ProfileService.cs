@@ -307,7 +307,7 @@ namespace SaveState.Core.Services.Account
                         _profiles[profile.UserId] = profile;
                     }
                 }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
         }
 

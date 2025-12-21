@@ -246,7 +246,7 @@ namespace SaveState.Core.Services.Cloud
                         _backups.AddRange(list.Where(b => File.Exists(b.FilePath)));
                     }
                 }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
         }
 

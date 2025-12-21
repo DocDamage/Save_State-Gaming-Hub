@@ -238,7 +238,10 @@ namespace SaveState.Core.Services.Ai.Latency
                                 var generated = await generateTask;
                                 CacheResponse(request.Prompt, generated);
                             }
-                            catch { }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"Background generation caching failed: {ex.Message}");
+                            }
                         });
 
                         return new LatencyManagedResponse

@@ -87,7 +87,7 @@ namespace SaveState.Core.Helpers
                     return Convert.ToInt64(obj["TotalPhysicalMemory"]);
                 }
             }
-            catch { }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             return GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
         }
 
@@ -104,7 +104,7 @@ namespace SaveState.Core.Helpers
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             return GC.GetGCMemoryInfo().TotalAvailableMemoryBytes / 2;
         }
 
@@ -161,7 +161,7 @@ namespace SaveState.Core.Helpers
                     };
                 }
             }
-            catch { }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             return null;
         }
 

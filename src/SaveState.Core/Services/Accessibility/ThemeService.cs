@@ -280,7 +280,7 @@ namespace SaveState.Core.Services.Accessibility
                         _themes.Add(theme);
                     }
                 }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
         }
 

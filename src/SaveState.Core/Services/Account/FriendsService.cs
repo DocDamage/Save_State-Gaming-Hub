@@ -321,7 +321,7 @@ namespace SaveState.Core.Services.Account
                         }
                     }
                 }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
         }
 

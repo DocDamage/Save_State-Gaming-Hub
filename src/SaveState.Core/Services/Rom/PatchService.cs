@@ -200,7 +200,7 @@ namespace SaveState.Core.Services.Rom
                 if (header[0] == 'B' && header[1] == 'P' && header[2] == 'S' && header[3] == '1')
                     return PatchFormat.BPS;
             }
-            catch { }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
 
             return PatchFormat.IPS; // Default
         }
@@ -303,7 +303,7 @@ namespace SaveState.Core.Services.Rom
                     var patches = JsonSerializer.Deserialize<List<PatchInfo>>(json);
                     if (patches != null) _patches.AddRange(patches);
                 }
-                catch { }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
             }
         }
 

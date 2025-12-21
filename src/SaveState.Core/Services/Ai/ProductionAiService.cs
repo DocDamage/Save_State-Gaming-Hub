@@ -416,7 +416,10 @@ namespace SaveState.Core.Services.Ai
                                 : MemoryPriority.Normal
                         });
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        response.Warnings.Add($"Memory recording failed: {ex.Message}");
+                    }
                 }
                 AddDebugStage(response, "MemoryRecord", stageStart, true);
 

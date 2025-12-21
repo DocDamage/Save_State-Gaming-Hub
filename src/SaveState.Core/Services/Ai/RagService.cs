@@ -344,7 +344,10 @@ ANSWER:";
                         _documents.Add(doc);
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to load document from {file}: {ex.Message}");
+                }
             }
         }
 
