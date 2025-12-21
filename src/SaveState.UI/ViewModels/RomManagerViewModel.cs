@@ -238,15 +238,15 @@ public partial class RomManagerViewModel : ViewModelBase
         }
     }
 
-    private async Task DeleteRomFolderAsync()
+    private Task DeleteRomFolderAsync()
     {
         // Would need SelectedRomFolder property
+        return Task.CompletedTask;
     }
 
     private async Task ScanAllFoldersAsync()
     {
         IsScanning = true;
-        var total = 0;
 
         foreach (var folder in RomFolders.ToList())
         {

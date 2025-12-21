@@ -8,14 +8,14 @@ public class RomScannerService
 {
     private readonly ILogger _logger = Log.ForContext<RomScannerService>();
 
-    public async Task<List<Game>> ScanFolderAsync(string folderPath, string? platformOverride = null, bool recursive = true)
+    public Task<List<Game>> ScanFolderAsync(string folderPath, string? platformOverride = null, bool recursive = true)
     {
         var games = new List<Game>();
 
         if (!Directory.Exists(folderPath))
         {
             _logger.Warning("ROM folder not found: {Path}", folderPath);
-            return games;
+            return Task.FromResult(games);
         }
 
         var searchOption = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
@@ -59,15 +59,15 @@ public class RomScannerService
         }
 
         _logger.Information("Found {Count} ROMs in {Path}", games.Count, folderPath);
-        return games;
+        return Task.FromResult(games);
     }
 
-    public async Task<Dictionary<string, List<Game>>> ScanFolderByPlatformAsync(string folderPath, bool recursive = true)
+    public Task<Dictionary<string, List<Game>>> ScanFolderByPlatformAsync(string folderPath, bool recursive = true)
     {
         var result = new Dictionary<string, List<Game>>();
 
         if (!Directory.Exists(folderPath))
-            return result;
+            return Task.FromResult(result);
 
         var searchOption = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
 
@@ -95,7 +95,7 @@ public class RomScannerService
             }
         }
 
-        return result;
+        return Task.FromResult(result);
     }
 
     private string CleanRomTitle(string filename)
@@ -126,7 +126,7 @@ public class RomScannerService
             var fileInfo = new FileInfo(filePath);
             using var stream = File.OpenRead(filePath);
             var buffer = new byte[Math.Min(1024, fileInfo.Length)];
-            stream.Read(buffer, 0, buffer.Length);
+            _ = stream.Read(buffer, 0, buffer.Length); // Read may return fewer bytes; for hashing purposes, partial read is acceptable
             
             var hash = $"{fileInfo.Length}-{BitConverter.ToInt64(buffer, 0)}";
             return hash;

@@ -77,8 +77,10 @@ namespace SaveState.Core.Services.Netplay
         private readonly int _defaultPort = 55435;
 
         public event EventHandler<NetplayState>? StateChanged;
+#pragma warning disable CS0067 // Events are defined for future use
         public event EventHandler<NetplayPlayer>? PlayerJoined;
         public event EventHandler<NetplayPlayer>? PlayerLeft;
+#pragma warning restore CS0067
         public event EventHandler<string>? ChatMessageReceived;
         public event EventHandler<byte[]>? InputReceived;
         public event EventHandler<int>? LatencyUpdated;
@@ -92,7 +94,7 @@ namespace SaveState.Core.Services.Netplay
         private NetplayService() { }
 
         // Host a new game session
-        public async Task<NetplaySession?> HostSessionAsync(string playerName, string gameId, 
+        public Task<NetplaySession?> HostSessionAsync(string playerName, string gameId, 
             string gameName, string platform, int maxPlayers = 4)
         {
             try
@@ -132,13 +134,13 @@ namespace SaveState.Core.Services.Netplay
                 _ = AcceptClientsAsync(_cts.Token);
 
                 Console.WriteLine($"🎮 Hosting netplay session: {_currentSession.Code}");
-                return _currentSession;
+                return Task.FromResult<NetplaySession?>(_currentSession);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Host error: {ex.Message}");
                 SetState(NetplayState.Error);
-                return null;
+                return Task.FromResult<NetplaySession?>(null);
             }
         }
 

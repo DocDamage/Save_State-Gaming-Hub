@@ -50,7 +50,9 @@ namespace SaveState.Core.Services.Netplay
         private int _bufferDelayFrames = 30;
         private const int MaxBufferFrames = 300; // 5 seconds at 60fps
 
+#pragma warning disable CS0067 // Event is defined for future use
         public event EventHandler<StreamFrame>? FrameReceived;
+#pragma warning restore CS0067
         public event EventHandler<SpectatorInfo>? SpectatorJoined;
         public event EventHandler<SpectatorInfo>? SpectatorLeft;
         public event EventHandler<int>? ViewerCountChanged;
@@ -123,7 +125,7 @@ namespace SaveState.Core.Services.Netplay
         }
 
         // Join as spectator
-        public async Task<bool> StartWatchingAsync(string hostAddress, int port = 55436)
+        public Task<bool> StartWatchingAsync(string hostAddress, int port = 55436)
         {
             try
             {
@@ -137,13 +139,13 @@ namespace SaveState.Core.Services.Netplay
                 // Start receive loop
                 _ = ReceiveFramesAsync(_cts.Token);
 
-                return true;
+                return Task.FromResult(true);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Watch error: {ex.Message}");
                 _isWatching = false;
-                return false;
+                return Task.FromResult(false);
             }
         }
 

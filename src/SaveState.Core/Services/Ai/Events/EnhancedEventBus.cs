@@ -341,7 +341,7 @@ namespace SaveState.Core.Services.Ai.Events
             {
                 Name = "NpcDeathNarrator",
                 SubscribedEventTypes = new List<string> { GameEvents.NpcDied },
-                Handler = async evt =>
+                Handler = evt =>
                 {
                     var npcName = evt.Data.TryGetValue("npc_name", out var name) 
                         ? name.ToString() : "An enemy";
@@ -350,16 +350,16 @@ namespace SaveState.Core.Services.Ai.Events
 
                     if (wasImportant)
                     {
-                        return new AiReaction
+                        return Task.FromResult<AiReaction?>(new AiReaction
                         {
                             EventId = evt.Id,
                             ReactionType = "dramatic_narration",
                             Content = $"A significant figure falls. {npcName}'s fate has been sealed...",
                             ShouldDisplay = true,
                             Delay = TimeSpan.FromMilliseconds(500)
-                        };
+                        });
                     }
-                    return null;
+                    return Task.FromResult<AiReaction?>(null);
                 }
             });
 
@@ -368,17 +368,17 @@ namespace SaveState.Core.Services.Ai.Events
             {
                 Name = "LevelUpCelebrator",
                 SubscribedEventTypes = new List<string> { GameEvents.PlayerLevelUp },
-                Handler = async evt =>
+                Handler = evt =>
                 {
                     var level = evt.Data.TryGetValue("new_level", out var lvl) 
                         ? lvl.ToString() : "?";
-                    return new AiReaction
+                    return Task.FromResult<AiReaction?>(new AiReaction
                     {
                         EventId = evt.Id,
                         ReactionType = "celebration",
                         Content = $"Congratulations! You've reached level {level}!",
                         ShouldDisplay = true
-                    };
+                    });
                 }
             });
 
@@ -388,15 +388,15 @@ namespace SaveState.Core.Services.Ai.Events
                 Name = "WorldSimulator",
                 SubscribedCategories = new List<EventCategory> { EventCategory.World },
                 MinimumPriority = EventPriority.Background,
-                Handler = async evt =>
+                Handler = evt =>
                 {
                     // Background world simulation - doesn't display
-                    return new AiReaction
+                    return Task.FromResult<AiReaction?>(new AiReaction
                     {
                         EventId = evt.Id,
                         ReactionType = "simulation_update",
                         ShouldDisplay = false
-                    };
+                    });
                 }
             });
         }

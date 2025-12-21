@@ -366,10 +366,10 @@ namespace SaveState.Core.Services.Ai.Tools
                 {
                     new ToolParameter { Name = "scenario", Type = "string", Required = true, Description = "Description of scenario to simulate" }
                 },
-                Handler = async (p) =>
+                Handler = (p) =>
                 {
                     var scenario = p["scenario"].ToString();
-                    return $"Simulation of '{scenario}': [This would trigger actual simulation logic]";
+                    return Task.FromResult<object?>($"Simulation of '{scenario}': [This would trigger actual simulation logic]");
                 }
             });
 
@@ -385,10 +385,10 @@ namespace SaveState.Core.Services.Ai.Tools
                     new ToolParameter { Name = "topic", Type = "string", Required = true, Description = "Topic to search for" },
                     new ToolParameter { Name = "era", Type = "string", Required = false, Description = "Historical era to focus on" }
                 },
-                Handler = async (p) =>
+                Handler = (p) =>
                 {
                     var topic = p["topic"].ToString();
-                    return $"Archive search for '{topic}': [Would return relevant lore]";
+                    return Task.FromResult<object?>($"Archive search for '{topic}': [Would return relevant lore]");
                 }
             });
 
@@ -404,9 +404,9 @@ namespace SaveState.Core.Services.Ai.Tools
                 {
                     new ToolParameter { Name = "quest_id", Type = "string", Required = false, Description = "Specific quest to get hint for" }
                 },
-                Handler = async (p) =>
+                Handler = (p) =>
                 {
-                    return "Consider examining your surroundings more carefully...";
+                    return Task.FromResult<object?>("Consider examining your surroundings more carefully...");
                 }
             });
 
@@ -422,11 +422,11 @@ namespace SaveState.Core.Services.Ai.Tools
                     new ToolParameter { Name = "npc_id", Type = "string", Required = true, Description = "NPC to query" },
                     new ToolParameter { Name = "topic", Type = "string", Required = true, Description = "Topic to recall" }
                 },
-                Handler = async (p) =>
+                Handler = (p) =>
                 {
                     var npc = p["npc_id"].ToString();
                     var topic = p["topic"].ToString();
-                    return $"NPC {npc}'s memories about {topic}: [Memory retrieval]";
+                    return Task.FromResult<object?>($"NPC {npc}'s memories about {topic}: [Memory retrieval]");
                 }
             });
 
@@ -441,9 +441,9 @@ namespace SaveState.Core.Services.Ai.Tools
                 {
                     new ToolParameter { Name = "question", Type = "string", Required = true, Description = "What needs clarification" }
                 },
-                Handler = async (p) =>
+                Handler = (p) =>
                 {
-                    return $"Clarification requested: {p["question"]}";
+                    return Task.FromResult<object?>($"Clarification requested: {p["question"]}");
                 }
             });
         }

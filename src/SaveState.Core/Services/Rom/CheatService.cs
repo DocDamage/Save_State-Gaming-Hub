@@ -156,7 +156,6 @@ namespace SaveState.Core.Services.Rom
             string? currentCheatName = null;
             string? currentCode = null;
             string? currentDesc = null;
-            bool enabled = false;
 
             foreach (var line in lines)
             {
