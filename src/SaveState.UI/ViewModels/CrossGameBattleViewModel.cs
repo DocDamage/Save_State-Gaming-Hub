@@ -1,7 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveState.Core.Services.Mugen;
+using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace SaveState.UI.ViewModels;
 
@@ -45,10 +47,13 @@ public partial class CrossGameBattleViewModel : ViewModelBase
     public IRelayCommand RefreshCommand { get; }
     public IRelayCommand ClearHistoryCommand { get; }
 
-    public CrossGameBattleViewModel()
+    /// <summary>
+    /// Constructor for dependency injection.
+    /// </summary>
+    public CrossGameBattleViewModel(CrossGameBattleService battleService, MugenService mugenService)
     {
-        _battleService = new CrossGameBattleService();
-        _mugenService = new MugenService();
+        _battleService = battleService ?? throw new ArgumentNullException(nameof(battleService));
+        _mugenService = mugenService ?? throw new ArgumentNullException(nameof(mugenService));
 
         AddToRosterCommand = new RelayCommand<MugenFighter>(AddToRoster);
         FightCommand = new RelayCommand(StartFight, CanFight);
@@ -56,6 +61,13 @@ public partial class CrossGameBattleViewModel : ViewModelBase
         ClearHistoryCommand = new RelayCommand(ClearHistory);
 
         Refresh();
+    }
+
+    /// <summary>
+    /// Design-time/fallback constructor.
+    /// </summary>
+    public CrossGameBattleViewModel() : this(new CrossGameBattleService(), new MugenService())
+    {
     }
 
     private bool CanFight() => SelectedPlayer1 != null && SelectedPlayer2 != null && SelectedPlayer1 != SelectedPlayer2;

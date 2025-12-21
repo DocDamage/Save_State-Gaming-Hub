@@ -1,7 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveState.Core.Services.Mugen;
+using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace SaveState.UI.ViewModels;
 
@@ -37,10 +39,13 @@ public partial class CharacterFusionViewModel : ViewModelBase
     public IRelayCommand RefreshFightersCommand { get; }
     public IRelayCommand<string> DeleteFusionCommand { get; }
 
-    public CharacterFusionViewModel()
+    /// <summary>
+    /// Constructor for dependency injection.
+    /// </summary>
+    public CharacterFusionViewModel(CharacterFusionService fusionService, MugenService mugenService)
     {
-        _fusionService = new CharacterFusionService();
-        _mugenService = new MugenService();
+        _fusionService = fusionService ?? throw new ArgumentNullException(nameof(fusionService));
+        _mugenService = mugenService ?? throw new ArgumentNullException(nameof(mugenService));
 
         FuseCommand = new RelayCommand(PerformFusion, CanFuse);
         RefreshFightersCommand = new RelayCommand(RefreshFighters);
@@ -48,6 +53,13 @@ public partial class CharacterFusionViewModel : ViewModelBase
 
         RefreshFighters();
         LoadFusionGallery();
+    }
+
+    /// <summary>
+    /// Design-time/fallback constructor.
+    /// </summary>
+    public CharacterFusionViewModel() : this(new CharacterFusionService(), new MugenService())
+    {
     }
 
     private bool CanFuse() => SelectedParent1 != null && SelectedParent2 != null && SelectedParent1 != SelectedParent2;

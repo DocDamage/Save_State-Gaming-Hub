@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveState.Core.Services.EmulatorEnhancements;
+using System;
 using System.Collections.ObjectModel;
 
 namespace SaveState.UI.ViewModels;
@@ -34,9 +35,12 @@ public partial class RetroRewindViewModel : ViewModelBase
     public IRelayCommand AddBookmarkCommand { get; }
     public IRelayCommand<string> JumpToBookmarkCommand { get; }
 
-    public RetroRewindViewModel()
+    /// <summary>
+    /// Constructor for dependency injection.
+    /// </summary>
+    public RetroRewindViewModel(RetroRewindService rewindService)
     {
-        _rewindService = new RetroRewindService();
+        _rewindService = rewindService ?? throw new ArgumentNullException(nameof(rewindService));
 
         StartSessionCommand = new RelayCommand(StartSession, () => !IsSessionActive);
         EndSessionCommand = new RelayCommand(EndSession, () => IsSessionActive);
@@ -44,6 +48,13 @@ public partial class RetroRewindViewModel : ViewModelBase
         FastForwardCommand = new RelayCommand(() => FastForward(10), () => IsSessionActive);
         AddBookmarkCommand = new RelayCommand(AddBookmark, () => IsSessionActive && !string.IsNullOrWhiteSpace(NewBookmarkName));
         JumpToBookmarkCommand = new RelayCommand<string>(JumpToBookmark);
+    }
+
+    /// <summary>
+    /// Design-time/fallback constructor.
+    /// </summary>
+    public RetroRewindViewModel() : this(new RetroRewindService())
+    {
     }
 
     private void StartSession()

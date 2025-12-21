@@ -1,7 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveState.Core.Services.EmulatorEnhancements;
+using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace SaveState.UI.ViewModels;
 
@@ -45,9 +47,12 @@ public partial class TimeCapsuleViewModel : ViewModelBase
     public IRelayCommand<string> DeleteCapsuleCommand { get; }
     public IRelayCommand RefreshCommand { get; }
 
-    public TimeCapsuleViewModel()
+    /// <summary>
+    /// Constructor for dependency injection.
+    /// </summary>
+    public TimeCapsuleViewModel(TimeCapsuleService capsuleService)
     {
-        _capsuleService = new TimeCapsuleService();
+        _capsuleService = capsuleService ?? throw new ArgumentNullException(nameof(capsuleService));
 
         CreateCapsuleCommand = new RelayCommand(CreateCapsule, CanCreateCapsule);
         TryUnlockCommand = new RelayCommand<string>(TryUnlock);
@@ -57,6 +62,13 @@ public partial class TimeCapsuleViewModel : ViewModelBase
         RefreshCommand = new RelayCommand(RefreshCapsules);
 
         RefreshCapsules();
+    }
+
+    /// <summary>
+    /// Design-time/fallback constructor.
+    /// </summary>
+    public TimeCapsuleViewModel() : this(new TimeCapsuleService())
+    {
     }
 
     private bool CanCreateCapsule() => !string.IsNullOrWhiteSpace(NewTitle);

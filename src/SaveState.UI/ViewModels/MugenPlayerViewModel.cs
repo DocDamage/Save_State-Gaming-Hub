@@ -1,7 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveState.Core.Services.Mugen;
+using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace SaveState.UI.ViewModels;
 
@@ -45,10 +47,13 @@ public partial class MugenPlayerViewModel : ViewModelBase
     public IRelayCommand CreateTournamentCommand { get; }
     public IRelayCommand<string> StartTournamentCommand { get; }
 
-    public MugenPlayerViewModel()
+    /// <summary>
+    /// Constructor for dependency injection.
+    /// </summary>
+    public MugenPlayerViewModel(MugenService mugenService, MugenTournamentService tournamentService)
     {
-        _mugenService = new MugenService();
-        _tournamentService = new MugenTournamentService();
+        _mugenService = mugenService ?? throw new ArgumentNullException(nameof(mugenService));
+        _tournamentService = tournamentService ?? throw new ArgumentNullException(nameof(tournamentService));
 
         LaunchEngineCommand = new RelayCommand(LaunchEngine);
         RefreshCommand = new RelayCommand(Refresh);
@@ -56,6 +61,13 @@ public partial class MugenPlayerViewModel : ViewModelBase
         StartTournamentCommand = new RelayCommand<string>(StartTournament);
 
         Refresh();
+    }
+
+    /// <summary>
+    /// Design-time/fallback constructor.
+    /// </summary>
+    public MugenPlayerViewModel() : this(new MugenService(), new MugenTournamentService())
+    {
     }
 
     private bool CanCreateTournament() => !string.IsNullOrWhiteSpace(NewTournamentName) && Roster.Count >= 2;

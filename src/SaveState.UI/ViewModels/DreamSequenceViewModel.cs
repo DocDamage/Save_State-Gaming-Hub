@@ -1,7 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveState.Core.Services.EmulatorEnhancements;
+using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace SaveState.UI.ViewModels;
 
@@ -30,15 +32,25 @@ public partial class DreamSequenceViewModel : ViewModelBase
     public IRelayCommand<string> DeleteLevelCommand { get; }
     public IRelayCommand RefreshCommand { get; }
 
-    public DreamSequenceViewModel()
+    /// <summary>
+    /// Constructor for dependency injection.
+    /// </summary>
+    public DreamSequenceViewModel(DreamSequenceService dreamService)
     {
-        _dreamService = new DreamSequenceService();
+        _dreamService = dreamService ?? throw new ArgumentNullException(nameof(dreamService));
 
         GenerateLevelCommand = new RelayCommand(GenerateLevel);
         DeleteLevelCommand = new RelayCommand<string>(DeleteLevel);
         RefreshCommand = new RelayCommand(RefreshLevels);
 
         RefreshLevels();
+    }
+
+    /// <summary>
+    /// Design-time/fallback constructor.
+    /// </summary>
+    public DreamSequenceViewModel() : this(new DreamSequenceService())
+    {
     }
 
     private void GenerateLevel()

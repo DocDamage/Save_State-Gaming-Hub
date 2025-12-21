@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveState.Core.Services.EmulatorEnhancements;
+using System;
 using System.Collections.ObjectModel;
 
 namespace SaveState.UI.ViewModels;
@@ -28,15 +29,25 @@ public partial class LiveCommentaryViewModel : ViewModelBase
     public IRelayCommand<GameEventType> SimulateEventCommand { get; }
     public IRelayCommand ClearHistoryCommand { get; }
 
-    public LiveCommentaryViewModel()
+    /// <summary>
+    /// Constructor for dependency injection.
+    /// </summary>
+    public LiveCommentaryViewModel(LiveCommentaryService commentaryService)
     {
-        _commentaryService = new LiveCommentaryService();
+        _commentaryService = commentaryService ?? throw new ArgumentNullException(nameof(commentaryService));
 
         SetPersonalityCommand = new RelayCommand<CommentatorPersonality>(SetPersonality);
         SimulateEventCommand = new RelayCommand<GameEventType>(SimulateEvent);
         ClearHistoryCommand = new RelayCommand(ClearHistory);
 
         SelectedPersonality = _commentaryService.GetPersonality();
+    }
+
+    /// <summary>
+    /// Design-time/fallback constructor.
+    /// </summary>
+    public LiveCommentaryViewModel() : this(new LiveCommentaryService())
+    {
     }
 
     private void SetPersonality(CommentatorPersonality personality)

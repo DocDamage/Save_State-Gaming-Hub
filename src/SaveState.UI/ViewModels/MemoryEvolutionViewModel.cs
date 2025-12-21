@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveState.Core.Services.EmulatorEnhancements;
+using System;
 using System.Collections.ObjectModel;
 
 namespace SaveState.UI.ViewModels;
@@ -30,9 +31,12 @@ public partial class MemoryEvolutionViewModel : ViewModelBase
     public IRelayCommand<string> RemoveMutationCommand { get; }
     public IRelayCommand ClearMutationsCommand { get; }
 
-    public MemoryEvolutionViewModel()
+    /// <summary>
+    /// Constructor for dependency injection.
+    /// </summary>
+    public MemoryEvolutionViewModel(MemoryEvolutionService evolutionService)
     {
-        _evolutionService = new MemoryEvolutionService();
+        _evolutionService = evolutionService ?? throw new ArgumentNullException(nameof(evolutionService));
 
         LoadProfileCommand = new RelayCommand(LoadProfile);
         SimulateDeathCommand = new RelayCommand(SimulateDeath);
@@ -41,6 +45,13 @@ public partial class MemoryEvolutionViewModel : ViewModelBase
         ClearMutationsCommand = new RelayCommand(ClearMutations);
 
         LoadProfile();
+    }
+
+    /// <summary>
+    /// Design-time/fallback constructor.
+    /// </summary>
+    public MemoryEvolutionViewModel() : this(new MemoryEvolutionService())
+    {
     }
 
     private void LoadProfile()

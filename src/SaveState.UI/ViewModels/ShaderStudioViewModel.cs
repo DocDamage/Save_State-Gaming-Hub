@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveState.Core.Services.EmulatorEnhancements;
+using System;
 using System.Collections.ObjectModel;
 
 namespace SaveState.UI.ViewModels;
@@ -32,9 +33,12 @@ public partial class ShaderStudioViewModel : ViewModelBase
     public IRelayCommand CreateCustomShaderCommand { get; }
     public IRelayCommand<string> DeleteShaderCommand { get; }
 
-    public ShaderStudioViewModel()
+    /// <summary>
+    /// Constructor for dependency injection.
+    /// </summary>
+    public ShaderStudioViewModel(ShaderStudioService shaderService)
     {
-        _shaderService = new ShaderStudioService();
+        _shaderService = shaderService ?? throw new ArgumentNullException(nameof(shaderService));
 
         ApplyPresetCommand = new RelayCommand<string>(ApplyPreset);
         DisableShaderCommand = new RelayCommand(DisableShader);
@@ -42,6 +46,13 @@ public partial class ShaderStudioViewModel : ViewModelBase
         DeleteShaderCommand = new RelayCommand<string>(DeleteShader);
 
         LoadPresets();
+    }
+
+    /// <summary>
+    /// Design-time/fallback constructor.
+    /// </summary>
+    public ShaderStudioViewModel() : this(new ShaderStudioService())
+    {
     }
 
     private bool CanCreateCustomShader() => !string.IsNullOrWhiteSpace(NewShaderName);
