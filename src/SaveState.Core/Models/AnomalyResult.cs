@@ -36,6 +36,11 @@ public record AnomalyResult
     public List<long> SuspiciousAddresses { get; init; } = new();
 
     /// <summary>
+    /// When the anomaly was detected
+    /// </summary>
+    public DateTime DetectedAt { get; init; }
+
+    /// <summary>
     /// No anomaly result
     /// </summary>
     public static AnomalyResult None => new() { IsAnomaly = false, ConfidenceScore = 0 };

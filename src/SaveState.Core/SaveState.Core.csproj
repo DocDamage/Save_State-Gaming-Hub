@@ -26,11 +26,8 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="System.Data.SQLite.Core" />
-<<<<<<< HEAD
     <PackageReference Include="System.Speech" />
-=======
     <PackageReference Include="System.Management" />
->>>>>>> d3a3d91afba93033f78d7a5e30b2ebe85f8766c5
   </ItemGroup>
 
   <ItemGroup>

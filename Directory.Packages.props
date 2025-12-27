@@ -34,6 +34,7 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.0" />
     <PackageVersion Include="System.Speech" Version="10.0.1" />
+    <PackageVersion Include="System.Management" Version="9.0.0" />
     <!-- Utilities -->
     <PackageVersion Include="VdfParser" Version="1.0.3" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
