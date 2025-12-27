@@ -1,0 +1,190 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SaveState.UI.ViewModels"
+             x:Class="SaveState.UI.Views.AiSettingsView"
+             x:DataType="vm:AiSettingsViewModel">
+    
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20" Spacing="20">
+            <!-- Header -->
+            <StackPanel>
+                <TextBlock Text="🤖 AI Settings" FontSize="28" FontWeight="Bold" 
+                           Foreground="{DynamicResource BrandPrimaryBrush}"/>
+                <TextBlock Text="Configure LLM providers, models, and image generation" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,5,0,0"/>
+            </StackPanel>
+
+            <!-- System Info -->
+            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="💻 System Capabilities" FontWeight="SemiBold" FontSize="16"/>
+                    
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="RAM" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding RamInfo}" FontWeight="Medium"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="GPU" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding GpuInfo}" FontWeight="Medium"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Background="{DynamicResource SurfaceLightBrush}" CornerRadius="8" Padding="15">
+                        <TextBlock Text="{Binding SystemWarnings}" TextWrapping="Wrap"/>
+                    </Border>
+
+                    <TextBlock Text="{Binding SystemStatus}" FontWeight="Medium" 
+                               Foreground="{DynamicResource BrandPrimaryBrush}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Ollama Status -->
+            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                <StackPanel Spacing="15">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel>
+                            <TextBlock Text="🦙 Ollama (Local LLM)" FontWeight="SemiBold" FontSize="16"/>
+                            <TextBlock Text="{Binding OllamaStatus, StringFormat='Status: {0}'}" 
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Command="{Binding StartOllamaCommand}"
+                                Content="Start Ollama" Padding="15,8" CornerRadius="6"
+                                Background="{DynamicResource BrandPrimaryBrush}" Foreground="White"/>
+                    </Grid>
+
+                    <TextBlock Text="{Binding MaxModels, StringFormat='Max concurrent models: {0} (based on RAM)'}" 
+                               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Installed Models -->
+            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="📦 Installed Models" FontWeight="SemiBold" FontSize="16"/>
+                    
+                    <ItemsControl ItemsSource="{Binding InstalledModels}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{DynamicResource SurfaceLightBrush}" 
+                                        CornerRadius="8" Padding="15" Margin="0,0,0,8">
+                                    <Grid ColumnDefinitions="*,Auto,Auto">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Description}" FontSize="12"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{Binding Size}" 
+                                                   VerticalAlignment="Center" Margin="10,0"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        <Button Grid.Column="2" Content="🗑" 
+                                                Command="{Binding $parent[ItemsControl].((vm:AiSettingsViewModel)DataContext).DeleteModelCommand}"
+                                                CommandParameter="{Binding Name}"
+                                                Background="Transparent" Padding="8"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <TextBlock Text="No models installed" 
+                               IsVisible="{Binding !InstalledModels.Count}"
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Available Models -->
+            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                <StackPanel Spacing="15">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="⬇️ Available Models" FontWeight="SemiBold" FontSize="16"/>
+                        <TextBlock Text="{Binding DownloadProgress}" 
+                                   Foreground="{DynamicResource BrandPrimaryBrush}"
+                                   IsVisible="{Binding IsDownloading}"/>
+                    </StackPanel>
+                    
+                    <ItemsControl ItemsSource="{Binding AvailableModels}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{DynamicResource SurfaceLightBrush}" 
+                                        CornerRadius="8" Padding="15" Margin="0,0,0,8">
+                                    <Grid ColumnDefinitions="*,Auto,Auto">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Description}" FontSize="12"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{Binding Size}" 
+                                                   VerticalAlignment="Center" Margin="10,0"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        <Button Grid.Column="2" Content="⬇️ Download" 
+                                                Command="{Binding $parent[ItemsControl].((vm:AiSettingsViewModel)DataContext).DownloadModelCommand}"
+                                                CommandParameter="{Binding Name}"
+                                                IsEnabled="{Binding CanDownload}"
+                                                Background="{DynamicResource BrandPrimaryBrush}" 
+                                                Foreground="White" Padding="12,6" CornerRadius="4"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Stable Diffusion -->
+            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                <StackPanel Spacing="15">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel>
+                            <TextBlock Text="🎨 Stable Diffusion (Image AI)" FontWeight="SemiBold" FontSize="16"/>
+                            <TextBlock Text="{Binding SdStatus, StringFormat='Status: {0}'}" 
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Command="{Binding CheckSdCommand}"
+                                Content="Check Connection" Padding="15,8" CornerRadius="6"/>
+                    </Grid>
+
+                    <TextBlock Text="Run Automatic1111 WebUI with --api flag on localhost:7860" 
+                               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Cloud Providers -->
+            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="☁️ Cloud Providers" FontWeight="SemiBold" FontSize="16"/>
+                    
+                    <TextBlock Text="Set environment variables to enable:" FontSize="12" 
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="• GROQ_API_KEY - Free tier, very fast" FontSize="12"/>
+                        <TextBlock Text="• TOGETHER_API_KEY - Free tier" FontSize="12"/>
+                        <TextBlock Text="• OPENAI_API_KEY - Best quality, paid" FontSize="12"/>
+                    </StackPanel>
+
+                    <TextBlock Text="Active Providers:" FontWeight="Medium" Margin="0,10,0,0"/>
+                    <ItemsControl ItemsSource="{Binding ActiveProviders}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{DynamicResource BrandPrimaryBrush}" 
+                                        CornerRadius="4" Padding="10,5" Margin="0,0,8,0">
+                                    <TextBlock Text="{Binding}" Foreground="White" FontSize="12"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Refresh Button -->
+            <Button Command="{Binding RefreshCommand}" HorizontalAlignment="Center"
+                    Content="↻ Refresh Status" Padding="20,10" CornerRadius="8"/>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

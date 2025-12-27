@@ -151,6 +151,7 @@ class Program
                 services.AddScoped<ImportExportService>();
                 services.AddSingleton<RomScannerService>();
                 
+<<<<<<< HEAD
                 // AI Services
                 services.AddSingleton<IAiService, GeminiService>();
                 services.AddSingleton<CheatAgentService>();
@@ -169,8 +170,12 @@ class Program
                 services.AddSingleton<ITrainerService, TrainerService>();
                 
                 services.AddSingleton<IVoiceService, VoiceService>();
+=======
+                // ============ SaveState.Core Services (AI, Emulation, etc.) ============
+                services.AddSaveStateCoreServices();
+>>>>>>> d3a3d91afba93033f78d7a5e30b2ebe85f8766c5
                 
-                // ViewModels
+                // ViewModels - Main
                 services.AddSingleton<MainWindowViewModel>();
                 services.AddTransient<GameGridViewModel>();
                 services.AddTransient<SettingsViewModel>();
@@ -179,6 +184,20 @@ class Program
                 services.AddTransient<StatisticsViewModel>();
                 services.AddTransient<CollectionsViewModel>();
                 services.AddTransient<KnowledgeViewModel>();
+                
+                // ViewModels - AI & Emulator Enhancements
+                services.AddTransient<AiSettingsViewModel>();
+                services.AddTransient<LiveCommentaryViewModel>();
+                services.AddTransient<DreamSequenceViewModel>();
+                services.AddTransient<TimeCapsuleViewModel>();
+                services.AddTransient<MemoryEvolutionViewModel>();
+                services.AddTransient<ShaderStudioViewModel>();
+                services.AddTransient<RetroRewindViewModel>();
+                
+                // ViewModels - MUGEN/Fighting
+                services.AddTransient<MugenPlayerViewModel>();
+                services.AddTransient<CrossGameBattleViewModel>();
+                services.AddTransient<CharacterFusionViewModel>();
                 
                 // IPC
                 services.AddHostedService<IpcWorker>();

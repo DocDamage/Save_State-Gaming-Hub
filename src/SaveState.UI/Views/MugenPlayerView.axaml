@@ -1,0 +1,140 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SaveState.UI.ViewModels"
+             x:Class="SaveState.UI.Views.MugenPlayerView"
+             x:DataType="vm:MugenPlayerViewModel">
+    
+    <Grid RowDefinitions="Auto,*,Auto" Margin="20">
+        <!-- Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,20">
+            <StackPanel>
+                <TextBlock Text="🎮 MUGEN Player" FontSize="28" FontWeight="Bold" 
+                           Foreground="{DynamicResource BrandPrimaryBrush}"/>
+                <TextBlock Text="Manage your fighters, stages, and tournaments" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,5,0,0"/>
+            </StackPanel>
+            <Button Grid.Column="1" Command="{Binding LaunchEngineCommand}"
+                    Background="{DynamicResource BrandPrimaryBrush}" Foreground="White"
+                    Padding="20,12" CornerRadius="8" FontWeight="Bold">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="🚀" Margin="0,0,8,0"/>
+                    <TextBlock Text="Launch Ikemen GO"/>
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*,*">
+            <!-- Fighters Panel -->
+            <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" 
+                    CornerRadius="12" Padding="15" Margin="0,0,10,0">
+                <Grid RowDefinitions="Auto,*">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="👥 Fighters" FontWeight="SemiBold" FontSize="16"/>
+                        <TextBlock Text="{Binding Fighters.Count, StringFormat=' ({0})'}" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Fighters}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource SurfaceLightBrush}" 
+                                            CornerRadius="6" Padding="10" Margin="0,0,0,6">
+                                        <TextBlock Text="{Binding Name}"/>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Stages Panel -->
+            <Border Grid.Column="1" Background="{DynamicResource SurfaceBrush}" 
+                    CornerRadius="12" Padding="15" Margin="10,0">
+                <Grid RowDefinitions="Auto,*">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="🏟️ Stages" FontWeight="SemiBold" FontSize="16"/>
+                        <TextBlock Text="{Binding Stages.Count, StringFormat=' ({0})'}" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Stages}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource SurfaceLightBrush}" 
+                                            CornerRadius="6" Padding="10" Margin="0,0,0,6">
+                                        <TextBlock Text="{Binding Name}"/>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Tournaments Panel -->
+            <Border Grid.Column="2" Background="{DynamicResource SurfaceBrush}" 
+                    CornerRadius="12" Padding="15" Margin="10,0,0,0">
+                <Grid RowDefinitions="Auto,Auto,*">
+                    <TextBlock Text="🏆 Tournaments" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,10"/>
+                    
+                    <!-- Create Tournament -->
+                    <Border Grid.Row="1" Background="{DynamicResource SurfaceLightBrush}" 
+                            CornerRadius="8" Padding="10" Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBox Text="{Binding NewTournamentName}" 
+                                     Watermark="Tournament name..."
+                                     Background="Transparent" BorderThickness="0"/>
+                            <Button Content="Create Tournament" Command="{Binding CreateTournamentCommand}"
+                                    HorizontalAlignment="Stretch" Margin="0,8,0,0"
+                                    Background="{DynamicResource BrandPrimaryBrush}" Foreground="White"
+                                    Padding="10,6" CornerRadius="4"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Tournament List -->
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Tournaments}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource SurfaceLightBrush}" 
+                                            CornerRadius="6" Padding="10" Margin="0,0,0,6">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Participants.Count, StringFormat='{}{0} fighters'}" 
+                                                               FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                    <TextBlock Text=" • " Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                    <TextBlock Text="{Binding Status}" FontSize="11" 
+                                                               Foreground="{DynamicResource BrandPrimaryBrush}"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                            <Button Grid.Column="1" Content="▶" 
+                                                    Command="{Binding $parent[ItemsControl].((vm:MugenPlayerViewModel)DataContext).StartTournamentCommand}"
+                                                    CommandParameter="{Binding Id}"
+                                                    Background="{DynamicResource BrandPrimaryBrush}" Foreground="White"
+                                                    Padding="8,4" CornerRadius="4" VerticalAlignment="Center"
+                                                    IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" 
+                CornerRadius="8" Padding="15,10" Margin="0,20,0,0">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
+                <Button Grid.Column="1" Content="↻ Refresh" Command="{Binding RefreshCommand}"
+                        Background="Transparent"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,129 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SaveState.UI.ViewModels"
+             x:Class="SaveState.UI.Views.MemoryEvolutionView"
+             x:DataType="vm:MemoryEvolutionViewModel">
+    
+    <Grid RowDefinitions="Auto,*,Auto" Margin="20">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="🧬 Memory Evolution" FontSize="28" FontWeight="Bold" 
+                       Foreground="{DynamicResource BrandPrimaryBrush}"/>
+            <TextBlock Text="Adaptive gameplay that learns from your playstyle" 
+                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*,*">
+            <!-- Profile Stats -->
+            <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" 
+                    CornerRadius="12" Padding="15" Margin="0,0,10,0">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="📊 Player Profile" FontWeight="SemiBold" FontSize="16"/>
+                    
+                    <Border Background="{DynamicResource SurfaceLightBrush}" CornerRadius="8" Padding="15">
+                        <StackPanel Spacing="10">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="Skill Level" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding CurrentProfile.SkillLevel, StringFormat='{}{0}/100'}" 
+                                           FontWeight="Bold" FontSize="18" 
+                                           Foreground="{DynamicResource BrandPrimaryBrush}"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="Total Deaths" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding CurrentProfile.TotalDeaths}" FontWeight="Bold" FontSize="18"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="Play Time" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding CurrentProfile.TotalPlayTime, StringFormat='{}{0}s'}" 
+                                           FontWeight="Bold" FontSize="18"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Simulation Buttons -->
+                    <TextBlock Text="Simulate Events" FontWeight="SemiBold" Margin="0,10,0,5"/>
+                    <Button Command="{Binding SimulateDeathCommand}" HorizontalAlignment="Stretch"
+                            Background="#E53935" Foreground="White" Padding="12,8" CornerRadius="6">
+                        <TextBlock Text="💀 Simulate Death"/>
+                    </Button>
+                    <Button Command="{Binding SimulatePlayTimeCommand}" HorizontalAlignment="Stretch"
+                            Background="{DynamicResource BrandPrimaryBrush}" Foreground="White" 
+                            Padding="12,8" CornerRadius="6">
+                        <TextBlock Text="⏱️ Add 5 Min Play Time"/>
+                    </Button>
+                </StackPanel>
+            </Border>
+
+            <!-- Death Heatmap -->
+            <Border Grid.Column="1" Background="{DynamicResource SurfaceBrush}" 
+                    CornerRadius="12" Padding="15" Margin="10,0">
+                <Grid RowDefinitions="Auto,*">
+                    <TextBlock Text="💀 Death Heatmap" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,15"/>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding DeathHeatmap}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource SurfaceLightBrush}" 
+                                            CornerRadius="6" Padding="12" Margin="0,0,0,8">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Text="{Binding Location}" VerticalAlignment="Center"/>
+                                            <Border Background="#E53935" CornerRadius="10" Padding="8,2">
+                                                <TextBlock Text="{Binding Deaths}" Foreground="White" FontWeight="Bold"/>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Active Mutations -->
+            <Border Grid.Column="2" Background="{DynamicResource SurfaceBrush}" 
+                    CornerRadius="12" Padding="15" Margin="10,0,0,0">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <TextBlock Text="🧬 Active Mutations" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,15"/>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding ActiveMutations}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource SurfaceLightBrush}" 
+                                            CornerRadius="8" Padding="12" Margin="0,0,0,8">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="11" 
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="1" Content="✕" 
+                                                    Command="{Binding $parent[ItemsControl].((vm:MemoryEvolutionViewModel)DataContext).RemoveMutationCommand}"
+                                                    CommandParameter="{Binding Name}"
+                                                    Background="Transparent" VerticalAlignment="Top"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                    <Button Grid.Row="2" Command="{Binding ClearMutationsCommand}" 
+                            HorizontalAlignment="Center" Background="Transparent" Margin="0,10,0,0">
+                        <TextBlock Text="Clear All Mutations"/>
+                    </Button>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" 
+                CornerRadius="8" Padding="15,10" Margin="0,20,0,0">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
+                <Button Grid.Column="1" Content="↻ Reload Profile" Command="{Binding LoadProfileCommand}"
+                        Background="Transparent"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="200" viewBox="0 0 1200 200" xmlns="http://www.w3.org/2000/svg">
+  <g id="wordmark_only">
+    <text x="0" y="150" font-family="Arial, Helvetica, sans-serif"
+          font-size="160" letter-spacing="6"
+          fill="#00B4FF">SAVESTATE</text>
+  </g>
+</svg>

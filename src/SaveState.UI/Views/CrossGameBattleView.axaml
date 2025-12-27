@@ -1,0 +1,146 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SaveState.UI.ViewModels"
+             x:Class="SaveState.UI.Views.CrossGameBattleView"
+             x:DataType="vm:CrossGameBattleViewModel">
+    
+    <Grid RowDefinitions="Auto,*,Auto" Margin="20">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="⚔️ Cross-Game Battle Arena" FontSize="28" FontWeight="Bold" 
+                       Foreground="{DynamicResource BrandPrimaryBrush}"/>
+            <TextBlock Text="Import fighters from any game and simulate epic battles" 
+                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,2*,*">
+            <!-- Available Fighters -->
+            <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" 
+                    CornerRadius="12" Padding="15" Margin="0,0,10,0">
+                <Grid RowDefinitions="Auto,*">
+                    <TextBlock Text="Available Fighters" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,10"/>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding AvailableFighters}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource SurfaceLightBrush}" 
+                                            CornerRadius="6" Padding="10" Margin="0,0,0,6">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                            <Button Grid.Column="1" Content="+" 
+                                                    Command="{Binding $parent[ItemsControl].((vm:CrossGameBattleViewModel)DataContext).AddToRosterCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Background="{DynamicResource BrandPrimaryBrush}" Foreground="White"
+                                                    Padding="8,4" CornerRadius="4"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Battle Zone -->
+            <Border Grid.Column="1" Background="{DynamicResource SurfaceBrush}" 
+                    CornerRadius="12" Padding="20" Margin="10,0">
+                <Grid RowDefinitions="*,Auto,Auto,*">
+                    <!-- Player 1 -->
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom">
+                        <TextBlock Text="Player 1" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding BattleRoster}" 
+                                  SelectedItem="{Binding SelectedPlayer1}"
+                                  Width="200" Margin="0,10">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock Text="{Binding SelectedPlayer1.Stats.Attack, StringFormat='ATK: {0}', FallbackValue='Select fighter'}"
+                                   HorizontalAlignment="Center" FontSize="12"/>
+                    </StackPanel>
+
+                    <!-- VS and Stage -->
+                    <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,20">
+                        <TextBlock Text="VS" FontSize="36" FontWeight="Bold" HorizontalAlignment="Center"
+                                   Foreground="{DynamicResource BrandPrimaryBrush}"/>
+                        <ComboBox ItemsSource="{Binding Stages}" 
+                                  SelectedItem="{Binding SelectedStage}"
+                                  Width="150" Margin="0,10"/>
+                    </StackPanel>
+
+                    <!-- Fight Button -->
+                    <Button Grid.Row="2" Command="{Binding FightCommand}" HorizontalAlignment="Center"
+                            Background="{DynamicResource BrandPrimaryBrush}" Foreground="White"
+                            Padding="40,15" CornerRadius="8" FontSize="18" FontWeight="Bold">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⚔️" Margin="0,0,10,0"/>
+                            <TextBlock Text="FIGHT!"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Player 2 -->
+                    <StackPanel Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0">
+                        <TextBlock Text="Player 2" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding BattleRoster}" 
+                                  SelectedItem="{Binding SelectedPlayer2}"
+                                  Width="200" Margin="0,10">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock Text="{Binding SelectedPlayer2.Stats.Attack, StringFormat='ATK: {0}', FallbackValue='Select fighter'}"
+                                   HorizontalAlignment="Center" FontSize="12"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Match History -->
+            <Border Grid.Column="2" Background="{DynamicResource SurfaceBrush}" 
+                    CornerRadius="12" Padding="15" Margin="10,0,0,0">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <TextBlock Text="Match History" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,10"/>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding MatchHistory}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource SurfaceLightBrush}" 
+                                            CornerRadius="6" Padding="10" Margin="0,0,0,6">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Winner, StringFormat='🏆 {0}'}" 
+                                                       FontWeight="SemiBold"/>
+                                            <TextBlock FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}">
+                                                <TextBlock.Text>
+                                                    <MultiBinding StringFormat="{}{0} vs {1}">
+                                                        <Binding Path="Player1.Name"/>
+                                                        <Binding Path="Player2.Name"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                    <Button Grid.Row="2" Content="Clear History" Command="{Binding ClearHistoryCommand}"
+                            HorizontalAlignment="Center" Background="Transparent" Margin="0,10,0,0"/>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" 
+                CornerRadius="8" Padding="15,10" Margin="0,20,0,0">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                <Button Grid.Column="1" Content="↻ Refresh" Command="{Binding RefreshCommand}"
+                        Background="Transparent"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

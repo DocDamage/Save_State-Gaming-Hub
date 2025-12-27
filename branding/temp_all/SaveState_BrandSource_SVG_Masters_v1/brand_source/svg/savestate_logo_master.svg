@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="400" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg">
+  <g id="alignment_guides" opacity="0.05">
+    <rect x="0" y="0" width="1200" height="400" fill="none" stroke="#00B4FF"/>
+  </g>
+  <g id="logo_mark" transform="translate(100,100)">
+    <path d="M50 0 C20 50, 20 150, 50 200 C80 250, 80 350, 50 400"
+          stroke="#00B4FF" stroke-width="12" fill="none"/>
+    <path d="M150 0 C180 50, 180 150, 150 200 C120 250, 120 350, 150 400"
+          stroke="#00B4FF" stroke-width="12" fill="none"/>
+    <line x1="50" y1="50" x2="150" y2="50" stroke="#00B4FF" stroke-width="8"/>
+    <line x1="50" y1="150" x2="150" y2="150" stroke="#00B4FF" stroke-width="8"/>
+    <line x1="50" y1="250" x2="150" y2="250" stroke="#00B4FF" stroke-width="8"/>
+    <line x1="50" y1="350" x2="150" y2="350" stroke="#00B4FF" stroke-width="8"/>
+  </g>
+  <g id="wordmark" transform="translate(300,260)">
+    <text x="0" y="0" font-family="Arial, Helvetica, sans-serif"
+          font-size="140" letter-spacing="4"
+          fill="#00B4FF">SAVESTATE</text>
+  </g>
+</svg>

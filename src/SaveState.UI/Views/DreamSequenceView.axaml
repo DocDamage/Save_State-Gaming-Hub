@@ -1,0 +1,114 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SaveState.UI.ViewModels"
+             x:Class="SaveState.UI.Views.DreamSequenceView"
+             x:DataType="vm:DreamSequenceViewModel">
+    
+    <Grid RowDefinitions="Auto,*,Auto" Margin="20">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="💭 Dream Sequence" FontSize="28" FontWeight="Bold" 
+                       Foreground="{DynamicResource BrandPrimaryBrush}"/>
+            <TextBlock Text="Procedurally generated levels mixing elements from different games" 
+                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,2*">
+            <!-- Generator Panel -->
+            <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" 
+                    CornerRadius="12" Padding="20" Margin="0,0,10,0">
+                <StackPanel Spacing="20">
+                    <TextBlock Text="🔮 Dream Generator" FontWeight="SemiBold" FontSize="16"/>
+                    
+                    <!-- Mood Selection -->
+                    <StackPanel>
+                        <TextBlock Text="Dream Mood" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,5"/>
+                        <ComboBox ItemsSource="{Binding AvailableMoods}" 
+                                  SelectedItem="{Binding SelectedMood}"
+                                  HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+
+                    <!-- Custom Seed -->
+                    <StackPanel>
+                        <TextBlock Text="Custom Seed (optional)" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding CustomSeed}" Watermark="Random if empty"
+                                 Background="{DynamicResource SurfaceLightBrush}" CornerRadius="4"/>
+                    </StackPanel>
+
+                    <!-- Generate Button -->
+                    <Button Command="{Binding GenerateLevelCommand}"
+                            Background="{DynamicResource BrandPrimaryBrush}" Foreground="White"
+                            Padding="20,12" CornerRadius="8" HorizontalAlignment="Stretch">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="✨" Margin="0,0,8,0"/>
+                            <TextBlock Text="Generate Dream"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Selected Level Details -->
+                    <Border Background="{DynamicResource SurfaceLightBrush}" CornerRadius="8" Padding="15"
+                            IsVisible="{Binding SelectedLevel, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="{Binding SelectedLevel.Name}" FontWeight="Bold" FontSize="16"/>
+                            <TextBlock Text="{Binding SelectedLevel.Mood, StringFormat='Mood: {0}'}" FontSize="12"/>
+                            <TextBlock Text="{Binding SelectedLevel.Elements.Count, StringFormat='{}{0} elements'}" FontSize="12"/>
+                            <TextBlock Text="{Binding SelectedLevel.Seed, StringFormat='Seed: {0}'}" FontSize="11" 
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Generated Levels Gallery -->
+            <Border Grid.Column="1" Background="{DynamicResource SurfaceBrush}" 
+                    CornerRadius="12" Padding="15" Margin="10,0,0,0">
+                <Grid RowDefinitions="Auto,*">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                        <TextBlock Text="🌙 Dream Gallery" FontWeight="SemiBold" FontSize="16"/>
+                        <TextBlock Text="{Binding GeneratedLevels.Count, StringFormat=' ({0})'}" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding GeneratedLevels}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource SurfaceLightBrush}" 
+                                            CornerRadius="8" Padding="15" Margin="0,0,0,10">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14"/>
+                                                <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,5,0,0">
+                                                    <TextBlock Text="{Binding Mood}" FontSize="11" 
+                                                               Foreground="{DynamicResource BrandPrimaryBrush}"/>
+                                                    <TextBlock Text="{Binding Elements.Count, StringFormat='{}{0} elements'}" 
+                                                               FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Generated, StringFormat='Generated: {0:d}'}" 
+                                                           FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,5,0,0"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="1" Content="🗑" 
+                                                    Command="{Binding $parent[ItemsControl].((vm:DreamSequenceViewModel)DataContext).DeleteLevelCommand}"
+                                                    CommandParameter="{Binding Id}"
+                                                    Background="Transparent" VerticalAlignment="Top"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" 
+                CornerRadius="8" Padding="15,10" Margin="0,20,0,0">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
+                <Button Grid.Column="1" Content="↻ Refresh" Command="{Binding RefreshCommand}"
+                        Background="Transparent"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

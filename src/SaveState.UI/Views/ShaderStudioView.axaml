@@ -1,0 +1,110 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SaveState.UI.ViewModels"
+             x:Class="SaveState.UI.Views.ShaderStudioView"
+             x:DataType="vm:ShaderStudioViewModel">
+    
+    <Grid RowDefinitions="Auto,*,Auto" Margin="20">
+        <!-- Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,20">
+            <StackPanel>
+                <TextBlock Text="🎨 Shader Studio" FontSize="28" FontWeight="Bold" 
+                           Foreground="{DynamicResource BrandPrimaryBrush}"/>
+                <TextBlock Text="Real-time visual effects for your games" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,5,0,0"/>
+            </StackPanel>
+            <Button Grid.Column="1" Command="{Binding DisableShaderCommand}"
+                    Background="#E53935" Foreground="White" Padding="15,10" CornerRadius="8">
+                <TextBlock Text="✕ Disable Shader"/>
+            </Button>
+        </Grid>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*">
+            <!-- Preset Grid -->
+            <Border Grid.Column="0" Background="{DynamicResource SurfaceBrush}" 
+                    CornerRadius="12" Padding="15" Margin="0,0,10,0">
+                <Grid RowDefinitions="Auto,*">
+                    <TextBlock Text="Shader Presets" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,15"/>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Presets}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Background="{DynamicResource SurfaceLightBrush}" 
+                                            CornerRadius="8" Padding="15" Margin="0,0,0,10"
+                                            HorizontalAlignment="Stretch"
+                                            Command="{Binding $parent[ItemsControl].((vm:ShaderStudioViewModel)DataContext).ApplyPresetCommand}"
+                                            CommandParameter="{Binding Id}">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="12" 
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="1" Content="🗑" 
+                                                    Command="{Binding $parent[ItemsControl].((vm:ShaderStudioViewModel)DataContext).DeleteShaderCommand}"
+                                                    CommandParameter="{Binding Id}"
+                                                    Background="Transparent" VerticalAlignment="Top"
+                                                    IsVisible="{Binding Id, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Custom Shader Creator -->
+            <Border Grid.Column="1" Background="{DynamicResource SurfaceBrush}" 
+                    CornerRadius="12" Padding="15" Margin="10,0,0,0">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="Create Custom Shader" FontWeight="SemiBold" FontSize="16"/>
+                    
+                    <StackPanel>
+                        <TextBlock Text="Name" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding NewShaderName}" Watermark="My Custom Shader"
+                                 Background="{DynamicResource SurfaceLightBrush}" CornerRadius="4"/>
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Text="Description" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding NewShaderDescription}" Watermark="What does this shader do?"
+                                 Background="{DynamicResource SurfaceLightBrush}" CornerRadius="4"/>
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Text="GLSL Code" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding NewShaderCode}" 
+                                 Background="{DynamicResource SurfaceLightBrush}" CornerRadius="4"
+                                 Height="150" AcceptsReturn="True" TextWrapping="Wrap"
+                                 FontFamily="Consolas"/>
+                    </StackPanel>
+
+                    <Button Command="{Binding CreateCustomShaderCommand}"
+                            Background="{DynamicResource BrandPrimaryBrush}" Foreground="White"
+                            Padding="15,10" CornerRadius="8" HorizontalAlignment="Stretch">
+                        <TextBlock Text="✨ Create Shader" HorizontalAlignment="Center"/>
+                    </Button>
+
+                    <!-- Active Shader Info -->
+                    <Border Background="{DynamicResource SurfaceLightBrush}" CornerRadius="8" Padding="15"
+                            IsVisible="{Binding ActivePreset, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <StackPanel>
+                            <TextBlock Text="Active Shader" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding ActivePreset.Name}" FontWeight="Bold" FontSize="16"
+                                       Foreground="{DynamicResource BrandPrimaryBrush}"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" 
+                CornerRadius="8" Padding="15,10" Margin="0,20,0,0">
+            <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
+        </Border>
+    </Grid>
+</UserControl>
