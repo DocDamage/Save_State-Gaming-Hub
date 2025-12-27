@@ -25,6 +25,8 @@ public class SteamProvider : IGameProvider
             return games;
         }
 
+        // Normalize path (Steam registry uses forward slashes)
+        steamPath = steamPath.Replace("/", "\\");
         _logger.Information("Found Steam at: {Path}", steamPath);
 
         var libraryPaths = GetLibraryPaths(steamPath);

@@ -3,6 +3,7 @@
 
     <Style Selector="Button.nav-btn">
         <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="White"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="HorizontalAlignment" Value="Stretch"/>
         <Setter Property="Padding" Value="15,10"/>

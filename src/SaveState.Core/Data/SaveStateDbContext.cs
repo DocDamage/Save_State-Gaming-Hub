@@ -14,6 +14,10 @@ public class SaveStateDbContext : DbContext
     public DbSet<Emulator> Emulators => Set<Emulator>();
     public DbSet<RomFolder> RomFolders => Set<RomFolder>();
     public DbSet<GameActivity> GameActivities => Set<GameActivity>();
+    
+    // RAG and MBAD entities
+    public DbSet<KnowledgeEntry> KnowledgeEntries => Set<KnowledgeEntry>();
+    public DbSet<AnomalyLog> AnomalyLogs => Set<AnomalyLog>();
 
     public SaveStateDbContext(DbContextOptions<SaveStateDbContext> options) : base(options)
     {

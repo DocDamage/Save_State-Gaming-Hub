@@ -71,6 +71,13 @@
                     </StackPanel>
                 </Button>
                 
+                <Button Command="{Binding NavigateCommand}" CommandParameter="Knowledge" Classes="nav-btn">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="🧠"/>
+                        <TextBlock Text="Knowledge Base"/>
+                    </StackPanel>
+                </Button>
+                
                 <Button Command="{Binding NavigateCommand}" CommandParameter="Stats" Classes="nav-btn">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <TextBlock Text="📊"/>

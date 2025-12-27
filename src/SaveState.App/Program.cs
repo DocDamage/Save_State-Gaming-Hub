@@ -152,7 +152,23 @@ class Program
                 services.AddSingleton<RomScannerService>();
                 
                 // AI Services
-                services.AddSingleton<IAiService, OpenAiService>();
+                services.AddSingleton<IAiService, GeminiService>();
+                services.AddSingleton<CheatAgentService>();
+
+                // RAG Services (Retrieval-Augmented Generation)
+                services.AddSingleton<IEmbeddingService, EmbeddingService>();
+                services.AddScoped<IVectorStoreService, VectorStoreService>();
+                services.AddScoped<IKnowledgeService, KnowledgeService>();
+
+                // MBAD Services (Memory-Based Anomaly Detection)
+                services.AddSingleton<IMemoryAnomalyService, MemoryAnomalyService>();
+
+                // Cheat & System Services
+                services.AddSingleton<IProcessService, ProcessService>();
+                services.AddSingleton<IMemoryScannerService, MemoryScannerService>();
+                services.AddSingleton<ITrainerService, TrainerService>();
+                
+                services.AddSingleton<IVoiceService, VoiceService>();
                 
                 // ViewModels
                 services.AddSingleton<MainWindowViewModel>();
@@ -162,6 +178,7 @@ class Program
                 services.AddTransient<AiAssistantViewModel>();
                 services.AddTransient<StatisticsViewModel>();
                 services.AddTransient<CollectionsViewModel>();
+                services.AddTransient<KnowledgeViewModel>();
                 
                 // IPC
                 services.AddHostedService<IpcWorker>();

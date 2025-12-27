@@ -1,0 +1,186 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.UI.ViewModels"
+             x:Class="SaveState.UI.Views.KnowledgeView"
+             x:DataType="vm:KnowledgeViewModel"
+             Foreground="White">
+
+    <Grid ColumnDefinitions="350, *">
+        <!-- Left Panel - Add & Categories -->
+        <Border Grid.Column="0" Background="#1A1A1A" Padding="15">
+            <Grid RowDefinitions="Auto, Auto, Auto, *, Auto">
+                <!-- Header -->
+                <StackPanel Grid.Row="0" Margin="0,0,0,15">
+                    <TextBlock Text="🧠 Knowledge Base" FontSize="20" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="RAG-powered context for AI" FontSize="12" Foreground="#AAAAAA"/>
+                </StackPanel>
+                
+                <!-- Status Cards -->
+                <StackPanel Grid.Row="1" Spacing="10" Margin="0,0,0,15">
+                    <!-- RAG Status -->
+                    <Border Background="#2D4A3E" CornerRadius="8" Padding="12">
+                        <Grid ColumnDefinitions="Auto, *, Auto">
+                            <TextBlock Grid.Column="0" Text="🔍" FontSize="18" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Margin="10,0">
+                                <TextBlock Text="RAG Retrieval" FontWeight="SemiBold" Foreground="White"/>
+                                <TextBlock FontSize="11" Foreground="#BBBBBB">
+                                    <Run Text="{Binding TotalEntries}"/>
+                                    <Run Text=" entries indexed"/>
+                                </TextBlock>
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="2" IsChecked="{Binding IsRagEnabled}" 
+                                          OnContent="" OffContent=""/>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- MBAD Status -->
+                    <Border CornerRadius="8" Padding="12" Background="#2D3A4A">
+                        <Grid ColumnDefinitions="Auto, *, Auto">
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="5">
+                                <TextBlock Text="🛡️" FontSize="18" VerticalAlignment="Center"/>
+                                <TextBlock Text="●" FontSize="10" VerticalAlignment="Center"
+                                           Foreground="#4CAF50"
+                                           IsVisible="{Binding IsMbadEnabled}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="10,0">
+                                <TextBlock Text="MBAD Anomaly Detection" FontWeight="SemiBold" Foreground="White"/>
+                                <TextBlock FontSize="11" Foreground="#BBBBBB">
+                                    <Run Text="Score: "/>
+                                    <Run Text="{Binding MbadAnomalyScore, StringFormat='{}{0:P0}'}"/>
+                                </TextBlock>
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="2" IsChecked="{Binding IsMbadEnabled}"
+                                          OnContent="" OffContent=""/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Add New Entry -->
+                <Border Grid.Row="2" Background="#2A2A2A" CornerRadius="8" Padding="12" Margin="0,0,0,15">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Add Knowledge" FontWeight="SemiBold" Foreground="White"/>
+                        <ComboBox ItemsSource="{Binding Categories}"
+                                  SelectedItem="{Binding SelectedCategory}"
+                                  HorizontalAlignment="Stretch"/>
+                        <TextBox Text="{Binding NewContent}"
+                                 Watermark="Enter knowledge content..."
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 Height="80"/>
+                        <Button Content="➕ Add to Knowledge Base"
+                                Command="{Binding AddEntryCommand}"
+                                Background="#BB86FC"
+                                Foreground="White"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Search -->
+                <StackPanel Grid.Row="3" VerticalAlignment="Top" Spacing="10">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <TextBox Grid.Column="0" 
+                                 Text="{Binding SearchQuery}"
+                                 Watermark="Search knowledge..."/>
+                        <Button Grid.Column="1" 
+                                Content="🔍"
+                                Command="{Binding SearchCommand}"
+                                Margin="5,0,0,0"/>
+                    </Grid>
+                    
+                    <Button Content="🔄 Rebuild Embeddings"
+                            Command="{Binding RebuildIndexCommand}"
+                            Background="#3A3A3A"
+                            Foreground="White"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"/>
+                </StackPanel>
+                
+                <!-- Status -->
+                <TextBlock Grid.Row="4" Text="{Binding StatusMessage}" 
+                           FontSize="11" Foreground="#AAAAAA" 
+                           TextWrapping="Wrap" Margin="0,10,0,0"/>
+            </Grid>
+        </Border>
+        
+        <!-- Right Panel - Knowledge Entries -->
+        <Border Grid.Column="1" Background="#121212" Padding="20">
+            <Grid RowDefinitions="Auto, *">
+                <!-- Header -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="15" Margin="0,0,0,15">
+                    <TextBlock Text="Knowledge Entries" FontSize="24" FontWeight="Bold" Foreground="White"/>
+                    <Border Background="#BB86FC" CornerRadius="12" Padding="10,4" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding TotalEntries}" FontSize="14" Foreground="White"/>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Entries List -->
+                <ScrollViewer Grid.Row="1">
+                    <ItemsControl ItemsSource="{Binding Entries}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#2A2A2A" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+                                    <Grid RowDefinitions="Auto, Auto, Auto">
+                                        <!-- Header -->
+                                        <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto">
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="{Binding CategoryIcon}" FontSize="18"/>
+                                                <Border Background="#3A3A3A" CornerRadius="4" Padding="8,2">
+                                                    <TextBlock Text="{Binding Category}" FontSize="11" Foreground="White"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="{Binding CreatedAtDisplay}" 
+                                                       HorizontalAlignment="Right"
+                                                       FontSize="11" Opacity="0.5"/>
+                                            <Button Grid.Column="2"
+                                                    Content="🗑️"
+                                                    Command="{Binding $parent[UserControl].((vm:KnowledgeViewModel)DataContext).DeleteEntryCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Background="Transparent"
+                                                    Margin="10,0,0,0"/>
+                                        </Grid>
+                                        
+                                        <!-- Content -->
+                                        <TextBlock Grid.Row="1" 
+                                                   Text="{Binding Content}" 
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,10,0,0"
+                                                   MaxHeight="100"/>
+                                        
+                                        <!-- ID (for debugging) -->
+                                        <TextBlock Grid.Row="2" 
+                                                   Text="{Binding Id, StringFormat='ID: {0}'}"
+                                                   FontSize="9" Opacity="0.3" Margin="0,8,0,0"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+                
+                <!-- Empty State -->
+                <StackPanel Grid.Row="1" 
+                            IsVisible="{Binding !TotalEntries}"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Spacing="10">
+                    <TextBlock Text="🧠" FontSize="48" HorizontalAlignment="Center"/>
+                    <TextBlock Text="No knowledge entries yet" HorizontalAlignment="Center" Opacity="0.6"/>
+                    <TextBlock Text="Add entries to enhance AI responses with context" 
+                               HorizontalAlignment="Center" FontSize="12" Opacity="0.4"/>
+                </StackPanel>
+                
+                <!-- Loading Overlay -->
+                <Border Grid.Row="1" 
+                        Background="#80000000" 
+                        IsVisible="{Binding IsLoading}"
+                        CornerRadius="8">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="⏳" FontSize="32" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Loading..." HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

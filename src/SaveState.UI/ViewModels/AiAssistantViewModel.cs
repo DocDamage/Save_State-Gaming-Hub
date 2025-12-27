@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SaveState.Core.Entities;
 using SaveState.Core.Interfaces;
 using SaveState.Core.Models;
+using SaveState.Core.Services;
 using Serilog;
 using System;
 using System.Collections.ObjectModel;
@@ -35,10 +36,14 @@ public partial class AiAssistantViewModel : ViewModelBase
     [ObservableProperty]
     private string _selectedTab = "Chat";
 
+    [ObservableProperty]
+    private bool _isListening;
+
     public IAsyncRelayCommand SendMessageCommand { get; }
     public IAsyncRelayCommand GetRecommendationsCommand { get; }
     public IAsyncRelayCommand<string> GetGameTipsCommand { get; }
     public IRelayCommand ClearChatCommand { get; }
+    public IRelayCommand ToggleListeningCommand { get; }
 
     public AiAssistantViewModel(IServiceProvider serviceProvider)
     {
@@ -48,19 +53,41 @@ public partial class AiAssistantViewModel : ViewModelBase
         GetRecommendationsCommand = new AsyncRelayCommand(GetRecommendationsAsync);
         GetGameTipsCommand = new AsyncRelayCommand<string>(GetGameTipsAsync);
         ClearChatCommand = new RelayCommand(ClearChat);
+        ToggleListeningCommand = new RelayCommand(ToggleListening);
 
         // Check if AI is configured
         var aiService = _serviceProvider.GetService<IAiService>();
         IsConfigured = aiService?.IsConfigured ?? false;
+
+        // Voice Service
+        var voiceService = _serviceProvider.GetService<IVoiceService>();
+        if (voiceService != null)
+        {
+            voiceService.ListeningStateChanged += (s, active) => IsListening = active;
+            voiceService.SpeechRecognized += (s, text) =>
+            {
+                // Append recognized text to user message
+                if (string.IsNullOrEmpty(UserMessage))
+                    UserMessage = text;
+                else
+                    UserMessage += " " + text;
+            };
+        }
 
         // Add welcome message
         Messages.Add(new ChatMessageViewModel
         {
             IsUser = false,
             Content = IsConfigured 
-                ? "👋 Hi! I'm your gaming AI assistant. Ask me anything about games, get recommendations, or tips!"
-                : "⚠️ AI not configured. Add your OpenAI API key in Settings to enable me!"
+                ? "👋 Hi! I'm your gaming AI assistant. I can chat, give tips, or help you hack games! Type 'Attach to <ProcessName>' to start scanning."
+                : "⚠️ AI not configured. Add your Gemini API key in Settings to enable me!"
         });
+    }
+
+    private void ToggleListening()
+    {
+        var voiceService = _serviceProvider.GetService<IVoiceService>();
+        voiceService?.ToggleListening();
     }
 
     private async Task SendMessageAsync()
@@ -77,19 +104,38 @@ public partial class AiAssistantViewModel : ViewModelBase
         try
         {
             var aiService = _serviceProvider.GetRequiredService<IAiService>();
-            
-            // Build history from recent messages
-            var history = Messages
-                .Where(m => !m.Content.StartsWith("👋") && !m.Content.StartsWith("⚠️"))
-                .TakeLast(10)
-                .Select(m => new AiChatMessage 
-                { 
-                    Role = m.IsUser ? "user" : "assistant", 
-                    Content = m.Content 
-                });
+            var cheatAgent = _serviceProvider.GetRequiredService<CheatAgentService>();
+            var scanner = _serviceProvider.GetRequiredService<IMemoryScannerService>();
 
-            var response = await aiService.ChatAsync(userMsg, history);
-            Messages.Add(new ChatMessageViewModel { IsUser = false, Content = response });
+            // 1. Try to handle system commands (e.g. "Attach to Process")
+            if (cheatAgent.TryHandleSystemCommand(userMsg, out string systemResponse))
+            {
+                 Messages.Add(new ChatMessageViewModel { IsUser = false, Content = systemResponse });
+                 return;
+            }
+
+            // 2. If attached to a process, use the Agentic flow
+            if (scanner.CurrentProcessId.HasValue)
+            {
+                var agentResponse = await cheatAgent.ProcessUserRequestAsync(userMsg);
+                Messages.Add(new ChatMessageViewModel { IsUser = false, Content = agentResponse });
+            }
+            else
+            {
+                // 3. Normal Chat Flow
+                // Build history from recent messages
+                var history = Messages
+                    .Where(m => !m.Content.StartsWith("👋") && !m.Content.StartsWith("⚠️"))
+                    .TakeLast(10)
+                    .Select(m => new AiChatMessage 
+                    { 
+                        Role = m.IsUser ? "user" : "assistant", 
+                        Content = m.Content 
+                    });
+
+                var response = await aiService.ChatAsync(userMsg, history);
+                Messages.Add(new ChatMessageViewModel { IsUser = false, Content = response });
+            }
         }
         catch (Exception ex)
         {

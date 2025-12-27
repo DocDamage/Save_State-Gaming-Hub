@@ -56,9 +56,38 @@ public class EpicProvider : IGameProvider
 
     private string? GetManifestsPath()
     {
-        var programData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-        var path = Path.Combine(programData, "Epic", "EpicGamesLauncher", "Data", "Manifests");
-        return Directory.Exists(path) ? path : null;
+        // Check multiple possible locations
+        var paths = new[]
+        {
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), 
+                "Epic", "EpicGamesLauncher", "Data", "Manifests"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), 
+                "EpicGamesLauncher", "Saved", "Config", "Windows"),
+            @"C:\ProgramData\Epic\EpicGamesLauncher\Data\Manifests",
+            @"C:\ProgramData\Epic\UnrealEngineLauncher\Data\Manifests"
+        };
+
+        foreach (var path in paths)
+        {
+            if (Directory.Exists(path))
+            {
+                _logger.Information("Found Epic manifests at: {Path}", path);
+                return path;
+            }
+        }
+
+        // Try to find from LauncherInstalled.dat
+        var launcherDatPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            "Epic", "UnrealEngineLauncher", "LauncherInstalled.dat");
+        
+        if (File.Exists(launcherDatPath))
+        {
+            _logger.Information("Found Epic LauncherInstalled.dat");
+            // Parse it for manifest location...
+        }
+
+        return null;
     }
 
     private async Task<Game?> ParseManifest(string manifestPath)

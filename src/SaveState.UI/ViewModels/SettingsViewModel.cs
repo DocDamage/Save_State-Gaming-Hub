@@ -22,7 +22,7 @@ public partial class SettingsViewModel : ViewModelBase
     private string _steamGridDbApiKey = string.Empty;
 
     [ObservableProperty]
-    private string _openAiApiKey = string.Empty;
+    private string _geminiApiKey = string.Empty;
 
     [ObservableProperty]
     private bool _isDarkTheme = true;
@@ -60,7 +60,7 @@ public partial class SettingsViewModel : ViewModelBase
                 TwitchClientId,
                 TwitchClientSecret,
                 SteamGridDbApiKey,
-                OpenAiApiKey,
+                GeminiApiKey,
                 IsDarkTheme
             };
 
@@ -71,7 +71,7 @@ public partial class SettingsViewModel : ViewModelBase
             Environment.SetEnvironmentVariable("TWITCH_CLIENT_ID", TwitchClientId);
             Environment.SetEnvironmentVariable("TWITCH_CLIENT_SECRET", TwitchClientSecret);
             Environment.SetEnvironmentVariable("STEAMGRIDDB_API_KEY", SteamGridDbApiKey);
-            Environment.SetEnvironmentVariable("OPENAI_API_KEY", OpenAiApiKey);
+            Environment.SetEnvironmentVariable("GEMINI_API_KEY", GeminiApiKey);
 
             StatusMessage = "Settings saved successfully!";
             _logger.Information("Settings saved to {Path}", _configPath);
@@ -96,7 +96,7 @@ public partial class SettingsViewModel : ViewModelBase
                 TwitchClientId = root.TryGetProperty("TwitchClientId", out var tc) ? tc.GetString() ?? "" : "";
                 TwitchClientSecret = root.TryGetProperty("TwitchClientSecret", out var ts) ? ts.GetString() ?? "" : "";
                 SteamGridDbApiKey = root.TryGetProperty("SteamGridDbApiKey", out var sg) ? sg.GetString() ?? "" : "";
-                OpenAiApiKey = root.TryGetProperty("OpenAiApiKey", out var oa) ? oa.GetString() ?? "" : "";
+                GeminiApiKey = root.TryGetProperty("GeminiApiKey", out var oa) ? oa.GetString() ?? "" : "";
                 IsDarkTheme = root.TryGetProperty("IsDarkTheme", out var dt) ? dt.GetBoolean() : true;
 
                 // Set environment variables
@@ -106,8 +106,8 @@ public partial class SettingsViewModel : ViewModelBase
                     Environment.SetEnvironmentVariable("TWITCH_CLIENT_SECRET", TwitchClientSecret);
                 if (!string.IsNullOrEmpty(SteamGridDbApiKey))
                     Environment.SetEnvironmentVariable("STEAMGRIDDB_API_KEY", SteamGridDbApiKey);
-                if (!string.IsNullOrEmpty(OpenAiApiKey))
-                    Environment.SetEnvironmentVariable("OPENAI_API_KEY", OpenAiApiKey);
+                if (!string.IsNullOrEmpty(GeminiApiKey))
+                    Environment.SetEnvironmentVariable("GEMINI_API_KEY", GeminiApiKey);
 
                 // Apply theme
                 App.SetTheme(IsDarkTheme);

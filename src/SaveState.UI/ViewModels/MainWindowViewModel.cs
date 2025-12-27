@@ -68,6 +68,9 @@ public partial class MainWindowViewModel : ViewModelBase
             case "Collections":
                 CurrentPage = _serviceProvider.GetRequiredService<CollectionsViewModel>();
                 break;
+            case "Knowledge":
+                CurrentPage = _serviceProvider.GetRequiredService<KnowledgeViewModel>();
+                break;
             default:
                 CurrentPage = null;
                 break;
