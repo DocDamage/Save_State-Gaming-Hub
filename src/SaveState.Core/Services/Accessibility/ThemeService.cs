@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using Serilog;
 
 namespace SaveState.Core.Services.Accessibility
 {
@@ -37,6 +38,7 @@ namespace SaveState.Core.Services.Accessibility
     public class ThemeService
     {
         private static ThemeService? _instance;
+        private readonly ILogger _logger = Log.ForContext<ThemeService>();
         private readonly string _themesPath;
         private readonly List<Theme> _themes = new();
         private Theme _currentTheme;
@@ -221,7 +223,7 @@ namespace SaveState.Core.Services.Accessibility
             SaveSelectedTheme(themeId);
             ThemeChanged?.Invoke(this, theme);
 
-            Console.WriteLine($"🎨 Theme applied: {theme.Name}");
+            _logger.Information("Theme applied: {ThemeName}", theme.Name);
         }
 
         public Theme CreateCustomTheme(string name, ThemeColors colors, string? backgroundImage = null)
@@ -280,7 +282,7 @@ namespace SaveState.Core.Services.Accessibility
                         _themes.Add(theme);
                     }
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load custom theme"); }
             }
         }
 

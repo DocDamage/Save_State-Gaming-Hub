@@ -140,7 +140,7 @@ namespace SaveState.Core.Services.Ai.Core
             RegisterDefaultFacts();
         }
 
-        public async Task<CanonValidationResult> ValidateAsync(string statement, CanonContext context)
+        public Task<CanonValidationResult> ValidateAsync(string statement, CanonContext context)
         {
             var violations = new List<CanonViolation>();
             var relatedFacts = new List<CanonicalFact>();
@@ -177,10 +177,10 @@ namespace SaveState.Core.Services.Ai.Core
             if (violations.Any())
             {
                 var correction = GenerateSuggestedCorrection(statement, violations);
-                return CanonValidationResult.Invalid(violations, correction);
+                return Task.FromResult(CanonValidationResult.Invalid(violations, correction));
             }
 
-            return CanonValidationResult.Valid(relatedFacts);
+            return Task.FromResult(CanonValidationResult.Valid(relatedFacts));
         }
 
         public void RegisterFact(CanonicalFact fact)

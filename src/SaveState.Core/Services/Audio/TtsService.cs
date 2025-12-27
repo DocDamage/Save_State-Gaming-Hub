@@ -4,7 +4,9 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using SaveState.Core.Interfaces;
 using SaveState.Core.Services.Ai;
+using Serilog;
 
 namespace SaveState.Core.Services.Audio
 {
@@ -27,17 +29,20 @@ namespace SaveState.Core.Services.Audio
 
     public class TtsService
     {
-        private static TtsService? _instance;
+        private readonly ILogger _logger = Log.ForContext<TtsService>();
+        private readonly IAppConfiguration _config;
         private readonly HttpClient _httpClient;
-        private string _apiUrl = "http://localhost:5002"; // Local TTS server
+        private string _apiUrl;
         private bool _isAvailable;
 
-        public static TtsService Instance => _instance ??= new TtsService();
         public bool IsAvailable => _isAvailable;
 
-        private TtsService()
+        public TtsService(IAppConfiguration config, HttpClient httpClient)
         {
-            _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+            _config = config;
+            _httpClient = httpClient;
+            _httpClient.Timeout = TimeSpan.FromSeconds(30);
+            _apiUrl = _config.GetApiEndpoint("TTS", "http://localhost:5002");
         }
 
         public async Task<bool> CheckConnectionAsync()
@@ -89,7 +94,7 @@ namespace SaveState.Core.Services.Audio
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"TTS error: {ex.Message}");
+                _logger.Warning(ex, "TTS synthesis error");
             }
 
             return null;

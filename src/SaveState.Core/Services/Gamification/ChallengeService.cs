@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using SaveState.Core.Services.Account;
+using Serilog;
 
 namespace SaveState.Core.Services.Gamification
 {
@@ -52,6 +53,7 @@ namespace SaveState.Core.Services.Gamification
     public class ChallengeService
     {
         private static ChallengeService? _instance;
+        private readonly ILogger _logger = Log.ForContext<ChallengeService>();
         private readonly string _dataPath;
         private readonly AuthService _authService;
         private readonly ProfileService _profileService;
@@ -122,7 +124,7 @@ namespace SaveState.Core.Services.Gamification
                 progress.IsComplete = true;
                 progress.CompletedAt = DateTime.UtcNow;
                 ChallengeCompleted?.Invoke(this, challenge);
-                Console.WriteLine($"🎯 Challenge Complete: {challenge.Title}!");
+                _logger.Information("Challenge complete: {Title}", challenge.Title);
             }
 
             SaveProgress();
@@ -338,7 +340,7 @@ namespace SaveState.Core.Services.Gamification
                         _challenges.AddRange(loaded.Where(c => c.IsActive));
                     }
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load challenges"); }
             }
         }
 
@@ -368,7 +370,7 @@ namespace SaveState.Core.Services.Gamification
                         }
                     }
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load challenge progress"); }
             }
         }
 

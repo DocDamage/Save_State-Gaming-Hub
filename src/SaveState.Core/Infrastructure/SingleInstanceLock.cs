@@ -70,5 +70,6 @@ public class SingleInstanceLock : IDisposable
             _mutex.Dispose();
             _mutex = null;
         }
+        GC.SuppressFinalize(this);
     }
 }

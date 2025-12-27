@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using SaveState.Core.Services.Ai;
+using Serilog;
 
 namespace SaveState.Core.Services.Media
 {
@@ -49,6 +50,7 @@ namespace SaveState.Core.Services.Media
     public class MontageGenerator
     {
         private static MontageGenerator? _instance;
+        private readonly ILogger _logger = Log.ForContext<MontageGenerator>();
         private readonly string _outputPath;
         private readonly RecordingService _recordingService;
         private readonly ILlmService? _llmService;
@@ -60,7 +62,7 @@ namespace SaveState.Core.Services.Media
 
         private MontageGenerator(ILlmService? llmService = null)
         {
-            _llmService = llmService ?? new LlmService();
+            _llmService = llmService;
             _recordingService = RecordingService.Instance;
             _outputPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
@@ -269,7 +271,7 @@ Make it exciting and match the gaming highlight reel style.";
                 await Task.Delay(100);
             }
 
-            Console.WriteLine($"🎬 Montage generated: {montage.Title} ({montage.Clips.Count} clips)");
+            _logger.Information("Montage generated: {Title} ({ClipCount} clips)", montage.Title, montage.Clips.Count);
         }
 
         private int GetMaxClipsForDuration(TimeSpan targetDuration, TimeSpan clipDuration)
@@ -316,7 +318,7 @@ Make it exciting and match the gaming highlight reel style.";
                         _montages.AddRange(list);
                     }
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load montages"); }
             }
         }
 

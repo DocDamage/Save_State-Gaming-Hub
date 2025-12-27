@@ -285,7 +285,10 @@ public class KnowledgeService : IKnowledgeService
                         }
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    _logger.Warning(ex, "Failed to parse metadata during reranking");
+                }
             }
 
             result.SimilarityScore = Math.Min(1.0, result.SimilarityScore + boost);

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Account
 {
@@ -42,6 +43,7 @@ namespace SaveState.Core.Services.Account
     public class FriendsService
     {
         private static FriendsService? _instance;
+        private readonly ILogger _logger = Log.ForContext<FriendsService>();
         private readonly string _dataPath;
         private readonly AuthService _authService;
         private readonly ProfileService _profileService;
@@ -321,7 +323,7 @@ namespace SaveState.Core.Services.Account
                         }
                     }
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load friend relations"); }
             }
         }
 

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Ai
 {
@@ -41,6 +42,7 @@ namespace SaveState.Core.Services.Ai
     public class RagService
     {
         private static RagService? _instance;
+        private readonly ILogger _logger = Log.ForContext<RagService>();
         private readonly string _knowledgeBasePath;
         private readonly List<RagDocument> _documents = new();
         private readonly ILlmService? _llmService;
@@ -346,7 +348,7 @@ ANSWER:";
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Failed to load document from {file}: {ex.Message}");
+                    _logger.Warning(ex, "Failed to load RAG document from {File}", file);
                 }
             }
         }

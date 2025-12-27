@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using SaveState.Core.Services.Ai;
+using Serilog;
 
 namespace SaveState.Core.Services.EmulatorEnhancements
 {
@@ -53,6 +54,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
 
     public class DreamSequenceService
     {
+        private readonly ILogger _logger = Log.ForContext<DreamSequenceService>();
         private readonly List<DreamElement> _elementLibrary = new();
         private readonly List<DreamLevel> _generatedLevels = new();
         private readonly string _levelsPath;
@@ -63,7 +65,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
 
         public DreamSequenceService(ILlmService? llmService = null, IAdvancedAiService? advancedAi = null)
         {
-            _llmService = llmService ?? new LlmService();
+            _llmService = llmService;
             _advancedAi = advancedAi;
             _levelsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "SaveState2", "data", "dream_levels");
@@ -377,7 +379,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
                     var level = JsonSerializer.Deserialize<DreamLevel>(json);
                     if (level != null) _generatedLevels.Add(level);
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load dream level"); }
             }
         }
 

@@ -84,6 +84,14 @@ public class XboxProvider : IGameProvider
     private List<Game> GetGamesFromRegistry()
     {
         var games = new List<Game>();
+
+        // Only attempt registry access on Windows platforms
+        if (!OperatingSystem.IsWindows())
+        {
+            _logger.Debug("Xbox registry scanning skipped - not on Windows platform");
+            return games;
+        }
+
         try
         {
             // Xbox Game Pass games are registered in the Gaming Services

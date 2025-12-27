@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Ai.Latency
 {
@@ -155,6 +156,7 @@ namespace SaveState.Core.Services.Ai.Latency
     /// </summary>
     public class ResponseWarmer : IResponseWarmer
     {
+        private readonly ILogger _logger = Log.ForContext<ResponseWarmer>();
         private readonly ConcurrentDictionary<string, string> _warmedResponses = new();
         private readonly List<IPredictionStrategy> _strategies = new();
         private readonly Func<string, Task<string>>? _generator;
@@ -189,7 +191,7 @@ namespace SaveState.Core.Services.Ai.Latency
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Response warming failed for prompt: {ex.Message}");
+                    _logger.Debug(ex, "Response warming failed for prompt");
                 }
             });
 

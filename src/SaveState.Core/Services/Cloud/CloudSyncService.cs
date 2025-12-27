@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Cloud
 {
@@ -51,6 +52,7 @@ namespace SaveState.Core.Services.Cloud
     public class CloudSyncService
     {
         private static CloudSyncService? _instance;
+        private readonly ILogger _logger = Log.ForContext<CloudSyncService>();
         private readonly HttpClient _httpClient;
         private readonly string _localSyncPath;
         private readonly string _manifestPath;
@@ -90,7 +92,7 @@ namespace SaveState.Core.Services.Cloud
         {
             if (!IsConfigured)
             {
-                Console.WriteLine("Cloud sync not configured");
+                _logger.Warning("Cloud sync not configured");
                 return false;
             }
 
@@ -149,7 +151,7 @@ namespace SaveState.Core.Services.Cloud
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Sync error: {ex.Message}");
+                _logger.Warning(ex, "Cloud sync failed");
                 SetStatus(SyncStatus.Error);
                 return false;
             }
@@ -180,7 +182,7 @@ namespace SaveState.Core.Services.Cloud
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Upload error: {ex.Message}");
+                _logger.Warning(ex, "Cloud upload failed for {Path}", item.LocalPath);
             }
             return false;
         }
@@ -211,7 +213,7 @@ namespace SaveState.Core.Services.Cloud
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Download error: {ex.Message}");
+                _logger.Warning(ex, "Cloud download failed for {Path}", item.RemotePath);
             }
             return false;
         }
@@ -334,7 +336,7 @@ namespace SaveState.Core.Services.Cloud
                     var json = File.ReadAllText(_manifestPath);
                     return JsonSerializer.Deserialize<SyncManifest>(json) ?? new SyncManifest();
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load sync manifest"); }
             }
 
             return new SyncManifest

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Ai.Memory
 {
@@ -81,6 +82,7 @@ namespace SaveState.Core.Services.Ai.Memory
 
     public class EpisodicMemory : IEpisodicMemory
     {
+        private readonly ILogger _logger = Log.ForContext<EpisodicMemory>();
         private readonly List<Episode> _episodes = new();
         private readonly Dictionary<string, Episode> _episodeIndex = new();
         private readonly Dictionary<string, HashSet<string>> _tagIndex = new();
@@ -282,7 +284,7 @@ namespace SaveState.Core.Services.Ai.Memory
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error loading episodic memory: {ex.Message}");
+                    _logger.Warning(ex, "Error loading episodic memory");
                 }
             }
 

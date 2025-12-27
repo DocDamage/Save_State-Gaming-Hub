@@ -80,7 +80,7 @@ public class EaProvider : IGameProvider
                         });
                     }
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to parse EA game install data"); }
             }
         }
         catch (Exception ex)

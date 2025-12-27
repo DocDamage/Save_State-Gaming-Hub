@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
+using SaveState.Core.Infrastructure;
 using SaveState.Core.Interfaces;
 using SaveState.Core.Services.Accessibility;
+using SaveState.Core.Services.Audio;
 using SaveState.Core.Services.Account;
 using SaveState.Core.Services.Ai;
 using SaveState.Core.Services.Cloud;
@@ -13,6 +15,13 @@ using SaveState.Core.Services.Netplay;
 using SaveState.Core.Services.Player;
 using SaveState.Core.Services.Rom;
 using SaveState.Core.Services.Timeline;
+using SaveState.Core.Services.Ai.Governance;
+using SaveState.Core.Services.Ai.Memory;
+using SaveState.Core.Services.Ai.Optimization;
+using SaveState.Core.Services.Ai.Safety;
+using SaveState.Core.Services.Ai.Events;
+using SaveState.Core.Services.Ai.Orchestration;
+using SaveState.Core.Services.Rules;
 using System;
 
 namespace SaveState.Core.Services
@@ -28,6 +37,9 @@ namespace SaveState.Core.Services
         /// </summary>
         public static IServiceCollection AddSaveStateCoreServices(this IServiceCollection services)
         {
+            // ============ Configuration ============
+            services.AddSingleton<IAppConfiguration, AppConfiguration>();
+
             // ============ AI Services ============
             services.AddAiServices();
             
@@ -78,7 +90,12 @@ namespace SaveState.Core.Services
             services.AddSingleton<ILlmService>(sp => sp.GetRequiredService<LlmService>());
             services.AddSingleton<OllamaManager>();
             services.AddSingleton<ModelManager>();
-            services.AddSingleton<StableDiffusionService>();
+            services.AddSingleton<StableDiffusionService>(sp =>
+            {
+                var config = sp.GetRequiredService<IAppConfiguration>();
+                var httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
+                return new StableDiffusionService(config, httpClient);
+            });
             services.AddSingleton<RagService>(sp => 
                 new RagService(sp.GetRequiredService<ILlmService>()));
             
@@ -86,7 +103,32 @@ namespace SaveState.Core.Services
             services.AddSingleton<ProductionAiService>();
             services.AddSingleton<ResilientAiService>();
             services.AddSingleton<UltimateAiOrchestrator>();
+            services.AddSingleton<PipelineOrchestrator>();
+            services.AddSingleton<CacheManager>();
+            services.AddSingleton<ExperimentManager>();
+            services.AddSingleton<MetricsService>();
+            services.AddSingleton<HealthMonitor>();
             services.AddSingleton<EdgeCaseHandler>();
+
+            // Phase A: Core Runtime Upgrades
+            services.AddSingleton<IGlobalKillSwitch, GlobalKillSwitch>();
+            services.AddSingleton<IPolicyGate, PolicyGate>();
+            services.AddSingleton<IRuleEngine, RuleEngine>();
+            services.AddSingleton<ILoreLocker, LoreLocker>();
+            services.AddSingleton<IEpisodicMemory, EpisodicMemory>();
+            services.AddSingleton<IEnhancedEventBus, EnhancedEventBus>();
+            services.AddSingleton<IEnhancedIntentClassifier, EnhancedIntentClassifier>();
+            services.AddSingleton<IProvenanceLedger, ProvenanceLedger>();
+            services.AddSingleton<IPregenService, PregenService>();
+            services.AddSingleton<IMemoryWriterService, MemoryWriterService>();
+            
+            // Specialist Agents
+            services.AddSingleton<ISpecialistAgent, NarrativeSpecialist>();
+            services.AddSingleton<ISpecialistAgent, LoreSpecialist>();
+            services.AddSingleton<ISpecialistAgent, SystemSpecialist>();
+            
+            // Router ("The Brain")
+            services.AddSingleton<IIntentRouter, IntentRouter>();
             
             return services;
         }
@@ -158,8 +200,14 @@ namespace SaveState.Core.Services
             services.AddSingleton<RecordingService>(sp => RecordingService.Instance);
             services.AddSingleton<ScreenshotService>(sp => ScreenshotService.Instance);
             services.AddSingleton<MontageGenerator>(sp => MontageGenerator.Instance);
-            
-            
+            services.AddSingleton<TtsService>(sp =>
+            {
+                var config = sp.GetRequiredService<IAppConfiguration>();
+                var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+                return new TtsService(config, httpClient);
+            });
+
+
             return services;
         }
 

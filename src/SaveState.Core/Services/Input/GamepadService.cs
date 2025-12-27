@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Input
 {
@@ -34,6 +35,7 @@ namespace SaveState.Core.Services.Input
     public class GamepadService : IDisposable
     {
         private static GamepadService? _instance;
+        private readonly ILogger _logger = Log.ForContext<GamepadService>();
         private readonly List<GamepadState> _gamepads = new();
         private readonly Dictionary<GamepadButton, Action> _buttonMappings = new();
         private CancellationTokenSource? _pollCts;
@@ -56,14 +58,14 @@ namespace SaveState.Core.Services.Input
         private void InitializeDefaultMappings()
         {
             // Default UI navigation mappings
-            _buttonMappings[GamepadButton.A] = () => Console.WriteLine("Gamepad: Select/Confirm");
-            _buttonMappings[GamepadButton.B] = () => Console.WriteLine("Gamepad: Back/Cancel");
-            _buttonMappings[GamepadButton.DPadUp] = () => Console.WriteLine("Gamepad: Navigate Up");
-            _buttonMappings[GamepadButton.DPadDown] = () => Console.WriteLine("Gamepad: Navigate Down");
-            _buttonMappings[GamepadButton.DPadLeft] = () => Console.WriteLine("Gamepad: Navigate Left");
-            _buttonMappings[GamepadButton.DPadRight] = () => Console.WriteLine("Gamepad: Navigate Right");
-            _buttonMappings[GamepadButton.Start] = () => Console.WriteLine("Gamepad: Open Menu");
-            _buttonMappings[GamepadButton.Guide] = () => Console.WriteLine("Gamepad: Quick Access");
+            _buttonMappings[GamepadButton.A] = () => _logger.Debug("Gamepad: Select/Confirm");
+            _buttonMappings[GamepadButton.B] = () => _logger.Debug("Gamepad: Back/Cancel");
+            _buttonMappings[GamepadButton.DPadUp] = () => _logger.Debug("Gamepad: Navigate Up");
+            _buttonMappings[GamepadButton.DPadDown] = () => _logger.Debug("Gamepad: Navigate Down");
+            _buttonMappings[GamepadButton.DPadLeft] = () => _logger.Debug("Gamepad: Navigate Left");
+            _buttonMappings[GamepadButton.DPadRight] = () => _logger.Debug("Gamepad: Navigate Right");
+            _buttonMappings[GamepadButton.Start] = () => _logger.Debug("Gamepad: Open Menu");
+            _buttonMappings[GamepadButton.Guide] = () => _logger.Debug("Gamepad: Quick Access");
         }
 
         public void StartPolling(int intervalMs = 16)
@@ -82,14 +84,14 @@ namespace SaveState.Core.Services.Input
                 }
             }, _pollCts.Token);
 
-            Console.WriteLine("🎮 Gamepad polling started");
+            _logger.Debug("Gamepad polling started");
         }
 
         public void StopPolling()
         {
             _pollCts?.Cancel();
             _isPolling = false;
-            Console.WriteLine("🎮 Gamepad polling stopped");
+            _logger.Debug("Gamepad polling stopped");
         }
 
         private void PollGamepads()
@@ -212,7 +214,7 @@ namespace SaveState.Core.Services.Input
         public void Vibrate(int index, float leftMotor, float rightMotor, int durationMs = 200)
         {
             // In production: Use XInputSetState or equivalent
-            Console.WriteLine($"🎮 Vibrate controller {index}: L={leftMotor:F2}, R={rightMotor:F2}");
+            _logger.Debug("Vibrate controller {Index}: L={LeftMotor:F2}, R={RightMotor:F2}", index, leftMotor, rightMotor);
         }
 
         public List<string> GetConnectedGamepadNames()
@@ -226,6 +228,7 @@ namespace SaveState.Core.Services.Input
         {
             StopPolling();
             _pollCts?.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

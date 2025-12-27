@@ -326,7 +326,7 @@ namespace SaveState.Core.Services.Ai.Testing
             return result;
         }
 
-        public async Task<OutputEvaluation> EvaluateOutputAsync(string output, EvaluationContext context)
+        public Task<OutputEvaluation> EvaluateOutputAsync(string output, EvaluationContext context)
         {
             var evaluation = new OutputEvaluation();
 
@@ -377,10 +377,10 @@ namespace SaveState.Core.Services.Ai.Testing
                 evaluation.LoreAccuracyScore
             ) / 4;
 
-            return evaluation;
+            return Task.FromResult(evaluation);
         }
 
-        public async Task<List<TestScenario>> GenerateScenariosAsync(ScenarioGenerationRequest request)
+        public Task<List<TestScenario>> GenerateScenariosAsync(ScenarioGenerationRequest request)
         {
             var scenarios = new List<TestScenario>();
 
@@ -390,7 +390,7 @@ namespace SaveState.Core.Services.Ai.Testing
                 scenarios.AddRange(categoryScenarios);
             }
 
-            return scenarios;
+            return Task.FromResult(scenarios);
         }
 
         public async Task<RegressionTestResult> RunRegressionTestsAsync(List<TestCase> testCases)
@@ -435,7 +435,7 @@ namespace SaveState.Core.Services.Ai.Testing
             return result;
         }
 
-        public async Task<ComparisonResult> CompareOutputsAsync(string outputA, string outputB, string prompt)
+        public Task<ComparisonResult> CompareOutputsAsync(string outputA, string outputB, string prompt)
         {
             var similarity = CalculateSimilarity(outputA, outputB);
 
@@ -445,7 +445,7 @@ namespace SaveState.Core.Services.Ai.Testing
 
             var winner = aScore > bScore ? "A" : aScore < bScore ? "B" : "Tie";
 
-            return new ComparisonResult
+            return Task.FromResult(new ComparisonResult
             {
                 SimilarityScore = similarity,
                 Winner = winner,
@@ -454,7 +454,7 @@ namespace SaveState.Core.Services.Ai.Testing
                 {
                     $"Length difference: {Math.Abs(outputA.Length - outputB.Length)} chars"
                 }
-            };
+            });
         }
 
         private async Task<TestResult> RunSingleTestAsync(string prompt, TestScenario scenario)

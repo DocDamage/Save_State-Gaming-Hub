@@ -48,6 +48,14 @@ public class UbisoftProvider : IGameProvider
     private List<Game> GetGamesFromRegistry()
     {
         var games = new List<Game>();
+
+        // Only attempt registry access on Windows platforms
+        if (!OperatingSystem.IsWindows())
+        {
+            _logger.Debug("Ubisoft registry scanning skipped - not on Windows platform");
+            return games;
+        }
+
         try
         {
             // Check both 32-bit and 64-bit registry

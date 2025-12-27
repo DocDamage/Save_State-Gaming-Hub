@@ -12,7 +12,7 @@
     <PackageVersion Include="Avalonia.Diagnostics" Version="11.3.10" />
     <PackageVersion Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
     <!-- MVVM Toolkit -->
-    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <!-- Entity Framework Core -->
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
@@ -20,14 +20,14 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.0" />
     <!-- gRPC for IPC -->
-    <PackageVersion Include="Grpc.Net.Client" Version="2.70.0" />
-    <PackageVersion Include="Grpc.AspNetCore" Version="2.70.0" />
-    <PackageVersion Include="Grpc.Tools" Version="2.70.0" />
-    <PackageVersion Include="Google.Protobuf" Version="3.29.1" />
+    <PackageVersion Include="Grpc.Net.Client" Version="2.76.0" />
+    <PackageVersion Include="Grpc.AspNetCore" Version="2.76.0" />
+    <PackageVersion Include="Grpc.Tools" Version="2.76.0" />
+    <PackageVersion Include="Google.Protobuf" Version="3.33.2" />
     <!-- Logging -->
-    <PackageVersion Include="Serilog" Version="4.1.0" />
-    <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
-    <PackageVersion Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageVersion Include="Serilog" Version="4.3.0" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageVersion Include="Serilog.Sinks.File" Version="6.0.0" /> <!-- Keeping 6.0.0 due to major version change in 7.0.0 -->
     <PackageVersion Include="Serilog.Extensions.Logging" Version="8.0.0" />
     <PackageVersion Include="Serilog.Extensions.Hosting" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
@@ -40,10 +40,10 @@
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="System.Data.SQLite.Core" Version="1.0.119" />
     <!-- Testing -->
-    <PackageVersion Include="xunit" Version="2.9.2" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" /> <!-- Keeping 2.8.2 due to major version change in 3.x -->
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" /> <!-- Keeping 17.x for .NET 9.0 compatibility -->
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="Moq" Version="4.20.72" />
   </ItemGroup>
 </Project>

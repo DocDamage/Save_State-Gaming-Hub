@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Ai.Latency
 {
@@ -123,6 +124,7 @@ namespace SaveState.Core.Services.Ai.Latency
     /// </summary>
     public class LatencyManager : ILatencyManager
     {
+        private readonly ILogger _logger = Log.ForContext<LatencyManager>();
         private readonly ConcurrentDictionary<string, CachedResponse> _cache = new();
         private readonly ConcurrentDictionary<string, List<string>> _fallbackPools = new();
         private readonly ConcurrentDictionary<string, int> _fallbackIndices = new();
@@ -240,7 +242,7 @@ namespace SaveState.Core.Services.Ai.Latency
                             }
                             catch (Exception ex)
                             {
-                                System.Diagnostics.Debug.WriteLine($"Background generation caching failed: {ex.Message}");
+                                _logger.Debug(ex, "Background generation caching failed");
                             }
                         });
 
@@ -293,10 +295,11 @@ namespace SaveState.Core.Services.Ai.Latency
 
         public async Task PrewarmAsync(IEnumerable<string> anticipatedPrompts)
         {
-            var tasks = anticipatedPrompts.Select(async prompt =>
+            var tasks = anticipatedPrompts.Select(prompt =>
             {
                 // Pre-compute a cache key placeholder
                 CacheResponse(prompt, $"[prewarming:{prompt}]");
+                return Task.CompletedTask;
             });
 
             await Task.WhenAll(tasks);

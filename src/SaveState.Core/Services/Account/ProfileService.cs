@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Account
 {
@@ -45,6 +46,7 @@ namespace SaveState.Core.Services.Account
     public class ProfileService
     {
         private static ProfileService? _instance;
+        private readonly ILogger _logger = Log.ForContext<ProfileService>();
         private readonly string _profilesPath;
         private readonly Dictionary<string, UserProfile> _profiles = new();
         private readonly AuthService _authService;
@@ -262,7 +264,7 @@ namespace SaveState.Core.Services.Account
                 profile.XP -= xpNeeded;
                 profile.Level++;
                 xpNeeded = profile.Level * 100;
-                Console.WriteLine($"🎉 Level Up! Now level {profile.Level}");
+                _logger.Information("Level up! Now level {Level}", profile.Level);
             }
         }
 
@@ -307,7 +309,7 @@ namespace SaveState.Core.Services.Account
                         _profiles[profile.UserId] = profile;
                     }
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load profile"); }
             }
         }
 

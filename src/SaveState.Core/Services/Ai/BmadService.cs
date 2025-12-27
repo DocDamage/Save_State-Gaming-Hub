@@ -96,7 +96,7 @@ namespace SaveState.Core.Services.Ai
         private readonly Dictionary<AgentRole, BmadAgent> _agents = new();
         private readonly List<BmadWorkflow> _workflows = new();
 
-        public static BmadService Instance => _instance ??= new BmadService(new LlmService());
+        public static BmadService? Instance => _instance;
 
         public BmadService(ILlmService llmService)
         {

@@ -23,6 +23,9 @@ public partial class GameDetailsViewModel : ViewModelBase
     private bool _isLoadingMetadata;
 
     [ObservableProperty]
+    private bool _isMonitoring;
+
+    [ObservableProperty]
     private string _statusMessage = string.Empty;
 
     public IAsyncRelayCommand LaunchCommand { get; }
@@ -45,6 +48,8 @@ public partial class GameDetailsViewModel : ViewModelBase
 
         try
         {
+            Process? process = null;
+
             var providers = _serviceProvider.GetServices<IGameProvider>();
             var provider = providers.FirstOrDefault(p =>
                 p.Name.Equals(Game.Source, StringComparison.OrdinalIgnoreCase) ||
@@ -52,11 +57,26 @@ public partial class GameDetailsViewModel : ViewModelBase
 
             if (provider != null)
             {
+                // Note: Providers should return the PID or process in future updates
                 await provider.LaunchGameAsync(Game);
             }
             else if (!string.IsNullOrEmpty(Game.LaunchCommand))
             {
-                Process.Start(new ProcessStartInfo(Game.LaunchCommand) { UseShellExecute = true });
+                process = Process.Start(new ProcessStartInfo(Game.LaunchCommand) { UseShellExecute = true });
+            }
+
+            // --- AI Session Integration ---
+            // If we have a process ID (direct launch), use it.
+            // If via provider (Steam/Epic), we might need to find the process or assume successful launch.
+            // For now, if no process object, we use a placeholder PID (0) to signal "Monitoring Active".
+            int pid = process?.Id ?? 0;
+
+            var ai = SaveState.Core.Services.AiServiceProvider.Instance;
+            if (ai != null)
+            {
+                await ai.GameSessionMonitor.StartMonitoringAsync(Game.Id, pid);
+                IsMonitoring = true;
+                _logger.Information("AI Session Monitoring started for {Game}", Game.Title);
             }
         }
         catch (Exception ex)

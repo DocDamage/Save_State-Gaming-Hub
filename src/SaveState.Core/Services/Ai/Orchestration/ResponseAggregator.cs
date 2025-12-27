@@ -45,19 +45,19 @@ namespace SaveState.Core.Services.Ai.Orchestration
             _llmService = llmService;
         }
 
-        public async Task<AggregatedResponse> AggregateAsync(List<AgentOutput> outputs)
+        public Task<AggregatedResponse> AggregateAsync(List<AgentOutput> outputs)
         {
             if (outputs.Count == 0)
-                return new AggregatedResponse { FinalContent = "" };
+                return Task.FromResult(new AggregatedResponse { FinalContent = "" });
 
             if (outputs.Count == 1)
             {
-                return new AggregatedResponse
+                return Task.FromResult(new AggregatedResponse
                 {
                     FinalContent = outputs[0].Content,
                     SourceOutputs = outputs,
                     OverallConfidence = outputs[0].Confidence
-                };
+                });
             }
 
             // Sort by confidence
@@ -69,15 +69,15 @@ namespace SaveState.Core.Services.Ai.Orchestration
             // Merge outputs
             var merged = MergeOutputs(sorted, conflicts);
 
-            return new AggregatedResponse
+            return Task.FromResult(new AggregatedResponse
             {
                 FinalContent = merged,
                 SourceOutputs = outputs,
                 HadConflicts = conflicts.Count > 0,
-                ConflictResolutionNote = conflicts.Count > 0 
+                ConflictResolutionNote = conflicts.Count > 0
                     ? $"Resolved {conflicts.Count} conflict(s)" : null,
                 OverallConfidence = sorted.Average(o => o.Confidence)
-            };
+            });
         }
 
         private List<(int, int, string)> DetectConflicts(List<AgentOutput> outputs)

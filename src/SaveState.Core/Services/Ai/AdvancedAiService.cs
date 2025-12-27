@@ -159,8 +159,8 @@ namespace SaveState.Core.Services.Ai
 
         public AdvancedAiService(ILlmService? llmService = null)
         {
-            _llmService = llmService ?? new LlmService();
-            _ragService = new RagService(_llmService);
+            _llmService = llmService;
+            _ragService = llmService != null ? new RagService(llmService) : null;
             
             // Initialize memory layer
             _shortTermMemory = new ShortTermMemory();

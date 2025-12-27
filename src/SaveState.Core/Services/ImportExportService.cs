@@ -161,7 +161,7 @@ public class ImportExportService
                     Name = emulatorExport.Name,
                     ExecutablePath = emulatorExport.ExecutablePath,
                     Arguments = emulatorExport.Arguments,
-                    SupportedPlatforms = emulatorExport.SupportedPlatforms,
+                    SupportedPlatforms = emulatorExport.SupportedPlatforms ?? string.Empty,
                     IsDefault = emulatorExport.IsDefault,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow

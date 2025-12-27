@@ -1,0 +1,23 @@
+{
+  "ApiEndpoints": {
+    "OpenAI": "https://api.openai.com/v1/",
+    "Groq": "https://api.groq.com/openai/v1/",
+    "Together": "https://api.together.xyz/v1/",
+    "LMStudio": "http://localhost:1234/v1/",
+    "Ollama": "http://localhost:11434/",
+    "StableDiffusion": "http://localhost:7860",
+    "TTS": "http://localhost:5002",
+    "Gemini": "https://generativelanguage.googleapis.com/v1beta/",
+    "IGDB": "https://api.igdb.com/v4/",
+    "SteamGridDB": "https://www.steamgriddb.com/api/v2/"
+  },
+  "Features": {
+    "EnableAI": true,
+    "EnableImageGeneration": false,
+    "EnableTTS": false
+  },
+  "Limits": {
+    "MaxConcurrentRequests": 5,
+    "RequestTimeoutSeconds": 30
+  }
+}

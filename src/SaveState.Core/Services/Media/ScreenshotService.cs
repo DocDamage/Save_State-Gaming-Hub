@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Media
 {
@@ -23,6 +24,7 @@ namespace SaveState.Core.Services.Media
     public class ScreenshotService
     {
         private static ScreenshotService? _instance;
+        private readonly ILogger _logger = Log.ForContext<ScreenshotService>();
         private readonly string _screenshotsPath;
         private readonly List<Screenshot> _screenshots = new();
 
@@ -50,7 +52,7 @@ namespace SaveState.Core.Services.Media
                 await Task.Run(() =>
                 {
                     // In production: Use platform APIs to capture window
-                    Console.WriteLine($"📸 Capturing screenshot for {gameName}");
+                    _logger.Debug("Capturing screenshot for {GameName}", gameName);
                 });
 
                 var screenshot = new Screenshot
@@ -66,7 +68,7 @@ namespace SaveState.Core.Services.Media
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Screenshot error: {ex.Message}");
+                _logger.Warning(ex, "Screenshot capture error");
                 return null;
             }
         }

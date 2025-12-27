@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using SaveState.Core.Services.Ai;
+using Serilog;
 
 namespace SaveState.Core.Services.Media
 {
@@ -44,6 +45,7 @@ namespace SaveState.Core.Services.Media
     public class RecordingService
     {
         private static RecordingService? _instance;
+        private readonly ILogger _logger = Log.ForContext<RecordingService>();
         private readonly string _recordingsPath;
         private readonly List<Recording> _recordings = new();
         private Recording? _currentRecording;
@@ -87,7 +89,7 @@ namespace SaveState.Core.Services.Media
             _status = RecordingStatus.Recording;
             StatusChanged?.Invoke(this, _status);
 
-            Console.WriteLine($"🔴 Started recording: {gameName}");
+            _logger.Information("Started recording: {GameName}", gameName);
 
             // In production: Start actual video capture using FFmpeg or similar
             return _currentRecording;
@@ -104,7 +106,7 @@ namespace SaveState.Core.Services.Media
             _status = RecordingStatus.Processing;
             StatusChanged?.Invoke(this, _status);
 
-            Console.WriteLine($"⏹️ Stopped recording: {_currentRecording.Duration.TotalSeconds:F1}s");
+            _logger.Information("Stopped recording: {Duration:F1}s", _currentRecording.Duration.TotalSeconds);
 
             // In production: Finalize video file
             _recordings.Add(_currentRecording);
@@ -153,7 +155,7 @@ namespace SaveState.Core.Services.Media
             _currentRecording.Highlights.Add(highlight);
             HighlightDetected?.Invoke(this, highlight);
 
-            Console.WriteLine($"⭐ Highlight: {type} at {highlight.Timestamp.TotalSeconds:F1}s");
+            _logger.Debug("Highlight: {Type} at {Timestamp:F1}s", type, highlight.Timestamp.TotalSeconds);
         }
 
         public void MarkBossKill() => AddHighlight("boss_kill", "Boss defeated!", 10);
@@ -226,7 +228,7 @@ namespace SaveState.Core.Services.Media
                         _recordings.Add(recording);
                     }
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load recording metadata"); }
             }
         }
     }

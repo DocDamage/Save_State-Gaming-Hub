@@ -423,9 +423,9 @@ namespace SaveState.Core.Services.Ai.Memory
             return Task.CompletedTask;
         }
 
-        public async Task<int> PruneAsync(int targetCount)
+        public Task<int> PruneAsync(int targetCount)
         {
-            if (_memories.Count <= targetCount) return 0;
+            if (_memories.Count <= targetCount) return Task.FromResult(0);
 
             var toRemove = _memories.Values
                 .Where(m => m.ImportanceScore < _config.CriticalImportanceThreshold)
@@ -445,10 +445,10 @@ namespace SaveState.Core.Services.Ai.Memory
                 }
             }
 
-            return removed;
+            return Task.FromResult(removed);
         }
 
-        private async Task<int> PruneByTokensAsync(int targetTokens)
+        private Task<int> PruneByTokensAsync(int targetTokens)
         {
             var removed = 0;
             while (_totalTokens > targetTokens && _memories.Count > 0)
@@ -466,7 +466,7 @@ namespace SaveState.Core.Services.Ai.Memory
                 }
                 else break;
             }
-            return removed;
+            return Task.FromResult(removed);
         }
 
         public void Clear()
@@ -529,15 +529,15 @@ namespace SaveState.Core.Services.Ai.Memory
             return text;
         }
 
-        private async Task<EnhancedMemoryEntry?> FindDuplicateAsync(string input, string output)
+        private Task<EnhancedMemoryEntry?> FindDuplicateAsync(string input, string output)
         {
             var inputHash = input.GetHashCode();
-            
-            return _memories.Values
+
+            return Task.FromResult(_memories.Values
                 .Where(m => m.Input.GetHashCode() == inputHash)
-                .FirstOrDefault(m => 
+                .FirstOrDefault(m =>
                     m.Input.Equals(input, StringComparison.OrdinalIgnoreCase) ||
-                    CalculateSimilarity(m.Input, input) > _config.DuplicateThreshold);
+                    CalculateSimilarity(m.Input, input) > _config.DuplicateThreshold));
         }
 
         private float CalculateInitialImportance(MemoryAddOptions options)

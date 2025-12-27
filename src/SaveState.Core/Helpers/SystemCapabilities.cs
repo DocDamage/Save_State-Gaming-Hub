@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Management;
 using System.Runtime.InteropServices;
+using Serilog;
 
 namespace SaveState.Core.Helpers
 {
@@ -40,6 +41,7 @@ namespace SaveState.Core.Helpers
 
     public static class SystemCapabilities
     {
+        private static readonly ILogger _logger = Log.ForContext(typeof(SystemCapabilities));
         private static SystemInfo? _cachedInfo;
 
         public static SystemInfo GetSystemInfo(bool refresh = false)
@@ -79,6 +81,13 @@ namespace SaveState.Core.Helpers
 
         private static long GetWindowsTotalRam()
         {
+            // Only attempt WMI queries on Windows platforms
+            if (!OperatingSystem.IsWindows())
+            {
+                _logger.Debug("Windows RAM detection skipped - not on Windows platform");
+                return GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
+            }
+
             try
             {
                 using var searcher = new ManagementObjectSearcher("SELECT TotalPhysicalMemory FROM Win32_ComputerSystem");
@@ -87,7 +96,7 @@ namespace SaveState.Core.Helpers
                     return Convert.ToInt64(obj["TotalPhysicalMemory"]);
                 }
             }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+            catch (Exception ex) { _logger.Debug(ex, "Failed to get Windows total RAM"); }
             return GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
         }
 
@@ -97,6 +106,13 @@ namespace SaveState.Core.Helpers
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
+                    // Double-check with OperatingSystem for consistency
+                    if (!OperatingSystem.IsWindows())
+                    {
+                        _logger.Debug("Windows RAM availability detection skipped - not on Windows platform");
+                        return GC.GetGCMemoryInfo().TotalAvailableMemoryBytes / 2;
+                    }
+
                     using var searcher = new ManagementObjectSearcher("SELECT FreePhysicalMemory FROM Win32_OperatingSystem");
                     foreach (var obj in searcher.Get())
                     {
@@ -104,7 +120,7 @@ namespace SaveState.Core.Helpers
                     }
                 }
             }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+            catch (Exception ex) { _logger.Debug(ex, "Failed to get available RAM"); }
             return GC.GetGCMemoryInfo().TotalAvailableMemoryBytes / 2;
         }
 
@@ -140,7 +156,7 @@ namespace SaveState.Core.Helpers
         {
             try
             {
-                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return null;
+                if (!OperatingSystem.IsWindows()) return null;
 
                 using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
                 foreach (var obj in searcher.Get())
@@ -161,7 +177,7 @@ namespace SaveState.Core.Helpers
                     };
                 }
             }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+            catch (Exception ex) { _logger.Debug(ex, "Failed to get GPU info"); }
             return null;
         }
 

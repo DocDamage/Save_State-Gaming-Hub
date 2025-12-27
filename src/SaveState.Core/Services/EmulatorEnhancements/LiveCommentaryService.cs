@@ -81,7 +81,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
 
         public LiveCommentaryService(ILlmService? llmService = null, IAdvancedAiService? advancedAi = null)
         {
-            _llmService = llmService ?? new LlmService();
+            _llmService = llmService;
             _advancedAi = advancedAi;
             _lines = InitializeCommentaryLines();
         }

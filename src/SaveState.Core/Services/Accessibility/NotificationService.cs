@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using Serilog;
 
 namespace SaveState.Core.Services.Accessibility
 {
@@ -34,6 +35,7 @@ namespace SaveState.Core.Services.Accessibility
     public class NotificationService
     {
         private static NotificationService? _instance;
+        private readonly ILogger _logger = Log.ForContext<NotificationService>();
         private readonly ConcurrentQueue<Notification> _queue = new();
         private readonly List<Notification> _history = new();
         private readonly AccessibilityService _accessibilityService;
@@ -70,7 +72,7 @@ namespace SaveState.Core.Services.Accessibility
             NotificationReceived?.Invoke(this, notification);
             _accessibilityService.AnnounceNotification(title, message);
             
-            Console.WriteLine($"[{type}] {title}: {message}");
+            _logger.Information("[{Type}] {Title}: {Message}", type, title, message);
         }
 
         public void ShowInfo(string title, string message) => Show(title, message, NotificationType.Info);

@@ -103,6 +103,14 @@ public class GogProvider : IGameProvider
     private List<Game> GetGamesFromRegistry()
     {
         var games = new List<Game>();
+
+        // Only attempt registry access on Windows platforms
+        if (!OperatingSystem.IsWindows())
+        {
+            _logger.Debug("GOG registry scanning skipped - not on Windows platform");
+            return games;
+        }
+
         try
         {
             using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\GOG.com\Games");

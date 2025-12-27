@@ -599,16 +599,16 @@ They submit through a **Mod Gateway** with strict validation.
 ---
 
 # 26) Immediate Next Steps (Your “Do This Next” List)
-1. Implement **AI Contracts** + policy gate enforcement
-2. Add **World State Snapshot Builder** + injection
-3. Stand up **Rules Engine v1** (quest + economy)
-4. Add **Lore Locking** with canon levels
-5. Add **Validator Pass** with retry + fallback
-6. Implement **Episodic Memory** write pipeline from event bus
-7. Add **Intent Router** + 3 specialist agents
-8. Add **Caching + Pregen Pools** for low-latency immersion
-9. Implement **Provenance Ledger** + quarantine + rollback
-10. Add **Kill Switches** + drift regression tests + provider adapters
+1. [x] Implement **AI Contracts** + policy gate enforcement
+2. [x] Add **World State Snapshot Builder** + injection
+3. [x] Stand up **Rules Engine v1** (quest + economy)
+4. [x] Add **Lore Locking** with canon levels
+5. [x] Add **Validator Pass** with retry + fallback
+6. [x] Implement **Episodic Memory** write pipeline from event bus
+7. [x] Add **Intent Router** + 3 specialist agents
+8. [x] Add **Caching + Pregen Pools** for low-latency immersion
+9. [x] Implement **Provenance Ledger** + quarantine + rollback
+10. [x] Add **Kill Switches** + drift regression tests + provider adapters
 
 ---
 

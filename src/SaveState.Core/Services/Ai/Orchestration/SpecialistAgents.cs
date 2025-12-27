@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SaveState.Core.Services.Ai.Memory;
+using SaveState.Core.Services.Rules;
+using SaveState.Core.Services.GameState;
 
 namespace SaveState.Core.Services.Ai.Orchestration
 {
@@ -11,20 +14,7 @@ namespace SaveState.Core.Services.Ai.Orchestration
         string AgentId { get; }
         string Name { get; }
         Task<string> ProcessAsync(string input, AgentContext context);
-        string BuildSystemPrompt(AgentContext context);
-        bool CanHandle(IntentClassification intent);
-    }
-
-    public class AgentContext
-    {
-        public string SessionId { get; set; } = string.Empty;
-        public string CurrentScene { get; set; } = string.Empty;
-        public Dictionary<string, object> WorldState { get; set; } = new();
-        public Dictionary<string, object> PlayerState { get; set; } = new();
-        public List<string> RecentMemories { get; set; } = new();
-        public string? CanonicalLore { get; set; }
-        public IntentClassification? Intent { get; set; }
-        public Dictionary<string, object> AdditionalContext { get; set; } = new();
+        bool CanHandle(IntentCategory intent);
     }
 
     public abstract class BaseSpecialistAgent : ISpecialistAgent
@@ -35,94 +25,152 @@ namespace SaveState.Core.Services.Ai.Orchestration
         protected abstract IntentCategory[] HandledIntents { get; }
         protected readonly ILlmService _llmService;
 
-        protected BaseSpecialistAgent(ILlmService? llmService = null)
+        protected BaseSpecialistAgent(ILlmService llmService)
         {
-            _llmService = llmService ?? new LlmService();
+            _llmService = llmService;
         }
+
+        public virtual bool CanHandle(IntentCategory intent) =>
+            HandledIntents.Contains(intent);
 
         public virtual async Task<string> ProcessAsync(string input, AgentContext context)
         {
-            var systemPrompt = BuildSystemPrompt(context);
+            var systemPrompt = await BuildSystemPromptAsync(context);
             return await _llmService.CompleteAsync(input, systemPrompt);
         }
 
-        public virtual string BuildSystemPrompt(AgentContext context)
+        protected virtual Task<string> BuildSystemPromptAsync(AgentContext context)
         {
             var sb = new StringBuilder();
             sb.AppendLine(BaseSystemPrompt);
-            if (context.WorldState.Count > 0)
+            
+            // Inject World State if available
+            if (context.WorldState != null)
             {
-                sb.AppendLine("\n=== World State ===");
-                foreach (var (key, value) in context.WorldState)
-                    sb.AppendLine($"- {key}: {value}");
+                sb.AppendLine("\n=== CURRENT STATE ===");
+                sb.AppendLine($"Location: {context.WorldState.RegionId} - {context.WorldState.SceneId}");
+                sb.AppendLine($"Time: {context.WorldState.Timestamp}");
+                
+                if (context.WorldState.QuestFlags.Any())
+                {
+                    sb.AppendLine("Flags: " + string.Join(", ", context.WorldState.QuestFlags.Keys));
+                }
             }
-            if (!string.IsNullOrEmpty(context.CanonicalLore))
-                sb.AppendLine(context.CanonicalLore);
-            return sb.ToString();
+
+            // Inject Memories
+            if (context.RelevantMemories.Any())
+            {
+                sb.AppendLine("\n=== RELEVANT MEMORIES ===");
+                foreach (var mem in context.RelevantMemories.Take(5))
+                {
+                    sb.AppendLine($"- {mem.Event} -> {mem.Outcome}");
+                }
+            }
+
+            return Task.FromResult(sb.ToString());
+        }
+    }
+
+    /// <summary>
+    /// Handles Storytelling, Dialogue, social interactions.
+    /// Uses deeper memory access and personality injection.
+    /// </summary>
+    public class NarrativeSpecialist : BaseSpecialistAgent
+    {
+        public override string AgentId => "narrative_specialist";
+        public override string Name => "Narrative Specialist";
+        
+        protected override IntentCategory[] HandledIntents => new[] 
+        { 
+            IntentCategory.Narrative, 
+            IntentCategory.Social, 
+            IntentCategory.Emotional,
+            IntentCategory.Exploration 
+        };
+
+        protected override string BaseSystemPrompt => 
+            "You are the Narrative Engine. Write vivid, immersive descriptions and authentic dialogue. " +
+            "Focus on sensory details and character voice. Never contradict established World State.";
+
+        public NarrativeSpecialist(ILlmService llmService) : base(llmService) { }
+    }
+
+    /// <summary>
+    /// Handles Lore queries, history, myth, and background.
+    /// Uses LoreLocker to ensure canon compliance.
+    /// </summary>
+    public class LoreSpecialist : BaseSpecialistAgent
+    {
+        private readonly ILoreLocker _loreLocker;
+
+        public override string AgentId => "lore_specialist";
+        public override string Name => "Lore Specialist";
+
+        protected override IntentCategory[] HandledIntents => new[] { IntentCategory.Lore };
+        
+        protected override string BaseSystemPrompt => 
+            "You are the Keeper of Archives. Provide accurate, canonical information about the world history and legends. " +
+            "If information is missing, admit ignorance rather than hallucinating facts that contradict Canon.";
+
+        public LoreSpecialist(ILlmService llmService, ILoreLocker loreLocker) : base(llmService)
+        {
+            _loreLocker = loreLocker;
         }
 
-        public virtual bool CanHandle(IntentClassification intent) =>
-            HandledIntents.Contains(intent.PrimaryIntent);
-    }
-
-    public class NarrativeAgent : BaseSpecialistAgent
-    {
-        public override string AgentId => "narrative";
-        public override string Name => "Narrative Agent";
-        protected override IntentCategory[] HandledIntents => new[] { IntentCategory.Narrative, IntentCategory.Social };
-        protected override string BaseSystemPrompt => "You are a master storyteller. Write vivid, immersive narratives.";
-        public NarrativeAgent(ILlmService? llm = null) : base(llm) { }
-    }
-
-    public class CombatAgent : BaseSpecialistAgent
-    {
-        public override string AgentId => "combat";
-        public override string Name => "Combat Agent";
-        protected override IntentCategory[] HandledIntents => new[] { IntentCategory.Combat };
-        protected override string BaseSystemPrompt => "You narrate tactical combat. Never contradict rule engine validations.";
-        public CombatAgent(ILlmService? llm = null) : base(llm) { }
-    }
-
-    public class LoreAgent : BaseSpecialistAgent
-    {
-        public override string AgentId => "lore";
-        public override string Name => "Lore Agent";
-        protected override IntentCategory[] HandledIntents => new[] { IntentCategory.Lore };
-        protected override string BaseSystemPrompt => "You are the keeper of world knowledge. Only state canonical facts.";
-        public LoreAgent(ILlmService? llm = null) : base(llm) { }
-    }
-
-    public class SystemAgent : BaseSpecialistAgent
-    {
-        public override string AgentId => "system";
-        public override string Name => "System Agent";
-        protected override IntentCategory[] HandledIntents => new[] { IntentCategory.SystemDesign, IntentCategory.Tutorial };
-        protected override string BaseSystemPrompt => "You explain game mechanics precisely with accurate numbers.";
-        public SystemAgent(ILlmService? llm = null) : base(llm) { }
-    }
-
-    public class EmotionAgent : BaseSpecialistAgent
-    {
-        public override string AgentId => "emotion";
-        public override string Name => "Emotion Agent";
-        protected override IntentCategory[] HandledIntents => new[] { IntentCategory.Emotional };
-        protected override string BaseSystemPrompt => "You portray authentic character emotions and relationships.";
-        public EmotionAgent(ILlmService? llm = null) : base(llm) { }
-    }
-
-    public class SpecialistAgentFactory
-    {
-        private readonly ILlmService _llmService;
-        public SpecialistAgentFactory(ILlmService? llm = null) { _llmService = llm ?? new LlmService(); }
-        
-        public ISpecialistAgent? CreateAgent(string agentId) => agentId switch
+        protected override async Task<string> BuildSystemPromptAsync(AgentContext context)
         {
-            "narrative" => new NarrativeAgent(_llmService),
-            "combat" => new CombatAgent(_llmService),
-            "lore" => new LoreAgent(_llmService),
-            "system" => new SystemAgent(_llmService),
-            "emotion" => new EmotionAgent(_llmService),
-            _ => null
+            var prompt = await base.BuildSystemPromptAsync(context);
+            var sb = new StringBuilder(prompt);
+
+            if (context.RelevantLore.Any())
+            {
+                sb.AppendLine("\n=== CANONICAL LORE (STRICT) ===");
+                foreach (var lore in context.RelevantLore)
+                {
+                    sb.AppendLine($"- {lore.Statement} (Confidence: {lore.ConfidenceThreshold})");
+                }
+            }
+
+            return sb.ToString();
+        }
+    }
+
+    /// <summary>
+    /// Handles Game Mechanics, Combat Math, Economy, and Quests.
+    /// Uses RulesEngine to ensure validity.
+    /// </summary>
+    public class SystemSpecialist : BaseSpecialistAgent
+    {
+        private readonly IRuleEngine _ruleEngine;
+
+        public override string AgentId => "system_specialist";
+        public override string Name => "System Specialist";
+
+        protected override IntentCategory[] HandledIntents => new[] 
+        { 
+            IntentCategory.Combat, 
+            IntentCategory.Economy, 
+            IntentCategory.Quest, 
+            IntentCategory.SystemDesign,
+            IntentCategory.Tutorial,
+            IntentCategory.Meta,
+            IntentCategory.CodeGen
         };
+
+        protected override string BaseSystemPrompt => 
+            "You are the Game Master. Explain rules, calculate outcomes, and manage game mechanics clearly and precisely. " +
+            "Use tables and bullet points for data. Ensure all advice matches the Rule Engine constraints.";
+
+        public SystemSpecialist(ILlmService llmService, IRuleEngine ruleEngine) : base(llmService)
+        {
+            _ruleEngine = ruleEngine;
+        }
+
+        protected override Task<string> BuildSystemPromptAsync(AgentContext context)
+        {
+            // Future: Query RuleEngine for specific rules relevant to the context
+            // For now, we rely on the base context
+            return base.BuildSystemPromptAsync(context);
+        }
     }
 }

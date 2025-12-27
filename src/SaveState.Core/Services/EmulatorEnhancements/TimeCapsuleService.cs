@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using SaveState.Core.Services.Ai;
+using Serilog;
 
 namespace SaveState.Core.Services.EmulatorEnhancements
 {
@@ -46,13 +47,14 @@ namespace SaveState.Core.Services.EmulatorEnhancements
 
     public class TimeCapsuleService
     {
+        private readonly ILogger _logger = Log.ForContext<TimeCapsuleService>();
         private readonly List<TimeCapsule> _capsules = new();
         private readonly string _capsulesPath;
         private readonly ILlmService? _llmService;
 
         public TimeCapsuleService(ILlmService? llmService = null)
         {
-            _llmService = llmService ?? new LlmService();
+            _llmService = llmService;
             _capsulesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "SaveState2", "data", "time_capsules");
             if (!Directory.Exists(_capsulesPath)) Directory.CreateDirectory(_capsulesPath);
@@ -273,7 +275,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
                         _capsules.Add(capsule);
                     }
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load time capsule"); }
             }
         }
 

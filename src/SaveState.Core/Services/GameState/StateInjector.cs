@@ -5,6 +5,8 @@ using System.Text;
 
 namespace SaveState.Core.Services.GameState
 {
+    using SaveState.Core.Models;
+
     /// <summary>
     /// Injects world state into every LLM prompt.
     /// - Auto-formats current flags
@@ -26,6 +28,7 @@ namespace SaveState.Core.Services.GameState
         string Inject(string prompt, InjectionContext? context = null);
         string BuildStateSection(InjectionContext? context = null);
         List<string> GetRelevantFlags(InjectionContext? context = null);
+        WorldStateSnapshot GetSnapshot(InjectionContext? context = null);
     }
 
     public class StateInjector : IStateInjector
@@ -63,6 +66,48 @@ namespace SaveState.Core.Services.GameState
             sb.AppendLine(prompt);
 
             return sb.ToString();
+        }
+
+        public WorldStateSnapshot GetSnapshot(InjectionContext? context = null)
+        {
+            var state = _worldState.CurrentState;
+            var snapshot = new WorldStateSnapshot
+            {
+                SceneId = context?.CurrentLocation ?? state.CurrentLocation,
+                RegionId = state.CurrentLocation, // Simplified mapping
+            };
+
+            // Flags
+            var relevantFlags = GetRelevantFlags(context);
+            foreach (var flag in relevantFlags.Take(context?.MaxFlags ?? 50))
+            {
+                snapshot.QuestFlags[flag] = _worldState.GetFlag(flag);
+            }
+
+            // Counters -> PlayerStats
+            var importantCounters = GetImportantCounters();
+            foreach (var (key, value) in importantCounters)
+            {
+                snapshot.PlayerStats[key] = value;
+            }
+
+            // Relations -> NpcStates
+            if (context?.RelevantCharacters != null)
+            {
+                var relations = GetCharacterRelations(context.RelevantCharacters);
+                foreach (var (character, relation) in relations)
+                {
+                    snapshot.NpcStates[character] = relation;
+                }
+            }
+
+            // Timelines
+            snapshot.ActiveTimelines = state.Timelines
+                .Where(t => t.IsActive)
+                .Select(t => t.Name)
+                .ToList();
+
+            return snapshot;
         }
 
         public string BuildStateSection(InjectionContext? context = null)

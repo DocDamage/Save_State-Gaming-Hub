@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using SaveState.Core.Services.Ai;
+using Serilog;
 
 namespace SaveState.Core.Services.EmulatorEnhancements
 {
@@ -52,6 +53,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
 
     public class MemoryEvolutionService
     {
+        private readonly ILogger _logger = Log.ForContext<MemoryEvolutionService>();
         private readonly Dictionary<string, PlaystyleProfile> _profiles = new();
         private readonly string _profilesPath;
         private readonly ILlmService? _llmService;
@@ -74,7 +76,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
 
         public MemoryEvolutionService(ILlmService? llmService = null)
         {
-            _llmService = llmService ?? new LlmService();
+            _llmService = llmService;
             _profilesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "SaveState2", "data", "evolution_profiles");
             if (!Directory.Exists(_profilesPath)) Directory.CreateDirectory(_profilesPath);
@@ -397,7 +399,7 @@ Recommend ONE mutation with a brief reason (15 words max).";
                         _profiles[profile.GameId] = profile;
                     }
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load evolution profile"); }
             }
         }
 

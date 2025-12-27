@@ -139,7 +139,7 @@ namespace SaveState.Core.Services.Ai.Telemetry
             RegisterDefaultPatterns();
         }
 
-        public async Task<HallucinationCheckResult> CheckAsync(string content, HallucinationContext context)
+        public Task<HallucinationCheckResult> CheckAsync(string content, HallucinationContext context)
         {
             System.Threading.Interlocked.Increment(ref _totalChecks);
 
@@ -249,7 +249,7 @@ namespace SaveState.Core.Services.Ai.Telemetry
                 result.ConfidenceScore = 1.0 - result.Hallucinations.Average(h => h.Confidence);
             }
 
-            return result;
+            return Task.FromResult(result);
         }
 
         public void RegisterFact(KnownFact fact)

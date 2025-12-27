@@ -11,6 +11,7 @@ using SaveState.Core.Services.Ai.Governance;
 using SaveState.Core.Services.Ai.Telemetry;
 using SaveState.Core.Services.Ai.Resilience;
 using SaveState.Core.Services.Player;
+using SaveState.Core.Services.Ai.Safety;
 
 namespace SaveState.Core.Services.Ai
 {
@@ -156,6 +157,12 @@ namespace SaveState.Core.Services.Ai
         private readonly IAiTelemetry? _telemetry;
         private readonly IHallucinationDetector? _hallucinationDetector;
         private readonly IFailureAsContent? _failureAsContent;
+
+        // Phase A Additions
+        private readonly IGlobalKillSwitch? _killSwitch;
+        private readonly IPolicyGate? _policyGate;
+        private readonly IProvenanceLedger? _provenanceLedger;
+        private readonly IEnumerable<ISpecialistAgent> _specialistAgents;
         
         private readonly ConcurrentDictionary<string, (ProductionAiResponse Response, DateTime Expiry)> _cache = new();
         private readonly ConcurrentDictionary<string, List<(string Role, string Content)>> _conversations = new();
@@ -203,6 +210,13 @@ namespace SaveState.Core.Services.Ai
             _hallucinationDetector = hallucinationDetector;
             _failureAsContent = failureAsContent;
 
+            // Phase A Injection (Service Locator pattern fallback if null to avoid breaking existing tests)
+            var provider = AiServiceProvider.Instance;
+            _killSwitch = provider.KillSwitch;
+            _policyGate = provider.PolicyGate;
+            _provenanceLedger = provider.ProvenanceLedger;
+            _specialistAgents = provider.GetSpecialistAgents();
+
             // Create resilient wrapper
             _resilientService = new ResilientAiService(llmService);
 
@@ -224,6 +238,12 @@ namespace SaveState.Core.Services.Ai
 
             try
             {
+                // ===== STAGE 0: Kill Switch & Governance =====
+                if (_killSwitch != null && !_killSwitch.IsFeatureAllowed("AiGeneration"))
+                {
+                    return CreateErrorResponse(response, "AI Generation is currently disabled by KillSwitch.", startTime);
+                }
+
                 // ===== STAGE 1: Input Sanitization =====
                 var stageStart = DateTime.UtcNow;
                 var sanitizedInput = await SanitizeInputAsync(request.Prompt, response);
@@ -343,7 +363,27 @@ namespace SaveState.Core.Services.Ai
                     }
                     else
                     {
-                        llmResponse = await _llmService.CompleteAsync(fullPrompt, systemPrompt);
+                        // Use Specialist Agent if available
+                        var agent = _specialistAgents.FirstOrDefault(a => a.CanHandle(Enum.Parse<IntentCategory>(detectedIntent ?? "Narrative")));
+                        if (detectedIntent != null && agent != null)
+                        {
+                            response.AgentUsed = agent.Name;
+                            // Build specialized context with world state injection
+                            // TODO: Convert WorldState to WorldStateSnapshot for proper injection
+                            var agentContext = new AgentContext
+                            {
+                                SessionId = request.SessionId ?? "unknown",
+                                Intent = new IntentClassification { PrimaryIntent = Enum.Parse<IntentCategory>(detectedIntent) },
+                                WorldState = null, // WorldState injection requires WorldState->WorldStateSnapshot conversion
+                                Metadata = request.Metadata
+                            };
+                            llmResponse = await agent.ProcessAsync(fullPrompt, agentContext);
+                        }
+                        else
+                        {
+                            // Fallback to generic LLM call
+                            llmResponse = await _llmService.CompleteAsync(fullPrompt, systemPrompt);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -401,6 +441,18 @@ namespace SaveState.Core.Services.Ai
                     }
                 }
                 AddDebugStage(response, "Validation", stageStart, true);
+
+                // ===== STAGE 7.5: Provenance Recording =====
+                if (_provenanceLedger != null && !string.IsNullOrEmpty(llmResponse))
+                {
+                     await _provenanceLedger.RecordGenerationAsync(
+                        agentId: response.AgentUsed ?? "GenericLLM",
+                        prompt: sanitizedInput,
+                        content: llmResponse,
+                        score: response.Confidence,
+                        quarantined: false
+                     );
+                }
 
                 // ===== STAGE 8: Record Memory =====
                 stageStart = DateTime.UtcNow;

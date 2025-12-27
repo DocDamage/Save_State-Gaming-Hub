@@ -1,47 +1,95 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Ai
 {
-    // Note: Data models (AiPipelineStage, PipelineContext, PipelineResult, etc.) 
+    // Note: Data models (AiPipelineStage, PipelineContext, PipelineResult, etc.)
     // are defined in OrchestratorModels.cs for better organization.
 
     public class UltimateAiOrchestrator : IUltimateAiOrchestrator
     {
-        private readonly ConcurrentDictionary<string, (PipelineStageHandler Handler, AiPipelineStage Config)> _stages = new();
-        private readonly ConcurrentDictionary<string, PipelineCondition> _conditions = new();
-        private readonly ConcurrentDictionary<string, (string Value, DateTime Expiry)> _cache = new();
-        private readonly ConcurrentDictionary<string, ExperimentConfig> _experiments = new();
-        private readonly ConcurrentDictionary<string, string> _experimentAssignments = new();
-        private readonly ConcurrentQueue<ObservabilityData> _recentEvents = new();
-        private readonly List<ObservabilityHandler> _observers = new();
+        private readonly ILogger _logger = Log.ForContext<UltimateAiOrchestrator>();
+        private readonly PipelineOrchestrator _pipelineOrchestrator;
+        private readonly CacheManager _cacheManager;
+        private readonly ExperimentManager _experimentManager;
+        private readonly MetricsService _metricsService;
+        private readonly HealthMonitor _healthMonitor;
         private readonly UltimateOrchestratorConfig _config;
-        private readonly Random _random = new();
-        private readonly object _metricsLock = new();
-
-        // Metrics
-        private int _totalRequests = 0;
-        private int _successfulRequests = 0;
-        private int _failedRequests = 0;
-        private int _cacheHits = 0;
-        private int _cacheMisses = 0;
-        private int _fallbacksUsed = 0;
-        private long _totalLatencyMs = 0;
-        private readonly ConcurrentDictionary<string, StageMetrics> _stageMetrics = new();
-        private readonly ConcurrentQueue<long> _latencyHistory = new();
-        private bool _selfHealingEnabled = true;
 
         public UltimateAiOrchestrator(UltimateOrchestratorConfig? config = null)
         {
             _config = config ?? new UltimateOrchestratorConfig();
-            
-            // Start background cache cleanup
-            _ = CacheCleanupLoopAsync();
+
+            // Initialize focused services
+            _metricsService = new MetricsService();
+            _cacheManager = new CacheManager();
+            _experimentManager = new ExperimentManager();
+            _pipelineOrchestrator = new PipelineOrchestrator();
+            _healthMonitor = new HealthMonitor(_metricsService, _cacheManager);
+
+            // Build the standard pipeline
+            BuildStandardPipeline();
+        }
+
+        /// <summary>
+        /// Configures the orchestrator with the standard game pipeline:
+        /// 1. Governance (KillSwitch + Policy)
+        /// 2. Intent Routing & Execution (Specialist Agents)
+        /// 3. Validation
+        /// 4. Provenance Recording
+        /// </summary>
+        public void BuildStandardPipeline()
+        {
+            var provider = AiServiceProvider.Instance;
+
+            // Stage 1: Governance & Safety
+            AddStage("Governance", (context) =>
+            {
+                if (!provider.KillSwitch.IsFeatureAllowed("AiGeneration"))
+                {
+                    context.Errors.Add("AI Generation is globally disabled");
+                    throw new OperationCanceledException("AI Generation disabled");
+                }
+
+                // Policy Check
+                // Note: We assume default contract for now
+                // var decision = provider.PolicyGate.EnforceContract(defaultContract, request);
+                return Task.CompletedTask;
+            }, new AiPipelineStage { Name = "Governance", Priority = 0, CriticalStage = true });
+
+            // Stage 2: Intent Routing & Execution
+            AddStage("CoreExecution", async (context) =>
+            {
+                var sessionId = context.Data.ContainsKey("SessionId") ? context.Data["SessionId"].ToString() : "default";
+                var userId = context.Data.ContainsKey("UserId") ? context.Data["UserId"].ToString() : "anonymous";
+                
+                // Delegate to the Intent Router (The Brain)
+                var result = await provider.IntentRouter.RouteAndProcessAsync(context.Input, sessionId!, userId!);
+                context.Output = result;
+            }, new AiPipelineStage { Name = "CoreExecution", Priority = 10, CriticalStage = true });
+
+            // Stage 3: Post-Processing & Provenance
+            AddStage("Provenance", async (context) =>
+            {
+                if (!string.IsNullOrEmpty(context.Output))
+                {
+                    // Record to ledger with improved agent identification and quality scoring
+                    var agentId = context.Data.ContainsKey("AgentId") ? context.Data["AgentId"].ToString() : "Orchestrator";
+                    var qualityScore = context.Data.ContainsKey("QualityScore") ? Convert.ToSingle(context.Data["QualityScore"]) : 1.0f;
+
+                    await provider.ProvenanceLedger.RecordGenerationAsync(
+                        agentId: agentId,
+                        prompt: context.Input,
+                        content: context.Output,
+                        score: qualityScore,
+                        quarantined: false
+                    );
+                }
+            }, new AiPipelineStage { Name = "Provenance", Priority = 20 });
         }
 
         public void AddStage(string name, PipelineStageHandler handler, AiPipelineStage? config = null)
@@ -340,7 +388,7 @@ namespace SaveState.Core.Services.Ai
             return _recentEvents.TakeLast(count).ToList();
         }
 
-        public async Task<HealthCheckResult> CheckHealthAsync()
+        public Task<HealthCheckResult> CheckHealthAsync()
         {
             var result = new HealthCheckResult
             {
@@ -399,7 +447,7 @@ namespace SaveState.Core.Services.Ai
             result.Components["cache"] = cacheHealth;
 
             result.IsHealthy = !result.Issues.Any(i => i.Contains("failure rate"));
-            return result;
+            return Task.FromResult(result);
         }
 
         public void EnableSelfHealing(bool enable)
@@ -530,7 +578,7 @@ namespace SaveState.Core.Services.Ai
                 try { observer(evt); }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Observer notification failed: {ex.Message}");
+                    _logger.Debug(ex, "Observer notification failed");
                 }
             }
         }

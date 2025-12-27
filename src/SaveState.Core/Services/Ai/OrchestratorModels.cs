@@ -9,6 +9,18 @@ namespace SaveState.Core.Services.Ai
     /// Data models and interfaces for the UltimateAiOrchestrator.
     /// Extracted for better organization and maintainability.
     /// </summary>
+
+    /// <summary>
+    /// Status of pipeline execution.
+    /// </summary>
+    public enum PipelineStatus
+    {
+        Success,
+        PartialSuccess,
+        Failed,
+        Cancelled,
+        SuccessWithFallback
+    }
     
     /// <summary>
     /// Represents a stage in the AI processing pipeline.
@@ -70,6 +82,13 @@ namespace SaveState.Core.Services.Ai
         public string? FallbackUsed { get; set; }
         public bool UsedCache { get; set; }
         public float QualityScore { get; set; }
+
+        // Additional properties for compatibility with existing code
+        public string Input { get; set; } = string.Empty;
+        public PipelineStatus Status { get; set; }
+        public string? Error { get; set; }
+        public Dictionary<string, object> ContextData { get; set; } = new();
+        public double ExecutionTimeMs { get; set; }
     }
 
     /// <summary>

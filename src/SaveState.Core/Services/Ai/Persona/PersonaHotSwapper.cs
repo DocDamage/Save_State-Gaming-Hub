@@ -303,7 +303,7 @@ namespace SaveState.Core.Services.Ai.Persona
                 : Enumerable.Empty<PersonaHistoryEntry>();
         }
 
-        private async Task<string> GenerateTransitionNarrative(
+        private Task<string> GenerateTransitionNarrative(
             PersonaType from, PersonaType to, string trigger)
         {
             var templates = new Dictionary<(PersonaType, PersonaType), string>
@@ -320,10 +320,10 @@ namespace SaveState.Core.Services.Ai.Persona
 
             if (templates.TryGetValue((from, to), out var template))
             {
-                return template;
+                return Task.FromResult(template);
             }
 
-            return $"Their demeanor shifts from {from.ToString().ToLower()} to {to.ToString().ToLower()}.";
+            return Task.FromResult($"Their demeanor shifts from {from.ToString().ToLower()} to {to.ToString().ToLower()}.");
         }
 
         private void RegisterDefaultDefinitions()

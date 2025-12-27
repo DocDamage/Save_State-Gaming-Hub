@@ -20,10 +20,10 @@ public class EmbeddingService : IEmbeddingService
     public int EmbeddingDimension => 768;
     public bool IsConfigured => !string.IsNullOrEmpty(_apiKey);
 
-    public EmbeddingService(IHttpClientFactory httpClientFactory)
+    public EmbeddingService(IHttpClientFactory httpClientFactory, IAppConfiguration config)
     {
         _httpClient = httpClientFactory.CreateClient("Gemini");
-        _httpClient.BaseAddress = new Uri("https://generativelanguage.googleapis.com/v1beta/");
+        _httpClient.BaseAddress = new Uri(config.GetApiEndpoint("Gemini", "https://generativelanguage.googleapis.com/v1beta/"));
         _apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
     }
 

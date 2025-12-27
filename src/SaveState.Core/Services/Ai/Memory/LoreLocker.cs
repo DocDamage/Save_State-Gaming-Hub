@@ -60,6 +60,17 @@ namespace SaveState.Core.Services.Ai.Memory
         public List<string> Keywords { get; set; } = new();
         public List<string> RelatedLoreIds { get; set; } = new();
         public Dictionary<string, object> Metadata { get; set; } = new();
+        public LoreStatus Status { get; set; } = LoreStatus.Active;
+    }
+
+    /// <summary>
+    /// Status of the lore entry
+    /// </summary>
+    public enum LoreStatus
+    {
+        Active,
+        Quarantined,
+        Deprecated
     }
 
     /// <summary>
@@ -189,7 +200,7 @@ namespace SaveState.Core.Services.Ai.Memory
             var statementLower = statement.ToLowerInvariant();
             double minConfidence = 1.0;
 
-            foreach (var lore in _lockedLore.Values)
+            foreach (var lore in _lockedLore.Values.Where(l => l.Status == LoreStatus.Active))
             {
                 var loreLower = lore.Statement.ToLowerInvariant();
 
@@ -253,34 +264,34 @@ namespace SaveState.Core.Services.Ai.Memory
             _categoryIndex[lore.Category].Add(lore.Id);
         }
 
-        public async Task<LoreModificationResult> RequestModificationAsync(LoreModificationRequest request)
+        public Task<LoreModificationResult> RequestModificationAsync(LoreModificationRequest request)
         {
             if (!_lockedLore.TryGetValue(request.TargetLoreId, out var lore))
             {
-                return new LoreModificationResult
+                return Task.FromResult(new LoreModificationResult
                 {
                     Approved = false,
                     RejectionReason = "Lore not found"
-                };
+                });
             }
 
             switch (lore.LockType)
             {
                 case LoreLockType.Immutable:
-                    return new LoreModificationResult
+                    return Task.FromResult(new LoreModificationResult
                     {
                         Approved = false,
                         RejectionReason = "This lore is immutable and cannot be changed"
-                    };
+                    });
 
                 case LoreLockType.EventMutable:
                     if (!request.IsStoryEvent)
                     {
-                        return new LoreModificationResult
+                        return Task.FromResult(new LoreModificationResult
                         {
                             Approved = false,
                             RejectionReason = "This lore can only be changed by story events"
-                        };
+                        });
                     }
                     break;
             }
@@ -304,11 +315,11 @@ namespace SaveState.Core.Services.Ai.Memory
 
             LockLore(modified);
 
-            return new LoreModificationResult
+            return Task.FromResult(new LoreModificationResult
             {
                 Approved = true,
                 ModifiedLore = modified
-            };
+            });
         }
 
         public Task<LoreConfidenceScore> GetConfidenceAsync(string statement)
@@ -445,9 +456,9 @@ namespace SaveState.Core.Services.Ai.Memory
             return false;
         }
 
-        private async Task<string?> GenerateSuggestedRevision(string statement, List<LoreViolation> violations)
+        private Task<string?> GenerateSuggestedRevision(string statement, List<LoreViolation> violations)
         {
-            if (!violations.Any()) return null;
+            if (!violations.Any()) return Task.FromResult<string?>(null);
 
             var corrections = violations
                 .Where(v => v.CorrectStatement != null)
@@ -456,10 +467,10 @@ namespace SaveState.Core.Services.Ai.Memory
 
             if (corrections.Any())
             {
-                return $"Consider revising to align with: {string.Join("; ", corrections)}";
+                return Task.FromResult<string?>($"Consider revising to align with: {string.Join("; ", corrections)}");
             }
 
-            return "Please revise to align with established lore.";
+            return Task.FromResult<string?>("Please revise to align with established lore.");
         }
 
         private string GenerateManualCorrection(string content, List<LoreViolation> violations)

@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Ai
 {
@@ -23,6 +24,7 @@ namespace SaveState.Core.Services.Ai
     public class OllamaManager : IDisposable
     {
         private static OllamaManager? _instance;
+        private readonly ILogger _logger = Log.ForContext<OllamaManager>();
         private Process? _ollamaProcess;
         private readonly HttpClient _httpClient;
         private readonly string _ollamaPath;
@@ -81,7 +83,7 @@ namespace SaveState.Core.Services.Ai
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Failed to find ollama in PATH: {ex.Message}");
+                        _logger.Warning(ex, "Failed to find ollama in PATH");
                     }
                 }
                 else if (File.Exists(path))
@@ -170,7 +172,7 @@ namespace SaveState.Core.Services.Ai
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to start Ollama: {ex.Message}");
+                _logger.Error(ex, "Failed to start Ollama");
                 SetStatus(OllamaStatus.Error);
                 return false;
             }
@@ -191,7 +193,7 @@ namespace SaveState.Core.Services.Ai
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to stop Ollama process: {ex.Message}");
+                _logger.Warning(ex, "Failed to stop Ollama process");
             }
 
             SetStatus(OllamaStatus.Stopped);
@@ -237,7 +239,7 @@ namespace SaveState.Core.Services.Ai
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to get installed models: {ex.Message}");
+                _logger.Warning(ex, "Failed to get installed models");
             }
 
             return models;
@@ -268,6 +270,7 @@ namespace SaveState.Core.Services.Ai
             StopOllama();
             _httpClient.Dispose();
             _healthCheckCts?.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

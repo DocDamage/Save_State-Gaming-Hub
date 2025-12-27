@@ -6,11 +6,15 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using SaveState.Core.Helpers;
+using SaveState.Core.Interfaces;
 using SaveState.Core.Services.GameState;
 using SaveState.Core.Services.Ai.Memory;
+using SaveState.Core.Services.Ai.Adapters;
+using Serilog;
 
 namespace SaveState.Core.Services.Ai
 {
+    // ... (keep LlmProvider enum and LlmConfig/ActiveModel classes) 
     public enum LlmProvider
     {
         Ollama,       // Local - free
@@ -50,37 +54,40 @@ namespace SaveState.Core.Services.Ai
     {
         Task<string> CompleteAsync(string prompt, string? systemPrompt = null);
         Task<string> ChatAsync(List<LlmMessage> messages);
+        Task<string> ChatWithModelAsync(string modelName, List<LlmMessage> messages);
         bool IsAvailable { get; }
         LlmProvider CurrentProvider { get; }
+        void AddProvider(LlmConfig config);
+        void SetPrimaryProvider(LlmProvider provider);
         Task InitializeAsync();
+        void ConfigureAdvancedAi(IStateInjector? stateInjector = null, IMemoryOrchestrator? memoryOrchestrator = null, bool enableStateInjection = true);
     }
 
     public class LlmService : ILlmService
     {
-        private readonly HttpClient _httpClient;
+        private readonly ILogger _logger = Log.ForContext<LlmService>();
+        private readonly IAppConfiguration _config;
         private readonly List<LlmConfig> _configs = new();
         private readonly List<ActiveModel> _activeModels = new();
+        private readonly Dictionary<LlmProvider, ILlmProvider> _adapters = new();
         private LlmConfig _primaryConfig;
         private bool _initialized;
-        
+
         // Advanced AI Architecture integrations
         private IStateInjector? _stateInjector;
         private IMemoryOrchestrator? _memoryOrchestrator;
         private bool _enableStateInjection = false;
 
         public LlmProvider CurrentProvider => _primaryConfig.Provider;
-        public bool IsAvailable => _primaryConfig.Provider != LlmProvider.Offline || true;
+        public bool IsAvailable => _adapters.ContainsKey(_primaryConfig.Provider) && _adapters[_primaryConfig.Provider].IsAvailable;
         public IReadOnlyList<ActiveModel> ActiveModels => _activeModels;
 
-        public LlmService(LlmConfig? config = null)
+        public LlmService(IAppConfiguration config, LlmConfig? llmConfig = null)
         {
-            _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
-            _primaryConfig = config ?? new LlmConfig();
+            _config = config;
+            _primaryConfig = llmConfig ?? new LlmConfig();
         }
 
-        /// <summary>
-        /// Configure the Advanced AI Architecture integrations
-        /// </summary>
         public void ConfigureAdvancedAi(IStateInjector? stateInjector = null, IMemoryOrchestrator? memoryOrchestrator = null, bool enableStateInjection = true)
         {
             _stateInjector = stateInjector;
@@ -93,13 +100,20 @@ namespace SaveState.Core.Services.Ai
             if (_initialized) return;
             _initialized = true;
 
-            // Try to auto-start Ollama
+            // 1. Initialize Adapters
+            InitializeAdapters();
+
+            // 2. Try to auto-start Ollama
             var ollamaStarted = await OllamaManager.Instance.CheckAndStartAsync();
             
-            // Detect available providers in order of preference
-            await DetectProvidersAsync();
+            // 3. Detect available providers 
+            // (If no primary config was provided, or if we want to auto-discover better ones)
+            if (_primaryConfig.Provider == LlmProvider.Offline)
+            {
+               await DetectBestProviderAsync(); 
+            }
 
-            // Load installed models from Ollama
+            // 4. Load installed models from Ollama
             if (ollamaStarted)
             {
                 var models = await OllamaManager.Instance.GetInstalledModelsAsync();
@@ -116,9 +130,46 @@ namespace SaveState.Core.Services.Ai
             }
         }
 
-        private async Task DetectProvidersAsync()
+        private void InitializeAdapters()
         {
-            // Check Ollama first (auto-started)
+            _adapters[LlmProvider.Offline] = new OfflineProvider();
+            
+            // Default Ollama
+            _adapters[LlmProvider.Ollama] = new OllamaProvider();
+
+            // Generic setup for others - they will be configured if/when configs are added
+            // Currently assuming one instance per provider type for simplicity. 
+            // In a more complex setup, we might need a factory.
+        }
+
+        private void EnsureAdapterConfigured(LlmConfig config)
+        {
+            if (config.Provider == LlmProvider.OpenAI || 
+                config.Provider == LlmProvider.Groq || 
+                config.Provider == LlmProvider.Together ||
+                config.Provider == LlmProvider.LMStudio)
+            {
+                // Re-create adapter with specific config keys
+                 _adapters[config.Provider] = new OpenAiCompatibleProvider(
+                     config.Provider, 
+                     config.ApiKey ?? "", 
+                     config.BaseUrl ?? GetDefaultBaseUrl(config.Provider)
+                 );
+            }
+        }
+
+        private string GetDefaultBaseUrl(LlmProvider provider) => provider switch
+        {
+            LlmProvider.OpenAI => _config.GetApiEndpoint("OpenAI", "https://api.openai.com/v1/"),
+            LlmProvider.Groq => _config.GetApiEndpoint("Groq", "https://api.groq.com/openai/v1/"),
+            LlmProvider.Together => _config.GetApiEndpoint("Together", "https://api.together.xyz/v1/"),
+            LlmProvider.LMStudio => _config.GetApiEndpoint("LMStudio", "http://localhost:1234/v1/"),
+            _ => ""
+        };
+
+        private async Task DetectBestProviderAsync()
+        {
+            // Check Ollama
             if (OllamaManager.Instance.IsRunning)
             {
                 var models = await OllamaManager.Instance.GetInstalledModelsAsync();
@@ -127,82 +178,54 @@ namespace SaveState.Core.Services.Ai
                     _primaryConfig = new LlmConfig
                     {
                         Provider = LlmProvider.Ollama,
-                        BaseUrl = "http://localhost:11434/",
+                        BaseUrl = _config.GetApiEndpoint("Ollama", "http://localhost:11434/"),
                         Model = models[0]
                     };
                     return;
                 }
             }
 
-            // Check cloud providers via environment variables
-            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GROQ_API_KEY")))
-            {
-                _primaryConfig = new LlmConfig
-                {
-                    Provider = LlmProvider.Groq,
-                    ApiKey = Environment.GetEnvironmentVariable("GROQ_API_KEY"),
-                    BaseUrl = "https://api.groq.com/openai/v1/",
-                    Model = "llama-3.1-8b-instant"
-                };
-                _configs.Add(_primaryConfig);
-                return;
-            }
-
-            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TOGETHER_API_KEY")))
-            {
-                _primaryConfig = new LlmConfig
-                {
-                    Provider = LlmProvider.Together,
-                    ApiKey = Environment.GetEnvironmentVariable("TOGETHER_API_KEY"),
-                    BaseUrl = "https://api.together.xyz/v1/",
-                    Model = "meta-llama/Llama-3-8b-chat-hf"
-                };
-                _configs.Add(_primaryConfig);
-                return;
-            }
-
-            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("OPENAI_API_KEY")))
-            {
-                _primaryConfig = new LlmConfig
-                {
-                    Provider = LlmProvider.OpenAI,
-                    ApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY"),
-                    BaseUrl = "https://api.openai.com/v1/",
-                    Model = "gpt-3.5-turbo"
-                };
-                _configs.Add(_primaryConfig);
-                return;
-            }
+            // Check Environment Variables
+            if (CheckEnvProvider("GROQ_API_KEY", LlmProvider.Groq, "llama-3.1-8b-instant")) return;
+            if (CheckEnvProvider("TOGETHER_API_KEY", LlmProvider.Together, "meta-llama/Llama-3-8b-chat-hf")) return;
+            if (CheckEnvProvider("OPENAI_API_KEY", LlmProvider.OpenAI, "gpt-3.5-turbo")) return;
 
             // Check LM Studio
-            if (await TryConnectLMStudioAsync())
+            var lmStudio = new OpenAiCompatibleProvider(LlmProvider.LMStudio, "", "http://localhost:1234/v1/");
+            if (await lmStudio.HealthCheckAsync())
             {
-                _primaryConfig = new LlmConfig
+                 _primaryConfig = new LlmConfig
                 {
                     Provider = LlmProvider.LMStudio,
                     BaseUrl = "http://localhost:1234/v1/",
                     Model = "local-model"
                 };
+                EnsureAdapterConfigured(_primaryConfig);
                 return;
             }
-
-            // Fallback to offline
-            _primaryConfig = new LlmConfig { Provider = LlmProvider.Offline };
         }
 
-        private async Task<bool> TryConnectLMStudioAsync()
+        private bool CheckEnvProvider(string envVar, LlmProvider provider, string defaultModel)
         {
-            try
+            var key = Environment.GetEnvironmentVariable(envVar);
+            if (!string.IsNullOrEmpty(key))
             {
-                var response = await _httpClient.GetAsync("http://localhost:1234/v1/models");
-                return response.IsSuccessStatusCode;
+                _primaryConfig = new LlmConfig
+                {
+                    Provider = provider,
+                    ApiKey = key,
+                    Model = defaultModel
+                };
+                EnsureAdapterConfigured(_primaryConfig);
+                return true;
             }
-            catch { return false; }
+            return false;
         }
 
         public void AddProvider(LlmConfig config)
         {
             _configs.Add(config);
+            EnsureAdapterConfigured(config);
             if (_primaryConfig.Provider == LlmProvider.Offline)
             {
                 _primaryConfig = config;
@@ -212,14 +235,17 @@ namespace SaveState.Core.Services.Ai
         public void SetPrimaryProvider(LlmProvider provider)
         {
             var config = _configs.FirstOrDefault(c => c.Provider == provider);
-            if (config != null) _primaryConfig = config;
+            if (config != null) 
+            {
+                _primaryConfig = config;
+                EnsureAdapterConfigured(config);
+            }
         }
 
         public async Task<string> CompleteAsync(string prompt, string? systemPrompt = null)
         {
             if (!_initialized) await InitializeAsync();
 
-            // Apply state injection if configured
             var finalPrompt = prompt;
             if (_enableStateInjection && _stateInjector != null)
             {
@@ -235,7 +261,6 @@ namespace SaveState.Core.Services.Ai
             
             var response = await ChatAsync(messages);
 
-            // Record interaction in memory if configured
             if (_memoryOrchestrator != null)
             {
                 await _memoryOrchestrator.RecordInteraction(prompt, response, "llm_completion");
@@ -248,36 +273,41 @@ namespace SaveState.Core.Services.Ai
         {
             if (!_initialized) await InitializeAsync();
 
-            if (_primaryConfig.Provider == LlmProvider.Offline)
+            EnsureAdapterConfigured(_primaryConfig);
+
+            if (!_adapters.ContainsKey(_primaryConfig.Provider))
             {
-                return OfflineFallback(messages.LastOrDefault()?.Content ?? "");
+                return await _adapters[LlmProvider.Offline].ChatAsync("", messages, 0, 0);
             }
 
             try
             {
-                return _primaryConfig.Provider switch
-                {
-                    LlmProvider.Ollama => await CallOllamaAsync(messages),
-                    _ => await CallOpenAICompatibleAsync(messages)
-                };
+                return await _adapters[_primaryConfig.Provider].ChatAsync(
+                    _primaryConfig.Model, 
+                    messages, 
+                    _primaryConfig.Temperature, 
+                    _primaryConfig.MaxTokens);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"LLM Error: {ex.Message}");
-                return OfflineFallback(messages.LastOrDefault()?.Content ?? "");
+                _logger.Warning(ex, "Provider {Provider} failed, falling back to offline", _primaryConfig.Provider);
+                // Fallback to offline
+                return await _adapters[LlmProvider.Offline].ChatAsync("", messages, 0, 0);
             }
         }
 
         public async Task<string> ChatWithModelAsync(string modelName, List<LlmMessage> messages)
         {
-            // Use a specific model from active models
-            var model = _activeModels.FirstOrDefault(m => m.Name.StartsWith(modelName, StringComparison.OrdinalIgnoreCase));
-            if (model == null) return await ChatAsync(messages);
-
+            if (!_initialized) await InitializeAsync();
+            
+            // Temporary config switch
             var originalModel = _primaryConfig.Model;
-            _primaryConfig.Model = model.Name;
-            model.LastUsed = DateTime.Now;
+            _primaryConfig.Model = modelName;
 
+            // Check if model belongs to a differnt provider? 
+            // For now assume current provider supports it or it's cross-provider logic
+            // The method logic in original file was a bit loose.
+            
             try
             {
                 return await ChatAsync(messages);
@@ -288,136 +318,19 @@ namespace SaveState.Core.Services.Ai
             }
         }
 
-        private async Task<string> CallOpenAICompatibleAsync(List<LlmMessage> messages)
-        {
-            var request = new
-            {
-                model = _primaryConfig.Model,
-                messages = messages.Select(m => new { role = m.Role, content = m.Content }),
-                temperature = _primaryConfig.Temperature,
-                max_tokens = _primaryConfig.MaxTokens
-            };
-
-            var json = JsonSerializer.Serialize(request);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            _httpClient.DefaultRequestHeaders.Clear();
-            if (!string.IsNullOrEmpty(_primaryConfig.ApiKey))
-            {
-                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_primaryConfig.ApiKey}");
-            }
-
-            var response = await _httpClient.PostAsync($"{_primaryConfig.BaseUrl}chat/completions", content);
-            var responseJson = await response.Content.ReadAsStringAsync();
-
-            using var doc = JsonDocument.Parse(responseJson);
-            return doc.RootElement
-                .GetProperty("choices")[0]
-                .GetProperty("message")
-                .GetProperty("content")
-                .GetString() ?? "";
-        }
-
-        private async Task<string> CallOllamaAsync(List<LlmMessage> messages)
-        {
-            // Use chat API for multi-turn
-            var request = new
-            {
-                model = _primaryConfig.Model,
-                messages = messages.Select(m => new { role = m.Role, content = m.Content }),
-                stream = false
-            };
-
-            var json = JsonSerializer.Serialize(request);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync($"{_primaryConfig.BaseUrl}api/chat", content);
-            var responseJson = await response.Content.ReadAsStringAsync();
-
-            using var doc = JsonDocument.Parse(responseJson);
-            return doc.RootElement
-                .GetProperty("message")
-                .GetProperty("content")
-                .GetString() ?? "";
-        }
-
-        private string OfflineFallback(string input)
-        {
-            var rand = new Random(input.GetHashCode());
-            
-            if (input.Contains("commentary") || input.Contains("comment"))
-            {
-                var lines = new[]
-                {
-                    "What an incredible play!",
-                    "The tension is palpable!",
-                    "A masterful display of skill!",
-                    "Things are heating up!",
-                    "Absolutely phenomenal!",
-                };
-                return lines[rand.Next(lines.Length)];
-            }
-            
-            if (input.Contains("fusion") || input.Contains("combine"))
-            {
-                return "A powerful fusion has been created!";
-            }
-
-            if (input.Contains("dream") || input.Contains("level"))
-            {
-                return "A surreal landscape emerges from your memories...";
-            }
-
-            if (input.Contains("predict") || input.Contains("winner"))
-            {
-                return "This will be a close match - may the best fighter win!";
-            }
-
-            if (input.Contains("tip") || input.Contains("suggest"))
-            {
-                return "Keep practicing and learn from each attempt!";
-            }
-
-            return "Processing complete.";
-        }
-
-        public void SetConfig(LlmConfig config)
-        {
-            _primaryConfig = config;
-        }
-
-        public LlmConfig GetConfig() => _primaryConfig;
-
-        public List<LlmProvider> GetAvailableProviders()
-        {
-            var providers = new List<LlmProvider> { LlmProvider.Offline };
-
-            if (OllamaManager.Instance.IsRunning || OllamaManager.Instance.IsInstalled)
-                providers.Insert(0, LlmProvider.Ollama);
-
-            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GROQ_API_KEY")))
-                providers.Add(LlmProvider.Groq);
-
-            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TOGETHER_API_KEY")))
-                providers.Add(LlmProvider.Together);
-
-            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("OPENAI_API_KEY")))
-                providers.Add(LlmProvider.OpenAI);
-
-            return providers;
-        }
-
         public string GetProviderStatus()
         {
             var sb = new StringBuilder();
             sb.AppendLine($"Primary Provider: {_primaryConfig.Provider}");
             sb.AppendLine($"Model: {_primaryConfig.Model}");
             sb.AppendLine($"Active Models: {_activeModels.Count}");
-            
-            if (OllamaManager.Instance.Status != OllamaStatus.NotInstalled)
-                sb.AppendLine($"Ollama: {OllamaManager.Instance.Status}");
-
+            sb.AppendLine($"Adapter Ready: {_adapters.ContainsKey(_primaryConfig.Provider)}");
             return sb.ToString();
+        }
+    
+        public List<LlmProvider> GetAvailableProviders()
+        {
+             return _adapters.Keys.ToList();
         }
     }
 }

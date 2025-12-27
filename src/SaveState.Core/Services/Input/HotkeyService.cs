@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using Serilog;
 
 namespace SaveState.Core.Services.Input
 {
@@ -87,6 +88,7 @@ namespace SaveState.Core.Services.Input
     public class HotkeyService : IDisposable
     {
         private static HotkeyService? _instance;
+        private readonly ILogger _logger = Log.ForContext<HotkeyService>();
         private readonly string _configPath;
         private readonly Dictionary<HotkeyAction, HotkeyBinding> _bindings = new();
         private readonly Dictionary<HotkeyAction, Action> _handlers = new();
@@ -215,7 +217,7 @@ namespace SaveState.Core.Services.Input
             // Windows: RegisterHotKey API
             // Cross-platform: Consider using a library like SharpHook
 
-            Console.WriteLine("⌨️ Hotkey listening started");
+            _logger.Information("Hotkey listening started");
         }
 
         public void StopListening()
@@ -224,7 +226,7 @@ namespace SaveState.Core.Services.Input
             _isListening = false;
 
             // In production: Unregister global hotkeys
-            Console.WriteLine("⌨️ Hotkey listening stopped");
+            _logger.Information("Hotkey listening stopped");
         }
 
         // Called when a hotkey is detected (by platform-specific hook)
@@ -246,7 +248,7 @@ namespace SaveState.Core.Services.Input
 
         private void ExecuteAction(HotkeyAction action)
         {
-            Console.WriteLine($"⌨️ Hotkey: {action}");
+            _logger.Debug("Hotkey detected: {Action}", action);
             HotkeyTriggered?.Invoke(this, action);
 
             if (_handlers.TryGetValue(action, out var handler))
@@ -299,7 +301,7 @@ namespace SaveState.Core.Services.Input
                         }
                     }
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load hotkey bindings"); }
             }
         }
 
@@ -317,6 +319,7 @@ namespace SaveState.Core.Services.Input
         public void Dispose()
         {
             StopListening();
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -105,5 +105,6 @@ public class VoiceService : IVoiceService, IDisposable
             _recognizer.Dispose();
             _recognizer = null;
         }
+        GC.SuppressFinalize(this);
     }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using SaveState.Core.Services.Account;
+using Serilog;
 
 namespace SaveState.Core.Services.Gamification
 {
@@ -56,6 +57,7 @@ namespace SaveState.Core.Services.Gamification
     public class AchievementService
     {
         private static AchievementService? _instance;
+        private readonly ILogger _logger = Log.ForContext<AchievementService>();
         private readonly string _dataPath;
         private readonly AuthService _authService;
         private readonly ProfileService _profileService;
@@ -206,7 +208,7 @@ namespace SaveState.Core.Services.Gamification
             _profileService.RecordAchievement();
 
             AchievementUnlocked?.Invoke(this, achievement);
-            Console.WriteLine($"🏆 Achievement Unlocked: {achievement.Name}!");
+            _logger.Information("Achievement unlocked: {Name}", achievement.Name);
 
             await Task.Yield();
             return true;
@@ -316,7 +318,7 @@ namespace SaveState.Core.Services.Gamification
                         }
                     }
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load user achievements"); }
             }
         }
 

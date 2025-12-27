@@ -71,6 +71,9 @@ public partial class MainWindowViewModel : ViewModelBase
             case "Knowledge":
                 CurrentPage = _serviceProvider.GetRequiredService<KnowledgeViewModel>();
                 break;
+            case "Trainer":
+                CurrentPage = _serviceProvider.GetRequiredService<TrainerGeneratorViewModel>();
+                break;
             default:
                 CurrentPage = null;
                 break;

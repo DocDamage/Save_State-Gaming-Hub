@@ -15,13 +15,13 @@ public class SteamGridDbService : IMetadataProvider
     private readonly string _cacheDir;
     private string? _apiKey;
 
-    public SteamGridDbService(HttpClient httpClient)
+    public SteamGridDbService(HttpClient httpClient, IAppConfiguration config)
     {
         _httpClient = httpClient;
-        _httpClient.BaseAddress = new Uri("https://www.steamgriddb.com/api/v2/");
-        
+        _httpClient.BaseAddress = new Uri(config.GetApiEndpoint("SteamGridDB", "https://www.steamgriddb.com/api/v2/"));
+
         _apiKey = Environment.GetEnvironmentVariable("STEAMGRIDDB_API_KEY");
-        
+
         // Setup cache directory
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         _cacheDir = Path.Combine(appData, "SaveState", "ImageCache");
@@ -154,8 +154,8 @@ public class SteamGridDbService : IMetadataProvider
 
         try
         {
-            using var imageClient = new HttpClient();
-            var imageData = await imageClient.GetByteArrayAsync(url);
+            // Reuse instance client to avoid socket exhaustion
+            var imageData = await _httpClient.GetByteArrayAsync(url);
             await File.WriteAllBytesAsync(cachePath, imageData);
             _logger.Debug("Cached image: {Path}", cachePath);
             return cachePath;

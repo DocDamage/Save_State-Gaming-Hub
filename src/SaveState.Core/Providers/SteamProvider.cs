@@ -70,6 +70,13 @@ public class SteamProvider : IGameProvider
 
     private string? GetSteamPath()
     {
+        // Only attempt registry access on Windows platforms
+        if (!OperatingSystem.IsWindows())
+        {
+            _logger.Debug("Steam registry scanning skipped - not on Windows platform");
+            return null;
+        }
+
         try
         {
             // Try 64-bit registry first

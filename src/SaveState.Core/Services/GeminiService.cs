@@ -17,11 +17,11 @@ public class GeminiService : IAiService
 
     public bool IsConfigured => !string.IsNullOrEmpty(_apiKey);
 
-    public GeminiService(IHttpClientFactory httpClientFactory)
+    public GeminiService(IHttpClientFactory httpClientFactory, IAppConfiguration config)
     {
         _httpClient = httpClientFactory.CreateClient("Gemini");
-        _httpClient.BaseAddress = new Uri("https://generativelanguage.googleapis.com/v1beta/");
-        
+        _httpClient.BaseAddress = new Uri(config.GetApiEndpoint("Gemini", "https://generativelanguage.googleapis.com/v1beta/"));
+
         // Try to get API key from environment variable first, can be extended to settings later
         _apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
     }

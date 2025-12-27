@@ -185,6 +185,13 @@
                     </StackPanel>
                 </Button>
                 
+                <Button Command="{Binding NavigateCommand}" CommandParameter="Trainer" Classes="nav-btn">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="🔧"/>
+                        <TextBlock Text="Trainer Generator"/>
+                    </StackPanel>
+                </Button>
+                
                 <TextBlock Text="{Binding StatusMessage}" 
                            FontSize="11" 
                            Opacity="0.7"

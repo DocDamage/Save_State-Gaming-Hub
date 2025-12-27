@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Ai.Events
 {
@@ -83,6 +84,7 @@ namespace SaveState.Core.Services.Ai.Events
     /// </summary>
     public class EnhancedEventBus : AiEventBus, IEnhancedEventBus
     {
+        private readonly ILogger _logger = Log.ForContext<EnhancedEventBus>();
         private readonly ConcurrentDictionary<string, AiAgent> _agents = new();
         private readonly ConcurrentDictionary<EventPriority, ConcurrentQueue<GameEvent>> _priorityQueues = new();
         private readonly ConcurrentBag<GameEvent> _batchedEvents = new();
@@ -208,7 +210,7 @@ namespace SaveState.Core.Services.Ai.Events
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Background processing error: {ex.Message}");
+                    _logger.Warning(ex, "Background event processing error");
                 }
             }
         }
@@ -304,7 +306,7 @@ namespace SaveState.Core.Services.Ai.Events
             catch (Exception ex)
             {
                 Interlocked.Increment(ref _failedHandlers);
-                Console.WriteLine($"Agent {agent.Name} handler error: {ex.Message}");
+                _logger.Warning(ex, "Agent {AgentName} handler error", agent.Name);
             }
             return null;
         }

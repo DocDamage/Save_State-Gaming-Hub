@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using Serilog;
 
 namespace SaveState.Core.Services.EmulatorEnhancements
 {
@@ -16,6 +17,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
 
     public class ShaderStudioService
     {
+        private readonly ILogger _logger = Log.ForContext<ShaderStudioService>();
         private readonly List<ShaderPreset> _presets;
         private ShaderPreset? _activePreset;
         private readonly string _customShadersPath;
@@ -128,7 +130,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
                         _presets.Add(preset);
                     }
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load custom shader"); }
             }
         }
 

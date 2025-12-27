@@ -1,4 +1,5 @@
 using System;
+using SaveState.Core.Infrastructure;
 using SaveState.Core.Services.Ai;
 using SaveState.Core.Services.Ai.Memory;
 using SaveState.Core.Services.Ai.Orchestration;
@@ -17,11 +18,14 @@ using SaveState.Core.Services.Ai.Tools;
 using SaveState.Core.Services.Ai.Resilience;
 using SaveState.Core.Services.Ai.Telemetry;
 using SaveState.Core.Services.Ai.Testing;
+using SaveState.Core.Services.Ai.Optimization;
+using SaveState.Core.Services.Ai.Safety;
 using SaveState.Core.Services.GameState;
 using SaveState.Core.Services.Player;
 using SaveState.Core.Services.Rules;
 using SaveState.Core.Services.Timeline;
 using SaveState.Core.Services.EmulatorEnhancements;
+using SaveState.Core.Services.Memory;
 
 
 namespace SaveState.Core.Services
@@ -127,12 +131,34 @@ namespace SaveState.Core.Services
         private IAiTelemetry? _aiTelemetry;
         private IAiTestHarness? _aiTestHarness;
         private IFakePlayerSimulator? _fakePlayerSimulator;
+        private DriftTestManager? _driftTestManager;
         private IHallucinationDetector? _hallucinationDetector;
+        private IUltimateAiOrchestrator? _ultimateAiOrchestrator;
+        
+        // Phase A Services
+        private IGlobalKillSwitch? _killSwitch;
+        private IPolicyGate? _policyGate;
+        private IProvenanceLedger? _provenanceLedger;
+        private IPregenService? _pregenService;
+        private IIntentRouter? _intentRouter;
+        // Specialists
+        private NarrativeSpecialist? _narrativeSpecialist;
+        private LoreSpecialist? _loreSpecialist;
+        private SystemSpecialist? _systemSpecialist;
+        
+        // Monitoring
+        private IGameSessionMonitor? _gameSessionMonitor;
+        private IMemoryProfileService? _memoryProfileService;
+        private ITrainerGeneratorService? _trainerGeneratorService;
 
         private AiServiceProvider() { }
 
         // === Core Services ===
-        public ILlmService LlmService => _llmService ??= new LlmService();
+        public ILlmService LlmService => _llmService ??= new LlmService(AppConfiguration.Instance, null);
+        
+        public IGameSessionMonitor GameSessionMonitor => _gameSessionMonitor ??= new GameSessionMonitor();
+        public IMemoryProfileService MemoryProfileService => _memoryProfileService ??= new MemoryProfileService();
+        public ITrainerGeneratorService TrainerGeneratorService => _trainerGeneratorService ??= new TrainerGeneratorService();
         
         public RagService RagService => _ragService ??= new RagService(LlmService);
         
@@ -274,8 +300,48 @@ namespace SaveState.Core.Services
         public IFakePlayerSimulator FakePlayerSimulator => 
             _fakePlayerSimulator ??= new FakePlayerSimulator();
 
+        public DriftTestManager DriftTestManager => 
+            _driftTestManager ??= new DriftTestManager(AiTestHarness);
+
         public IHallucinationDetector HallucinationDetector => 
             _hallucinationDetector ??= new HallucinationDetector();
+
+        public IUltimateAiOrchestrator UltimateAiOrchestrator => 
+             _ultimateAiOrchestrator ??= CreateConfiguredOrchestrator();
+
+        private IUltimateAiOrchestrator CreateConfiguredOrchestrator()
+        {
+             var orch = new UltimateAiOrchestrator();
+             orch.BuildStandardPipeline();
+             return orch;
+        }
+
+        // --- Phase A Services ---
+        public IGlobalKillSwitch KillSwitch => _killSwitch ??= new GlobalKillSwitch();
+        public IPolicyGate PolicyGate => _policyGate ??= new PolicyGate();
+        public IProvenanceLedger ProvenanceLedger => _provenanceLedger ??= new ProvenanceLedger();
+        public IPregenService PregenService => _pregenService ??= new PregenService(EnhancedEventBus, GetSpecialistAgents());
+        
+        // Router & Specialists
+        public NarrativeSpecialist NarrativeSpecialist => _narrativeSpecialist ??= new NarrativeSpecialist(LlmService);
+        public LoreSpecialist LoreSpecialist => _loreSpecialist ??= new LoreSpecialist(LlmService, LoreLocker);
+        public SystemSpecialist SystemSpecialist => _systemSpecialist ??= new SystemSpecialist(LlmService, RuleEngine);
+
+        public IEnumerable<ISpecialistAgent> GetSpecialistAgents()
+        {
+            yield return NarrativeSpecialist;
+            yield return LoreSpecialist;
+            yield return SystemSpecialist;
+        }
+
+        public IIntentRouter IntentRouter => _intentRouter ??= new IntentRouter(
+            new EnhancedIntentClassifier(), // Or use existing IntentClassifier if they share interface? Enhanced is new.
+            GetSpecialistAgents(),
+            StateInjector,
+            EpisodicMemory,
+            LoreLocker,
+            new MemoryWriterService(EnhancedEventBus, EpisodicMemory)
+        );
 
         /// <summary>
         /// Initialize all services (call at application startup)

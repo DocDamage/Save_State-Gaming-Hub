@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using SaveState.Core.Services.Ai;
+using Serilog;
 
 namespace SaveState.Core.Services.Mugen
 {
@@ -34,6 +35,7 @@ namespace SaveState.Core.Services.Mugen
 
     public class CharacterFusionService
     {
+        private readonly ILogger _logger = Log.ForContext<CharacterFusionService>();
         private List<FusionCharacter> _fusions = new();
         private readonly string _dataPath;
         private readonly string _engineRootPath;
@@ -43,7 +45,7 @@ namespace SaveState.Core.Services.Mugen
 
         public CharacterFusionService(ILlmService? llmService = null)
         {
-            _llmService = llmService ?? new LlmService();
+            _llmService = llmService;
             _engineRootPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "SaveState2", "MUGEN");
             _dataPath = Path.Combine(_engineRootPath, "data", "fusions.json");
             LoadFusions();
@@ -273,7 +275,7 @@ defence = {fusion.Stats.Defense}
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Fusion folder creation error: {ex.Message}");
+                _logger.Warning(ex, "Fusion folder creation error");
             }
         }
 
@@ -292,7 +294,7 @@ defence = {fusion.Stats.Defense}
                     File.WriteAllLines(selectDefPath, lines);
                 }
             }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+            catch (Exception ex) { _logger.Debug(ex, "Failed to add fusion to roster"); }
         }
 
         private void LoadFusions()
@@ -324,7 +326,7 @@ defence = {fusion.Stats.Defense}
                     var charDir = Path.Combine(_engineRootPath, "chars", f.Name.ToLower().Replace(" ", "_"));
                     if (Directory.Exists(charDir)) Directory.Delete(charDir, true);
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to delete fusion folder"); }
                 _fusions.Remove(f);
                 SaveFusions();
             }

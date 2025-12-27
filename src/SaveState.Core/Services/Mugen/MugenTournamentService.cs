@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using Serilog;
 
 namespace SaveState.Core.Services.Mugen
 {
@@ -38,6 +39,7 @@ namespace SaveState.Core.Services.Mugen
 
     public class MugenTournamentService
     {
+        private readonly ILogger _logger = Log.ForContext<MugenTournamentService>();
         private List<MugenTournament> _tournaments = new();
         private readonly string _storagePath;
 
@@ -76,7 +78,7 @@ namespace SaveState.Core.Services.Mugen
             catch (Exception ex)
             {
                 // Simple logging for now
-                Console.WriteLine($"Failed to save tournaments: {ex.Message}");
+                _logger.Warning(ex, "Failed to save tournaments");
             }
         }
 

@@ -21,11 +21,11 @@ public class IgdbService : IMetadataProvider
     private string? _accessToken;
     private DateTime _tokenExpiry = DateTime.MinValue;
 
-    public IgdbService(HttpClient httpClient)
+    public IgdbService(HttpClient httpClient, IAppConfiguration config)
     {
         _httpClient = httpClient;
-        _httpClient.BaseAddress = new Uri("https://api.igdb.com/v4/");
-        
+        _httpClient.BaseAddress = new Uri(config.GetApiEndpoint("IGDB", "https://api.igdb.com/v4/"));
+
         // Load from environment or config
         _clientId = Environment.GetEnvironmentVariable("TWITCH_CLIENT_ID");
         _clientSecret = Environment.GetEnvironmentVariable("TWITCH_CLIENT_SECRET");

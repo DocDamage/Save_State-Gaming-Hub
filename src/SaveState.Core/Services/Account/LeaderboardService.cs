@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Account
 {
@@ -48,6 +49,7 @@ namespace SaveState.Core.Services.Account
     public class LeaderboardService
     {
         private static LeaderboardService? _instance;
+        private readonly ILogger _logger = Log.ForContext<LeaderboardService>();
         private readonly string _dataPath;
         private readonly ProfileService _profileService;
         private readonly AuthService _authService;
@@ -267,7 +269,7 @@ namespace SaveState.Core.Services.Account
                         }
                     }
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load speedruns"); }
             }
         }
 

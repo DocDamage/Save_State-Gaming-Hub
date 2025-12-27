@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Audio
 {
@@ -20,6 +21,7 @@ namespace SaveState.Core.Services.Audio
     public class AudioService
     {
         private static AudioService? _instance;
+        private readonly ILogger _logger = Log.ForContext<AudioService>();
         private readonly Dictionary<SoundType, string> _soundPaths = new();
         private readonly string _soundsPath;
         private float _masterVolume = 0.7f;
@@ -61,7 +63,7 @@ namespace SaveState.Core.Services.Audio
             {
                 // Use NAudio or platform-specific audio playback
                 // For now, log that we would play the sound
-                Console.WriteLine($"🔊 Playing sound: {sound}");
+                _logger.Debug("Playing sound: {Sound}", sound);
                 PlaySoundFile(path);
             }
         }
@@ -84,7 +86,7 @@ namespace SaveState.Core.Services.Audio
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Audio error: {ex.Message}");
+                _logger.Warning(ex, "Audio playback error");
             }
         }
 
@@ -124,7 +126,7 @@ namespace SaveState.Core.Services.Audio
         public void RegisterCustomSound(string name, string filePath)
         {
             // Allow custom sounds for extensibility
-            Console.WriteLine($"Registered custom sound: {name} -> {filePath}");
+            _logger.Debug("Registered custom sound: {Name} -> {FilePath}", name, filePath);
         }
     }
 }

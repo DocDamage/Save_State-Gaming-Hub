@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Rom
 {
@@ -48,6 +49,7 @@ namespace SaveState.Core.Services.Rom
     public class PatchService
     {
         private static PatchService? _instance;
+        private readonly ILogger _logger = Log.ForContext<PatchService>();
         private readonly string _patchesPath;
         private readonly List<PatchInfo> _patches = new();
 
@@ -191,7 +193,14 @@ namespace SaveState.Core.Services.Rom
             {
                 using var fs = File.OpenRead(patchPath);
                 var header = new byte[5];
-                fs.Read(header, 0, 5);
+                int bytesRead = fs.Read(header, 0, 5);
+
+                // Ensure we read enough bytes for magic detection
+                if (bytesRead < 5)
+                {
+                    // Not enough data to determine format - default to IPS
+                    return PatchFormat.IPS;
+                }
 
                 if (header[0] == 'P' && header[1] == 'A' && header[2] == 'T' && header[3] == 'C' && header[4] == 'H')
                     return PatchFormat.IPS;
@@ -200,7 +209,7 @@ namespace SaveState.Core.Services.Rom
                 if (header[0] == 'B' && header[1] == 'P' && header[2] == 'S' && header[3] == '1')
                     return PatchFormat.BPS;
             }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+            catch (Exception ex) { _logger.Debug(ex, "Failed to detect patch format"); }
 
             return PatchFormat.IPS; // Default
         }
@@ -303,7 +312,7 @@ namespace SaveState.Core.Services.Rom
                     var patches = JsonSerializer.Deserialize<List<PatchInfo>>(json);
                     if (patches != null) _patches.AddRange(patches);
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load patches"); }
             }
         }
 

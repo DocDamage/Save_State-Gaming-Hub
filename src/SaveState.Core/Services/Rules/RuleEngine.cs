@@ -34,12 +34,18 @@ namespace SaveState.Core.Services.Rules
         ValidationResult Validate(GameContext context, RuleCategory? category = null);
         IEnumerable<RuleSet> GetRuleSets();
         void SetRuleActive(string ruleId, bool active);
+        
+        // Resolution
+        void RegisterResolver(ActionResolver resolver);
+        ResolutionResult ResolveAction(ActionProposal proposal, GameContext context);
     }
 
     public class RuleEngine : IRuleEngine
     {
         private readonly Dictionary<string, RuleSet> _ruleSets = new();
         private readonly Dictionary<string, DateTime> _cooldowns = new();
+        private readonly Dictionary<string, ActionResolver> _resolvers = new();
+
 
         public RuleEngine()
         {
@@ -47,7 +53,54 @@ namespace SaveState.Core.Services.Rules
             RegisterRuleSet(CommonRules.CreateCombatRules());
             RegisterRuleSet(CommonRules.CreateEconomyRules());
             RegisterRuleSet(CommonRules.CreateQuestRules());
+            
+            // Register default resolvers (placeholders for now)
+            RegisterDefaultResolvers();
         }
+
+        private void RegisterDefaultResolvers()
+        {
+            // QUEST_ACCEPT
+            RegisterResolver(new ActionResolver 
+            { 
+                ActionType = "QUEST_ACCEPT",
+                Resolve = ctx => 
+                {
+                    var questId = ctx.State.TryGetValue("QUEST_ID", out var q) ? q : "UNKNOWN_QUEST";
+                    
+                    var result = new ResolutionResult { IsAllowed = true, Success = true };
+                    result.OutcomeDescription = $"Accepted quest: {questId}";
+                    
+                    result.StateDiff.FlagUpdates[$"QUEST_{questId}_ACTIVE"] = true;
+                    result.StateDiff.CounterUpdates["ACTIVE_QUEST_COUNT"] = 1; // +1 (relative update logic would be in applicator)
+                    
+                    return result; 
+                }
+            });
+
+            // QUEST_COMPLETE
+            RegisterResolver(new ActionResolver 
+            { 
+                ActionType = "QUEST_COMPLETE",
+                Resolve = ctx => 
+                {
+                    var questId = ctx.State.TryGetValue("QUEST_ID", out var q) ? q : "UNKNOWN_QUEST";
+
+                    var result = new ResolutionResult { IsAllowed = true, Success = true };
+                    result.OutcomeDescription = $"Completed quest: {questId}";
+
+                    result.StateDiff.FlagUpdates[$"QUEST_{questId}_ACTIVE"] = false;
+                    result.StateDiff.FlagUpdates[$"QUEST_{questId}_COMPLETED"] = true;
+                    result.StateDiff.CounterUpdates["ACTIVE_QUEST_COUNT"] = -1; // -1
+                    
+                    // Simple reward logic placeholder
+                    result.StateDiff.CounterUpdates["PLAYER_XP"] = 100;
+
+                    return result; 
+                }
+            });
+        }
+
 
         public void RegisterRuleSet(RuleSet ruleSet)
         {
@@ -58,6 +111,53 @@ namespace SaveState.Core.Services.Rules
         {
             _ruleSets.Remove(ruleSetId);
         }
+
+        public void RegisterResolver(ActionResolver resolver)
+        {
+            _resolvers[resolver.ActionType] = resolver;
+        }
+
+        public ResolutionResult ResolveAction(ActionProposal proposal, GameContext context)
+        {
+            // 1. Validate
+            // We map proposal to context for validation
+            context.CurrentAction = proposal.ActionType;
+            context.Actor = proposal.ActorId;
+            context.Target = proposal.TargetId;
+            
+            var validation = Validate(context);
+            if (!validation.IsValid)
+            {
+                return new ResolutionResult 
+                { 
+                    ActionId = proposal.ActionId,
+                    IsAllowed = false, 
+                    Success = false, 
+                    FailureReason = validation.Summary,
+                    EventsEmitted = validation.Violations.Select(v => v.Message).ToList()
+                };
+            }
+
+            // 2. Resolve
+            if (_resolvers.TryGetValue(proposal.ActionType, out var resolver))
+            {
+                var result = resolver.Resolve(context);
+                result.ActionId = proposal.ActionId;
+                result.IsAllowed = true;
+                return result;
+            }
+
+            // Default: If no specific resolver, we assume generic success if valid, 
+            // but no state changes unless specified broadly.
+            return new ResolutionResult 
+            { 
+                ActionId = proposal.ActionId,
+                IsAllowed = true, 
+                Success = true, 
+                OutcomeDescription = "Action allowed but no specific resolution logic defined." 
+            };
+        }
+
 
         public ValidationResult Validate(GameContext context, RuleCategory? category = null)
         {

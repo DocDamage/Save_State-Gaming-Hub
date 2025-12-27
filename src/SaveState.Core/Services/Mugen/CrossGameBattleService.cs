@@ -115,7 +115,7 @@ namespace SaveState.Core.Services.Mugen
 
         public CrossGameBattleService(ILlmService? llmService = null)
         {
-            _llmService = llmService ?? new LlmService();
+            _llmService = llmService;
             _dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), 
                 "SaveState2", "MUGEN", "data");
             if (!Directory.Exists(_dataPath)) Directory.CreateDirectory(_dataPath);

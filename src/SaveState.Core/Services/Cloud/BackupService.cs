@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Cloud
 {
@@ -23,6 +24,7 @@ namespace SaveState.Core.Services.Cloud
     public class BackupService
     {
         private static BackupService? _instance;
+        private readonly ILogger _logger = Log.ForContext<BackupService>();
         private readonly string _backupPath;
         private readonly string _dataPath;
         private readonly List<BackupInfo> _backups = new();
@@ -79,12 +81,12 @@ namespace SaveState.Core.Services.Cloud
                 // Cleanup old auto backups
                 if (isAuto) CleanupOldAutoBackups();
 
-                Console.WriteLine($"✅ Backup created: {fileName}");
+                _logger.Information("Backup created: {FileName}", fileName);
                 return backup;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Backup error: {ex.Message}");
+                _logger.Warning(ex, "Backup creation failed");
                 return null;
             }
         }
@@ -94,7 +96,7 @@ namespace SaveState.Core.Services.Cloud
             var backup = _backups.FirstOrDefault(b => b.Id == backupId);
             if (backup == null || !File.Exists(backup.FilePath))
             {
-                Console.WriteLine("Backup not found");
+                _logger.Warning("Backup not found: {BackupId}", backupId);
                 return false;
             }
 
@@ -128,12 +130,12 @@ namespace SaveState.Core.Services.Cloud
                     Directory.Delete(tempPath, true);
                 });
 
-                Console.WriteLine($"✅ Restored from: {backup.FileName}");
+                _logger.Information("Restored from backup: {FileName}", backup.FileName);
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Restore error: {ex.Message}");
+                _logger.Warning(ex, "Backup restore failed");
                 return false;
             }
         }
@@ -246,7 +248,7 @@ namespace SaveState.Core.Services.Cloud
                         _backups.AddRange(list.Where(b => File.Exists(b.FilePath)));
                     }
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load backup list"); }
             }
         }
 

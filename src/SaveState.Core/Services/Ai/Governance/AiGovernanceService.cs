@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SaveState.Core.Services.Ai.Governance.Models;
 
 namespace SaveState.Core.Services.Ai.Governance
 {
@@ -44,6 +45,11 @@ namespace SaveState.Core.Services.Ai.Governance
         /// Get the safety rails instance
         /// </summary>
         ISafetyRails SafetyRails { get; }
+
+        /// <summary>
+        /// Get the policy gate instance
+        /// </summary>
+        IPolicyGate PolicyGate { get; }
     }
 
     /// <summary>
@@ -58,6 +64,12 @@ namespace SaveState.Core.Services.Ai.Governance
         public string? ContentToValidate { get; set; }
         public ContentType ContentType { get; set; } = ContentType.UserInput;
         public Dictionary<string, object> Parameters { get; set; } = new();
+        
+        /// <summary>
+        /// The active AI Contract for this request. 
+        /// Should be populated by the Orchestrator.
+        /// </summary>
+        public AiContract? Contract { get; set; }
     }
 
     /// <summary>
@@ -93,7 +105,8 @@ namespace SaveState.Core.Services.Ai.Governance
         CapabilityGate,
         FeatureFlag,
         SafetyRails,
-        Custom
+        Custom,
+        PolicyGate
     }
 
     /// <summary>
@@ -104,19 +117,23 @@ namespace SaveState.Core.Services.Ai.Governance
         private readonly ICapabilityGate _capabilityGate;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly ISafetyRails _safetyRails;
+        private readonly IPolicyGate _policyGate;
 
         public ICapabilityGate CapabilityGate => _capabilityGate;
         public IFeatureFlagService FeatureFlags => _featureFlagService;
         public ISafetyRails SafetyRails => _safetyRails;
+        public IPolicyGate PolicyGate => _policyGate;
 
         public AiGovernanceService(
             ICapabilityGate? capabilityGate = null,
             IFeatureFlagService? featureFlagService = null,
-            ISafetyRails? safetyRails = null)
+            ISafetyRails? safetyRails = null,
+            IPolicyGate? policyGate = null)
         {
             _capabilityGate = capabilityGate ?? new CapabilityGate();
             _featureFlagService = featureFlagService ?? new FeatureFlagService();
             _safetyRails = safetyRails ?? new SafetyRails();
+            _policyGate = policyGate ?? new PolicyGate();
         }
 
         public async Task<GovernanceDecision> CheckActionAsync(GovernanceRequest request)
@@ -154,7 +171,19 @@ namespace SaveState.Core.Services.Ai.Governance
                 );
             }
 
-            // 2. CAPABILITY GATE
+            // 2. POLICY GATE (Contract Enforcement) - Before Capability Gate?
+            // "Every AI action is bound by an explicit AI Contract enforced at the tool level."
+            // If checking explicitly for a Contract compliance:
+            if (request.Contract != null)
+            {
+                var contractResult = await _policyGate.EnforceContractAsync(request.Contract, request);
+                if (!contractResult.IsAllowed)
+                {
+                     return contractResult;
+                }
+            }
+
+            // 3. CAPABILITY GATE
             if (request.RequiredCapability.HasValue)
             {
                 var capabilityResult = await _capabilityGate.CheckCapabilityAsync(
@@ -172,7 +201,7 @@ namespace SaveState.Core.Services.Ai.Governance
                 }
             }
 
-            // 3. FEATURE FLAGS
+            // 4. FEATURE FLAGS
             if (!string.IsNullOrEmpty(request.FeatureFlag))
             {
                 var isEnabled = await _featureFlagService.IsEnabledAsync(request.FeatureFlag, request.Context);

@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Account
 {
@@ -50,6 +51,7 @@ namespace SaveState.Core.Services.Account
     public class AuthService
     {
         private static AuthService? _instance;
+        private readonly ILogger _logger = Log.ForContext<AuthService>();
         private readonly HttpClient _httpClient;
         private readonly string _credentialsPath;
         private readonly Dictionary<string, UserCredentials> _users = new();
@@ -198,7 +200,7 @@ namespace SaveState.Core.Services.Account
             if (user == null) return false;
 
             // In production: Send password reset email
-            Console.WriteLine($"Password reset requested for: {email}");
+            _logger.Debug("Password reset requested for: {Email}", email);
             await Task.Yield();
             return true;
         }
@@ -257,7 +259,7 @@ namespace SaveState.Core.Services.Account
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Auto-login failed: {ex.Message}");
+                _logger.Debug(ex, "Auto-login failed");
             }
         }
 
@@ -299,7 +301,7 @@ namespace SaveState.Core.Services.Account
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Failed to load users: {ex.Message}");
+                    _logger.Warning(ex, "Failed to load users");
                 }
             }
         }

@@ -6,6 +6,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using SaveState.Core.Helpers;
+using SaveState.Core.Interfaces;
+using Serilog;
 
 namespace SaveState.Core.Services.Ai
 {
@@ -42,9 +44,10 @@ namespace SaveState.Core.Services.Ai
 
     public class StableDiffusionService
     {
-        private static StableDiffusionService? _instance;
+        private readonly ILogger _logger = Log.ForContext<StableDiffusionService>();
+        private readonly IAppConfiguration _config;
         private readonly HttpClient _httpClient;
-        private string _apiUrl = "http://localhost:7860";
+        private string _apiUrl;
         private StableDiffusionStatus _status = StableDiffusionStatus.NotInstalled;
         private readonly string _outputPath;
 
@@ -52,11 +55,12 @@ namespace SaveState.Core.Services.Ai
         public StableDiffusionStatus Status => _status;
         public bool IsRunning => _status == StableDiffusionStatus.Running;
 
-        public static StableDiffusionService Instance => _instance ??= new StableDiffusionService();
-
-        private StableDiffusionService()
+        public StableDiffusionService(IAppConfiguration config, HttpClient httpClient)
         {
-            _httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
+            _config = config;
+            _httpClient = httpClient;
+            _httpClient.Timeout = TimeSpan.FromMinutes(5);
+            _apiUrl = _config.GetApiEndpoint("StableDiffusion", "http://localhost:7860").TrimEnd('/');
             _outputPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "SaveState2", "data", "generated_images");
@@ -81,7 +85,7 @@ namespace SaveState.Core.Services.Ai
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"SD connection check failed: {ex.Message}");
+                _logger.Debug(ex, "Stable Diffusion connection check failed");
             }
 
             SetStatus(StableDiffusionStatus.NotInstalled);
@@ -156,7 +160,7 @@ namespace SaveState.Core.Services.Ai
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"SD generation error: {ex.Message}");
+                _logger.Warning(ex, "Stable Diffusion generation failed");
             }
 
             return null;
@@ -175,7 +179,7 @@ namespace SaveState.Core.Services.Ai
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to parse seed from info: {ex.Message}");
+                _logger.Debug(ex, "Failed to parse seed from SD info response");
             }
             return -1;
         }
@@ -199,7 +203,7 @@ namespace SaveState.Core.Services.Ai
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to get available models: {ex.Message}");
+                _logger.Warning(ex, "Failed to get available Stable Diffusion models");
             }
 
             return models;
@@ -224,7 +228,7 @@ namespace SaveState.Core.Services.Ai
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to get available samplers: {ex.Message}");
+                _logger.Warning(ex, "Failed to get available Stable Diffusion samplers");
             }
 
             return samplers.Count > 0 ? samplers : new List<string> 

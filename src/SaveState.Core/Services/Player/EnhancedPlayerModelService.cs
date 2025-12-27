@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Player
 {
@@ -162,6 +163,7 @@ namespace SaveState.Core.Services.Player
 
     public class EnhancedPlayerModelService : IEnhancedPlayerModelService
     {
+        private readonly ILogger _logger = Log.ForContext<EnhancedPlayerModelService>();
         private readonly ConcurrentDictionary<string, EnhancedPlayerModel> _models = new();
         private readonly ConcurrentDictionary<string, PlaySession> _activeSessions = new();
         private readonly ConcurrentDictionary<string, List<EnhancedPlayerAction>> _recentActions = new();
@@ -177,14 +179,14 @@ namespace SaveState.Core.Services.Player
             System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(_storagePath)!);
         }
 
-        public async Task<EnhancedPlayerModel> GetModelAsync(string playerId)
+        public Task<EnhancedPlayerModel> GetModelAsync(string playerId)
         {
             if (string.IsNullOrWhiteSpace(playerId))
             {
                 throw new ArgumentException("Player ID cannot be empty", nameof(playerId));
             }
 
-            return _models.GetOrAdd(playerId, id => new EnhancedPlayerModel { PlayerId = id });
+            return Task.FromResult(_models.GetOrAdd(playerId, id => new EnhancedPlayerModel { PlayerId = id }));
         }
 
         public async Task UpdateFromActionAsync(string playerId, EnhancedPlayerAction action)
@@ -548,7 +550,7 @@ namespace SaveState.Core.Services.Player
                     }
                 }
             }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+            catch (Exception ex) { _logger.Warning(ex, "Failed to load player models"); }
         }
 
         // ============ Private Helper Methods ============

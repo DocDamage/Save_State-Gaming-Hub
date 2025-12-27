@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using SaveState.Core.Services.Ai;
+using Serilog;
 
 namespace SaveState.Core.Services.Rom
 {
@@ -37,6 +38,7 @@ namespace SaveState.Core.Services.Rom
     public class CheatService
     {
         private static CheatService? _instance;
+        private readonly ILogger _logger = Log.ForContext<CheatService>();
         private readonly string _databasePath;
         private readonly HttpClient _httpClient;
         private readonly RagService _ragService;
@@ -301,7 +303,7 @@ namespace SaveState.Core.Services.Rom
                         }
                     }
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load cheat database"); }
             }
         }
 

@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 
 namespace SaveState.Core.Services.Ai.Validation
 {
+    using SaveState.Core.Services.Ai.Memory; // Add this
+
     /// <summary>
     /// Multi-pass validation.
     /// Pass 1: Rule compliance
@@ -59,6 +61,13 @@ namespace SaveState.Core.Services.Ai.Validation
 
     public class OutputCritiquer : IOutputCritiquer
     {
+        private readonly ILoreLocker? _loreLocker;
+
+        public OutputCritiquer(ILoreLocker? loreLocker = null)
+        {
+            _loreLocker = loreLocker;
+        }
+
         private readonly HashSet<string> _unsafePatterns = new()
         {
             "kill yourself", "harm yourself", "real world violence",
@@ -138,8 +147,32 @@ namespace SaveState.Core.Services.Ai.Validation
             return Task.FromResult(result);
         }
 
-        public Task<CritiqueResult> ValidateLoreConsistency(string output, CritiqueContext context)
+        public async Task<CritiqueResult> ValidateLoreConsistency(string output, CritiqueContext context)
         {
+            // Use advanced LoreLocker if available
+            if (_loreLocker != null)
+            {
+                var validation = await _loreLocker.ValidateAsync(output);
+                if (!validation.IsCompliant)
+                {
+                    return new CritiqueResult
+                    {
+                        Pass = ValidationPass.LoreConsistency,
+                        Passed = false,
+                        Confidence = (float)validation.OverallConfidence,
+                        Issues = validation.Violations.Select(v => v.Description).ToList(),
+                        Suggestions = new List<string> { validation.SuggestedRevision ?? "Revise to align with established lore." }
+                    };
+                }
+                
+                return new CritiqueResult
+                {
+                    Pass = ValidationPass.LoreConsistency,
+                    Passed = true,
+                    Confidence = (float)validation.OverallConfidence
+                };
+            }
+
             var result = new CritiqueResult
             {
                 Pass = ValidationPass.LoreConsistency,
@@ -149,7 +182,7 @@ namespace SaveState.Core.Services.Ai.Validation
 
             if (context.CanonicalFacts == null || context.CanonicalFacts.Count == 0)
             {
-                return Task.FromResult(result);
+                return result; // Corrected return type
             }
 
             var outputLower = output.ToLowerInvariant();
@@ -168,7 +201,7 @@ namespace SaveState.Core.Services.Ai.Validation
                 }
             }
 
-            return Task.FromResult(result);
+            return result;
         }
 
         public Task<CritiqueResult> ValidateToneAppropriateness(string output, CritiqueContext context)

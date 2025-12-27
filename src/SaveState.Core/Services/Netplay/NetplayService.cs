@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Netplay
 {
@@ -68,6 +69,7 @@ namespace SaveState.Core.Services.Netplay
     public class NetplayService : IDisposable
     {
         private static NetplayService? _instance;
+        private readonly ILogger _logger = Log.ForContext<NetplayService>();
         private TcpListener? _listener;
         private TcpClient? _client;
         private NetworkStream? _stream;
@@ -77,10 +79,6 @@ namespace SaveState.Core.Services.Netplay
         private readonly int _defaultPort = 55435;
 
         public event EventHandler<NetplayState>? StateChanged;
-#pragma warning disable CS0067 // Events are defined for future use
-        public event EventHandler<NetplayPlayer>? PlayerJoined;
-        public event EventHandler<NetplayPlayer>? PlayerLeft;
-#pragma warning restore CS0067
         public event EventHandler<string>? ChatMessageReceived;
         public event EventHandler<byte[]>? InputReceived;
         public event EventHandler<int>? LatencyUpdated;
@@ -133,12 +131,12 @@ namespace SaveState.Core.Services.Netplay
                 // Start accept loop
                 _ = AcceptClientsAsync(_cts.Token);
 
-                Console.WriteLine($"🎮 Hosting netplay session: {_currentSession.Code}");
+                _logger.Information("Hosting netplay session: {Code}", _currentSession.Code);
                 return Task.FromResult<NetplaySession?>(_currentSession);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Host error: {ex.Message}");
+                _logger.Warning(ex, "Host session error");
                 SetState(NetplayState.Error);
                 return Task.FromResult<NetplaySession?>(null);
             }
@@ -177,12 +175,12 @@ namespace SaveState.Core.Services.Netplay
                 _ = ReceiveMessagesAsync(_cts.Token);
 
                 SetState(NetplayState.Synchronizing);
-                Console.WriteLine($"🎮 Joined netplay session");
+                _logger.Information("Joined netplay session");
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Join error: {ex.Message}");
+                _logger.Warning(ex, "Join session error");
                 SetState(NetplayState.Error);
                 return false;
             }
@@ -193,7 +191,7 @@ namespace SaveState.Core.Services.Netplay
         {
             // In production: Query relay server for host address
             // For now, this is a placeholder
-            Console.WriteLine($"Looking up session: {sessionCode}");
+            _logger.Debug("Looking up session: {SessionCode}", sessionCode);
             await Task.Delay(100);
             return false; // Would return JoinSessionAsync result
         }
@@ -274,7 +272,7 @@ namespace SaveState.Core.Services.Netplay
             _localPlayer = null;
 
             SetState(NetplayState.Disconnected);
-            Console.WriteLine("🎮 Disconnected from netplay");
+            _logger.Information("Disconnected from netplay");
         }
 
         // Update latency measurement
@@ -300,7 +298,7 @@ namespace SaveState.Core.Services.Netplay
                     _ = HandleClientAsync(client, ct);
                 }
                 catch (OperationCanceledException) { break; }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Client accept error"); }
             }
         }
 
@@ -327,7 +325,7 @@ namespace SaveState.Core.Services.Netplay
                     }
                 }
                 catch (OperationCanceledException) { break; }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Message receive error"); }
             }
         }
 
@@ -380,6 +378,7 @@ namespace SaveState.Core.Services.Netplay
         {
             Disconnect();
             _cts?.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

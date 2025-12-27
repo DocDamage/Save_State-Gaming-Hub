@@ -126,8 +126,15 @@ public class RomScannerService
             var fileInfo = new FileInfo(filePath);
             using var stream = File.OpenRead(filePath);
             var buffer = new byte[Math.Min(1024, fileInfo.Length)];
-            _ = stream.Read(buffer, 0, buffer.Length); // Read may return fewer bytes; for hashing purposes, partial read is acceptable
-            
+            int bytesRead = stream.Read(buffer, 0, buffer.Length);
+
+            // Ensure we have enough data for hashing (at least 8 bytes for BitConverter.ToInt64)
+            if (bytesRead < 8)
+            {
+                // Pad with zeros if we don't have enough data
+                Array.Clear(buffer, bytesRead, buffer.Length - bytesRead);
+            }
+
             var hash = $"{fileInfo.Length}-{BitConverter.ToInt64(buffer, 0)}";
             return hash;
         }

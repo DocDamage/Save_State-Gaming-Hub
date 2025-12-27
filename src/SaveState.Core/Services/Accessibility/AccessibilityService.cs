@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using Serilog;
 
 namespace SaveState.Core.Services.Accessibility
 {
@@ -64,6 +65,7 @@ namespace SaveState.Core.Services.Accessibility
     public class AccessibilityService
     {
         private static AccessibilityService? _instance;
+        private readonly ILogger _logger = Log.ForContext<AccessibilityService>();
         private readonly string _settingsPath;
         private AccessibilitySettings _settings;
 
@@ -219,7 +221,7 @@ namespace SaveState.Core.Services.Accessibility
             // macOS: NSAccessibility
             // Linux: AT-SPI
 
-            Console.WriteLine($"[Screen Reader] {message}");
+            _logger.Debug("[Screen Reader] {Message}", message);
         }
 
         public void AnnounceNotification(string title, string message)
@@ -263,7 +265,7 @@ namespace SaveState.Core.Services.Accessibility
                     return JsonSerializer.Deserialize<AccessibilitySettings>(json) 
                         ?? new AccessibilitySettings();
                 }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Failed to load accessibility settings"); }
             }
             return new AccessibilitySettings();
         }

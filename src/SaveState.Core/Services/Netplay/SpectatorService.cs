@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Netplay
 {
@@ -41,6 +42,7 @@ namespace SaveState.Core.Services.Netplay
     public class SpectatorService : IDisposable
     {
         private static SpectatorService? _instance;
+        private readonly ILogger _logger = Log.ForContext<SpectatorService>();
         private readonly NetplayService _netplayService;
         private readonly Queue<StreamFrame> _frameBuffer = new();
         private readonly List<SpectatorInfo> _spectators = new();
@@ -50,9 +52,6 @@ namespace SaveState.Core.Services.Netplay
         private int _bufferDelayFrames = 30;
         private const int MaxBufferFrames = 300; // 5 seconds at 60fps
 
-#pragma warning disable CS0067 // Event is defined for future use
-        public event EventHandler<StreamFrame>? FrameReceived;
-#pragma warning restore CS0067
         public event EventHandler<SpectatorInfo>? SpectatorJoined;
         public event EventHandler<SpectatorInfo>? SpectatorLeft;
         public event EventHandler<int>? ViewerCountChanged;
@@ -78,7 +77,7 @@ namespace SaveState.Core.Services.Netplay
             _isStreaming = true;
             _frameBuffer.Clear();
 
-            Console.WriteLine("📺 Started spectator stream");
+            _logger.Information("Started spectator stream");
         }
 
         // Stop streaming
@@ -89,7 +88,7 @@ namespace SaveState.Core.Services.Netplay
             _frameBuffer.Clear();
             _spectators.Clear();
 
-            Console.WriteLine("📺 Stopped spectator stream");
+            _logger.Information("Stopped spectator stream");
         }
 
         // Add a frame to the stream
@@ -134,7 +133,7 @@ namespace SaveState.Core.Services.Netplay
                 _frameBuffer.Clear();
 
                 // In production: Connect to stream server
-                Console.WriteLine($"📺 Connecting to spectator stream at {hostAddress}:{port}");
+                _logger.Information("Connecting to spectator stream at {Host}:{Port}", hostAddress, port);
 
                 // Start receive loop
                 _ = ReceiveFramesAsync(_cts.Token);
@@ -143,7 +142,7 @@ namespace SaveState.Core.Services.Netplay
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Watch error: {ex.Message}");
+                _logger.Warning(ex, "Watch stream error");
                 _isWatching = false;
                 return Task.FromResult(false);
             }
@@ -156,7 +155,7 @@ namespace SaveState.Core.Services.Netplay
             _cts?.Cancel();
             _frameBuffer.Clear();
 
-            Console.WriteLine("📺 Stopped watching stream");
+            _logger.Information("Stopped watching stream");
         }
 
         // Get next frame from buffer (with delay)
@@ -187,7 +186,7 @@ namespace SaveState.Core.Services.Netplay
                     // In production: Read from network socket
                 }
                 catch (OperationCanceledException) { break; }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Operation failed: {ex.Message}"); }
+                catch (Exception ex) { _logger.Warning(ex, "Frame receive error"); }
             }
         }
 
@@ -213,12 +212,12 @@ namespace SaveState.Core.Services.Netplay
         {
             // In production: Write frames to file for later playback
             await Task.Yield();
-            Console.WriteLine($"📺 Recording stream to: {outputPath}");
+            _logger.Information("Recording stream to: {OutputPath}", outputPath);
         }
 
         public void StopRecording()
         {
-            Console.WriteLine("📺 Stopped recording stream");
+            _logger.Information("Stopped recording stream");
         }
 
         // Handle spectator connection
@@ -252,6 +251,7 @@ namespace SaveState.Core.Services.Netplay
             StopStreaming();
             StopWatching();
             _cts?.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

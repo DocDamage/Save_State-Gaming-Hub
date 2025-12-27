@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Ai.Events
 {
@@ -41,6 +42,7 @@ namespace SaveState.Core.Services.Ai.Events
 
     public class AiEventBus : IAiEventBus
     {
+        private readonly ILogger _logger = Log.ForContext<AiEventBus>();
         private readonly Dictionary<string, List<EventHandler>> _handlers = new();
         private readonly Queue<AiEvent> _eventQueue = new();
         private readonly List<AiEvent> _eventHistory = new();
@@ -90,7 +92,7 @@ namespace SaveState.Core.Services.Ai.Events
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Event handler error: {ex.Message}");
+                        _logger.Warning(ex, "Event handler error for {EventType}", evt.EventType);
                     }
                 }
             }
@@ -111,7 +113,7 @@ namespace SaveState.Core.Services.Ai.Events
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Event handler failed: {ex.Message}");
+                        _logger.Debug(ex, "Wildcard event handler failed");
                     }
                 }
             }

@@ -196,6 +196,7 @@ class Program
                 services.AddTransient<MugenPlayerViewModel>();
                 services.AddTransient<CrossGameBattleViewModel>();
                 services.AddTransient<CharacterFusionViewModel>();
+                services.AddTransient<TrainerGeneratorViewModel>();
                 
                 // IPC
                 services.AddHostedService<IpcWorker>();

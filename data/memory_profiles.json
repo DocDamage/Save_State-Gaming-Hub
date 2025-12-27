@@ -1,0 +1,68 @@
+[
+  {
+    "GameId": "3496350f-2126-4fa2-bf4f-831412030921",
+    "GameTitle": "M.U.G.E.N (1.1b Example)",
+    "MemoryMap": {
+      "P1_Health": {
+        "BaseAddress": "mugen.exe+0x0048EF30",
+        "Offsets": [
+          8,
+          256
+        ],
+        "Type": 0
+      },
+      "P2_Health": {
+        "BaseAddress": "mugen.exe+0x0048EF30",
+        "Offsets": [
+          12,
+          256
+        ],
+        "Type": 0
+      },
+      "GameSpeed": {
+        "BaseAddress": "mugen.exe+0x00492100",
+        "Type": 1
+      }
+    }
+  },
+  {
+    "GameId": "a90b8f1c-3d4e-4f5a-9b8c-7d6e5f4a3b2c",
+    "GameTitle": "Snes9x (Final Fantasy VI)",
+    "MemoryMap": {
+      "Gold": {
+        "BaseAddress": "snes9x-x64.exe+0x008D1230",
+        "Offsets": [
+          24,
+          0x1860
+        ],
+        "Type": 0
+      },
+      "Party_HP_current": {
+        "BaseAddress": "snes9x-x64.exe+0x008D1230",
+        "Offsets": [
+          24,
+          0x1600
+        ],
+        "Type": 0
+      }
+    }
+  },
+  {
+    "GameId": "00000000-0000-0000-0000-000000000000",
+    "GameTitle": "TEMPLATE PROFILE",
+    "MemoryMap": {
+      "PlayerHealth": {
+        "BaseAddress": "game.exe+0x123456",
+        "Offsets": [
+          16,
+          32
+        ],
+        "Type": 0
+      },
+      "Ammo": {
+        "BaseAddress": "0x00123ABC",
+        "Type": 0
+      }
+    }
+  }
+]

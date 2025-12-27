@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.UI.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SaveState.UI.Views.TrainerGeneratorView"
+             x:DataType="vm:TrainerGeneratorViewModel">
+
+  <StackPanel Margin="20" Spacing="10">
+    <TextBlock Text="Trainer Generator" FontSize="24" FontWeight="Bold"/>
+    <TextBlock Text="Scan and create cheats for the current game session." FontStyle="Italic" Foreground="Gray"/>
+
+    <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0,10">
+        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+          
+          <!-- Value Input -->
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Value:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+          <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SearchValue}" Watermark="Enter value (e.g. 100)"/>
+          <ComboBox Grid.Row="0" Grid.Column="2" ItemsSource="{Binding ValueTypes}" SelectedItem="{Binding SelectedType}" Margin="10,0,0,0" MinWidth="100"/>
+
+          <!-- Controls -->
+          <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,10">
+              <Button Command="{Binding StartScanCommand}" Content="First Scan" IsEnabled="{Binding !IsScanning}"/>
+              <Button Command="{Binding NextScanCommand}" Content="Next Scan" IsEnabled="{Binding !IsScanning}"/>
+              <Button Command="{Binding ResetCommand}" Content="Reset" />
+          </StackPanel>
+
+          <!-- Results Info -->
+          <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="10">
+              <TextBlock Text="Found Results:"/>
+              <TextBlock Text="{Binding ResultCount}" FontWeight="Bold"/>
+              <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsScanning}" Width="100"/>
+          </StackPanel>
+          
+          <!-- Save Cheat -->
+          <TextBlock Grid.Row="3" Grid.Column="0" Text="Name:" VerticalAlignment="Center" Margin="0,20,10,0"/>
+          <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding CheatName}" Margin="0,20,0,0"/>
+          <Button Grid.Row="3" Grid.Column="2" Command="{Binding SaveCheatCommand}" Content="Save Cheat" Margin="10,20,0,0"/>
+
+          <!-- Status -->
+          <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding StatusMessage}" Foreground="Gray" Margin="0,10"/>
+        </Grid>
+    </Border>
+  </StackPanel>
+</UserControl>

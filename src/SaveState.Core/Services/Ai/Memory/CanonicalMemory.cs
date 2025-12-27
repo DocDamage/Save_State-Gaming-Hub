@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace SaveState.Core.Services.Ai.Memory
 {
@@ -94,6 +95,7 @@ namespace SaveState.Core.Services.Ai.Memory
 
     public class CanonicalMemory : ICanonicalMemory
     {
+        private readonly ILogger _logger = Log.ForContext<CanonicalMemory>();
         private readonly List<CanonicalFact> _facts = new();
         private readonly Dictionary<string, CanonicalFact> _factIndex = new();
         private readonly Dictionary<FactCategory, List<CanonicalFact>> _categoryIndex = new();
@@ -363,7 +365,7 @@ namespace SaveState.Core.Services.Ai.Memory
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error loading canonical memory: {ex.Message}");
+                    _logger.Warning(ex, "Error loading canonical memory");
                 }
             }
 

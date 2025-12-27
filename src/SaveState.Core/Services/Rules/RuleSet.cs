@@ -139,14 +139,70 @@ namespace SaveState.Core.Services.Rules
             Name = "Quest Rules",
             Rules = new List<Rule>
             {
+                // 1. Prerequisites Check
                 new() {
                     Name = "QuestPrerequisites",
                     Condition = ctx => {
                         var questId = ctx.State.TryGetValue("QUEST_ID", out var q) ? q : "";
                         var prereqKey = $"PREREQ_{questId}_MET";
+                        // If flag doesn't exist, assume met (unless specific negative logic needed)
+                        // In reality, this would lookup a Quest Definition to see WHAT the prereq is.
+                        // For generic rule, act if the specific 'MET' flag is false.
                         return !ctx.Flags.TryGetValue(prereqKey, out var met) || met;
                     },
                     ViolationMessage = "Quest prerequisites not met",
+                    Severity = RuleSeverity.Error,
+                    Category = RuleCategory.Quest
+                },
+
+                // 2. Already Completed Check (Repeatability)
+                new() {
+                    Name = "QuestNotAlreadyCompleted",
+                    Condition = ctx => {
+                        var questId = ctx.State.TryGetValue("QUEST_ID", out var q) ? q : "";
+                        // If QUEST_{ID}_COMPLETED is true, fail unless IS_REPEATABLE is true
+                        if (ctx.Flags.TryGetValue($"QUEST_{questId}_COMPLETED", out var completed) && completed)
+                        {
+                            return ctx.Flags.TryGetValue($"QUEST_{questId}_REPEATABLE", out var repeatable) && repeatable;
+                        }
+                        return true;
+                    },
+                    ViolationMessage = "Quest already completed and not repeatable",
+                    Severity = RuleSeverity.Error,
+                    Category = RuleCategory.Quest
+                },
+
+                // 3. Level Requirement
+                new() {
+                    Name = "QuestLevelRequirement",
+                    Condition = ctx => {
+                         var questId = ctx.State.TryGetValue("QUEST_ID", out var q) ? q : "";
+                         // Lookup required level from context counters (assuming injection)
+                         // e.g., QUEST_{ID}_MIN_LEVEL
+                         if (ctx.Counters.TryGetValue($"QUEST_{questId}_MIN_LEVEL", out var minLevel))
+                         {
+                             var playerLevel = ctx.Counters.TryGetValue("PLAYER_LEVEL", out var pl) ? pl : 1;
+                             return playerLevel >= minLevel;
+                         }
+                         return true;
+                    },
+                    ViolationMessage = "Player level too low for this quest",
+                    Severity = RuleSeverity.Warning, // Allow picking up but warn? Or Error? Let's say Error.
+                    Category = RuleCategory.Quest
+                },
+
+                // 4. Quest Log Capacity
+                new() {
+                    Name = "QuestLogCapacity",
+                    Condition = ctx => {
+                        // Only relevant for 'Accept' action
+                        if (ctx.CurrentAction != "QUEST_ACCEPT") return true;
+
+                        var activeCount = ctx.Counters.TryGetValue("ACTIVE_QUEST_COUNT", out var c) ? c : 0;
+                        var maxQuests = ctx.Counters.TryGetValue("MAX_QUEST_SLOTS", out var m) ? m : 20;
+                        return activeCount < maxQuests;
+                    },
+                    ViolationMessage = "Quest log is full",
                     Severity = RuleSeverity.Error,
                     Category = RuleCategory.Quest
                 }
