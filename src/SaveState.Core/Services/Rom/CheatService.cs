@@ -37,7 +37,6 @@ namespace SaveState.Core.Services.Rom
 
     public class CheatService
     {
-        private static CheatService? _instance;
         private readonly ILogger _logger = Log.ForContext<CheatService>();
         private readonly string _databasePath;
         private readonly HttpClient _httpClient;
@@ -45,12 +44,13 @@ namespace SaveState.Core.Services.Rom
         private readonly Dictionary<string, List<CheatCode>> _cheatsByGame = new();
         private readonly List<CheatCode> _allCheats = new();
 
-        public static CheatService Instance => _instance ??= new CheatService();
+        public static CheatService? Instance { get; private set; }
 
-        private CheatService()
+        public CheatService(IHttpClientFactory httpClientFactory, RagService ragService)
         {
-            _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-            _ragService = RagService.Instance;
+            Instance = this;
+            _httpClient = httpClientFactory.CreateClient("CheatService");
+            _ragService = ragService;
             _databasePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "SaveState2", "data", "cheats");
@@ -119,7 +119,7 @@ namespace SaveState.Core.Services.Rom
         }
 
         // Add a cheat code
-        public CheatCode AddCheat(string gameId, string gameName, string name, string code, 
+        public CheatCode AddCheat(string gameId, string gameName, string name, string code,
             string description, string format, string platform)
         {
             var cheat = new CheatCode
@@ -162,7 +162,7 @@ namespace SaveState.Core.Services.Rom
             foreach (var line in lines)
             {
                 var trimmed = line.Trim();
-                
+
                 if (trimmed.StartsWith("cheat") && trimmed.Contains("_desc"))
                 {
                     // Save previous cheat if exists

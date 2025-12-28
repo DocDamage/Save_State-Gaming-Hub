@@ -42,7 +42,6 @@ namespace SaveState.Core.Services.Account
 
     public class FriendsService
     {
-        private static FriendsService? _instance;
         private readonly ILogger _logger = Log.ForContext<FriendsService>();
         private readonly string _dataPath;
         private readonly AuthService _authService;
@@ -52,12 +51,13 @@ namespace SaveState.Core.Services.Account
         public event EventHandler<FriendRelation>? FriendRequestReceived;
         public event EventHandler<FriendRelation>? FriendAccepted;
 
-        public static FriendsService Instance => _instance ??= new FriendsService();
+        public static FriendsService? Instance { get; private set; }
 
-        private FriendsService()
+        public FriendsService(AuthService authService, ProfileService profileService)
         {
-            _authService = AuthService.Instance;
-            _profileService = ProfileService.Instance;
+            Instance = this;
+            _authService = authService;
+            _profileService = profileService;
             _dataPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "SaveState2", "data", "friends");
@@ -293,7 +293,7 @@ namespace SaveState.Core.Services.Account
         {
             if (!_relations.ContainsKey(relation.UserId))
                 _relations[relation.UserId] = new();
-            
+
             _relations[relation.UserId].RemoveAll(r => r.FriendId == relation.FriendId);
             _relations[relation.UserId].Add(relation);
         }

@@ -1,0 +1,17 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+c:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\Services\Ai\ResilientAiService.cs(628,1): error CS1056: Unexpected character '`' [c:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\SaveState.Core.csproj]
+c:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\Services\Ai\ResilientAiService.cs(628,2): error CS1056: Unexpected character '`' [c:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\SaveState.Core.csproj]
+c:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\Services\Ai\ResilientAiService.cs(628,3): error CS1056: Unexpected character '`' [c:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\SaveState.Core.csproj]
+
+Build FAILED.
+
+c:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\Services\Ai\ResilientAiService.cs(628,1): error CS1056: Unexpected character '`' [c:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\SaveState.Core.csproj]
+c:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\Services\Ai\ResilientAiService.cs(628,2): error CS1056: Unexpected character '`' [c:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\SaveState.Core.csproj]
+c:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\Services\Ai\ResilientAiService.cs(628,3): error CS1056: Unexpected character '`' [c:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\SaveState.Core.csproj]
+    0 Warning(s)
+    3 Error(s)
+
+Time Elapsed 00:00:01.36
+
+Workload updates are available. Run `dotnet workload list` for more information.

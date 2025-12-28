@@ -13,11 +13,12 @@ namespace SaveState.Core.Services.Ai;
 /// Manages caching for AI responses with TTL support and automatic cleanup.
 /// Provides thread-safe operations for cache storage and retrieval.
 /// </summary>
-public class CacheManager
+public class CacheManager : IAiCacheCoordinator, IDisposable
 {
     private readonly ILogger _logger = Log.ForContext<CacheManager>();
     private readonly ConcurrentDictionary<string, (string Value, DateTime Expiry)> _cache = new();
     private readonly Timer _cleanupTimer;
+    private bool _disposed = false;
 
     public CacheManager()
     {
@@ -153,6 +154,9 @@ public class CacheManager
 
     public void Dispose()
     {
+        if (_disposed) return;
+
         _cleanupTimer?.Dispose();
+        _disposed = true;
     }
 }

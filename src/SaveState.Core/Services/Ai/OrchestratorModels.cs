@@ -21,7 +21,7 @@ namespace SaveState.Core.Services.Ai
         Cancelled,
         SuccessWithFallback
     }
-    
+
     /// <summary>
     /// Represents a stage in the AI processing pipeline.
     /// </summary>
@@ -45,7 +45,7 @@ namespace SaveState.Core.Services.Ai
         public string? Output { get; set; }
         public DateTime StartTime { get; set; } = DateTime.UtcNow;
         public List<PipelineStageResult> StageResults { get; set; } = new();
-        public Dictionary<string, object> Data { get; set; } = new();
+        public PipelineContextData Data { get; set; } = new();
         public List<string> Warnings { get; set; } = new();
         public List<string> Errors { get; set; } = new();
         public bool IsCancelled { get; set; }
@@ -63,7 +63,7 @@ namespace SaveState.Core.Services.Ai
         public TimeSpan Duration { get; set; }
         public string? ErrorMessage { get; set; }
         public bool WasSkipped { get; set; }
-        public Dictionary<string, object> Metadata { get; set; } = new();
+        public StageMetadata Metadata { get; set; } = new();
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ namespace SaveState.Core.Services.Ai
         public List<PipelineStageResult> StageResults { get; set; } = new();
         public List<string> Warnings { get; set; } = new();
         public List<string> Errors { get; set; } = new();
-        public Dictionary<string, object> Metadata { get; set; } = new();
+        public StageMetadata Metadata { get; set; } = new();
         public string? FallbackUsed { get; set; }
         public bool UsedCache { get; set; }
         public float QualityScore { get; set; }
@@ -87,7 +87,7 @@ namespace SaveState.Core.Services.Ai
         public string Input { get; set; } = string.Empty;
         public PipelineStatus Status { get; set; }
         public string? Error { get; set; }
-        public Dictionary<string, object> ContextData { get; set; } = new();
+        public PipelineContextData ContextData { get; set; } = new();
         public double ExecutionTimeMs { get; set; }
     }
 
@@ -110,7 +110,7 @@ namespace SaveState.Core.Services.Ai
     {
         public string VariantId { get; set; } = string.Empty;
         public float Weight { get; set; } = 0.5f;
-        public Dictionary<string, object> Config { get; set; } = new();
+        public VariantConfiguration Config { get; set; } = new();
     }
 
     /// <summary>
@@ -122,7 +122,7 @@ namespace SaveState.Core.Services.Ai
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
         public string Stage { get; set; } = string.Empty;
         public string EventType { get; set; } = string.Empty;
-        public Dictionary<string, object> Data { get; set; } = new();
+        public EventData Data { get; set; } = new();
         public TimeSpan? Latency { get; set; }
         public string? ErrorMessage { get; set; }
     }
@@ -143,29 +143,94 @@ namespace SaveState.Core.Services.Ai
         void AddStage(string name, PipelineStageHandler handler, AiPipelineStage? config = null);
         void RemoveStage(string name);
         void SetStageCondition(string stageName, PipelineCondition condition);
-        
+
         // Execution
-        Task<PipelineResult> ExecuteAsync(string input, Dictionary<string, object>? initialData = null, CancellationToken ct = default);
+        Task<PipelineResult> ExecuteAsync(string input, PipelineContextData? initialData = null, CancellationToken ct = default);
         Task<PipelineResult> ExecuteWithFallbackAsync(string input, Func<string, Task<string>> fallback, CancellationToken ct = default);
-        
+
         // Caching
         void EnableCache(string keyPattern, TimeSpan ttl);
         void InvalidateCache(string keyPattern);
         void ClearCache();
-        
+
         // A/B Testing
         void RegisterExperiment(ExperimentConfig config);
         void EndExperiment(string experimentId);
         string? GetAssignedVariant(string userId, string experimentId);
-        
+
         // Observability
         void AddObserver(ObservabilityHandler handler);
         OrchestratorMetrics GetMetrics();
         List<ObservabilityData> GetRecentEvents(int count = 100);
-        
+
         // Health
         Task<HealthCheckResult> CheckHealthAsync();
         void EnableSelfHealing(bool enable);
+    }
+
+    /// <summary>
+    /// Component interfaces for the UltimateAiOrchestrator subsystem.
+    /// </summary>
+
+    public interface IPipelineOrchestrator
+    {
+        void AddStage(string name, PipelineStageHandler handler, AiPipelineStage? config = null);
+        void RemoveStage(string name);
+        void SetStageCondition(string stageName, PipelineCondition condition);
+        Task<PipelineResult> ExecuteAsync(string input, PipelineContextData? contextData = null, CancellationToken cancellationToken = default);
+        Task<PipelineResult> ExecuteWithFallbackAsync(string input, Func<string, Task<string>> fallbackGenerator, PipelineContextData? contextData = null, CancellationToken cancellationToken = default);
+        IEnumerable<string> GetStageNames();
+        AiPipelineStage? GetStageConfig(string stageName);
+    }
+
+    public interface IAiCacheCoordinator
+    {
+        void EnableCache(string keyPattern, TimeSpan ttl);
+        void Store(string key, string value, TimeSpan ttl);
+        string? Get(string key);
+        void InvalidateCache(string keyPattern);
+        void ClearCache();
+        (int TotalEntries, int ExpiredEntries, DateTime? NextExpiry) GetStats();
+        void CleanupExpiredEntries();
+    }
+
+    public interface IAiExperimentCoordinator
+    {
+        void RegisterExperiment(ExperimentConfig config);
+        void EndExperiment(string experimentId);
+        string? GetAssignedVariant(string userId, string experimentId);
+        IEnumerable<ExperimentConfig> GetActiveExperiments();
+        ExperimentConfig? GetExperiment(string experimentId);
+        Dictionary<string, int> GetExperimentStats(string experimentId);
+    }
+
+    public interface IAiMetricsAggregator
+    {
+        void RecordRequestStart();
+        void RecordRequestSuccess(long latencyMs);
+        void RecordRequestFailure();
+        void RecordCacheHit();
+        void RecordCacheMiss();
+        void RecordFallbackUsed();
+        void RecordStageExecution(string stageName, bool success, long latencyMs);
+        void AddObservabilityEvent(ObservabilityData data);
+        void AddObserver(ObservabilityHandler handler);
+        OrchestratorMetrics GetMetrics();
+        List<ObservabilityData> GetRecentEvents(int count = 50);
+        void ResetMetrics();
+    }
+
+    public interface IAiHealthCoordinator
+    {
+        Task<HealthCheckResult> CheckHealthAsync();
+        void EnableSelfHealing(bool enable);
+        Task<bool> PerformSelfHealingAsync();
+        Task<Dictionary<string, object>> GetDiagnosticInfoAsync();
+    }
+
+    public interface IAiPipelineBuilder
+    {
+        void BuildStandardPipeline();
     }
 
     /// <summary>
@@ -211,6 +276,7 @@ namespace SaveState.Core.Services.Ai
         public Dictionary<string, ComponentHealth> Components { get; set; } = new();
         public List<string> Issues { get; set; } = new();
         public DateTime CheckedAt { get; set; } = DateTime.UtcNow;
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     }
 
     /// <summary>
@@ -223,6 +289,7 @@ namespace SaveState.Core.Services.Ai
         public string Status { get; set; } = "unknown";
         public TimeSpan? ResponseTime { get; set; }
         public string? ErrorMessage { get; set; }
+        public string? Details { get; set; }
     }
 
     /// <summary>

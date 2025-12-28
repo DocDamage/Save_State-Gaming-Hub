@@ -61,7 +61,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
             LoadCapsules();
         }
 
-        public async Task<TimeCapsule> CreateCapsuleAsync(string gameId, string title, string description, 
+        public async Task<TimeCapsule> CreateCapsuleAsync(string gameId, string title, string description,
             string creatorName, byte[] saveStateData, TimeSpan unlockDelay,
             string? challengeType = null, int? challengeTarget = null, List<string>? tags = null)
         {
@@ -92,28 +92,22 @@ namespace SaveState.Core.Services.EmulatorEnhancements
             return capsule;
         }
 
-        // Synchronous wrapper
-        public TimeCapsule CreateCapsule(string gameId, string title, string description, 
-            string creatorName, byte[] saveStateData, TimeSpan unlockDelay,
-            string? challengeType = null, int? challengeTarget = null)
-        {
-            return CreateCapsuleAsync(gameId, title, description, creatorName, saveStateData, 
-                unlockDelay, challengeType, challengeTarget).GetAwaiter().GetResult();
-        }
+        // REMOVED: Synchronous wrapper removed to eliminate deadlock risk
+        // Use CreateCapsuleAsync directly instead
 
-        private async Task<string?> GenerateCapsuleTeaserAsync(string title, string description, 
+        private async Task<string?> GenerateCapsuleTeaserAsync(string title, string description,
             string? challengeType, TimeSpan unlockDelay)
         {
             if (_llmService == null) return null;
 
             var challengeText = challengeType != null ? $" with a {challengeType} challenge" : "";
-            var timeText = unlockDelay.TotalHours < 24 
-                ? $"{unlockDelay.TotalHours:F0} hours" 
+            var timeText = unlockDelay.TotalHours < 24
+                ? $"{unlockDelay.TotalHours:F0} hours"
                 : $"{unlockDelay.TotalDays:F0} days";
 
             var prompt = $"Write a mysterious 15-word teaser for a locked gaming time capsule titled '{title}'{challengeText} that unlocks in {timeText}. Make it intriguing!";
-            
-            return await _llmService.CompleteAsync(prompt, 
+
+            return await _llmService.CompleteAsync(prompt,
                 "You are a mysterious narrator. Write cryptic, enticing teasers. No quotes.");
         }
 
@@ -123,14 +117,14 @@ namespace SaveState.Core.Services.EmulatorEnhancements
 
             var ageText = (DateTime.Now - capsule.CreatedAt).TotalDays;
             var prompt = $"Write an exciting 20-word message for someone who just unlocked a time capsule from {ageText:F0} days ago titled '{capsule.Title}'. Be celebratory!";
-            
+
             return await _llmService.CompleteAsync(prompt,
                 "You are an enthusiastic announcer celebrating a special moment.");
         }
 
         public List<TimeCapsule> GetAllCapsules() => _capsules;
 
-        public List<TimeCapsule> GetUnlockedCapsules() => 
+        public List<TimeCapsule> GetUnlockedCapsules() =>
             _capsules.Where(c => c.IsUnlocked || DateTime.Now >= c.UnlockAt).ToList();
 
         public List<TimeCapsule> GetLockedCapsules() =>
@@ -171,7 +165,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
 
             // Remove existing reaction from user
             capsule.Reactions.RemoveAll(r => r.UserId == userId);
-            
+
             capsule.Reactions.Add(new CapsuleReaction
             {
                 UserId = userId,
@@ -181,7 +175,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
             SaveCapsule(capsule);
         }
 
-        public void AddComment(string capsuleId, string authorName, string text, 
+        public void AddComment(string capsuleId, string authorName, string text,
             string? parentId = null, byte[]? attachedSaveState = null)
         {
             var capsule = _capsules.FirstOrDefault(c => c.Id == capsuleId);
@@ -217,7 +211,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
         {
             var capsule = _capsules.FirstOrDefault(c => c.Id == id);
             if (capsule == null || capsule.IsUnlocked) return null;
-            
+
             var remaining = capsule.UnlockAt - DateTime.Now;
             return remaining > TimeSpan.Zero ? remaining : null;
         }
@@ -238,7 +232,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
             var path = Path.Combine(_capsulesPath, $"{capsule.Id}.json");
             // Don't serialize SaveStateData to JSON (too large), store separately
             var dataPath = Path.Combine(_capsulesPath, $"{capsule.Id}.sav");
-            
+
             if (capsule.SaveStateData.Length > 0)
             {
                 File.WriteAllBytes(dataPath, capsule.SaveStateData);
@@ -247,10 +241,10 @@ namespace SaveState.Core.Services.EmulatorEnhancements
             // Temporarily clear data for JSON serialization
             var tempData = capsule.SaveStateData;
             capsule.SaveStateData = Array.Empty<byte>();
-            
+
             var json = JsonSerializer.Serialize(capsule, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(path, json);
-            
+
             capsule.SaveStateData = tempData;
         }
 

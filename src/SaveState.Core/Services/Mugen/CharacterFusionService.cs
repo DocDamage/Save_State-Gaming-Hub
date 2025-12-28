@@ -112,11 +112,8 @@ namespace SaveState.Core.Services.Mugen
             return fusion;
         }
 
-        // Synchronous wrapper for compatibility
-        public FusionCharacter FuseCharacters(MugenFighter p1, MugenFighter p2, string type = "balanced")
-        {
-            return FuseCharactersAsync(p1, p2, type).GetAwaiter().GetResult();
-        }
+        // REMOVED: Synchronous wrapper removed to eliminate deadlock risk
+        // Use FuseCharactersAsync directly instead
 
         private async Task<string?> GenerateLlmFusionNameAsync(string p1, string p2)
         {

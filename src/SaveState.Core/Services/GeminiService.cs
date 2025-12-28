@@ -39,7 +39,7 @@ public class GeminiService : IAiService
         try
         {
             var requestBody = BuildRequestBody(message, history);
-            var response = await SendRequestAsync($"models/{_model}:generateContent?key={_apiKey}", requestBody);
+            var response = await SendRequestAsync($"models/{_model}:generateContent", requestBody);
             return ExtractContent(response);
         }
         catch (Exception ex)
@@ -58,13 +58,13 @@ public class GeminiService : IAiService
             var gameList = string.Join(", ", libraryGames.Take(30).Select(g => g.Title));
             var prompt = $$"""
                 Based on this game library: {{gameList}}
-                
+
                 Recommend {{count}} games the user might enjoy. For each game provide:
                 - title: Game name
                 - reason: Why they'd like it (2-3 sentences)
                 - genre: Primary genre
                 - similarTo: Which library games it's similar to
-                
+
                 Respond in JSON array format:
                 [{"title":"...", "reason":"...", "genre":"...", "similarTo":["..."]}]
                 """;
@@ -92,14 +92,14 @@ public class GeminiService : IAiService
                 3. Relevant tags (up to 5)
                 4. Estimated age rating (E, E10+, T, M, AO)
                 5. Overall sentiment (-1 to 1, where 1 is very positive)
-                
+
                 Respond in JSON format:
                 {"description":"...", "genres":["..."], "tags":["..."], "ageRating":"...", "sentiment":0.8}
                 """;
 
             var response = await ChatAsync(prompt);
             var result = ParseJsonObject(response);
-            
+
              if (result.RootElement.ValueKind != JsonValueKind.Undefined)
              {
                  var root = result.RootElement;
@@ -107,8 +107,8 @@ public class GeminiService : IAiService
                  {
                      GameTitle = gameTitle,
                      GeneratedDescription = root.TryGetProperty("description", out var desc) ? desc.GetString() ?? "" : "",
-                     SuggestedGenres = root.TryGetProperty("genres", out var genres) 
-                         ? genres.EnumerateArray().Select(g => g.GetString() ?? "").ToArray() 
+                     SuggestedGenres = root.TryGetProperty("genres", out var genres)
+                         ? genres.EnumerateArray().Select(g => g.GetString() ?? "").ToArray()
                          : Array.Empty<string>(),
                      SuggestedTags = root.TryGetProperty("tags", out var tags)
                          ? tags.EnumerateArray().Select(t => t.GetString() ?? "").ToArray()
@@ -163,13 +163,13 @@ public class GeminiService : IAiService
         // System prompt is roughly emulated in Gemini by adding it as the first user part or model context if supported.
         // For simplicity with v1beta, we'll prepend to history or just rely on the prompt.
         // Adding a 'system' role instruction at start of chat is often effective.
-        
+
         string systemInstruction = """
             You are a friendly gaming assistant for SaveState.
             You help users with game recommendations, tips, and technical help.
             When asked for structured data, return ONLY valid JSON.
             """;
-            
+
         // Gemini structure: { role: "user"|"model", parts: [{ text: "..." }] }
 
         if (history != null)
@@ -212,31 +212,36 @@ public class GeminiService : IAiService
     {
         var json = JsonSerializer.Serialize(body);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
-        
-        var response = await _httpClient.PostAsync(endpoint, content);
-        
+
+        // Add API key to headers instead of URL for security
+        using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+        request.Content = content;
+        request.Headers.Add("x-goog-api-key", _apiKey);
+
+        var response = await _httpClient.SendAsync(request);
+
         if (!response.IsSuccessStatusCode)
         {
             var error = await response.Content.ReadAsStringAsync();
             throw new HttpRequestException($"Gemini API Error: {response.StatusCode} - {error}");
         }
-        
+
         return await response.Content.ReadAsStringAsync();
     }
 
     private string ExtractContent(string jsonResponse)
     {
-        try 
+        try
         {
             using var doc = JsonDocument.Parse(jsonResponse);
             var root = doc.RootElement;
-            
+
             // Navigate to candidates[0].content.parts[0].text
             if (root.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
             {
                 var firstCandidate = candidates[0];
-                if (firstCandidate.TryGetProperty("content", out var content) && 
-                    content.TryGetProperty("parts", out var parts) && 
+                if (firstCandidate.TryGetProperty("content", out var content) &&
+                    content.TryGetProperty("parts", out var parts) &&
                     parts.GetArrayLength() > 0)
                 {
                     return parts[0].GetProperty("text").GetString() ?? "";
@@ -249,7 +254,7 @@ public class GeminiService : IAiService
             return "";
         }
     }
-    
+
     // Helpers for JSON parsing from Markdown code blocks often returned by LLMs
     private JsonDocument ParseJsonObject(string content)
     {

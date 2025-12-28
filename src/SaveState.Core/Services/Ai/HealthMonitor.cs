@@ -11,14 +11,14 @@ namespace SaveState.Core.Services.Ai;
 /// Monitors the health of AI services and provides health check functionality.
 /// Tracks component health and provides overall system health status.
 /// </summary>
-public class HealthMonitor
+public class HealthMonitor : IAiHealthCoordinator
 {
     private readonly ILogger _logger = Log.ForContext<HealthMonitor>();
-    private readonly MetricsService _metricsService;
-    private readonly CacheManager _cacheManager;
+    private readonly IAiMetricsAggregator _metricsService;
+    private readonly IAiCacheCoordinator _cacheManager;
     private bool _selfHealingEnabled = true;
 
-    public HealthMonitor(MetricsService metricsService, CacheManager cacheManager)
+    public HealthMonitor(IAiMetricsAggregator metricsService, IAiCacheCoordinator cacheManager)
     {
         _metricsService = metricsService;
         _cacheManager = cacheManager;
@@ -75,7 +75,7 @@ public class HealthMonitor
         }
 
         // Check for failing stages
-        foreach (var stageMetric in metrics.StageMetrics)
+        foreach (var stageMetric in metrics.StageMetrics.Values)
         {
             if (stageMetric.Executions > 0)
             {
@@ -188,12 +188,12 @@ public class HealthMonitor
             recommendations.Add("Low cache hit rate - consider adjusting cache TTL or cache key generation");
         }
 
-        if (metrics.AverageLatencyMs > 5000)
+        if (metrics.AverageLatency.TotalMilliseconds > 5000)
         {
             recommendations.Add("High average latency detected - consider optimizing slow stages or implementing response streaming");
         }
 
-        foreach (var stage in metrics.StageMetrics.Where(s => s.Executions > 0))
+        foreach (var stage in metrics.StageMetrics.Values.Where(s => s.Executions > 0))
         {
             var failureRate = (double)stage.Failures / stage.Executions;
             if (failureRate > 0.2)
@@ -201,9 +201,9 @@ public class HealthMonitor
                 recommendations.Add($"High failure rate in stage '{stage.StageName}' - investigate and fix underlying issues");
             }
 
-            if (stage.AverageLatency > 3000)
+            if (stage.AverageLatency.TotalMilliseconds > 3000)
             {
-                recommendations.Add($"Stage '{stage.StageName}' is slow ({stage.AverageLatency:F0}ms avg) - consider optimization");
+                recommendations.Add($"Stage '{stage.StageName}' is slow ({stage.AverageLatency.TotalMilliseconds:F0}ms avg) - consider optimization");
             }
         }
 

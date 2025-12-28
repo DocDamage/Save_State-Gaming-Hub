@@ -51,7 +51,6 @@ namespace SaveState.Core.Services.Cloud
 
     public class CloudSyncService
     {
-        private static CloudSyncService? _instance;
         private readonly ILogger _logger = Log.ForContext<CloudSyncService>();
         private readonly HttpClient _httpClient;
         private readonly string _localSyncPath;
@@ -65,18 +64,19 @@ namespace SaveState.Core.Services.Cloud
         public event EventHandler<SyncConflict>? ConflictDetected;
         public event EventHandler<(string file, int percent)>? ProgressChanged;
 
-        public static CloudSyncService Instance => _instance ??= new CloudSyncService();
+        public static CloudSyncService? Instance { get; private set; }
         public SyncStatus Status => _status;
         public bool IsConfigured => !string.IsNullOrEmpty(_cloudEndpoint);
 
-        private CloudSyncService()
+        public CloudSyncService(IHttpClientFactory httpClientFactory)
         {
-            _httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
+            Instance = this;
+            _httpClient = httpClientFactory.CreateClient("CloudSyncService");
             _localSyncPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "SaveState2", "data");
             _manifestPath = Path.Combine(_localSyncPath, ".sync_manifest.json");
-            
+
             _manifest = LoadManifest();
         }
 
@@ -170,7 +170,7 @@ namespace SaveState.Core.Services.Cloud
 
                 var content = new ByteArrayContent(await File.ReadAllBytesAsync(item.LocalPath));
                 var response = await _httpClient.PutAsync(
-                    $"{_cloudEndpoint}/files/{Uri.EscapeDataString(item.RemotePath)}", 
+                    $"{_cloudEndpoint}/files/{Uri.EscapeDataString(item.RemotePath)}",
                     content);
 
                 if (response.IsSuccessStatusCode)
@@ -198,13 +198,13 @@ namespace SaveState.Core.Services.Cloud
                 {
                     var data = await response.Content.ReadAsByteArrayAsync();
                     var localPath = Path.Combine(_localSyncPath, item.RemotePath);
-                    
+
                     var dir = Path.GetDirectoryName(localPath);
                     if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
                         Directory.CreateDirectory(dir);
 
                     await File.WriteAllBytesAsync(localPath, data);
-                    
+
                     item.LocalPath = localPath;
                     item.LastSynced = DateTime.UtcNow;
                     UpdateManifestItem(item);
@@ -297,7 +297,7 @@ namespace SaveState.Core.Services.Cloud
 
             var isDir = Directory.Exists(localPath);
             var relativePath = Path.GetRelativePath(_localSyncPath, localPath);
-            
+
             var item = new SyncItem
             {
                 LocalPath = localPath,

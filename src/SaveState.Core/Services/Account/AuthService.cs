@@ -50,7 +50,6 @@ namespace SaveState.Core.Services.Account
 
     public class AuthService
     {
-        private static AuthService? _instance;
         private readonly ILogger _logger = Log.ForContext<AuthService>();
         private readonly HttpClient _httpClient;
         private readonly string _credentialsPath;
@@ -58,15 +57,16 @@ namespace SaveState.Core.Services.Account
         private UserCredentials? _currentUser;
         private AuthToken? _currentToken;
 
-        public static AuthService Instance => _instance ??= new AuthService();
+        public static AuthService? Instance { get; private set; }
         public bool IsLoggedIn => _currentUser != null;
         public UserCredentials? CurrentUser => _currentUser;
 
         public event EventHandler<UserCredentials?>? UserChanged;
 
-        private AuthService()
+        public AuthService(IHttpClientFactory httpClientFactory)
         {
-            _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+            Instance = this;
+            _httpClient = httpClientFactory.CreateClient("AuthService");
             _credentialsPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "SaveState2", "data", "auth");
@@ -127,7 +127,7 @@ namespace SaveState.Core.Services.Account
             user.LastLogin = DateTime.UtcNow;
             _currentUser = user;
             _currentToken = GenerateToken(user);
-            
+
             SaveUsers();
             SaveSession();
             UserChanged?.Invoke(this, user);
@@ -187,16 +187,16 @@ namespace SaveState.Core.Services.Account
 
             _currentUser.PasswordHash = HashPassword(newPassword);
             SaveUsers();
-            
+
             await Task.Yield();
             return true;
         }
 
         public async Task<bool> ResetPasswordAsync(string email)
         {
-            var user = _users.Values.FirstOrDefault(u => 
+            var user = _users.Values.FirstOrDefault(u =>
                 u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
-            
+
             if (user == null) return false;
 
             // In production: Send password reset email
@@ -247,8 +247,8 @@ namespace SaveState.Core.Services.Account
             {
                 var json = File.ReadAllText(sessionPath);
                 var session = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
-                
-                if (session != null && 
+
+                if (session != null &&
                     session.TryGetValue("userId", out var userId) &&
                     _users.TryGetValue(userId, out var user))
                 {
@@ -309,7 +309,7 @@ namespace SaveState.Core.Services.Account
         private void SaveUsers()
         {
             var usersPath = Path.Combine(_credentialsPath, "users.json");
-            var json = JsonSerializer.Serialize(_users.Values.ToList(), 
+            var json = JsonSerializer.Serialize(_users.Values.ToList(),
                 new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(usersPath, json);
         }

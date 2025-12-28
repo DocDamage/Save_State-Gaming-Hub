@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using SaveState.Core.Entities;
 using SaveState.Core.Interfaces;
+using SaveState.Core.Services;
 using Serilog;
 using System;
 using System.Diagnostics;
@@ -14,6 +15,7 @@ namespace SaveState.UI.ViewModels;
 public partial class GameDetailsViewModel : ViewModelBase
 {
     private readonly IServiceProvider _serviceProvider;
+    private readonly IGameSessionMonitor _gameSessionMonitor;
     private readonly ILogger _logger = Log.ForContext<GameDetailsViewModel>();
 
     [ObservableProperty]
@@ -32,9 +34,10 @@ public partial class GameDetailsViewModel : ViewModelBase
     public IAsyncRelayCommand FetchMetadataCommand { get; }
     public IRelayCommand BackCommand { get; }
 
-    public GameDetailsViewModel(IServiceProvider serviceProvider, Game game, Action goBack)
+    public GameDetailsViewModel(IServiceProvider serviceProvider, IGameSessionMonitor gameSessionMonitor, Game game, Action goBack)
     {
-        _serviceProvider = serviceProvider;
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        _gameSessionMonitor = gameSessionMonitor ?? throw new ArgumentNullException(nameof(gameSessionMonitor));
         _game = game;
 
         LaunchCommand = new AsyncRelayCommand(LaunchAsync);
@@ -71,13 +74,10 @@ public partial class GameDetailsViewModel : ViewModelBase
             // For now, if no process object, we use a placeholder PID (0) to signal "Monitoring Active".
             int pid = process?.Id ?? 0;
 
-            var ai = SaveState.Core.Services.AiServiceProvider.Instance;
-            if (ai != null)
-            {
-                await ai.GameSessionMonitor.StartMonitoringAsync(Game.Id, pid);
-                IsMonitoring = true;
-                _logger.Information("AI Session Monitoring started for {Game}", Game.Title);
-            }
+            // Start AI Session Monitoring
+            await _gameSessionMonitor.StartMonitoringAsync(Game.Id, pid);
+            IsMonitoring = true;
+            _logger.Information("AI Session Monitoring started for {Game}", Game.Title);
         }
         catch (Exception ex)
         {
@@ -94,7 +94,7 @@ public partial class GameDetailsViewModel : ViewModelBase
         try
         {
             var metadataProviders = _serviceProvider.GetServices<IMetadataProvider>().ToList();
-            
+
             // Try IGDB for metadata
             var igdb = metadataProviders.FirstOrDefault(p => p.Id == "igdb");
             if (igdb != null)

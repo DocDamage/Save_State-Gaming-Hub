@@ -1,0 +1,13 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\Services\Ai\LlmService.cs(67,31): error CS0738: 'LlmService' does not implement interface member 'ILlmService.GetAvailableProviders()'. 'LlmService.GetAvailableProviders()' cannot implement 'ILlmService.GetAvailableProviders()' because it does not have the matching return type of 'IEnumerable<LlmProvider>'. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\SaveState.Core.csproj]
+
+Build FAILED.
+
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\Services\Ai\LlmService.cs(67,31): error CS0738: 'LlmService' does not implement interface member 'ILlmService.GetAvailableProviders()'. 'LlmService.GetAvailableProviders()' cannot implement 'ILlmService.GetAvailableProviders()' because it does not have the matching return type of 'IEnumerable<LlmProvider>'. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\SaveState.Core.csproj]
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:01.93
+
+Workload updates are available. Run `dotnet workload list` for more information.

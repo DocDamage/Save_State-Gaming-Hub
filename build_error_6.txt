@@ -1,0 +1,48 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  SaveState.Core -> C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\bin\Debug\net9.0\SaveState.Core.dll
+C:\Users\Doc\Desktop\SaveState2\tests\SaveState.Tests\ModSdkTests.cs(227,39): error CS0246: The type or namespace name 'IGameSessionMonitor' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\Doc\Desktop\SaveState2\tests\SaveState.Tests\SaveState.Tests.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AchievementsViewModel.cs(41,31): warning CS8601: Possible null reference assignment. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AchievementsViewModel.cs(44,9): warning CS8602: Dereference of a possibly null reference. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AiSettingsViewModel.cs(81,41): error CS0103: The name 'AiServiceProvider' does not exist in the current context [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\ChallengesViewModel.cs(34,29): warning CS8601: Possible null reference assignment. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\ChallengesViewModel.cs(38,9): warning CS8602: Dereference of a possibly null reference. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AiSettingsViewModel.cs(110,24): warning CS8602: Dereference of a possibly null reference. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AiSettingsViewModel.cs(113,19): warning CS8602: Dereference of a possibly null reference. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AiSettingsViewModel.cs(132,31): warning CS8602: Dereference of a possibly null reference. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\CharacterFusionViewModel.cs(61,73): error CS0103: The name 'AiServiceProvider' does not exist in the current context [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\TimeCapsuleViewModel.cs(70,65): error CS0103: The name 'AiServiceProvider' does not exist in the current context [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AiSettingsViewModel.cs(185,29): warning CS8602: Dereference of a possibly null reference. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AiSettingsViewModel.cs(205,29): warning CS8602: Dereference of a possibly null reference. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AiSettingsViewModel.cs(216,29): warning CS8602: Dereference of a possibly null reference. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AiSettingsViewModel.cs(233,31): warning CS8602: Dereference of a possibly null reference. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\DreamSequenceViewModel.cs(52,69): error CS0103: The name 'AiServiceProvider' does not exist in the current context [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\DreamSequenceViewModel.cs(58,74): error CS1503: Argument 2: cannot convert from 'int?' to 'System.Collections.Generic.List<string>?' [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\LiveCommentaryViewModel.cs(49,45): error CS0103: The name 'AiServiceProvider' does not exist in the current context [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+
+Build FAILED.
+
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AchievementsViewModel.cs(41,31): warning CS8601: Possible null reference assignment. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AchievementsViewModel.cs(44,9): warning CS8602: Dereference of a possibly null reference. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\ChallengesViewModel.cs(34,29): warning CS8601: Possible null reference assignment. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\ChallengesViewModel.cs(38,9): warning CS8602: Dereference of a possibly null reference. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AiSettingsViewModel.cs(110,24): warning CS8602: Dereference of a possibly null reference. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AiSettingsViewModel.cs(113,19): warning CS8602: Dereference of a possibly null reference. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AiSettingsViewModel.cs(132,31): warning CS8602: Dereference of a possibly null reference. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AiSettingsViewModel.cs(185,29): warning CS8602: Dereference of a possibly null reference. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AiSettingsViewModel.cs(205,29): warning CS8602: Dereference of a possibly null reference. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AiSettingsViewModel.cs(216,29): warning CS8602: Dereference of a possibly null reference. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AiSettingsViewModel.cs(233,31): warning CS8602: Dereference of a possibly null reference. [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\tests\SaveState.Tests\ModSdkTests.cs(227,39): error CS0246: The type or namespace name 'IGameSessionMonitor' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\Doc\Desktop\SaveState2\tests\SaveState.Tests\SaveState.Tests.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\AiSettingsViewModel.cs(81,41): error CS0103: The name 'AiServiceProvider' does not exist in the current context [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\CharacterFusionViewModel.cs(61,73): error CS0103: The name 'AiServiceProvider' does not exist in the current context [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\TimeCapsuleViewModel.cs(70,65): error CS0103: The name 'AiServiceProvider' does not exist in the current context [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\DreamSequenceViewModel.cs(52,69): error CS0103: The name 'AiServiceProvider' does not exist in the current context [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\DreamSequenceViewModel.cs(58,74): error CS1503: Argument 2: cannot convert from 'int?' to 'System.Collections.Generic.List<string>?' [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\ViewModels\LiveCommentaryViewModel.cs(49,45): error CS0103: The name 'AiServiceProvider' does not exist in the current context [C:\Users\Doc\Desktop\SaveState2\src\SaveState.UI\SaveState.UI.csproj]
+    11 Warning(s)
+    7 Error(s)
+
+Time Elapsed 00:00:02.82
+
+Workload updates are available. Run `dotnet workload list` for more information.

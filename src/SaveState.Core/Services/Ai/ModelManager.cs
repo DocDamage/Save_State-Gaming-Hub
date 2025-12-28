@@ -44,81 +44,81 @@ namespace SaveState.Core.Services.Ai
 
     public class ModelManager
     {
-        private static ModelManager? _instance;
         private readonly HttpClient _httpClient;
+        private readonly OllamaManager _ollamaManager;
         private readonly Dictionary<string, CancellationTokenSource> _activeDownloads = new();
 
         public event EventHandler<DownloadProgress>? DownloadProgressChanged;
-        
-        public static ModelManager Instance => _instance ??= new ModelManager();
+
+        public static ModelManager? Instance { get; private set; }
 
         // Available models catalog
         public static readonly ModelInfo[] AvailableModels = new[]
         {
-            new ModelInfo 
-            { 
-                Name = "phi", 
-                DisplayName = "Phi-2", 
+            new ModelInfo
+            {
+                Name = "phi",
+                DisplayName = "Phi-2",
                 Description = "Microsoft's compact 2.7B model - fastest, lowest resource usage",
                 ParameterCount = 3,
                 SizeBytes = 1_600_000_000,
                 Capabilities = new[] { "chat", "creative" },
                 RequiresGpu = false
             },
-            new ModelInfo 
-            { 
-                Name = "llama3.2", 
-                DisplayName = "Llama 3.2 (3B)", 
+            new ModelInfo
+            {
+                Name = "llama3.2",
+                DisplayName = "Llama 3.2 (3B)",
                 Description = "Meta's newest small model - best quality for size",
                 ParameterCount = 3,
                 SizeBytes = 2_000_000_000,
                 Capabilities = new[] { "chat", "reasoning", "creative" },
                 RequiresGpu = false
             },
-            new ModelInfo 
-            { 
-                Name = "mistral", 
-                DisplayName = "Mistral 7B", 
+            new ModelInfo
+            {
+                Name = "mistral",
+                DisplayName = "Mistral 7B",
                 Description = "Fast and creative - great for gaming commentary",
                 ParameterCount = 7,
                 SizeBytes = 4_100_000_000,
                 Capabilities = new[] { "chat", "creative", "analysis" },
                 RequiresGpu = false
             },
-            new ModelInfo 
-            { 
-                Name = "llama2", 
-                DisplayName = "Llama 2 (7B)", 
+            new ModelInfo
+            {
+                Name = "llama2",
+                DisplayName = "Llama 2 (7B)",
                 Description = "Meta's well-rounded model - reliable all-purpose",
                 ParameterCount = 7,
                 SizeBytes = 3_800_000_000,
                 Capabilities = new[] { "chat", "reasoning" },
                 RequiresGpu = false
             },
-            new ModelInfo 
-            { 
-                Name = "codellama", 
-                DisplayName = "Code Llama", 
+            new ModelInfo
+            {
+                Name = "codellama",
+                DisplayName = "Code Llama",
                 Description = "Specialized for code generation",
                 ParameterCount = 7,
                 SizeBytes = 3_800_000_000,
                 Capabilities = new[] { "code", "analysis" },
                 RequiresGpu = true
             },
-            new ModelInfo 
-            { 
-                Name = "llava", 
-                DisplayName = "LLaVA (Vision)", 
+            new ModelInfo
+            {
+                Name = "llava",
+                DisplayName = "LLaVA (Vision)",
                 Description = "Can understand and describe images",
                 ParameterCount = 7,
                 SizeBytes = 4_500_000_000,
                 Capabilities = new[] { "vision", "chat" },
                 RequiresGpu = true
             },
-            new ModelInfo 
-            { 
-                Name = "gemma", 
-                DisplayName = "Gemma (7B)", 
+            new ModelInfo
+            {
+                Name = "gemma",
+                DisplayName = "Gemma (7B)",
                 Description = "Google's efficient open model",
                 ParameterCount = 7,
                 SizeBytes = 5_000_000_000,
@@ -127,20 +127,22 @@ namespace SaveState.Core.Services.Ai
             },
         };
 
-        private ModelManager()
+        public ModelManager(IHttpClientFactory httpClientFactory, OllamaManager ollamaManager)
         {
-            _httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(30) };
+            Instance = this;
+            _httpClient = httpClientFactory.CreateClient("ModelManager");
+            _ollamaManager = ollamaManager;
         }
 
         public async Task<List<ModelInfo>> GetInstalledModelsAsync()
         {
             var installed = new List<ModelInfo>();
-            var ollamaModels = await OllamaManager.Instance.GetInstalledModelsAsync();
+            var ollamaModels = await _ollamaManager.GetInstalledModelsAsync();
 
             foreach (var modelName in ollamaModels)
             {
                 var baseName = modelName.Split(':')[0];
-                var catalogModel = AvailableModels.FirstOrDefault(m => 
+                var catalogModel = AvailableModels.FirstOrDefault(m =>
                     m.Name.Equals(baseName, StringComparison.OrdinalIgnoreCase));
 
                 if (catalogModel != null)
@@ -182,7 +184,7 @@ namespace SaveState.Core.Services.Ai
 
             return AvailableModels
                 .Where(m => recommendations.Any(r => r.ModelName == m.Name))
-                .Select(m => 
+                .Select(m =>
                 {
                     m.IsInstalled = installed.Any(i => i.Name == m.Name);
                     return m;
@@ -192,10 +194,10 @@ namespace SaveState.Core.Services.Ai
 
         public async Task<bool> DownloadModelAsync(string modelName, IProgress<DownloadProgress>? progress = null)
         {
-            if (!OllamaManager.Instance.IsRunning)
+            if (!_ollamaManager.IsRunning)
             {
-                await OllamaManager.Instance.CheckAndStartAsync();
-                if (!OllamaManager.Instance.IsRunning) return false;
+                await _ollamaManager.CheckAndStartAsync();
+                if (!_ollamaManager.IsRunning) return false;
             }
 
             var cts = new CancellationTokenSource();
@@ -212,7 +214,7 @@ namespace SaveState.Core.Services.Ai
                 // Use Ollama CLI to pull model
                 var psi = new System.Diagnostics.ProcessStartInfo
                 {
-                    FileName = OllamaManager.Instance.GetOllamaPath(),
+                    FileName = _ollamaManager.GetOllamaPath(),
                     Arguments = $"pull {modelName}",
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -290,13 +292,13 @@ namespace SaveState.Core.Services.Ai
 
         public async Task<bool> DeleteModelAsync(string modelName)
         {
-            if (!OllamaManager.Instance.IsRunning) return false;
+            if (!_ollamaManager.IsRunning) return false;
 
             try
             {
                 var psi = new System.Diagnostics.ProcessStartInfo
                 {
-                    FileName = OllamaManager.Instance.GetOllamaPath(),
+                    FileName = _ollamaManager.GetOllamaPath(),
                     Arguments = $"rm {modelName}",
                     UseShellExecute = false,
                     CreateNoWindow = true
@@ -304,7 +306,7 @@ namespace SaveState.Core.Services.Ai
 
                 using var process = System.Diagnostics.Process.Start(psi);
                 if (process == null) return false;
-                
+
                 await process.WaitForExitAsync();
                 return process.ExitCode == 0;
             }
@@ -319,9 +321,9 @@ namespace SaveState.Core.Services.Ai
             return SystemCapabilities.GetSafeModelCount();
         }
 
-        public bool CanDownloadMore()
+        public async Task<bool> CanDownloadMoreAsync()
         {
-            var installed = GetInstalledModelsAsync().GetAwaiter().GetResult();
+            var installed = await GetInstalledModelsAsync();
             return installed.Count < GetMaxSafeModelCount();
         }
     }

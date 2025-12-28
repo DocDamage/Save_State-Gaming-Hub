@@ -22,17 +22,17 @@ namespace SaveState.Core.Services.Memory
         private readonly ILogger _logger = Log.ForContext<TrainerGeneratorService>();
         private readonly IMemoryReader _memoryReader;
         private readonly IMemoryProfileService _profileService;
-        
+
         private List<long> _currentResults = new();
         private MemoryValueType _currentType;
         private int _currentPid;
 
         public int ResultCount => _currentResults.Count;
 
-        public TrainerGeneratorService()
+        public TrainerGeneratorService(IMemoryReader memoryReader, IMemoryProfileService profileService)
         {
-            _memoryReader = new WindowsMemoryReader(); // Or inject via constructor if registered
-            _profileService = AiServiceProvider.Instance.MemoryProfileService;
+            _memoryReader = memoryReader ?? throw new ArgumentNullException(nameof(memoryReader));
+            _profileService = profileService ?? throw new ArgumentNullException(nameof(profileService));
         }
 
         public void Reset()
@@ -61,7 +61,7 @@ namespace SaveState.Core.Services.Memory
             _logger.Information("Starting scan for value {Value} ({Type}) in Process {PID}", value, type, pid);
             _currentResults = await _memoryReader.ScanAobAsync(aobPattern);
             _logger.Information("Scan complete. Found {Count} results", _currentResults.Count);
-            
+
             return _currentResults.Count;
         }
 
@@ -103,10 +103,10 @@ namespace SaveState.Core.Services.Memory
 
             // Using the first result. Ideally allow user to pick if multiple.
             long address = _currentResults.First();
-            
+
             // Try to resolve to module relative if possible
             string baseAddressStr = $"0x{address:X}";
-            
+
             // Check modules to see if we can make it relative
             // (Basic check against main module or common ones could be here)
             // For now, save as absolute hex.
@@ -130,7 +130,7 @@ namespace SaveState.Core.Services.Memory
 
             await _profileService.SaveProfileAsync(profile);
             _logger.Information("Saved cheat '{Name}' to profile {GameId}", cheatName, gameId);
-            
+
             return true;
         }
 

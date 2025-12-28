@@ -19,9 +19,9 @@ namespace SaveState.Core.Services.Ai.Adapters
         public virtual string ProviderName => ProviderType.ToString();
         public virtual bool IsAvailable => !string.IsNullOrEmpty(BaseUrl);
 
-        protected BaseHttpLlmProvider()
+        protected BaseHttpLlmProvider(HttpClient httpClient)
         {
-            HttpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
+            HttpClient = httpClient;
         }
 
         public abstract Task<string> ChatAsync(string model, List<LlmMessage> messages, float temperature, int maxTokens);
@@ -44,10 +44,11 @@ namespace SaveState.Core.Services.Ai.Adapters
     public class OpenAiCompatibleProvider : BaseHttpLlmProvider
     {
         private readonly LlmProvider _type;
-        
+
         public override LlmProvider ProviderType => _type;
 
-        public OpenAiCompatibleProvider(LlmProvider type, string apiKey, string baseUrl)
+        public OpenAiCompatibleProvider(LlmProvider type, string apiKey, string baseUrl, HttpClient httpClient)
+            : base(httpClient)
         {
             _type = type;
             ApiKey = apiKey;
@@ -81,7 +82,7 @@ namespace SaveState.Core.Services.Ai.Adapters
             try
             {
                 var response = await HttpClient.SendAsync(requestMsg);
-                
+
                 if (!response.IsSuccessStatusCode)
                 {
                     var error = await response.Content.ReadAsStringAsync();
@@ -90,7 +91,7 @@ namespace SaveState.Core.Services.Ai.Adapters
 
                 var responseJson = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(responseJson);
-                
+
                 // Handle different response structures if necessary, but standard OpenAI format is:
                 return doc.RootElement
                     .GetProperty("choices")[0]
@@ -109,8 +110,12 @@ namespace SaveState.Core.Services.Ai.Adapters
     {
         public override LlmProvider ProviderType => LlmProvider.Ollama;
 
-        public OllamaProvider(string baseUrl = "http://localhost:11434/")
+        private readonly OllamaManager _ollamaManager;
+
+        public OllamaProvider(HttpClient httpClient, OllamaManager ollamaManager, string baseUrl = "http://localhost:11434/")
+            : base(httpClient)
         {
+            _ollamaManager = ollamaManager;
             BaseUrl = baseUrl;
             if (!BaseUrl.EndsWith("/")) BaseUrl += "/";
         }
@@ -131,7 +136,7 @@ namespace SaveState.Core.Services.Ai.Adapters
             try
             {
                 var response = await HttpClient.PostAsync($"{BaseUrl}api/chat", content);
-                
+
                 if (!response.IsSuccessStatusCode)
                 {
                     throw new LlmProviderException(ProviderType, $"Ollama Error {response.StatusCode}");
@@ -139,7 +144,7 @@ namespace SaveState.Core.Services.Ai.Adapters
 
                 var responseJson = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(responseJson);
-                
+
                 return doc.RootElement
                     .GetProperty("message")
                     .GetProperty("content")
@@ -153,7 +158,7 @@ namespace SaveState.Core.Services.Ai.Adapters
 
         public override Task<bool> HealthCheckAsync()
         {
-            return Task.FromResult(OllamaManager.Instance.IsRunning);
+            return Task.FromResult(_ollamaManager.IsRunning);
         }
     }
 
@@ -167,7 +172,7 @@ namespace SaveState.Core.Services.Ai.Adapters
         {
             var lastMsg = messages.LastOrDefault()?.Content ?? "";
             var rand = new Random(lastMsg.GetHashCode());
-            
+
             string response;
             if (lastMsg.Contains("commentary", StringComparison.OrdinalIgnoreCase))
                 response = "The action is intense!";

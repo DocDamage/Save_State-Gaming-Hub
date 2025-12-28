@@ -56,7 +56,6 @@ namespace SaveState.Core.Services.Gamification
 
     public class AchievementService
     {
-        private static AchievementService? _instance;
         private readonly ILogger _logger = Log.ForContext<AchievementService>();
         private readonly string _dataPath;
         private readonly AuthService _authService;
@@ -66,17 +65,18 @@ namespace SaveState.Core.Services.Gamification
 
         public event EventHandler<Achievement>? AchievementUnlocked;
 
-        public static AchievementService Instance => _instance ??= new AchievementService();
+        public static AchievementService? Instance { get; private set; }
 
-        private AchievementService()
+        public AchievementService(AuthService authService, ProfileService profileService)
         {
-            _authService = AuthService.Instance;
-            _profileService = ProfileService.Instance;
+            Instance = this;
+            _authService = authService;
+            _profileService = profileService;
             _dataPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "SaveState2", "data", "achievements");
             if (!Directory.Exists(_dataPath)) Directory.CreateDirectory(_dataPath);
-            
+
             InitializeAchievements();
             LoadUserAchievements();
         }

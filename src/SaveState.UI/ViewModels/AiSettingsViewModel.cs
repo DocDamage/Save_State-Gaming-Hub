@@ -7,11 +7,14 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 
+using System.Threading.Tasks;
+using SaveState.Core.Services;
+
 namespace SaveState.UI.ViewModels;
 
 public partial class AiSettingsViewModel : ViewModelBase
 {
-    private readonly LlmService _llmService;
+    private readonly ILlmService _llmService;
 
     [ObservableProperty]
     private string _systemStatus = "Checking system...";
@@ -62,7 +65,7 @@ public partial class AiSettingsViewModel : ViewModelBase
     /// Constructor for dependency injection.
     /// </summary>
     /// <param name="llmService">The LLM service to use.</param>
-    public AiSettingsViewModel(LlmService llmService)
+    public AiSettingsViewModel(ILlmService llmService)
     {
         _llmService = llmService ?? throw new ArgumentNullException(nameof(llmService));
 
@@ -73,13 +76,6 @@ public partial class AiSettingsViewModel : ViewModelBase
         CheckSdCommand = new AsyncRelayCommand(CheckStableDiffusionAsync);
 
         _ = InitializeAsync();
-    }
-    
-    /// <summary>
-    /// Design-time/fallback constructor.
-    /// </summary>
-    public AiSettingsViewModel() : this(new LlmService())
-    {
     }
 
     private async Task InitializeAsync()
@@ -93,7 +89,7 @@ public partial class AiSettingsViewModel : ViewModelBase
         // System info
         var sysInfo = SystemCapabilities.GetSystemInfo();
         RamInfo = $"{SystemCapabilities.FormatBytes(sysInfo.TotalRamBytes)} RAM ({SystemCapabilities.FormatBytes(sysInfo.AvailableRamBytes)} available)";
-        
+
         if (sysInfo.Gpu != null)
         {
             GpuInfo = $"{sysInfo.Gpu.Name} ({SystemCapabilities.FormatBytes(sysInfo.Gpu.VramBytes)} VRAM)";
@@ -215,7 +211,7 @@ public partial class AiSettingsViewModel : ViewModelBase
         SystemStatus = "Starting Ollama...";
         var started = await OllamaManager.Instance.CheckAndStartAsync();
         OllamaStatus = OllamaManager.Instance.Status.ToString();
-        
+
         if (started)
         {
             SystemStatus = "✅ Ollama started successfully!";
@@ -232,8 +228,8 @@ public partial class AiSettingsViewModel : ViewModelBase
         SystemStatus = "Checking Stable Diffusion...";
         var connected = await StableDiffusionService.Instance.CheckConnectionAsync();
         SdStatus = connected ? "Connected" : "Not Running";
-        SystemStatus = connected 
-            ? "✅ Stable Diffusion connected!" 
+        SystemStatus = connected
+            ? "✅ Stable Diffusion connected!"
             : "❌ SD not detected. Start Automatic1111 WebUI on port 7860.";
     }
 }

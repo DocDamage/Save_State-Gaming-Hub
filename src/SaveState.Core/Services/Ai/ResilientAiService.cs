@@ -136,7 +136,7 @@ namespace SaveState.Core.Services.Ai
         public TimeSpan AverageLatency { get; set; }
     }
 
-    public interface IResilientAiService
+    public interface IResilientAiService : IDisposable
     {
         Task<AiRequestResult> ExecuteAsync(AiRequest request, CancellationToken ct = default);
         Task<AiRequestResult> ExecuteWithPriorityAsync(string prompt, RequestPriority priority, CancellationToken ct = default);
@@ -147,7 +147,7 @@ namespace SaveState.Core.Services.Ai
         void PauseProvider(string providerId, TimeSpan duration);
     }
 
-    public class ResilientAiService : IResilientAiService
+    public class ResilientAiService : IResilientAiService, IDisposable
     {
         private readonly ILlmService _llmService;
         private readonly ResilienceConfig _config;
@@ -159,6 +159,8 @@ namespace SaveState.Core.Services.Ai
         private readonly ConcurrentDictionary<int, int> _requestsPerMinute = new();
         private readonly Timer _rateLimitResetTimer;
         private string[] _providerOrder;
+        private bool _disposed = false;
+        private readonly CancellationTokenSource _queueCancellationSource = new();
 
         // Statistics
         private int _totalRequests = 0;
@@ -177,9 +179,9 @@ namespace SaveState.Core.Services.Ai
             _config = config ?? new ResilienceConfig();
             _providerOrder = _config.FallbackProviderOrder;
             _concurrencyLimiter = new SemaphoreSlim(_config.MaxConcurrentRequests);
-            
+
             // Reset rate limit counter every minute
-            _rateLimitResetTimer = new Timer(_ => _requestsPerMinute.Clear(), null, 
+            _rateLimitResetTimer = new Timer(_ => _requestsPerMinute.Clear(), null,
                 TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
 
             // Initialize provider health for known providers
@@ -196,7 +198,7 @@ namespace SaveState.Core.Services.Ai
             // Start queue processor if enabled
             if (_config.EnableQueueing)
             {
-                _ = ProcessQueueAsync();
+                _ = ProcessQueueAsync(_queueCancellationSource.Token);
             }
         }
 
@@ -220,17 +222,17 @@ namespace SaveState.Core.Services.Ai
             // Check rate limiting
             var currentMinute = DateTime.UtcNow.Minute;
             var requestsThisMinute = _requestsPerMinute.AddOrUpdate(currentMinute, 1, (_, c) => c + 1);
-            
+
             if (requestsThisMinute > _config.MaxRequestsPerMinute)
             {
                 Interlocked.Increment(ref _rateLimitedRequests);
-                
+
                 if (_config.EnableQueueing && _requestQueue.Count < _config.MaxQueueSize)
                 {
                     // Queue the request
                     return await QueueRequestAsync(request, ct);
                 }
-                
+
                 return CreateErrorResult(request, "Rate limit exceeded", ErrorCategory.RateLimited, startTime);
             }
 
@@ -280,8 +282,8 @@ namespace SaveState.Core.Services.Ai
                 CircuitBreakerTrips = _circuitBreakerTrips,
                 QueuedRequests = _requestQueue.Count,
                 ProviderHealth = new Dictionary<string, ProviderHealth>(_providerHealth),
-                AverageLatency = _totalRequests > 0 
-                    ? TimeSpan.FromMilliseconds(_totalLatencyMs / _totalRequests) 
+                AverageLatency = _totalRequests > 0
+                    ? TimeSpan.FromMilliseconds(_totalLatencyMs / _totalRequests)
                     : TimeSpan.Zero
             };
         }
@@ -317,7 +319,7 @@ namespace SaveState.Core.Services.Ai
                 ct.ThrowIfCancellationRequested();
 
                 // Check if provider is paused
-                if (_providerPaused.TryGetValue(providerId, out var pausedUntil) && 
+                if (_providerPaused.TryGetValue(providerId, out var pausedUntil) &&
                     DateTime.UtcNow < pausedUntil)
                 {
                     continue;
@@ -325,7 +327,7 @@ namespace SaveState.Core.Services.Ai
 
                 // Check circuit breaker
                 var health = _providerHealth.GetOrAdd(providerId, new ProviderHealth { ProviderId = providerId });
-                
+
                 if (!IsCircuitClosed(providerId, health))
                 {
                     continue;
@@ -386,7 +388,7 @@ namespace SaveState.Core.Services.Ai
                     {
                         Interlocked.Increment(ref _timeoutRequests);
                         lastException = new TimeoutException($"Request timed out after {timeout}ms");
-                        
+
                         if (!_config.RetryOnTimeout)
                             break;
                     }
@@ -394,7 +396,7 @@ namespace SaveState.Core.Services.Ai
                     {
                         lastException = ex;
                         var errorCategory = CategorizeError(ex);
-                        
+
                         // Don't retry certain error types
                         if (errorCategory == ErrorCategory.AuthenticationError ||
                             errorCategory == ErrorCategory.InvalidRequest)
@@ -421,7 +423,7 @@ namespace SaveState.Core.Services.Ai
             // All providers failed
             Interlocked.Increment(ref _failedRequests);
             return CreateErrorResult(
-                request, 
+                request,
                 lastException?.Message ?? "All providers failed",
                 CategorizeError(lastException),
                 startTime,
@@ -484,7 +486,7 @@ namespace SaveState.Core.Services.Ai
                 health.SuccessfulRequests++;
                 health.LastSuccessTime = DateTime.UtcNow;
                 health.IsAvailable = true;
-                
+
                 // Close circuit if was half-open
                 if (health.CircuitState == CircuitState.HalfOpen)
                 {
@@ -556,17 +558,17 @@ namespace SaveState.Core.Services.Ai
         private async Task<AiRequestResult> QueueRequestAsync(AiRequest request, CancellationToken ct)
         {
             var tcs = new TaskCompletionSource<AiRequestResult>();
-            
+
             ct.Register(() => tcs.TrySetCanceled());
-            
+
             _requestQueue.Enqueue((request, tcs));
-            
+
             return await tcs.Task;
         }
 
-        private async Task ProcessQueueAsync()
+        private async Task ProcessQueueAsync(CancellationToken ct)
         {
-            while (true)
+            while (!ct.IsCancellationRequested)
             {
                 await Task.Delay(100);
 
@@ -609,6 +611,17 @@ namespace SaveState.Core.Services.Ai
                 AttemptCount = attemptCount,
                 Duration = DateTime.UtcNow - startTime
             };
+        }
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+
+            _queueCancellationSource?.Cancel();
+            _queueCancellationSource?.Dispose();
+            _rateLimitResetTimer?.Dispose();
+            _concurrencyLimiter?.Dispose();
+            _disposed = true;
         }
     }
 }

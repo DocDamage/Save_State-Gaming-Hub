@@ -7,6 +7,8 @@ using System.Linq;
 
 namespace SaveState.UI.ViewModels;
 
+using SaveState.Core.Services;
+
 public partial class DreamSequenceViewModel : ViewModelBase
 {
     private readonly DreamSequenceService _dreamService;
@@ -28,7 +30,7 @@ public partial class DreamSequenceViewModel : ViewModelBase
 
     public DreamMood[] AvailableMoods { get; } = Enum.GetValues<DreamMood>();
 
-    public IRelayCommand GenerateLevelCommand { get; }
+    public IAsyncRelayCommand GenerateLevelCommand { get; }
     public IRelayCommand<string> DeleteLevelCommand { get; }
     public IRelayCommand RefreshCommand { get; }
 
@@ -39,23 +41,16 @@ public partial class DreamSequenceViewModel : ViewModelBase
     {
         _dreamService = dreamService ?? throw new ArgumentNullException(nameof(dreamService));
 
-        GenerateLevelCommand = new RelayCommand(GenerateLevel);
+        GenerateLevelCommand = new AsyncRelayCommand(GenerateLevelAsync);
         DeleteLevelCommand = new RelayCommand<string>(DeleteLevel);
         RefreshCommand = new RelayCommand(RefreshLevels);
 
         RefreshLevels();
     }
 
-    /// <summary>
-    /// Design-time/fallback constructor.
-    /// </summary>
-    public DreamSequenceViewModel() : this(new DreamSequenceService())
+    private async Task GenerateLevelAsync()
     {
-    }
-
-    private void GenerateLevel()
-    {
-        var level = _dreamService.GenerateLevel(SelectedMood, CustomSeed);
+        var level = await _dreamService.GenerateLevelAsync(SelectedMood, null, 5, CustomSeed);
         GeneratedLevels.Insert(0, level);
         SelectedLevel = level;
         CustomSeed = null;

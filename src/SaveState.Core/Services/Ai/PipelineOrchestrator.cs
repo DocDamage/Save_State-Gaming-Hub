@@ -11,7 +11,7 @@ namespace SaveState.Core.Services.Ai;
 /// Core pipeline orchestrator responsible for managing and executing AI processing pipelines.
 /// Handles stage management, execution flow, and fallback mechanisms.
 /// </summary>
-public class PipelineOrchestrator
+public class PipelineOrchestrator : IPipelineOrchestrator
 {
     private readonly ILogger _logger = Log.ForContext<PipelineOrchestrator>();
     private readonly ConcurrentDictionary<string, (PipelineStageHandler Handler, AiPipelineStage Config)> _stages = new();
@@ -55,13 +55,13 @@ public class PipelineOrchestrator
     /// </summary>
     public async Task<PipelineResult> ExecuteAsync(
         string input,
-        Dictionary<string, object>? contextData = null,
+        PipelineContextData? contextData = null,
         CancellationToken cancellationToken = default)
     {
         var context = new PipelineContext
         {
             Input = input,
-            Data = contextData ?? new Dictionary<string, object>(),
+            Data = contextData ?? new PipelineContextData(),
             Errors = new List<string>(),
             Warnings = new List<string>(),
             StartTime = DateTime.UtcNow
@@ -78,7 +78,6 @@ public class PipelineOrchestrator
         {
             // Execute stages in priority order
             var orderedStages = _stages
-                .Where(kvp => ShouldExecuteStage(kvp.Key, context))
                 .OrderBy(kvp => kvp.Value.Config.Priority)
                 .ToList();
 
@@ -88,6 +87,12 @@ public class PipelineOrchestrator
                 {
                     result.Status = PipelineStatus.Cancelled;
                     break;
+                }
+
+                // Check condition
+                if (!await ShouldExecuteStageAsync(stage.Key, context))
+                {
+                    continue;
                 }
 
                 try
@@ -135,7 +140,7 @@ public class PipelineOrchestrator
     public async Task<PipelineResult> ExecuteWithFallbackAsync(
         string input,
         Func<string, Task<string>> fallbackGenerator,
-        Dictionary<string, object>? contextData = null,
+        PipelineContextData? contextData = null,
         CancellationToken cancellationToken = default)
     {
         var primaryResult = await ExecuteAsync(input, contextData, cancellationToken);
@@ -190,29 +195,19 @@ public class PipelineOrchestrator
         return _stages.TryGetValue(stageName, out var stage) ? stage.Config : null;
     }
 
-        private bool ShouldExecuteStage(string stageName, PipelineContext context)
+    private async Task<bool> ShouldExecuteStageAsync(string stageName, PipelineContext context)
+    {
+        if (!_conditions.TryGetValue(stageName, out var condition))
+            return true;
+
+        try
         {
-            if (!_conditions.TryGetValue(stageName, out var condition))
-                return true;
-
-            try
-            {
-                return condition(context);
-            }
-            catch (Exception ex)
-            {
-                _logger.Warning(ex, "Stage condition evaluation failed for: {StageName}", stageName);
-                return false;
-            }
+            return await condition(context);
         }
-
-        /// <summary>
-        /// Delegate for pipeline stage handlers.
-        /// </summary>
-        public delegate Task PipelineStageHandler(PipelineContext context);
-
-        /// <summary>
-        /// Delegate for pipeline stage conditions.
-        /// </summary>
-        public delegate bool PipelineCondition(PipelineContext context);
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Stage condition evaluation failed for: {StageName}", stageName);
+            return false;
+        }
+    }
 }

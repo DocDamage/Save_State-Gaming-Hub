@@ -6,6 +6,8 @@ using System.Collections.ObjectModel;
 
 namespace SaveState.UI.ViewModels;
 
+using SaveState.Core.Services;
+
 public partial class LiveCommentaryViewModel : ViewModelBase
 {
     private readonly LiveCommentaryService _commentaryService;
@@ -26,7 +28,7 @@ public partial class LiveCommentaryViewModel : ViewModelBase
     public GameEventType[] AvailableEvents { get; } = Enum.GetValues<GameEventType>();
 
     public IRelayCommand<CommentatorPersonality> SetPersonalityCommand { get; }
-    public IRelayCommand<GameEventType> SimulateEventCommand { get; }
+    public IAsyncRelayCommand<GameEventType> SimulateEventCommand { get; }
     public IRelayCommand ClearHistoryCommand { get; }
 
     /// <summary>
@@ -37,17 +39,10 @@ public partial class LiveCommentaryViewModel : ViewModelBase
         _commentaryService = commentaryService ?? throw new ArgumentNullException(nameof(commentaryService));
 
         SetPersonalityCommand = new RelayCommand<CommentatorPersonality>(SetPersonality);
-        SimulateEventCommand = new RelayCommand<GameEventType>(SimulateEvent);
+        SimulateEventCommand = new AsyncRelayCommand<GameEventType>(SimulateEventAsync);
         ClearHistoryCommand = new RelayCommand(ClearHistory);
 
         SelectedPersonality = _commentaryService.GetPersonality();
-    }
-
-    /// <summary>
-    /// Design-time/fallback constructor.
-    /// </summary>
-    public LiveCommentaryViewModel() : this(new LiveCommentaryService())
-    {
     }
 
     private void SetPersonality(CommentatorPersonality personality)
@@ -57,9 +52,9 @@ public partial class LiveCommentaryViewModel : ViewModelBase
         StatusMessage = $"Personality set to: {personality}";
     }
 
-    private void SimulateEvent(GameEventType eventType)
+    private async Task SimulateEventAsync(GameEventType eventType)
     {
-        var line = _commentaryService.OnEvent(eventType);
+        var line = await _commentaryService.OnEventAsync(eventType);
         if (line != null)
         {
             CommentaryHistory.Insert(0, line);

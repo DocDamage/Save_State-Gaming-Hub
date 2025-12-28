@@ -48,7 +48,6 @@ namespace SaveState.Core.Services.Account
 
     public class LeaderboardService
     {
-        private static LeaderboardService? _instance;
         private readonly ILogger _logger = Log.ForContext<LeaderboardService>();
         private readonly string _dataPath;
         private readonly ProfileService _profileService;
@@ -56,12 +55,13 @@ namespace SaveState.Core.Services.Account
         private readonly Dictionary<LeaderboardType, List<LeaderboardEntry>> _leaderboards = new();
         private readonly Dictionary<string, List<SpeedrunEntry>> _speedruns = new(); // By gameId
 
-        public static LeaderboardService Instance => _instance ??= new LeaderboardService();
+        public static LeaderboardService? Instance { get; private set; }
 
-        private LeaderboardService()
+        public LeaderboardService(AuthService authService, ProfileService profileService)
         {
-            _profileService = ProfileService.Instance;
-            _authService = AuthService.Instance;
+            Instance = this;
+            _profileService = profileService;
+            _authService = authService;
             _dataPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "SaveState2", "data", "leaderboards");
@@ -96,13 +96,13 @@ namespace SaveState.Core.Services.Account
         private void RefreshLeaderboard(LeaderboardType type)
         {
             var profiles = _profileService.GetPublicProfiles(1000);
-            
+
             var entries = type switch
             {
                 LeaderboardType.BattleWins => profiles.OrderByDescending(p => p.BattlesWon),
-                LeaderboardType.BattleRating => profiles.OrderByDescending(p => 
-                    p.BattlesWon + p.BattlesLost > 0 
-                        ? (double)p.BattlesWon / (p.BattlesWon + p.BattlesLost) * 1000 
+                LeaderboardType.BattleRating => profiles.OrderByDescending(p =>
+                    p.BattlesWon + p.BattlesLost > 0
+                        ? (double)p.BattlesWon / (p.BattlesWon + p.BattlesLost) * 1000
                         : 0),
                 LeaderboardType.TotalPlayTime => profiles.OrderByDescending(p => p.TotalPlayTime),
                 LeaderboardType.GamesPlayed => profiles.OrderByDescending(p => p.GamesPlayed),
@@ -132,8 +132,8 @@ namespace SaveState.Core.Services.Account
             return type switch
             {
                 LeaderboardType.BattleWins => profile.BattlesWon,
-                LeaderboardType.BattleRating => (long)(profile.BattlesWon + profile.BattlesLost > 0 
-                    ? (double)profile.BattlesWon / (profile.BattlesWon + profile.BattlesLost) * 1000 
+                LeaderboardType.BattleRating => (long)(profile.BattlesWon + profile.BattlesLost > 0
+                    ? (double)profile.BattlesWon / (profile.BattlesWon + profile.BattlesLost) * 1000
                     : 0),
                 LeaderboardType.TotalPlayTime => profile.TotalPlayTime,
                 LeaderboardType.GamesPlayed => profile.GamesPlayed,
@@ -145,7 +145,7 @@ namespace SaveState.Core.Services.Account
         }
 
         // Speedrun leaderboards
-        public async Task<bool> SubmitSpeedrunAsync(string gameId, string gameName, TimeSpan time, 
+        public async Task<bool> SubmitSpeedrunAsync(string gameId, string gameName, TimeSpan time,
             string category = "Any%", string? videoProof = null)
         {
             var userId = _authService.CurrentUser?.UserId;

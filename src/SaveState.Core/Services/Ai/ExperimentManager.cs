@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using Serilog;
 
 namespace SaveState.Core.Services.Ai;
@@ -9,7 +10,7 @@ namespace SaveState.Core.Services.Ai;
 /// Manages A/B testing experiments for AI responses.
 /// Provides functionality to create, manage, and track experiments.
 /// </summary>
-public class ExperimentManager
+public class ExperimentManager : IAiExperimentCoordinator
 {
     private readonly ILogger _logger = Log.ForContext<ExperimentManager>();
     private readonly ConcurrentDictionary<string, ExperimentConfig> _experiments = new();
@@ -21,15 +22,15 @@ public class ExperimentManager
     /// </summary>
     public void RegisterExperiment(ExperimentConfig config)
     {
-        if (string.IsNullOrWhiteSpace(config.Id))
-            throw new ArgumentException("Experiment ID cannot be empty", nameof(config.Id));
+        if (string.IsNullOrWhiteSpace(config.ExperimentId))
+            throw new ArgumentException("Experiment ID cannot be empty", nameof(config.ExperimentId));
 
-        if (config.Variants == null || config.Variants.Length == 0)
+        if (config.Variants == null || config.Variants.Count == 0)
             throw new ArgumentException("Experiment must have at least one variant", nameof(config.Variants));
 
-        _experiments[config.Id] = config;
+        _experiments[config.ExperimentId] = config;
         _logger.Information("Registered experiment: {ExperimentId} with {VariantCount} variants",
-            config.Id, config.Variants.Length);
+            config.ExperimentId, config.Variants.Count);
     }
 
     /// <summary>
@@ -67,7 +68,7 @@ public class ExperimentManager
     {
         if (!_experiments.TryGetValue(experimentId, out var config))
         {
-            _logger.Warning("Experiment not found: {ExperimentId}", experimentId);
+            // Experiment not found - not a warning, just return null
             return null;
         }
 
@@ -128,29 +129,32 @@ public class ExperimentManager
     {
         // Use user ID for consistent assignment (deterministic)
         var hash = Math.Abs(userId.GetHashCode());
-        var totalWeight = 0;
+        float totalWeight = 0;
 
         // Calculate total weight
-        foreach (var variant in config.Variants)
+        foreach (var variant in config.Variants.Values)
         {
             totalWeight += variant.Weight;
         }
 
-        // Use hash to determine assignment
-        var assignment = hash % totalWeight;
+        if (totalWeight <= 0) return config.Variants.Values.FirstOrDefault()?.VariantId ?? "default";
+
+        // Use hash to determine assignment (normalize hash to 0-totalWeight)
+        // We use a large prime modulo to get a pseudo-random value from hash
+        float assignment = (hash % 10000) / 10000.0f * totalWeight;
 
         // Find which variant this assignment falls into
-        var currentWeight = 0;
-        foreach (var variant in config.Variants)
+        float currentWeight = 0;
+        foreach (var variant in config.Variants.Values)
         {
             currentWeight += variant.Weight;
             if (assignment < currentWeight)
             {
-                return variant.Name;
+                return variant.VariantId;
             }
         }
 
-        // Fallback to first variant (shouldn't happen)
-        return config.Variants[0].Name;
+        // Fallback to first variant
+        return config.Variants.Values.FirstOrDefault()?.VariantId ?? "default";
     }
 }

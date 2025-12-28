@@ -70,7 +70,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
             _levelsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "SaveState2", "data", "dream_levels");
             if (!Directory.Exists(_levelsPath)) Directory.CreateDirectory(_levelsPath);
-            
+
             InitializeElementLibrary();
             LoadGeneratedLevels();
         }
@@ -86,28 +86,28 @@ namespace SaveState.Core.Services.EmulatorEnhancements
                 new DreamElement { Id = "brick", SourceGame = "Super Mario Bros", ElementType = "platform", Properties = { ["breakable"] = true } },
                 new DreamElement { Id = "coin", SourceGame = "Super Mario Bros", ElementType = "powerup", Properties = { ["value"] = 1 } },
                 new DreamElement { Id = "mushroom", SourceGame = "Super Mario Bros", ElementType = "powerup", Properties = { ["effect"] = "grow" } },
-                
+
                 // Sonic elements
                 new DreamElement { Id = "ring", SourceGame = "Sonic", ElementType = "powerup", Properties = { ["value"] = 1, ["protection"] = true } },
                 new DreamElement { Id = "spring", SourceGame = "Sonic", ElementType = "platform", Properties = { ["bounce"] = 3.0 } },
                 new DreamElement { Id = "loop", SourceGame = "Sonic", ElementType = "platform", Properties = { ["speed_required"] = true } },
                 new DreamElement { Id = "badnik", SourceGame = "Sonic", ElementType = "enemy", Properties = { ["speed"] = 2.0, ["damage"] = 1 } },
-                
+
                 // Zelda elements
                 new DreamElement { Id = "heart", SourceGame = "Legend of Zelda", ElementType = "powerup", Properties = { ["heal"] = 1 } },
                 new DreamElement { Id = "octorok", SourceGame = "Legend of Zelda", ElementType = "enemy", Properties = { ["projectile"] = true } },
                 new DreamElement { Id = "bush", SourceGame = "Legend of Zelda", ElementType = "obstacle", Properties = { ["cuttable"] = true, ["drops"] = true } },
-                
+
                 // Mega Man elements
                 new DreamElement { Id = "spike", SourceGame = "Mega Man", ElementType = "obstacle", Properties = { ["damage"] = 999, ["instant_death"] = true } },
                 new DreamElement { Id = "met", SourceGame = "Mega Man", ElementType = "enemy", Properties = { ["shielded"] = true } },
                 new DreamElement { Id = "disappearing_block", SourceGame = "Mega Man", ElementType = "platform", Properties = { ["pattern"] = true } },
-                
+
                 // Metroid elements
                 new DreamElement { Id = "metroid", SourceGame = "Metroid", ElementType = "enemy", Properties = { ["flying"] = true, ["damage"] = 2, ["latch"] = true } },
                 new DreamElement { Id = "energy_tank", SourceGame = "Metroid", ElementType = "powerup", Properties = { ["health_upgrade"] = true } },
                 new DreamElement { Id = "morph_ball_tunnel", SourceGame = "Metroid", ElementType = "platform", Properties = { ["requires_morph"] = true } },
-                
+
                 // Castlevania elements
                 new DreamElement { Id = "candle", SourceGame = "Castlevania", ElementType = "obstacle", Properties = { ["drops"] = true } },
                 new DreamElement { Id = "skeleton", SourceGame = "Castlevania", ElementType = "enemy", Properties = { ["throws_bones"] = true } },
@@ -166,11 +166,8 @@ namespace SaveState.Core.Services.EmulatorEnhancements
             return level;
         }
 
-        // Synchronous wrapper
-        public DreamLevel GenerateLevel(DreamMood mood, int? seed = null)
-        {
-            return GenerateLevelAsync(mood, null, 5, seed).GetAwaiter().GetResult();
-        }
+        // REMOVED: Synchronous wrapper removed to eliminate deadlock risk
+        // Use GenerateLevelAsync directly instead
 
         private string GenerateDreamCode(int seed)
         {
@@ -194,7 +191,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
             {
                 seed = seed * 31 + c;
             }
-            
+
             // Can't fully recreate without knowing mood, but we can try
             return null;
         }
@@ -263,7 +260,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
         private DreamElement TransformElement(DreamElement source, DreamMood mood, int difficulty, Random gen)
         {
             var transform = DetermineTransform(mood, gen);
-            
+
             var mutated = new DreamElement
             {
                 Id = $"dream-{source.Id}-{gen.Next(1000)}",
@@ -351,7 +348,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
             SaveLevel(level);
         }
 
-        public List<DreamLevel> GetFavorites() => 
+        public List<DreamLevel> GetFavorites() =>
             _generatedLevels.Where(l => l.IsFavorite).ToList();
 
         public List<DreamLevel> GetGeneratedLevels() => _generatedLevels;

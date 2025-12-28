@@ -33,16 +33,16 @@ namespace SaveState.Core.Services
     /// <summary>
     /// Centralized service locator for Advanced AI Architecture components.
     /// Provides lazy initialization and wiring for all AI subsystems.
-    /// 
+    ///
     /// Usage:
     ///   var services = AiServiceProvider.Instance;
     ///   var response = await services.AdvancedAi.ProcessAsync("Tell me about the quest");
     /// </summary>
     public class AiServiceProvider
     {
-        private static readonly Lazy<AiServiceProvider> _instance = 
+        private static readonly Lazy<AiServiceProvider> _instance =
             new Lazy<AiServiceProvider>(() => new AiServiceProvider());
-        
+
         public static AiServiceProvider Instance => _instance.Value;
 
         // Core Services
@@ -97,36 +97,36 @@ namespace SaveState.Core.Services
         private BmadService? _bmadService;
 
         // === NEW AI INFRASTRUCTURE LAYERS ===
-        
+
         // Governance Layer
         private IAiGovernanceService? _governanceService;
         private ICapabilityGate? _capabilityGate;
         private IFeatureFlagService? _featureFlagService;
         private ISafetyRails? _safetyRails;
-        
+
         // Deterministic Core
         private IDeterministicBoundary? _deterministicBoundary;
         private ICanonEnforcer? _canonEnforcer;
         private IStateIntegrity? _stateIntegrity;
-        
+
         // Event Bus & Latency
         private IEnhancedEventBus? _enhancedEventBus;
         private ILatencyManager? _latencyManager;
         private IStreamingHandler? _streamingHandler;
         private IResponseWarmer? _responseWarmer;
-        
+
         // Memory Enhancement
         private ILoreLocker? _loreLocker;
         private INarrativeCompressor? _narrativeCompressor;
-        
+
         // Persona & Trust
         private IPersonaHotSwapper? _personaHotSwapper;
         private IPlayerTrustModel? _playerTrustModel;
-        
+
         // Tools & Resilience
         private IToolAwareAi? _toolAwareAi;
         private IFailureAsContent? _failureAsContent;
-        
+
         // Telemetry & Testing
         private IAiTelemetry? _aiTelemetry;
         private IAiTestHarness? _aiTestHarness;
@@ -134,7 +134,7 @@ namespace SaveState.Core.Services
         private DriftTestManager? _driftTestManager;
         private IHallucinationDetector? _hallucinationDetector;
         private IUltimateAiOrchestrator? _ultimateAiOrchestrator;
-        
+
         // Phase A Services
         private IGlobalKillSwitch? _killSwitch;
         private IPolicyGate? _policyGate;
@@ -145,7 +145,7 @@ namespace SaveState.Core.Services
         private NarrativeSpecialist? _narrativeSpecialist;
         private LoreSpecialist? _loreSpecialist;
         private SystemSpecialist? _systemSpecialist;
-        
+
         // Monitoring
         private IGameSessionMonitor? _gameSessionMonitor;
         private IMemoryProfileService? _memoryProfileService;
@@ -154,20 +154,43 @@ namespace SaveState.Core.Services
         private AiServiceProvider() { }
 
         // === Core Services ===
-        public ILlmService LlmService => _llmService ??= new LlmService(AppConfiguration.Instance, null);
-        
-        public IGameSessionMonitor GameSessionMonitor => _gameSessionMonitor ??= new GameSessionMonitor();
+        public ILlmService LlmService => _llmService ??= CreateLlmService();
+
+        private ILlmService CreateLlmService()
+        {
+            var httpClientFactory = new SimpleHttpClientFactory();
+            var ollamaManager = new OllamaManager(httpClientFactory);
+            return new LlmService(AppConfiguration.Instance, httpClientFactory, ollamaManager);
+        }
+
+        private class SimpleHttpClientFactory : System.Net.Http.IHttpClientFactory
+        {
+            public System.Net.Http.HttpClient CreateClient(string name)
+            {
+                return new System.Net.Http.HttpClient();
+            }
+        }
+
+        public IGameSessionMonitor GameSessionMonitor => _gameSessionMonitor ??= new GameSessionMonitor(
+            UltimateAiOrchestrator,
+            WorldStateService,
+            MemoryProfileService,
+            new SaveState.Core.Services.Memory.WindowsMemoryReader());
+
         public IMemoryProfileService MemoryProfileService => _memoryProfileService ??= new MemoryProfileService();
-        public ITrainerGeneratorService TrainerGeneratorService => _trainerGeneratorService ??= new TrainerGeneratorService();
-        
+
+        public ITrainerGeneratorService TrainerGeneratorService => _trainerGeneratorService ??= new TrainerGeneratorService(
+            new SaveState.Core.Services.Memory.WindowsMemoryReader(),
+            MemoryProfileService);
+
         public RagService RagService => _ragService ??= new RagService(LlmService);
-        
+
         public IAdvancedAiService AdvancedAi => _advancedAi ??= CreateAdvancedAiService();
 
         private AdvancedAiService CreateAdvancedAiService()
         {
-            var service = new AdvancedAiService(LlmService);
-            service.Configure(new AdvancedAiConfig
+            // Manually wire all components (legacy pattern - prefer DI)
+            var config = new AdvancedAiConfig
             {
                 EnableStateInjection = true,
                 EnableMemoryOrchestration = true,
@@ -175,7 +198,82 @@ namespace SaveState.Core.Services
                 EnableValidation = true,
                 EnableConfidenceScoring = true,
                 EnableTimeline = true
-            });
+            };
+
+            // Memory layer
+            var shortTermMemory = new ShortTermMemory();
+            var episodicMemory = new EpisodicMemory();
+            var canonicalMemory = new CanonicalMemory();
+            var memoryOrchestrator = new MemoryOrchestrator(shortTermMemory, episodicMemory, canonicalMemory);
+            var memoryCoordinator = new AiMemoryCoordinator(memoryOrchestrator);
+
+            // World state
+            var worldStateService = new WorldStateService();
+            var playerModelService = new PlayerModelService();
+            var behaviorTracker = new BehaviorTracker();
+            var worldStateCoordinator = new AiWorldStateCoordinator(
+                worldStateService, playerModelService, behaviorTracker, config);
+
+            // Validation
+            var outputCritiquer = new OutputCritiquer();
+            var confidenceScorer = new ConfidenceScorer();
+            var uncertaintyWrapper = new UncertaintyWrapper();
+            var ruleEngine = new RuleEngine();
+            var actionValidator = new ActionValidator(ruleEngine);
+            var validationCoordinator = new AiValidationCoordinator(
+                outputCritiquer, confidenceScorer, uncertaintyWrapper, actionValidator, worldStateService);
+
+            // Timeline
+            var timelineService = new TimelineService();
+            var rewindService = new RewindService();
+            var timelineCoordinator = new AiTimelineCoordinator(timelineService, rewindService);
+
+            // Events
+            var eventBus = new AiEventBus();
+            var emotionTagger = new EmotionTagger();
+            var eventCoordinator = new AiEventCoordinator(eventBus, emotionTagger);
+
+            // Request processor
+            var intentClassifier = new IntentClassifier();
+            var agentRouter = new AgentRouter(intentClassifier);
+            var requestProcessor = new AiRequestProcessor(
+                LlmService,
+                intentClassifier,
+                agentRouter,
+                memoryCoordinator,
+                worldStateCoordinator,
+                validationCoordinator,
+                eventCoordinator,
+                emotionTagger,
+                config);
+
+            // Narrative generator
+            var promptMutator = new PromptMutator();
+            var templateService = new PromptTemplateService();
+            var narrativeGenerator = new AiNarrativeGenerator(
+                requestProcessor,
+                templateService,
+                promptMutator,
+                playerModelService,
+                config);
+
+            // Create facade
+            var service = new AdvancedAiService(
+                requestProcessor,
+                memoryCoordinator,
+                worldStateCoordinator,
+                validationCoordinator,
+                narrativeGenerator,
+                timelineCoordinator,
+                eventCoordinator,
+                LlmService,
+                worldStateService,
+                playerModelService,
+                episodicMemory,
+                canonicalMemory,
+                eventBus);
+
+            service.Configure(config);
             return service;
         }
 
@@ -183,7 +281,7 @@ namespace SaveState.Core.Services
         public IShortTermMemory ShortTermMemory => _shortTermMemory ??= new ShortTermMemory();
         public IEpisodicMemory EpisodicMemory => _episodicMemory ??= new EpisodicMemory();
         public ICanonicalMemory CanonicalMemory => _canonicalMemory ??= new CanonicalMemory();
-        public IMemoryOrchestrator MemoryOrchestrator => 
+        public IMemoryOrchestrator MemoryOrchestrator =>
             _memoryOrchestrator ??= new MemoryOrchestrator(ShortTermMemory, EpisodicMemory, CanonicalMemory);
 
         // === Orchestration ===
@@ -222,98 +320,115 @@ namespace SaveState.Core.Services
         public IModelRegistry ModelRegistry => _modelRegistry ??= new ModelRegistry();
 
         // === Enhanced Feature Services ===
-        public LiveCommentaryService LiveCommentary => 
+        public LiveCommentaryService LiveCommentary =>
             _liveCommentary ??= new LiveCommentaryService(LlmService, AdvancedAi);
-        
-        public DreamSequenceService DreamSequence => 
+
+        public DreamSequenceService DreamSequence =>
             _dreamSequence ??= new DreamSequenceService(LlmService);
-        
-        public BmadService BmadService => 
+
+        public BmadService BmadService =>
             _bmadService ??= new BmadService(LlmService);
 
         // === NEW AI INFRASTRUCTURE LAYER ACCESSORS ===
 
         // --- Governance Layer ---
-        public IAiGovernanceService GovernanceService => 
+        public IAiGovernanceService GovernanceService =>
             _governanceService ??= new AiGovernanceService(CapabilityGate, FeatureFlagService, SafetyRails);
-        
-        public ICapabilityGate CapabilityGate => 
+
+        public ICapabilityGate CapabilityGate =>
             _capabilityGate ??= new CapabilityGate();
-        
-        public IFeatureFlagService FeatureFlagService => 
+
+        public IFeatureFlagService FeatureFlagService =>
             _featureFlagService ??= new FeatureFlagService();
-        
-        public ISafetyRails SafetyRails => 
+
+        public ISafetyRails SafetyRails =>
             _safetyRails ??= new SafetyRails();
 
         // --- Deterministic Core ---
-        public IDeterministicBoundary DeterministicBoundary => 
+        public IDeterministicBoundary DeterministicBoundary =>
             _deterministicBoundary ??= new DeterministicBoundary();
-        
-        public ICanonEnforcer CanonEnforcer => 
+
+        public ICanonEnforcer CanonEnforcer =>
             _canonEnforcer ??= new CanonEnforcer();
-        
-        public IStateIntegrity StateIntegrity => 
+
+        public IStateIntegrity StateIntegrity =>
             _stateIntegrity ??= new StateIntegrity();
 
         // --- Event Bus & Latency ---
-        public IEnhancedEventBus EnhancedEventBus => 
+        public IEnhancedEventBus EnhancedEventBus =>
             _enhancedEventBus ??= new EnhancedEventBus();
-        
-        public ILatencyManager LatencyManager => 
+
+        public ILatencyManager LatencyManager =>
             _latencyManager ??= new LatencyManager();
-        
-        public IStreamingHandler StreamingHandler => 
+
+        public IStreamingHandler StreamingHandler =>
             _streamingHandler ??= new StreamingHandler();
-        
-        public IResponseWarmer ResponseWarmer => 
+
+        public IResponseWarmer ResponseWarmer =>
             _responseWarmer ??= new ResponseWarmer();
 
         // --- Memory Enhancement ---
-        public ILoreLocker LoreLocker => 
+        public ILoreLocker LoreLocker =>
             _loreLocker ??= new LoreLocker();
-        
-        public INarrativeCompressor NarrativeCompressor => 
+
+        public INarrativeCompressor NarrativeCompressor =>
             _narrativeCompressor ??= new NarrativeCompressor();
 
         // --- Persona & Trust ---
-        public IPersonaHotSwapper PersonaHotSwapper => 
+        public IPersonaHotSwapper PersonaHotSwapper =>
             _personaHotSwapper ??= new PersonaHotSwapper();
-        
-        public IPlayerTrustModel PlayerTrustModel => 
+
+        public IPlayerTrustModel PlayerTrustModel =>
             _playerTrustModel ??= new PlayerTrustModel();
 
         // --- Tools & Resilience ---
-        public IToolAwareAi ToolAwareAi => 
+        public IToolAwareAi ToolAwareAi =>
             _toolAwareAi ??= new ToolAwareAi();
-        
-        public IFailureAsContent FailureAsContent => 
+
+        public IFailureAsContent FailureAsContent =>
             _failureAsContent ??= new FailureAsContent();
 
         // --- Telemetry & Testing ---
-        public IAiTelemetry AiTelemetry => 
+        public IAiTelemetry AiTelemetry =>
             _aiTelemetry ??= new AiTelemetry();
-        
-        public IAiTestHarness AiTestHarness => 
+
+        public IAiTestHarness AiTestHarness =>
             _aiTestHarness ??= new AiTestHarness();
 
-        public IFakePlayerSimulator FakePlayerSimulator => 
+        public IFakePlayerSimulator FakePlayerSimulator =>
             _fakePlayerSimulator ??= new FakePlayerSimulator();
 
-        public DriftTestManager DriftTestManager => 
+        public DriftTestManager DriftTestManager =>
             _driftTestManager ??= new DriftTestManager(AiTestHarness);
 
-        public IHallucinationDetector HallucinationDetector => 
+        public IHallucinationDetector HallucinationDetector =>
             _hallucinationDetector ??= new HallucinationDetector();
 
-        public IUltimateAiOrchestrator UltimateAiOrchestrator => 
+        public IUltimateAiOrchestrator UltimateAiOrchestrator =>
              _ultimateAiOrchestrator ??= CreateConfiguredOrchestrator();
 
         private IUltimateAiOrchestrator CreateConfiguredOrchestrator()
         {
-             var orch = new UltimateAiOrchestrator();
-             orch.BuildStandardPipeline();
-             return orch;
+            var pipeline = new PipelineOrchestrator();
+            var metrics = new MetricsService();
+            var cache = new CacheManager();
+            var experiments = new ExperimentManager();
+            var health = new HealthMonitor(metrics, cache);
+            var builder = new AiPipelineBuilder(
+                pipeline,
+                cache,
+                metrics,
+                KillSwitch,
+                IntentRouter,
+                ProvenanceLedger);
+
+            return new UltimateAiOrchestrator(
+                pipeline,
+                cache,
+                experiments,
+                metrics,
+                health,
+                builder);
         }
 
         // --- Phase A Services ---
@@ -321,7 +436,7 @@ namespace SaveState.Core.Services
         public IPolicyGate PolicyGate => _policyGate ??= new PolicyGate();
         public IProvenanceLedger ProvenanceLedger => _provenanceLedger ??= new ProvenanceLedger();
         public IPregenService PregenService => _pregenService ??= new PregenService(EnhancedEventBus, GetSpecialistAgents());
-        
+
         // Router & Specialists
         public NarrativeSpecialist NarrativeSpecialist => _narrativeSpecialist ??= new NarrativeSpecialist(LlmService);
         public LoreSpecialist LoreSpecialist => _loreSpecialist ??= new LoreSpecialist(LlmService, LoreLocker);
@@ -386,9 +501,9 @@ namespace SaveState.Core.Services
         /// <summary>
         /// Quick access to process an AI request with all advanced features
         /// </summary>
-        public static async System.Threading.Tasks.Task<string> AskAiAsync(this string query, string? context = null)
+        public static async System.Threading.Tasks.Task<string> AskAiAsync(this IAdvancedAiService aiService, string query, string? context = null)
         {
-            var response = await AiServiceProvider.Instance.AdvancedAi.ProcessAsync(query, new AiRequestContext
+            var response = await aiService.ProcessAsync(query, new AiRequestContext
             {
                 RequestType = context,
                 RequireValidation = true,
@@ -400,7 +515,7 @@ namespace SaveState.Core.Services
         /// <summary>
         /// Record a player action for modeling
         /// </summary>
-        public static void TrackPlayerAction(this IBehaviorTracker tracker, string actionType, ActionCategory category, 
+        public static void TrackPlayerAction(this IBehaviorTracker tracker, string actionType, ActionCategory category,
             string? target = null, Dictionary<string, object>? metadata = null)
         {
             tracker.TrackAction(new PlayerAction
@@ -423,7 +538,7 @@ namespace SaveState.Core.Services
         /// <summary>
         /// Add a canonical lore fact
         /// </summary>
-        public static async System.Threading.Tasks.Task AddLoreFactAsync(this ICanonicalMemory memory, 
+        public static async System.Threading.Tasks.Task AddLoreFactAsync(this ICanonicalMemory memory,
             string statement, string source, FactCategory category = FactCategory.WorldLore)
         {
             await memory.AddFact(statement, category, source);

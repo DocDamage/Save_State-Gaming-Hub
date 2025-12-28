@@ -30,13 +30,13 @@ public partial class TrainerGeneratorViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _cheatName = "New Cheat";
-    
+
     public ObservableCollection<MemoryValueType> ValueTypes { get; } = new(Enum.GetValues<MemoryValueType>());
 
-    public TrainerGeneratorViewModel()
+    public TrainerGeneratorViewModel(ITrainerGeneratorService trainerService, IGameSessionMonitor monitor)
     {
-        _trainerService = AiServiceProvider.Instance.TrainerGeneratorService;
-        _monitor = AiServiceProvider.Instance.GameSessionMonitor;
+        _trainerService = trainerService ?? throw new ArgumentNullException(nameof(trainerService));
+        _monitor = monitor ?? throw new ArgumentNullException(nameof(monitor));
     }
 
     [RelayCommand]
@@ -50,7 +50,7 @@ public partial class TrainerGeneratorViewModel : ViewModelBase
 
         IsScanning = true;
         StatusMessage = "Scanning...";
-        
+
         try
         {
             var count = await _trainerService.StartScanAsync(_monitor.CurrentPid, SelectedType, SearchValue);
@@ -72,7 +72,7 @@ public partial class TrainerGeneratorViewModel : ViewModelBase
     {
         IsScanning = true;
         StatusMessage = "Filtering...";
-        
+
         try
         {
             var count = await _trainerService.NextScanAsync(SearchValue);
@@ -97,8 +97,8 @@ public partial class TrainerGeneratorViewModel : ViewModelBase
              StatusMessage = "No results to save!";
              return;
          }
-         
-         try 
+
+         try
          {
              var saved = await _trainerService.SaveCheatAsync(_monitor.CurrentGameId, CheatName);
              if (saved)
@@ -115,7 +115,7 @@ public partial class TrainerGeneratorViewModel : ViewModelBase
              StatusMessage = $"Save error: {ex.Message}";
          }
     }
-    
+
     [RelayCommand]
     private void Reset()
     {

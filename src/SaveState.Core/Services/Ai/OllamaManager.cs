@@ -23,7 +23,6 @@ namespace SaveState.Core.Services.Ai
 
     public class OllamaManager : IDisposable
     {
-        private static OllamaManager? _instance;
         private readonly ILogger _logger = Log.ForContext<OllamaManager>();
         private Process? _ollamaProcess;
         private readonly HttpClient _httpClient;
@@ -36,11 +35,12 @@ namespace SaveState.Core.Services.Ai
         public OllamaStatus Status => _status;
         public bool IsRunning => _status == OllamaStatus.Running;
 
-        public static OllamaManager Instance => _instance ??= new OllamaManager();
+        public static OllamaManager? Instance { get; private set; }
 
-        private OllamaManager()
+        public OllamaManager(IHttpClientFactory httpClientFactory)
         {
-            _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+            Instance = this;
+            _httpClient = httpClientFactory.CreateClient("OllamaManager");
             _bundledOllamaPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "SaveState2", "tools", "ollama");
@@ -181,7 +181,7 @@ namespace SaveState.Core.Services.Ai
         public void StopOllama()
         {
             _healthCheckCts?.Cancel();
-            
+
             try
             {
                 if (_ollamaProcess != null && !_ollamaProcess.HasExited)
@@ -220,12 +220,12 @@ namespace SaveState.Core.Services.Ai
         public async Task<List<string>> GetInstalledModelsAsync()
         {
             var models = new List<string>();
-            
+
             try
             {
                 var response = await _httpClient.GetStringAsync("http://localhost:11434/api/tags");
                 using var doc = JsonDocument.Parse(response);
-                
+
                 if (doc.RootElement.TryGetProperty("models", out var modelsArray))
                 {
                     foreach (var model in modelsArray.EnumerateArray())

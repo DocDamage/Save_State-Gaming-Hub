@@ -14,7 +14,7 @@ using Serilog;
 
 namespace SaveState.Core.Services.Ai
 {
-    // ... (keep LlmProvider enum and LlmConfig/ActiveModel classes) 
+    // ... (keep LlmProvider enum and LlmConfig/ActiveModel classes)
     public enum LlmProvider
     {
         Ollama,       // Local - free
@@ -61,12 +61,15 @@ namespace SaveState.Core.Services.Ai
         void SetPrimaryProvider(LlmProvider provider);
         Task InitializeAsync();
         void ConfigureAdvancedAi(IStateInjector? stateInjector = null, IMemoryOrchestrator? memoryOrchestrator = null, bool enableStateInjection = true);
+        IEnumerable<LlmProvider> GetAvailableProviders();
     }
 
     public class LlmService : ILlmService
     {
         private readonly ILogger _logger = Log.ForContext<LlmService>();
         private readonly IAppConfiguration _config;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly OllamaManager _ollamaManager;
         private readonly List<LlmConfig> _configs = new();
         private readonly List<ActiveModel> _activeModels = new();
         private readonly Dictionary<LlmProvider, ILlmProvider> _adapters = new();
@@ -82,9 +85,11 @@ namespace SaveState.Core.Services.Ai
         public bool IsAvailable => _adapters.ContainsKey(_primaryConfig.Provider) && _adapters[_primaryConfig.Provider].IsAvailable;
         public IReadOnlyList<ActiveModel> ActiveModels => _activeModels;
 
-        public LlmService(IAppConfiguration config, LlmConfig? llmConfig = null)
+        public LlmService(IAppConfiguration config, IHttpClientFactory httpClientFactory, OllamaManager ollamaManager, LlmConfig? llmConfig = null)
         {
             _config = config;
+            _httpClientFactory = httpClientFactory;
+            _ollamaManager = ollamaManager;
             _primaryConfig = llmConfig ?? new LlmConfig();
         }
 
@@ -104,19 +109,19 @@ namespace SaveState.Core.Services.Ai
             InitializeAdapters();
 
             // 2. Try to auto-start Ollama
-            var ollamaStarted = await OllamaManager.Instance.CheckAndStartAsync();
-            
-            // 3. Detect available providers 
+            var ollamaStarted = await _ollamaManager.CheckAndStartAsync();
+
+            // 3. Detect available providers
             // (If no primary config was provided, or if we want to auto-discover better ones)
             if (_primaryConfig.Provider == LlmProvider.Offline)
             {
-               await DetectBestProviderAsync(); 
+               await DetectBestProviderAsync();
             }
 
             // 4. Load installed models from Ollama
             if (ollamaStarted)
             {
-                var models = await OllamaManager.Instance.GetInstalledModelsAsync();
+                var models = await _ollamaManager.GetInstalledModelsAsync();
                 foreach (var model in models.Take(SystemCapabilities.GetSafeModelCount()))
                 {
                     _activeModels.Add(new ActiveModel
@@ -133,27 +138,28 @@ namespace SaveState.Core.Services.Ai
         private void InitializeAdapters()
         {
             _adapters[LlmProvider.Offline] = new OfflineProvider();
-            
+
             // Default Ollama
-            _adapters[LlmProvider.Ollama] = new OllamaProvider();
+            _adapters[LlmProvider.Ollama] = new OllamaProvider(_httpClientFactory.CreateClient("LlmProvider"), _ollamaManager);
 
             // Generic setup for others - they will be configured if/when configs are added
-            // Currently assuming one instance per provider type for simplicity. 
+            // Currently assuming one instance per provider type for simplicity.
             // In a more complex setup, we might need a factory.
         }
 
         private void EnsureAdapterConfigured(LlmConfig config)
         {
-            if (config.Provider == LlmProvider.OpenAI || 
-                config.Provider == LlmProvider.Groq || 
+            if (config.Provider == LlmProvider.OpenAI ||
+                config.Provider == LlmProvider.Groq ||
                 config.Provider == LlmProvider.Together ||
                 config.Provider == LlmProvider.LMStudio)
             {
                 // Re-create adapter with specific config keys
                  _adapters[config.Provider] = new OpenAiCompatibleProvider(
-                     config.Provider, 
-                     config.ApiKey ?? "", 
-                     config.BaseUrl ?? GetDefaultBaseUrl(config.Provider)
+                     config.Provider,
+                     config.ApiKey ?? "",
+                     config.BaseUrl ?? GetDefaultBaseUrl(config.Provider),
+                     _httpClientFactory.CreateClient("LlmProvider")
                  );
             }
         }
@@ -170,9 +176,9 @@ namespace SaveState.Core.Services.Ai
         private async Task DetectBestProviderAsync()
         {
             // Check Ollama
-            if (OllamaManager.Instance.IsRunning)
+            if (_ollamaManager.IsRunning)
             {
-                var models = await OllamaManager.Instance.GetInstalledModelsAsync();
+                var models = await _ollamaManager.GetInstalledModelsAsync();
                 if (models.Count > 0)
                 {
                     _primaryConfig = new LlmConfig
@@ -191,7 +197,7 @@ namespace SaveState.Core.Services.Ai
             if (CheckEnvProvider("OPENAI_API_KEY", LlmProvider.OpenAI, "gpt-3.5-turbo")) return;
 
             // Check LM Studio
-            var lmStudio = new OpenAiCompatibleProvider(LlmProvider.LMStudio, "", "http://localhost:1234/v1/");
+            var lmStudio = new OpenAiCompatibleProvider(LlmProvider.LMStudio, "", "http://localhost:1234/v1/", _httpClientFactory.CreateClient("LlmProvider"));
             if (await lmStudio.HealthCheckAsync())
             {
                  _primaryConfig = new LlmConfig
@@ -235,7 +241,7 @@ namespace SaveState.Core.Services.Ai
         public void SetPrimaryProvider(LlmProvider provider)
         {
             var config = _configs.FirstOrDefault(c => c.Provider == provider);
-            if (config != null) 
+            if (config != null)
             {
                 _primaryConfig = config;
                 EnsureAdapterConfigured(config);
@@ -258,7 +264,7 @@ namespace SaveState.Core.Services.Ai
                 messages.Add(new LlmMessage { Role = "system", Content = systemPrompt });
             }
             messages.Add(new LlmMessage { Role = "user", Content = finalPrompt });
-            
+
             var response = await ChatAsync(messages);
 
             if (_memoryOrchestrator != null)
@@ -283,9 +289,9 @@ namespace SaveState.Core.Services.Ai
             try
             {
                 return await _adapters[_primaryConfig.Provider].ChatAsync(
-                    _primaryConfig.Model, 
-                    messages, 
-                    _primaryConfig.Temperature, 
+                    _primaryConfig.Model,
+                    messages,
+                    _primaryConfig.Temperature,
                     _primaryConfig.MaxTokens);
             }
             catch (Exception ex)
@@ -299,15 +305,15 @@ namespace SaveState.Core.Services.Ai
         public async Task<string> ChatWithModelAsync(string modelName, List<LlmMessage> messages)
         {
             if (!_initialized) await InitializeAsync();
-            
+
             // Temporary config switch
             var originalModel = _primaryConfig.Model;
             _primaryConfig.Model = modelName;
 
-            // Check if model belongs to a differnt provider? 
+            // Check if model belongs to a differnt provider?
             // For now assume current provider supports it or it's cross-provider logic
             // The method logic in original file was a bit loose.
-            
+
             try
             {
                 return await ChatAsync(messages);
@@ -327,8 +333,8 @@ namespace SaveState.Core.Services.Ai
             sb.AppendLine($"Adapter Ready: {_adapters.ContainsKey(_primaryConfig.Provider)}");
             return sb.ToString();
         }
-    
-        public List<LlmProvider> GetAvailableProviders()
+
+        public IEnumerable<LlmProvider> GetAvailableProviders()
         {
              return _adapters.Keys.ToList();
         }

@@ -26,7 +26,7 @@ namespace SaveState.Core.Services
         private readonly SaveState.Core.Services.Memory.IMemoryReader _memoryReader;
         private readonly SaveState.Core.Services.Memory.IMemoryProfileService _profileService;
         private SaveState.Core.Services.Memory.GameMemoryProfile? _currentProfile;
-        
+
         private CancellationTokenSource? _cts;
         private Task? _monitorTask;
         private Guid _currentGameId;
@@ -37,12 +37,16 @@ namespace SaveState.Core.Services
         public int CurrentPid => _currentPid;
         public Guid CurrentGameId => _currentGameId;
 
-        public GameSessionMonitor()
+        public GameSessionMonitor(
+            IUltimateAiOrchestrator orchestrator,
+            IWorldStateService worldStateService,
+            SaveState.Core.Services.Memory.IMemoryProfileService profileService,
+            SaveState.Core.Services.Memory.IMemoryReader memoryReader)
         {
-            _orchestrator = AiServiceProvider.Instance.UltimateAiOrchestrator;
-            _worldStateService = AiServiceProvider.Instance.WorldStateService;
-            _profileService = AiServiceProvider.Instance.MemoryProfileService;
-            _memoryReader = new SaveState.Core.Services.Memory.WindowsMemoryReader();
+            _orchestrator = orchestrator ?? throw new ArgumentNullException(nameof(orchestrator));
+            _worldStateService = worldStateService ?? throw new ArgumentNullException(nameof(worldStateService));
+            _profileService = profileService ?? throw new ArgumentNullException(nameof(profileService));
+            _memoryReader = memoryReader ?? throw new ArgumentNullException(nameof(memoryReader));
         }
 
         public async Task StartMonitoringAsync(Guid gameId, int pid)
@@ -62,13 +66,16 @@ namespace SaveState.Core.Services
 
             _cts = new CancellationTokenSource();
             _monitorTask = Task.Run(() => MonitorLoop(_cts.Token), _cts.Token);
-            
-            await _orchestrator.ExecuteAsync("System: Game Session Started", 
-                new Dictionary<string, object> 
-                { 
-                    { "GameId", gameId }, 
-                    { "PID", pid },
-                    { "ProfileLoaded", _currentProfile != null } 
+
+            await _orchestrator.ExecuteAsync("System: Game Session Started",
+                new PipelineContextData
+                {
+                    CustomData = new Dictionary<string, object>
+                    {
+                        { "GameId", gameId },
+                        { "PID", pid },
+                        { "ProfileLoaded", _currentProfile != null }
+                    }
                 });
         }
 
@@ -88,11 +95,14 @@ namespace SaveState.Core.Services
                 _cts.Dispose();
                 _cts = null;
             }
-            
+
             _memoryReader.Detach();
-            
-            await _orchestrator.ExecuteAsync("System: Game Session Ended", 
-                new Dictionary<string, object> { { "GameId", _currentGameId } });
+
+            await _orchestrator.ExecuteAsync("System: Game Session Ended",
+                new PipelineContextData
+                {
+                    CustomData = new Dictionary<string, object> { { "GameId", _currentGameId } }
+                });
         }
 
         private async Task MonitorLoop(CancellationToken ct)
@@ -107,9 +117,9 @@ namespace SaveState.Core.Services
                         {
                             var key = kvp.Key; // e.g., "GOLD"
                             var def = kvp.Value;
-                            
+
                             long baseAddr = 0;
-                            
+
                             // Check cache first for this value key
                             if (_addressCache.TryGetValue(key, out var cachedAddr))
                             {
@@ -125,7 +135,7 @@ namespace SaveState.Core.Services
                                     {
                                         var moduleOrBase = parts[0].Trim();
                                         var offsetStr = parts[1].Trim().Replace("0x", "");
-                                        
+
                                         if (moduleOrBase.StartsWith("0x") && long.TryParse(moduleOrBase.Replace("0x", ""), System.Globalization.NumberStyles.HexNumber, null, out var ptrBase))
                                         {
                                             baseAddr = ptrBase;
@@ -149,7 +159,7 @@ namespace SaveState.Core.Services
                                 {
                                     long.TryParse(def.BaseAddress.Replace("0x", ""), System.Globalization.NumberStyles.HexNumber, null, out baseAddr);
                                 }
-                                
+
                                 if (baseAddr > 0)
                                 {
                                     _addressCache[key] = baseAddr;
@@ -163,9 +173,9 @@ namespace SaveState.Core.Services
                                 if (def.Offsets != null && def.Offsets.Length > 0)
                                 {
                                     finalAddress = _memoryReader.ReadPointerChain(baseAddr, def.Offsets);
-                                    if (finalAddress == 0) continue; 
+                                    if (finalAddress == 0) continue;
                                 }
-                                
+
                                 switch (def.Type)
                                 {
                                     case SaveState.Core.Services.Memory.MemoryValueType.Int:
@@ -174,7 +184,7 @@ namespace SaveState.Core.Services
                                         break;
                                     case SaveState.Core.Services.Memory.MemoryValueType.Float:
                                         var floatVal = _memoryReader.ReadFloat(finalAddress);
-                                        _worldStateService.SetCounter(key, (int)(floatVal * 100), "memory"); 
+                                        _worldStateService.SetCounter(key, (int)(floatVal * 100), "memory");
                                         _worldStateService.SetCounter(key + "_RAW", (int)floatVal, "memory");
                                         break;
                                     case SaveState.Core.Services.Memory.MemoryValueType.Byte:

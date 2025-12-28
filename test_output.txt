@@ -1,0 +1,10 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  SaveState.Core -> C:\Users\Doc\Desktop\SaveState2\src\SaveState.Core\bin\Debug\net9.0\SaveState.Core.dll
+  SaveState.Tests -> C:\Users\Doc\Desktop\SaveState2\tests\SaveState.Tests\bin\Debug\net9.0\SaveState.Tests.dll
+Test run for C:\Users\Doc\Desktop\SaveState2\tests\SaveState.Tests\bin\Debug\net9.0\SaveState.Tests.dll (.NETCoreApp,Version=v9.0)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:    76, Skipped:     0, Total:    76, Duration: 1 s - SaveState.Tests.dll (net9.0)
+
+Workload updates are available. Run `dotnet workload list` for more information.

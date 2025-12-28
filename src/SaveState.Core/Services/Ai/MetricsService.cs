@@ -11,7 +11,7 @@ namespace SaveState.Core.Services.Ai;
 /// Tracks and provides metrics for AI operations.
 /// Includes request counts, latency tracking, success rates, and observability data.
 /// </summary>
-public class MetricsService
+public class MetricsService : IAiMetricsAggregator
 {
     private readonly ILogger _logger = Log.ForContext<MetricsService>();
     private readonly ConcurrentQueue<ObservabilityData> _recentEvents = new();
@@ -88,20 +88,23 @@ public class MetricsService
     {
         var metrics = _stageMetrics.GetOrAdd(stageName, _ => new StageMetrics { StageName = stageName });
 
-        Interlocked.Increment(ref metrics.Executions);
-
-        if (success)
+        lock (metrics)
         {
-            Interlocked.Increment(ref metrics.Successes);
-        }
-        else
-        {
-            Interlocked.Increment(ref metrics.Failures);
-        }
+            metrics.Executions++;
 
-        // Update average latency (simple moving average)
-        var newAverage = ((metrics.AverageLatency * (metrics.Executions - 1)) + latencyMs) / metrics.Executions;
-        metrics.AverageLatency = newAverage;
+            if (success)
+            {
+                metrics.Successes++;
+            }
+            else
+            {
+                metrics.Failures++;
+            }
+
+            // Update average latency (simple moving average)
+            var totalMs = (metrics.AverageLatency.TotalMilliseconds * (metrics.Executions - 1)) + latencyMs;
+            metrics.AverageLatency = TimeSpan.FromMilliseconds(totalMs / metrics.Executions);
+        }
     }
 
     /// <summary>
@@ -158,11 +161,9 @@ public class MetricsService
             CacheHits = _cacheHits,
             CacheMisses = _cacheMisses,
             FallbacksUsed = _fallbacksUsed,
-            AverageLatencyMs = avgLatency,
-            TotalLatencyMs = _totalLatencyMs,
-            CacheHitRate = _totalRequests > 0 ? (double)_cacheHits / (_cacheHits + _cacheMisses) : 0,
-            SuccessRate = _totalRequests > 0 ? (double)_successfulRequests / _totalRequests : 0,
-            StageMetrics = stageMetrics
+            AverageLatency = TimeSpan.FromMilliseconds(avgLatency),
+            // SuccessRate and CacheHitRate are calculated properties
+            StageMetrics = _stageMetrics.Values.ToDictionary(s => s.StageName, s => s)
         };
     }
 

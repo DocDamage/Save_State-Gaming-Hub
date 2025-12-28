@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using SaveState.Core.Entities;
 using SaveState.Core.Interfaces;
+using SaveState.Core.Services;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -33,15 +34,17 @@ public partial class MainWindowViewModel : ViewModelBase
     public IAsyncRelayCommand ScanLibrariesCommand { get; }
 
     private readonly IServiceProvider _serviceProvider;
+    private readonly IGameSessionMonitor _gameSessionMonitor;
     private readonly ILogger _logger = Log.ForContext<MainWindowViewModel>();
 
-    public MainWindowViewModel(IServiceProvider serviceProvider)
+    public MainWindowViewModel(IServiceProvider serviceProvider, IGameSessionMonitor gameSessionMonitor)
     {
-        _serviceProvider = serviceProvider;
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        _gameSessionMonitor = gameSessionMonitor ?? throw new ArgumentNullException(nameof(gameSessionMonitor));
         ToggleSidebarCommand = new RelayCommand(() => IsSidebarOpen = !IsSidebarOpen);
         NavigateCommand = new RelayCommand<string>(Navigate);
         ScanLibrariesCommand = new AsyncRelayCommand(ScanLibrariesAsync);
-        
+
         // Initial page (e.g., Library/Grid)
         Navigate("Library");
     }
@@ -82,7 +85,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void ShowGameDetails(Game game)
     {
-        CurrentPage = new GameDetailsViewModel(_serviceProvider, game, () => Navigate("Library"));
+        CurrentPage = new GameDetailsViewModel(_serviceProvider, _gameSessionMonitor, game, () => Navigate("Library"));
     }
 
     private async Task ScanLibrariesAsync()
@@ -96,11 +99,11 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             var providers = _serviceProvider.GetServices<IGameProvider>();
             var metadataProviders = _serviceProvider.GetServices<IMetadataProvider>().ToList();
-            
+
             using var scope = _serviceProvider.CreateScope();
             var gameService = scope.ServiceProvider.GetRequiredService<IGameService>();
             var dbContext = scope.ServiceProvider.GetRequiredService<SaveState.Core.Data.SaveStateDbContext>();
-            
+
             // Get or create PC platform
             var pcPlatform = dbContext.Platforms.FirstOrDefault(p => p.Name == "PC");
             if (pcPlatform == null)
@@ -123,9 +126,9 @@ public partial class MainWindowViewModel : ViewModelBase
                     foreach (var game in games)
                     {
                         // Check if game already exists
-                        var existing = dbContext.Games.FirstOrDefault(g => 
+                        var existing = dbContext.Games.FirstOrDefault(g =>
                             g.Source == game.Source && g.SourceId == game.SourceId);
-                        
+
                         if (existing == null)
                         {
                             game.Platform = pcPlatform;
@@ -148,7 +151,7 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 StatusMessage = $"Fetching artwork for {newGames.Count} games...";
                 var steamGridDb = metadataProviders.FirstOrDefault(p => p.Id == "steamgriddb");
-                
+
                 if (steamGridDb != null)
                 {
                     foreach (var game in newGames.Take(20)) // Limit to avoid rate limits
@@ -172,10 +175,10 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
             }
 
-            StatusMessage = totalCovers > 0 
-                ? $"Added {totalGames} games, {totalCovers} covers!" 
+            StatusMessage = totalCovers > 0
+                ? $"Added {totalGames} games, {totalCovers} covers!"
                 : $"Added {totalGames} new games.";
-            
+
             // Refresh the grid
             Navigate("Library");
         }

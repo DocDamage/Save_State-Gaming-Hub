@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Xunit;
 using SaveState.Core.Services.Mods;
+using SaveState.Core.Services;
 
 namespace SaveState.Tests;
 
@@ -90,7 +91,7 @@ public class ModGatewayTests
     {
         // Arrange
         var validator = new ModValidator();
-        var sandbox = new SandboxEnvironment();
+        var sandbox = new SandboxEnvironment(new StubGameSessionMonitor());
         var gateway = new ModGateway(validator, sandbox);
 
         // Act
@@ -105,7 +106,7 @@ public class ModGatewayTests
     {
         // Arrange
         var validator = new ModValidator();
-        var sandbox = new SandboxEnvironment();
+        var sandbox = new SandboxEnvironment(new StubGameSessionMonitor());
         var gateway = new ModGateway(validator, sandbox);
         var nonExistentPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
@@ -121,7 +122,7 @@ public class ModGatewayTests
     {
         // Arrange
         var validator = new ModValidator();
-        var sandbox = new SandboxEnvironment();
+        var sandbox = new SandboxEnvironment(new StubGameSessionMonitor());
         var gateway = new ModGateway(validator, sandbox);
 
         // Act
@@ -136,7 +137,7 @@ public class ModGatewayTests
     {
         // Arrange
         var validator = new ModValidator();
-        var sandbox = new SandboxEnvironment();
+        var sandbox = new SandboxEnvironment(new StubGameSessionMonitor());
         var gateway = new ModGateway(validator, sandbox);
 
         // Act
@@ -156,7 +157,7 @@ public class SandboxEnvironmentTests
     public void SandboxEnvironment_Constructor_CreatesWithDefaultSettings()
     {
         // Arrange & Act
-        var sandbox = new SandboxEnvironment();
+        var sandbox = new SandboxEnvironment(new StubGameSessionMonitor());
 
         // Assert
         Assert.NotNull(sandbox);
@@ -174,7 +175,7 @@ public class SandboxEnvironmentTests
         };
 
         // Act
-        var sandbox = new SandboxEnvironment(settings);
+        var sandbox = new SandboxEnvironment(new StubGameSessionMonitor(), settings);
 
         // Assert
         Assert.NotNull(sandbox);
@@ -184,7 +185,7 @@ public class SandboxEnvironmentTests
     public async Task SandboxEnvironment_LoadModAsync_FailsOnNonexistentPath()
     {
         // Arrange
-        var sandbox = new SandboxEnvironment();
+        var sandbox = new SandboxEnvironment(new StubGameSessionMonitor());
         var nonExistentPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         var manifest = new ModManifest { Id = "test-mod", Name = "Test Mod" };
 
@@ -199,7 +200,7 @@ public class SandboxEnvironmentTests
     public async Task SandboxEnvironment_ExecuteAsync_FailsForUnloadedMod()
     {
         // Arrange
-        var sandbox = new SandboxEnvironment();
+        var sandbox = new SandboxEnvironment(new StubGameSessionMonitor());
         var context = new SandboxContext { ModId = "non-existent", State = SandboxState.Unloaded };
 
         // Act
@@ -213,7 +214,7 @@ public class SandboxEnvironmentTests
     public void SandboxEnvironment_GetMetrics_ReturnsValidMetrics()
     {
         // Arrange
-        var sandbox = new SandboxEnvironment();
+        var sandbox = new SandboxEnvironment(new StubGameSessionMonitor());
 
         // Act
         var metrics = sandbox.GetMetrics();
@@ -222,4 +223,14 @@ public class SandboxEnvironmentTests
         Assert.NotNull(metrics);
         Assert.Equal(0, metrics.ActiveMods);
     }
+}
+
+public class StubGameSessionMonitor : IGameSessionMonitor
+{
+    public bool IsMonitoring => false;
+    public int CurrentPid => 0;
+    public Guid CurrentGameId => Guid.Empty;
+
+    public Task StartMonitoringAsync(Guid gameId, int pid) => Task.CompletedTask;
+    public Task StopMonitoringAsync() => Task.CompletedTask;
 }

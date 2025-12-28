@@ -144,21 +144,21 @@ namespace SaveState.Core.Services.Ai.Governance
             return results;
         }
 
-        public Task<IEnumerable<AiCapability>> GetAvailableCapabilitiesAsync(AiPermissionContext context)
+        public async Task<IEnumerable<AiCapability>> GetAvailableCapabilitiesAsync(AiPermissionContext context)
         {
             var allCapabilities = Enum.GetValues<AiCapability>();
             var available = new List<AiCapability>();
 
             foreach (var capability in allCapabilities)
             {
-                var result = CheckCapabilityAsync(capability, context).GetAwaiter().GetResult();
+                var result = await CheckCapabilityAsync(capability, context);
                 if (result.IsAllowed)
                 {
                     available.Add(capability);
                 }
             }
 
-            return Task.FromResult<IEnumerable<AiCapability>>(available);
+            return available;
         }
 
         public void RegisterRule(PermissionRule rule)
@@ -241,10 +241,10 @@ namespace SaveState.Core.Services.Ai.Governance
                 Name = "NpcDialogue",
                 Capability = AiCapability.NpcDialogue,
                 MinimumTier = UserTier.Free,
-                AllowedModes = new List<GameMode> 
-                { 
-                    GameMode.Story, GameMode.Arcade, GameMode.Creative, 
-                    GameMode.Sandbox, GameMode.Default 
+                AllowedModes = new List<GameMode>
+                {
+                    GameMode.Story, GameMode.Arcade, GameMode.Creative,
+                    GameMode.Sandbox, GameMode.Default
                 }
             });
 
@@ -254,9 +254,9 @@ namespace SaveState.Core.Services.Ai.Governance
                 Name = "ToolExecution",
                 Capability = AiCapability.ToolExecution,
                 MinimumTier = UserTier.Pro,
-                AllowedServices = new List<AiServiceType> 
-                { 
-                    AiServiceType.Orchestrator, AiServiceType.Developer 
+                AllowedServices = new List<AiServiceType>
+                {
+                    AiServiceType.Orchestrator, AiServiceType.Developer
                 },
                 RateLimitPerMinute = 30
             });

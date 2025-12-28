@@ -55,8 +55,11 @@ namespace SaveState.Core.Services.Ai
         public StableDiffusionStatus Status => _status;
         public bool IsRunning => _status == StableDiffusionStatus.Running;
 
+        public static StableDiffusionService? Instance { get; private set; }
+
         public StableDiffusionService(IAppConfiguration config, HttpClient httpClient)
         {
+            Instance = this;
             _config = config;
             _httpClient = httpClient;
             _httpClient.Timeout = TimeSpan.FromMinutes(5);
@@ -119,7 +122,7 @@ namespace SaveState.Core.Services.Ai
                 progress?.Report(10);
 
                 var response = await _httpClient.PostAsync($"{_apiUrl}/sdapi/v1/txt2img", content);
-                
+
                 progress?.Report(90);
 
                 if (!response.IsSuccessStatusCode)
@@ -130,15 +133,15 @@ namespace SaveState.Core.Services.Ai
                 var responseJson = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(responseJson);
 
-                if (doc.RootElement.TryGetProperty("images", out var images) && 
+                if (doc.RootElement.TryGetProperty("images", out var images) &&
                     images.GetArrayLength() > 0)
                 {
                     var base64Image = images[0].GetString();
                     if (string.IsNullOrEmpty(base64Image)) return null;
 
                     var imageData = Convert.FromBase64String(base64Image);
-                    var seed = doc.RootElement.TryGetProperty("info", out var info) 
-                        ? ParseSeedFromInfo(info.GetString()) 
+                    var seed = doc.RootElement.TryGetProperty("info", out var info)
+                        ? ParseSeedFromInfo(info.GetString())
                         : request.Seed;
 
                     var generated = new GeneratedImage
@@ -187,12 +190,12 @@ namespace SaveState.Core.Services.Ai
         public async Task<List<string>> GetAvailableModelsAsync()
         {
             var models = new List<string>();
-            
+
             try
             {
                 var response = await _httpClient.GetStringAsync($"{_apiUrl}/sdapi/v1/sd-models");
                 using var doc = JsonDocument.Parse(response);
-                
+
                 foreach (var model in doc.RootElement.EnumerateArray())
                 {
                     if (model.TryGetProperty("model_name", out var name))
@@ -212,12 +215,12 @@ namespace SaveState.Core.Services.Ai
         public async Task<List<string>> GetAvailableSamplersAsync()
         {
             var samplers = new List<string>();
-            
+
             try
             {
                 var response = await _httpClient.GetStringAsync($"{_apiUrl}/sdapi/v1/samplers");
                 using var doc = JsonDocument.Parse(response);
-                
+
                 foreach (var sampler in doc.RootElement.EnumerateArray())
                 {
                     if (sampler.TryGetProperty("name", out var name))
@@ -231,9 +234,9 @@ namespace SaveState.Core.Services.Ai
                 _logger.Warning(ex, "Failed to get available Stable Diffusion samplers");
             }
 
-            return samplers.Count > 0 ? samplers : new List<string> 
-            { 
-                "Euler a", "Euler", "LMS", "DPM++ 2M", "DPM++ SDE", "DDIM" 
+            return samplers.Count > 0 ? samplers : new List<string>
+            {
+                "Euler a", "Euler", "LMS", "DPM++ 2M", "DPM++ SDE", "DDIM"
             };
         }
 
@@ -244,7 +247,7 @@ namespace SaveState.Core.Services.Ai
                 var payload = new { sd_model_checkpoint = modelName };
                 var json = JsonSerializer.Serialize(payload);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
-                
+
                 var response = await _httpClient.PostAsync($"{_apiUrl}/sdapi/v1/options", content);
                 return response.IsSuccessStatusCode;
             }
@@ -257,7 +260,7 @@ namespace SaveState.Core.Services.Ai
         public List<GeneratedImage> GetGeneratedImages(int limit = 50)
         {
             var images = new List<GeneratedImage>();
-            
+
             if (!Directory.Exists(_outputPath)) return images;
 
             foreach (var file in Directory.GetFiles(_outputPath, "*.png")

@@ -7,6 +7,8 @@ using System.Linq;
 
 namespace SaveState.UI.ViewModels;
 
+using SaveState.Core.Services;
+
 public partial class CharacterFusionViewModel : ViewModelBase
 {
     private readonly CharacterFusionService _fusionService;
@@ -35,7 +37,7 @@ public partial class CharacterFusionViewModel : ViewModelBase
 
     public string[] FusionTypes { get; } = { "balanced", "dominant-1", "dominant-2", "chaos" };
 
-    public IRelayCommand FuseCommand { get; }
+    public IAsyncRelayCommand FuseCommand { get; }
     public IRelayCommand RefreshFightersCommand { get; }
     public IRelayCommand<string> DeleteFusionCommand { get; }
 
@@ -47,7 +49,7 @@ public partial class CharacterFusionViewModel : ViewModelBase
         _fusionService = fusionService ?? throw new ArgumentNullException(nameof(fusionService));
         _mugenService = mugenService ?? throw new ArgumentNullException(nameof(mugenService));
 
-        FuseCommand = new RelayCommand(PerformFusion, CanFuse);
+        FuseCommand = new AsyncRelayCommand(PerformFusionAsync, CanFuse);
         RefreshFightersCommand = new RelayCommand(RefreshFighters);
         DeleteFusionCommand = new RelayCommand<string>(DeleteFusion);
 
@@ -55,22 +57,15 @@ public partial class CharacterFusionViewModel : ViewModelBase
         LoadFusionGallery();
     }
 
-    /// <summary>
-    /// Design-time/fallback constructor.
-    /// </summary>
-    public CharacterFusionViewModel() : this(new CharacterFusionService(), new MugenService())
-    {
-    }
-
     private bool CanFuse() => SelectedParent1 != null && SelectedParent2 != null && SelectedParent1 != SelectedParent2;
 
-    private void PerformFusion()
+    private async Task PerformFusionAsync()
     {
         if (SelectedParent1 == null || SelectedParent2 == null) return;
 
         try
         {
-            var fusion = _fusionService.FuseCharacters(SelectedParent1, SelectedParent2, SelectedFusionType);
+            var fusion = await _fusionService.FuseCharactersAsync(SelectedParent1, SelectedParent2, SelectedFusionType);
             PreviewFusion = fusion;
             FusionGallery.Add(fusion);
             StatusMessage = $"Created {fusion.Name} ({fusion.Rarity})!";

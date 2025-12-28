@@ -18,7 +18,7 @@ class Program
     public static IHost? AppHost { get; private set; }
 
     [STAThread]
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         Log.Logger = new LoggerConfiguration()
             .WriteTo.Console()
@@ -30,61 +30,62 @@ class Program
             var singleInstance = new SingleInstanceLock("SaveStateReborn");
             if (!singleInstance.TryAcquire())
             {
-                singleInstance.SendCommandToInstance("ACTIVATE", args).GetAwaiter().GetResult();
+                // Use ConfigureAwait(false) to avoid deadlocks in console app context
+                await singleInstance.SendCommandToInstance("ACTIVATE", args).ConfigureAwait(false);
                 return;
             }
 
             var host = CreateHostBuilder(args).Build();
             AppHost = host;
-            
+
             // Migrate database and seed data
             using (var scope = host.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<SaveStateDbContext>();
                 db.Database.EnsureCreated();
-                
+
                 // Seed sample data if empty
                 if (!db.Games.Any())
                 {
                     var pcPlatform = new SaveState.Core.Entities.Platform { Name = "PC" };
                     db.Platforms.Add(pcPlatform);
-                    
+
                     db.Games.AddRange(
-                        new SaveState.Core.Entities.Game 
-                        { 
-                            Title = "Half-Life 2", 
+                        new SaveState.Core.Entities.Game
+                        {
+                            Title = "Half-Life 2",
                             SortTitle = "Half-Life 2",
                             InstallPath = @"C:\Games\HalfLife2",
                             Platform = pcPlatform,
                             Source = "Steam"
                         },
-                        new SaveState.Core.Entities.Game 
-                        { 
-                            Title = "Portal 2", 
+                        new SaveState.Core.Entities.Game
+                        {
+                            Title = "Portal 2",
                             SortTitle = "Portal 2",
                             InstallPath = @"C:\Games\Portal2",
                             Platform = pcPlatform,
                             Source = "Steam"
                         },
-                        new SaveState.Core.Entities.Game 
-                        { 
-                            Title = "The Witcher 3: Wild Hunt", 
+                        new SaveState.Core.Entities.Game
+                        {
+                            Title = "The Witcher 3: Wild Hunt",
                             SortTitle = "Witcher 3",
                             InstallPath = @"C:\Games\Witcher3",
                             Platform = pcPlatform,
                             Source = "GOG"
                         },
-                        new SaveState.Core.Entities.Game 
-                        { 
-                            Title = "Cyberpunk 2077", 
+                        new SaveState.Core.Entities.Game
+                        {
+                            Title = "Cyberpunk 2077",
                             SortTitle = "Cyberpunk 2077",
                             InstallPath = @"C:\Games\Cyberpunk",
                             Platform = pcPlatform,
                             Source = "Steam"
                         },
-                        new SaveState.Core.Entities.Game 
-                        { 
-                            Title = "Baldur's Gate 3", 
+                        new SaveState.Core.Entities.Game
+                        {
+                            Title = "Baldur's Gate 3",
                             SortTitle = "Baldurs Gate 3",
                             InstallPath = @"C:\Games\BG3",
                             Platform = pcPlatform,
@@ -150,7 +151,7 @@ class Program
                 services.AddScoped<ICollectionService, CollectionService>();
                 services.AddScoped<ImportExportService>();
                 services.AddSingleton<RomScannerService>();
-                
+
                 // AI Services
                 services.AddSingleton<IAiService, GeminiService>();
                 services.AddSingleton<CheatAgentService>();
@@ -167,12 +168,12 @@ class Program
                 services.AddSingleton<IProcessService, ProcessService>();
                 services.AddSingleton<IMemoryScannerService, MemoryScannerService>();
                 services.AddSingleton<ITrainerService, TrainerService>();
-                
+
                 services.AddSingleton<IVoiceService, VoiceService>();
-                
+
                 // ============ SaveState.Core Services (AI, Emulation, etc.) ============
                 services.AddSaveStateCoreServices();
-                
+
                 // ViewModels - Main
                 services.AddSingleton<MainWindowViewModel>();
                 services.AddTransient<GameGridViewModel>();
@@ -182,7 +183,7 @@ class Program
                 services.AddTransient<StatisticsViewModel>();
                 services.AddTransient<CollectionsViewModel>();
                 services.AddTransient<KnowledgeViewModel>();
-                
+
                 // ViewModels - AI & Emulator Enhancements
                 services.AddTransient<AiSettingsViewModel>();
                 services.AddTransient<LiveCommentaryViewModel>();
@@ -191,13 +192,13 @@ class Program
                 services.AddTransient<MemoryEvolutionViewModel>();
                 services.AddTransient<ShaderStudioViewModel>();
                 services.AddTransient<RetroRewindViewModel>();
-                
+
                 // ViewModels - MUGEN/Fighting
                 services.AddTransient<MugenPlayerViewModel>();
                 services.AddTransient<CrossGameBattleViewModel>();
                 services.AddTransient<CharacterFusionViewModel>();
                 services.AddTransient<TrainerGeneratorViewModel>();
-                
+
                 // IPC
                 services.AddHostedService<IpcWorker>();
             });

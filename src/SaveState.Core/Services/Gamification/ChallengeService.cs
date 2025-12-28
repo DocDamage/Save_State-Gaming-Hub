@@ -52,7 +52,6 @@ namespace SaveState.Core.Services.Gamification
 
     public class ChallengeService
     {
-        private static ChallengeService? _instance;
         private readonly ILogger _logger = Log.ForContext<ChallengeService>();
         private readonly string _dataPath;
         private readonly AuthService _authService;
@@ -64,18 +63,19 @@ namespace SaveState.Core.Services.Gamification
 
         public event EventHandler<Challenge>? ChallengeCompleted;
 
-        public static ChallengeService Instance => _instance ??= new ChallengeService();
+        public static ChallengeService? Instance { get; private set; }
 
-        private ChallengeService()
+        public ChallengeService(AuthService authService, ProfileService profileService, AchievementService achievementService)
         {
-            _authService = AuthService.Instance;
-            _profileService = ProfileService.Instance;
-            _achievementService = AchievementService.Instance;
+            Instance = this;
+            _authService = authService;
+            _profileService = profileService;
+            _achievementService = achievementService;
             _dataPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "SaveState2", "data", "challenges");
             if (!Directory.Exists(_dataPath)) Directory.CreateDirectory(_dataPath);
-            
+
             LoadChallenges();
             LoadProgress();
             GenerateDailyChallenges();
@@ -208,7 +208,7 @@ namespace SaveState.Core.Services.Gamification
         private void RefreshChallengesIfNeeded()
         {
             var now = DateTime.UtcNow;
-            
+
             // Generate new daily challenges at midnight
             if (now.Date > _lastChallengeGeneration.Date)
             {
@@ -216,7 +216,7 @@ namespace SaveState.Core.Services.Gamification
             }
 
             // Generate weekly challenges on Monday
-            if (now.DayOfWeek == DayOfWeek.Monday && 
+            if (now.DayOfWeek == DayOfWeek.Monday &&
                 _lastChallengeGeneration.DayOfWeek != DayOfWeek.Monday)
             {
                 GenerateWeeklyChallenges();

@@ -99,122 +99,122 @@ namespace SaveState.Core.Services.EmulatorEnhancements
             return new Dictionary<(CommentatorPersonality, GameEventType), string[]>
             {
                 // Hype Caster
-                [(CommentatorPersonality.HypeCaster, GameEventType.Death)] = new[] { 
-                    "OH NO! DOWN GOES OUR HERO!", 
-                    "AND THAT'S A DEVASTATING BLOW!", 
-                    "THE CROWD GOES SILENT... WHAT A LOSS!" 
+                [(CommentatorPersonality.HypeCaster, GameEventType.Death)] = new[] {
+                    "OH NO! DOWN GOES OUR HERO!",
+                    "AND THAT'S A DEVASTATING BLOW!",
+                    "THE CROWD GOES SILENT... WHAT A LOSS!"
                 },
-                [(CommentatorPersonality.HypeCaster, GameEventType.LevelComplete)] = new[] { 
-                    "YEEEES! WHAT A FINISH!", 
-                    "ABSOLUTELY INCREDIBLE! THE CROWD IS ON THEIR FEET!", 
-                    "VICTORY! PURE AND TOTAL VICTORY!" 
+                [(CommentatorPersonality.HypeCaster, GameEventType.LevelComplete)] = new[] {
+                    "YEEEES! WHAT A FINISH!",
+                    "ABSOLUTELY INCREDIBLE! THE CROWD IS ON THEIR FEET!",
+                    "VICTORY! PURE AND TOTAL VICTORY!"
                 },
-                [(CommentatorPersonality.HypeCaster, GameEventType.BossDefeat)] = new[] { 
-                    "THE BOSS IS DOWN! I CAN'T BELIEVE WHAT I'M SEEING!", 
-                    "KNOCKOUT! TOTAL ANNIHILATION!", 
-                    "WHAT A LEGENDARY TAKEDOWN!" 
+                [(CommentatorPersonality.HypeCaster, GameEventType.BossDefeat)] = new[] {
+                    "THE BOSS IS DOWN! I CAN'T BELIEVE WHAT I'M SEEING!",
+                    "KNOCKOUT! TOTAL ANNIHILATION!",
+                    "WHAT A LEGENDARY TAKEDOWN!"
                 },
-                [(CommentatorPersonality.HypeCaster, GameEventType.ComboAchieved)] = new[] { 
-                    "COMBO CITY! THE HITS KEEP COMING!", 
-                    "UNSTOPPABLE! ABSOLUTELY UNSTOPPABLE!", 
-                    "THE COMBO COUNTER IS OFF THE CHARTS!" 
+                [(CommentatorPersonality.HypeCaster, GameEventType.ComboAchieved)] = new[] {
+                    "COMBO CITY! THE HITS KEEP COMING!",
+                    "UNSTOPPABLE! ABSOLUTELY UNSTOPPABLE!",
+                    "THE COMBO COUNTER IS OFF THE CHARTS!"
                 },
 
                 // Wrestling Announcer
-                [(CommentatorPersonality.WrestlingAnnouncer, GameEventType.Death)] = new[] { 
-                    "BAH GAWD! THEY KILLED HIM!", 
-                    "SOMEBODY STOP THE DAMN MATCH!", 
-                    "THAT MAN HAD A FAMILY!" 
+                [(CommentatorPersonality.WrestlingAnnouncer, GameEventType.Death)] = new[] {
+                    "BAH GAWD! THEY KILLED HIM!",
+                    "SOMEBODY STOP THE DAMN MATCH!",
+                    "THAT MAN HAD A FAMILY!"
                 },
-                [(CommentatorPersonality.WrestlingAnnouncer, GameEventType.BossDefeat)] = new[] { 
-                    "AND THE NEW CHAMPION!", 
-                    "HE'S DONE IT! BY GOD, HE'S DONE IT!", 
-                    "THE IMPOSSIBLE HAS HAPPENED!" 
+                [(CommentatorPersonality.WrestlingAnnouncer, GameEventType.BossDefeat)] = new[] {
+                    "AND THE NEW CHAMPION!",
+                    "HE'S DONE IT! BY GOD, HE'S DONE IT!",
+                    "THE IMPOSSIBLE HAS HAPPENED!"
                 },
-                [(CommentatorPersonality.WrestlingAnnouncer, GameEventType.CloseCall)] = new[] { 
-                    "HE KICKED OUT AT 2! THE RESILIENCE!", 
-                    "SO CLOSE! INCHES AWAY FROM DISASTER!", 
-                    "THE HEART OF A CHAMPION!" 
+                [(CommentatorPersonality.WrestlingAnnouncer, GameEventType.CloseCall)] = new[] {
+                    "HE KICKED OUT AT 2! THE RESILIENCE!",
+                    "SO CLOSE! INCHES AWAY FROM DISASTER!",
+                    "THE HEART OF A CHAMPION!"
                 },
 
                 // Documentary Narrator
-                [(CommentatorPersonality.DocumentaryNarrator, GameEventType.Death)] = new[] { 
-                    "And here... we observe a rather unfortunate turn of events.", 
-                    "Nature, as always, proves unforgiving to the unprepared.", 
-                    "A moment of silence for our fallen subject." 
+                [(CommentatorPersonality.DocumentaryNarrator, GameEventType.Death)] = new[] {
+                    "And here... we observe a rather unfortunate turn of events.",
+                    "Nature, as always, proves unforgiving to the unprepared.",
+                    "A moment of silence for our fallen subject."
                 },
-                [(CommentatorPersonality.DocumentaryNarrator, GameEventType.BossEncounter)] = new[] { 
-                    "And now we witness the apex predator of this digital ecosystem.", 
-                    "The creature approaches. Truly magnificent.", 
-                    "Evolution has crafted a perfect challenge." 
+                [(CommentatorPersonality.DocumentaryNarrator, GameEventType.BossEncounter)] = new[] {
+                    "And now we witness the apex predator of this digital ecosystem.",
+                    "The creature approaches. Truly magnificent.",
+                    "Evolution has crafted a perfect challenge."
                 },
-                [(CommentatorPersonality.DocumentaryNarrator, GameEventType.SecretFound)] = new[] { 
-                    "Fascinating. A hidden treasure revealed.", 
-                    "The keen eye discovers what others miss.", 
-                    "A secret... waiting millennia to be found." 
+                [(CommentatorPersonality.DocumentaryNarrator, GameEventType.SecretFound)] = new[] {
+                    "Fascinating. A hidden treasure revealed.",
+                    "The keen eye discovers what others miss.",
+                    "A secret... waiting millennia to be found."
                 },
 
                 // Chess Master
-                [(CommentatorPersonality.ChessMaster, GameEventType.Death)] = new[] { 
-                    "A critical miscalculation. The position was lost three moves ago.", 
-                    "Overextended. This was inevitable.", 
-                    "The defensive structure collapsed entirely." 
+                [(CommentatorPersonality.ChessMaster, GameEventType.Death)] = new[] {
+                    "A critical miscalculation. The position was lost three moves ago.",
+                    "Overextended. This was inevitable.",
+                    "The defensive structure collapsed entirely."
                 },
-                [(CommentatorPersonality.ChessMaster, GameEventType.ComboAchieved)] = new[] { 
-                    "Brilliant execution. Each input perfectly calculated.", 
-                    "A forced sequence - no counterplay possible.", 
-                    "Frame-perfect. The engine would approve." 
+                [(CommentatorPersonality.ChessMaster, GameEventType.ComboAchieved)] = new[] {
+                    "Brilliant execution. Each input perfectly calculated.",
+                    "A forced sequence - no counterplay possible.",
+                    "Frame-perfect. The engine would approve."
                 },
-                [(CommentatorPersonality.ChessMaster, GameEventType.LevelComplete)] = new[] { 
-                    "Checkmate. As anticipated.", 
-                    "The endgame technique was flawless.", 
-                    "Precisely converted. Final analysis: excellent." 
+                [(CommentatorPersonality.ChessMaster, GameEventType.LevelComplete)] = new[] {
+                    "Checkmate. As anticipated.",
+                    "The endgame technique was flawless.",
+                    "Precisely converted. Final analysis: excellent."
                 },
 
                 // Movie Trailer Voice
-                [(CommentatorPersonality.MovieTrailerVoice, GameEventType.BossEncounter)] = new[] { 
-                    "IN A WORLD... where evil reigns supreme...", 
-                    "ONE HERO... STANDS ALONE...", 
-                    "THIS SUMMER... THE BATTLE BEGINS." 
+                [(CommentatorPersonality.MovieTrailerVoice, GameEventType.BossEncounter)] = new[] {
+                    "IN A WORLD... where evil reigns supreme...",
+                    "ONE HERO... STANDS ALONE...",
+                    "THIS SUMMER... THE BATTLE BEGINS."
                 },
-                [(CommentatorPersonality.MovieTrailerVoice, GameEventType.BossDefeat)] = new[] { 
-                    "AGAINST ALL ODDS... VICTORY.", 
-                    "THE LEGEND... IS BORN.", 
-                    "A HERO... EMERGES." 
+                [(CommentatorPersonality.MovieTrailerVoice, GameEventType.BossDefeat)] = new[] {
+                    "AGAINST ALL ODDS... VICTORY.",
+                    "THE LEGEND... IS BORN.",
+                    "A HERO... EMERGES."
                 },
 
                 // Wholesome Coach
-                [(CommentatorPersonality.WholesomeCoach, GameEventType.Death)] = new[] { 
-                    "Hey, it's okay! You're learning!", 
-                    "Shake it off, champ. You've got this.", 
-                    "Every pro was once a beginner. Keep going!" 
+                [(CommentatorPersonality.WholesomeCoach, GameEventType.Death)] = new[] {
+                    "Hey, it's okay! You're learning!",
+                    "Shake it off, champ. You've got this.",
+                    "Every pro was once a beginner. Keep going!"
                 },
-                [(CommentatorPersonality.WholesomeCoach, GameEventType.LevelComplete)] = new[] { 
-                    "I'M SO PROUD OF YOU!", 
-                    "See? I knew you could do it!", 
-                    "That's my player! Amazing work!" 
+                [(CommentatorPersonality.WholesomeCoach, GameEventType.LevelComplete)] = new[] {
+                    "I'M SO PROUD OF YOU!",
+                    "See? I knew you could do it!",
+                    "That's my player! Amazing work!"
                 },
-                [(CommentatorPersonality.WholesomeCoach, GameEventType.Idle)] = new[] { 
-                    "Take your time, no pressure!", 
-                    "Need a break? Self-care is important!", 
-                    "I believe in you whenever you're ready!" 
+                [(CommentatorPersonality.WholesomeCoach, GameEventType.Idle)] = new[] {
+                    "Take your time, no pressure!",
+                    "Need a break? Self-care is important!",
+                    "I believe in you whenever you're ready!"
                 },
 
                 // Roast Master
-                [(CommentatorPersonality.RoastMaster, GameEventType.Death)] = new[] { 
-                    "Ah yes, speedrunning the game over screen. Classic.", 
-                    "Have you tried... not walking into death?", 
-                    "I've seen better gameplay from a screen saver." 
+                [(CommentatorPersonality.RoastMaster, GameEventType.Death)] = new[] {
+                    "Ah yes, speedrunning the game over screen. Classic.",
+                    "Have you tried... not walking into death?",
+                    "I've seen better gameplay from a screen saver."
                 },
-                [(CommentatorPersonality.RoastMaster, GameEventType.Idle)] = new[] { 
-                    "Hello? Anyone home? The controller is lonely.", 
-                    "Loading your brain... please wait...", 
-                    "Taking a nap on company time, I see." 
+                [(CommentatorPersonality.RoastMaster, GameEventType.Idle)] = new[] {
+                    "Hello? Anyone home? The controller is lonely.",
+                    "Loading your brain... please wait...",
+                    "Taking a nap on company time, I see."
                 },
-                [(CommentatorPersonality.RoastMaster, GameEventType.LevelComplete)] = new[] { 
-                    "Oh, you finally figured it out. Congratulations.", 
-                    "Even a broken clock is right twice a day.", 
-                    "Took long enough. Touch grass tier time." 
+                [(CommentatorPersonality.RoastMaster, GameEventType.LevelComplete)] = new[] {
+                    "Oh, you finally figured it out. Congratulations.",
+                    "Even a broken clock is right twice a day.",
+                    "Took long enough. Touch grass tier time."
                 },
             };
         }
@@ -240,9 +240,9 @@ namespace SaveState.Core.Services.EmulatorEnhancements
             {
                 case GameEventType.Death: _stats.Deaths++; _consecutiveDeaths++; break;
                 case GameEventType.LevelComplete:
-                case GameEventType.BossDefeat: 
-                    _stats.Achievements++; 
-                    _consecutiveDeaths = 0; 
+                case GameEventType.BossDefeat:
+                    _stats.Achievements++;
+                    _consecutiveDeaths = 0;
                     break;
                 case GameEventType.ComboAchieved: _stats.Combos++; break;
             }
@@ -286,11 +286,8 @@ namespace SaveState.Core.Services.EmulatorEnhancements
             return CreateLine(text, eventType, priority: GetEventPriority(eventType));
         }
 
-        // Synchronous version for compatibility
-        public CommentaryLine? OnEvent(GameEventType eventType, Dictionary<string, object>? context = null)
-        {
-            return OnEventAsync(eventType, context).GetAwaiter().GetResult();
-        }
+        // REMOVED: Synchronous wrapper removed to eliminate deadlock risk
+        // Use OnEventAsync directly instead
 
         private bool IsPriorityEvent(GameEventType type) =>
             type is GameEventType.BossDefeat or GameEventType.PerfectRun or GameEventType.SecretFound;
@@ -326,7 +323,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
                         Combo = context?.TryGetValue("combo", out var c) == true ? Convert.ToInt32(c) : null,
                         SessionDuration = _stats.SessionDuration
                     };
-                    
+
                     var result = await _advancedAi.GenerateCommentaryAsync(eventType.ToString(), commentaryContext);
                     if (!string.IsNullOrEmpty(result))
                         return result;
@@ -386,7 +383,7 @@ namespace SaveState.Core.Services.EmulatorEnhancements
             _customCommentators.RemoveAll(c => c.Id == id);
         }
 
-        public List<CommentaryLine> GetHistory(int count = 20) => 
+        public List<CommentaryLine> GetHistory(int count = 20) =>
             _history.TakeLast(count).ToList();
 
         public void ClearHistory()

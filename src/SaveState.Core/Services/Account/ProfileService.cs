@@ -45,17 +45,17 @@ namespace SaveState.Core.Services.Account
 
     public class ProfileService
     {
-        private static ProfileService? _instance;
         private readonly ILogger _logger = Log.ForContext<ProfileService>();
         private readonly string _profilesPath;
         private readonly Dictionary<string, UserProfile> _profiles = new();
         private readonly AuthService _authService;
 
-        public static ProfileService Instance => _instance ??= new ProfileService();
+        public static ProfileService? Instance { get; private set; }
 
-        private ProfileService()
+        public ProfileService(AuthService authService)
         {
-            _authService = AuthService.Instance;
+            Instance = this;
+            _authService = authService;
             _profilesPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "SaveState2", "data", "profiles");
@@ -81,7 +81,7 @@ namespace SaveState.Core.Services.Account
 
         public UserProfile? GetProfileByUsername(string username)
         {
-            return _profiles.Values.FirstOrDefault(p => 
+            return _profiles.Values.FirstOrDefault(p =>
                 p.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
         }
 
@@ -99,8 +99,8 @@ namespace SaveState.Core.Services.Account
         {
             var queryLower = query.ToLower();
             return _profiles.Values
-                .Where(p => p.IsPublic && 
-                    (p.Username.ToLower().Contains(queryLower) || 
+                .Where(p => p.IsPublic &&
+                    (p.Username.ToLower().Contains(queryLower) ||
                      p.DisplayName.ToLower().Contains(queryLower)))
                 .Take(limit)
                 .ToList();
@@ -129,7 +129,7 @@ namespace SaveState.Core.Services.Account
             profile.LastActive = DateTime.UtcNow;
             _profiles[profile.UserId] = profile;
             SaveProfile(profile);
-            
+
             await Task.Yield();
             return true;
         }
@@ -162,10 +162,10 @@ namespace SaveState.Core.Services.Account
 
             var ext = Path.GetExtension(imagePath);
             var avatarPath = Path.Combine(avatarDir, $"{profile.UserId}{ext}");
-            
+
             File.Copy(imagePath, avatarPath, true);
             profile.AvatarPath = avatarPath;
-            
+
             return await UpdateProfileAsync(profile);
         }
 

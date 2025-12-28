@@ -7,6 +7,8 @@ using System.Linq;
 
 namespace SaveState.UI.ViewModels;
 
+using SaveState.Core.Services;
+
 public partial class TimeCapsuleViewModel : ViewModelBase
 {
     private readonly TimeCapsuleService _capsuleService;
@@ -40,7 +42,7 @@ public partial class TimeCapsuleViewModel : ViewModelBase
 
     public string[] ChallengeTypes { get; } = { null!, "speedrun", "no-damage", "collectibles" };
 
-    public IRelayCommand CreateCapsuleCommand { get; }
+    public IAsyncRelayCommand CreateCapsuleCommand { get; }
     public IRelayCommand<string> TryUnlockCommand { get; }
     public IRelayCommand<string> AddReactionCommand { get; }
     public IRelayCommand AddCommentCommand { get; }
@@ -54,7 +56,7 @@ public partial class TimeCapsuleViewModel : ViewModelBase
     {
         _capsuleService = capsuleService ?? throw new ArgumentNullException(nameof(capsuleService));
 
-        CreateCapsuleCommand = new RelayCommand(CreateCapsule, CanCreateCapsule);
+        CreateCapsuleCommand = new AsyncRelayCommand(CreateCapsuleAsync, CanCreateCapsule);
         TryUnlockCommand = new RelayCommand<string>(TryUnlock);
         AddReactionCommand = new RelayCommand<string>(AddReaction);
         AddCommentCommand = new RelayCommand(AddComment, () => SelectedCapsule != null && !string.IsNullOrWhiteSpace(NewComment));
@@ -64,18 +66,11 @@ public partial class TimeCapsuleViewModel : ViewModelBase
         RefreshCapsules();
     }
 
-    /// <summary>
-    /// Design-time/fallback constructor.
-    /// </summary>
-    public TimeCapsuleViewModel() : this(new TimeCapsuleService())
-    {
-    }
-
     private bool CanCreateCapsule() => !string.IsNullOrWhiteSpace(NewTitle);
 
-    private void CreateCapsule()
+    private async Task CreateCapsuleAsync()
     {
-        var capsule = _capsuleService.CreateCapsule(
+        var capsule = await _capsuleService.CreateCapsuleAsync(
             "demo-game",
             NewTitle,
             NewDescription,
@@ -94,7 +89,7 @@ public partial class TimeCapsuleViewModel : ViewModelBase
     private void TryUnlock(string? id)
     {
         if (string.IsNullOrEmpty(id)) return;
-        
+
         if (_capsuleService.TryUnlock(id))
         {
             RefreshCapsules();
@@ -103,8 +98,8 @@ public partial class TimeCapsuleViewModel : ViewModelBase
         else
         {
             var remaining = _capsuleService.GetTimeUntilUnlock(id);
-            StatusMessage = remaining.HasValue 
-                ? $"Cannot unlock yet. {remaining.Value.Hours}h {remaining.Value.Minutes}m remaining" 
+            StatusMessage = remaining.HasValue
+                ? $"Cannot unlock yet. {remaining.Value.Hours}h {remaining.Value.Minutes}m remaining"
                 : "Already unlocked";
         }
     }

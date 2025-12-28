@@ -23,24 +23,24 @@ namespace SaveState.Core.Services.Cloud
 
     public class BackupService
     {
-        private static BackupService? _instance;
         private readonly ILogger _logger = Log.ForContext<BackupService>();
         private readonly string _backupPath;
         private readonly string _dataPath;
         private readonly List<BackupInfo> _backups = new();
         private int _maxAutoBackups = 5;
 
-        public static BackupService Instance => _instance ??= new BackupService();
+        public static BackupService Instance { get; private set; }
 
-        private BackupService()
+        public BackupService()
         {
+            Instance = this;
             _dataPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "SaveState2", "data");
             _backupPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "SaveState2", "backups");
-            
+
             if (!Directory.Exists(_backupPath)) Directory.CreateDirectory(_backupPath);
             LoadBackupList();
         }
@@ -66,7 +66,7 @@ namespace SaveState.Core.Services.Cloud
                 {
                     // Create ZIP backup
                     if (File.Exists(filePath)) File.Delete(filePath);
-                    
+
                     ZipFile.CreateFromDirectory(_dataPath, filePath, CompressionLevel.Optimal, false);
 
                     backup.SizeBytes = new FileInfo(filePath).Length;
@@ -119,7 +119,7 @@ namespace SaveState.Core.Services.Cloud
                         var relativePath = Path.GetRelativePath(tempPath, file);
                         var destPath = Path.Combine(_dataPath, relativePath);
                         var destDir = Path.GetDirectoryName(destPath);
-                        
+
                         if (!string.IsNullOrEmpty(destDir) && !Directory.Exists(destDir))
                             Directory.CreateDirectory(destDir);
 
@@ -196,7 +196,7 @@ namespace SaveState.Core.Services.Cloud
             {
                 if (File.Exists(backup.FilePath))
                     File.Delete(backup.FilePath);
-                
+
                 _backups.Remove(backup);
                 SaveBackupList();
                 return true;
@@ -224,7 +224,7 @@ namespace SaveState.Core.Services.Cloud
         private void CleanupOldAutoBackups()
         {
             var autoBackups = _backups.Where(b => b.IsAutoBackup).OrderByDescending(b => b.CreatedAt).ToList();
-            
+
             while (autoBackups.Count > _maxAutoBackups)
             {
                 var oldest = autoBackups.Last();
