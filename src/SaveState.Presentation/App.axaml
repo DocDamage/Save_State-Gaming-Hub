@@ -1,0 +1,26 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:SaveState.Presentation"
+             x:Class="SaveState.Presentation.App">
+  <Application.Resources>
+    <!-- Deep Space Theme -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="#0B0E14" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#161B22" />
+    <SolidColorBrush x:Key="PrimaryBrush" Color="#58A6FF" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#F78166" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F0F6FC" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#C9D1D9" />
+    <SolidColorBrush x:Key="BorderBrush" Color="#30363D" />
+    <SolidColorBrush x:Key="GlassBrush" Color="#80FFFFFF" Opacity="0.05" />
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#21262D" />
+    <SolidColorBrush x:Key="CardHoverBrush" Color="#30363D" />
+  </Application.Resources>
+
+  <Application.Styles>
+    <StyleInclude Source="avares://SaveState.Presentation/Styles/Controls.axaml" />
+  </Application.Styles>
+
+  <Application.DataTemplates>
+    <local:ViewLocator/>
+  </Application.DataTemplates>
+</Application>

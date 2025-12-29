@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:entities="using:SaveState.Core.GameLibrary.Entities"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="280"
+             x:Class="SaveState.Presentation.Views.GameCard"
+             x:DataType="entities:Game">
+
+  <Border Classes="GameCard" Width="280" Height="260">
+    <Grid RowDefinitions="*, Auto, Auto">
+      <!-- Cover Image Placeholder -->
+      <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" CornerRadius="8" Margin="12">
+        <TextBlock Text="🎮"
+                   FontSize="64"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Foreground="{StaticResource TextSecondaryBrush}"/>
+      </Border>
+
+      <!-- Game Title -->
+      <TextBlock Grid.Row="1"
+                 Text="{Binding Title}"
+                 Classes="Body"
+                 FontSize="16"
+                 FontWeight="SemiBold"
+                 HorizontalAlignment="Center"
+                 Margin="12,8,12,4"
+                 TextWrapping="Wrap"
+                 TextAlignment="Center"
+                 MaxLines="2"/>
+
+      <!-- Platform/Genre Info -->
+      <TextBlock Grid.Row="2"
+                 Text="{Binding Platform, StringFormat='Platform: {0}'}"
+                 Classes="Body"
+                 FontSize="12"
+                 Foreground="{StaticResource TextSecondaryBrush}"
+                 HorizontalAlignment="Center"
+                 Margin="12,0,12,12"/>
+    </Grid>
+  </Border>
+</UserControl>

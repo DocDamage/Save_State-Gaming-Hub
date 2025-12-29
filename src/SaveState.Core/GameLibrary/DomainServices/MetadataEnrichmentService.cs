@@ -1,0 +1,68 @@
+using System.IO;
+using SaveState.Core.GameLibrary.Entities;
+using SaveState.Core.GameLibrary.Services;
+using SaveState.Core.GameLibrary.DTOs;
+using SaveState.Core.RomManagement;
+using SaveState.Core.GameLibrary;
+
+namespace SaveState.Core.GameLibrary.DomainServices;
+
+public class MetadataEnrichmentService : IMetadataEnrichmentService
+{
+    private readonly IMetadataService _metadataService;
+    private readonly IPlatformRepository _platformRepository;
+    private readonly IPlatformExtensionRegistry _extensionRegistry;
+
+    public MetadataEnrichmentService(
+        IMetadataService metadataService,
+        IPlatformRepository platformRepository,
+        IPlatformExtensionRegistry extensionRegistry)
+    {
+        _metadataService = metadataService;
+        _platformRepository = platformRepository;
+        _extensionRegistry = extensionRegistry;
+    }
+
+    public async Task EnrichGameMetadataAsync(Game game, CancellationToken ct = default)
+    {
+        var metadata = await _metadataService.GetGameMetadataAsync(game.Title, ct).ConfigureAwait(false);
+
+        if (metadata != null && metadata != GameMetadata.Empty)
+        {
+            game.Update(
+                title: metadata.Title,
+                description: metadata.Description,
+                coverImagePath: metadata.CoverImageUrl
+            );
+        }
+    }
+
+    public async Task<string?> GetCoverImageUrlAsync(Game game, CancellationToken ct = default)
+    {
+        var metadata = await _metadataService.GetGameMetadataAsync(game.Title, ct).ConfigureAwait(false);
+        return metadata?.CoverImageUrl;
+    }
+
+    public async Task<IEnumerable<string>> GetTagsAsync(Game game, CancellationToken ct = default)
+    {
+        var metadata = await _metadataService.GetGameMetadataAsync(game.Title, ct).ConfigureAwait(false);
+        return metadata?.Genres ?? Enumerable.Empty<string>();
+    }
+
+    public async Task<string?> GetDescriptionAsync(Game game, CancellationToken ct = default)
+    {
+        var metadata = await _metadataService.GetGameMetadataAsync(game.Title, ct).ConfigureAwait(false);
+        return metadata?.Description;
+    }
+
+    public async Task<Platform?> DetectPlatformAsync(string gamePath, CancellationToken ct = default)
+    {
+        var platformName = _extensionRegistry.DetectPlatformName(gamePath);
+        if (string.IsNullOrEmpty(platformName))
+        {
+            return null;
+        }
+
+        return await _platformRepository.GetByNameAsync(platformName, ct).ConfigureAwait(false);
+    }
+}

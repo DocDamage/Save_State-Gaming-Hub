@@ -1,0 +1,34 @@
+<Directives xmlns="http://schemas.microsoft.com/netfx/2013/01/metadata">
+  <Application>
+    <!-- Core .NET types needed for dependency injection and hosting -->
+    <Assembly Name="System.Private.CoreLib" Dynamic="Required All" />
+    <Assembly Name="System.Runtime" Dynamic="Required All" />
+    <Assembly Name="Microsoft.Extensions.DependencyInjection" Dynamic="Required All" />
+    <Assembly Name="Microsoft.Extensions.Hosting" Dynamic="Required All" />
+
+    <!-- Entity Framework Core -->
+    <Assembly Name="Microsoft.EntityFrameworkCore" Dynamic="Required All" />
+    <Assembly Name="Microsoft.EntityFrameworkCore.Sqlite" Dynamic="Required All" />
+
+    <!-- MediatR -->
+    <Assembly Name="MediatR" Dynamic="Required All" />
+
+    <!-- Avalonia UI -->
+    <Assembly Name="Avalonia.Base" Dynamic="Required All" />
+    <Assembly Name="Avalonia.Controls" Dynamic="Required All" />
+    <Assembly Name="Avalonia.Markup.Xaml" Dynamic="Required All" />
+
+    <!-- Our application assemblies -->
+    <Assembly Name="SaveState.Core" Dynamic="Required All" />
+    <Assembly Name="SaveState.Application" Dynamic="Required All" />
+    <Assembly Name="SaveState.Infrastructure" Dynamic="Required All" />
+    <Assembly Name="SaveState.Presentation" Dynamic="Required All" />
+
+    <!-- JSON Configuration -->
+    <Assembly Name="System.Text.Json" Dynamic="Required All" />
+
+    <!-- Logging -->
+    <Assembly Name="Serilog" Dynamic="Required All" />
+    <Assembly Name="Serilog.Extensions.Hosting" Dynamic="Required All" />
+  </Application>
+</Directives>

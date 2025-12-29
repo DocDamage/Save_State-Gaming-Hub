@@ -1,0 +1,5 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2003/xaml">
+    <!-- Animation resources removed due to XAML compilation issues -->
+    <!-- These can be re-added when Avalonia animation support is properly configured -->
+</ResourceDictionary>

@@ -1,0 +1,53 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+C:\Program Files\dotnet\sdk\10.0.100-rc.1.25451.107\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\SaveState.Application.Tests.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-rc.1.25451.107\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\SaveState.Core.csproj]
+  SaveState.Core -> C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\bin\Debug\net9.0\SaveState.Core.dll
+  SaveState.Application -> C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\bin\Debug\net9.0\SaveState.Application.dll
+  SaveState.Application.Tests -> C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\bin\Debug\net9.0\SaveState.Application.Tests.dll
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\bin\Debug\net9.0\SaveState.Application.Tests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+[xUnit.net 00:00:00.11]   Discovering: SaveState.Application.Tests
+[xUnit.net 00:00:00.16]   Discovered:  SaveState.Application.Tests
+[xUnit.net 00:00:00.18]   Starting:    SaveState.Application.Tests
+[xUnit.net 00:00:00.43]     SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_PlatformNotFound_ReturnsFailure [FAIL]
+[xUnit.net 00:00:00.43]       Expected result.Error "Validation failed: Value cannot be null. (Parameter 'values')" to contain the equivalent of "platform".
+[xUnit.net 00:00:00.43]       Stack Trace:
+[xUnit.net 00:00:00.43]            at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+[xUnit.net 00:00:00.43]            at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+[xUnit.net 00:00:00.44]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:00.44]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:00.44]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:00.44]            at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+[xUnit.net 00:00:00.44]            at FluentAssertions.Primitives.StringAssertions`1.ContainEquivalentOf(String expected, String because, Object[] becauseArgs)
+[xUnit.net 00:00:00.44]         C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\GameLibrary\Commands\Handlers\ImportGameCommandHandlerTests.cs(118,0): at SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_PlatformNotFound_ReturnsFailure()
+[xUnit.net 00:00:00.44]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.47]   Finished:    SaveState.Application.Tests
+  Passed SaveState.Application.Tests.UnitTest1.Test1 [2 ms]
+  Failed SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_PlatformNotFound_ReturnsFailure [216 ms]
+  Error Message:
+   Expected result.Error "Validation failed: Value cannot be null. (Parameter 'values')" to contain the equivalent of "platform".
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.StringAssertions`1.ContainEquivalentOf(String expected, String because, Object[] becauseArgs)
+   at SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_PlatformNotFound_ReturnsFailure() in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\GameLibrary\Commands\Handlers\ImportGameCommandHandlerTests.cs:line 118
+--- End of stack trace from previous location ---
+  Passed SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_NewGame_ImportsSuccessfully [16 ms]
+  Passed SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_NewPlatform_CreatesPlatform [9 ms]
+  Passed SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_InvalidGameData_ReturnsFailure [4 ms]
+  Passed SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_ExistingGame_ReturnsFailure [2 ms]
+
+Test Run Failed.
+Total tests: 6
+     Passed: 5
+     Failed: 1
+ Total time: 1.3053 Seconds

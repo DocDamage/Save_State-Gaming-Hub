@@ -1,0 +1,32 @@
+{
+  "name": "IKEMEN GO",
+  "version": "0.99",
+  "executable": "Ikemen_GO.exe",
+  "arguments": {
+    "versus": "-p1 {player1} -p2 {player2} -rounds 3",
+    "training": "-p1 {player1} -p2 {dummy} -training",
+    "watch": "-p1 {player1} -p2 {player2} -watch",
+    "single": "-p1 {player1} -single"
+  },
+  "characterDirectories": [
+    "../../../data/characters/streetfighter",
+    "../../../data/characters/mvc2",
+    "../../../data/characters/builtin"
+  ],
+  "stageDirectories": [
+    "../../../data/stages"
+  ],
+  "musicDirectories": [
+    "../../../data/music"
+  ],
+  "dataDirectory": "../../../data",
+  "configFile": "save/config.json",
+  "supportedFormats": ["def", "chr"],
+  "features": {
+    "luaScripting": true,
+    "mugenCompatibility": true,
+    "onlinePlay": false,
+    "replayRecording": true,
+    "trainingMode": true
+  }
+}

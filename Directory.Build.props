@@ -1,0 +1,19 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <!-- Analyzers disabled during Phase 0 - will be enabled in Phase 1 -->
+    <AnalysisMode>None</AnalysisMode>
+    <!-- CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Analyzers will be enabled in Phase 1 after core functionality is complete -->
+    <!-- <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="All" /> -->
+    <!-- <PackageReference Include="Roslynator.Analyzers" Version="4.12.0" PrivateAssets="All" /> -->
+    <!-- <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0" PrivateAssets="All" /> -->
+    <PackageReference Include="Ardalis.GuardClauses" Version="4.5.0" />
+  </ItemGroup>
+</Project>

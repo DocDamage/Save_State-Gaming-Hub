@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Onboarding"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
+             x:Class="SaveState.Presentation.Views.Onboarding.OnboardingView"
+             x:DataType="vm:OnboardingViewModel">
+
+  <Border Classes="GlassContainer" Margin="20">
+    <Grid RowDefinitions="Auto, *, Auto">
+      <!-- Header -->
+      <StackPanel Grid.Row="0" Margin="24,16" HorizontalAlignment="Center">
+        <TextBlock Text="🚀" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+        <TextBlock Text="Welcome to SaveState Reborn" Classes="Header" HorizontalAlignment="Center"/>
+        <TextBlock Text="Your AI-powered gaming companion" Classes="Subtitle" HorizontalAlignment="Center" Margin="0,4,0,16"/>
+      </StackPanel>
+
+      <!-- Welcome Message -->
+      <ScrollViewer Grid.Row="1" Margin="24,0">
+        <TextBlock Text="{Binding WelcomeMessage}"
+                   TextWrapping="Wrap"
+                   Classes="Body"
+                   FontSize="16"
+                   LineHeight="24"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center"/>
+      </ScrollViewer>
+
+      <!-- Action Buttons -->
+      <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="24" Spacing="12">
+        <Button Content="Get Started"
+                Classes="Primary"
+                Command="{Binding GetStartedCommand}"
+                HorizontalAlignment="Center"/>
+        <Button Content="Skip for Now"
+                Classes="Accent"
+                Command="{Binding SkipCommand}"
+                HorizontalAlignment="Center"/>
+      </StackPanel>
+    </Grid>
+  </Border>
+</UserControl>

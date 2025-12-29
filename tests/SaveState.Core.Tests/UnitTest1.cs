@@ -1,0 +1,12 @@
+﻿namespace SaveState.Core.Tests;
+
+using Xunit;
+
+public class UnitTest1
+{
+    [Fact]
+    public void Test1()
+    {
+
+    }
+}

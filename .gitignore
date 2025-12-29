@@ -1,0 +1,43 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.log
+*.tmp
+*.temp
+
+# Visual Studio
+.vs/
+.vscode/settings.json
+*.swp
+*.swo
+
+# Rider
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Packages
+packages/
+*.nupkg
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+
+# SQLite databases
+*.db
+*.db-shm
+*.db-wal
+
+# User secrets
+secrets.json
+
+# Coverage
+coverage/
+*.coverage

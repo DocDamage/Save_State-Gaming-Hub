@@ -1,0 +1,95 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+C:\Program Files\dotnet\sdk\10.0.100-rc.1.25451.107\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Core.Tests\SaveState.Core.Tests.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-rc.1.25451.107\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.IntegrationTests\SaveState.IntegrationTests.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-rc.1.25451.107\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\SaveState.Application.Tests.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-rc.1.25451.107\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.EndToEndTests\SaveState.EndToEndTests.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-rc.1.25451.107\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\SaveState.Core.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-rc.1.25451.107\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\SaveState.Application.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-rc.1.25451.107\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Infrastructure\SaveState.Infrastructure.csproj]
+  SaveState.EndToEndTests -> C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.EndToEndTests\bin\Debug\net9.0\SaveState.EndToEndTests.dll
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.EndToEndTests\bin\Debug\net9.0\SaveState.EndToEndTests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+No test is available in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.EndToEndTests\bin\Debug\net9.0\SaveState.EndToEndTests.dll. Make sure that test discoverer & executors are registered and platform & framework version settings are appropriate and try again.
+
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\AiGaming\Services\CheatDetectionService.cs(9,45): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread. [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\SaveState.Core.csproj]
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\AiGaming\Services\CheatDetectionService.cs(56,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread. [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\SaveState.Core.csproj]
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\AiGaming\BoundedContext.cs(160,13): warning CS8618: Non-nullable property 'DetectionConfidence' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable. [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\SaveState.Core.csproj]
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\AiGaming\BoundedContext.cs(214,13): warning CS8618: Non-nullable property 'ProcessId' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable. [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\SaveState.Core.csproj]
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\AiGaming\BoundedContext.cs(214,13): warning CS8618: Non-nullable property 'StartAddress' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable. [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\SaveState.Core.csproj]
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\AiGaming\BoundedContext.cs(214,13): warning CS8618: Non-nullable property 'EndAddress' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable. [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\SaveState.Core.csproj]
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\RomManagement\BoundedContext.cs(142,13): warning CS8618: Non-nullable property 'FileSize' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable. [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\SaveState.Core.csproj]
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\GameLibrary\Entities\Platform.cs(16,15): warning CS8618: Non-nullable property 'Name' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable. [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\SaveState.Core.csproj]
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\GameLibrary\Entities\Platform.cs(16,15): warning CS8618: Non-nullable property 'ShortName' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable. [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\SaveState.Core.csproj]
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\GameLibrary\Services\GameValidationService.cs(22,46): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread. [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\SaveState.Core.csproj]
+  SaveState.Core -> C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\bin\Debug\net9.0\SaveState.Core.dll
+  SaveState.Application -> C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\bin\Debug\net9.0\SaveState.Application.dll
+  SaveState.Core.Tests -> C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Core.Tests\bin\Debug\net9.0\SaveState.Core.Tests.dll
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Core.Tests\bin\Debug\net9.0\SaveState.Core.Tests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+Starting test execution, please wait...
+  SaveState.Infrastructure -> C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Infrastructure\bin\Debug\net9.0\SaveState.Infrastructure.dll
+A total of 1 test files matched the specified pattern.
+  SaveState.IntegrationTests -> C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.IntegrationTests\bin\Debug\net9.0\SaveState.IntegrationTests.dll
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.IntegrationTests\bin\Debug\net9.0\SaveState.IntegrationTests.dll (.NETCoreApp,Version=v9.0)
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+[xUnit.net 00:00:00.28]   Discovering: SaveState.Core.Tests
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+  SaveState.Application.Tests -> C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\bin\Debug\net9.0\SaveState.Application.Tests.dll
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\bin\Debug\net9.0\SaveState.Application.Tests.dll (.NETCoreApp,Version=v9.0)
+[xUnit.net 00:00:00.52]   Discovered:  SaveState.Core.Tests
+No test matches the given testcase filter `ImportGameCommandHandlerTests` in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Core.Tests\bin\Debug\net9.0\SaveState.Core.Tests.dll
+Starting test execution, please wait...
+
+A total of 1 test files matched the specified pattern.
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+No test is available in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.IntegrationTests\bin\Debug\net9.0\SaveState.IntegrationTests.dll. Make sure that test discoverer & executors are registered and platform & framework version settings are appropriate and try again.
+
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+[xUnit.net 00:00:00.51]   Discovering: SaveState.Application.Tests
+[xUnit.net 00:00:00.58]   Discovered:  SaveState.Application.Tests
+[xUnit.net 00:00:00.63]   Starting:    SaveState.Application.Tests
+[xUnit.net 00:00:01.00]     SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_PlatformNotFound_ReturnsFailure [FAIL]
+[xUnit.net 00:00:01.00]       Expected result.Error "Validation failed: Value cannot be null. (Parameter 'values')" to contain "platform".
+[xUnit.net 00:00:01.00]       Stack Trace:
+[xUnit.net 00:00:01.01]            at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+[xUnit.net 00:00:01.01]            at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+[xUnit.net 00:00:01.01]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:01.01]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:01.01]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:01.01]            at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+[xUnit.net 00:00:01.01]            at FluentAssertions.Primitives.StringAssertions`1.Contain(String expected, String because, Object[] becauseArgs)
+[xUnit.net 00:00:01.01]         C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\GameLibrary\Commands\Handlers\ImportGameCommandHandlerTests.cs(118,0): at SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_PlatformNotFound_ReturnsFailure()
+[xUnit.net 00:00:01.01]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:01.08]   Finished:    SaveState.Application.Tests
+  Failed SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_PlatformNotFound_ReturnsFailure [311 ms]
+  Error Message:
+   Expected result.Error "Validation failed: Value cannot be null. (Parameter 'values')" to contain "platform".
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.StringAssertions`1.Contain(String expected, String because, Object[] becauseArgs)
+   at SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_PlatformNotFound_ReturnsFailure() in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\GameLibrary\Commands\Handlers\ImportGameCommandHandlerTests.cs:line 118
+--- End of stack trace from previous location ---
+  Passed SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_NewGame_ImportsSuccessfully [35 ms]
+  Passed SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_NewPlatform_CreatesPlatform [15 ms]
+  Passed SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_InvalidGameData_ReturnsFailure [6 ms]
+  Passed SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_ExistingGame_ReturnsFailure [6 ms]
+
+Total tests: 5
+Test Run Failed.
+     Passed: 4
+     Failed: 1
+ Total time: 4.0328 Seconds
