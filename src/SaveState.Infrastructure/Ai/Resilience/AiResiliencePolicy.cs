@@ -9,7 +9,12 @@ using SaveState.Core.Configuration;
 
 namespace SaveState.Infrastructure.Ai.Resilience;
 
-public class AiResiliencePolicy
+public interface IAiResiliencePolicy
+{
+    AsyncPolicyWrap GetPipelinePolicy(string providerName);
+}
+
+public class AiResiliencePolicy : IAiResiliencePolicy
 {
     private readonly ResilienceConfig _config;
     private readonly ILogger<AiResiliencePolicy> _logger;
@@ -22,7 +27,7 @@ public class AiResiliencePolicy
         _logger = logger;
     }
 
-    public AsyncPolicyWrap GetPipelinePolicy(string providerName)
+    public virtual AsyncPolicyWrap GetPipelinePolicy(string providerName)
     {
         var circuitBreaker = Policy
             .Handle<HttpRequestException>()

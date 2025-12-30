@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SaveState.Core.Common;
 using SaveState.Core.RomManagement;
 using RomFileEntity = SaveState.Core.RomManagement.Entities.RomFile;
 using SaveState.Infrastructure.Persistence;
@@ -41,6 +42,57 @@ public class RomFileRepository : IRomFileRepository
             .Where(r => r.PlatformId == platformId && r.FilePath.Value.StartsWith(normalizedFolderPath))
             .ToListAsync(ct)
             .ConfigureAwait(false);
+    }
+
+    public async Task<PagedResult<RomFileEntity>> GetRomFilesAsync(
+        int pageNumber = 1,
+        int pageSize = 100,
+        Guid? platformId = null,
+        string? folderPath = null,
+        CancellationToken ct = default)
+    {
+        var query = _context.RomFiles
+            .Include(r => r.Platform)
+            .AsQueryable();
+
+        // Apply filters at database level
+        if (platformId.HasValue)
+        {
+            query = query.Where(r => r.PlatformId == platformId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(folderPath))
+        {
+            var normalizedFolderPath = Path.GetFullPath(folderPath).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            query = query.Where(r => r.FilePath.Value.StartsWith(normalizedFolderPath));
+        }
+
+        // Get total count before pagination
+        var totalCount = await query.CountAsync(ct).ConfigureAwait(false);
+
+        // Apply default sorting (by filename for ROMs)
+        query = query.OrderBy(r => r.FilePath.Value);
+
+        // Apply pagination
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+        return new PagedResult<RomFileEntity>(items, totalCount, pageNumber, pageSize);
+    }
+
+    public async Task<int> CountAsync(Guid? platformId = null, CancellationToken ct = default)
+    {
+        var query = _context.RomFiles.AsQueryable();
+
+        if (platformId.HasValue)
+        {
+            query = query.Where(r => r.PlatformId == platformId.Value);
+        }
+
+        return await query.CountAsync(ct).ConfigureAwait(false);
     }
 
     public async Task AddAsync(RomFileEntity romFile, CancellationToken ct = default)

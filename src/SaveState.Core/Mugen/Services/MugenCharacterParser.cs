@@ -1,5 +1,7 @@
 namespace SaveState.Core.Mugen.Services;
 
+using Microsoft.Extensions.Logging;
+using SaveState.Core.Common;
 using SaveState.Core.Mugen.ValueObjects;
 
 /// <summary>
@@ -8,6 +10,13 @@ using SaveState.Core.Mugen.ValueObjects;
 /// </summary>
 public class MugenCharacterParser : IMugenCharacterParser
 {
+    private readonly ILogger<MugenCharacterParser> _logger;
+
+    public MugenCharacterParser()
+    {
+        _logger = Microsoft.Extensions.Logging.Abstractions.NullLogger<MugenCharacterParser>.Instance;
+    }
+
     /// <summary>
     /// Parses a MUGEN character definition file and extracts metadata.
     /// </summary>
@@ -32,6 +41,10 @@ public class MugenCharacterParser : IMugenCharacterParser
         var filesSection = sections.GetValueOrDefault("Files", new Dictionary<string, string>());
         var arcadeSection = sections.GetValueOrDefault("Arcade", new Dictionary<string, string>());
 
+        var directoriesResult = ParseDirectories(filesSection, characterDirectory);
+        var paletteResult = ParsePaletteInfo(filesSection);
+        var arcadeResult = ParseArcadeInfo(arcadeSection);
+
         var metadata = new CharacterMetadata(
             DisplayName: GetValue(infoSection, "displayname"),
             Version: GetValue(infoSection, "version"),
@@ -40,9 +53,9 @@ public class MugenCharacterParser : IMugenCharacterParser
             ConstantsFile: GetValue(filesSection, "constants"),
             StatesFile: GetValue(filesSection, "st"),
             CommonStatesFile: GetValue(filesSection, "stcommon"),
-            Directories: ParseDirectories(filesSection, characterDirectory),
-            PaletteInfo: ParsePaletteInfo(filesSection),
-            ArcadeInfo: ParseArcadeInfo(arcadeSection),
+            Directories: directoriesResult.IsSuccess ? directoriesResult.Value : null,
+            PaletteInfo: paletteResult.IsSuccess ? paletteResult.Value : null,
+            ArcadeInfo: arcadeResult.IsSuccess ? arcadeResult.Value : null,
             FileSize: new FileInfo(definitionFilePath).Length
         );
 
@@ -72,8 +85,9 @@ public class MugenCharacterParser : IMugenCharacterParser
 
             return hasInfoSection && hasFilesSection;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Failed to validate character definition file '{FilePath}'", filePath);
             return false;
         }
     }
@@ -117,7 +131,7 @@ public class MugenCharacterParser : IMugenCharacterParser
         return section.TryGetValue(key, out var value) ? value : null;
     }
 
-    private static CharacterDirectories? ParseDirectories(Dictionary<string, string> filesSection, string characterDirectory)
+    private static Result<CharacterDirectories> ParseDirectories(Dictionary<string, string> filesSection, string characterDirectory)
     {
         var spriteDir = GetValue(filesSection, "sprite");
         var soundDir = GetValue(filesSection, "sound");
@@ -125,54 +139,88 @@ public class MugenCharacterParser : IMugenCharacterParser
 
         if (spriteDir == null && soundDir == null && palDir == null)
         {
-            return null;
+            return Result<CharacterDirectories>.Failure("No directory paths specified in files section", ErrorType.Validation);
         }
 
-        return new CharacterDirectories(
-            SpriteDirectory: ResolvePath(spriteDir, characterDirectory),
-            SoundDirectory: ResolvePath(soundDir, characterDirectory),
-            PaletteDirectory: ResolvePath(palDir, characterDirectory)
-        );
+        var spriteResult = ResolvePath(spriteDir, characterDirectory);
+        var soundResult = ResolvePath(soundDir, characterDirectory);
+        var palResult = ResolvePath(palDir, characterDirectory);
+
+        if (spriteResult.IsFailure && soundResult.IsFailure && palResult.IsFailure)
+        {
+            return Result<CharacterDirectories>.Failure("Failed to resolve any directory paths", ErrorType.Validation);
+        }
+
+        return Result<CharacterDirectories>.Success(new CharacterDirectories(
+            SpriteDirectory: spriteResult.IsSuccess ? spriteResult.Value : null,
+            SoundDirectory: soundResult.IsSuccess ? soundResult.Value : null,
+            PaletteDirectory: palResult.IsSuccess ? palResult.Value : null
+        ));
     }
 
-    private static PaletteInfo? ParsePaletteInfo(Dictionary<string, string> filesSection)
+    private static Result<PaletteInfo> ParsePaletteInfo(Dictionary<string, string> filesSection)
     {
         var palFile = GetValue(filesSection, "pal");
 
-        // Default to single palette if no palette file specified
-        return palFile != null ? new PaletteInfo(1, palFile) : null;
+        if (palFile == null)
+        {
+            return Result<PaletteInfo>.Failure("No palette file specified", ErrorType.Validation);
+        }
+
+        try
+        {
+            return Result<PaletteInfo>.Success(new PaletteInfo(1, palFile));
+        }
+        catch (Exception ex)
+        {
+            return Result<PaletteInfo>.Failure($"Failed to create palette info: {ex.Message}", ErrorType.Internal);
+        }
     }
 
-    private static ArcadeInfo? ParseArcadeInfo(Dictionary<string, string> arcadeSection)
+    private static Result<ArcadeInfo> ParseArcadeInfo(Dictionary<string, string> arcadeSection)
     {
         var introStoryboard = GetValue(arcadeSection, "intro.storyboard");
         var endingStoryboard = GetValue(arcadeSection, "ending.storyboard");
 
         if (introStoryboard == null && endingStoryboard == null)
         {
-            return null;
+            return Result<ArcadeInfo>.Failure("No storyboard information specified", ErrorType.Validation);
         }
 
-        return new ArcadeInfo(
-            IntroStoryboard: int.TryParse(introStoryboard, out var intro) ? intro : 0,
-            EndingStoryboard: int.TryParse(endingStoryboard, out var ending) ? ending : 0
-        );
+        try
+        {
+            return Result<ArcadeInfo>.Success(new ArcadeInfo(
+                IntroStoryboard: int.TryParse(introStoryboard, out var intro) ? intro : 0,
+                EndingStoryboard: int.TryParse(endingStoryboard, out var ending) ? ending : 0
+            ));
+        }
+        catch (Exception ex)
+        {
+            return Result<ArcadeInfo>.Failure($"Failed to parse arcade info: {ex.Message}", ErrorType.Internal);
+        }
     }
 
-    private static string? ResolvePath(string? relativePath, string baseDirectory)
+    private static Result<string> ResolvePath(string? relativePath, string baseDirectory)
     {
         if (string.IsNullOrEmpty(relativePath))
         {
-            return null;
+            return Result<string>.Failure("Relative path is null or empty", ErrorType.Validation);
         }
 
         // If it's an absolute path, return as-is
         if (Path.IsPathRooted(relativePath))
         {
-            return relativePath;
+            return Result<string>.Success(relativePath);
         }
 
         // Otherwise, resolve relative to character directory
-        return Path.Combine(baseDirectory, relativePath);
+        try
+        {
+            return Result<string>.Success(Path.Combine(baseDirectory, relativePath));
+        }
+        catch (Exception ex)
+        {
+            return Result<string>.Failure($"Failed to resolve path '{relativePath}': {ex.Message}", ErrorType.Internal);
+        }
     }
 }

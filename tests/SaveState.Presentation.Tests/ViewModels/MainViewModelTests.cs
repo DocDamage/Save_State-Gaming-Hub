@@ -5,6 +5,7 @@ using Moq;
 using Xunit;
 using SaveState.Application.Onboarding.Services;
 using SaveState.Presentation.ViewModels;
+using SaveState.Presentation.Resources;
 
 namespace SaveState.Presentation.Tests.ViewModels;
 
@@ -17,23 +18,40 @@ internal class TestOnboardingService : OnboardingService
 }
 
 /// <summary>
+/// Test stub for Resources to avoid complex localization dependencies.
+/// </summary>
+internal class TestResources : SaveState.Presentation.Resources.Resources
+{
+    public TestResources() : base(null!) { }
+}
+
+/// <summary>
 /// Tests for the MainViewModel that manages application navigation.
 /// </summary>
 public class MainViewModelTests
 {
     private readonly Mock<IMediator> _mediatorMock = new();
     private readonly TestOnboardingService _onboardingService = new();
-    private readonly Mock<ILogger<SaveState.Presentation.ViewModels.Onboarding.OnboardingViewModel>> _loggerMock = new();
+    private readonly Mock<ILogger<SaveState.Presentation.ViewModels.Onboarding.OnboardingViewModel>> _onboardingLoggerMock = new();
+    private readonly Mock<SaveState.Core.Common.Services.IUserPreferencesService> _userPreferencesMock = new();
+    private readonly Mock<ILogger<MainViewModel>> _mainViewModelLoggerMock = new();
+    private readonly TestResources _resources = new();
 
     [Fact]
     public void Constructor_WithMediator_SetsUpInitialViewModel()
     {
+        // Arrange - setup the mock to return false for onboarding (shows game library)
+        _userPreferencesMock.Setup(p => p.ShouldShowOnboardingAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
         // Act
-        var viewModel = new MainViewModel(_mediatorMock.Object, _onboardingService, _loggerMock.Object);
+        var viewModel = new MainViewModel(_mediatorMock.Object, _onboardingService, _onboardingLoggerMock.Object, _userPreferencesMock.Object, _mainViewModelLoggerMock.Object, _resources);
 
         // Assert
         viewModel.Should().NotBeNull();
         viewModel.CurrentViewModel.Should().NotBeNull();
+        viewModel.CurrentViewModel.Should().BeOfType<GameLibraryViewModel>(); // Should show game library when onboarding not needed
+        viewModel.IsInitialized.Should().BeTrue(); // Async init completes synchronously with mocks
         // Note: The actual initial ViewModel depends on Locator services and is tested in integration
     }
 
@@ -41,7 +59,7 @@ public class MainViewModelTests
     public void NavigateToGameLibrary_SetsCurrentViewModelToGameLibraryViewModel()
     {
         // Arrange
-        var viewModel = new MainViewModel(_mediatorMock.Object, _onboardingService, _loggerMock.Object);
+        var viewModel = new MainViewModel(_mediatorMock.Object, _onboardingService, _onboardingLoggerMock.Object, _userPreferencesMock.Object, _mainViewModelLoggerMock.Object, _resources);
 
         // Act
         viewModel.NavigateToGameLibrary();
@@ -54,7 +72,7 @@ public class MainViewModelTests
     public void NavigateToGameLibrary_PassesMediatorToGameLibraryViewModel()
     {
         // Arrange
-        var viewModel = new MainViewModel(_mediatorMock.Object, _onboardingService, _loggerMock.Object);
+        var viewModel = new MainViewModel(_mediatorMock.Object, _onboardingService, _onboardingLoggerMock.Object, _userPreferencesMock.Object, _mainViewModelLoggerMock.Object, _resources);
 
         // Act
         viewModel.NavigateToGameLibrary();
@@ -69,7 +87,7 @@ public class MainViewModelTests
     public void CurrentViewModel_PropertyChange_NotifiesObservers()
     {
         // Arrange
-        var viewModel = new MainViewModel(_mediatorMock.Object, _onboardingService, _loggerMock.Object);
+        var viewModel = new MainViewModel(_mediatorMock.Object, _onboardingService, _onboardingLoggerMock.Object, _userPreferencesMock.Object, _mainViewModelLoggerMock.Object, _resources);
         var propertyChangedCalled = false;
         var propertyName = "";
 
@@ -91,7 +109,7 @@ public class MainViewModelTests
     public void MultipleNavigationCalls_UpdateCurrentViewModelEachTime()
     {
         // Arrange
-        var viewModel = new MainViewModel(_mediatorMock.Object, _onboardingService, _loggerMock.Object);
+        var viewModel = new MainViewModel(_mediatorMock.Object, _onboardingService, _onboardingLoggerMock.Object, _userPreferencesMock.Object, _mainViewModelLoggerMock.Object, _resources);
 
         // Act
         viewModel.NavigateToGameLibrary();

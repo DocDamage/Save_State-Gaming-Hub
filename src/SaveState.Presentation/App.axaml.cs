@@ -29,7 +29,10 @@ public partial class App : Application
                 DataContext = new MainViewModel(
                     Locator.Current.GetService<IMediator>()!,
                     Locator.Current.GetService<SaveState.Application.Onboarding.Services.OnboardingService>()!,
-                    Locator.Current.GetService<ILogger<SaveState.Presentation.ViewModels.Onboarding.OnboardingViewModel>>()!)
+                    Locator.Current.GetService<ILogger<SaveState.Presentation.ViewModels.Onboarding.OnboardingViewModel>>()!,
+                    Locator.Current.GetService<SaveState.Core.Common.Services.IUserPreferencesService>()!,
+                    Locator.Current.GetService<ILogger<MainViewModel>>()!,
+                    Locator.Current.GetService<SaveState.Presentation.Resources.Resources>()!)
             };
         }
 

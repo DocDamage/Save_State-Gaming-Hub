@@ -13,7 +13,7 @@ namespace SaveState.IntegrationTests;
 /// Database migration tests to ensure safe schema deployments.
 /// Tests migration scripts, data integrity, and rollback scenarios.
 /// </summary>
-[Collection("Database")]
+[Collection("DatabaseTests")]
 public class MigrationTests : IAsyncLifetime
 {
     private readonly SaveStateDbContext _dbContext;

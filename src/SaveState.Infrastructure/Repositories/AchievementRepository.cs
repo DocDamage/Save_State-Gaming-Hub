@@ -1,6 +1,7 @@
 namespace SaveState.Infrastructure.Repositories;
 
 using Microsoft.EntityFrameworkCore;
+using SaveState.Core.Common;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Infrastructure.Persistence;
@@ -82,6 +83,67 @@ public class AchievementRepository : IAchievementRepository
     {
         return await _context.UserAchievements
             .FirstOrDefaultAsync(ua => ua.UserId == userId && ua.AchievementId == achievementId, ct);
+    }
+
+    /// <summary>
+    /// Retrieves achievements with pagination and filtering support.
+    /// </summary>
+    /// <param name="pageNumber">The page number (1-based).</param>
+    /// <param name="pageSize">The number of items per page.</param>
+    /// <param name="type">Optional achievement type to filter by.</param>
+    /// <param name="isActive">Optional active status filter.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>A paginated result containing the achievements.</returns>
+    public async Task<PagedResult<Achievement>> GetAchievementsAsync(
+        int pageNumber = 1,
+        int pageSize = 50,
+        AchievementType? type = null,
+        bool? isActive = null,
+        CancellationToken ct = default)
+    {
+        var query = _context.Achievements.AsQueryable();
+
+        // Apply filters at database level
+        if (type.HasValue)
+        {
+            query = query.Where(a => a.Type == type.Value);
+        }
+
+        if (isActive.HasValue)
+        {
+            query = query.Where(a => a.IsActive == isActive.Value);
+        }
+
+        // Get total count before pagination
+        var totalCount = await query.CountAsync(ct);
+
+        // Apply default sorting (by name)
+        query = query.OrderBy(a => a.Name);
+
+        // Apply pagination
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return new PagedResult<Achievement>(items, totalCount, pageNumber, pageSize);
+    }
+
+    public async Task<int> CountAsync(AchievementType? type = null, bool? isActive = null, CancellationToken ct = default)
+    {
+        var query = _context.Achievements.AsQueryable();
+
+        if (type.HasValue)
+        {
+            query = query.Where(a => a.Type == type.Value);
+        }
+
+        if (isActive.HasValue)
+        {
+            query = query.Where(a => a.IsActive == isActive.Value);
+        }
+
+        return await query.CountAsync(ct);
     }
 
     /// <summary>

@@ -11,9 +11,18 @@ using SaveState.Core.GameLibrary;
 using SaveState.Presentation.ViewModels;
 using SaveState.Presentation.ViewModels.Onboarding;
 using SaveState.Presentation.Views;
+using SaveState.Presentation.Resources;
 using Xunit;
 
 namespace SaveState.Presentation.UITests;
+
+/// <summary>
+/// Test stub for Resources to avoid complex localization dependencies.
+/// </summary>
+internal class TestResources : SaveState.Presentation.Resources.Resources
+{
+    public TestResources() : base(null!) { }
+}
 
 /// <summary>
 /// UI integration tests for the main window and navigation.
@@ -21,6 +30,8 @@ namespace SaveState.Presentation.UITests;
 /// </summary>
 public class MainWindowTests : HeadlessTestBase
 {
+    private readonly TestResources _resources = new();
+
     private OnboardingService CreateMockOnboardingService()
     {
         var mockAi = new Mock<IAiOrchestrator>();
@@ -82,8 +93,10 @@ public class MainWindowTests : HeadlessTestBase
         var mockMediator = new Mock<IMediator>();
         var mockLogger = new Mock<ILogger<OnboardingViewModel>>();
         var service = CreateMockOnboardingService();
+        var mockMainViewModelLogger = new Mock<ILogger<MainViewModel>>();
 
-        var mainViewModel = new MainViewModel(mockMediator.Object, service, mockLogger.Object);
+        var mockUserPreferences = new Mock<SaveState.Core.Common.Services.IUserPreferencesService>();
+        var mainViewModel = new MainViewModel(mockMediator.Object, service, mockLogger.Object, mockUserPreferences.Object, mockMainViewModelLogger.Object, _resources);
         var initialViewModel = mainViewModel.CurrentViewModel;
 
         // Act
@@ -101,8 +114,10 @@ public class MainWindowTests : HeadlessTestBase
         var mockMediator = new Mock<IMediator>();
         var mockLogger = new Mock<ILogger<OnboardingViewModel>>();
         var service = CreateMockOnboardingService();
+        var mockMainViewModelLogger = new Mock<ILogger<MainViewModel>>();
 
-        var mainViewModel = new MainViewModel(mockMediator.Object, service, mockLogger.Object);
+        var mockUserPreferences = new Mock<SaveState.Core.Common.Services.IUserPreferencesService>();
+        var mainViewModel = new MainViewModel(mockMediator.Object, service, mockLogger.Object, mockUserPreferences.Object, mockMainViewModelLogger.Object, _resources);
         mainViewModel.NavigateToGameLibrary(); // Change away from onboarding first
 
         // Act

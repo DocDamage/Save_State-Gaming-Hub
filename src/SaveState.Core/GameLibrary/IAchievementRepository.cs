@@ -1,5 +1,6 @@
 namespace SaveState.Core.GameLibrary;
 
+using SaveState.Core.Common;
 using SaveState.Core.GameLibrary.Entities;
 
 /// <summary>
@@ -29,6 +30,31 @@ public interface IAchievementRepository
     /// <param name="ct">Cancellation token.</param>
     /// <returns>A collection of achievements of the specified type.</returns>
     Task<IReadOnlyList<Achievement>> GetAchievementsByTypeAsync(AchievementType type, CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves achievements with pagination and filtering support.
+    /// </summary>
+    /// <param name="pageNumber">The page number (1-based).</param>
+    /// <param name="pageSize">The number of items per page.</param>
+    /// <param name="type">Optional achievement type to filter by.</param>
+    /// <param name="isActive">Optional active status filter.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>A paginated result containing the achievements.</returns>
+    Task<PagedResult<Achievement>> GetAchievementsAsync(
+        int pageNumber = 1,
+        int pageSize = 50,
+        AchievementType? type = null,
+        bool? isActive = null,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets the total count of achievements.
+    /// </summary>
+    /// <param name="type">Optional achievement type filter.</param>
+    /// <param name="isActive">Optional active status filter.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The total number of achievements matching the filters.</returns>
+    Task<int> CountAsync(AchievementType? type = null, bool? isActive = null, CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves user achievement progress for a specific user.

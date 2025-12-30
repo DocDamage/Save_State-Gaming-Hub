@@ -1,6 +1,7 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:SaveState.Presentation"
+             xmlns:converters="using:SaveState.Presentation.Converters"
              x:Class="SaveState.Presentation.App">
   <Application.Resources>
     <!-- Deep Space Theme -->
@@ -14,6 +15,9 @@
     <SolidColorBrush x:Key="GlassBrush" Color="#80FFFFFF" Opacity="0.05" />
     <SolidColorBrush x:Key="CardBackgroundBrush" Color="#21262D" />
     <SolidColorBrush x:Key="CardHoverBrush" Color="#30363D" />
+
+    <!-- Converters -->
+    <converters:BoolToFlowDirectionConverter x:Key="BoolToFlowDirectionConverter" />
   </Application.Resources>
 
   <Application.Styles>

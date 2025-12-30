@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Application Common Strings -->
+  <data name="App_Name" xml:space="preserve">
+    <value>SaveState Reborn</value>
+  </data>
+  <data name="App_Description" xml:space="preserve">
+    <value>מערכת ניהול מקיפה לספריית המשחקים</value>
+  </data>
+
+  <!-- Navigation -->
+  <data name="Navigation_Home" xml:space="preserve">
+    <value>בית</value>
+  </data>
+  <data name="Navigation_Games" xml:space="preserve">
+    <value>משחקים</value>
+  </data>
+  <data name="Navigation_Library" xml:space="preserve">
+    <value>ספרייה</value>
+  </data>
+  <data name="Navigation_Settings" xml:space="preserve">
+    <value>הגדרות</value>
+  </data>
+
+  <!-- Buttons -->
+  <data name="Button_OK" xml:space="preserve">
+    <value>אישור</value>
+  </data>
+  <data name="Button_Cancel" xml:space="preserve">
+    <value>ביטול</value>
+  </data>
+  <data name="Button_Save" xml:space="preserve">
+    <value>שמירה</value>
+  </data>
+  <data name="Button_Add" xml:space="preserve">
+    <value>הוספה</value>
+  </data>
+  <data name="Button_Remove" xml:space="preserve">
+    <value>הסרה</value>
+  </data>
+  <data name="Button_Import" xml:space="preserve">
+    <value>ייבוא</value>
+  </data>
+  <data name="Button_Export" xml:space="preserve">
+    <value>ייצוא</value>
+  </data>
+  <data name="Button_Search" xml:space="preserve">
+    <value>חיפוש</value>
+  </data>
+
+  <!-- Onboarding -->
+  <data name="Onboarding_Welcome" xml:space="preserve">
+    <value>ברוך הבא ל-SaveState Reborn</value>
+  </data>
+  <data name="Onboarding_GetStarted" xml:space="preserve">
+    <value>התחל עכשיו</value>
+  </data>
+  <data name="Onboarding_Skip" xml:space="preserve">
+    <value>דלג</value>
+  </data>
+</root>

@@ -123,6 +123,114 @@ public static class AiGamingContext
         public static implicit operator int(ProcessId pid) => pid.Value;
         public static explicit operator ProcessId(int value) => new(value);
     }
+
+    /// <summary>
+    /// Represents a memory value that can be of various types used in cheat training and memory scanning.
+    /// Provides type-safe access to different value types while maintaining flexibility for memory operations.
+    /// </summary>
+    public abstract class MemoryValue
+    {
+        public abstract Type ValueType { get; }
+
+        public static MemoryValue From<T>(T value) where T : notnull
+        {
+            return value switch
+            {
+                int intValue => new IntMemoryValue(intValue),
+                float floatValue => new FloatMemoryValue(floatValue),
+                bool boolValue => new BoolMemoryValue(boolValue),
+                byte[] byteArray => new ByteArrayMemoryValue(byteArray),
+                string stringValue => new StringMemoryValue(stringValue),
+                long longValue => new LongMemoryValue(longValue),
+                double doubleValue => new DoubleMemoryValue(doubleValue),
+                _ => throw new ArgumentException($"Unsupported memory value type: {typeof(T)}", nameof(value))
+            };
+        }
+
+        public bool TryGetValue<T>(out T value) where T : notnull
+        {
+            if (this is TypedMemoryValue<T> typedValue)
+            {
+                value = typedValue.Value;
+                return true;
+            }
+
+            value = default!;
+            return false;
+        }
+
+        public T GetValue<T>() where T : notnull
+        {
+            if (TryGetValue(out T value))
+            {
+                return value;
+            }
+
+            throw new InvalidCastException($"Cannot convert {ValueType} to {typeof(T)}");
+        }
+
+        public override string ToString()
+        {
+            return this switch
+            {
+                IntMemoryValue intVal => intVal.Value.ToString(),
+                FloatMemoryValue floatVal => floatVal.Value.ToString(),
+                BoolMemoryValue boolVal => boolVal.Value.ToString(),
+                ByteArrayMemoryValue byteArr => BitConverter.ToString(byteArr.Value),
+                StringMemoryValue strVal => strVal.Value,
+                LongMemoryValue longVal => longVal.Value.ToString(),
+                DoubleMemoryValue doubleVal => doubleVal.Value.ToString(),
+                _ => "Unknown"
+            };
+        }
+    }
+
+    public abstract class TypedMemoryValue<T> : MemoryValue where T : notnull
+    {
+        public T Value { get; }
+
+        protected TypedMemoryValue(T value)
+        {
+            Value = value;
+        }
+
+        public override Type ValueType => typeof(T);
+    }
+
+    public class IntMemoryValue : TypedMemoryValue<int>
+    {
+        public IntMemoryValue(int value) : base(value) { }
+    }
+
+    public class FloatMemoryValue : TypedMemoryValue<float>
+    {
+        public FloatMemoryValue(float value) : base(value) { }
+    }
+
+    public class BoolMemoryValue : TypedMemoryValue<bool>
+    {
+        public BoolMemoryValue(bool value) : base(value) { }
+    }
+
+    public class ByteArrayMemoryValue : TypedMemoryValue<byte[]>
+    {
+        public ByteArrayMemoryValue(byte[] value) : base(value) { }
+    }
+
+    public class StringMemoryValue : TypedMemoryValue<string>
+    {
+        public StringMemoryValue(string value) : base(value) { }
+    }
+
+    public class LongMemoryValue : TypedMemoryValue<long>
+    {
+        public LongMemoryValue(long value) : base(value) { }
+    }
+
+    public class DoubleMemoryValue : TypedMemoryValue<double>
+    {
+        public DoubleMemoryValue(double value) : base(value) { }
+    }
 }
 
 // Placeholder entities for the context - will be fully implemented in Phase 1
@@ -197,8 +305,8 @@ public class TrainerCheat
 {
     public string Description { get; set; } = string.Empty;
     public AiGamingContext.MemoryAddress Address { get; set; } = null!;
-    public object? DefaultValue { get; set; }
-    public Type ValueType { get; set; } = typeof(int);
+    public AiGamingContext.MemoryValue? DefaultValue { get; set; }
+    public Type ValueType => DefaultValue?.ValueType ?? typeof(int);
 }
 
 public class MemoryScan : EntityBase
@@ -234,6 +342,6 @@ public class MemoryScan : EntityBase
 public class MemoryScanResult
 {
     public AiGamingContext.MemoryAddress Address { get; set; } = null!;
-    public object? Value { get; set; }
+    public AiGamingContext.MemoryValue? Value { get; set; }
     public AiGamingContext.ConfidenceScore Confidence { get; set; } = null!;
 }

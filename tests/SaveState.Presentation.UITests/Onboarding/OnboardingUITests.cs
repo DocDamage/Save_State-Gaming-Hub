@@ -11,9 +11,18 @@ using SaveState.Core.GameLibrary;
 using SaveState.Presentation.ViewModels;
 using SaveState.Presentation.ViewModels.Onboarding;
 using SaveState.Presentation.Views.Onboarding;
+using SaveState.Presentation.Resources;
 using Xunit;
 
 namespace SaveState.Presentation.UITests.Onboarding;
+
+/// <summary>
+/// Test stub for Resources to avoid complex localization dependencies.
+/// </summary>
+internal class TestResources : SaveState.Presentation.Resources.Resources
+{
+    public TestResources() : base(null!) { }
+}
 
 /// <summary>
 /// UI integration tests for the onboarding flow.
@@ -21,6 +30,17 @@ namespace SaveState.Presentation.UITests.Onboarding;
 /// </summary>
 public class OnboardingUITests : HeadlessTestBase
 {
+    private readonly TestResources _resources = new();
+
+    private MainViewModel CreateMockMainViewModel()
+    {
+        var mockMediator = new Mock<IMediator>();
+        var mockOnboardingLogger = new Mock<ILogger<SaveState.Presentation.ViewModels.Onboarding.OnboardingViewModel>>();
+        var mockMainLogger = new Mock<ILogger<MainViewModel>>();
+        var mockUserPreferences = new Mock<SaveState.Core.Common.Services.IUserPreferencesService>();
+        return new MainViewModel(mockMediator.Object, CreateMockOnboardingService(), mockOnboardingLogger.Object, mockUserPreferences.Object, mockMainLogger.Object, _resources);
+    }
+
     private OnboardingService CreateMockOnboardingService()
     {
         var mockAi = new Mock<IAiOrchestrator>();
@@ -38,7 +58,9 @@ public class OnboardingUITests : HeadlessTestBase
     {
         var mockMediator = new Mock<IMediator>();
         var mockLogger = new Mock<ILogger<OnboardingViewModel>>();
-        return new MainViewModel(mockMediator.Object, CreateMockOnboardingService(), mockLogger.Object);
+        var mockUserPreferences = new Mock<SaveState.Core.Common.Services.IUserPreferencesService>();
+        var mockMainViewModelLogger = new Mock<ILogger<MainViewModel>>();
+        return CreateMockMainViewModel();
     }
 
     [AvaloniaFact]
@@ -60,10 +82,13 @@ public class OnboardingUITests : HeadlessTestBase
         var mockLogger = new Mock<ILogger<OnboardingViewModel>>();
 
         // Act
+        var mockUserPreferences = new Mock<SaveState.Core.Common.Services.IUserPreferencesService>();
         var viewModel = new OnboardingViewModel(
             service,
             mockMainViewModel.Object,
-            mockLogger.Object);
+            mockLogger.Object,
+            mockUserPreferences.Object,
+            _resources);
 
         // Assert
         viewModel.Should().NotBeNull();
@@ -78,12 +103,14 @@ public class OnboardingUITests : HeadlessTestBase
 
         // Use a simple mock for MainViewModel
         var mockMediator = new Mock<IMediator>();
-        var mainViewModel = new MainViewModel(mockMediator.Object, service, mockLogger.Object);
+        var mockUserPreferences = new Mock<SaveState.Core.Common.Services.IUserPreferencesService>();
+        var mockMainViewModelLogger = new Mock<ILogger<MainViewModel>>();
+        var mainViewModel = CreateMockMainViewModel();
 
         var view = new OnboardingView();
 
         // Act - Assign a properly constructed OnboardingViewModel
-        var onboardingVm = new OnboardingViewModel(service, mainViewModel, mockLogger.Object);
+        var onboardingVm = new OnboardingViewModel(service, mainViewModel, mockLogger.Object, mockUserPreferences.Object, _resources);
         view.DataContext = onboardingVm;
 
         // Assert
@@ -111,10 +138,13 @@ public class OnboardingUITests : HeadlessTestBase
         var mockLogger = new Mock<ILogger<OnboardingViewModel>>();
 
         // Act
+        var mockUserPreferences = new Mock<SaveState.Core.Common.Services.IUserPreferencesService>();
         var viewModel = new OnboardingViewModel(
             service,
             mockMainViewModel.Object,
-            mockLogger.Object);
+            mockLogger.Object,
+            mockUserPreferences.Object,
+            _resources);
 
         // Assert
         viewModel.Should().NotBeNull();

@@ -176,14 +176,16 @@ public class LoggingTests
 
         logger.Setup(x => x.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(),
             It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()))
-            .Callback<LogLevel, EventId, object, Exception, Func<object, Exception?, string>>((_, _, _, _, formatter) =>
+            .Callback(new Action<LogLevel, EventId, object, Exception?, Delegate>((level, eventId, state, exception, formatter) =>
             {
                 if (formatter != null)
                 {
-                    var message = formatter("User {UserId} performed {Action}", null);
-                    formattedMessages.Add(message);
+                    // Use reflection to call Invoke on the delegate as it's a generic Func
+                    var message = formatter.DynamicInvoke(state, exception) as string;
+                    if (message != null)
+                        formattedMessages.Add(message);
                 }
-            });
+            }));
 
         // Act
         var testClass = new TestClass(logger.Object);
@@ -195,7 +197,7 @@ public class LoggingTests
         formattedMessages.First().Should().Contain("performed");
     }
 
-    private class TestClass
+    public class TestClass
     {
         private readonly ILogger<TestClass> _logger;
 

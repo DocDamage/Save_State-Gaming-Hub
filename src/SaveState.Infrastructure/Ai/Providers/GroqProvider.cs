@@ -23,7 +23,7 @@ public class GroqProvider : ILlmProvider
     public GroqProvider(
         HttpClient httpClient,
         IOptions<GroqOptions> options,
-        AiResiliencePolicy resiliencePolicy,
+        IAiResiliencePolicy resiliencePolicy,
         ILogger<GroqProvider> logger)
     {
         _httpClient = httpClient;

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveState.Application.Onboarding.Services;
+using SaveState.Core.Common.Services;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
@@ -15,12 +16,20 @@ public partial class OnboardingViewModel : ObservableObject
     private readonly OnboardingService _onboardingService;
     private readonly MainViewModel _mainViewModel;
     private readonly ILogger<OnboardingViewModel> _logger;
+    private readonly IUserPreferencesService _userPreferences;
+    private readonly SaveState.Presentation.Resources.Resources _resources;
 
     [ObservableProperty]
-    private string _welcomeMessage = "Loading your personalized welcome message...";
+    private string _welcomeMessage;
 
     [ObservableProperty]
     private bool _isLoading = true;
+
+    // Localized properties
+    public string Title => _resources.Onboarding_Welcome;
+    public string Subtitle => _resources.App_Description;
+    public string GetStartedButtonText => _resources.Onboarding_GetStarted;
+    public string SkipButtonText => _resources.Onboarding_Skip;
 
     /// <summary>
     /// Initializes a new instance of the OnboardingViewModel.
@@ -28,11 +37,23 @@ public partial class OnboardingViewModel : ObservableObject
     /// <param name="onboardingService">Service for generating personalized onboarding content.</param>
     /// <param name="mainViewModel">Main view model for navigation.</param>
     /// <param name="logger">Logger for this view model.</param>
-    public OnboardingViewModel(OnboardingService onboardingService, MainViewModel mainViewModel, ILogger<OnboardingViewModel> logger)
+    /// <param name="userPreferences">User preferences service.</param>
+    /// <param name="resources">Localized resources.</param>
+    public OnboardingViewModel(
+        OnboardingService onboardingService,
+        MainViewModel mainViewModel,
+        ILogger<OnboardingViewModel> logger,
+        IUserPreferencesService userPreferences,
+        SaveState.Presentation.Resources.Resources resources)
     {
         _onboardingService = onboardingService;
         _mainViewModel = mainViewModel;
         _logger = logger;
+        _userPreferences = userPreferences;
+        _resources = resources;
+
+        // Set initial localized loading message
+        WelcomeMessage = _resources.Status_Loading;
         _ = LoadWelcomeMessageAsync();
     }
 
@@ -50,9 +71,8 @@ public partial class OnboardingViewModel : ObservableObject
         {
             // Fallback message if AI generation fails
             _logger.LogWarning(ex, "Failed to generate personalized welcome message, using fallback");
-            WelcomeMessage = "Welcome to SaveState Reborn! 🎮\n\n" +
-                           "Your AI-powered gaming companion is ready to help you manage your game library, " +
-                           "discover new games, and enhance your gaming experience.\n\n" +
+            WelcomeMessage = $"{_resources.Onboarding_Welcome} 🎮\n\n" +
+                           $"{_resources.App_Description}\n\n" +
                            "Try loading your games to get started!";
         }
         finally
@@ -65,19 +85,43 @@ public partial class OnboardingViewModel : ObservableObject
     /// Command to proceed with the main application.
     /// </summary>
     [RelayCommand]
-    private void GetStarted()
+    private async Task GetStartedAsync()
     {
-        // Navigate to the main game library view
-        _mainViewModel.NavigateToGameLibrary();
+        try
+        {
+            // Mark onboarding as complete
+            await _userPreferences.CompleteOnboardingAsync();
+
+            // Navigate to the main game library view
+            _mainViewModel.NavigateToGameLibrary();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to complete onboarding");
+            // Still navigate even if saving preferences fails
+            _mainViewModel.NavigateToGameLibrary();
+        }
     }
 
     /// <summary>
     /// Command to skip the onboarding and go directly to the main application.
     /// </summary>
     [RelayCommand]
-    private void Skip()
+    private async Task SkipAsync()
     {
-        // Navigate to the main game library view (same as GetStarted for now)
-        _mainViewModel.NavigateToGameLibrary();
+        try
+        {
+            // Mark onboarding as complete
+            await _userPreferences.CompleteOnboardingAsync();
+
+            // Navigate to the main game library view
+            _mainViewModel.NavigateToGameLibrary();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to complete onboarding");
+            // Still navigate even if saving preferences fails
+            _mainViewModel.NavigateToGameLibrary();
+        }
     }
 }

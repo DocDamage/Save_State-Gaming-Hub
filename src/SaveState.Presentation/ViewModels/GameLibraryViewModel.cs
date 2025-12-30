@@ -11,16 +11,23 @@ using SaveState.Core.GameLibrary.Entities;
 public partial class GameLibraryViewModel : ObservableObject
 {
     private readonly IMediator _mediator;
+    private readonly SaveState.Presentation.Resources.Resources _resources;
 
-    public GameLibraryViewModel(IMediator mediator)
+    public GameLibraryViewModel(IMediator mediator, SaveState.Presentation.Resources.Resources resources)
     {
         _mediator = mediator;
+        _resources = resources;
         LoadGamesCommand = new AsyncRelayCommand(LoadGamesAsync);
         Games = new ObservableCollection<Game>();
 
         // Auto-load games when ViewModel is created (for Walking Skeleton)
         _ = LoadGamesAsync();
     }
+
+    // Localized properties
+    public string Title => _resources.GameLibrary_Title;
+    public string NoGamesMessage => _resources.GameLibrary_NoGames;
+    public string SearchPlaceholder => _resources.GameLibrary_Search_Placeholder;
 
     public ObservableCollection<Game> Games { get; }
 

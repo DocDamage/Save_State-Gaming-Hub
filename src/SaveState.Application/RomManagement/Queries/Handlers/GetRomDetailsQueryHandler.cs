@@ -18,10 +18,7 @@ public class GetRomDetailsQueryHandler : IRequestHandler<GetRomDetailsQuery, Res
 
     public async Task<Result<RomDetailsDto>> Handle(GetRomDetailsQuery request, CancellationToken ct)
     {
-        // In a real implementation, you'd have a method to get ROM by ID
-        // For now, we'll return a mock result since we don't have individual ROM retrieval
-        var roms = await _romRepository.GetAllAsync(ct).ConfigureAwait(false);
-        var rom = roms.FirstOrDefault(r => (Guid)r.Id == request.RomFileId.Value);
+        var rom = await _romRepository.GetByIdAsync(request.RomFileId.Value, ct).ConfigureAwait(false);
 
         if (rom is null)
             return Result<RomDetailsDto>.Failure("ROM file not found");

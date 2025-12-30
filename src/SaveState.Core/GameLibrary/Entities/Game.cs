@@ -22,6 +22,8 @@ public class Game : EntityBase, ISoftDelete
     public string? SourceId { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
+    public DateTime? LastPlayedAt { get; private set; }
+    public TimeSpan TotalPlayTime { get; private set; }
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
 

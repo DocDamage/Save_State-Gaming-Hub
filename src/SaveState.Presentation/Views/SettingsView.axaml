@@ -1,0 +1,111 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
+             x:Class="SaveState.Presentation.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel"
+             FlowDirection="{Binding IsRightToLeft, Converter={StaticResource BoolToFlowDirectionConverter}}"
+             AutomationProperties.Name="Settings"
+             AutomationProperties.HelpText="Configure application settings including language and localization"
+             AutomationProperties.AutomationId="SettingsView"
+             IsTabStop="False">
+
+  <ScrollViewer>
+    <StackPanel Margin="20" Spacing="20">
+
+      <!-- General Section -->
+      <Border Classes="Card" Padding="16">
+        <StackPanel Spacing="12">
+          <TextBlock Text="{Binding GeneralSection}" Classes="Header" />
+
+          <TextBlock Text="General settings will be added here." Classes="Body" />
+        </StackPanel>
+      </Border>
+
+      <!-- Language Section -->
+      <Border Classes="Card" Padding="16">
+        <StackPanel Spacing="12">
+          <TextBlock Text="{Binding LanguageSection}" Classes="Header" />
+
+          <StackPanel Spacing="8">
+            <TextBlock Text="{Binding LanguageSelectLabel}"
+                       Classes="Label"
+                       AutomationProperties.Name="{Binding LanguageSelectLabel}"
+                       AutomationProperties.AutomationId="LanguageSelectLabel" />
+
+            <ComboBox ItemsSource="{Binding SupportedCultures}"
+                     SelectedItem="{Binding SelectedCulture}"
+                     HorizontalAlignment="Stretch"
+                     TabIndex="1"
+                     AutomationProperties.Name="Language selection dropdown"
+                     AutomationProperties.HelpText="Select your preferred language for the application interface"
+                     AutomationProperties.AutomationId="LanguageComboBox">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding NativeName}"
+                             AutomationProperties.Name="{Binding NativeName}"
+                             AutomationProperties.AutomationId="{Binding Name, StringFormat='Culture_{0}'}"/>
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <Button Content="Apply Language"
+                    Command="{Binding ChangeCultureCommand}"
+                    CommandParameter="{Binding SelectedCulture}"
+                    Classes="Primary"
+                    HorizontalAlignment="Left"
+                    TabIndex="2"
+                    AutomationProperties.Name="Apply language changes"
+                    AutomationProperties.HelpText="Apply the selected language and restart the application"
+                    AutomationProperties.AutomationId="ApplyLanguageButton" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <!-- Localization Test Section -->
+      <Border Classes="Card" Padding="16">
+        <StackPanel Spacing="12">
+          <TextBlock Text="{Binding TestSection}" Classes="Header" />
+
+          <StackPanel Spacing="8">
+            <TextBlock Text="Current localized test string:" Classes="Label" />
+            <TextBlock Text="{Binding TestLocalizedString}" Classes="Body" FontWeight="Bold" />
+
+            <TextBlock Text="If localization is working, this text will change when you select a different language." Classes="Caption" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <!-- Culture Formatting Section -->
+      <Border Classes="Card" Padding="16">
+        <StackPanel Spacing="12">
+          <TextBlock Text="{Binding FormattingSection}" Classes="Header" />
+
+          <Grid ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto, Auto" HorizontalAlignment="Stretch">
+
+            <!-- Date -->
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding DateLabel}" Classes="Label" Margin="0,0,12,8" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="December 30, 2024" Classes="Body" Margin="0,0,12,8" />
+            <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding FormattedDate}" Classes="Body" FontWeight="Bold" Margin="0,0,0,8" />
+
+            <!-- Number -->
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding NumberLabel}" Classes="Label" Margin="0,0,12,8" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="1,234,567.89" Classes="Body" Margin="0,0,12,8" />
+            <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding FormattedNumber}" Classes="Body" FontWeight="Bold" Margin="0,0,0,8" />
+
+            <!-- Currency -->
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding CurrencyLabel}" Classes="Label" Margin="0,0,12,0" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="$1,234.56" Classes="Body" Margin="0,0,12,0" />
+            <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding FormattedCurrency}" Classes="Body" FontWeight="Bold" />
+
+          </Grid>
+
+          <TextBlock Text="Formatting examples show how dates, numbers, and currency are displayed in the current culture." Classes="Caption" />
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

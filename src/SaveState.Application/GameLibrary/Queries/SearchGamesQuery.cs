@@ -8,7 +8,7 @@ using SaveState.Core.GameLibrary.Enums;
 
 namespace SaveState.Application.GameLibrary.Queries;
 
-public record SearchGamesQuery : IRequest<Result<PagedResult<GameSummaryDto>>>
+public record SearchGamesQuery : IRequest<Result<Application.Common.DTOs.PagedResult<GameSummaryDto>>>
 {
     public string? Title { get; init; }
     public string? Platform { get; init; }

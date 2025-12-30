@@ -26,12 +26,16 @@ public class EnhancedShortTermMemory : IShortTermMemory
 
     public async Task StoreAsync(MemoryEntry entry, CancellationToken ct = default)
     {
+        ct.ThrowIfCancellationRequested();
+
         var estimatedTokens = EstimateTokenCount(entry.Content);
 
         if (_memories.Count >= _config.MaxEntries || _totalTokens + estimatedTokens > _config.MaxTokens)
         {
             await PruneAsync(ct).ConfigureAwait(false);
         }
+
+        ct.ThrowIfCancellationRequested();
 
         if (_memories.Count >= _config.MaxEntries)
         {
@@ -113,17 +117,40 @@ public class EnhancedShortTermMemory : IShortTermMemory
 
     private void UpdateKeywordIndex(MemoryEntry entry)
     {
+        // Index content keywords
         foreach (var keyword in ExtractKeywords(entry.Content))
         {
             var ids = _keywordIndex.GetOrAdd(keyword, _ => new HashSet<string>());
+            ids.Add(entry.Id);
+        }
+
+        // Index context/tag keywords
+        foreach (var context in entry.Contexts)
+        {
+            var ids = _keywordIndex.GetOrAdd(context.ToLowerInvariant(), _ => new HashSet<string>());
             ids.Add(entry.Id);
         }
     }
 
     private void RemoveFromKeywordIndex(MemoryEntry entry)
     {
+        // Remove content keywords
         foreach (var keyword in ExtractKeywords(entry.Content))
         {
+            if (_keywordIndex.TryGetValue(keyword, out var ids))
+            {
+                ids.Remove(entry.Id);
+                if (ids.Count == 0)
+                {
+                    _keywordIndex.TryRemove(keyword, out _);
+                }
+            }
+        }
+
+        // Remove context/tag keywords
+        foreach (var context in entry.Contexts)
+        {
+            var keyword = context.ToLowerInvariant();
             if (_keywordIndex.TryGetValue(keyword, out var ids))
             {
                 ids.Remove(entry.Id);

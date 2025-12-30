@@ -12,6 +12,7 @@ using SaveState.Core.Common;
 using SaveState.Core.Configuration;
 using SaveState.Infrastructure.Ai.Providers;
 using SaveState.Infrastructure.Ai.Resilience;
+using System.Threading.Tasks;
 
 namespace SaveState.Infrastructure.Tests.Ai;
 
@@ -19,9 +20,9 @@ public class OpenAiProviderTests
 {
     private readonly Mock<HttpMessageHandler> _httpMessageHandler = new();
     private readonly Mock<IOptions<OpenAiOptions>> _optionsMock = new();
-    private readonly Mock<AiResiliencePolicy> _resiliencePolicyMock = new();
+    private readonly Mock<IAiResiliencePolicy> _resiliencePolicyMock = new();
     private readonly Mock<ILogger<OpenAiProvider>> _loggerMock = new();
-    private readonly OpenAiProvider _sut;
+    private OpenAiProvider _sut;
 
     public OpenAiProviderTests()
     {
@@ -33,7 +34,7 @@ public class OpenAiProviderTests
         _optionsMock.Setup(o => o.Value).Returns(options);
 
         var httpClient = new HttpClient(_httpMessageHandler.Object);
-        var resiliencePolicy = Policy.WrapAsync(Policy.NoOpAsync());
+        var resiliencePolicy = Policy.WrapAsync(Policy.NoOpAsync(), Policy.NoOpAsync());
         _resiliencePolicyMock.Setup(r => r.GetPipelinePolicy("OpenAI")).Returns(resiliencePolicy);
 
         _sut = new OpenAiProvider(
@@ -61,7 +62,7 @@ public class OpenAiProviderTests
         _optionsMock.Setup(o => o.Value).Returns(options);
 
         var httpClient = new HttpClient(_httpMessageHandler.Object);
-        var resiliencePolicy = Policy.WrapAsync(Policy.NoOpAsync());
+        var resiliencePolicy = Policy.WrapAsync(Policy.NoOpAsync(), Policy.NoOpAsync());
 
         // Act
         var provider = new OpenAiProvider(
@@ -89,7 +90,8 @@ public class OpenAiProviderTests
                 ""prompt_tokens"": 10,
                 ""completion_tokens"": 5,
                 ""total_tokens"": 15
-            }
+            },
+            ""model"": ""gpt-3.5-turbo""
         }";
 
         _httpMessageHandler
@@ -150,7 +152,17 @@ public class OpenAiProviderTests
     {
         // Arrange - First call fails with rate limit, second succeeds
         var callCount = 0;
+        var retryPolicy = Policy.Handle<HttpRequestException>(ex => ex.StatusCode == HttpStatusCode.TooManyRequests)
+            .RetryAsync(1);
+        var resiliencePolicy = Policy.WrapAsync(Policy.NoOpAsync(), retryPolicy);
+        _resiliencePolicyMock.Setup(r => r.GetPipelinePolicy("OpenAI")).Returns(resiliencePolicy);
+
+        // Re-create SUT with real retry policy
+        var httpClient = new HttpClient(_httpMessageHandler.Object);
+        _sut = new OpenAiProvider(httpClient, _optionsMock.Object, _resiliencePolicyMock.Object, _loggerMock.Object);
+
         var responseContent = @"{
+            ""model"": ""gpt-4"",
             ""choices"": [
                 {
                     ""text"": ""Success after retry"",
@@ -194,7 +206,7 @@ public class OpenAiProviderTests
         var result = await _sut.CompleteAsync(request, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue($"Result should be success. Call count: {callCount}. Error: {result.Error}");
         result.Value!.Text.Should().Be("Success after retry");
         callCount.Should().Be(2); // Should have made 2 calls due to retry
     }
@@ -217,9 +229,12 @@ public class OpenAiProviderTests
 
         var request = new CompletionRequest("Test prompt", "gpt-4", 100);
 
-        // Act & Assert
-        await Assert.ThrowsAsync<JsonException>(() =>
-            _sut.CompleteAsync(request, CancellationToken.None));
+        // Act
+        var result = await _sut.CompleteAsync(request, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Contain("OpenAI API request failed");
     }
 
     [Fact]
@@ -236,23 +251,31 @@ public class OpenAiProviderTests
 
         var request = new CompletionRequest("Test prompt", "gpt-3.5-turbo", 100);
 
-        // Act & Assert
-        await Assert.ThrowsAsync<HttpRequestException>(() =>
-            _sut.CompleteAsync(request, CancellationToken.None));
+        // Act
+        var result = await _sut.CompleteAsync(request, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Contain("OpenAI API request failed");
     }
 
     [Fact]
     public async Task CompleteAsync_WithCancellation_ThrowsOperationCanceledException()
     {
         // Arrange
-        using var cts = new CancellationTokenSource();
-        cts.Cancel();
+        _httpMessageHandler
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.Is<CancellationToken>(t => t.IsCancellationRequested))
+            .ThrowsAsync(new TaskCanceledException());
 
         var request = new CompletionRequest("Test prompt", "gpt-4", 100);
 
         // Act & Assert
-        await Assert.ThrowsAsync<OperationCanceledException>(() =>
-            _sut.CompleteAsync(request, cts.Token));
+        await Assert.ThrowsAsync<TaskCanceledException>(() =>
+            _sut.CompleteAsync(request, new CancellationToken(true)));
     }
 
     [Fact]

@@ -1,0 +1,155 @@
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Infrastructure.Tests\bin\Debug\net9.0\SaveState.Infrastructure.Tests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Core.Tests\bin\Debug\net9.0\SaveState.Core.Tests.dll (.NETCoreApp,Version=v9.0)
+Starting test execution, please wait...
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.EndToEndTests\bin\Debug\net9.0\SaveState.EndToEndTests.dll (.NETCoreApp,Version=v9.0)
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\bin\Debug\net9.0\SaveState.Application.Tests.dll (.NETCoreApp,Version=v9.0)
+A total of 1 test files matched the specified pattern.
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.IntegrationTests\bin\Debug\net9.0\SaveState.IntegrationTests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Presentation.UITests\bin\Debug\net9.0\SaveState.Presentation.UITests.dll (.NETCoreApp,Version=v9.0)
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Presentation.Tests\bin\Debug\net9.0\SaveState.Presentation.Tests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 18.0.0-preview-25451-107 (x64)
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.LoadTests\bin\Debug\net9.0\SaveState.LoadTests.dll (.NETCoreApp,Version=v9.0)
+
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+Starting test execution, please wait...
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Starting test execution, please wait...
+VSTest version 18.0.0-preview-25451-107 (x64)
+A total of 1 test files matched the specified pattern.
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+[xUnit.net 00:00:00.24]   Discovering: SaveState.Infrastructure.Tests
+[xUnit.net 00:00:00.95]   Discovered:  SaveState.Infrastructure.Tests
+[xUnit.net 00:00:00.06] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+No test is available in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.IntegrationTests\bin\Debug\net9.0\SaveState.IntegrationTests.dll. Make sure that test discoverer & executors are registered and platform & framework version settings are appropriate and try again.
+[xUnit.net 00:00:00.58]   Discovering: SaveState.Core.Tests
+[xUnit.net 00:00:01.37]   Starting:    SaveState.Infrastructure.Tests
+
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+[xUnit.net 00:00:00.55]   Discovering: SaveState.EndToEndTests
+[xUnit.net 00:00:00.59]   Discovering: SaveState.Application.Tests
+[xUnit.net 00:00:01.25]   Discovered:  SaveState.Core.Tests
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+[xUnit.net 00:00:00.03] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+[xUnit.net 00:00:00.89]   Discovered:  SaveState.EndToEndTests
+No test matches the given testcase filter `FullyQualifiedName~SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests` in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.EndToEndTests\bin\Debug\net9.0\SaveState.EndToEndTests.dll
+No test matches the given testcase filter `FullyQualifiedName~SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests` in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Core.Tests\bin\Debug\net9.0\SaveState.Core.Tests.dll
+[xUnit.net 00:00:00.03] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+[xUnit.net 00:00:00.93]   Discovered:  SaveState.Application.Tests
+[xUnit.net 00:00:00.39]   Discovering: SaveState.LoadTests
+
+
+[xUnit.net 00:00:00.40]   Discovering: SaveState.Presentation.UITests
+No test matches the given testcase filter `FullyQualifiedName~SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests` in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\bin\Debug\net9.0\SaveState.Application.Tests.dll
+[xUnit.net 00:00:00.41]   Discovering: SaveState.Presentation.Tests
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Configuration.Tests\bin\Debug\net9.0\SaveState.Configuration.Tests.dll (.NETCoreApp,Version=v9.0)
+
+[xUnit.net 00:00:00.66]   Discovered:  SaveState.LoadTests
+[xUnit.net 00:00:00.61]   Discovered:  SaveState.Presentation.Tests
+[xUnit.net 00:00:00.69]   Discovered:  SaveState.Presentation.UITests
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.CrossPlatform.Tests\bin\Debug\net9.0\SaveState.CrossPlatform.Tests.dll (.NETCoreApp,Version=v9.0)
+No test matches the given testcase filter `FullyQualifiedName~SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests` in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.LoadTests\bin\Debug\net9.0\SaveState.LoadTests.dll
+No test matches the given testcase filter `FullyQualifiedName~SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests` in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Presentation.UITests\bin\Debug\net9.0\SaveState.Presentation.UITests.dll
+[xUnit.net 00:00:02.91]       Expected boolean to be True, but found False.
+[xUnit.net 00:00:02.91]       Stack Trace:
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Monitoring.Tests\bin\Debug\net9.0\SaveState.Monitoring.Tests.dll (.NETCoreApp,Version=v9.0)
+No test matches the given testcase filter `FullyQualifiedName~SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests` in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Presentation.Tests\bin\Debug\net9.0\SaveState.Presentation.Tests.dll
+[xUnit.net 00:00:02.91]            at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Accessibility.Tests\bin\Debug\net9.0\SaveState.Accessibility.Tests.dll (.NETCoreApp,Version=v9.0)
+[xUnit.net 00:00:02.91]            at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+[xUnit.net 00:00:02.91]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:02.91]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:02.91]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:02.91]            at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+[xUnit.net 00:00:02.91]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:00:02.91]         C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Infrastructure.Tests\Ai\OpenAiProviderTests.cs(199,0): at SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests.CompleteAsync_WithRateLimitError_RetriesAndSucceeds()
+[xUnit.net 00:00:02.91]         --- End of stack trace from previous location ---
+
+  Passed SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests.AvailableModels_ContainsExpectedModelsWithCorrectCosts [599 ms]
+  Passed SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests.CompleteAsync_WithCancellation_ThrowsOperationCanceledException [249 ms]
+  Passed SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests.CompleteAsync_WithApiError_ReturnsFailureResult [15 ms]
+  Passed SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests.Constructor_WithMissingApiKey_IsNotAvailable [3 ms]
+  Passed SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests.CompleteAsync_WithValidRequest_ReturnsCompletionResult [72 ms]
+  Failed SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests.CompleteAsync_WithRateLimitError_RetriesAndSucceeds [225 ms]
+  Error Message:
+   Expected boolean to be True, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests.CompleteAsync_WithRateLimitError_RetriesAndSucceeds() in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Infrastructure.Tests\Ai\OpenAiProviderTests.cs:line 199
+--- End of stack trace from previous location ---
+  Passed SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests.ChatAsync_WithValidRequest_ReturnsChatResult [19 ms]
+  Passed SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests.CompleteAsync_WithInvalidJson_ReturnsFailure [24 ms]
+  Passed SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests.CompleteAsync_WithNetworkError_ReturnsFailure [2 ms]
+[xUnit.net 00:00:02.98]   Finished:    SaveState.Infrastructure.Tests
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+
+  Passed SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests.Constructor_WithValidOptions_ConfiguresHttpClientCorrectly [< 1 ms]
+
+Total tests: 10
+     Passed: 9
+     Failed: 1
+ Total time: 4.7551 Seconds
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+VSTest version 18.0.0-preview-25451-107 (x64)
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+
+Starting test execution, please wait...
+Starting test execution, please wait...
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+[xUnit.net 00:00:00.01] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+[xUnit.net 00:00:00.01] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+[xUnit.net 00:00:00.20]   Discovering: SaveState.Monitoring.Tests
+[xUnit.net 00:00:00.21]   Discovering: SaveState.Configuration.Tests
+[xUnit.net 00:00:00.20]   Discovering: SaveState.Accessibility.Tests
+[xUnit.net 00:00:00.32]   Discovered:  SaveState.Monitoring.Tests
+No test matches the given testcase filter `FullyQualifiedName~SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests` in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Monitoring.Tests\bin\Debug\net9.0\SaveState.Monitoring.Tests.dll
+[xUnit.net 00:00:00.37]   Discovered:  SaveState.Accessibility.Tests
+No test matches the given testcase filter `FullyQualifiedName~SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests` in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Accessibility.Tests\bin\Debug\net9.0\SaveState.Accessibility.Tests.dll
+[xUnit.net 00:00:00.43]   Discovered:  SaveState.Configuration.Tests
+No test matches the given testcase filter `FullyQualifiedName~SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests` in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Configuration.Tests\bin\Debug\net9.0\SaveState.Configuration.Tests.dll
+
+
+
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+[xUnit.net 00:00:00.14]   Discovering: SaveState.CrossPlatform.Tests
+[xUnit.net 00:00:00.21]   Discovered:  SaveState.CrossPlatform.Tests
+No test matches the given testcase filter `FullyQualifiedName~SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests` in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.CrossPlatform.Tests\bin\Debug\net9.0\SaveState.CrossPlatform.Tests.dll
+

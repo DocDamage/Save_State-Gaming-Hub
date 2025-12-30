@@ -19,29 +19,37 @@ public class GetLibraryStatisticsQueryHandler : IRequestHandler<GetLibraryStatis
 
     public async Task<Result<LibraryStatisticsDto>> Handle(GetLibraryStatisticsQuery request, CancellationToken ct)
     {
-        var games = await _gameRepository.GetAllAsync(ct).ConfigureAwait(false);
+        // Get efficient aggregate data from the database
+        var totalGames = await _gameRepository.CountAsync(ct).ConfigureAwait(false);
+        var platformStats = await _gameRepository.GetPlatformStatisticsAsync(ct).ConfigureAwait(false);
+
+        // For status-based statistics, we still need some data but can be more selective
+        // This is a compromise - we could add more aggregate methods if needed
+        var gamesForStatusStats = await _gameRepository.GetGamesAsync(
+            pageNumber: 1,
+            pageSize: 1000, // Reasonable limit for status statistics
+            ct: ct).ConfigureAwait(false);
+
+        var gamesList = gamesForStatusStats.Items;
 
         // Filter out hidden/deleted games if requested
         if (!request.IncludeHidden)
         {
-            games = games.Where(g => !g.IsDeleted).ToList();
+            gamesList = gamesList.Where(g => !g.IsDeleted).ToList();
         }
 
         var stats = new LibraryStatisticsDto
         {
-            TotalGames = games.Count,
-            InstalledGames = games.Count(g => g.Status == GameStatus.Installed),
-            RunningGames = games.Count(g => g.Status == GameStatus.Running),
-            GamesByStatus = games
+            TotalGames = request.IncludeHidden ? totalGames : gamesList.Count,
+            InstalledGames = gamesList.Count(g => g.Status == GameStatus.Installed),
+            RunningGames = gamesList.Count(g => g.Status == GameStatus.Running),
+            GamesByStatus = gamesList
                 .GroupBy(g => g.Status)
                 .ToDictionary(g => g.Key, g => g.Count()),
-            GamesByPlatform = games
-                .Where(g => g.Platform != null)
-                .GroupBy(g => g.Platform!.Name.Value)
-                .ToDictionary(g => g.Key, g => g.Count()),
-            TotalDiskSpaceUsed = CalculateTotalDiskSpace(games),
+            GamesByPlatform = platformStats.ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
+            TotalDiskSpaceUsed = CalculateTotalDiskSpace(gamesList),
             TotalPlayTime = TimeSpan.Zero, // Would be tracked separately
-            LastGameAdded = games.Any() ? games.Max(g => g.CreatedAt) : null
+            LastGameAdded = gamesList.Any() ? gamesList.Max(g => g.CreatedAt) : null
         };
 
         return Result<LibraryStatisticsDto>.Success(stats);

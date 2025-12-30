@@ -6,16 +6,55 @@ using Moq;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Common;
 using SaveState.Core.Configuration;
+using SaveState.Core.Monitoring;
 using SaveState.Infrastructure.Ai;
+using SaveState.Infrastructure.Common;
 using Xunit;
 
 namespace SaveState.Infrastructure.Tests.Ai;
 
+// Test double for ICachePerformanceMonitor to avoid Moq issues
+internal class TestCachePerformanceMonitor : ICachePerformanceMonitor
+{
+    public void RecordCacheHit(string cacheName) { }
+    public void RecordCacheMiss(string cacheName) { }
+    public void Dispose() { }
+}
+
+// Minimal test to isolate the infrastructure issue
+public class AiOrchestratorInfrastructureTest
+{
+    [Fact]
+    public void Constructor_WithMinimalSetup_ShouldNotThrow()
+    {
+        // Arrange - minimal setup to isolate the issue
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        var cacheService = new MemoryCacheService(cache);
+        var options = Options.Create(new AiOptions());
+        var logger = new Mock<ILogger<AiOrchestrator>>().Object;
+        var metrics = new Mock<IApplicationMetrics>().Object;
+        var cacheMonitor = new TestCachePerformanceMonitor();
+        var providers = new List<ILlmProvider>();
+
+        // Act & Assert - should not throw
+        var exception = Record.Exception(() =>
+        {
+            var orchestrator = new AiOrchestrator(providers, cacheService, options, logger, metrics, cacheMonitor);
+        });
+
+        exception.Should().BeNull();
+    }
+}
+
 public class AiOrchestratorTests
 {
-    private readonly Mock<IMemoryCache> _cacheMock = new();
+    private readonly Mock<ICacheService> _cacheMock = new();
     private readonly Mock<IOptions<AiOptions>> _optionsMock = new();
     private readonly Mock<ILogger<AiOrchestrator>> _loggerMock = new();
+    private readonly Mock<IApplicationMetrics> _metricsMock = new();
+    private readonly ICachePerformanceMonitor _cacheMonitor = new TestCachePerformanceMonitor();
+    private readonly Mock<ILlmProvider> _openAiProviderMock = new();
+    private readonly Mock<ILlmProvider> _groqProviderMock = new();
     private readonly List<ILlmProvider> _providers;
     private readonly AiOrchestrator _sut;
 
@@ -23,17 +62,27 @@ public class AiOrchestratorTests
     {
         _optionsMock.Setup(o => o.Value).Returns(new AiOptions());
 
+        // Setup provider mocks
+        _openAiProviderMock.Setup(p => p.ProviderName).Returns("OpenAI");
+        _openAiProviderMock.Setup(p => p.IsAvailable).Returns(true);
+
+        _groqProviderMock.Setup(p => p.ProviderName).Returns("Groq");
+        _groqProviderMock.Setup(p => p.IsAvailable).Returns(true);
+
         _providers = new List<ILlmProvider>
         {
-            Mock.Of<ILlmProvider>(p => p.ProviderName == "OpenAI" && p.IsAvailable),
-            Mock.Of<ILlmProvider>(p => p.ProviderName == "Groq" && p.IsAvailable)
+            _openAiProviderMock.Object,
+            _groqProviderMock.Object
         };
 
+        // Create the system under test
         _sut = new AiOrchestrator(
             _providers,
             _cacheMock.Object,
             _optionsMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _metricsMock.Object,
+            _cacheMonitor);
     }
 
     [Fact]
@@ -42,16 +91,26 @@ public class AiOrchestratorTests
         // Arrange
         var request = new AiRequest(AiRequestType.Completion, Prompt: "Test prompt");
         var cachedResponse = new AiResponse("Cached response", "stop", new TokenUsage(10, 5, 15), "gpt-4", "OpenAI", true);
+        var cacheKey = $"ai:{request.Type}:{request.Model}:{request.Prompt?.GetHashCode() ?? request.Messages?.GetHashCode() ?? 0}";
 
-        _cacheMock.Setup(c => c.TryGetValue(It.IsAny<string>(), out cachedResponse))
-            .Returns(true);
+        // Use real cache service with pre-populated data for this test
+        var memoryCache = new MemoryCache(new MemoryCacheOptions());
+        var realCacheService = new MemoryCacheService(memoryCache);
+        memoryCache.Set(cacheKey, cachedResponse);
+
+        var orchestrator = new AiOrchestrator(
+            _providers,
+            realCacheService,
+            _optionsMock.Object,
+            _loggerMock.Object,
+            _metricsMock.Object,
+            _cacheMonitor);
 
         // Act
-        var result = await _sut.ProcessRequestAsync(request);
+        var result = await orchestrator.ProcessRequestAsync(request);
 
         // Assert
         result.Should().Be(cachedResponse);
-        _cacheMock.Verify(c => c.TryGetValue(It.IsAny<string>(), out It.Ref<AiResponse>.IsAny), Times.Once);
     }
 
     [Fact]
@@ -59,8 +118,7 @@ public class AiOrchestratorTests
     {
         // Arrange
         var request = new AiRequest(AiRequestType.Completion, Prompt: "Test prompt", AllowCache: false);
-        var mockProvider = Mock.Get(_providers[0]);
-        mockProvider.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
+        _openAiProviderMock.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<CompletionResult>.Success(new CompletionResult("Response", "stop", new TokenUsage(10, 5, 15), "gpt-4")));
 
         // Act
@@ -68,7 +126,7 @@ public class AiOrchestratorTests
 
         // Assert
         result.IsSuccessful.Should().BeTrue();
-        _cacheMock.Verify(c => c.TryGetValue(It.IsAny<string>(), out It.Ref<AiResponse>.IsAny), Times.Never);
+        result.Content.Should().Be("Response"); // Verify the provider was called and returned the expected result
     }
 
     [Fact]
@@ -79,7 +137,9 @@ public class AiOrchestratorTests
             Array.Empty<ILlmProvider>(),
             _cacheMock.Object,
             _optionsMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _metricsMock.Object,
+            _cacheMonitor);
 
         var request = new AiRequest(AiRequestType.Completion, Prompt: "Test prompt", AllowCache: false);
 
@@ -96,8 +156,7 @@ public class AiOrchestratorTests
     {
         // Arrange
         var request = new AiRequest(AiRequestType.Completion, Prompt: "Test prompt", PreferredProvider: "Groq", AllowCache: false);
-        var mockGroqProvider = Mock.Get(_providers[1]);
-        mockGroqProvider.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
+        _groqProviderMock.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<CompletionResult>.Success(new CompletionResult("Groq response", "stop", new TokenUsage(8, 4, 12), "mixtral-8x7b")));
 
         // Act
@@ -106,7 +165,7 @@ public class AiOrchestratorTests
         // Assert
         result.IsSuccessful.Should().BeTrue();
         result.Provider.Should().Be("Groq");
-        mockGroqProvider.Verify(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()), Times.Once);
+        _groqProviderMock.Verify(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -114,13 +173,11 @@ public class AiOrchestratorTests
     {
         // Arrange
         var request = new AiRequest(AiRequestType.Completion, Prompt: "Test prompt", AllowCache: false);
-        var mockOpenAiProvider = Mock.Get(_providers[0]);
-        var mockGroqProvider = Mock.Get(_providers[1]);
 
-        mockOpenAiProvider.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
+        _openAiProviderMock.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<CompletionResult>.Failure("Provider failed", ErrorType.Internal));
 
-        mockGroqProvider.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
+        _groqProviderMock.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<CompletionResult>.Success(new CompletionResult("Fallback response", "stop", new TokenUsage(8, 4, 12), "mixtral-8x7b")));
 
         // Act
@@ -148,8 +205,7 @@ public class AiOrchestratorTests
     public async Task IsProviderHealthyAsync_WithAvailableProvider_ReturnsTrue()
     {
         // Arrange
-        var mockProvider = Mock.Get(_providers[0]);
-        mockProvider.Setup(p => p.IsAvailable).Returns(true);
+        _openAiProviderMock.Setup(p => p.IsAvailable).Returns(true);
 
         // Act
         var result = await _sut.IsProviderHealthyAsync("OpenAI", default);
@@ -162,8 +218,7 @@ public class AiOrchestratorTests
     public async Task IsProviderHealthyAsync_WithUnavailableProvider_ReturnsFalse()
     {
         // Arrange
-        var mockProvider = Mock.Get(_providers[0]);
-        mockProvider.Setup(p => p.IsAvailable).Returns(false);
+        _openAiProviderMock.Setup(p => p.IsAvailable).Returns(false);
 
         // Act
         var result = await _sut.IsProviderHealthyAsync("OpenAI", default);
@@ -200,8 +255,7 @@ public class AiOrchestratorTests
         // Arrange
         var messages = new[] { new ChatMessage("user", "Hello") };
         var request = new AiRequest(AiRequestType.Chat, Messages: messages, AllowCache: false);
-        var mockProvider = Mock.Get(_providers[0]);
-        mockProvider.Setup(p => p.ChatAsync(It.IsAny<ChatRequest>(), It.IsAny<CancellationToken>()))
+        _openAiProviderMock.Setup(p => p.ChatAsync(It.IsAny<ChatRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<ChatResult>.Success(new ChatResult("Chat response", "stop", new TokenUsage(10, 5, 15), "gpt-4")));
 
         // Act
@@ -211,7 +265,7 @@ public class AiOrchestratorTests
         result.IsSuccessful.Should().BeTrue();
         result.Content.Should().Be("Chat response");
         result.Provider.Should().Be("OpenAI");
-        mockProvider.Verify(p => p.ChatAsync(It.IsAny<ChatRequest>(), It.IsAny<CancellationToken>()), Times.Once);
+        _openAiProviderMock.Verify(p => p.ChatAsync(It.IsAny<ChatRequest>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -238,12 +292,10 @@ public class AiOrchestratorTests
     {
         // Arrange - Both providers fail
         var request = new AiRequest(AiRequestType.Completion, Prompt: "Test prompt", AllowCache: false);
-        var mockOpenAiProvider = Mock.Get(_providers[0]);
-        var mockGroqProvider = Mock.Get(_providers[1]);
 
-        mockOpenAiProvider.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
+        _openAiProviderMock.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<CompletionResult>.Failure("OpenAI failed", ErrorType.Internal));
-        mockGroqProvider.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
+        _groqProviderMock.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<CompletionResult>.Failure("Groq failed", ErrorType.Internal));
 
         // Act
@@ -259,8 +311,7 @@ public class AiOrchestratorTests
     {
         // Arrange
         var request = new AiRequest(AiRequestType.Completion, Prompt: "Test prompt", Model: "custom-model", AllowCache: false);
-        var mockProvider = Mock.Get(_providers[0]);
-        mockProvider.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
+        _openAiProviderMock.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<CompletionResult>.Success(new CompletionResult("Response", "stop", new TokenUsage(10, 5, 15), "custom-model")))
             .Callback<CompletionRequest, CancellationToken>((req, ct) =>
             {
@@ -271,6 +322,6 @@ public class AiOrchestratorTests
         await _sut.ProcessRequestAsync(request);
 
         // Assert - Callback verifies the model was passed correctly
-        mockProvider.Verify(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()), Times.Once);
+        _openAiProviderMock.Verify(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }

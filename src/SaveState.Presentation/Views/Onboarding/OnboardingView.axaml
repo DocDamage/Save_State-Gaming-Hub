@@ -5,38 +5,73 @@
              xmlns:vm="using:SaveState.Presentation.ViewModels.Onboarding"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
              x:Class="SaveState.Presentation.Views.Onboarding.OnboardingView"
-             x:DataType="vm:OnboardingViewModel">
+             x:DataType="vm:OnboardingViewModel"
+             AutomationProperties.Name="Onboarding Welcome Screen"
+             AutomationProperties.HelpText="Welcome screen to help you get started with SaveState"
+             AutomationProperties.AutomationId="OnboardingView"
+             IsTabStop="False">
 
   <Border Classes="GlassContainer" Margin="20">
     <Grid RowDefinitions="Auto, *, Auto">
       <!-- Header -->
-      <StackPanel Grid.Row="0" Margin="24,16" HorizontalAlignment="Center">
-        <TextBlock Text="🚀" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-        <TextBlock Text="Welcome to SaveState Reborn" Classes="Header" HorizontalAlignment="Center"/>
-        <TextBlock Text="Your AI-powered gaming companion" Classes="Subtitle" HorizontalAlignment="Center" Margin="0,4,0,16"/>
+      <StackPanel Grid.Row="0" Margin="24,16" HorizontalAlignment="Center"
+                  AutomationProperties.Name="Welcome Header"
+                  AutomationProperties.AutomationId="OnboardingHeader">
+        <TextBlock Text="🚀"
+                   FontSize="48"
+                   HorizontalAlignment="Center"
+                   Margin="0,0,0,8"
+                   AutomationProperties.Name="Welcome Icon"
+                   AutomationProperties.AutomationId="WelcomeIcon"/>
+        <TextBlock Text="{Binding Title}"
+                   Classes="Header"
+                   HorizontalAlignment="Center"
+                   AutomationProperties.Name="{Binding Title}"
+                   AutomationProperties.AutomationId="OnboardingTitle"/>
+        <TextBlock Text="{Binding Subtitle}"
+                   Classes="Subtitle"
+                   HorizontalAlignment="Center"
+                   Margin="0,4,0,16"
+                   AutomationProperties.Name="{Binding Subtitle}"
+                   AutomationProperties.AutomationId="OnboardingSubtitle"/>
       </StackPanel>
 
       <!-- Welcome Message -->
-      <ScrollViewer Grid.Row="1" Margin="24,0">
+      <ScrollViewer Grid.Row="1" Margin="24,0"
+                    AutomationProperties.Name="Welcome Message"
+                    AutomationProperties.AutomationId="WelcomeMessageScrollViewer">
         <TextBlock Text="{Binding WelcomeMessage}"
                    TextWrapping="Wrap"
                    Classes="Body"
                    FontSize="16"
                    LineHeight="24"
                    HorizontalAlignment="Center"
-                   TextAlignment="Center"/>
+                   TextAlignment="Center"
+                   AutomationProperties.Name="Welcome message content"
+                   AutomationProperties.HelpText="Instructions for getting started with SaveState"
+                   AutomationProperties.AutomationId="WelcomeMessageText"/>
       </ScrollViewer>
 
       <!-- Action Buttons -->
-      <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="24" Spacing="12">
-        <Button Content="Get Started"
+      <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="24" Spacing="12"
+                  AutomationProperties.Name="Action Buttons"
+                  AutomationProperties.AutomationId="ActionButtonsPanel">
+        <Button Content="{Binding GetStartedButtonText}"
                 Classes="Primary"
                 Command="{Binding GetStartedCommand}"
-                HorizontalAlignment="Center"/>
-        <Button Content="Skip for Now"
+                HorizontalAlignment="Center"
+                TabIndex="1"
+                AutomationProperties.Name="{Binding GetStartedButtonText}"
+                AutomationProperties.HelpText="Begin the onboarding process to set up SaveState"
+                AutomationProperties.AutomationId="GetStartedButton"/>
+        <Button Content="{Binding SkipButtonText}"
                 Classes="Accent"
                 Command="{Binding SkipCommand}"
-                HorizontalAlignment="Center"/>
+                HorizontalAlignment="Center"
+                TabIndex="2"
+                AutomationProperties.Name="{Binding SkipButtonText}"
+                AutomationProperties.HelpText="Skip onboarding and go directly to the main application"
+                AutomationProperties.AutomationId="SkipButton"/>
       </StackPanel>
     </Grid>
   </Border>

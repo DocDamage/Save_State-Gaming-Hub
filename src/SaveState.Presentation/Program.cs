@@ -31,9 +31,14 @@ public static class Program
         builder.Services.AddDbContext<SaveStateDbContext>((sp, options) =>
             options.UseSqlite("Data Source=savestate.db"));
 
+        // Add localization
+        builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+        builder.Services.AddTransient<SaveState.Presentation.Resources.Resources>();
+
         // Add ViewModels
         builder.Services.AddTransient<GameLibraryViewModel>();
         builder.Services.AddTransient<MainViewModel>();
+        builder.Services.AddTransient<SettingsViewModel>();
 
         var host = builder.Build();
 

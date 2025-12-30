@@ -3,6 +3,7 @@ namespace SaveState.Application.Mugen.Queries.Handlers;
 using MediatR;
 using SaveState.Application.Mugen.DTOs;
 using SaveState.Core.Mugen;
+using SaveState.Core.Mugen.Entities;
 
 /// <summary>
 /// Handles the GetMugenCharactersQuery by retrieving and filtering characters.
@@ -28,14 +29,31 @@ public class GetMugenCharactersQueryHandler : IRequestHandler<GetMugenCharacters
     /// <returns>A list of character summary DTOs.</returns>
     public async Task<IReadOnlyList<MugenCharacterSummaryDto>> Handle(GetMugenCharactersQuery request, CancellationToken cancellationToken)
     {
-        var characters = await _characterRepository.GetAllAsync(cancellationToken);
+        // Use paginated repository method for better performance
+        // For now, use a reasonable page size; in the future, this could be made configurable
+        var pageSize = 1000; // Large enough for most use cases while preventing memory issues
+        var allCharacters = new List<MugenCharacter>();
 
-        var filteredCharacters = characters
+        var pageNumber = 1;
+        while (true)
+        {
+            var pagedResult = await _characterRepository.GetCharactersAsync(
+                pageNumber: pageNumber,
+                pageSize: pageSize,
+                nameFilter: request.NameFilter,
+                authorFilter: request.AuthorFilter,
+                ct: cancellationToken);
+
+            allCharacters.AddRange(pagedResult.Items);
+
+            if (pagedResult.Items.Count < pageSize)
+                break;
+
+            pageNumber++;
+        }
+
+        var filteredCharacters = allCharacters
             .Where(c => request.IncludeInvalid || c.IsValid)
-            .Where(c => string.IsNullOrEmpty(request.AuthorFilter) ||
-                       c.Author.Contains(request.AuthorFilter, StringComparison.OrdinalIgnoreCase))
-            .Where(c => string.IsNullOrEmpty(request.NameFilter) ||
-                       c.Name.Contains(request.NameFilter, StringComparison.OrdinalIgnoreCase))
             .Select(c => new MugenCharacterSummaryDto(
                 c.Id,
                 c.Name,

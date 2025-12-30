@@ -1,3 +1,6 @@
+using Microsoft.Extensions.Options;
+using SaveState.Core.Configuration;
+
 namespace SaveState.Infrastructure.Mugen;
 
 using SaveState.Core.Mugen.Services;
@@ -8,14 +11,15 @@ using System.Diagnostics;
 /// </summary>
 public class MugenLauncher : IMugenLauncher
 {
-    private readonly string _ikemenExecutablePath = "engines/ikemen/Ikemen_GO.exe";
+    private readonly MugenOptions _options;
     private readonly string _workingDirectory;
 
     /// <summary>
     /// Initializes a new instance of the MugenLauncher.
     /// </summary>
-    public MugenLauncher()
+    public MugenLauncher(IOptions<MugenOptions> options)
     {
+        _options = options.Value;
         // Working directory should be the repository root
         _workingDirectory = Path.GetFullPath(".");
     }
@@ -84,7 +88,7 @@ public class MugenLauncher : IMugenLauncher
     /// <returns>The executable path, or null if not found.</returns>
     public string? GetIkemenExecutablePath()
     {
-        var exePath = Path.Combine(_workingDirectory, _ikemenExecutablePath);
+        var exePath = Path.Combine(_workingDirectory, _options.ExecutablePath);
         return File.Exists(exePath) ? exePath : null;
     }
 
@@ -93,7 +97,7 @@ public class MugenLauncher : IMugenLauncher
         var exePath = GetIkemenExecutablePath();
         if (exePath == null)
         {
-            throw new FileNotFoundException("IKEMEN executable not found", _ikemenExecutablePath);
+            throw new FileNotFoundException("IKEMEN executable not found", _options.ExecutablePath);
         }
 
         var startInfo = new ProcessStartInfo
@@ -114,7 +118,7 @@ public class MugenLauncher : IMugenLauncher
         }
 
         // Give the process a moment to start
-        await Task.Delay(500);
+        await Task.Delay(_options.ProcessStartupDelayMs);
 
         return process;
     }

@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.GameLibrary.Services;
@@ -9,12 +8,12 @@ namespace SaveState.Infrastructure.External;
 public class IgdbMetadataService : IMetadataService
 {
     private readonly IIgdbApiClient _apiClient;
-    private readonly IMemoryCache _cache;
+    private readonly ICacheService _cache;
     private readonly ILogger<IgdbMetadataService> _logger;
 
     public IgdbMetadataService(
         IIgdbApiClient apiClient,
-        IMemoryCache cache,
+        ICacheService cache,
         ILogger<IgdbMetadataService> logger)
     {
         _apiClient = apiClient;
@@ -26,10 +25,12 @@ public class IgdbMetadataService : IMetadataService
     {
         var cacheKey = $"igdb:metadata:{title.ToLowerInvariant()}";
 
-        var cached = await _cache.GetOrCreateAsync(cacheKey, async entry =>
+        var cached = await _cache.GetOrCreateAsync<GameMetadata?>(cacheKey, async entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24);
-            return await FetchMetadataFromApiAsync(title, ct).ConfigureAwait(false);
+
+            var result = await FetchMetadataFromApiAsync(title, ct).ConfigureAwait(false);
+            return result.IsSuccess ? result.Value : null;
         }).ConfigureAwait(false);
 
         return cached ?? GameMetadata.Empty;
@@ -44,10 +45,10 @@ public class IgdbMetadataService : IMetadataService
         var imageResult = await _apiClient.DownloadImageAsync(metadata.CoverImageUrl, ct).ConfigureAwait(false);
         return imageResult.IsSuccess
             ? Result<byte[]>.Success(imageResult.Value)
-            : Result<byte[]>.Failure(imageResult.Error, imageResult.ErrorType);
+            : Result<byte[]>.Failure(imageResult.Error!, imageResult.ErrorType);
     }
 
-    private async Task<GameMetadata?> FetchMetadataFromApiAsync(string title, CancellationToken ct)
+    private async Task<Result<GameMetadata?>> FetchMetadataFromApiAsync(string title, CancellationToken ct)
     {
         try
         {
@@ -59,10 +60,10 @@ public class IgdbMetadataService : IMetadataService
             if (bestMatch is null)
             {
                 _logger.LogInformation("No suitable match found for game title '{Title}'", title);
-                return null;
+                return Result<GameMetadata?>.Success(null);
             }
 
-            return new GameMetadata
+            var metadata = new GameMetadata
             {
                 Title = bestMatch.Name,
                 Description = bestMatch.Summary,
@@ -72,11 +73,13 @@ public class IgdbMetadataService : IMetadataService
                 Developer = null, // IGDB doesn't provide this in search results
                 Publisher = null  // IGDB doesn't provide this in search results
             };
+
+            return Result<GameMetadata?>.Success(metadata);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to fetch metadata for game '{Title}' from IGDB", title);
-            return null;
+            return Result<GameMetadata?>.Failure($"Failed to fetch metadata: {ex.Message}", ErrorType.Internal);
         }
     }
 

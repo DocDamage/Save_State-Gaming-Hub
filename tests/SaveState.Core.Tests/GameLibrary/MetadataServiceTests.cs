@@ -9,18 +9,26 @@ using SaveState.Core.Common;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Core.GameLibrary.DTOs;
 using SaveState.Infrastructure.External;
+using SaveState.Infrastructure.Common;
 using Microsoft.Extensions.Logging.Abstractions;
 
-public class MetadataServiceTests
+public class MetadataServiceTests : IDisposable
 {
     private readonly Mock<IIgdbApiClient> _mockApiClient = new();
-    private readonly IMemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
+    private readonly MemoryCache _memoryCache = new(new MemoryCacheOptions());
+    private readonly ICacheService _cache;
     private readonly Mock<ILogger<IgdbMetadataService>> _mockLogger = new();
     private readonly IgdbMetadataService _sut;
 
     public MetadataServiceTests()
     {
+        _cache = new MemoryCacheService(_memoryCache);
         _sut = new IgdbMetadataService(_mockApiClient.Object, _cache, _mockLogger.Object);
+    }
+
+    public void Dispose()
+    {
+        _memoryCache.Dispose();
     }
 
     [Fact]
@@ -29,7 +37,10 @@ public class MetadataServiceTests
         // Arrange
         var title = "Half-Life 2";
         var expectedMetadata = new GameMetadata { Title = title, Description = "Test description" };
-        _cache.Set($"igdb:metadata:{title.ToLowerInvariant()}", expectedMetadata);
+        var cacheKey = $"igdb:metadata:{title.ToLowerInvariant()}";
+
+        // Pre-populate cache
+        _cache.Set(cacheKey, expectedMetadata, TimeSpan.FromHours(24));
 
         // Act
         var result = await _sut.GetGameMetadataAsync(title, default);
@@ -62,6 +73,9 @@ public class MetadataServiceTests
 
         // Act
         var result = await _sut.GetGameMetadataAsync(title, default);
+
+        // Debug: Verify API was called
+        _mockApiClient.Verify(x => x.SearchGamesAsync(title, It.IsAny<CancellationToken>()), Times.Once);
 
         // Assert
         result.Title.Should().Be("Portal");
@@ -101,6 +115,7 @@ public class MetadataServiceTests
     {
         // Arrange
         var title = "Failing Game";
+
         _mockApiClient.Setup(x => x.SearchGamesAsync(title, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new IgdbApiException("API Error"));
 
@@ -132,7 +147,7 @@ public class MetadataServiceTests
         var result = await _sut.GetCoverImageAsync(title, default);
 
         // Assert
-        result.Should().BeNull();
+        result.IsFailure.Should().BeTrue();
     }
 
     [Fact]

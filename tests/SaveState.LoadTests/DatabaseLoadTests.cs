@@ -18,7 +18,7 @@ namespace SaveState.LoadTests;
 /// Load tests for database operations under stress.
 /// Tests performance and reliability under concurrent load.
 /// </summary>
-[Collection("Database")]
+[Collection("DatabaseTests")]
 public class DatabaseLoadTests : IAsyncLifetime
 {
     private readonly IServiceProvider _serviceProvider;
@@ -61,8 +61,7 @@ public class DatabaseLoadTests : IAsyncLifetime
         // Create 1000 games
         for (int i = 0; i < 1000; i++)
         {
-            var game = Game.Create($"Load Test Game {i}", platformId: Guid.NewGuid());
-            typeof(Game).GetProperty("Id")?.SetValue(game, GameId.NewId());
+            var game = Game.Create($"Load Test Game {i}", platformId: null);
             games.Add(game);
         }
 
@@ -90,7 +89,7 @@ public class DatabaseLoadTests : IAsyncLifetime
         for (int i = 0; i < 100; i++)
         {
             var game = Game.Create($"Concurrent Game {i}", platformId);
-            typeof(Game).GetProperty("Id")?.SetValue(game, GameId.NewId());
+            typeof(Game).GetProperty("Id")?.SetValue(game, GameId.NewId().Value);
             games.Add(game);
         }
         await _dbContext.Games.AddRangeAsync(games);
@@ -146,7 +145,7 @@ public class DatabaseLoadTests : IAsyncLifetime
                 for (int j = 0; j < 10; j++)
                 {
                     var game = Game.Create($"Mixed Game {Interlocked.Increment(ref counter)}", platformId);
-                    typeof(Game).GetProperty("Id")?.SetValue(game, GameId.NewId());
+                    typeof(Game).GetProperty("Id")?.SetValue(game, GameId.NewId().Value);
                     await dbContext.Games.AddAsync(game);
                     await dbContext.SaveChangesAsync();
                 }
@@ -198,7 +197,7 @@ public class DatabaseLoadTests : IAsyncLifetime
                 description: $"This is a very long description for game {i} that contains a lot of text to test memory pressure and large data handling. " +
                 $"The description is intentionally long to simulate real-world data with substantial content. " +
                 $"Game number {i} has comprehensive metadata.");
-            typeof(Game).GetProperty("Id")?.SetValue(game, GameId.NewId());
+            typeof(Game).GetProperty("Id")?.SetValue(game, GameId.NewId().Value);
             largeGames.Add(game);
         }
 
@@ -241,7 +240,7 @@ public class DatabaseLoadTests : IAsyncLifetime
                 // Create
                 var gameId = GameId.NewId();
                 var game = Game.Create($"Integrity Game {operationId}", platformId);
-                typeof(Game).GetProperty("Id")?.SetValue(game, gameId);
+                typeof(Game).GetProperty("Id")?.SetValue(game, gameId.Value);
                 await dbContext.Games.AddAsync(game);
                 await dbContext.SaveChangesAsync();
 
@@ -261,9 +260,10 @@ public class DatabaseLoadTests : IAsyncLifetime
                 dbContext.Games.Remove(updatedGame!);
                 await dbContext.SaveChangesAsync();
 
-                // Verify deletion
+                // Verify soft deletion
                 var deletedGame = await dbContext.Games.FindAsync((Guid)gameId);
-                deletedGame.Should().BeNull();
+                deletedGame.Should().NotBeNull();
+                deletedGame!.IsDeleted.Should().BeTrue();
             }));
         }
 

@@ -5,6 +5,8 @@ using SaveState.Application.Common;
 using SaveState.Core.Mugen.Entities;
 using SaveState.Core.Mugen.Services;
 using SaveState.Core.Mugen.ValueObjects;
+using Microsoft.Extensions.Options;
+using SaveState.Core.Configuration;
 
 /// <summary>
 /// Implementation of the MUGEN/IKEMEN character loader.
@@ -18,12 +20,7 @@ public class MugenCharacterLoader : IMugenCharacterLoader
     private readonly string[] _validExtensions = { ".def", ".DEF" };
     private readonly string[] _characterFileExtensions = { ".cmd", ".cns", ".st", ".stcommon", ".air", ".sff", ".snd", ".act" };
 
-    // IKEMEN character directories (relative to repository root)
-    private readonly string[] _ikemenCharacterDirectories = {
-        "data/characters/streetfighter",
-        "data/characters/mvc2",
-        "data/characters/builtin"
-    };
+    private readonly MugenOptions _options;
 
     /// <summary>
     /// Gets the list of common MUGEN character file extensions.
@@ -33,16 +30,20 @@ public class MugenCharacterLoader : IMugenCharacterLoader
     /// <summary>
     /// Gets the configured IKEMEN character directories.
     /// </summary>
-    public IReadOnlyList<string> IkemenCharacterDirectories => _ikemenCharacterDirectories;
+    public IReadOnlyList<string> IkemenCharacterDirectories => _options.CharacterDirectories;
 
     /// <summary>
     /// Initializes a new instance of the MugenCharacterLoader.
     /// </summary>
     /// <param name="characterParser">The character definition file parser.</param>
     /// <param name="logger">The logger instance.</param>
-    public MugenCharacterLoader(IMugenCharacterParser characterParser, ILogger<MugenCharacterLoader> logger)
+    public MugenCharacterLoader(
+        IMugenCharacterParser characterParser,
+        IOptions<MugenOptions> options,
+        ILogger<MugenCharacterLoader> logger)
     {
         _characterParser = characterParser;
+        _options = options.Value;
         _logger = logger;
     }
 
@@ -95,7 +96,7 @@ public class MugenCharacterLoader : IMugenCharacterLoader
     {
         var allCharacters = new List<MugenCharacter>();
 
-        foreach (var directory in _ikemenCharacterDirectories)
+        foreach (var directory in _options.CharacterDirectories)
         {
             if (Directory.Exists(directory))
             {

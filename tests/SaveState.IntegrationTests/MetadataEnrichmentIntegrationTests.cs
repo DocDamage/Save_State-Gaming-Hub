@@ -14,7 +14,7 @@ using Xunit;
 
 namespace SaveState.IntegrationTests;
 
-[Collection("Database")]
+[Collection("DatabaseTests")]
 public class MetadataEnrichmentIntegrationTests : IAsyncLifetime
 {
     private readonly IServiceProvider _serviceProvider;

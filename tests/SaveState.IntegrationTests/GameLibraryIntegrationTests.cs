@@ -8,7 +8,7 @@ using Xunit;
 
 namespace SaveState.IntegrationTests;
 
-[Collection("Database")]
+[Collection("DatabaseTests")]
 public class GameLibraryIntegrationTests : IAsyncLifetime
 {
     private readonly IServiceProvider _serviceProvider;

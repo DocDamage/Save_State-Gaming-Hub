@@ -8,8 +8,15 @@
         x:Class="SaveState.Presentation.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="SaveState Reborn"
-        Background="{StaticResource BackgroundBrush}">
+        Title="{Binding Title}"
+        Background="{StaticResource BackgroundBrush}"
+        AutomationProperties.Name="{Binding Title}"
+        AutomationProperties.HelpText="SaveState application main window for managing game collections"
+        MinWidth="800"
+        MinHeight="600"
+        CanResize="True"
+        WindowStartupLocation="CenterScreen"
+        ExtendClientAreaToDecorationsHint="False">
 
     <Design.DataContext>
         <vm:MainViewModel/>

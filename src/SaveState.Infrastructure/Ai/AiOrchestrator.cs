@@ -1,35 +1,44 @@
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Common;
 using SaveState.Core.Configuration;
+using SaveState.Core.Monitoring;
 
 namespace SaveState.Infrastructure.Ai;
 
 public class AiOrchestrator : IAiOrchestrator
 {
     private readonly IEnumerable<ILlmProvider> _providers;
-    private readonly IMemoryCache _cache;
+    private readonly ICacheService _cache;
     private readonly ILogger<AiOrchestrator> _logger;
     private readonly AiOptions _options;
+    private readonly IApplicationMetrics _metrics;
+    private readonly ICachePerformanceMonitor _cacheMonitor;
     private long _cacheRequests;
     private long _cacheHits;
 
     public AiOrchestrator(
         IEnumerable<ILlmProvider> providers,
-        IMemoryCache cache,
+        ICacheService cache,
         IOptions<AiOptions> options,
-        ILogger<AiOrchestrator> logger)
+        ILogger<AiOrchestrator> logger,
+        IApplicationMetrics metrics,
+        ICachePerformanceMonitor cacheMonitor)
     {
         _providers = providers;
         _cache = cache;
         _options = options.Value;
         _logger = logger;
+        _metrics = metrics;
+        _cacheMonitor = cacheMonitor;
     }
 
     public async Task<AiResponse> ProcessRequestAsync(AiRequest request, CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var startTime = DateTime.UtcNow;
         var cacheKey = GenerateCacheKey(request);
 
         if (request.AllowCache)
@@ -41,13 +50,27 @@ public class AiOrchestrator : IAiOrchestrator
                 Interlocked.Increment(ref _cacheHits);
                 var hitRate = (double)_cacheHits / _cacheRequests * 100;
                 _logger.LogDebug("Cache hit for AI request (hit rate: {HitRate:F1}%)", hitRate);
+
+                // Record cache hit metrics
+                _cacheMonitor.RecordCacheHit("AiOrchestrator");
+                _metrics.RecordAiRequest("Cache", "Hit", DateTime.UtcNow - startTime, true);
+
                 return cached!;
+            }
+            else
+            {
+                // Record cache miss
+                _cacheMonitor.RecordCacheMiss("AiOrchestrator");
             }
         }
 
         var provider = SelectProvider(request.PreferredProvider);
         if (provider is null)
+        {
+            var duration = DateTime.UtcNow - startTime;
+            _metrics.RecordAiRequest("None", "NoProvider", duration, false);
             return new AiResponse("", "", new TokenUsage(0, 0, 0), "", "", false, "No AI providers available");
+        }
 
         try
         {
@@ -60,10 +83,16 @@ public class AiOrchestrator : IAiOrchestrator
 
                 if (chatResult.IsFailure)
                 {
+                    var duration = DateTime.UtcNow - startTime;
+                    _metrics.RecordAiRequest(provider.ProviderName, "Chat", duration, false);
+                    _metrics.RecordApiError(provider.ProviderName, chatResult.Error ?? "Unknown");
                     return new AiResponse("", "", new TokenUsage(0, 0, 0), "", provider.ProviderName, false, chatResult.Error);
                 }
 
                 response = new AiResponse(chatResult.Value!.Content, chatResult.Value.FinishReason, chatResult.Value.Usage, chatResult.Value.Model, provider.ProviderName);
+
+                // Record token usage
+                _metrics.RecordAiTokenUsage(provider.ProviderName, chatResult.Value.Usage.PromptTokens, chatResult.Value.Usage.CompletionTokens);
             }
             else
             {
@@ -72,11 +101,21 @@ public class AiOrchestrator : IAiOrchestrator
 
                 if (completionResult.IsFailure)
                 {
+                    var duration = DateTime.UtcNow - startTime;
+                    _metrics.RecordAiRequest(provider.ProviderName, "Completion", duration, false);
+                    _metrics.RecordApiError(provider.ProviderName, completionResult.Error ?? "Unknown");
                     return new AiResponse("", "", new TokenUsage(0, 0, 0), "", provider.ProviderName, false, completionResult.Error);
                 }
 
                 response = new AiResponse(completionResult.Value!.Text, completionResult.Value.FinishReason, completionResult.Value.Usage, completionResult.Value.Model, provider.ProviderName);
+
+                // Record token usage
+                _metrics.RecordAiTokenUsage(provider.ProviderName, completionResult.Value.Usage.PromptTokens, completionResult.Value.Usage.CompletionTokens);
             }
+
+            // Record successful AI request
+            var totalDuration = DateTime.UtcNow - startTime;
+            _metrics.RecordAiRequest(provider.ProviderName, request.Type.ToString(), totalDuration, true);
 
             if (request.AllowCache)
             {
@@ -87,7 +126,12 @@ public class AiOrchestrator : IAiOrchestrator
         }
         catch (Exception ex)
         {
+            var duration = DateTime.UtcNow - startTime;
             _logger.LogError(ex, "AI request failed with {Provider}", provider.ProviderName);
+
+            // Record error metrics
+            _metrics.RecordException("AiOrchestrator", ex.GetType().Name, ex.Message);
+            _metrics.RecordAiRequest(provider.ProviderName, request.Type.ToString(), duration, false);
 
             if (_options.EnableFallback)
             {

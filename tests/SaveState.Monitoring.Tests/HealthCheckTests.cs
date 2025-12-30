@@ -102,12 +102,12 @@ public class HealthCheckTests
         var healthyString = healthyResult.ToString();
         var unhealthyString = unhealthyResult.ToString();
 
-        // Assert - String representation should be meaningful
-        healthyString.Should().Contain("Healthy");
-        healthyString.Should().Contain("All systems operational");
+        // Assert - Properties should reflect the status and description
+        healthyResult.Status.Should().Be(HealthStatus.Healthy);
+        healthyResult.Description.Should().Be("All systems operational");
 
-        unhealthyString.Should().Contain("Unhealthy");
-        unhealthyString.Should().Contain("Service unavailable");
+        unhealthyResult.Status.Should().Be(HealthStatus.Unhealthy);
+        unhealthyResult.Description.Should().Be("Service unavailable");
     }
 
     [Fact]

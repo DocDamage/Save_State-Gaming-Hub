@@ -5,17 +5,29 @@
              xmlns:entities="using:SaveState.Core.GameLibrary.Entities"
              mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="280"
              x:Class="SaveState.Presentation.Views.GameCard"
-             x:DataType="entities:Game">
+             x:DataType="entities:Game"
+             AutomationProperties.Name="{Binding Title, StringFormat='Game: {0}'}"
+             AutomationProperties.HelpText="{Binding Title, StringFormat='View details for game {0}'}"
+             AutomationProperties.AutomationId="{Binding Id, StringFormat='GameCard_{0}'}"
+             Focusable="True"
+             IsTabStop="True">
 
-  <Border Classes="GameCard" Width="280" Height="260">
+  <Border Classes="GameCard" Width="280" Height="260"
+          AutomationProperties.Name="{Binding Title, StringFormat='Game card for {0}'}"
+          AutomationProperties.AutomationId="GameCardBorder">
     <Grid RowDefinitions="*, Auto, Auto">
       <!-- Cover Image Placeholder -->
-      <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" CornerRadius="8" Margin="12">
+      <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" CornerRadius="8" Margin="12"
+              AutomationProperties.Name="Game cover image"
+              AutomationProperties.HelpText="{Binding Title, StringFormat='Cover image placeholder for {0}'}"
+              AutomationProperties.AutomationId="GameCoverImage">
         <TextBlock Text="🎮"
                    FontSize="64"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
-                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                   Foreground="{StaticResource TextSecondaryBrush}"
+                   AutomationProperties.Name="Game icon placeholder"
+                   AutomationProperties.AutomationId="GameIcon"/>
       </Border>
 
       <!-- Game Title -->
@@ -28,7 +40,9 @@
                  Margin="12,8,12,4"
                  TextWrapping="Wrap"
                  TextAlignment="Center"
-                 MaxLines="2"/>
+                 MaxLines="2"
+                 AutomationProperties.Name="{Binding Title, StringFormat='Game title: {0}'}"
+                 AutomationProperties.AutomationId="GameTitleText"/>
 
       <!-- Platform/Genre Info -->
       <TextBlock Grid.Row="2"
@@ -37,7 +51,9 @@
                  FontSize="12"
                  Foreground="{StaticResource TextSecondaryBrush}"
                  HorizontalAlignment="Center"
-                 Margin="12,0,12,12"/>
+                 Margin="12,0,12,12"
+                 AutomationProperties.Name="{Binding Platform, StringFormat='Available on platform: {0}'}"
+                 AutomationProperties.AutomationId="GamePlatformText"/>
     </Grid>
   </Border>
 </UserControl>

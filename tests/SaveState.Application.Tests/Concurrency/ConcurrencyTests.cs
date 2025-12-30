@@ -10,6 +10,10 @@ using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary.DomainServices;
 using SaveState.Application.Common.Events;
 using SaveState.Infrastructure.Persistence;
+using Moq;
+using SaveState.Core.Common.Interfaces;
+using SaveState.Core.GameLibrary;
+using SaveState.Core.Ai.Services;
 using Xunit;
 
 namespace SaveState.Application.Tests.Concurrency;
@@ -17,7 +21,7 @@ namespace SaveState.Application.Tests.Concurrency;
 /// <summary>
 /// Concurrency tests for multi-threaded scenarios and race conditions.
 /// </summary>
-[Collection("Database")]
+[Collection("DatabaseTests")]
 public class ConcurrencyTests : IAsyncLifetime
 {
     private readonly IServiceProvider _serviceProvider;
@@ -28,8 +32,25 @@ public class ConcurrencyTests : IAsyncLifetime
         var services = new ServiceCollection();
 
         // Configure in-memory database for testing
+        // Use a unique name for each test instance to avoid interference if tests run in parallel
+        var dbName = Guid.NewGuid().ToString();
         services.AddDbContext<SaveStateDbContext>(options =>
-            options.UseSqlite($"DataSource=:memory:"));
+            options.UseSqlite($"DataSource=file:{dbName}?mode=memory&cache=shared"));
+        services.AddScoped<ISaveStateDbContext>(sp => sp.GetRequiredService<SaveStateDbContext>());
+
+        // Add repositories
+        services.AddScoped<IGameRepository, SaveState.Infrastructure.Repositories.GameRepository>();
+        services.AddScoped<IPlatformRepository, SaveState.Infrastructure.Repositories.PlatformRepository>();
+
+        // Add required services
+        services.AddScoped<IGameValidationService, SaveState.Core.GameLibrary.DomainServices.GameValidationService>();
+        services.AddScoped<IEventPublisher, SaveState.Application.Common.Events.EventPublisher>();
+        services.AddScoped<SaveState.Core.Common.Interfaces.IFileSystem, SaveState.Infrastructure.Services.FileSystem>();
+
+        // Mocks for lightweight dependencies
+        services.AddSingleton(new Mock<IAiOrchestrator>().Object);
+        services.AddSingleton(new Mock<SaveState.Core.Common.Services.IUserPreferencesService>().Object);
+        services.AddSingleton(new Mock<SaveState.Core.Monitoring.IApplicationMetrics>().Object);
 
         // Add minimal services for testing
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ImportGameCommand).Assembly));
@@ -83,7 +104,7 @@ public class ConcurrencyTests : IAsyncLifetime
                 };
 
                 var result = await mediator.Send(command).ConfigureAwait(false);
-                result.IsSuccess.Should().BeTrue();
+                result.IsSuccess.Should().BeTrue(result.Error);
             }));
         }
 
@@ -107,8 +128,8 @@ public class ConcurrencyTests : IAsyncLifetime
         for (int i = 0; i < 50; i++)
         {
             var game = Game.Create($"Test Game {i}", platformId);
-            typeof(Game).GetProperty("Id")?.SetValue(game, GameId.NewId());
-            games.Add(game);
+            typeof(Game).GetProperty("Id")?.SetValue(game, (Guid)GameId.NewId());
+             games.Add(game);
         }
         await _dbContext.Games.AddRangeAsync(games);
         await _dbContext.SaveChangesAsync();
@@ -204,7 +225,7 @@ public class ConcurrencyTests : IAsyncLifetime
                 };
 
                 var result = await mediator.Send(command).ConfigureAwait(false);
-                result.IsSuccess.Should().BeTrue();
+                result.IsSuccess.Should().BeTrue(result.Error);
             }));
         }
 
@@ -225,30 +246,33 @@ public class ConcurrencyTests : IAsyncLifetime
         await _dbContext.Platforms.AddAsync(platform);
 
         var initialGame = Game.Create("Initial Game", platformId);
-        typeof(Game).GetProperty("Id")?.SetValue(initialGame, GameId.NewId());
+        typeof(Game).GetProperty("Id")?.SetValue(initialGame, Guid.NewGuid());
         await _dbContext.Games.AddAsync(initialGame);
         await _dbContext.SaveChangesAsync();
 
+        var gameId = initialGame.Id; // Capture the ID Guid
+
         // Act - Concurrently modify the same game (should not cause conflicts with proper isolation)
-        var modificationTasks = new List<Task>();
+        var tasks = new List<Task>();
         for (int i = 0; i < 10; i++)
         {
-            var modificationIndex = i;
-            modificationTasks.Add(Task.Run(async () =>
+            var iteration = i;
+            tasks.Add(Task.Run(async () =>
             {
                 using var scope = _serviceProvider.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<SaveStateDbContext>();
 
-                // Simulate reading and updating
-                var game = await dbContext.Games.FirstAsync().ConfigureAwait(false);
-                game.Update($"Modified Game {modificationIndex}");
-
-                await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                var game = await dbContext.Games.FindAsync(gameId).ConfigureAwait(false);
+                if (game != null)
+                {
+                    game.Update(description: $"Modified in task {iteration}");
+                    await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                }
             }));
         }
 
         // Assert - Should complete without deadlocks or constraint violations
-        var exception = await Record.ExceptionAsync(() => Task.WhenAll(modificationTasks));
+        var exception = await Record.ExceptionAsync(() => Task.WhenAll(tasks));
         exception.Should().BeNull();
     }
 

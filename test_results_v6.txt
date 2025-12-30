@@ -1,0 +1,634 @@
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\bin\Debug\net9.0\SaveState.Application.Tests.dll (.NETCoreApp,Version=v9.0)
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.IntegrationTests\bin\Debug\net9.0\SaveState.IntegrationTests.dll (.NETCoreApp,Version=v9.0)
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Core.Tests\bin\Debug\net9.0\SaveState.Core.Tests.dll (.NETCoreApp,Version=v9.0)
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Infrastructure.Tests\bin\Debug\net9.0\SaveState.Infrastructure.Tests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 18.0.0-preview-25451-107 (x64)
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Presentation.Tests\bin\Debug\net9.0\SaveState.Presentation.Tests.dll (.NETCoreApp,Version=v9.0)
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.EndToEndTests\bin\Debug\net9.0\SaveState.EndToEndTests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Presentation.UITests\bin\Debug\net9.0\SaveState.Presentation.UITests.dll (.NETCoreApp,Version=v9.0)
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.LoadTests\bin\Debug\net9.0\SaveState.LoadTests.dll (.NETCoreApp,Version=v9.0)
+Starting test execution, please wait...
+Starting test execution, please wait...
+Starting test execution, please wait...
+VSTest version 18.0.0-preview-25451-107 (x64)
+Starting test execution, please wait...
+
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+A total of 1 test files matched the specified pattern.
+VSTest version 18.0.0-preview-25451-107 (x64)
+A total of 1 test files matched the specified pattern.
+
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+Starting test execution, please wait...
+Starting test execution, please wait...
+VSTest version 18.0.0-preview-25451-107 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+No test is available in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.IntegrationTests\bin\Debug\net9.0\SaveState.IntegrationTests.dll. Make sure that test discoverer & executors are registered and platform & framework version settings are appropriate and try again.
+
+Additionally, path to test adapters can be specified using /TestAdapterPath command. Example  /TestAdapterPath:<pathToCustomAdapters>.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Configuration.Tests\bin\Debug\net9.0\SaveState.Configuration.Tests.dll (.NETCoreApp,Version=v9.0)
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+VSTest version 18.0.0-preview-25451-107 (x64)
+[xUnit.net 00:00:00.94]   Discovering: SaveState.EndToEndTests
+[xUnit.net 00:00:01.21]   Discovered:  SaveState.EndToEndTests
+[xUnit.net 00:00:01.27]   Starting:    SaveState.EndToEndTests
+
+[xUnit.net 00:00:01.15]   Discovering: SaveState.Core.Tests
+Starting test execution, please wait...
+[xUnit.net 00:00:01.43]   Discovered:  SaveState.Core.Tests
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:01.62]   Starting:    SaveState.Core.Tests
+[xUnit.net 00:00:02.90]   Discovering: SaveState.Presentation.Tests
+  Passed SaveState.EndToEndTests.TestFrameworkEndToEndTests.EndToEndTestInfrastructure_IsConfiguredCorrectly [1 s]
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+[xUnit.net 00:00:03.12]   Discovered:  SaveState.Presentation.Tests
+[xUnit.net 00:00:03.35]   Starting:    SaveState.Presentation.Tests
+  Passed SaveState.Core.Tests.UnitTest1.Test1 [271 ms]
+  Passed SaveState.Core.Tests.GameLibrary.GameTests.MarkAsDeleted_SetsDeletedFlag [1 s]
+  Passed SaveState.Core.Tests.GameLibrary.GameTests.Update_WithValidTitle_ChangesTitle [251 ms]
+  Passed SaveState.Core.Tests.Common.ValueObjects.GameTitleTests.From_DifferentTitles_ReturnsUnequalObjects [1 s]
+  Passed SaveState.Core.Tests.Common.ValueObjects.GameIdTests.NewId_CreatesUniqueIds [1 s]
+  Passed SaveState.Core.Tests.GameLibrary.GameTests.MarkAsRunning_ChangesStatusToRunning [7 ms]
+  Passed SaveState.Core.Tests.Common.ValueObjects.GameTitleTests.ExplicitOperatorGameTitle_ValidString_CreatesGameTitle [3 ms]
+  Passed SaveState.Core.Tests.Common.ValueObjects.GameIdTests.ToString_ReturnsGuidString [2 ms]
+  Passed SaveState.Core.Tests.Common.ValueObjects.GameIdTests.ExplicitOperatorGameId_ValidGuid_CreatesGameId [< 1 ms]
+  Passed SaveState.Core.Tests.Common.ValueObjects.GameIdTests.ImplicitOperatorGuid_ReturnsValue [< 1 ms]
+  Passed SaveState.Core.Tests.GameLibrary.GameTests.Create_WithValidTitle_SetsProperties [4 ms]
+  Passed SaveState.Core.Tests.GameLibrary.GameTests.SetInstallPath_WithValidPath_SetsPath [< 1 ms]
+  Passed SaveState.Core.Tests.GameLibrary.GameTests.MarkAsNotRunning_ChangesStatusToInstalled [< 1 ms]
+  Passed SaveState.Core.Tests.Common.ValueObjects.GameIdTests.From_SameGuid_ReturnsEqualObjects [3 ms]
+  Passed SaveState.Core.Tests.GameLibrary.GameTests.Update_WithValidDescription_UpdatesDescription [< 1 ms]
+  Passed SaveState.Core.Tests.Common.ValueObjects.GameIdTests.From_ValidGuid_CreatesGameId [< 1 ms]
+  Passed SaveState.Core.Tests.Common.ValueObjects.GameTitleTests.From_InvalidTitle_ThrowsArgumentException(invalidTitle: "") [26 ms]
+  Passed SaveState.Core.Tests.Common.ValueObjects.GameTitleTests.From_InvalidTitle_ThrowsArgumentException(invalidTitle: "   ") [1 ms]
+[xUnit.net 00:00:03.68]   Discovering: SaveState.Infrastructure.Tests
+  Passed SaveState.Core.Tests.Common.ValueObjects.GameTitleTests.From_InvalidTitle_ThrowsArgumentException(invalidTitle: null) [1 ms]
+  Passed SaveState.Core.Tests.Common.ValueObjects.GameTitleTests.From_SameTitlesDifferentCase_ReturnsEqualObjects [< 1 ms]
+  Passed SaveState.Core.Tests.Common.ValueObjects.GameTitleTests.ImplicitOperatorString_ReturnsValue [< 1 ms]
+  Passed SaveState.Core.Tests.Common.ValueObjects.GameTitleTests.From_SameTitle_ReturnsEqualObjects [< 1 ms]
+  Passed SaveState.Core.Tests.Common.ValueObjects.GameTitleTests.ToString_ReturnsValue [14 ms]
+  Passed SaveState.Core.Tests.Common.ValueObjects.GameTitleTests.From_ValidTitle_CreatesGameTitle [< 1 ms]
+  Passed SaveState.Core.Tests.GameLibrary.DomainServices.GameValidationServiceTests.CanLaunchGame_NotInstalled_ReturnsFalse [1 s]
+[xUnit.net 00:00:04.05]   Discovered:  SaveState.Infrastructure.Tests
+  Passed SaveState.Core.Tests.GameLibrary.DomainServices.GameValidationServiceTests.GetValidationErrors_ValidGame_ReturnsEmptyList [39 ms]
+  Passed [xUnit.net 00:00:04.27]   Starting:    SaveState.Infrastructure.Tests
+SaveState.EndToEndTests.TestFrameworkEndToEndTests.TestFramework_CanExecuteTests_Success [3 ms]
+  Passed SaveState.Core.Tests.GameLibrary.DomainServices.GameValidationServiceTests.CanLaunchGame_InstalledGameWithValidPath_ReturnsTrue [18 ms]
+  Passed SaveState.Core.Tests.GameLibrary.DomainServices.GameValidationServiceTests.IsValidGame_InvalidTitle_ThrowsImmediately [1 ms]
+  Passed SaveState.Core.Tests.GameLibrary.DomainServices.GameValidationServiceTests.IsValidGame_ValidGame_ReturnsTrue [2 ms]
+  Passed SaveState.Core.Tests.GameLibrary.MetadataServiceTests.GetGameMetadataAsync_FetchesFromApi_WhenNotCached [171 ms]
+  Passed SaveState.Core.Tests.GameLibrary.SteamProviderTests.GetGameMetadataAsync_DelegatesToApiClient [2 s]
+  Passed SaveState.Core.Tests.GameLibrary.SteamProviderTests.GetInstalledGamesAsync_ReturnsEmpty_WhenApiFails [20 ms]
+  Passed SaveState.Core.Tests.GameLibrary.SteamProviderTests.GetInstalledGamesAsync_ReturnsGames_WhenApiSucceeds [5 ms]
+  Passed SaveState.Core.Tests.GameLibrary.SteamProviderTests.LaunchGameAsync_DelegatesToApiClient [13 ms]
+  Passed SaveState.Core.Tests.GameLibrary.SteamProviderTests.Capabilities_ReturnsAll [2 ms]
+  Passed SaveState.Core.Tests.GameLibrary.SteamProviderTests.Name_ReturnsSteam [< 1 ms]
+  Passed SaveState.Core.Tests.GameLibrary.MetadataServiceTests.GetGameMetadataAsync_ReturnsEmpty_WhenApiFails [103 ms]
+  Passed SaveState.Core.Tests.GameLibrary.MetadataServiceTests.CalculateSimilarity_WorksCorrectly(a: "Half-Life 2", b: "Half-Life 2", expectedSimilarity: 1) [1 ms]
+  Passed SaveState.Core.Tests.GameLibrary.MetadataServiceTests.CalculateSimilarity_WorksCorrectly(a: "Half Life 2", b: "Half-Life 2", expectedSimilarity: 1) [1 ms]
+  Passed SaveState.Presentation.Tests.UnitTest1.Test1 [242 ms]
+  Passed SaveState.Core.Tests.GameLibrary.MetadataServiceTests.CalculateSimilarity_WorksCorrectly(a: "Unknown", b: "Completely Different", expectedSimilarity: 0) [< 1 ms]
+  Passed SaveState.Core.Tests.GameLibrary.MetadataServiceTests.CalculateSimilarity_WorksCorrectly(a: "Portal", b: "Portal 2", expectedSimilarity: 0.5) [< 1 ms]
+  Passed SaveState.Core.Tests.GameLibrary.MetadataServiceTests.GetGameMetadataAsync_ReturnsCachedResult_WhenAvailable [5 ms]
+  Passed SaveState.Core.Tests.GameLibrary.MetadataServiceTests.GetCoverImageAsync_DownloadsImage_WhenCoverUrlExists [36 ms]
+[xUnit.net 00:00:04.86]   Discovering: SaveState.Application.Tests
+  Passed SaveState.Core.Tests.GameLibrary.MetadataServiceTests.GetGameMetadataAsync_ReturnsEmpty_WhenNoMatchFound [4 ms]
+  Passed SaveState.Core.Tests.GameLibrary.MetadataServiceTests.GetCoverImageAsync_ReturnsNull_WhenNoCoverUrl [2 ms]
+  Passed SaveState.Core.Tests.GameLibrary.ResilientMetadataServiceTests.GetGameMetadataAsync_ReturnsResult_WhenInnerServiceSucceeds [2 s]
+  Passed SaveState.Core.Tests.GameLibrary.ResilientMetadataServiceTests.GetGameMetadataAsync_ReturnsEmpty_WhenInnerServiceFails [7 ms]
+  Passed SaveState.Core.Tests.GameLibrary.ResilientMetadataServiceTests.GetGameMetadataAsync_HandlesInnerServiceFailure [4 ms]
+  Passed SaveState.Core.Tests.GameLibrary.ResilientMetadataServiceTests.GetCoverImageAsync_ReturnsFailure_WhenTitleIsEmpty [4 ms]
+  Passed SaveState.Core.Tests.GameLibrary.ResilientMetadataServiceTests.IsRetryableException_WorksCorrectly(exceptionType: typeof(System.ArgumentException), expectedRetryable: False) [6 ms]
+  Passed SaveState.Core.Tests.GameLibrary.ResilientMetadataServiceTests.IsRetryableException_WorksCorrectly(exceptionType: typeof(System.OperationCanceledException), expectedRetryable: True) [2 ms]
+  Passed SaveState.Core.Tests.GameLibrary.ResilientMetadataServiceTests.IsRetryableException_WorksCorrectly(exceptionType: typeof(System.InvalidOperationException), expectedRetryable: False) [1 ms]
+[xUnit.net 00:00:05.33]   Discovering: SaveState.LoadTests
+[xUnit.net 00:00:05.09]   Discovered:  SaveState.Application.Tests
+[xUnit.net 00:00:05.51]   Discovered:  SaveState.LoadTests
+[xUnit.net 00:00:05.17]   Starting:    SaveState.Application.Tests
+[xUnit.net 00:00:02.58]   Discovering: SaveState.Presentation.UITests
+[xUnit.net 00:00:05.57]   Starting:    SaveState.LoadTests
+[xUnit.net 00:00:03.10]   Discovered:  SaveState.Presentation.UITests
+  Passed [xUnit.net 00:00:03.98]   Starting:    SaveState.Presentation.UITests
+  Passed SaveState.Infrastructure.Tests.UnitTest1.Test1 [236 ms]
+SaveState.Core.Tests.GameLibrary.ResilientMetadataServiceTests.IsRetryableException_WorksCorrectly(exceptionType: typeof(System.TimeoutException), expectedRetryable: True) [1 ms][xUnit.net 00:00:07.00]   Finished:    SaveState.EndToEndTests
+
+  Passed SaveState.Core.Tests.GameLibrary.ResilientMetadataServiceTests.IsRetryableException_WorksCorrectly(exceptionType: typeof(System.Net.Http.HttpRequestException), expectedRetryable: True) [2 ms]
+  Passed SaveState.Core.Tests.GameLibrary.ResilientMetadataServiceTests.CircuitBreaker_RemainsClosed_UnderFailureThreshold [1 ms]
+  Passed SaveState.Core.Tests.GameLibrary.ResilientMetadataServiceTests.GetGameMetadataAsync_ReturnsEmpty_WhenTitleIsEmpty [2 ms]
+  Passed SaveState.Infrastructure.Tests.Services.FileSystemTests.DirectoryExistsAsync_WithNonExistingDirectory_ReturnsFalse [1 s]
+  Passed SaveState.EndToEndTests.TestFrameworkEndToEndTests.ProjectReferences_AreAvailable [3 s]
+
+Test Run Successful.
+Total tests: 3
+     Passed: 3
+  Passed  Total time: 11.4585 Seconds
+SaveState.Infrastructure.Tests.Services.FileSystemTests.DirectoryExistsAsync_WithExistingDirectory_ReturnsTrue [20 ms]
+  Passed SaveState.Infrastructure.Tests.Ai.Memory.EnhancedShortTermMemoryTests.SearchAsync_WithKeywordQuery_ReturnsRelevantEntries [1 s]
+[xUnit.net 00:00:04.64]   Finished:    SaveState.Presentation.UITests
+  Passed SaveState.LoadTests.UnitTest1.Test1 [283 ms]
+  Passed Unhandled exception. 
+SaveState.Infrastructure.Tests.Ai.Memory.EnhancedShortTermMemoryTests.SearchAsync_WithMaxResults_LimitsReturnedEntries [6 ms]
+  Passed SaveState.Infrastructure.Tests.Ai.Memory.EnhancedShortTermMemoryTests.SearchAsync_WithContextQuery_ReturnsMatchingEntries [4 ms]
+  Passed SaveState.Infrastructure.Tests.Ai.Memory.EnhancedShortTermMemoryTests.StoreAsync_ExceedingMaxEntries_TriggersPruning [11 ms]
+  Passed SaveState.Infrastructure.Tests.Ai.Memory.EnhancedShortTermMemoryTests.SearchAsync_IncreasesAccessCount [1 ms]
+  Passed SaveState.Presentation.UITests.UnitTest1.Test1 [4 ms]
+
+Test Run Successful.
+Total tests: 1
+     Passed: 1
+  Passed  Total time: 11.6828 Seconds
+SaveState.Infrastructure.Tests.Ai.Memory.EnhancedShortTermMemoryTests.StoreAsync_ExceedingMaxTokens_TriggersPruning [8 ms]
+  Passed SaveState.Infrastructure.Tests.Ai.Memory.EnhancedShortTermMemoryTests.ClearAsync_RemovesAllEntries [2 ms]
+  Passed SaveState.Infrastructure.Tests.Ai.Memory.EnhancedShortTermMemoryTests.StoreAsync_WithValidEntry_StoresSuccessfully [1 ms]
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Accessibility.Tests\bin\Debug\net9.0\SaveState.Accessibility.Tests.dll (.NETCoreApp,Version=v9.0)
+  Passed   Passed SaveState.Application.Tests.UnitTest1.Test1 [94 ms]
+  Passed SaveState.Application.Tests.RomManagement.LiveSyncServiceTests.StartWatchingAsync_WithUnknownPlatform_DoesNotThrow [2 s]
+SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.GetExtensions_WithValidPlatformName_ReturnsCorrectExtensions(platformName: "PlayStation", expectedExtensions: [".bin", ".cue", ".iso", ".img", ".pbp"]) [1 s]
+  Passed SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.GetExtensions_WithValidPlatformName_ReturnsCorrectExtensions(platformName: "NES", expectedExtensions: [".nes", ".unf", ".unif"]) [2 ms]
+  Passed SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.GetExtensions_WithValidPlatformName_ReturnsCorrectExtensions(platformName: "Nintendo 64", expectedExtensions: [".n64", ".z64", ".v64", ".rom"]) [< 1 ms]
+  Passed SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.GetExtensions_WithValidPlatformName_ReturnsCorrectExtensions(platformName: "SNES", expectedExtensions: [".sfc", ".smc", ".fig", ".swc"]) [< 1 ms]
+  Passed SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.DetectPlatformName_WithValidFilePath_ReturnsCorrectPlatform(filePath: "game.unknown", expectedPlatform: null) [2 ms]
+  Passed SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.DetectPlatformName_WithValidFilePath_ReturnsCorrectPlatform(filePath: "game.bin", expectedPlatform: "PlayStation") [1 ms]
+  Passed SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.DetectPlatformName_WithValidFilePath_ReturnsCorrectPlatform(filePath: "game.nes", expectedPlatform: "NES") [< 1 ms]
+  Passed SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.DetectPlatformName_WithValidFilePath_ReturnsCorrectPlatform(filePath: "game.n64", expectedPlatform: "Nintendo 64") [< 1 ms]
+  Passed SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.DetectPlatformName_WithValidFilePath_ReturnsCorrectPlatform(filePath: "game.sfc", expectedPlatform: "SNES") [< 1 ms]
+  Passed SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.GetExtensions_IsCaseInsensitive [< 1 ms]
+  Passed SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.IsValidExtension_WithFilePathAndPlatform_ReturnsCorrectResult(filePath: "game.unknown", platformName: "NES", expectedResult: False) [< 1 ms]
+  Passed SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.IsValidExtension_WithFilePathAndPlatform_ReturnsCorrectResult(filePath: "Chrono Trigger.sfc", platformName: "SNES", expectedResult: True) [< 1 ms]
+  Passed SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.IsValidExtension_WithFilePathAndPlatform_ReturnsCorrectResult(filePath: "Final Fantasy VII.bin", platformName: "PlayStation", expectedResult: True) [< 1 ms]
+  Passed SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.IsValidExtension_WithFilePathAndPlatform_ReturnsCorrectResult(filePath: "Super Mario 64.n64", platformName: "Nintendo 64", expectedResult: True) [< 1 ms]
+  Passed SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.IsValidExtension_WithFilePathAndPlatform_ReturnsCorrectResult(filePath: "game.nes", platformName: "SNES", expectedResult: False) [< 1 ms]
+  Passed SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.IsValidExtension_WithFilePathAndPlatform_ReturnsCorrectResult(filePath: "Super Mario Bros.nes", platformName: "NES", expectedResult: True) [< 1 ms]
+  Passed SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.GetExtensions_WithUnknownPlatformName_ReturnsEmptyArray [6 ms]
+  Passed SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.GetExtensions_WithNullOrEmptyPlatformName_ReturnsEmptyArray [< 1 ms]
+  Passed SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.DetectPlatformName_IsCaseInsensitive [< 1 ms]
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.CrossPlatform.Tests\bin\Debug\net9.0\SaveState.CrossPlatform.Tests.dll (.NETCoreApp,Version=v9.0)
+  Passed   Passed SaveState.Application.Tests.Security.SecurityTests.ImportGame_WithNullBytes_TitleIsRejected [2 s]
+SaveState.Infrastructure.Tests.RomManagement.PlatformExtensionRegistryTests.IsValidExtension_IsCaseInsensitive [< 1 ms]
+  Passed   Passed SaveState.Application.Tests.RomManagement.RomScannerServiceTests.ScanFolderAsync_WithNonExistentFolder_ReturnsEmptyList [1 s]
+SaveState.Infrastructure.Tests.Ai.Memory.EnhancedShortTermMemoryTests.StoreAsync_WithCancellation_ThrowsOperationCanceledException [374 ms]
+  Passed   Passed VSTest version 18.0.0-preview-25451-107 (x64)
+
+SaveState.Application.Tests.Security.SecurityTests.ImportGame_WithSuspiciousInput_IsAccepted(suspiciousInput: "../../../../etc/passwd") [10 ms]
+SaveState.Infrastructure.Tests.Ai.Memory.EnhancedShortTermMemoryTests.StoreAsync_WithDuplicateId_OverwritesExistingEntry [2 ms]
+  Passed   Passed   Passed SaveState.Presentation.Tests.ViewModels.MainViewModelTests.NavigateToGameLibrary_SetsCurrentViewModelToGameLibraryViewModel [5 s]
+SaveState.Application.Tests.GameLibrary.GameImportServiceTests.ImportAllLibrariesAsync_WithProviderFailure_ContinuesImport [1 s]
+SaveState.Infrastructure.Tests.Ai.AiOrchestratorTests.ProcessRequestAsync_WithCacheHit_ReturnsCachedResponse [2 s]
+VSTest version 18.0.0-preview-25451-107 (x64)
+  Passed   Passed [xUnit.net 00:00:08.87]   Finished:    SaveState.Presentation.Tests
+SaveState.Application.Tests.Security.SecurityTests.ImportGame_WithSuspiciousInput_IsAccepted(suspiciousInput: "..\\..\\..\\windows\\system.ini") [3 ms]
+SaveState.Infrastructure.Tests.Ai.AiOrchestratorTests.ProcessRequestAsync_WithNullRequest_ThrowsArgumentNullException [6 ms]
+Starting test execution, please wait...
+  Passed SaveState.Application.Tests.RomManagement.LiveSyncServiceTests.GetSyncStatusAsync_WithUnknownFolder_ReturnsDefaultStatus [94 ms]
+Stack overflow.
+  Passed A total of 1 test files matched the specified pattern.
+  Passed   Passed SaveState.Application.Tests.Security.SecurityTests.ImportGame_WithSuspiciousInput_IsAccepted(suspiciousInput: "file:///etc/passwd") [1 ms]
+SaveState.Core.Tests.GameLibrary.ResilientMetadataServiceTests.GetCoverImageAsync_RetriesOnFailure_AndReturnsFailure [3 s]
+SaveState.Presentation.Tests.ViewModels.MainViewModelTests.CurrentViewModel_PropertyChange_NotifiesObservers [6 ms]
+[xUnit.net 00:00:09.04]   Finished:    SaveState.Core.Tests
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+   at System.Runtime.EH.DispatchEx(System.Runtime.StackFrameIterator ByRef, ExInfo ByRef)
+  Passed   Passed SaveState.Application.Tests.Security.SecurityTests.ImportGame_WithSuspiciousInput_IsAccepted(suspiciousInput: "data:text/html,<script>alert('xss')</script>") [1 ms]
+SaveState.Presentation.Tests.ViewModels.MainViewModelTests.NavigateToGameLibrary_PassesMediatorToGameLibraryViewModel [< 1 ms]
+  Passed   Passed    at System.Runtime.EH.RhThrowHwEx(UInt32, ExInfo ByRef)
+SaveState.Application.Tests.Security.SecurityTests.ImportGame_WithSuspiciousInput_IsAccepted(suspiciousInput: "javascript:alert('xss')") [2 ms]
+SaveState.Presentation.Tests.ViewModels.MainViewModelTests.Constructor_WithMediator_SetsUpInitialViewModel [< 1 ms]
+  Passed   Passed SaveState.Core.Tests.GameLibrary.ResilientMetadataServiceTests.CircuitBreaker_RecoversAfterBreakDuration [< 1 ms]
+  Passed SaveState.Core.Tests.GameLibrary.ResilientMetadataServiceTests.GetCoverImageAsync_ReturnsImage_WhenInnerServiceSucceeds [3 ms]
+  Passed SaveState.Core.Tests.GameLibrary.ResilientMetadataServiceTests.CircuitBreaker_TracksStateCorrectly [2 ms]
+
+  Passed SaveState.Application.Tests.RomManagement.LiveSyncServiceTests.Events_AreProperlyDefined [7 ms]
+Test Run Successful.
+SaveState.Presentation.Tests.ViewModels.MainViewModelTests.MultipleNavigationCalls_UpdateCurrentViewModelEachTime [< 1 ms]
+   at System.RuntimeMethodHandle.InvokeMethod(System.Object, Void**, System.Signature, Boolean)
+Total tests: 60
+
+  Passed      Passed: 60
+SaveState.Application.Tests.Security.SecurityTests.ImportGame_WithPotentiallyDangerousPaths_IsAccepted(testPath: "../../../etc/passwd") [3 ms]
+Test Run Successful.
+  Passed    at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(System.Object, System.Reflection.BindingFlags)
+SaveState.Application.Tests.GameLibrary.GameImportServiceTests.ImportAllLibrariesAsync_WithSkipMetadata_SkipsEnrichment [11 ms]
+ Total time: 14.2166 Seconds
+Total tests: 6
+  Passed SaveState.Application.Tests.RomManagement.LiveSyncServiceTests.StartWatchingAsync_WithNonExistentFolder_DoesNotThrow [1 ms]
+   at System.Reflection.RuntimeMethodInfo.Invoke(System.Object, System.Reflection.BindingFlags, System.Reflection.Binder, System.Object[], System.Globalization.CultureInfo)
+     Passed: 6
+  Passed SaveState.Application.Tests.Security.SecurityTests.ImportGame_WithPotentiallyDangerousPaths_IsAccepted(testPath: "../../windows/system32/cmd.exe") [1 ms]
+   at System.Reflection.MethodBase.Invoke(System.Object, System.Object[])
+  Passed SaveState.Application.Tests.Security.SecurityTests.ImportGame_WithPotentiallyDangerousPaths_IsAccepted(testPath: "C:\\Windows\\System32\\cmd.exe") [1 ms]
+ Total time: 13.3550 Seconds
+  Passed    at Xunit.Sdk.TestInvoker`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].CallTestMethod(System.Object)
+SaveState.Application.Tests.RomManagement.LiveSyncServiceTests.GetWatchedFoldersAsync_WhenNoWatchers_ReturnsEmptyList [2 ms]
+  Passed    at Xunit.Sdk.TestInvoker`1+<>c__DisplayClass47_0+<<InvokeTestMethodAsync>b__1>d[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].MoveNext()
+SaveState.Application.Tests.Security.SecurityTests.ImportGame_WithPotentiallyDangerousPaths_IsAccepted(testPath: "..\\..\\..\\windows\\system32\\cmd.exe") [1 ms]
+  Passed SaveState.Application.Tests.GameLibrary.GameImportServiceTests.ImportAllLibrariesAsync_WithSingleProvider_Succeeds [6 ms]
+Test run for C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Monitoring.Tests\bin\Debug\net9.0\SaveState.Monitoring.Tests.dll (.NETCoreApp,Version=v9.0)
+   at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[Xunit.Sdk.TestInvoker`1+<>c__DisplayClass47_0+<<InvokeTestMethodAsync>b__1>d[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<<InvokeTestMethodAsync>b__1>d<System.__Canon> ByRef)
+  Passed SaveState.Application.Tests.RomManagement.EmulatorServiceTests.GetRunningEmulatorProcessAsync_WithRunningProcess_ReturnsProcessInfo [2 s]
+  Passed    at System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start[[Xunit.Sdk.TestInvoker`1+<>c__DisplayClass47_0+<<InvokeTestMethodAsync>b__1>d[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<<InvokeTestMethodAsync>b__1>d<System.__Canon> ByRef)
+SaveState.Application.Tests.Security.SecurityTests.ImportGame_WithXssAttempt_ContentIsStoredAsIs [7 ms]
+  Passed SaveState.Application.Tests.Security.SecurityTests.ImportGame_WithExtremelyLargeInput_HandlesGracefully [3 ms]
+   at Xunit.Sdk.TestInvoker`1+<>c__DisplayClass47_0[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].<InvokeTestMethodAsync>b__1()
+  Passed SaveState.Application.Tests.RomManagement.EmulatorServiceTests.LaunchRomAsync_WithNoEmulatorForPlatform_ReturnsFailure [9 ms]
+   at Xunit.Sdk.ExecutionTimer+<AggregateAsync>d__4.MoveNext()
+  Passed 
+SaveState.Application.Tests.Security.SecurityTests.ImportGame_WithPathTraversalAttempt_PathIsValidated [24 ms]
+   at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[Xunit.Sdk.ExecutionTimer+<AggregateAsync>d__4, xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<AggregateAsync>d__4 ByRef)
+  Passed SaveState.Application.Tests.Security.SecurityTests.ImportGame_WithSqlInjectionAttempt_TitleIsSanitized [5 ms]
+  Passed    at System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start[[Xunit.Sdk.ExecutionTimer+<AggregateAsync>d__4, xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<AggregateAsync>d__4 ByRef)
+SaveState.Application.Tests.RomManagement.EmulatorServiceTests.IsEmulatorAvailableAsync_WithAvailableEmulator_ReturnsTrue [11 ms]
+VSTest version 18.0.0-preview-25451-107 (x64)
+  Passed SaveState.Application.Tests.GameLibrary.EdgeCaseTests.ImportGame_WithExtremelyLongTitle_HandlesGracefully [4 ms]
+   at Xunit.Sdk.ExecutionTimer.AggregateAsync(System.Func`1<System.Threading.Tasks.Task>)
+Starting test execution, please wait...
+  Passed SaveState.Application.Tests.RomManagement.EmulatorServiceTests.LaunchRomAsync_WithValidEmulator_LaunchesSuccessfully [73 ms]
+   at Xunit.Sdk.TestInvoker`1+<>c__DisplayClass47_0[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].<InvokeTestMethodAsync>b__0()
+  Passed A total of 1 test files matched the specified pattern.
+SaveState.Application.Tests.GameLibrary.EdgeCaseTests.GetGameDetails_WithNonExistentGame_ReturnsNull [5 ms]
+  Passed 
+   at Xunit.Sdk.ExceptionAggregator+<RunAsync>d__9.MoveNext()
+SaveState.Application.Tests.RomManagement.EmulatorServiceTests.LaunchRomAsync_WithInvalidRomFileId_ReturnsFailure [4 ms]
+  Passed SaveState.Application.Tests.RomManagement.EmulatorServiceTests.LaunchRomWithEmulatorAsync_WithUnavailableEmulator_ReturnsFailure [4 ms]
+   at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[Xunit.Sdk.ExceptionAggregator+<RunAsync>d__9, xunit.core, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunAsync>d__9 ByRef)
+  Passed Starting test execution, please wait...
+SaveState.Application.Tests.GameLibrary.EdgeCaseTests.ImportGame_WithUnicodeCharactersInTitle_HandlesCorrectly [5 ms]
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start[[Xunit.Sdk.ExceptionAggregator+<RunAsync>d__9, xunit.core, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunAsync>d__9 ByRef)
+  Passed A total of 1 test files matched the specified pattern.
+SaveState.Application.Tests.GameLibrary.EdgeCaseTests.ImportGame_WithDuplicateSourceId_FailsGracefully [5 ms]
+   at Xunit.Sdk.ExceptionAggregator.RunAsync(System.Func`1<System.Threading.Tasks.Task>)
+  Passed SaveState.Application.Tests.RomManagement.EmulatorServiceTests.GetAvailableEmulatorsAsync_ReturnsAvailableEmulators [9 ms]
+  Passed    at Xunit.Sdk.TestInvoker`1+<InvokeTestMethodAsync>d__47[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].MoveNext()
+SaveState.Application.Tests.RomManagement.EmulatorServiceTests.KillEmulatorProcessAsync_WithNoRunningProcess_DoesNothing [< 1 ms]
+  Passed SaveState.Application.Tests.GameLibrary.EdgeCaseTests.ImportGame_WithValidationFailure_ReturnsDetailedErrors [5 ms]
+   at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[Xunit.Sdk.TestInvoker`1+<InvokeTestMethodAsync>d__47[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<InvokeTestMethodAsync>d__47<System.__Canon> ByRef)
+  Passed SaveState.Application.Tests.GameLibrary.EdgeCaseTests.ImportGame_WithEmptyGenresArray_HandlesGracefully [3 ms]
+  Passed    at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1[[System.Decimal, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].Start[[Xunit.Sdk.TestInvoker`1+<InvokeTestMethodAsync>d__47[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<InvokeTestMethodAsync>d__47<System.__Canon> ByRef)
+SaveState.Application.Tests.RomManagement.EmulatorServiceTests.GetDefaultEmulatorAsync_ReturnsFirstAvailableEmulator [4 ms]
+  Passed    at Xunit.Sdk.TestInvoker`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].InvokeTestMethodAsync(System.Object)
+SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_PlatformNotFound_ReturnsFailure [29 ms]
+  Passed SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_NewGame_ImportsSuccessfully [5 ms]
+   at Xunit.Sdk.XunitTestInvoker.InvokeTestMethodAsync(System.Object)
+  Passed SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_NewPlatform_CreatesPlatform [6 ms]
+  Passed    at Xunit.Sdk.TestInvoker`1+<<RunAsync>b__46_0>d[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].MoveNext()
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_InvalidGameData_ReturnsFailure [4 ms]
+  Passed SaveState.Application.Tests.GameLibrary.Commands.Handlers.ImportGameCommandHandlerTests.Handle_ExistingGame_ReturnsFailure [3 ms]
+   at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[Xunit.Sdk.TestInvoker`1+<<RunAsync>b__46_0>d[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<<RunAsync>b__46_0>d<System.__Canon> ByRef)
+  Passed SaveState.Application.Tests.GameLibrary.GameImportServiceTests.ImportAllLibrariesAsync_ReportsProgress [239 ms]
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1[[System.Decimal, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].Start[[Xunit.Sdk.TestInvoker`1+<<RunAsync>b__46_0>d[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<<RunAsync>b__46_0>d<System.__Canon> ByRef)
+  Passed SaveState.Application.Tests.GameLibrary.GameImportServiceTests.ImportAllLibrariesAsync_WithMetadataEnrichment_EnrichesGame [6 ms]
+  Passed    at Xunit.Sdk.TestInvoker`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].<RunAsync>b__46_0()
+SaveState.Application.Tests.GameLibrary.GameImportServiceTests.ImportAllLibrariesAsync_WithNoProviders_ReturnsEmptyResult [6 ms]
+[xUnit.net 00:00:00.97]   Discovering: SaveState.Accessibility.Tests
+  Passed SaveState.Application.Tests.RomManagement.LiveSyncServiceTests.ForceSyncAsync_WithUnknownFolder_ThrowsInvalidOperationException [356 ms]
+   at Xunit.Sdk.ExceptionAggregator+<RunAsync>d__10`1[[System.Decimal, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].MoveNext()
+  Passed SaveState.Application.Tests.RomManagement.LiveSyncServiceTests.StartWatchingAsync_WithInvalidPlatformName_ThrowsArgumentException [2 ms]
+[xUnit.net 00:00:03.84]   Discovering: SaveState.Configuration.Tests
+  Passed   Passed SaveState.Infrastructure.Tests.Ai.OpenAiProviderTests.AvailableModels_ContainsExpectedModelsWithCorrectCosts [2 s]
+[xUnit.net 00:00:01.18]   Discovered:  SaveState.Accessibility.TestsSaveState.Application.Tests.RomManagement.LiveSyncServiceTests.StopWatchingAsync_WithUnknownFolder_DoesNotThrow [2 ms]
+
+  Passed    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[Xunit.Sdk.ExceptionAggregator+<RunAsync>d__10`1[[System.Decimal, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.core, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunAsync>d__10`1<System.Decimal> ByRef)
+SaveState.Application.Tests.RomManagement.LiveSyncServiceTests.StartWatchingAsync_WithInvalidFolderPath_ThrowsArgumentException [1 ms]
+  Passed SaveState.Application.Tests.RomManagement.LiveSyncServiceTests.ClearAllWatchersAsync_WhenWatchersExist_ClearsAll [1 ms]
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1[[System.Decimal, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].Start[[Xunit.Sdk.ExceptionAggregator+<RunAsync>d__10`1[[System.Decimal, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.core, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunAsync>d__10`1<System.Decimal> ByRef)
+  Passed SaveState.Application.Tests.RomManagement.RomScannerServiceTests.ScanFolderAsync_ReportsProgress [459 ms]
+   at Xunit.Sdk.ExceptionAggregator.RunAsync[[System.Decimal, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]](System.Func`1<System.Threading.Tasks.Task`1<System.Decimal>>)
+  Passed SaveState.Application.Tests.RomManagement.RomScannerServiceTests.ScanFolderAsync_SupportsMultiplePlatforms(platformName: "PlayStation", expectedExtensions: [".bin", ".cue", ".iso", ".img"]) [221 ms]
+  Passed    at Xunit.Sdk.TestInvoker`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].RunAsync()
+SaveState.Application.Tests.RomManagement.RomScannerServiceTests.ScanFolderAsync_SupportsMultiplePlatforms(platformName: "NES", expectedExtensions: [".nes"]) [126 ms]
+  Passed SaveState.Application.Tests.RomManagement.RomScannerServiceTests.ScanFolderAsync_SupportsMultiplePlatforms(platformName: "SNES", expectedExtensions: [".sfc", ".smc", ".fig"]) [85 ms]
+   at Xunit.Sdk.XunitTestRunner.InvokeTestMethodAsync(Xunit.Sdk.ExceptionAggregator)
+  Passed SaveState.Application.Tests.RomManagement.RomScannerServiceTests.ScanFolderAsync_SupportsMultiplePlatforms(platformName: "Nintendo 64", expectedExtensions: [".n64", ".z64", ".v64", ".rom"]) [43 ms]
+  Passed    at Xunit.Sdk.XunitTestRunner+<InvokeTestAsync>d__4.MoveNext()
+SaveState.Application.Tests.RomManagement.RomScannerServiceTests.ScanFolderAsync_WithInvalidFolderPath_ThrowsArgumentException [1 ms]
+[xUnit.net 00:00:01.27]   Starting:    SaveState.Accessibility.Tests
+  Passed SaveState.Application.Tests.RomManagement.RomScannerServiceTests.ScanFolderAsync_HandlesRecursiveScanning [62 ms]
+   at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[Xunit.Sdk.XunitTestRunner+<InvokeTestAsync>d__4, xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<InvokeTestAsync>d__4 ByRef)
+  Passed SaveState.Application.Tests.RomManagement.RomScannerServiceTests.ScanFolderAsync_WithUnknownPlatform_ReturnsEmptyList [17 ms]
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].Start[[Xunit.Sdk.XunitTestRunner+<InvokeTestAsync>d__4, xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<InvokeTestAsync>d__4 ByRef)
+  Passed SaveState.Application.Tests.RomManagement.RomScannerServiceTests.ScanFolderAsync_IgnoresNonRomFiles [63 ms]
+  Passed    at Xunit.Sdk.XunitTestRunner.InvokeTestAsync(Xunit.Sdk.ExceptionAggregator)
+SaveState.Application.Tests.RomManagement.RomScannerServiceTests.ScanFolderAsync_WithInvalidPlatformId_ThrowsArgumentException [1 ms]
+  Passed SaveState.Application.Tests.RomManagement.RomScannerServiceTests.ScanFolderAsync_CreatesRomFileEntities [473 ms]
+   at Xunit.Sdk.TestRunner`1+<>c__DisplayClass43_0[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].<RunAsync>b__0()
+[xUnit.net 00:00:03.95]   Discovered:  SaveState.Configuration.Tests
+   at Xunit.Sdk.ExceptionAggregator+<RunAsync>d__10`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].MoveNext()
+   at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[Xunit.Sdk.ExceptionAggregator+<RunAsync>d__10`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.core, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunAsync>d__10`1<System.__Canon> ByRef)
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].Start[[Xunit.Sdk.ExceptionAggregator+<RunAsync>d__10`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.core, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunAsync>d__10`1<System.__Canon> ByRef)
+[xUnit.net 00:00:04.01]   Starting:    SaveState.Configuration.Tests
+   at Xunit.Sdk.ExceptionAggregator.RunAsync[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]](System.Func`1<System.Threading.Tasks.Task`1<System.__Canon>>)
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+   at Xunit.Sdk.TestRunner`1+<RunAsync>d__43[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].MoveNext()
+   at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[Xunit.Sdk.TestRunner`1+<RunAsync>d__43[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunAsync>d__43<System.__Canon> ByRef)
+  Passed SaveState.Accessibility.Tests.UnitTest1.Test1 [4 ms]
+  Passed SaveState.Accessibility.Tests.OnboardingAccessibilityTests.Accessibility_LoadingStates_AreCommunicated [276 ms]
+  Passed SaveState.Accessibility.Tests.MainWindowAccessibilityTests.Accessibility_KeyboardNavigation_IsSupported [276 ms]
+  Passed SaveState.Accessibility.Tests.MainWindowAccessibilityTests.Accessibility_Guidelines_AreDocumented [< 1 ms]
+  Passed SaveState.Accessibility.Tests.OnboardingAccessibilityTests.Accessibility_OnboardingFlow_IsDesignedForInclusiveUX [< 1 ms]
+  Passed SaveState.Accessibility.Tests.OnboardingAccessibilityTests.Accessibility_ErrorMessages_AreDescriptive [< 1 ms]
+  Passed SaveState.Accessibility.Tests.MainWindowAccessibilityTests.Accessibility_TestFramework_IsConfigured [< 1 ms]
+  Passed SaveState.Accessibility.Tests.OnboardingAccessibilityTests.Accessibility_ColorContrast_ShouldMeetWCAGStandards [8 ms]
+  Passed SaveState.Accessibility.Tests.MainWindowAccessibilityTests.Accessibility_ColorContrast_ShouldMeetWCAGStandards [7 ms]
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].Start[[Xunit.Sdk.TestRunner`1+<RunAsync>d__43[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunAsync>d__43<System.__Canon> ByRef)
+   at Xunit.Sdk.TestRunner`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].RunAsync()
+  Passed SaveState.Configuration.Tests.UnitTest1.Test1 [4 ms]
+  Passed SaveState.Configuration.Tests.SteamOptionsTests.SteamOptions_DefaultValues_AreEmpty [413 ms]
+  Passed SaveState.Configuration.Tests.ResilienceConfigTests.ResilienceConfig_MaxRetries_AcceptsValidValues [407 ms]
+  Passed SaveState.Configuration.Tests.ResilienceConfigTests.ResilienceConfig_DefaultTimeoutMs_AcceptsValidValues [< 1 ms]
+   at Xunit.Sdk.XunitTestCaseRunner.RunTestAsync()
+  Passed SaveState.Configuration.Tests.ConfigurationIntegrationTests.Configuration_Binding_IgnoresUnknownProperties [408 ms]
+  Passed SaveState.Configuration.Tests.SteamOptionsTests.SteamOptions_ApiKey_HandlesDifferentFormats [3 ms]
+  Passed SaveState.Configuration.Tests.SteamOptionsTests.SteamOptions_SteamId_HandlesDifferentFormats [< 1 ms]
+   at Xunit.Sdk.TestCaseRunner`1+<RunAsync>d__19[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].MoveNext()
+  Passed SaveState.Configuration.Tests.SteamOptionsTests.SteamOptions_CanBeModified [< 1 ms]
+  Passed SaveState.Configuration.Tests.ResilienceConfigTests.ResilienceConfig_RetryBackoffMultiplier_AcceptsValidValues [4 ms]
+  Passed SaveState.Configuration.Tests.ResilienceConfigTests.ResilienceConfig_CircuitBreakerDurationMs_AcceptsValidValues [< 1 ms]
+  Passed SaveState.Configuration.Tests.SteamOptionsTests.SteamOptions_SteamId_AcceptsValidSteamIdFormats [1 ms]
+   at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[Xunit.Sdk.TestCaseRunner`1+<RunAsync>d__19[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunAsync>d__19<System.__Canon> ByRef)
+  Passed SaveState.Configuration.Tests.OpenAiOptionsTests.OpenAiOptions_CanBeModified [419 ms]
+  Passed SaveState.Configuration.Tests.OpenAiOptionsTests.OpenAiOptions_DefaultValues_AreCorrect [< 1 ms]
+  Passed SaveState.Configuration.Tests.OpenAiOptionsTests.OpenAiOptions_ConfigurationBinding_Works [4 ms]
+  Passed SaveState.Configuration.Tests.OpenAiOptionsTests.OpenAiOptions_SectionConstant_IsCorrect [< 1 ms]
+  Passed SaveState.Configuration.Tests.OpenAiOptionsTests.OpenAiOptions_DefaultModel_SupportsAllModels [< 1 ms]
+  Passed SaveState.Configuration.Tests.OpenAiOptionsTests.OpenAiOptions_ApiKey_HandlesDifferentFormats [< 1 ms]
+  Passed SaveState.Configuration.Tests.OpenAiOptionsTests.OpenAiOptions_BaseUrl_HandlesDifferentFormats [< 1 ms]
+  Passed SaveState.Configuration.Tests.ResilienceConfigTests.ResilienceConfig_CalculatedRetryDelays_AreCorrect [59 ms]
+  Passed SaveState.Configuration.Tests.ResilienceConfigTests.ResilienceConfig_SectionConstant_IsCorrect [< 1 ms]
+  Passed SaveState.Configuration.Tests.ResilienceConfigTests.ResilienceConfig_CircuitBreakerThreshold_AcceptsValidValues [< 1 ms]
+  Passed SaveState.Configuration.Tests.ResilienceConfigTests.ResilienceConfig_AllProperties_CanBeSetAndRetrieved [< 1 ms]
+  Passed SaveState.Configuration.Tests.ResilienceConfigTests.ResilienceConfig_InitialRetryDelayMs_AcceptsValidValues [< 1 ms]
+  Passed SaveState.Configuration.Tests.ResilienceConfigTests.ResilienceConfig_CircuitBreakerLogic_WorksAsExpected [< 1 ms]
+  Passed SaveState.Configuration.Tests.ResilienceConfigTests.ResilienceConfig_DefaultValues_AreCorrect [< 1 ms]
+  Passed SaveState.Configuration.Tests.ResilienceConfigTests.ResilienceConfig_ConfigurationBinding_Works [5 ms]
+  Passed SaveState.Configuration.Tests.ResilienceConfigTests.ResilienceConfig_TimeoutValidation_Works [< 1 ms]
+  Passed SaveState.Configuration.Tests.ConfigurationIntegrationTests.Configuration_InvalidValues_ThrowExceptions [73 ms]
+  Passed SaveState.Configuration.Tests.ConfigurationIntegrationTests.Configuration_ArrayValues_Handling [< 1 ms]
+  Passed SaveState.Configuration.Tests.ConfigurationIntegrationTests.Configuration_Binding_WorksWithMemoryConfiguration [14 ms]
+  Passed SaveState.Configuration.Tests.ConfigurationIntegrationTests.Configuration_Validation_HandlesEmptyConfiguration [< 1 ms]
+  Passed SaveState.Configuration.Tests.ConfigurationIntegrationTests.Configuration_CaseSensitivity_Handling [1 ms]
+  Passed SaveState.Configuration.Tests.ConfigurationIntegrationTests.Configuration_MissingSections_UseDefaultValues [< 1 ms]
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].Start[[Xunit.Sdk.TestCaseRunner`1+<RunAsync>d__19[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunAsync>d__19<System.__Canon> ByRef)
+   at Xunit.Sdk.TestCaseRunner`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].RunAsync()
+   at Xunit.Sdk.XunitTestCase.RunAsync(Xunit.Abstractions.IMessageSink, Xunit.Sdk.IMessageBus, System.Object[], Xunit.Sdk.ExceptionAggregator, System.Threading.CancellationTokenSource)
+   at Xunit.Sdk.XunitTestMethodRunner.RunTestCaseAsync(Xunit.Sdk.IXunitTestCase)
+   at Xunit.Sdk.TestMethodRunner`1+<RunTestCasesAsync>d__32[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].MoveNext()
+   at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[Xunit.Sdk.TestMethodRunner`1+<RunTestCasesAsync>d__32[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunTestCasesAsync>d__32<System.__Canon> ByRef)
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].Start[[Xunit.Sdk.TestMethodRunner`1+<RunTestCasesAsync>d__32[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunTestCasesAsync>d__32<System.__Canon> ByRef)
+   at Xunit.Sdk.TestMethodRunner`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].RunTestCasesAsync()
+   at Xunit.Sdk.TestMethodRunner`1+<RunAsync>d__31[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].MoveNext()
+   at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[Xunit.Sdk.TestMethodRunner`1+<RunAsync>d__31[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunAsync>d__31<System.__Canon> ByRef)
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].Start[[Xunit.Sdk.TestMethodRunner`1+<RunAsync>d__31[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunAsync>d__31<System.__Canon> ByRef)
+   at Xunit.Sdk.TestMethodRunner`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].RunAsync()
+   at Xunit.Sdk.XunitTestClassRunner.RunTestMethodAsync(Xunit.Abstractions.ITestMethod, Xunit.Abstractions.IReflectionMethodInfo, System.Collections.Generic.IEnumerable`1<Xunit.Sdk.IXunitTestCase>, System.Object[])
+   at Xunit.Sdk.TestClassRunner`1+<RunTestMethodsAsync>d__38[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].MoveNext()
+   at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[Xunit.Sdk.TestClassRunner`1+<RunTestMethodsAsync>d__38[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunTestMethodsAsync>d__38<System.__Canon> ByRef)
+[xUnit.net 00:00:04.68]   Finished:    SaveState.Configuration.Tests
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].Start[[Xunit.Sdk.TestClassRunner`1+<RunTestMethodsAsync>d__38[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunTestMethodsAsync>d__38<System.__Canon> ByRef)
+   at Xunit.Sdk.TestClassRunner`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].RunTestMethodsAsync()
+   at Xunit.Sdk.TestClassRunner`1+<RunAsync>d__37[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].MoveNext()
+   at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[Xunit.Sdk.TestClassRunner`1+<RunAsync>d__37[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunAsync>d__37<System.__Canon> ByRef)
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].Start[[Xunit.Sdk.TestClassRunner`1+<RunAsync>d__37[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunAsync>d__37<System.__Canon> ByRef)
+   at Xunit.Sdk.TestClassRunner`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].RunAsync()
+   at Xunit.Sdk.XunitTestCollectionRunner.RunTestClassAsync(Xunit.Abstractions.ITestClass, Xunit.Abstractions.IReflectionTypeInfo, System.Collections.Generic.IEnumerable`1<Xunit.Sdk.IXunitTestCase>)
+   at Xunit.Sdk.TestCollectionRunner`1+<RunTestClassesAsync>d__28[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].MoveNext()
+   at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[Xunit.Sdk.TestCollectionRunner`1+<RunTestClassesAsync>d__28[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunTestClassesAsync>d__28<System.__Canon> ByRef)
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].Start[[Xunit.Sdk.TestCollectionRunner`1+<RunTestClassesAsync>d__28[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunTestClassesAsync>d__28<System.__Canon> ByRef)
+   at Xunit.Sdk.TestCollectionRunner`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].RunTestClassesAsync()
+   at Xunit.Sdk.TestCollectionRunner`1+<RunAsync>d__27[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].MoveNext()
+   at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[Xunit.Sdk.TestCollectionRunner`1+<RunAsync>d__27[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunAsync>d__27<System.__Canon> ByRef)
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].Start[[Xunit.Sdk.TestCollectionRunner`1+<RunAsync>d__27[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunAsync>d__27<System.__Canon> ByRef)
+   at Xunit.Sdk.TestCollectionRunner`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].RunAsync()
+   at Xunit.Sdk.XunitTestAssemblyRunner+<RunTestCollectionAsync>d__18.MoveNext()
+   at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[[Xunit.Sdk.XunitTestAssemblyRunner+<RunTestCollectionAsync>d__18, xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunTestCollectionAsync>d__18 ByRef)
+   at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].Start[[Xunit.Sdk.XunitTestAssemblyRunner+<RunTestCollectionAsync>d__18, xunit.execution.dotnet, Version=2.9.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c]](<RunTestCollectionAsync>d__18 ByRef)
+   at Xunit.Sdk.XunitTestAssemblyRunner.RunTestCollectionAsync(Xunit.Sdk.IMessageBus, Xunit.Abstractions.ITestCollection, System.Collections.Generic.IEnumerable`1<Xunit.Sdk.IXunitTestCase>, System.Threading.CancellationTokenSource)
+   at Xunit.Sdk.XunitTestAssemblyRunner+<>c__DisplayClass16_2.<RunTestCollectionsAsync>b__2()
+   at System.Threading.Tasks.Task`1[[System.__Canon, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]].InnerInvoke()
+   at System.Threading.ExecutionContext.RunFromThreadPoolDispatchLoop(System.Threading.Thread, System.Threading.ExecutionContext, System.Threading.ContextCallback, System.Object)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(System.Threading.Tasks.Task ByRef, System.Threading.Thread)
+   at System.Threading.ThreadPoolWorkQueue.Dispatch()
+   at System.Threading.PortableThreadPool+WorkerThread.WorkerThreadStart()
+  Passed SaveState.Infrastructure.Tests.Ai.Memory.EnhancedShortTermMemoryTests.ConcurrentAccess_HandlesThreadSafety [3 s]
+  Passed SaveState.Infrastructure.Tests.Services.FileSystemTests.GetFilesAsync_WithRecursiveSearch_ReturnsFilesFromSubdirectories [3 s]
+  Passed SaveState.Configuration.Tests.ConfigurationIntegrationTests.Configuration_Array_Binding_Works [< 1 ms]
+  Passed SaveState.Configuration.Tests.ConfigurationIntegrationTests.Configuration_Nested_Sections_Work [< 1 ms]
+  Passed SaveState.Configuration.Tests.ConfigurationIntegrationTests.Configuration_EnvironmentVariables_OverrideDefaults [7 ms]
+  Passed SaveState.Configuration.Tests.ConfigurationIntegrationTests.Configuration_Boolean_Conversion_Works [< 1 ms]
+  Passed SaveState.Configuration.Tests.ConfigurationIntegrationTests.Configuration_SensitiveData_Handling [38 ms]
+  Passed   Passed SaveState.LoadTests.DatabaseLoadTests.RapidSequentialOperations_MaintainsDataIntegrity [5 s]SaveState.Configuration.Tests.ConfigurationIntegrationTests.Configuration_Section_Names_AreCaseInsensitive [< 1 ms]
+
+  Passed SaveState.Configuration.Tests.ConfigurationIntegrationTests.Configuration_Validation_RequiredFields [< 1 ms]
+  Passed SaveState.Configuration.Tests.ConfigurationIntegrationTests.Configuration_Empty_Values_Are_Handled [< 1 ms]
+  Passed SaveState.Configuration.Tests.ConfigurationIntegrationTests.Configuration_Number_Conversion_Works [< 1 ms]
+
+Test Run Successful.
+Total tests: 42
+     Passed: 42
+[xUnit.net 00:00:00.89]   Discovering: SaveState.CrossPlatform.Tests
+ Total time: 12.2683 Seconds
+
+Total tests: Unknown
+     Passed: 38
+ Total time: 17.6121 Seconds
+[xUnit.net 00:00:01.03]   Discovered:  SaveState.CrossPlatform.Tests
+[xUnit.net 00:00:01.09]   Starting:    SaveState.CrossPlatform.Tests
+  Passed SaveState.CrossPlatform.Tests.UnitTest1.Test1 [5 ms]
+  Passed SaveState.CrossPlatform.Tests.PathCompatibilityTests.FileExtension_Handling_IsCaseInsensitive [275 ms]
+  Passed SaveState.CrossPlatform.Tests.PathCompatibilityTests.PathLength_Limits_AreHandled [1 ms]
+  Passed SaveState.CrossPlatform.Tests.PathCompatibilityTests.UnicodeCharacters_InPaths [< 1 ms]
+  Passed SaveState.CrossPlatform.Tests.PathCompatibilityTests.PathSeparator_Handling_WorksOnAllPlatforms [< 1 ms]
+  Passed SaveState.CrossPlatform.Tests.PathCompatibilityTests.NetworkPath_Handling_Windows [< 1 ms]
+  Passed SaveState.CrossPlatform.Tests.PathCompatibilityTests.UNCPath_Compatibility [< 1 ms]
+  Passed SaveState.CrossPlatform.Tests.PathCompatibilityTests.DirectorySeparator_Compatibility [< 1 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.Hashing_Algorithms_AreAvailable [295 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.Encoding_Default_IsPlatformAppropriate [< 1 ms]
+  Passed SaveState.CrossPlatform.Tests.PathCompatibilityTests.SpecialCharacters_InPaths [3 ms]
+  Passed SaveState.CrossPlatform.Tests.PathCompatibilityTests.RootDirectory_Handling [< 1 ms]
+  Passed SaveState.CrossPlatform.Tests.PathCompatibilityTests.RelativePath_Resolution [< 1 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.File_Permissions_CanBeChecked [7 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.Environment_Variables_AreAccessible [< 1 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.Path_DirectorySeparatorChar_IsPlatformAppropriate [1 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.OperatingSystem_Detection_Works [1 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.RuntimeIdentifier_IsAvailable [< 1 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.Network_Connectivity_CanBeTested [< 1 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.FrameworkDescription_IsAvailable [< 1 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.Threading_IsSupported [< 1 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.TimeZone_Handling_Works [2 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.Random_Number_Generation_Works [52 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.Path_PathSeparator_IsPlatformAppropriate [< 1 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.CultureInfo_IsAvailable [< 1 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.Memory_AndPerformance_IsAdequate [4 ms]
+[xUnit.net 00:00:01.54]   Finished:    SaveState.CrossPlatform.Tests
+[xUnit.net 00:00:02.95]   Finished:    SaveState.Accessibility.Tests
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 9.0.11)
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.Compression_IsSupported [5 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.DateTime_Operations_Work [1 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.Environment_NewLine_IsPlatformAppropriate [< 1 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.FileSystem_CaseSensitivity_IsHandled [1 ms]
+  Passed SaveState.CrossPlatform.Tests.RuntimeCompatibilityTests.ProcessArchitecture_IsDetected [4 ms]
+
+Test Run Successful.
+Total tests: 31
+     Passed: 31
+  Passed SaveState.Accessibility.Tests.OnboardingAccessibilityTests.Accessibility_ProgressiveDisclosure_IsImplemented [< 1 ms]
+  Passed SaveState.Accessibility.Tests.OnboardingAccessibilityTests.Onboarding_ClassesExist_ForAccessibilityTesting [1 s]
+ Total time: 4.6367 Seconds
+  Passed SaveState.Accessibility.Tests.MainWindowAccessibilityTests.MainWindow_ClassExists_ForAccessibilityTesting [1 s]
+  Passed SaveState.Accessibility.Tests.MainWindowAccessibilityTests.Accessibility_Window_Resizing_IsSupported [< 1 ms]
+  Passed SaveState.Accessibility.Tests.MainWindowAccessibilityTests.Accessibility_ScreenReader_Support_IsImplemented [< 1 ms]
+
+Test Run Successful.
+Total tests: 14
+     Passed: 14
+ Total time: 5.7024 Seconds
+  Passed SaveState.LoadTests.DatabaseLoadTests.BulkInsert_1000Games_PerformsWithinTimeLimit [404 ms]
+[xUnit.net 00:00:00.87]   Discovering: SaveState.Monitoring.Tests
+[xUnit.net 00:00:00.96]   Discovered:  SaveState.Monitoring.Tests
+[xUnit.net 00:00:01.06]   Starting:    SaveState.Monitoring.Tests
+  Passed SaveState.Monitoring.Tests.UnitTest1.Test1 [4 ms]
+  Passed SaveState.LoadTests.DatabaseLoadTests.MemoryPressure_LargeDataset_HandlesGracefully [2 s]
+  Passed SaveState.Monitoring.Tests.HealthCheckTests.DatabaseHealthCheck_CanBeInstantiated [1 s]
+  Passed SaveState.Monitoring.Tests.HealthCheckTests.HealthCheck_Frequency_CanBeConfigured [1 ms]
+  Passed SaveState.Monitoring.Tests.HealthCheckTests.HealthCheck_Result_ContainsExpectedData [9 ms]
+  Passed SaveState.Monitoring.Tests.HealthCheckTests.HealthCheck_Response_IncludesTimestamp [2 ms]
+  Passed SaveState.Application.Tests.Concurrency.ConcurrencyTests.MemoryPressure_ConcurrentOperations [7 s]
+[xUnit.net 00:00:03.34]       Expected healthyString "Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult" to contain "Healthy".
+[xUnit.net 00:00:03.34]       Stack Trace:
+[xUnit.net 00:00:03.35]            at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+[xUnit.net 00:00:03.35]            at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+[xUnit.net 00:00:03.35]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:03.35]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:03.35]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:03.35]            at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+[xUnit.net 00:00:03.35]            at FluentAssertions.Primitives.StringAssertions`1.Contain(String expected, String because, Object[] becauseArgs)
+[xUnit.net 00:00:03.35]         C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Monitoring.Tests\HealthCheckTests.cs(106,0): at SaveState.Monitoring.Tests.HealthCheckTests.HealthCheck_Result_CanBeConvertedToString()
+[xUnit.net 00:00:03.35]            at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+[xUnit.net 00:00:03.35]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  Passed SaveState.Monitoring.Tests.LoggingTests.Logger_ExceptionLogging_IncludesExceptionDetails [1 s]
+  Passed SaveState.Monitoring.Tests.LoggingTests.Logger_EventId_IsUsedCorrectly [12 ms]
+  Passed SaveState.Monitoring.Tests.LoggingTests.Logger_IsEnabled_ChecksWork [42 ms]
+  Passed SaveState.Monitoring.Tests.LoggingTests.Logger_LogLevel_Filtering_Works [16 ms]
+  Passed SaveState.Monitoring.Tests.LoggingTests.Logger_MessageTemplate_Formatting_Works [17 ms]
+  Passed SaveState.Monitoring.Tests.LoggingTests.Logger_StructuredLogging_Works [4 ms]
+  Passed SaveState.Monitoring.Tests.LoggingTests.Logger_Scope_WorksCorrectly [9 ms]
+  Passed SaveState.Monitoring.Tests.LoggingTests.Logger_LogLevels_WorkCorrectly [15 ms]
+  Failed SaveState.Monitoring.Tests.HealthCheckTests.HealthCheck_Result_CanBeConvertedToString [739 ms]
+  Error Message:
+   Expected healthyString "Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult" to contain "Healthy".
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.StringAssertions`1.Contain(String expected, String because, Object[] becauseArgs)
+   at SaveState.Monitoring.Tests.HealthCheckTests.HealthCheck_Result_CanBeConvertedToString() in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Monitoring.Tests\HealthCheckTests.cs:line 106
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:03.36]   Finished:    SaveState.Monitoring.Tests
+  Passed SaveState.Monitoring.Tests.HealthCheckTests.HealthCheck_Timeout_PreventsHanging [< 1 ms]
+  Passed SaveState.Monitoring.Tests.HealthCheckTests.HealthCheck_Tags_CanCategorizeChecks [1 ms]
+  Passed SaveState.Monitoring.Tests.HealthCheckTests.HealthCheck_UnhealthyResult_ContainsErrorDetails [1 ms]
+  Passed SaveState.Monitoring.Tests.HealthCheckTests.HealthCheck_DegradedResult_IndicatesPartialFailure [< 1 ms]
+  Passed SaveState.Monitoring.Tests.HealthCheckTests.HealthCheck_MultipleResults_CanBeAggregated [6 ms]
+  Passed SaveState.Monitoring.Tests.HealthCheckTests.HealthCheck_DataDictionary_CanStoreAdditionalInfo [5 ms]
+
+Total tests: 20
+     Passed: 19
+     Failed: 1
+ Total time: 7.3440 Seconds
+[xUnit.net 00:00:18.33]   Finished:    SaveState.LoadTests
+  Passed SaveState.LoadTests.DatabaseLoadTests.MixedReadWriteOperations_HandlesConcurrencyCorrectly [473 ms]
+  Passed SaveState.LoadTests.DatabaseLoadTests.ConcurrentReads_50Threads_ReadsConsistentData [137 ms]
+
+Test Run Successful.
+Total tests: 6
+     Passed: 6
+ Total time: 21.8867 Seconds
+  Passed SaveState.Application.Tests.Concurrency.ConcurrencyTests.ConcurrentFileSystemOperations_HandlesThreadSafety [36 ms]
+[xUnit.net 00:00:19.41]       Expected result.IsSuccess to be True, but found False.
+[xUnit.net 00:00:19.41]       Stack Trace:
+[xUnit.net 00:00:19.41]            at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+[xUnit.net 00:00:19.41]            at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+[xUnit.net 00:00:19.41]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:19.41]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:19.41]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:19.41]            at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+[xUnit.net 00:00:19.41]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:00:19.41]         C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\Concurrency\ConcurrencyTests.cs(106,0): at SaveState.Application.Tests.Concurrency.ConcurrencyTests.<>c__DisplayClass5_0.<<ConcurrentGameImports_HandlesRaceConditions>b__0>d.MoveNext()
+[xUnit.net 00:00:19.41]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:19.41]         C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\Concurrency\ConcurrencyTests.cs(110,0): at SaveState.Application.Tests.Concurrency.ConcurrencyTests.ConcurrentGameImports_HandlesRaceConditions()
+[xUnit.net 00:00:19.41]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:19.61]       Expected result.IsSuccess to be True, but found False.
+[xUnit.net 00:00:19.61]       Stack Trace:
+[xUnit.net 00:00:19.61]            at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+[xUnit.net 00:00:19.61]            at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+[xUnit.net 00:00:19.61]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:19.62]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:19.62]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:19.62]            at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+[xUnit.net 00:00:19.62]            at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+[xUnit.net 00:00:19.62]         C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\Concurrency\ConcurrencyTests.cs(227,0): at SaveState.Application.Tests.Concurrency.ConcurrencyTests.<>c__DisplayClass8_1.<<ConcurrentMediatorOperations_HandlesCommandProcessing>b__0>d.MoveNext()
+[xUnit.net 00:00:19.62]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:19.62]         C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\Concurrency\ConcurrencyTests.cs(231,0): at SaveState.Application.Tests.Concurrency.ConcurrencyTests.ConcurrentMediatorOperations_HandlesCommandProcessing()
+[xUnit.net 00:00:19.62]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:19.68]   Finished:    SaveState.Application.Tests
+  Passed SaveState.Application.Tests.Concurrency.ConcurrencyTests.DatabaseTransactionIsolation_ConcurrentModifications [1 s]
+  Failed SaveState.Application.Tests.Concurrency.ConcurrencyTests.ConcurrentGameImports_HandlesRaceConditions [139 ms]
+  Error Message:
+   Expected result.IsSuccess to be True, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at SaveState.Application.Tests.Concurrency.ConcurrencyTests.<>c__DisplayClass5_0.<<ConcurrentGameImports_HandlesRaceConditions>b__0>d.MoveNext() in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\Concurrency\ConcurrencyTests.cs:line 106
+--- End of stack trace from previous location ---
+   at SaveState.Application.Tests.Concurrency.ConcurrencyTests.ConcurrentGameImports_HandlesRaceConditions() in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\Concurrency\ConcurrencyTests.cs:line 110
+--- End of stack trace from previous location ---
+  Passed SaveState.Application.Tests.Concurrency.ConcurrencyTests.ConcurrentReadOperations_DatabaseConsistency [84 ms]
+  Failed SaveState.Application.Tests.Concurrency.ConcurrencyTests.ConcurrentMediatorOperations_HandlesCommandProcessing [13 ms]
+  Error Message:
+   Expected result.IsSuccess to be True, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at SaveState.Application.Tests.Concurrency.ConcurrencyTests.<>c__DisplayClass8_1.<<ConcurrentMediatorOperations_HandlesCommandProcessing>b__0>d.MoveNext() in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\Concurrency\ConcurrencyTests.cs:line 227
+--- End of stack trace from previous location ---
+   at SaveState.Application.Tests.Concurrency.ConcurrencyTests.ConcurrentMediatorOperations_HandlesCommandProcessing() in C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Application.Tests\Concurrency\ConcurrencyTests.cs:line 231
+--- End of stack trace from previous location ---
+  Passed SaveState.Application.Tests.Concurrency.ConcurrencyTests.ConcurrentAiOperations_MemoryManagement [8 ms]
+
+Total tests: 70
+     Passed: 68
+     Failed: 2
+ Total time: 24.9743 Seconds

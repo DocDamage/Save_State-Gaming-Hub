@@ -35,7 +35,7 @@ public class SecurityTests
         var platform = new Platform(PlatformName.From("PC"), PlatformShortName.From("PC"), Core.GameLibrary.Enums.PlatformType.Computer);
         typeof(Platform).GetProperty("Id")?.SetValue(platform, platformId);
 
-        _platformRepositoryMock.Setup(p => p.GetByNameAsync(It.IsAny<PlatformName>(), default))
+        _platformRepositoryMock.Setup(p => p.GetByNameAsync("PC", It.IsAny<CancellationToken>()))
             .ReturnsAsync(platform);
         _gameRepositoryMock.Setup(g => g.GetByTitleAndPlatformAsync(It.IsAny<GameTitle>(), platformId, default))
             .ReturnsAsync((Game?)null);
@@ -77,7 +77,7 @@ public class SecurityTests
         var platform = new Platform(PlatformName.From("PC"), PlatformShortName.From("PC"), Core.GameLibrary.Enums.PlatformType.Computer);
         typeof(Platform).GetProperty("Id")?.SetValue(platform, platformId);
 
-        _platformRepositoryMock.Setup(p => p.GetByNameAsync(It.IsAny<PlatformName>(), default))
+        _platformRepositoryMock.Setup(p => p.GetByNameAsync("PC", It.IsAny<CancellationToken>()))
             .ReturnsAsync(platform);
         _gameRepositoryMock.Setup(g => g.GetByTitleAndPlatformAsync(It.IsAny<GameTitle>(), platformId, default))
             .ReturnsAsync((Game?)null);
@@ -118,7 +118,7 @@ public class SecurityTests
         var platform = new Platform(PlatformName.From("PC"), PlatformShortName.From("PC"), Core.GameLibrary.Enums.PlatformType.Computer);
         typeof(Platform).GetProperty("Id")?.SetValue(platform, platformId);
 
-        _platformRepositoryMock.Setup(p => p.GetByNameAsync(It.IsAny<PlatformName>(), default))
+        _platformRepositoryMock.Setup(p => p.GetByNameAsync("PC", It.IsAny<CancellationToken>()))
             .ReturnsAsync(platform);
         _gameRepositoryMock.Setup(g => g.GetByTitleAndPlatformAsync(It.IsAny<GameTitle>(), platformId, default))
             .ReturnsAsync((Game?)null);
@@ -160,7 +160,7 @@ public class SecurityTests
         var platform = new Platform(PlatformName.From("PC"), PlatformShortName.From("PC"), Core.GameLibrary.Enums.PlatformType.Computer);
         typeof(Platform).GetProperty("Id")?.SetValue(platform, platformId);
 
-        _platformRepositoryMock.Setup(p => p.GetByNameAsync(It.IsAny<PlatformName>(), default))
+        _platformRepositoryMock.Setup(p => p.GetByNameAsync("PC", It.IsAny<CancellationToken>()))
             .ReturnsAsync(platform);
         _gameRepositoryMock.Setup(g => g.GetByTitleAndPlatformAsync(It.IsAny<GameTitle>(), platformId, default))
             .ReturnsAsync((Game?)null);
@@ -202,7 +202,7 @@ public class SecurityTests
         var platform = new Platform(PlatformName.From("PC"), PlatformShortName.From("PC"), Core.GameLibrary.Enums.PlatformType.Computer);
         typeof(Platform).GetProperty("Id")?.SetValue(platform, platformId);
 
-        _platformRepositoryMock.Setup(p => p.GetByNameAsync(It.IsAny<PlatformName>(), default))
+        _platformRepositoryMock.Setup(p => p.GetByNameAsync("PC", It.IsAny<CancellationToken>()))
             .ReturnsAsync(platform);
         _gameRepositoryMock.Setup(g => g.GetByTitleAndPlatformAsync(It.IsAny<GameTitle>(), platformId, default))
             .ReturnsAsync((Game?)null);
@@ -243,7 +243,7 @@ public class SecurityTests
         var platform = new Platform(PlatformName.From("PC"), PlatformShortName.From("PC"), Core.GameLibrary.Enums.PlatformType.Computer);
         typeof(Platform).GetProperty("Id")?.SetValue(platform, platformId);
 
-        _platformRepositoryMock.Setup(p => p.GetByNameAsync(It.IsAny<PlatformName>(), default))
+        _platformRepositoryMock.Setup(p => p.GetByNameAsync("PC", It.IsAny<CancellationToken>()))
             .ReturnsAsync(platform);
         _gameRepositoryMock.Setup(g => g.GetByTitleAndPlatformAsync(It.IsAny<GameTitle>(), platformId, default))
             .ReturnsAsync((Game?)null);
@@ -288,7 +288,7 @@ public class SecurityTests
         var platform = new Platform(PlatformName.From("PC"), PlatformShortName.From("PC"), Core.GameLibrary.Enums.PlatformType.Computer);
         typeof(Platform).GetProperty("Id")?.SetValue(platform, platformId);
 
-        _platformRepositoryMock.Setup(p => p.GetByNameAsync(It.IsAny<PlatformName>(), default))
+        _platformRepositoryMock.Setup(p => p.GetByNameAsync("PC", It.IsAny<CancellationToken>()))
             .ReturnsAsync(platform);
         _gameRepositoryMock.Setup(g => g.GetByTitleAndPlatformAsync(It.IsAny<GameTitle>(), platformId, default))
             .ReturnsAsync((Game?)null);

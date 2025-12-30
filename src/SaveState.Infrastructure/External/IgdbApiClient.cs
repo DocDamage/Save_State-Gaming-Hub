@@ -11,6 +11,7 @@ namespace SaveState.Infrastructure.External;
 public class IgdbApiClient : IIgdbApiClient
 {
     private readonly HttpClient _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly IgdbOptions _options;
     private readonly ILogger<IgdbApiClient> _logger;
     private string? _accessToken;
@@ -18,10 +19,12 @@ public class IgdbApiClient : IIgdbApiClient
 
     public IgdbApiClient(
         HttpClient httpClient,
+        IHttpClientFactory httpClientFactory,
         IOptions<IgdbOptions> options,
         ILogger<IgdbApiClient> logger)
     {
         _httpClient = httpClient;
+        _httpClientFactory = httpClientFactory;
         _options = options.Value;
         _logger = logger;
     }
@@ -37,14 +40,13 @@ public class IgdbApiClient : IIgdbApiClient
         {
             var authUrl = $"https://id.twitch.tv/oauth2/token?client_id={_options.ClientId}&client_secret={_options.ClientSecret}&grant_type=client_credentials";
 
-            // Note: In a production app, we would use a separate HttpClient for auth or
-            // ensure the base address doesn't interfere.
-            var authClient = new HttpClient();
+            // Use IHttpClientFactory to create a client for Twitch authentication
+            var authClient = _httpClientFactory.CreateClient("TwitchAuth");
             var response = await authClient.PostAsync(authUrl, null, ct).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new Exception("Failed to get IGDB access token from Twitch");
+                throw new IgdbAuthenticationException($"Failed to get IGDB access token from Twitch. Status: {response.StatusCode}");
             }
 
             var json = await response.Content.ReadFromJsonAsync<TwitchAuthResponse>(ct).ConfigureAwait(false);
@@ -55,10 +57,14 @@ public class IgdbApiClient : IIgdbApiClient
             _httpClient.DefaultRequestHeaders.Add("Client-ID", _options.ClientId);
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_accessToken}");
         }
+        catch (IgdbAuthenticationException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to authenticate with Twitch for IGDB API");
-            throw;
+            throw new IgdbAuthenticationException("Authentication with Twitch failed", ex);
         }
     }
 

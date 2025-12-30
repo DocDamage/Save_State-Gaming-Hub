@@ -46,14 +46,25 @@ public class PlatformExtensionRegistryTests
     [InlineData("game.sfc", "SNES")]
     [InlineData("game.bin", "PlayStation")]
     [InlineData("game.n64", "Nintendo 64")]
-    [InlineData("game.unknown", null)]
-    public void DetectPlatformName_WithValidFilePath_ReturnsCorrectPlatform(string filePath, string? expectedPlatform)
+    public void DetectPlatformName_WithValidFilePath_ReturnsCorrectPlatform(string filePath, string expectedPlatform)
     {
         // Act
         var result = _sut.DetectPlatformName(filePath);
 
         // Assert
-        result.Should().Be(expectedPlatform);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be(expectedPlatform);
+    }
+
+    [Fact]
+    public void DetectPlatformName_WithUnknownExtension_ReturnsFailure()
+    {
+        // Act
+        var result = _sut.DetectPlatformName("game.unknown");
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Contain("extension '.unknown'");
     }
 
     [Theory]
@@ -93,7 +104,9 @@ public class PlatformExtensionRegistryTests
         var result2 = _sut.DetectPlatformName("game.nes");
 
         // Assert
-        result1.Should().Be(result2);
+        result1.IsSuccess.Should().BeTrue();
+        result2.IsSuccess.Should().BeTrue();
+        result1.Value.Should().Be(result2.Value);
     }
 
     [Fact]

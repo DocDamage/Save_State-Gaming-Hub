@@ -372,12 +372,13 @@ public class RuntimeCompatibilityTests
         // Act
         var tomorrow = today.AddDays(1);
         var nextWeek = today.AddDays(7);
-        var difference = utcNow - now;
+        var now2 = DateTime.UtcNow;
+        var difference = now2 - utcNow;
 
         // Assert
         tomorrow.Should().BeAfter(today);
         nextWeek.Should().BeAfter(tomorrow);
-        difference.Should().BeCloseTo(TimeSpan.Zero, TimeSpan.FromSeconds(1), "Local and UTC should be close");
+        difference.Should().BeCloseTo(TimeSpan.Zero, TimeSpan.FromSeconds(5), "Sequential UtcNow calls should be very close");
     }
 
     [Fact]

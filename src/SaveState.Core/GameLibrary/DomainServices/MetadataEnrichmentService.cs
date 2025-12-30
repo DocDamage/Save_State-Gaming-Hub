@@ -1,4 +1,5 @@
 using System.IO;
+using SaveState.Core.Common;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Core.GameLibrary.DTOs;
@@ -55,14 +56,20 @@ public class MetadataEnrichmentService : IMetadataEnrichmentService
         return metadata?.Description;
     }
 
-    public async Task<Platform?> DetectPlatformAsync(string gamePath, CancellationToken ct = default)
+    public async Task<Result<Platform>> DetectPlatformAsync(string gamePath, CancellationToken ct = default)
     {
-        var platformName = _extensionRegistry.DetectPlatformName(gamePath);
-        if (string.IsNullOrEmpty(platformName))
+        var platformNameResult = _extensionRegistry.DetectPlatformName(gamePath);
+        if (platformNameResult.IsFailure)
         {
-            return null;
+            return Result<Platform>.Failure(platformNameResult.Error, platformNameResult.ErrorType);
         }
 
-        return await _platformRepository.GetByNameAsync(platformName, ct).ConfigureAwait(false);
+        var platform = await _platformRepository.GetByNameAsync(platformNameResult.Value, ct).ConfigureAwait(false);
+        if (platform is null)
+        {
+            return Result<Platform>.Failure($"Platform '{platformNameResult.Value}' not found in repository", ErrorType.NotFound);
+        }
+
+        return Result<Platform>.Success(platform);
     }
 }

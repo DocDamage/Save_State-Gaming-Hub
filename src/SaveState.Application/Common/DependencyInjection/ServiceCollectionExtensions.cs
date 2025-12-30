@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
                 typeof(ServiceCollectionExtensions).Assembly,
                 typeof(IGameRepository).Assembly);
             cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            cfg.AddOpenBehavior(typeof(RateLimitingBehavior<,>));
         });
 
         // Register event publisher
@@ -44,6 +45,9 @@ public static class ServiceCollectionExtensions
 
            // Register onboarding services
            services.AddScoped<SaveState.Application.Onboarding.Services.OnboardingService>();
+
+           // Register authentication services
+           services.AddScoped<SaveState.Core.UserManagement.Services.IAuthenticationService, SaveState.Application.UserManagement.AuthenticationService>();
 
         return services;
     }

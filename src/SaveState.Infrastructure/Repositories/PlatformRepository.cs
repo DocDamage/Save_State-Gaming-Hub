@@ -21,9 +21,12 @@ public class PlatformRepository : IPlatformRepository
             .ConfigureAwait(false);
 
     public async Task<Platform?> GetByNameAsync(string name, CancellationToken ct = default)
-        => await _context.Platforms
-            .FirstOrDefaultAsync(p => p.Name.Value.ToLower() == name.ToLower(), ct)
+    {
+        var platformName = PlatformName.From(name);
+        return await _context.Platforms
+            .FirstOrDefaultAsync(p => p.Name == platformName, ct)
             .ConfigureAwait(false);
+    }
 
     public async Task AddAsync(Platform platform, CancellationToken ct = default)
     {

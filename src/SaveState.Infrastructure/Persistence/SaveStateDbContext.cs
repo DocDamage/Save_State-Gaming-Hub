@@ -64,6 +64,14 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
         // Apply entity configurations
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(SaveStateDbContext).Assembly);
 
+        // Configure owned entities
+        modelBuilder.Entity<SaveState.Core.Mugen.Entities.MugenCharacter>()
+            .OwnsOne(e => e.Directories);
+        modelBuilder.Entity<SaveState.Core.Mugen.Entities.MugenCharacter>()
+            .OwnsOne(e => e.PaletteInfo);
+        modelBuilder.Entity<SaveState.Core.Mugen.Entities.MugenCharacter>()
+            .OwnsOne(e => e.ArcadeInfo);
+
         // Global configurations
         ConfigureGlobalFilters(modelBuilder);
         ConfigureConversions(modelBuilder);
@@ -92,12 +100,90 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
 
     private static void ConfigureIndexes(ModelBuilder modelBuilder)
     {
-        // Global indexes will be added as needed
+        // Performance indexes for common query patterns
+
+        // Game table indexes
         modelBuilder.Entity<Game>()
-            .HasIndex(g => g.CreatedAt);
+            .HasIndex(g => g.CreatedAt)
+            .HasDatabaseName("IX_Games_CreatedAt");
 
         modelBuilder.Entity<Game>()
-            .HasIndex(g => g.Title);
+            .HasIndex(g => g.Title)
+            .HasDatabaseName("IX_Games_Title");
+
+        modelBuilder.Entity<Game>()
+            .HasIndex(g => new { g.PlatformId, g.Title })
+            .HasDatabaseName("IX_Games_PlatformId_Title");
+
+        modelBuilder.Entity<Game>()
+            .HasIndex(g => g.Status)
+            .HasDatabaseName("IX_Games_Status");
+
+        modelBuilder.Entity<Game>()
+            .HasIndex(g => g.LastPlayedAt)
+            .HasDatabaseName("IX_Games_LastPlayedAt");
+
+        modelBuilder.Entity<Game>()
+            .HasIndex(g => g.TotalPlayTime)
+            .HasDatabaseName("IX_Games_TotalPlayTime");
+
+        // ROM Files table indexes
+        modelBuilder.Entity<RomFile>()
+            .HasIndex(r => new { r.PlatformId, r.FilePath })
+            .HasDatabaseName("IX_RomFiles_PlatformId_FilePath");
+
+        modelBuilder.Entity<RomFile>()
+            .HasIndex(r => r.PlatformId)
+            .HasDatabaseName("IX_RomFiles_PlatformId");
+
+        // Achievement table indexes
+        modelBuilder.Entity<Achievement>()
+            .HasIndex(a => new { a.Type, a.IsActive })
+            .HasDatabaseName("IX_Achievements_Type_IsActive");
+
+        modelBuilder.Entity<Achievement>()
+            .HasIndex(a => a.Type)
+            .HasDatabaseName("IX_Achievements_Type");
+
+        modelBuilder.Entity<Achievement>()
+            .HasIndex(a => a.IsActive)
+            .HasDatabaseName("IX_Achievements_IsActive");
+
+        // User Achievement table indexes
+        modelBuilder.Entity<UserAchievement>()
+            .HasIndex(ua => new { ua.UserId, ua.AchievementId })
+            .HasDatabaseName("IX_UserAchievements_UserId_AchievementId");
+
+        modelBuilder.Entity<UserAchievement>()
+            .HasIndex(ua => ua.UserId)
+            .HasDatabaseName("IX_UserAchievements_UserId");
+
+        modelBuilder.Entity<UserAchievement>()
+            .HasIndex(ua => ua.AchievementId)
+            .HasDatabaseName("IX_UserAchievements_AchievementId");
+
+        // MUGEN Character table indexes
+        modelBuilder.Entity<SaveState.Core.Mugen.Entities.MugenCharacter>()
+            .HasIndex(c => c.Name)
+            .HasDatabaseName("IX_MugenCharacters_Name");
+
+        modelBuilder.Entity<SaveState.Core.Mugen.Entities.MugenCharacter>()
+            .HasIndex(c => c.Author)
+            .HasDatabaseName("IX_MugenCharacters_Author");
+
+        // Platform table indexes
+        modelBuilder.Entity<Platform>()
+            .HasIndex(p => p.Name)
+            .HasDatabaseName("IX_Platforms_Name");
+
+        // Knowledge Records table indexes (for AI features)
+        modelBuilder.Entity<KnowledgeRecord>()
+            .HasIndex(kr => kr.Id)
+            .HasDatabaseName("IX_KnowledgeRecords_Id");
+
+        modelBuilder.Entity<KnowledgeRecord>()
+            .HasIndex(kr => kr.LastAccessedAt)
+            .HasDatabaseName("IX_KnowledgeRecords_LastAccessedAt");
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

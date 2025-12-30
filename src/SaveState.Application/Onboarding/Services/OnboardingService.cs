@@ -31,9 +31,16 @@ public class OnboardingService
     /// <returns>A personalized welcome message with feature suggestions.</returns>
     public async Task<string> GeneratePersonalizedWelcomeAsync(CancellationToken ct = default)
     {
-        var games = await _games.GetAllAsync(ct);
-        var gameCount = games.Count;
-        var platformNames = games
+        // Use efficient count instead of loading all games
+        var gameCount = await _games.CountAsync(ct);
+
+        // Get a small sample of games to extract platform information
+        var sampleGames = await _games.GetGamesAsync(
+            pageNumber: 1,
+            pageSize: 100, // Reasonable sample size for platform diversity
+            ct: ct);
+
+        var platformNames = sampleGames.Items
             .Where(g => g.Platform != null)
             .Select(g => g.Platform!.Name)
             .Distinct()

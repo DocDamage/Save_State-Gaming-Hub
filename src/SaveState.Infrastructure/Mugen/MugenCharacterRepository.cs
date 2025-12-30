@@ -1,6 +1,7 @@
 namespace SaveState.Infrastructure.Mugen;
 
 using Microsoft.EntityFrameworkCore;
+using SaveState.Core.Common;
 using SaveState.Core.Mugen;
 using SaveState.Core.Mugen.Entities;
 using SaveState.Infrastructure.Persistence;
@@ -42,6 +43,23 @@ public class MugenCharacterRepository : IMugenCharacterRepository
         return await _context.MugenCharacters.ToListAsync(ct);
     }
 
+    public async Task<int> CountAsync(string? nameFilter = null, string? authorFilter = null, CancellationToken ct = default)
+    {
+        var query = _context.MugenCharacters.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(nameFilter))
+        {
+            query = query.Where(c => c.Name.Contains(nameFilter));
+        }
+
+        if (!string.IsNullOrWhiteSpace(authorFilter))
+        {
+            query = query.Where(c => c.Author.Contains(authorFilter));
+        }
+
+        return await query.CountAsync(ct);
+    }
+
     /// <summary>
     /// Finds a character by its name.
     /// </summary>
@@ -65,6 +83,50 @@ public class MugenCharacterRepository : IMugenCharacterRepository
         return await _context.MugenCharacters
             .Where(c => c.Author.Contains(author))
             .ToListAsync(ct);
+    }
+
+    /// <summary>
+    /// Retrieves MUGEN characters with pagination and filtering support.
+    /// </summary>
+    /// <param name="pageNumber">The page number (1-based).</param>
+    /// <param name="pageSize">The number of items per page.</param>
+    /// <param name="nameFilter">Optional name filter.</param>
+    /// <param name="authorFilter">Optional author filter.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>A paginated result containing the characters.</returns>
+    public async Task<PagedResult<MugenCharacter>> GetCharactersAsync(
+        int pageNumber = 1,
+        int pageSize = 50,
+        string? nameFilter = null,
+        string? authorFilter = null,
+        CancellationToken ct = default)
+    {
+        var query = _context.MugenCharacters.AsQueryable();
+
+        // Apply filters at database level
+        if (!string.IsNullOrWhiteSpace(nameFilter))
+        {
+            query = query.Where(c => c.Name.Contains(nameFilter));
+        }
+
+        if (!string.IsNullOrWhiteSpace(authorFilter))
+        {
+            query = query.Where(c => c.Author.Contains(authorFilter));
+        }
+
+        // Get total count before pagination
+        var totalCount = await query.CountAsync(ct);
+
+        // Apply default sorting (by name)
+        query = query.OrderBy(c => c.Name);
+
+        // Apply pagination
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return new PagedResult<MugenCharacter>(items, totalCount, pageNumber, pageSize);
     }
 
     /// <summary>

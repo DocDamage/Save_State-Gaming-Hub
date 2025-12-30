@@ -27,6 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\SaveState.Application\SaveState.Application.csproj" />
     <ProjectReference Include="..\..\src\SaveState.Infrastructure\SaveState.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\SaveState.Core\SaveState.Core.csproj" />
   </ItemGroup>
 
 </Project>

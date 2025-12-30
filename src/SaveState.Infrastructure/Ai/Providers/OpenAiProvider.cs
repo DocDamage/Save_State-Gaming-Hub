@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Polly.Wrap;
 using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Common;
 using SaveState.Core.Configuration;
@@ -23,7 +24,7 @@ public class OpenAiProvider : ILlmProvider
     public OpenAiProvider(
         HttpClient httpClient,
         IOptions<OpenAiOptions> options,
-        AiResiliencePolicy resiliencePolicy,
+        IAiResiliencePolicy resiliencePolicy,
         ILogger<OpenAiProvider> logger)
     {
         _httpClient = httpClient;
@@ -43,9 +44,9 @@ public class OpenAiProvider : ILlmProvider
 
     public async Task<Result<CompletionResult>> CompleteAsync(CompletionRequest request, CancellationToken ct)
     {
-        return await _resiliencePolicy.ExecuteAsync(async () =>
+        try
         {
-            try
+            return await _resiliencePolicy.ExecuteAsync(async (token) =>
             {
                 var payload = new
                 {
@@ -65,20 +66,24 @@ public class OpenAiProvider : ILlmProvider
                     new TokenUsage(result.Usage.PromptTokens, result.Usage.CompletionTokens, result.Usage.TotalTokens),
                     result.Model);
                 return Result<CompletionResult>.Success(completionResult);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "OpenAI completion request failed");
-                return Result<CompletionResult>.Failure($"OpenAI API request failed: {ex.Message}", ErrorType.Internal);
-            }
-        }).ConfigureAwait(false);
+            }, ct).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "OpenAI API request failed");
+            return Result<CompletionResult>.Failure($"OpenAI API request failed: {ex.Message}", ErrorType.Internal);
+        }
     }
 
     public async Task<Result<ChatResult>> ChatAsync(ChatRequest request, CancellationToken ct)
     {
-        return await _resiliencePolicy.ExecuteAsync(async () =>
+        try
         {
-            try
+            return await _resiliencePolicy.ExecuteAsync(async (token) =>
             {
                 var payload = new
                 {
@@ -97,13 +102,17 @@ public class OpenAiProvider : ILlmProvider
                     new TokenUsage(result.Usage.PromptTokens, result.Usage.CompletionTokens, result.Usage.TotalTokens),
                     result.Model);
                 return Result<ChatResult>.Success(chatResult);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "OpenAI chat request failed");
-                return Result<ChatResult>.Failure($"OpenAI API request failed: {ex.Message}", ErrorType.Internal);
-            }
-        }).ConfigureAwait(false);
+            }, ct).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "OpenAI chat request failed");
+            return Result<ChatResult>.Failure($"OpenAI API request failed: {ex.Message}", ErrorType.Internal);
+        }
     }
 
     public Task<Result<EmbeddingResult>> GenerateEmbeddingsAsync(EmbeddingRequest request, CancellationToken ct)
@@ -111,9 +120,29 @@ public class OpenAiProvider : ILlmProvider
 }
 
 // Response DTOs
-internal record OpenAiCompletionResponse(string Model, OpenAiChoice[] Choices, OpenAiUsage Usage);
-internal record OpenAiChatResponse(string Model, OpenAiChatChoice[] Choices, OpenAiUsage Usage);
-internal record OpenAiChoice(string Text, string FinishReason);
-internal record OpenAiChatChoice(OpenAiMessage Message, string FinishReason);
-internal record OpenAiMessage(string Role, string Content);
-internal record OpenAiUsage(int PromptTokens, int CompletionTokens, int TotalTokens);
+internal record OpenAiCompletionResponse(
+    [property: JsonPropertyName("model")] string Model,
+    [property: JsonPropertyName("choices")] OpenAiChoice[] Choices,
+    [property: JsonPropertyName("usage")] OpenAiUsage Usage);
+
+internal record OpenAiChatResponse(
+    [property: JsonPropertyName("model")] string Model,
+    [property: JsonPropertyName("choices")] OpenAiChatChoice[] Choices,
+    [property: JsonPropertyName("usage")] OpenAiUsage Usage);
+
+internal record OpenAiChoice(
+    [property: JsonPropertyName("text")] string Text,
+    [property: JsonPropertyName("finish_reason")] string FinishReason);
+
+internal record OpenAiChatChoice(
+    [property: JsonPropertyName("message")] OpenAiMessage Message,
+    [property: JsonPropertyName("finish_reason")] string FinishReason);
+
+internal record OpenAiMessage(
+    [property: JsonPropertyName("role")] string Role,
+    [property: JsonPropertyName("content")] string Content);
+
+internal record OpenAiUsage(
+    [property: JsonPropertyName("prompt_tokens")] int PromptTokens,
+    [property: JsonPropertyName("completion_tokens")] int CompletionTokens,
+    [property: JsonPropertyName("total_tokens")] int TotalTokens);

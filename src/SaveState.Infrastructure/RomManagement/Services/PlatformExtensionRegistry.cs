@@ -1,3 +1,4 @@
+using SaveState.Core.Common;
 using SaveState.Core.RomManagement;
 
 namespace SaveState.Infrastructure.RomManagement.Services;
@@ -79,21 +80,23 @@ public class PlatformExtensionRegistry : IPlatformExtensionRegistry
         return extensions.Contains(extension);
     }
 
-    public string? DetectPlatformName(string filePath)
+    public Result<string> DetectPlatformName(string filePath)
     {
-        if (string.IsNullOrWhiteSpace(filePath)) return null;
+        if (string.IsNullOrWhiteSpace(filePath))
+            return Result<string>.Failure("File path cannot be null or empty", ErrorType.Validation);
 
         var extension = Path.GetExtension(filePath).ToLowerInvariant();
-        if (string.IsNullOrEmpty(extension)) return null;
+        if (string.IsNullOrEmpty(extension))
+            return Result<string>.Failure("File path must have an extension", ErrorType.Validation);
 
         foreach (var entry in PlatformExtensions)
         {
             if (entry.Value.Contains(extension))
             {
-                return entry.Key;
+                return Result<string>.Success(entry.Key);
             }
         }
 
-        return null;
+        return Result<string>.Failure($"No platform found for extension '{extension}'", ErrorType.NotFound);
     }
 }

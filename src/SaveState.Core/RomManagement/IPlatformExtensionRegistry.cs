@@ -1,3 +1,5 @@
+using SaveState.Core.Common;
+
 namespace SaveState.Core.RomManagement;
 
 /// <summary>
@@ -24,6 +26,6 @@ public interface IPlatformExtensionRegistry
     /// Attempts to detect the platform name based on the file extension.
     /// </summary>
     /// <param name="filePath">The path to the file.</param>
-    /// <returns>The platform name if found, otherwise null.</returns>
-    string? DetectPlatformName(string filePath);
+    /// <returns>A result containing the platform name if found, or a failure with error details.</returns>
+    Result<string> DetectPlatformName(string filePath);
 }

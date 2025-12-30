@@ -1,3 +1,4 @@
+using SaveState.Core.Common;
 using SaveState.Core.Common.Interfaces;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.Enums;
@@ -63,12 +64,14 @@ public class GameValidationService : IGameValidationService
             return false;
 
         // Check if main executable exists
-        var mainExecutable = await GetMainExecutablePathAsync(game, ct).ConfigureAwait(false);
-        return mainExecutable is not null &&
-               await _fileSystem.FileExistsAsync(mainExecutable, ct).ConfigureAwait(false);
+        var mainExecutableResult = await GetMainExecutablePathAsync(game, ct).ConfigureAwait(false);
+        if (mainExecutableResult.IsFailure)
+            return false;
+
+        return await _fileSystem.FileExistsAsync(mainExecutableResult.Value, ct).ConfigureAwait(false);
     }
 
-    private async Task<string?> GetMainExecutablePathAsync(Game game, CancellationToken ct)
+    private async Task<Result<string>> GetMainExecutablePathAsync(Game game, CancellationToken ct)
     {
         // Platform-specific logic to find main executable
         var platformType = game.Platform?.Type ?? PlatformType.Console; // Fallback
@@ -78,13 +81,16 @@ public class GameValidationService : IGameValidationService
 
         if (platformType == PlatformType.Computer || (game.InstallPath != null && game.InstallPath.Contains(":")))
         {
-            return await FindPcExecutableAsync(game.InstallPath!, ct).ConfigureAwait(false);
+            var result = await FindPcExecutableAsync(game.InstallPath!, ct).ConfigureAwait(false);
+            return result.IsSuccess
+                ? Result<string>.Success(result.Value!)
+                : Result<string>.Failure($"No executable found for PC game '{game.Title}'", ErrorType.NotFound);
         }
 
-        return null;
+        return Result<string>.Failure($"Platform type '{platformType}' is not supported for executable detection", ErrorType.Validation);
     }
 
-    private async Task<string?> FindPcExecutableAsync(string installPath, CancellationToken ct)
+    private async Task<Result<string>> FindPcExecutableAsync(string installPath, CancellationToken ct)
     {
         // Look for common executable patterns
         var patterns = new[] { "*.exe", "*.bat", "*.cmd" };
@@ -93,9 +99,9 @@ public class GameValidationService : IGameValidationService
         {
             var files = await _fileSystem.GetFilesAsync(installPath, pattern, SearchOption.TopDirectoryOnly, ct).ConfigureAwait(false);
             if (files.Any())
-                return files.First();
+                return Result<string>.Success(files.First());
         }
 
-        return null;
+        return Result<string>.Failure($"No executable files found in '{installPath}'", ErrorType.NotFound);
     }
 }

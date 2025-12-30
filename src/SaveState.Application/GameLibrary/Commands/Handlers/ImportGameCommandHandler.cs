@@ -43,13 +43,13 @@ public class ImportGameCommandHandler : IRequestHandler<ImportGameCommand, Resul
                 request.Title, request.Source ?? "manual");
 
             // Get or create platform
-            var platform = await GetOrCreatePlatformAsync(request.PlatformName, ct).ConfigureAwait(false);
-            if (platform is null)
-                return Result<GameId>.Failure($"Failed to create platform '{request.PlatformName}'");
+            var platformResult = await GetOrCreatePlatformAsync(request.PlatformName, ct).ConfigureAwait(false);
+            if (platformResult.IsFailure)
+                return Result<GameId>.Failure(platformResult.Error!);
 
             // Check for existing game
             var existingGame = await _gameRepository.GetByTitleAndPlatformAsync(
-                SaveState.Core.Common.ValueObjects.GameTitle.From(request.Title), platform.Id, ct).ConfigureAwait(false);
+                SaveState.Core.Common.ValueObjects.GameTitle.From(request.Title), platformResult.Value.Id, ct).ConfigureAwait(false);
 
             if (existingGame is not null)
             {
@@ -58,8 +58,28 @@ public class ImportGameCommandHandler : IRequestHandler<ImportGameCommand, Resul
                 return Result<GameId>.Failure($"Game '{request.Title}' already exists");
             }
 
+            // Check for existing game by source and sourceId
+            if (!string.IsNullOrEmpty(request.Source) && !string.IsNullOrEmpty(request.SourceId))
+            {
+                var gameBySource = await _gameRepository.GetBySourceAndSourceIdAsync(
+                    request.Source, request.SourceId, ct).ConfigureAwait(false);
+
+                if (gameBySource is not null)
+                {
+                    _logger.LogWarning("Game from source {Source} with ID {SourceId} already exists",
+                        request.Source, request.SourceId);
+                    return Result<GameId>.Failure($"Game from source '{request.Source}' with ID '{request.SourceId}' already exists");
+                }
+            }
+
             // Create new game
-            var game = Game.Create(request.Title, platform.Id, null, null);
+            var game = Game.Create(
+                request.Title,
+                platformResult.Value.Id,
+                request.Description,
+                null, // Cover image path determined after download
+                request.Source,
+                request.SourceId);
 
             if (!string.IsNullOrEmpty(request.InstallPath))
                 game.SetInstallPath(request.InstallPath);
@@ -97,11 +117,11 @@ public class ImportGameCommandHandler : IRequestHandler<ImportGameCommand, Resul
         }
     }
 
-    private async Task<Platform?> GetOrCreatePlatformAsync(string platformName, CancellationToken ct)
+    private async Task<Result<Platform>> GetOrCreatePlatformAsync(string platformName, CancellationToken ct)
     {
         var platform = await _platformRepository.GetByNameAsync(platformName, ct).ConfigureAwait(false);
         if (platform is not null)
-            return platform;
+            return Result<Platform>.Success(platform);
 
         // Create new platform - infer type from name
         var platformType = InferPlatformType(platformName);
@@ -113,12 +133,12 @@ public class ImportGameCommandHandler : IRequestHandler<ImportGameCommand, Resul
         try
         {
             await _platformRepository.AddAsync(platform, ct).ConfigureAwait(false);
-            return platform;
+            return Result<Platform>.Success(platform);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create platform {PlatformName}", platformName);
-            return null;
+            return Result<Platform>.Failure($"Failed to create platform '{platformName}': {ex.Message}", ErrorType.Internal);
         }
     }
 
