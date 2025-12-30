@@ -3,6 +3,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using SaveState.Core.Ai.Context;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Common;
 using SaveState.Core.Configuration;
@@ -39,7 +40,8 @@ public class AiOrchestratorInfrastructureTest
         // Act & Assert - should not throw
         var exception = Record.Exception(() =>
         {
-            var orchestrator = new AiOrchestrator(providers, cacheService, options, logger, metrics, cacheMonitor);
+            var contextService = new Mock<IConversationContextService>().Object;
+            var orchestrator = new AiOrchestrator(providers, cacheService, options, logger, metrics, cacheMonitor, contextService);
         });
 
         exception.Should().BeNull();
@@ -55,6 +57,7 @@ public class AiOrchestratorTests
     private readonly ICachePerformanceMonitor _cacheMonitor = new TestCachePerformanceMonitor();
     private readonly Mock<ILlmProvider> _openAiProviderMock = new();
     private readonly Mock<ILlmProvider> _groqProviderMock = new();
+    private readonly Mock<IConversationContextService> _contextServiceMock = new();
     private readonly List<ILlmProvider> _providers;
     private readonly AiOrchestrator _sut;
 
@@ -82,7 +85,8 @@ public class AiOrchestratorTests
             _optionsMock.Object,
             _loggerMock.Object,
             _metricsMock.Object,
-            _cacheMonitor);
+            _cacheMonitor,
+            _contextServiceMock.Object);
     }
 
     [Fact]
@@ -104,7 +108,8 @@ public class AiOrchestratorTests
             _optionsMock.Object,
             _loggerMock.Object,
             _metricsMock.Object,
-            _cacheMonitor);
+            _cacheMonitor,
+            _contextServiceMock.Object);
 
         // Act
         var result = await orchestrator.ProcessRequestAsync(request);
@@ -139,7 +144,8 @@ public class AiOrchestratorTests
             _optionsMock.Object,
             _loggerMock.Object,
             _metricsMock.Object,
-            _cacheMonitor);
+            _cacheMonitor,
+            _contextServiceMock.Object);
 
         var request = new AiRequest(AiRequestType.Completion, Prompt: "Test prompt", AllowCache: false);
 

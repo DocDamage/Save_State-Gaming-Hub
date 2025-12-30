@@ -104,6 +104,7 @@ public partial class MainViewModel : ObservableObject
         // For now, we'll create it manually to match the existing pattern
         CurrentViewModel = new SettingsViewModel(
             Locator.Current.GetService<SaveState.Core.Common.Services.ICultureManager>()!,
-            _resources);
+            _resources,
+            Locator.Current.GetService<SaveState.Presentation.Services.IThemeService>()!);
     }
 }

@@ -28,7 +28,7 @@ public class MetadataEnrichmentService : IMetadataEnrichmentService
     {
         var metadata = await _metadataService.GetGameMetadataAsync(game.Title, ct).ConfigureAwait(false);
 
-        if (metadata != null && metadata != GameMetadata.Empty)
+        if (metadata != null && !string.IsNullOrWhiteSpace(metadata.Title))
         {
             game.Update(
                 title: metadata.Title,

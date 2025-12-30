@@ -42,13 +42,15 @@ public class RateLimitingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequ
 
         if (!isAllowed)
         {
-            var resetTime = await _rateLimiter.GetResetTimeAsync(rateLimitKey, operationName, cancellationToken);
+            var resetTimeResult = await _rateLimiter.GetResetTimeAsync(rateLimitKey, operationName, cancellationToken);
             var remaining = await _rateLimiter.GetRemainingOperationsAsync(rateLimitKey, operationName, cancellationToken);
+
+            var resetTime = resetTimeResult.IsSuccess ? resetTimeResult.Value : DateTimeOffset.UtcNow.AddMinutes(1);
 
             _logger.LogWarning("Rate limit exceeded for operation {Operation} with key {Key}. Reset time: {ResetTime}, Remaining: {Remaining}",
                 operationName, rateLimitKey, resetTime, remaining);
 
-            throw new RateLimitExceededException(operationName, resetTime ?? DateTimeOffset.UtcNow.AddMinutes(1));
+            throw new RateLimitExceededException(operationName, resetTime);
         }
 
         // Record the operation

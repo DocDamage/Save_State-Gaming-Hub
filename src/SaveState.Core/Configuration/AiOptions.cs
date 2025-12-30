@@ -17,4 +17,10 @@ public class AiOptions
 
     [Range(1, 100, ErrorMessage = "MaxConcurrentRequests must be between 1 and 100")]
     public int MaxConcurrentRequests { get; set; } = 10;
+
+    /// <summary>
+    /// Session timeout in minutes for conversation contexts. Default: 30.
+    /// </summary>
+    [Range(1, 1440)]
+    public int SessionTimeoutMinutes { get; set; } = 30;
 }

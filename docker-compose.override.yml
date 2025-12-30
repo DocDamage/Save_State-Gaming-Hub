@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  savestate:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    ports:
+      - "8080:8080"
+      # Uncomment for debugging
+      # - "9229:9229"
+    volumes:
+      # Mount source code for development
+      - .:/src
+      - savestate-data:/app/data
+      # Uncomment for X11 forwarding in development
+      # - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      # - ~/.Xauthority:/root/.Xauthority:rw
+    environment:
+      # Uncomment for X11 forwarding
+      # - DISPLAY=$DISPLAY
+      # - XAUTHORITY=/root/.Xauthority
+    # Override command for development (if needed)
+    # command: ["dotnet", "watch", "run", "--project", "src/SaveState.Presentation"]
+    restart: "no"  # Don't restart automatically in development

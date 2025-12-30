@@ -143,6 +143,43 @@ public class ApplicationMetricsService : IApplicationMetrics, IDisposable
         _storage.RecordDatabaseError(operation, errorType);
     }
 
+    // PERFORMANCE OPTIMIZATION: Advanced performance monitoring
+    public void RecordSlowQuery(string operation, TimeSpan duration, int recordCount)
+    {
+        // Record as a performance warning with additional context
+        _logger.LogWarning("Slow query detected: {Operation} took {Duration}ms for {RecordCount} records",
+            operation, duration.TotalMilliseconds, recordCount);
+
+        // Could add a specific metric for slow queries if needed
+        _customCounter.Add(1,
+            new KeyValuePair<string, object?>("metric", "slow_query"),
+            new KeyValuePair<string, object?>("operation", operation),
+            new KeyValuePair<string, object?>("duration_ms", duration.TotalMilliseconds),
+            new KeyValuePair<string, object?>("record_count", recordCount));
+    }
+
+    public void RecordBatchOperation(string operation, int itemCount, TimeSpan duration)
+    {
+        _logger.LogInformation("Batch operation completed: {Operation} processed {ItemCount} items in {Duration}ms",
+            operation, itemCount, duration.TotalMilliseconds);
+
+        _customCounter.Add(1,
+            new KeyValuePair<string, object?>("metric", "batch_operation"),
+            new KeyValuePair<string, object?>("operation", operation),
+            new KeyValuePair<string, object?>("item_count", itemCount),
+            new KeyValuePair<string, object?>("duration_ms", duration.TotalMilliseconds));
+    }
+
+    public void RecordPerformanceWarning(string operation, string message)
+    {
+        _logger.LogWarning("Performance warning in {Operation}: {Message}", operation, message);
+
+        _customCounter.Add(1,
+            new KeyValuePair<string, object?>("metric", "performance_warning"),
+            new KeyValuePair<string, object?>("operation", operation),
+            new KeyValuePair<string, object?>("message", message));
+    }
+
     // Cache Metrics Implementation
     public void RecordCacheHit(string cacheName)
     {

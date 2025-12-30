@@ -1,0 +1,21 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/.git/
+**/.vs/
+**/TestResults/
+*.md
+*.txt
+.gitignore
+.dockerignore
+README*
+docs/
+tests/
+tools/
+BenchmarkDotNet.Artifacts/
+test-coverage-results/
+test-results/
+appsettings.Development.json
+appsettings.json
+# Keep only production settings
+!appsettings.Production.json

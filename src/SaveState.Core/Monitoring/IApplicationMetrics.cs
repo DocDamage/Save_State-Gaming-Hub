@@ -39,6 +39,11 @@ public interface IApplicationMetrics
     void RecordCustomMetric(string name, double value, Dictionary<string, string>? tags = null);
     void IncrementCounter(string name, Dictionary<string, string>? tags = null);
 
+    // PERFORMANCE OPTIMIZATION: Advanced performance monitoring
+    void RecordSlowQuery(string operation, TimeSpan duration, int recordCount);
+    void RecordBatchOperation(string operation, int itemCount, TimeSpan duration);
+    void RecordPerformanceWarning(string operation, string message);
+
     // Health and Status
     Task<MetricsSnapshot> GetMetricsSnapshotAsync(CancellationToken ct = default);
 }

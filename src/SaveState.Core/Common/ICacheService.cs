@@ -48,4 +48,51 @@ public interface ICacheService
     /// <param name="ct">Cancellation token.</param>
     /// <returns>The cached or newly created value.</returns>
     Task<T> GetOrCreateAsync<T>(string key, Func<ICacheEntry, Task<T>> factory, CancellationToken ct = default);
+
+    /// <summary>
+    /// PERFORMANCE OPTIMIZATION: Sets multiple values in the cache efficiently.
+    /// </summary>
+    /// <typeparam name="T">The type of the values to cache.</typeparam>
+    /// <param name="keyValuePairs">Dictionary of key-value pairs to cache.</param>
+    /// <param name="expiration">Optional expiration time for all entries.</param>
+    void SetBatch<T>(IDictionary<string, T> keyValuePairs, TimeSpan? expiration = null);
+
+    /// <summary>
+    /// PERFORMANCE OPTIMIZATION: Gets multiple values from the cache efficiently.
+    /// </summary>
+    /// <typeparam name="T">The type of the cached values.</typeparam>
+    /// <param name="keys">The cache keys to retrieve.</param>
+    /// <returns>Dictionary of found key-value pairs.</returns>
+    IDictionary<string, T> GetBatch<T>(IEnumerable<string> keys);
+
+    /// <summary>
+    /// PERFORMANCE OPTIMIZATION: Removes multiple keys from the cache efficiently.
+    /// </summary>
+    /// <param name="keys">The cache keys to remove.</param>
+    void RemoveBatch(IEnumerable<string> keys);
+
+    /// <summary>
+    /// PERFORMANCE OPTIMIZATION: Clears all cache entries with a specific prefix.
+    /// </summary>
+    /// <param name="prefix">The key prefix to clear.</param>
+    void ClearByPrefix(string prefix);
+
+    /// <summary>
+    /// PERFORMANCE OPTIMIZATION: Gets cache statistics for monitoring.
+    /// </summary>
+    /// <returns>Cache performance statistics.</returns>
+    CacheStatistics GetStatistics();
+}
+
+/// <summary>
+/// PERFORMANCE OPTIMIZATION: Cache statistics for monitoring and optimization.
+/// </summary>
+public class CacheStatistics
+{
+    public long TotalRequests { get; set; }
+    public long CacheHits { get; set; }
+    public long CacheMisses { get; set; }
+    public double HitRate => TotalRequests > 0 ? (double)CacheHits / TotalRequests : 0;
+    public int CurrentEntryCount { get; set; }
+    public long TotalBytesUsed { get; set; }
 }

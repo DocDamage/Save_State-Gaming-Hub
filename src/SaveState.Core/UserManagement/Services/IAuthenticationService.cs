@@ -1,3 +1,4 @@
+using SaveState.Core.Common;
 using SaveState.Core.UserManagement.Entities;
 
 namespace SaveState.Core.UserManagement.Services;
@@ -15,7 +16,7 @@ public interface IAuthenticationService
     /// <summary>
     /// Validates an API key and returns the associated user.
     /// </summary>
-    Task<User?> ValidateApiKeyAsync(string apiKey, CancellationToken ct = default);
+    Task<Result<User>> ValidateApiKeyAsync(string apiKey, CancellationToken ct = default);
 
     /// <summary>
     /// Refreshes an access token using a refresh token.

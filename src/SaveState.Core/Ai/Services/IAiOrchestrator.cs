@@ -3,9 +3,14 @@ namespace SaveState.Core.Ai.Services;
 public interface IAiOrchestrator
 {
     Task<AiResponse> ProcessRequestAsync(AiRequest request, CancellationToken ct = default);
+    Task<AiResponse> ProcessRequestWithContextAsync(
+        string sessionId,
+        AiRequest request,
+        CancellationToken ct = default);
     IReadOnlyList<string> GetAvailableProviders();
     Task<bool> IsProviderHealthyAsync(string providerName, CancellationToken ct = default);
     (long Requests, long Hits, double HitRate) GetCacheStatistics();
+    Task<bool> ClearConversationAsync(string sessionId, CancellationToken ct = default);
 }
 
 public record AiRequest(

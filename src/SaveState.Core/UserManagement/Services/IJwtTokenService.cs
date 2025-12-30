@@ -1,3 +1,4 @@
+using SaveState.Core.Common;
 using SaveState.Core.UserManagement.Entities;
 
 namespace SaveState.Core.UserManagement.Services;
@@ -20,12 +21,12 @@ public interface IJwtTokenService
     /// <summary>
     /// Validates the provided JWT token and returns the claims principal.
     /// </summary>
-    Task<System.Security.Claims.ClaimsPrincipal?> ValidateTokenAsync(string token, CancellationToken ct = default);
+    Task<Result<System.Security.Claims.ClaimsPrincipal>> ValidateTokenAsync(string token, CancellationToken ct = default);
 
     /// <summary>
     /// Extracts the user ID from a valid JWT token.
     /// </summary>
-    Task<Guid?> GetUserIdFromTokenAsync(string token, CancellationToken ct = default);
+    Task<Result<Guid>> GetUserIdFromTokenAsync(string token, CancellationToken ct = default);
 
     /// <summary>
     /// Checks if the token is expired.

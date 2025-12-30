@@ -4,7 +4,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SaveState.Presentation.ViewModels;
-using System;
 
 public class ViewLocator : IDataTemplate
 {

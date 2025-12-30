@@ -64,7 +64,7 @@ public class JwtTokenService : IJwtTokenService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    public async Task<ClaimsPrincipal?> ValidateTokenAsync(string token, CancellationToken ct = default)
+    public async Task<Result<ClaimsPrincipal>> ValidateTokenAsync(string token, CancellationToken ct = default)
     {
         try
         {
@@ -84,38 +84,39 @@ public class JwtTokenService : IJwtTokenService
             };
 
             var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
-            return principal;
+            return Result<ClaimsPrincipal>.Success(principal);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Token validation failed");
-            return null;
+            return Result<ClaimsPrincipal>.Failure("Token validation failed", ErrorType.Validation);
         }
     }
 
-    public async Task<Guid?> GetUserIdFromTokenAsync(string token, CancellationToken ct = default)
+    public async Task<Result<Guid>> GetUserIdFromTokenAsync(string token, CancellationToken ct = default)
     {
-        var principal = await ValidateTokenAsync(token, ct);
-        if (principal == null)
-            return null;
+        var principalResult = await ValidateTokenAsync(token, ct);
+        if (principalResult.IsFailure)
+            return Result<Guid>.Failure(principalResult.Error ?? "Token validation failed", principalResult.ErrorType);
 
+        var principal = principalResult.Value;
         var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier) ??
                          principal.FindFirst(JwtRegisteredClaimNames.Sub);
 
         if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
         {
-            return userId;
+            return Result<Guid>.Success(userId);
         }
 
-        return null;
+        return Result<Guid>.Failure("User ID claim not found in token", ErrorType.Validation);
     }
 
     public async Task<bool> IsTokenExpiredAsync(string token, CancellationToken ct = default)
     {
         try
         {
-            var principal = await ValidateTokenAsync(token, ct);
-            return principal == null;
+            var principalResult = await ValidateTokenAsync(token, ct);
+            return principalResult.IsFailure;
         }
         catch (Exception ex)
         {

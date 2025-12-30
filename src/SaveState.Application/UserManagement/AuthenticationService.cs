@@ -66,17 +66,21 @@ public class AuthenticationService : IAuthenticationService
         }
     }
 
-    public async Task<User?> ValidateApiKeyAsync(string apiKey, CancellationToken ct = default)
+    public async Task<Result<User>> ValidateApiKeyAsync(string apiKey, CancellationToken ct = default)
     {
         try
         {
             var user = await _apiKeyRepository.GetUserByApiKeyAsync(apiKey, ct);
-            return user;
+            if (user == null)
+            {
+                return Result<User>.Failure("Invalid API key", ErrorType.Validation);
+            }
+            return Result<User>.Success(user);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "API Key validation failed");
-            return null;
+            return Result<User>.Failure("API key validation failed", ErrorType.Validation);
         }
     }
 
@@ -85,11 +89,12 @@ public class AuthenticationService : IAuthenticationService
         try
         {
             // Validate the refresh token
-            var principal = await _jwtTokenService.ValidateTokenAsync(refreshToken, ct);
-            if (principal == null)
+            var principalResult = await _jwtTokenService.ValidateTokenAsync(refreshToken, ct);
+            if (principalResult.IsFailure)
             {
                 return TokenRefreshResult.Failure("Invalid refresh token");
             }
+            var principal = principalResult.Value;
 
             // Check if it's actually a refresh token
             var tokenTypeClaim = principal.FindFirst("token_type");
@@ -99,14 +104,15 @@ public class AuthenticationService : IAuthenticationService
             }
 
             // Get user ID from token
-            var userId = await _jwtTokenService.GetUserIdFromTokenAsync(refreshToken, ct);
-            if (!userId.HasValue)
+            var userIdResult = await _jwtTokenService.GetUserIdFromTokenAsync(refreshToken, ct);
+            if (userIdResult.IsFailure)
             {
                 return TokenRefreshResult.Failure("Invalid refresh token");
             }
+            var userId = userIdResult.Value;
 
             // Get user and check if still active
-            var user = await _userRepository.GetByIdAsync(userId.Value, ct);
+            var user = await _userRepository.GetByIdAsync(userId, ct);
             if (user == null || !user.IsActive)
             {
                 return TokenRefreshResult.Failure("User not found or inactive");

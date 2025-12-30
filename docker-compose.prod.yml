@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  savestate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: savestate-prod
+    ports:
+      - "8080:80"  # Map to standard HTTP port
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/savestate.db
+      - DOTNET_RUNNING_IN_CONTAINER=true
+    volumes:
+      - savestate-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - savestate-network
+
+  # Reverse proxy (optional, for production deployments)
+  nginx:
+    image: nginx:alpine
+    container_name: savestate-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/ssl/certs:ro
+    depends_on:
+      - savestate
+    restart: unless-stopped
+    networks:
+      - savestate-network
+    profiles:
+      - nginx
+
+  # Monitoring (optional, for production deployments)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: savestate-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - savestate-network
+    profiles:
+      - monitoring
+
+volumes:
+  savestate-data:
+    driver: local
+  prometheus-data:
+    driver: local
+
+networks:
+  savestate-network:
+    driver: bridge

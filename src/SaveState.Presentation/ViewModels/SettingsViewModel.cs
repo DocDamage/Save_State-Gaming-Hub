@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveState.Core.Common.Services;
 using SaveState.Presentation.Resources;
+using SaveState.Presentation.Services;
 
 namespace SaveState.Presentation.ViewModels;
 
@@ -10,6 +11,7 @@ public partial class SettingsViewModel : ObservableObject
 {
     private readonly ICultureManager _cultureManager;
     private readonly SaveState.Presentation.Resources.Resources _resources;
+    private readonly IThemeService _themeService;
 
     [ObservableProperty]
     private CultureInfo _selectedCulture;
@@ -26,13 +28,23 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private string _formattedCurrency;
 
+    [ObservableProperty]
+    private ThemeType _selectedTheme;
+
     public SettingsViewModel(
         ICultureManager cultureManager,
-        SaveState.Presentation.Resources.Resources resources)
+        SaveState.Presentation.Resources.Resources resources,
+        IThemeService themeService)
     {
         _cultureManager = cultureManager;
         _resources = resources;
+        _themeService = themeService;
         _selectedCulture = _cultureManager.CurrentCulture;
+        _selectedTheme = _themeService.CurrentTheme;
+
+        // Subscribe to theme changes
+        _themeService.ThemeChanged += (sender, theme) => SelectedTheme = theme;
+
         UpdateTestString();
         UpdateFormattingExamples();
     }
@@ -41,11 +53,15 @@ public partial class SettingsViewModel : ObservableObject
 
     public bool IsRightToLeft => _cultureManager.IsRightToLeft(_selectedCulture);
 
+    public IReadOnlyList<ThemeType> AvailableThemes => _themeService.AvailableThemes;
+
     // Localized properties
     public string Title => _resources.Settings_Title;
     public string GeneralSection => _resources.Settings_General;
     public string LanguageSection => _resources.Settings_Language;
     public string LanguageSelectLabel => _resources.Settings_Language_Select;
+    public string ThemeSection => "Appearance";
+    public string ThemeSelectLabel => "Theme";
     public string TestSection => "Localization Test";
     public string FormattingSection => "Culture Formatting";
     public string DateLabel => _resources.Formatting_Date;
@@ -65,6 +81,16 @@ public partial class SettingsViewModel : ObservableObject
             UpdateTestString();
             UpdateFormattingExamples();
         }
+    }
+
+    [RelayCommand]
+    private void ChangeTheme(ThemeType theme)
+    {
+        if (theme == _selectedTheme)
+            return;
+
+        _themeService.SetTheme(theme);
+        // SelectedTheme will be updated via the ThemeChanged event
     }
 
     private void UpdateTestString()

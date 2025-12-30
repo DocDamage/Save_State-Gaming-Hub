@@ -20,11 +20,17 @@ using SaveState.Core.Ai.Knowledge;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Ai.Memory;
 using SaveState.Core.Ai.Learning;
+using SaveState.Core.Ai.Context;
+using SaveState.Core.Ai.Voice;
+using SaveState.Core.Sync;
 using SaveState.Infrastructure.Ai;
 using SaveState.Infrastructure.Ai.Resilience;
 using SaveState.Infrastructure.Ai.Knowledge;
 using SaveState.Infrastructure.Ai.Memory;
 using SaveState.Infrastructure.Ai.Learning;
+using SaveState.Infrastructure.Ai.Context;
+using SaveState.Infrastructure.Ai.Voice;
+using SaveState.Infrastructure.Sync;
 using SaveState.Infrastructure.External;
 using SaveState.Infrastructure.GameLibrary.Services;
 using SaveState.Infrastructure.Persistence;
@@ -95,10 +101,10 @@ public static class DependencyInjection
         services.AddScoped<SaveState.Core.UserManagement.Services.IJwtTokenService, JwtTokenService>();
         services.AddScoped<SaveState.Core.UserManagement.Services.IPasswordHasher, PasswordHasher>();
 
-        // Repositories (User Management) - TODO: Implement these repositories
-        // services.AddScoped<SaveState.Core.UserManagement.Repositories.IUserRepository, Repositories.UserRepository>();
-        // services.AddScoped<SaveState.Core.UserManagement.Repositories.IRoleRepository, Repositories.RoleRepository>();
-        // services.AddScoped<SaveState.Core.UserManagement.Repositories.IApiKeyRepository, Repositories.ApiKeyRepository>();
+        // Repositories (User Management)
+        services.AddScoped<SaveState.Core.UserManagement.Repositories.IUserRepository, UserManagement.UserRepository>();
+        services.AddScoped<SaveState.Core.UserManagement.Repositories.IRoleRepository, UserManagement.RoleRepository>();
+        services.AddScoped<SaveState.Core.UserManagement.Repositories.IApiKeyRepository, UserManagement.ApiKeyRepository>();
 
         // Metadata Services
         services.AddScoped<IMetadataService, IgdbMetadataService>();
@@ -302,6 +308,17 @@ public static class DependencyInjection
         services.AddScoped<SemanticKnowledgeClient>();
         services.AddScoped<IShortTermMemory, EnhancedShortTermMemory>();
         services.AddScoped<IAiOrchestrator, AiOrchestrator>();
+        services.AddSingleton<IConversationContextService, InMemoryConversationContextService>();
+        services.AddScoped<IVoiceProcessor, WhisperVoiceProcessor>();
+
+        // Register cloud sync services
+        services.AddSingleton<ICloudStorageProvider>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<LocalFileStorageProvider>>();
+            // Use a temporary directory for local testing - in production this would be configured
+            var tempDir = Path.Combine(Path.GetTempPath(), "savestate-sync");
+            return new LocalFileStorageProvider(tempDir, logger);
+        });
         services.AddScoped<AiResiliencePolicy>();
         services.AddScoped<IFeedbackLoop, LocalLearningService>();
         services.AddScoped<IChaosTester, ChaosTester>();

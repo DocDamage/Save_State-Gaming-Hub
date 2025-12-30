@@ -1,3 +1,5 @@
+using SaveState.Core.Common;
+
 namespace SaveState.Core.Common.Services;
 
 /// <summary>
@@ -37,6 +39,6 @@ public interface IRateLimiter
     /// <param name="key">Unique identifier for the rate limit</param>
     /// <param name="operation">Name of the operation</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Time when rate limit resets, or null if no limit</returns>
-    Task<DateTimeOffset?> GetResetTimeAsync(string key, string operation, CancellationToken cancellationToken = default);
+    /// <returns>Result containing time when rate limit resets, or failure if no limit or error</returns>
+    Task<Result<DateTimeOffset>> GetResetTimeAsync(string key, string operation, CancellationToken cancellationToken = default);
 }

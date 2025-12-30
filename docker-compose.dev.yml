@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  savestate:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: savestate-dev
+    ports:
+      - "8080:8080"
+      - "9229:9229"  # Debugger port
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/savestate.db
+      - DOTNET_RUNNING_IN_CONTAINER=true
+    volumes:
+      # Mount source code for hot reload
+      - .:/src:cached
+      - savestate-data:/app/data
+      # Mount user-specific files for development
+      - ~/.nuget:/root/.nuget:ro
+      - ~/.dotnet:/root/.dotnet:ro
+    working_dir: /src
+    command: ["dotnet", "watch", "run", "--project", "src/SaveState.Presentation", "--urls", "http://+:8080"]
+    restart: "no"
+    networks:
+      - savestate-dev-network
+
+  # Development database (optional, if using external DB)
+  postgres-dev:
+    image: postgres:15-alpine
+    container_name: savestate-postgres-dev
+    environment:
+      - POSTGRES_DB=savestate_dev
+      - POSTGRES_USER=savestate
+      - POSTGRES_PASSWORD=dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-dev-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - savestate-dev-network
+    profiles:
+      - postgres
+
+  # Redis for caching (optional)
+  redis-dev:
+    image: redis:7-alpine
+    container_name: savestate-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-dev-data:/data
+    restart: unless-stopped
+    networks:
+      - savestate-dev-network
+    profiles:
+      - redis
+
+volumes:
+  savestate-data:
+    driver: local
+  postgres-dev-data:
+    driver: local
+  redis-dev-data:
+    driver: local
+
+networks:
+  savestate-dev-network:
+    driver: bridge

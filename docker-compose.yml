@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  savestate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: savestate-app
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/savestate.db
+      - DOTNET_RUNNING_IN_CONTAINER=true
+    volumes:
+      - savestate-data:/app/data
+      # Uncomment for X11 forwarding if running GUI
+      # - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      # - ${XAUTHORITY:-$HOME/.Xauthority}:/root/.Xauthority:rw
+    environment:
+      # Uncomment for X11 forwarding
+      # - DISPLAY=${DISPLAY}
+      # - XAUTHORITY=/root/.Xauthority
+    restart: unless-stopped
+    # Uncomment if health check endpoint is added
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    depends_on:
+      - db-init
+
+  # Database initialization service (runs once)
+  db-init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: savestate-db-init
+    command: >
+      sh -c "
+        dotnet SaveState.Presentation.dll --init-db-only || echo 'DB init completed'
+      "
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/savestate.db
+    volumes:
+      - savestate-data:/app/data
+    profiles:
+      - init
+
+volumes:
+  savestate-data:
+    driver: local

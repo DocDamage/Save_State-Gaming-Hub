@@ -37,9 +37,29 @@ public class MetricsHealthCheck : IHealthCheck
                 _ => "Application metrics indicate critical issues"
             };
 
-            // For now, return simple health check results without data
-            // TODO: Add data parameter support when HealthCheckResult API is clarified
-            return new HealthCheckResult(healthStatus, description);
+            // Return health check results with comprehensive metrics data
+            var data = new Dictionary<string, object>
+            {
+                ["TotalRequests"] = snapshot.TotalRequests,
+                ["AverageResponseTime"] = snapshot.AverageResponseTime.TotalMilliseconds,
+                ["CacheHitRatio"] = snapshot.CacheHitRatio,
+                ["TotalCacheRequests"] = snapshot.TotalCacheRequests,
+                ["UnhandledExceptions"] = snapshot.UnhandledExceptions,
+                ["DatabaseErrors"] = snapshot.DatabaseErrors,
+                ["SuccessfulApiCalls"] = snapshot.SuccessfulApiCalls,
+                ["FailedApiCalls"] = snapshot.FailedApiCalls,
+                ["TotalApiCalls"] = snapshot.TotalApiCalls,
+                ["AverageDatabaseQueryTime"] = snapshot.AverageDatabaseQueryTime.TotalMilliseconds,
+                ["CurrentDatabaseConnections"] = snapshot.CurrentDatabaseConnections,
+                ["CurrentMemoryUsage"] = snapshot.CurrentMemoryUsage,
+                ["CurrentCpuUsage"] = snapshot.CurrentCpuUsage,
+                ["TotalExceptions"] = snapshot.TotalExceptions,
+                ["TotalAiRequests"] = snapshot.TotalAiRequests,
+                ["SuccessfulAiRequests"] = snapshot.SuccessfulAiRequests,
+                ["TotalTokensUsed"] = snapshot.TotalTokensUsed
+            };
+
+            return new HealthCheckResult(healthStatus, description, data: data);
         }
         catch (Exception ex)
         {

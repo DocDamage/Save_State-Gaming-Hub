@@ -1,0 +1,42 @@
+# Development Dockerfile with hot reload support
+FROM mcr.microsoft.com/dotnet/sdk:9.0
+
+# Set environment
+ENV ASPNETCORE_ENVIRONMENT=Development
+ENV DOTNET_USE_POLLING_FILE_WATCHER=true
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+
+# Install development tools
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    vim \
+    htop \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create app directory
+WORKDIR /src
+
+# Copy solution and project files for restore
+COPY *.sln .
+COPY src/SaveState.Core/*.csproj ./src/SaveState.Core/
+COPY src/SaveState.Application/*.csproj ./src/SaveState.Application/
+COPY src/SaveState.Infrastructure/*.csproj ./src/SaveState.Infrastructure/
+COPY src/SaveState.Presentation/*.csproj ./src/SaveState.Presentation/
+
+# Restore dependencies
+RUN dotnet restore
+
+# Copy source code
+COPY . .
+
+# Create data directory
+RUN mkdir -p /app/data
+
+# Expose ports
+EXPOSE 8080
+EXPOSE 9229
+
+# Default command (can be overridden in docker-compose)
+CMD ["dotnet", "watch", "run", "--project", "src/SaveState.Presentation", "--urls", "http://+:8080"]

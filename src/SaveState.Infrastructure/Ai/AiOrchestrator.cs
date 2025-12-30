@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SaveState.Core.Ai.Context;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Common;
 using SaveState.Core.Configuration;
@@ -15,6 +16,7 @@ public class AiOrchestrator : IAiOrchestrator
     private readonly AiOptions _options;
     private readonly IApplicationMetrics _metrics;
     private readonly ICachePerformanceMonitor _cacheMonitor;
+    private readonly IConversationContextService _contextService;
     private long _cacheRequests;
     private long _cacheHits;
 
@@ -24,7 +26,8 @@ public class AiOrchestrator : IAiOrchestrator
         IOptions<AiOptions> options,
         ILogger<AiOrchestrator> logger,
         IApplicationMetrics metrics,
-        ICachePerformanceMonitor cacheMonitor)
+        ICachePerformanceMonitor cacheMonitor,
+        IConversationContextService contextService)
     {
         _providers = providers;
         _cache = cache;
@@ -32,6 +35,7 @@ public class AiOrchestrator : IAiOrchestrator
         _logger = logger;
         _metrics = metrics;
         _cacheMonitor = cacheMonitor;
+        _contextService = contextService;
     }
 
     public async Task<AiResponse> ProcessRequestAsync(AiRequest request, CancellationToken ct = default)
@@ -179,6 +183,81 @@ public class AiOrchestrator : IAiOrchestrator
 
         _logger.LogInformation("Trying fallback provider {Provider}", fallback.ProviderName);
         return await ProcessRequestAsync(request with { PreferredProvider = fallback.ProviderName }, ct).ConfigureAwait(false);
+    }
+
+    public async Task<AiResponse> ProcessRequestWithContextAsync(
+        string sessionId,
+        AiRequest request,
+        CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);
+        ArgumentNullException.ThrowIfNull(request);
+
+        // Get conversation history
+        var historyResult = await _contextService.GetHistoryAsync(sessionId, ct);
+
+        List<ChatMessage> messagesWithHistory;
+
+        if (historyResult.IsSuccess && historyResult.Value!.Count > 0)
+        {
+            messagesWithHistory = historyResult.Value.ToList();
+
+            // Add current user message if this is a chat request
+            if (request.Messages?.Count > 0)
+            {
+                messagesWithHistory.AddRange(request.Messages);
+            }
+            else if (!string.IsNullOrEmpty(request.Prompt))
+            {
+                messagesWithHistory.Add(new ChatMessage("user", request.Prompt));
+            }
+        }
+        else
+        {
+            messagesWithHistory = request.Messages?.ToList() ?? new List<ChatMessage>();
+            if (!string.IsNullOrEmpty(request.Prompt) && messagesWithHistory.Count == 0)
+            {
+                messagesWithHistory.Add(new ChatMessage("user", request.Prompt));
+            }
+        }
+
+        // Store user message in context
+        if (messagesWithHistory.Count > 0)
+        {
+            var lastUserMessage = messagesWithHistory.LastOrDefault(m => m.Role == "user");
+            if (lastUserMessage != null)
+            {
+                await _contextService.AddMessageAsync(sessionId, lastUserMessage, ct);
+            }
+        }
+
+        // Create modified request with full history
+        var contextualRequest = request with
+        {
+            Messages = messagesWithHistory,
+            Type = AiRequestType.Chat,
+            AllowCache = false  // Don't cache contextual responses
+        };
+
+        // Process request
+        var response = await ProcessRequestAsync(contextualRequest, ct);
+
+        // Store AI response in context
+        if (response.IsSuccessful && !string.IsNullOrEmpty(response.Content))
+        {
+            await _contextService.AddMessageAsync(
+                sessionId,
+                new ChatMessage("assistant", response.Content),
+                ct);
+        }
+
+        return response;
+    }
+
+    public async Task<bool> ClearConversationAsync(string sessionId, CancellationToken ct = default)
+    {
+        var result = await _contextService.ClearSessionAsync(sessionId, ct);
+        return result.IsSuccess;
     }
 
     private static string GenerateCacheKey(AiRequest request)

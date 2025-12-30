@@ -13,6 +13,7 @@ using SaveState.Application.Common.DependencyInjection;
 using SaveState.Infrastructure.Persistence;
 using SaveState.Presentation.ViewModels;
 using SaveState.Presentation.Views;
+using SaveState.Presentation.Services;
 
 public static class Program
 {
@@ -27,9 +28,28 @@ public static class Program
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddApplicationServices();
 
-        // Override database connection for development
+        // PERFORMANCE OPTIMIZATION: Enhanced database configuration with connection pooling
         builder.Services.AddDbContext<SaveStateDbContext>((sp, options) =>
-            options.UseSqlite("Data Source=savestate.db"));
+        {
+            options.UseSqlite("Data Source=savestate.db", sqliteOptions =>
+            {
+                // Enable connection pooling for better performance
+                sqliteOptions.MaxBatchSize(100);
+                sqliteOptions.CommandTimeout(30);
+                sqliteOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+            });
+
+            // PERFORMANCE OPTIMIZATION: Configure EF Core for better performance
+            options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+            options.EnableSensitiveDataLogging(false);
+            options.EnableDetailedErrors(false);
+
+#if DEBUG
+            // Keep detailed logging in debug mode for development
+            options.EnableSensitiveDataLogging(true);
+            options.EnableDetailedErrors(true);
+#endif
+        });
 
         // Add localization
         builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -39,6 +59,9 @@ public static class Program
         builder.Services.AddTransient<GameLibraryViewModel>();
         builder.Services.AddTransient<MainViewModel>();
         builder.Services.AddTransient<SettingsViewModel>();
+
+        // Add theme service
+        builder.Services.AddSingleton<IThemeService, ThemeService>();
 
         var host = builder.Build();
 

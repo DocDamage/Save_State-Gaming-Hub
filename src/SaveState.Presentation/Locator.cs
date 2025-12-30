@@ -1,6 +1,5 @@
 namespace SaveState.Presentation;
 
-using System;
 using Microsoft.Extensions.DependencyInjection;
 
 public class Locator

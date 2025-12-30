@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # Test runner
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: savestate-test-runner
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Data Source=/app/test-data/savestate-test.db
+    volumes:
+      - ./test-results:/app/test-results
+      - ./test-coverage-results:/app/test-coverage-results
+    working_dir: /src
+    command: >
+      sh -c "
+        echo 'Running tests...' &&
+        dotnet test SaveStateReborn.sln --no-build -c Release --results-directory /app/test-results --logger 'trx;LogFileName=test-results.trx' &&
+        echo 'Tests completed'
+      "
+    networks:
+      - savestate-ci-network
+
+  # Build verification
+  build-verifier:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: savestate-build-verifier
+    environment:
+      - DOTNET_CLI_TELEMETRY_OPTOUT=1
+    working_dir: /src
+    command: >
+      sh -c "
+        echo 'Verifying build...' &&
+        dotnet build SaveStateReborn.sln -c Release --no-restore &&
+        echo 'Build verification completed'
+      "
+    networks:
+      - savestate-ci-network
+
+  # Security scanner (optional)
+  security-scan:
+    image: securecodebox/engine-zap
+    container_name: savestate-security-scan
+    environment:
+      - ZAP_SPIDER_MAX_DEPTH=3
+      - ZAP_SPIDER_THREAD_COUNT=2
+    volumes:
+      - ./security-reports:/home/securecodebox/reports
+    command: >
+      sh -c "
+        echo 'Running security scan...' &&
+        zap-baseline.py -t http://savestate:8080 -r /home/securecodebox/reports/zap-report.html ||
+        echo 'Security scan completed with warnings'
+      "
+    depends_on:
+      - savestate-test-app
+    networks:
+      - savestate-ci-network
+    profiles:
+      - security
+
+  # Test application for integration testing
+  savestate-test-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: savestate-test-app
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Data Source=/app/test-data/savestate-test.db
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./test-data:/app/test-data
+    restart: "no"
+    networks:
+      - savestate-ci-network
+
+volumes:
+  test-data:
+    driver: local
+
+networks:
+  savestate-ci-network:
+    driver: bridge

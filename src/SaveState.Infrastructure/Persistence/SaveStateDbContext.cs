@@ -10,6 +10,12 @@ using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.RomManagement.Entities;
 using SaveState.Core.AiGaming.Entities;
 using SaveState.Core.Ai.Knowledge;
+using UserManagementUser = SaveState.Core.UserManagement.Entities.User;
+using UserManagementRole = SaveState.Core.UserManagement.Entities.Role;
+using UserManagementUserRole = SaveState.Core.UserManagement.Entities.UserRole;
+using UserManagementPermission = SaveState.Core.UserManagement.Entities.Permission;
+using UserManagementRolePermission = SaveState.Core.UserManagement.Entities.RolePermission;
+using UserManagementApiKey = SaveState.Core.UserManagement.Entities.ApiKey;
 
 namespace SaveState.Infrastructure.Persistence;
 
@@ -29,7 +35,13 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
     public DbSet<Emulator> Emulators { get; set; }
     public DbSet<AiModel> AiModels { get; set; }
     public DbSet<MemorySnapshot> MemorySnapshots { get; set; }
-    public DbSet<User> Users { get; set; }
+    // User Management entities (using aliases to avoid ambiguity with GameLibrary.User)
+    public DbSet<UserManagementUser> Users { get; set; }
+    public DbSet<UserManagementRole> Roles { get; set; }
+    public DbSet<UserManagementUserRole> UserRoles { get; set; }
+    public DbSet<UserManagementPermission> Permissions { get; set; }
+    public DbSet<UserManagementRolePermission> RolePermissions { get; set; }
+    public DbSet<UserManagementApiKey> ApiKeys { get; set; }
     public DbSet<Achievement> Achievements { get; set; }
     public DbSet<UserAchievement> UserAchievements { get; set; }
 
@@ -126,6 +138,24 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
         modelBuilder.Entity<Game>()
             .HasIndex(g => g.TotalPlayTime)
             .HasDatabaseName("IX_Games_TotalPlayTime");
+
+        // PERFORMANCE OPTIMIZATION: Composite indexes for common query patterns
+        modelBuilder.Entity<Game>()
+            .HasIndex(g => new { g.Status, g.LastPlayedAt })
+            .HasDatabaseName("IX_Games_Status_LastPlayedAt");
+
+        modelBuilder.Entity<Game>()
+            .HasIndex(g => new { g.PlatformId, g.Status, g.Title })
+            .HasDatabaseName("IX_Games_Platform_Status_Title");
+
+        modelBuilder.Entity<Game>()
+            .HasIndex(g => new { g.CreatedAt, g.PlatformId })
+            .HasDatabaseName("IX_Games_CreatedAt_Platform");
+
+        // PERFORMANCE OPTIMIZATION: Covering index for game summaries
+        modelBuilder.Entity<Game>()
+            .HasIndex(g => new { g.Id, g.Title, g.PlatformId, g.Status, g.LastPlayedAt, g.TotalPlayTime })
+            .HasDatabaseName("IX_Games_Summary_Covering");
 
         // ROM Files table indexes
         modelBuilder.Entity<RomFile>()

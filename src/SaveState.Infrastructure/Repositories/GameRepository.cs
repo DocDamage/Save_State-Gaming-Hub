@@ -26,13 +26,30 @@ public class GameRepository : IGameRepository
 
     public async Task<IReadOnlyList<Game>> GetAllAsync(CancellationToken ct = default)
     {
+        // PERFORMANCE OPTIMIZATION: Add warning for large dataset usage
+        // This method loads all games into memory and should be used carefully
+        // Consider using GetGamesAsync with pagination for large datasets
+
         var startTime = DateTime.UtcNow;
         try
         {
-            var result = await _context.Games.ToListAsync(ct).ConfigureAwait(false);
+            // Add AsNoTracking() for read-only operations to improve performance
+            var result = await _context.Games
+                .AsNoTracking()
+                .ToListAsync(ct)
+                .ConfigureAwait(false);
+
             var duration = DateTime.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("GameRepository.GetAllAsync", duration);
             _metrics.RecordDatabaseConnectionCount(_context.Database.GetDbConnection().State == System.Data.ConnectionState.Open ? 1 : 0);
+
+            // PERFORMANCE MONITORING: Log warning for large result sets
+            if (result.Count > 1000)
+            {
+                _metrics.RecordPerformanceWarning("GameRepository.GetAllAsync", $"Large dataset loaded: {result.Count} games");
+                _metrics.RecordSlowQuery("GameRepository.GetAllAsync", duration, result.Count);
+            }
+
             return result;
         }
         catch (Exception ex)
