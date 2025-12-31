@@ -1,6 +1,8 @@
 # Character Management API
 
-This document describes the APIs for managing MUGEN/IKEMEN characters in SaveState Reborn.
+This document describes the APIs for managing MUGEN/IKEMEN characters in SaveState Reborn V2.0.
+
+**Note**: This is part of the included fighting game platform features in V2.0, providing IKEMEN GO integration alongside the universal game library management.
 
 ## Overview
 

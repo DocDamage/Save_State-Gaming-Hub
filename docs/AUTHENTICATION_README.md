@@ -1,6 +1,8 @@
 # Authentication & Authorization System
 
-This document describes the comprehensive authentication and authorization system implemented in SaveStateReborn.
+This document describes the comprehensive authentication and authorization system implemented in SaveStateReborn V2.0.
+
+**Note**: This authentication system is part of the V2.0 enterprise features and may be used for future web API integrations or multi-user scenarios.
 
 ## Overview
 
