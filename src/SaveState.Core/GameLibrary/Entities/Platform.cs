@@ -6,8 +6,8 @@ namespace SaveState.Core.GameLibrary.Entities;
 
 public class Platform : EntityBase
 {
-    public PlatformName Name { get; private set; }
-    public PlatformShortName ShortName { get; private set; }
+    public PlatformName Name { get; private set; } = null!;
+    public PlatformShortName ShortName { get; private set; } = null!;
     public PlatformType Type { get; private set; }
     public string? Manufacturer { get; private set; }
     public DateTime? ReleasedAt { get; private set; }

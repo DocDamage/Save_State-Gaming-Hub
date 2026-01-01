@@ -1,3 +1,5 @@
+using SaveState.Core.Common;
+
 namespace SaveState.Core.Ai.Services;
 
 public interface IAiOrchestrator
@@ -7,6 +9,11 @@ public interface IAiOrchestrator
         string sessionId,
         AiRequest request,
         CancellationToken ct = default);
+    Task<Result<AiResponse>> ExecutePromptAsync(
+        string sessionId,
+        string prompt,
+        CancellationToken ct = default);
+    Task<Result<string>> GenerateTextAsync(string prompt, CancellationToken ct = default);
     IReadOnlyList<string> GetAvailableProviders();
     Task<bool> IsProviderHealthyAsync(string providerName, CancellationToken ct = default);
     (long Requests, long Hits, double HitRate) GetCacheStatistics();

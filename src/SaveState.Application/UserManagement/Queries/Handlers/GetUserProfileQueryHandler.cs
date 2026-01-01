@@ -8,7 +8,7 @@ namespace SaveState.Application.UserManagement.Queries.Handlers;
 
 public class GetUserProfileQueryHandler : IRequestHandler<GetUserProfileQuery, Result<UserProfileDto>>
 {
-    public async Task<Result<UserProfileDto>> Handle(GetUserProfileQuery request, CancellationToken ct)
+    public Task<Result<UserProfileDto>> Handle(GetUserProfileQuery request, CancellationToken ct)
     {
         // Mock implementation - in a real system, this would query user data from database
         var mockUser = new UserProfileDto
@@ -23,6 +23,6 @@ public class GetUserProfileQueryHandler : IRequestHandler<GetUserProfileQuery, R
             IsActive = true
         };
 
-        return Result<UserProfileDto>.Success(mockUser);
+        return Task.FromResult(Result<UserProfileDto>.Success(mockUser));
     }
 }

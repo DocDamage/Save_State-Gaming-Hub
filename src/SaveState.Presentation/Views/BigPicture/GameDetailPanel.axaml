@@ -1,0 +1,153 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.BigPicture"
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="800"
+             x:Class="SaveState.Presentation.Views.BigPicture.GameDetailPanel"
+             x:DataType="vm:GameDetailViewModel">
+
+  <Design.DataContext>
+    <vm:GameDetailViewModel/>
+  </Design.DataContext>
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="0,0,0,40">
+
+      <!-- Large cover art -->
+      <Border Background="#FF333333"
+              CornerRadius="8"
+              Margin="0,0,0,20"
+              Height="300">
+        <Image Source="{Binding SelectedGame.CoverImageUrl}"
+               Stretch="Uniform"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center"
+               Margin="20"/>
+      </Border>
+
+      <!-- Game title -->
+      <TextBlock Text="{Binding SelectedGame.Title}"
+                 FontSize="28"
+                 FontWeight="Bold"
+                 Foreground="#FFFFFFFF"
+                 TextWrapping="Wrap"
+                 Margin="0,0,0,10"/>
+
+      <!-- Platform and release year -->
+      <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+        <TextBlock Text="{Binding SelectedGame.PlatformName}"
+                   FontSize="16"
+                   Foreground="#FFAAAAAA"
+                   Margin="0,0,15,0"/>
+        <TextBlock Text="{Binding SelectedGame.ReleaseYear}"
+                   FontSize="16"
+                   Foreground="#FFAAAAAA"/>
+      </StackPanel>
+
+      <!-- Description -->
+      <TextBlock Text="{Binding SelectedGame.Description}"
+                 FontSize="14"
+                 Foreground="#FFCCCCCC"
+                 TextWrapping="Wrap"
+                 LineHeight="20"
+                 Margin="0,0,0,20"
+                 MaxLines="6"
+                 TextTrimming="CharacterEllipsis"/>
+
+      <!-- Play time and last played -->
+      <Border Background="#FF333333" CornerRadius="6" Padding="15" Margin="0,0,0,15">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+
+          <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="Total Playtime: "
+                       FontSize="14"
+                       Foreground="#FFAAAAAA"/>
+            <TextBlock Text="{Binding SelectedGame.TotalPlaytime, StringFormat='hh:mm'}"
+                       FontSize="14"
+                       Foreground="#FFFFFFFF"/>
+          </StackPanel>
+
+          <StackPanel Grid.Row="1" Orientation="Horizontal">
+            <TextBlock Text="Last Played: "
+                       FontSize="14"
+                       Foreground="#FFAAAAAA"/>
+            <TextBlock Text="{Binding SelectedGame.LastPlayed, StringFormat='MMM dd, yyyy'}"
+                       FontSize="14"
+                       Foreground="#FFFFFFFF"/>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <!-- Action buttons -->
+      <StackPanel Orientation="Vertical" Spacing="10" Margin="0,20,0,0">
+
+        <!-- Launch button -->
+        <Button Content="Launch Game"
+                Command="{Binding LaunchGameCommand}"
+                Background="#FF00CCFF"
+                Foreground="#FF000000"
+                FontSize="18"
+                FontWeight="SemiBold"
+                Padding="30,15"
+                CornerRadius="6"
+                HorizontalAlignment="Stretch"/>
+
+        <!-- Add to backlog -->
+        <Button Content="Add to Backlog"
+                Command="{Binding AddToBacklogCommand}"
+                Background="#FF404040"
+                Foreground="#FFFFFFFF"
+                FontSize="16"
+                Padding="30,12"
+                CornerRadius="6"
+                HorizontalAlignment="Stretch"/>
+
+        <!-- View reviews -->
+        <Button Content="View Reviews"
+                Command="{Binding ViewReviewsCommand}"
+                Background="#FF404040"
+                Foreground="#FFFFFFFF"
+                FontSize="16"
+                Padding="30,12"
+                CornerRadius="6"
+                HorizontalAlignment="Stretch"/>
+
+      </StackPanel>
+
+      <!-- Recent activity -->
+      <Border Background="#FF333333" CornerRadius="6" Padding="15" Margin="0,20,0,0">
+        <StackPanel>
+          <TextBlock Text="Recent Activity"
+                     FontSize="18"
+                     FontWeight="SemiBold"
+                     Foreground="#FFFFFFFF"
+                     Margin="0,0,0,10"/>
+
+          <ItemsControl ItemsSource="{Binding RecentActivity}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Orientation="Horizontal" Margin="0,5">
+                  <TextBlock Text="{Binding Timestamp, StringFormat='MMM dd'}"
+                             FontSize="12"
+                             Foreground="#FFAAAAAA"
+                             Width="60"/>
+                  <TextBlock Text="{Binding Description}"
+                             FontSize="12"
+                             Foreground="#FFCCCCCC"
+                             Margin="10,0,0,0"/>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </ScrollViewer>
+
+</UserControl>

@@ -66,12 +66,12 @@ public class CultureManager : ICultureManager
         ApplyCulture(_currentCulture, _currentUICulture);
     }
 
-    public async Task<bool> SetCultureAsync(string cultureName)
+    public Task<bool> SetCultureAsync(string cultureName)
     {
         if (string.IsNullOrWhiteSpace(cultureName))
         {
             _logger.LogWarning("Attempted to set null or empty culture");
-            return false;
+            return Task.FromResult(false);
         }
 
         CultureInfo? newCulture;
@@ -82,14 +82,14 @@ public class CultureManager : ICultureManager
         catch (CultureNotFoundException ex)
         {
             _logger.LogWarning(ex, "Invalid culture name: {CultureName}", cultureName);
-            return false;
+            return Task.FromResult(false);
         }
 
         // Check if the culture is supported
         if (!SupportedCultures.Any(c => c.Name.Equals(cultureName, StringComparison.OrdinalIgnoreCase)))
         {
             _logger.LogWarning("Culture {CultureName} is not in the list of supported cultures", cultureName);
-            return false;
+            return Task.FromResult(false);
         }
 
         var oldCulture = _currentCulture;
@@ -109,7 +109,7 @@ public class CultureManager : ICultureManager
         // Raise the culture changed event
         CultureChanged?.Invoke(this, new CultureChangedEventArgs(oldCulture, newCulture));
 
-        return true;
+        return Task.FromResult(true);
     }
 
     public string GetCultureDisplayName(CultureInfo culture)

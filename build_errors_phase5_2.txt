@@ -1,0 +1,7 @@
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Infrastructure\Mugen\MugenStatsService.cs(132,58): error CS1061: 'Result<MugenCharacter>' does not contain a definition for 'Name' and no accessible extension method 'Name' accepting a first argument of type 'Result<MugenCharacter>' could be found (are you missing a using directive or an assembly reference?) [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Infrastructure\SaveState.Infrastructure.csproj]
+
+Build FAILED.
+    223 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:06.15

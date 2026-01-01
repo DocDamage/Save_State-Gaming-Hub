@@ -5,8 +5,6 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <!-- Disable analyzers during Phase 0 -->
-    <AnalysisMode>None</AnalysisMode>
     <NoWarn>$(NoWarn);CA1822;CA2007</NoWarn>
     <!-- Enable XML documentation -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

@@ -122,7 +122,7 @@ public class SteamApiClient : ISteamApiClient
         }
     }
 
-    public async Task<bool> LaunchGameAsync(string appId, CancellationToken ct = default)
+    public Task<bool> LaunchGameAsync(string appId, CancellationToken ct = default)
     {
         try
         {
@@ -135,12 +135,12 @@ public class SteamApiClient : ISteamApiClient
             };
 
             Process.Start(psi);
-            return true;
+            return Task.FromResult(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to launch Steam game {AppId}", appId);
-            return false;
+            return Task.FromResult(false);
         }
     }
 

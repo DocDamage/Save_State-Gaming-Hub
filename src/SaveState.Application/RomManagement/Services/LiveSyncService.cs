@@ -112,14 +112,14 @@ public class LiveSyncService : ILiveSyncService
         }
     }
 
-    public async Task StopWatchingAsync(string folderPath, CancellationToken ct = default)
+    public Task StopWatchingAsync(string folderPath, CancellationToken ct = default)
     {
         var normalizedPath = Path.GetFullPath(folderPath);
 
         if (!_watchers.TryRemove(normalizedPath, out var context))
         {
             _logger.LogWarning("Not currently watching folder: {FolderPath}", normalizedPath);
-            return;
+            return Task.CompletedTask;
         }
 
         try
@@ -138,6 +138,7 @@ public class LiveSyncService : ILiveSyncService
         {
             _logger.LogError(ex, "Error stopping watcher for folder: {FolderPath}", normalizedPath);
         }
+        return Task.CompletedTask;
     }
 
     public Task<IReadOnlyList<string>> GetWatchedFoldersAsync(CancellationToken ct = default)

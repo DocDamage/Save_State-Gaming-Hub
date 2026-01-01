@@ -1,45 +1,77 @@
-using SaveState.Core.Common;
-
 namespace SaveState.Core.Sync;
 
 /// <summary>
-/// Provides cloud storage operations for sync.
+/// Abstraction for cloud storage providers (OneDrive, Google Drive, etc.)
 /// </summary>
 public interface ICloudStorageProvider
 {
     /// <summary>
-    /// Uploads content to cloud storage.
-    /// </summary>
-    Task<Result> UploadAsync(string path, Stream content, CancellationToken ct = default);
-
-    /// <summary>
-    /// Downloads content from cloud storage.
-    /// </summary>
-    Task<Result<Stream>> DownloadAsync(string path, CancellationToken ct = default);
-
-    /// <summary>
-    /// Deletes content from cloud storage.
-    /// </summary>
-    Task<Result> DeleteAsync(string path, CancellationToken ct = default);
-
-    /// <summary>
-    /// Lists items in a cloud storage path.
-    /// </summary>
-    Task<Result<IReadOnlyList<CloudStorageItem>>> ListAsync(string path, CancellationToken ct = default);
-
-    /// <summary>
-    /// Checks if a path exists in cloud storage.
-    /// </summary>
-    Task<Result<bool>> ExistsAsync(string path, CancellationToken ct = default);
-
-    /// <summary>
-    /// Gets the provider name.
+    /// Gets the provider name (e.g., "OneDrive", "Google Drive").
     /// </summary>
     string ProviderName { get; }
+
+    /// <summary>
+    /// Gets whether the provider is currently authenticated.
+    /// </summary>
+    bool IsAuthenticated { get; }
+
+    /// <summary>
+    /// Authenticates with the cloud provider.
+    /// </summary>
+    Task<bool> AuthenticateAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Uploads a file to the cloud storage.
+    /// </summary>
+    Task<bool> UploadFileAsync(
+        string localPath,
+        string remotePath,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Downloads a file from cloud storage.
+    /// </summary>
+    Task<bool> DownloadFileAsync(
+        string remotePath,
+        string localPath,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Deletes a file from cloud storage.
+    /// </summary>
+    Task<bool> DeleteFileAsync(
+        string remotePath,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Lists files in a cloud storage directory.
+    /// </summary>
+    Task<IReadOnlyList<CloudFileInfo>> ListFilesAsync(
+        string remotePath,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets file metadata from cloud storage.
+    /// </summary>
+    Task<CloudFileInfo?> GetFileInfoAsync(
+        string remotePath,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Checks if a file exists in cloud storage.
+    /// </summary>
+    Task<bool> FileExistsAsync(
+        string remotePath,
+        CancellationToken ct = default);
 }
 
-public sealed record CloudStorageItem(
+/// <summary>
+/// Information about a file in cloud storage.
+/// </summary>
+public sealed record CloudFileInfo(
     string Path,
-    long Size,
-    DateTimeOffset LastModified,
-    string? ContentHash);
+    string Name,
+    long SizeBytes,
+    DateTime ModifiedAt,
+    string? Checksum = null,
+    bool IsDirectory = false);

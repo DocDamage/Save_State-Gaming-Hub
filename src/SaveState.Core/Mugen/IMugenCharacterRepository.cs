@@ -13,8 +13,8 @@ public interface IMugenCharacterRepository
     /// </summary>
     /// <param name="id">The unique identifier of the character.</param>
     /// <param name="ct">Cancellation token.</param>
-    /// <returns>The character if found, null otherwise.</returns>
-    Task<MugenCharacter?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    /// <returns>A Result containing the character if found, or a Failure.</returns>
+    Task<Result<MugenCharacter>> GetByIdAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves all MUGEN characters.
@@ -53,8 +53,8 @@ public interface IMugenCharacterRepository
     /// </summary>
     /// <param name="name">The character name.</param>
     /// <param name="ct">Cancellation token.</param>
-    /// <returns>The character if found, null otherwise.</returns>
-    Task<MugenCharacter?> GetByNameAsync(string name, CancellationToken ct = default);
+    /// <returns>A Result containing the character if found, or a Failure.</returns>
+    Task<Result<MugenCharacter>> GetByNameAsync(string name, CancellationToken ct = default);
 
     /// <summary>
     /// Finds characters by author.

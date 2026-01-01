@@ -5,7 +5,7 @@ namespace SaveState.Application.GameLibrary.DTOs;
 
 public class GameSummaryDto
 {
-    public GameId Id { get; set; }
+    public required GameId Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Platform { get; set; } = string.Empty;
     public string? CoverImageUrl { get; set; }

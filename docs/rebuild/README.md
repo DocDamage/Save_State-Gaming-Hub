@@ -4,15 +4,16 @@
 
 | Info | Value |
 |:---|:---|
-| **Document Version** | 6.0 - V2.1 Complete (Stabilization) |
+| **Document Version** | 6.1 - V2.1 Complete (Deep Scan Verified) |
 | **Last Updated** | December 31, 2025 |
 | **Total Features** | 18 across 7 phases |
 | **Completed Features** | 18/18 (100%) |
 | **Total Timeline** | 8 weeks actual development |
 | **Target Coverage** | 100% |
-| **Lines of Code** | ~350,000 |
-| **Build Status** | ✅ Full system compilation successful |
-| **Test Coverage** | ✅ 331+ tests passing (100% success) |
+| **C# Source Files** | 605 files (verified) |
+| **Lines of Code** | ~45,000 (src only, verified) |
+| **Build Status** | ✅ 0 errors, 449 warnings |
+| **Test Coverage** | ✅ 300+ tests (13 test projects) |
 | **Platforms** | Windows, Linux, macOS + Fighting Games Included |
 
 ---
@@ -58,14 +59,16 @@ Build a comprehensive gaming management platform that demonstrates enterprise-gr
 - ✅ **Bonus**: Fighting game UI theme
 - ✅ Final testing and documentation polish (100%)
 
-### **📈 Key Metrics**
+### **📈 Key Metrics (Verified Dec 31, 2025)**
 
-- **Lines of Code**: ~250,000 (200+ C# files)
-- **Test Coverage**: 346+ tests passing
-- **Build Status**: ✅ Full system compilation successful
+- **C# Source Files**: 605 (verified via deep scan)
+- **Lines of Code**: ~45,000 in `src/` (verified via deep scan)
+- **Test Projects**: 13 specialized test projects
+- **Tests Passing**: 300+ (280+ CI stable, 11 E2E tests need harness fixes)
+- **Build Status**: ✅ 0 errors, 449 warnings (acceptable)
 - **Architecture**: 4-layer Clean Architecture + IKEMEN
-- **Entities**: 12+ domain entities across 4 bounded contexts
-- **Projects**: 10 total + IKEMEN bundle
+- **Bounded Contexts**: 22 domains in `SaveState.Core`
+- **Projects**: 6 source + 13 test + plugins
 - **Fighting Games**: Street Fighter + MVC2 + Custom characters
 
 ---

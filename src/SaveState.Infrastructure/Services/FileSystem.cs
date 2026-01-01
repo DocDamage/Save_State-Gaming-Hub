@@ -14,15 +14,15 @@ public class FileSystem : IFileSystem
         return Task.FromResult(Directory.Exists(path));
     }
 
-    public async Task<long> GetFileSizeAsync(string path, CancellationToken ct = default)
+    public Task<long> GetFileSizeAsync(string path, CancellationToken ct = default)
     {
         var fileInfo = new FileInfo(path);
-        return fileInfo.Length;
+        return Task.FromResult(fileInfo.Length);
     }
 
-    public async Task<string[]> GetFilesAsync(string path, string searchPattern, SearchOption searchOption = SearchOption.TopDirectoryOnly, CancellationToken ct = default)
+    public Task<string[]> GetFilesAsync(string path, string searchPattern, SearchOption searchOption = SearchOption.TopDirectoryOnly, CancellationToken ct = default)
     {
-        return Directory.GetFiles(path, searchPattern, searchOption);
+        return Task.FromResult(Directory.GetFiles(path, searchPattern, searchOption));
     }
 
     public async Task<byte[]> ReadAllBytesAsync(string path, CancellationToken ct = default)

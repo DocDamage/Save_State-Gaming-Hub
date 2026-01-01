@@ -42,5 +42,7 @@ public enum ErrorType
     Conflict,
     Unauthorized,
     Forbidden,
-    Internal
+    Internal,
+    ExternalService,
+    NotImplemented
 }

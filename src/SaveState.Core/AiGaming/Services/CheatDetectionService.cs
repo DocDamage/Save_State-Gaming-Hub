@@ -6,14 +6,14 @@ public class CheatDetectionService : ICheatDetectionService
 {
     private Dictionary<long, byte[]>? _baselinePatterns;
 
-    public async Task<CheatDetectionResult> AnalyzeMemoryAsync(
+    public Task<CheatDetectionResult> AnalyzeMemoryAsync(
         MemorySnapshot snapshot,
         IEnumerable<long> addresses,
         CancellationToken ct = default)
     {
         if (_baselinePatterns is null)
         {
-            return CheatDetectionResult.NoCheating();
+            return Task.FromResult(CheatDetectionResult.NoCheating());
         }
 
         var flaggedAddresses = new List<long>();
@@ -42,18 +42,18 @@ public class CheatDetectionService : ICheatDetectionService
             var averageConfidence = analysisCount > 0 ? totalConfidence / analysisCount : 0.0;
             var cheatingConfidence = 1.0 - averageConfidence; // Invert confidence for cheating likelihood
 
-            return CheatDetectionResult.CheatingDetected(
+            return Task.FromResult(CheatDetectionResult.CheatingDetected(
                 cheatingConfidence,
                 "Pattern Analysis",
                 flaggedAddresses,
                 $"Memory patterns differ significantly from baseline at {flaggedAddresses.Count} addresses"
-            );
+            ));
         }
 
-        return CheatDetectionResult.NoCheating();
+        return Task.FromResult(CheatDetectionResult.NoCheating());
     }
 
-    public async Task TrainAnomalyDetectorAsync(
+    public Task TrainAnomalyDetectorAsync(
         IEnumerable<MemorySnapshot> baseline,
         CancellationToken ct = default)
     {
@@ -68,6 +68,8 @@ public class CheatDetectionService : ICheatDetectionService
             var latestSnapshot = group.OrderByDescending(s => s.CapturedAt).First();
             _baselinePatterns[group.Key] = latestSnapshot.Data;
         }
+
+        return Task.CompletedTask;
     }
 
     private static double CalculateSimilarity(byte[] current, byte[] baseline)

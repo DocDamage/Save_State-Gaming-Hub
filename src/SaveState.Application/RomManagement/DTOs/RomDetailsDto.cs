@@ -5,7 +5,7 @@ namespace SaveState.Application.RomManagement.DTOs;
 
 public class RomDetailsDto
 {
-    public RomFileId Id { get; set; }
+    public required RomFileId Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Platform { get; set; } = string.Empty;
     public string FilePath { get; set; } = string.Empty;

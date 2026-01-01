@@ -8,6 +8,6 @@ namespace SaveState.Application.GameLibrary.Queries;
 
 public record GetGameDetailsQuery : IRequest<Result<GameDetail>>
 {
-    public GameId GameId { get; init; }
+    public required GameId GameId { get; init; }
     public bool IncludeMetadata { get; init; } = true;
 }

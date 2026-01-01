@@ -1,0 +1,90 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.BigPicture.SettingsOverlay">
+
+  <Border Background="#CC000000" CornerRadius="8" Margin="100">
+    <Border Background="#FF2D2D2D" CornerRadius="8" Margin="2">
+      <Grid RowDefinitions="Auto,*" Margin="30">
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0"
+                   Text="Big Picture Settings"
+                   FontSize="24"
+                   FontWeight="Bold"
+                   Foreground="#FFFFFFFF"
+                   HorizontalAlignment="Center"
+                   Margin="0,0,0,20"/>
+
+        <!-- Settings content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+          <StackPanel Spacing="20">
+
+            <!-- Display settings -->
+            <Border Background="#FF333333" CornerRadius="6" Padding="20">
+              <StackPanel Spacing="10">
+                <TextBlock Text="Display" FontSize="18" FontWeight="SemiBold" Foreground="#FFFFFFFF"/>
+                <CheckBox Content="Enable fullscreen mode" IsChecked="True" Foreground="#FFFFFFFF"/>
+                <CheckBox Content="Show FPS counter" Foreground="#FFFFFFFF"/>
+                <CheckBox Content="Enable V-sync" IsChecked="True" Foreground="#FFFFFFFF"/>
+              </StackPanel>
+            </Border>
+
+            <!-- Audio settings -->
+            <Border Background="#FF333333" CornerRadius="6" Padding="20">
+              <StackPanel Spacing="10">
+                <TextBlock Text="Audio" FontSize="18" FontWeight="SemiBold" Foreground="#FFFFFFFF"/>
+                <Slider Minimum="0" Maximum="100" Value="75" Margin="0,0,0,10">
+                  <Slider.Template>
+                    <ControlTemplate>
+                      <Grid>
+                        <Border Background="#FF404040" Height="4" CornerRadius="2"/>
+                        <Track>
+                          <Track.Thumb>
+                            <Thumb Background="#FF00CCFF" Width="20" Height="20" CornerRadius="10"/>
+                          </Track.Thumb>
+                        </Track>
+                      </Grid>
+                    </ControlTemplate>
+                  </Slider.Template>
+                </Slider>
+                <TextBlock Text="Master Volume: 75%" FontSize="14" Foreground="#FFCCCCCC"/>
+              </StackPanel>
+            </Border>
+
+            <!-- Controller settings -->
+            <Border Background="#FF333333" CornerRadius="6" Padding="20">
+              <StackPanel Spacing="10">
+                <TextBlock Text="Controller" FontSize="18" FontWeight="SemiBold" Foreground="#FFFFFFFF"/>
+                <CheckBox Content="Vibrate on selection" IsChecked="True" Foreground="#FFFFFFFF"/>
+                <CheckBox Content="Swap A/B buttons" Foreground="#FFFFFFFF"/>
+                <Button Content="Configure Controller" Background="#FF404040" Foreground="#FFFFFFFF" Padding="15,8"/>
+              </StackPanel>
+            </Border>
+
+            <!-- Action buttons -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="20" Margin="0,20,0,0">
+              <Button Content="Apply"
+                      Background="#FF00CCFF"
+                      Foreground="#FF000000"
+                      FontSize="16"
+                      Padding="30,12"
+                      CornerRadius="6"/>
+              <Button Content="Cancel"
+                      Background="#FF404040"
+                      Foreground="#FFFFFFFF"
+                      FontSize="16"
+                      Padding="30,12"
+                      CornerRadius="6"/>
+            </StackPanel>
+
+          </StackPanel>
+        </ScrollViewer>
+
+      </Grid>
+    </Border>
+  </Border>
+
+</UserControl>

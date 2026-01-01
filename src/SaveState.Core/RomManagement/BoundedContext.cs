@@ -134,7 +134,7 @@ public class Emulator : EntityBase
 public class BiosFile : EntityBase
 {
     public RomManagementContext.FilePath FilePath { get; private set; } = null!;
-    public RomManagementContext.FileSize FileSize { get; private set; }
+    public RomManagementContext.FileSize FileSize { get; private set; } = null!;
     public string Platform { get; private set; } = string.Empty;
     public string? Description { get; private set; }
     public bool IsRequired { get; private set; }

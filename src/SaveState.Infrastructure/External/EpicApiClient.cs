@@ -86,7 +86,7 @@ public class EpicApiClient : IEpicApiClient
         }
     }
 
-    public async Task<bool> LaunchGameAsync(string gameId, CancellationToken ct = default)
+    public Task<bool> LaunchGameAsync(string gameId, CancellationToken ct = default)
     {
         try
         {
@@ -99,12 +99,12 @@ public class EpicApiClient : IEpicApiClient
             };
 
             Process.Start(psi);
-            return true;
+            return Task.FromResult(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to launch Epic game {GameId}", gameId);
-            return false;
+            return Task.FromResult(false);
         }
     }
 

@@ -1,0 +1,124 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.BigPicture"
+             mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+             x:Class="SaveState.Presentation.Views.BigPicture.BigPictureShell"
+             x:DataType="vm:BigPictureShellViewModel"
+             Background="#FF1A1A1A">
+
+  <Design.DataContext>
+    <vm:BigPictureShellViewModel/>
+  </Design.DataContext>
+
+  <!-- Full screen container -->
+  <Grid RowDefinitions="Auto,*,Auto" Background="#FF1A1A1A">
+
+    <!-- Header -->
+    <Border Grid.Row="0" Background="#FF2D2D2D" BorderBrush="#FF404040" BorderThickness="0,0,0,1">
+      <Grid Margin="40,20">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Logo -->
+        <TextBlock Grid.Column="0"
+                   Text="SaveState"
+                   FontSize="32"
+                   FontWeight="Bold"
+                   Foreground="#FF00CCFF"
+                   VerticalAlignment="Center"/>
+
+        <!-- Current user/time -->
+        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <TextBlock Text="{Binding CurrentTime, StringFormat='HH:mm'}"
+                     FontSize="24"
+                     Foreground="#FFFFFFFF"
+                     Margin="0,0,20,0"/>
+          <TextBlock Text="Big Picture Mode"
+                     FontSize="18"
+                     Foreground="#FFAAAAAA"/>
+        </StackPanel>
+
+        <!-- Exit button -->
+        <Button Grid.Column="2"
+                Content="Exit Big Picture"
+                Command="{Binding ExitBigPictureCommand}"
+                Background="#FF404040"
+                Foreground="#FFFFFFFF"
+                FontSize="16"
+                Padding="20,10"
+                CornerRadius="4"/>
+      </Grid>
+    </Border>
+
+    <!-- Main content area -->
+    <Grid Grid.Row="1" Margin="40,20">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="3*"/>
+        <ColumnDefinition Width="20"/>
+        <ColumnDefinition Width="2*"/>
+      </Grid.ColumnDefinitions>
+
+      <!-- Game grid -->
+      <ContentControl Grid.Column="0"
+                      Content="{Binding GameGridViewModel}"
+                      ContentTemplate="{StaticResource ViewLocator}"/>
+
+      <!-- Spacer -->
+      <Rectangle Grid.Column="1" Fill="Transparent"/>
+
+      <!-- Game details panel -->
+      <ContentControl Grid.Column="2"
+                      Content="{Binding GameDetailViewModel}"
+                      ContentTemplate="{StaticResource ViewLocator}"/>
+    </Grid>
+
+    <!-- Footer -->
+    <Border Grid.Row="2" Background="#FF2D2D2D" BorderBrush="#FF404040" BorderThickness="0,1,0,0">
+      <Grid Margin="40,15">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Navigation hints -->
+        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+          <TextBlock Text="🎮 A: Launch"
+                     FontSize="16"
+                     Foreground="#FFAAAAAA"
+                     Margin="0,0,20,0"/>
+          <TextBlock Text="🔙 B: Back"
+                     FontSize="16"
+                     Foreground="#FFAAAAAA"
+                     Margin="0,0,20,0"/>
+          <TextBlock Text="📱 Start: Menu"
+                     FontSize="16"
+                     Foreground="#FFAAAAAA"/>
+        </StackPanel>
+
+        <!-- Status -->
+        <TextBlock Grid.Column="1"
+                   Text="{Binding StatusText}"
+                   FontSize="16"
+                   Foreground="#FFAAAAAA"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
+
+        <!-- Now playing -->
+        <TextBlock Grid.Column="2"
+                   Text="{Binding NowPlayingText}"
+                   FontSize="16"
+                   Foreground="#FFFFFFFF"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Center"/>
+      </Grid>
+    </Border>
+
+  </Grid>
+
+</UserControl>

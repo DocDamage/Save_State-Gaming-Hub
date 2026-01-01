@@ -1,0 +1,96 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="400"
+             x:Class="SaveState.Presentation.Views.BigPicture.OnScreenKeyboard">
+
+  <Border Background="#CC000000" CornerRadius="8" Margin="50">
+    <Border Background="#FF2D2D2D" CornerRadius="8" Margin="2">
+      <Grid Margin="20">
+
+        <!-- Input display -->
+        <Border Background="#FF1A1A1A"
+                CornerRadius="4"
+                Margin="0,0,0,20"
+                Padding="15"
+                Height="50">
+          <TextBlock Text="Search games..."
+                     FontSize="18"
+                     Foreground="#FFCCCCCC"
+                     VerticalAlignment="Center"/>
+        </Border>
+
+        <!-- Keyboard layout -->
+        <UniformGrid Rows="4" Columns="10" Margin="0,70,0,0">
+
+          <!-- Row 1: Numbers -->
+          <Button Content="1" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="2" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="3" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="4" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="5" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="6" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="7" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="8" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="9" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="0" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+
+          <!-- Row 2: QWERTYUIOP -->
+          <Button Content="Q" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="W" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="E" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="R" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="T" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="Y" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="U" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="I" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="O" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="P" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+
+          <!-- Row 3: ASDFGHJKL -->
+          <Button Content="A" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="S" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="D" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="F" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="G" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="H" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="J" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="K" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="L" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="⌫" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2" FontFamily="Segoe UI Symbol"/>
+
+          <!-- Row 4: Special keys -->
+          <Button Content="Shift" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="14" Margin="2" Grid.ColumnSpan="2"/>
+          <Button Content="Z" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="X" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="C" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="V" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="B" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="N" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="M" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="Space" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="14" Margin="2" Grid.ColumnSpan="2"/>
+
+        </UniformGrid>
+
+        <!-- Action buttons -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="20" Margin="0,20,0,0">
+          <Button Content="Enter"
+                  Background="#FF00CCFF"
+                  Foreground="#FF000000"
+                  FontSize="16"
+                  Padding="30,12"
+                  CornerRadius="6"/>
+          <Button Content="Cancel"
+                  Background="#FF404040"
+                  Foreground="#FFFFFFFF"
+                  FontSize="16"
+                  Padding="30,12"
+                  CornerRadius="6"/>
+        </StackPanel>
+
+      </Grid>
+    </Border>
+  </Border>
+
+</UserControl>

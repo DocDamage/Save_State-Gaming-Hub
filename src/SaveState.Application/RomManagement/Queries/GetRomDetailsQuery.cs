@@ -8,5 +8,5 @@ namespace SaveState.Application.RomManagement.Queries;
 
 public record GetRomDetailsQuery : IRequest<Result<RomDetailsDto>>
 {
-    public RomFileId RomFileId { get; init; }
+    public required RomFileId RomFileId { get; init; }
 }

@@ -94,7 +94,7 @@ public class GogApiClient : IGogApiClient
         }
     }
 
-    public async Task<bool> LaunchGameAsync(string gameId, CancellationToken ct = default)
+    public Task<bool> LaunchGameAsync(string gameId, CancellationToken ct = default)
     {
         try
         {
@@ -107,12 +107,12 @@ public class GogApiClient : IGogApiClient
             };
 
             Process.Start(psi);
-            return true;
+            return Task.FromResult(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to launch GOG game {GameId}", gameId);
-            return false;
+            return Task.FromResult(false);
         }
     }
 

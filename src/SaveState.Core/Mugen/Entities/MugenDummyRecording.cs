@@ -1,0 +1,126 @@
+namespace SaveState.Core.Mugen.Entities;
+
+using SaveState.Core.Common.Base;
+
+/// <summary>
+/// Represents a recording of dummy behavior during a MUGEN training session.
+/// Captures the dummy's actions and responses for analysis and replay.
+/// </summary>
+public class MugenDummyRecording : EntityBase
+{
+    /// <summary>
+    /// The ID of the training session this recording belongs to.
+    /// </summary>
+    public Guid TrainingSessionId { get; private set; }
+
+    /// <summary>
+    /// The training session this recording belongs to.
+    /// </summary>
+    public MugenTrainingSession TrainingSession { get; private set; } = null!;
+
+    /// <summary>
+    /// The type of dummy behavior recorded.
+    /// </summary>
+    public DummyBehaviorType BehaviorType { get; private set; }
+
+    /// <summary>
+    /// The sequence of actions performed by the dummy.
+    /// Stored as JSON string containing the action sequence.
+    /// </summary>
+    public string ActionSequence { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// Optional description of what was being practiced.
+    /// </summary>
+    public string? Description { get; private set; }
+
+    /// <summary>
+    /// When this recording was created.
+    /// </summary>
+    public DateTime CreatedAt { get; private set; }
+
+    /// <summary>
+    /// The duration of this recording segment.
+    /// </summary>
+    public TimeSpan Duration { get; private set; }
+
+    /// <summary>
+    /// Whether this recording was marked as successful/favorable.
+    /// </summary>
+    public bool IsSuccessful { get; private set; }
+
+    /// <summary>
+    /// Optional path to a video replay file.
+    /// </summary>
+    public string? ReplayPath { get; private set; }
+
+    /// <summary>
+    /// Creates a new dummy recording.
+    /// </summary>
+    /// <param name="trainingSessionId">The training session ID.</param>
+    /// <param name="behaviorType">The type of dummy behavior.</param>
+    /// <param name="actionSequence">The sequence of actions (JSON).</param>
+    /// <param name="duration">The duration of the recording.</param>
+    /// <param name="description">Optional description.</param>
+    /// <param name="isSuccessful">Whether this was a successful recording.</param>
+    /// <returns>A new MugenDummyRecording instance.</returns>
+    public static MugenDummyRecording Create(
+        Guid trainingSessionId,
+        DummyBehaviorType behaviorType,
+        string actionSequence,
+        TimeSpan duration,
+        string? description = null,
+        bool isSuccessful = false)
+    {
+        return new MugenDummyRecording
+        {
+            Id = Guid.NewGuid(),
+            TrainingSessionId = trainingSessionId,
+            BehaviorType = behaviorType,
+            ActionSequence = Guard.Against.NullOrWhiteSpace(actionSequence, nameof(actionSequence)),
+            Duration = duration,
+            Description = description,
+            IsSuccessful = isSuccessful,
+            CreatedAt = DateTime.UtcNow
+        };
+    }
+
+    /// <summary>
+    /// Updates the recording metadata.
+    /// </summary>
+    /// <param name="description">New description.</param>
+    /// <param name="isSuccessful">New success status.</param>
+    public void Update(string? description, bool isSuccessful)
+    {
+        Description = description;
+        IsSuccessful = isSuccessful;
+    }
+
+    /// <summary>
+    /// Sets the replay path for this recording.
+    /// </summary>
+    /// <param name="path">Path to the replay file.</param>
+    public void SetReplayPath(string? path)
+    {
+        ReplayPath = path;
+    }
+
+    // EF Core constructor
+    private MugenDummyRecording() { }
+}
+
+/// <summary>
+/// Represents the type of dummy behavior recorded.
+/// </summary>
+public enum DummyBehaviorType
+{
+    Standing,
+    Crouching,
+    Jumping,
+    Walking,
+    Blocking,
+    ComboString,
+    MixupPattern,
+    RecoveryPractice,
+    Custom
+}

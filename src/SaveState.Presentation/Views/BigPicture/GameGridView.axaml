@@ -1,0 +1,117 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.BigPicture"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="SaveState.Presentation.Views.BigPicture.GameGridView"
+             x:DataType="vm:GameGridViewModel">
+
+  <Design.DataContext>
+    <vm:GameGridViewModel/>
+  </Design.DataContext>
+
+  <Grid RowDefinitions="Auto,*">
+
+    <!-- Filter/Collection selector -->
+    <Border Grid.Row="0" Background="#FF333333" CornerRadius="8" Margin="0,0,0,20" Padding="20">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Collection selector -->
+        <ComboBox Grid.Column="0"
+                  ItemsSource="{Binding AvailableCollections}"
+                  SelectedItem="{Binding SelectedCollection}"
+                  DisplayMemberBinding="{Binding Name}"
+                  FontSize="18"
+                  Width="250"
+                  Margin="0,0,20,0"/>
+
+        <!-- Search -->
+        <TextBox Grid.Column="1"
+                 Text="{Binding SearchText}"
+                 Watermark="Search games..."
+                 FontSize="18"
+                 VerticalAlignment="Center"
+                 Margin="0,0,20,0"/>
+
+        <!-- Filter button -->
+        <Button Grid.Column="2"
+                Content="Filter"
+                Command="{Binding ToggleFilterCommand}"
+                Background="#FF404040"
+                Foreground="#FFFFFFFF"
+                FontSize="16"
+                Padding="20,10"/>
+      </Grid>
+    </Border>
+
+    <!-- Game grid -->
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+      <ItemsControl ItemsSource="{Binding Games}" Margin="0,0,-20,0">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Background="{Binding BackgroundBrush}"
+                    BorderBrush="{Binding BorderBrush}"
+                    BorderThickness="{Binding BorderThickness}"
+                    CornerRadius="8"
+                    Margin="0,0,20,20"
+                    Width="220"
+                    Height="280"
+                    Cursor="Hand">
+              <Grid>
+                <!-- Game cover -->
+                <Image Source="{Binding CoverImage}"
+                       Stretch="UniformToFill"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Width="200"
+                       Height="240"
+                       Margin="10,10,10,40"/>
+
+                <!-- Game title overlay -->
+                <Border Background="#CC000000"
+                        VerticalAlignment="Bottom"
+                        Height="40"
+                        CornerRadius="0,0,8,8">
+                  <TextBlock Text="{Binding Title}"
+                             FontSize="14"
+                             FontWeight="SemiBold"
+                             Foreground="#FFFFFFFF"
+                             TextWrapping="Wrap"
+                             TextTrimming="CharacterEllipsis"
+                             Margin="10,5"
+                             VerticalAlignment="Center"
+                             MaxLines="2"/>
+                </Border>
+
+                <!-- Selection indicator -->
+                <Border Background="#FF00CCFF"
+                        Opacity="{Binding SelectionOpacity}"
+                        CornerRadius="8"
+                        IsVisible="{Binding IsSelected}"/>
+
+                <!-- Focus indicator -->
+                <Border BorderBrush="#FF00CCFF"
+                        BorderThickness="3"
+                        CornerRadius="8"
+                        IsVisible="{Binding IsFocused}"/>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+  </Grid>
+
+</UserControl>

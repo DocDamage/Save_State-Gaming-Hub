@@ -7,6 +7,7 @@
     <!-- Analyzers disabled during Phase 0 - will be enabled in Phase 1 -->
     <AnalysisMode>None</AnalysisMode>
     <!-- CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors -->
+    <NoWarn>CA1822</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

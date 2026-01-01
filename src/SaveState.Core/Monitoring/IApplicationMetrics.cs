@@ -1,5 +1,7 @@
 namespace SaveState.Core.Monitoring;
 
+using SaveState.Core.Performance.Services;
+
 /// <summary>
 /// Interface for collecting and tracking application performance metrics.
 /// Provides methods to record various performance indicators across the application.
@@ -43,6 +45,7 @@ public interface IApplicationMetrics
     void RecordSlowQuery(string operation, TimeSpan duration, int recordCount);
     void RecordBatchOperation(string operation, int itemCount, TimeSpan duration);
     void RecordPerformanceWarning(string operation, string message);
+    void RecordPerformanceSnapshot(PerformanceSnapshot snapshot);
 
     // Health and Status
     Task<MetricsSnapshot> GetMetricsSnapshotAsync(CancellationToken ct = default);

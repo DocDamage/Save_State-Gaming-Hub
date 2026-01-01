@@ -8,7 +8,7 @@ namespace SaveState.Application.AiGaming.Queries.Handlers;
 
 public class GetCheatPatternsQueryHandler : IRequestHandler<GetCheatPatternsQuery, Result<IReadOnlyList<CheatPatternDto>>>
 {
-    public async Task<Result<IReadOnlyList<CheatPatternDto>>> Handle(GetCheatPatternsQuery request, CancellationToken ct)
+    public Task<Result<IReadOnlyList<CheatPatternDto>>> Handle(GetCheatPatternsQuery request, CancellationToken ct)
     {
         // Mock implementation - in a real system, this would query a database of known cheat patterns
         var patterns = new List<CheatPatternDto>();
@@ -47,6 +47,6 @@ public class GetCheatPatternsQueryHandler : IRequestHandler<GetCheatPatternsQuer
             patterns = patterns.Where(p => p.Type == request.Type.Value).ToList();
         }
 
-        return Result<IReadOnlyList<CheatPatternDto>>.Success(patterns);
+        return Task.FromResult(Result<IReadOnlyList<CheatPatternDto>>.Success((IReadOnlyList<CheatPatternDto>)patterns));
     }
 }

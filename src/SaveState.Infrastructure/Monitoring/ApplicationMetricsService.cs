@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Monitoring;
+using SaveState.Core.Performance.Services;
 
 namespace SaveState.Infrastructure.Monitoring;
 
@@ -292,6 +293,28 @@ public class ApplicationMetricsService : IApplicationMetrics, IDisposable
     {
         _customCounter.Add(1, tags?.Select(t => new KeyValuePair<string, object?>(t.Key, t.Value)).ToArray() ?? Array.Empty<KeyValuePair<string, object?>>());
         _storage.IncrementCounter(name, tags);
+    }
+
+    // Performance Monitoring Implementation
+    public void RecordPerformanceSnapshot(PerformanceSnapshot snapshot)
+    {
+        // Record individual metrics from the snapshot
+        RecordMemoryUsage(snapshot.RamUsageMb * 1024 * 1024); // Convert MB to bytes
+        RecordCpuUsage(snapshot.CpuUsagePercent);
+
+        // Record frame time if available
+        if (snapshot.Fps > 0)
+        {
+            var frameTimeMs = 1000.0 / snapshot.Fps;
+            RecordCustomMetric("performance.fps", snapshot.Fps);
+            RecordCustomMetric("performance.frame_time_ms", frameTimeMs);
+        }
+
+        // Record GPU usage if available
+        if (snapshot.GpuUsagePercent >= 0)
+        {
+            RecordCustomMetric("performance.gpu_usage_percent", snapshot.GpuUsagePercent);
+        }
     }
 
     // Metrics Snapshot Implementation

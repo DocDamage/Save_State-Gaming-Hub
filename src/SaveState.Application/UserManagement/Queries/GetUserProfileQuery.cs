@@ -8,5 +8,5 @@ namespace SaveState.Application.UserManagement.Queries;
 
 public record GetUserProfileQuery : IRequest<Result<UserProfileDto>>
 {
-    public UserId UserId { get; init; }
+    public required UserId UserId { get; init; }
 }

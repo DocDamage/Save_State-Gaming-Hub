@@ -155,7 +155,7 @@ public class DependencyHealthCheck : IHealthCheck
         }
     }
 
-    private async Task<HealthStatusResult> TestCacheAsync(CancellationToken ct)
+    private Task<HealthStatusResult> TestCacheAsync(CancellationToken ct)
     {
         try
         {
@@ -170,17 +170,17 @@ public class DependencyHealthCheck : IHealthCheck
 
             if (retrieved && retrievedValue == testValue)
             {
-                return new HealthStatusResult(HealthStatus.Healthy, "Cache service is operational");
+                return Task.FromResult(new HealthStatusResult(HealthStatus.Healthy, "Cache service is operational"));
             }
             else
             {
-                return new HealthStatusResult(HealthStatus.Degraded, "Cache set/get operations failed");
+                return Task.FromResult(new HealthStatusResult(HealthStatus.Degraded, "Cache set/get operations failed"));
             }
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Cache health check failed");
-            return new HealthStatusResult(HealthStatus.Unhealthy, $"Cache check failed: {ex.Message}");
+            return Task.FromResult(new HealthStatusResult(HealthStatus.Unhealthy, $"Cache check failed: {ex.Message}"));
         }
     }
 
@@ -207,7 +207,7 @@ public class DependencyHealthCheck : IHealthCheck
         }
     }
 
-    private async Task<HealthStatusResult> TestAiServiceAsync(string providerName, CancellationToken ct)
+    private Task<HealthStatusResult> TestAiServiceAsync(string providerName, CancellationToken ct)
     {
         try
         {
@@ -216,12 +216,12 @@ public class DependencyHealthCheck : IHealthCheck
             // In a real implementation, you might want to do a simple API call
 
             // Placeholder implementation - would need actual AI provider testing
-            return new HealthStatusResult(HealthStatus.Healthy, $"{providerName} service is configured and available");
+            return Task.FromResult(new HealthStatusResult(HealthStatus.Healthy, $"{providerName} service is configured and available"));
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "{ProviderName} health check failed", providerName);
-            return new HealthStatusResult(HealthStatus.Unhealthy, $"{providerName} check failed: {ex.Message}");
+            return Task.FromResult(new HealthStatusResult(HealthStatus.Unhealthy, $"{providerName} check failed: {ex.Message}"));
         }
     }
 

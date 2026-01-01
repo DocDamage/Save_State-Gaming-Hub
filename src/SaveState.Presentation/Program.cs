@@ -60,6 +60,9 @@ public static class Program
         builder.Services.AddTransient<MainViewModel>();
         builder.Services.AddTransient<SettingsViewModel>();
 
+        // Phase 4: Immersive Launch Experience ViewModels
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.BigPicture.LaunchExperienceViewModel>();
+
         // Add theme service
         builder.Services.AddSingleton<IThemeService, ThemeService>();
 

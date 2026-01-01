@@ -32,7 +32,7 @@ public class GroqProvider : ILlmProvider
         _resiliencePolicy = resiliencePolicy.GetPipelinePolicy("Groq");
 
         _httpClient.BaseAddress = new Uri(_options.BaseUrl);
-        _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_options.ApiKey}");
+        _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _options.ApiKey);
 
         AvailableModels = new Dictionary<string, ModelInfo>
         {

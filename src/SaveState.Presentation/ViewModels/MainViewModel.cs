@@ -26,6 +26,9 @@ public partial class MainViewModel : ObservableObject
     private bool _isInitialized;
 
     // Localized properties
+    /// <summary>
+    /// Gets the application title for display.
+    /// </summary>
     public string Title => _resources.App_Name;
 
     public MainViewModel(

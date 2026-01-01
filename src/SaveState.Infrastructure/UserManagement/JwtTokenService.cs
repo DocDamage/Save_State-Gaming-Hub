@@ -24,9 +24,9 @@ public class JwtTokenService : IJwtTokenService
         _logger = logger;
     }
 
-    public async Task<string> GenerateAccessTokenAsync(User user, CancellationToken ct = default)
+    public Task<string> GenerateAccessTokenAsync(User user, CancellationToken ct = default)
     {
-        var claims = await CreateClaimsAsync(user);
+        var claims = CreateClaimsAsync(user).Result;
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -38,10 +38,10 @@ public class JwtTokenService : IJwtTokenService
             signingCredentials: credentials
         );
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return Task.FromResult(new JwtSecurityTokenHandler().WriteToken(token));
     }
 
-    public async Task<string> GenerateRefreshTokenAsync(User user, CancellationToken ct = default)
+    public Task<string> GenerateRefreshTokenAsync(User user, CancellationToken ct = default)
     {
         var claims = new[]
         {
@@ -61,10 +61,10 @@ public class JwtTokenService : IJwtTokenService
             signingCredentials: credentials
         );
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return Task.FromResult(new JwtSecurityTokenHandler().WriteToken(token));
     }
 
-    public async Task<Result<ClaimsPrincipal>> ValidateTokenAsync(string token, CancellationToken ct = default)
+    public Task<Result<ClaimsPrincipal>> ValidateTokenAsync(string token, CancellationToken ct = default)
     {
         try
         {
@@ -84,20 +84,20 @@ public class JwtTokenService : IJwtTokenService
             };
 
             var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
-            return Result<ClaimsPrincipal>.Success(principal);
+            return Task.FromResult(Result<ClaimsPrincipal>.Success(principal));
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Token validation failed");
-            return Result<ClaimsPrincipal>.Failure("Token validation failed", ErrorType.Validation);
+            return Task.FromResult(Result<ClaimsPrincipal>.Failure("Token validation failed", ErrorType.Validation));
         }
     }
 
-    public async Task<Result<Guid>> GetUserIdFromTokenAsync(string token, CancellationToken ct = default)
+    public Task<Result<Guid>> GetUserIdFromTokenAsync(string token, CancellationToken ct = default)
     {
-        var principalResult = await ValidateTokenAsync(token, ct);
+        var principalResult = ValidateTokenAsync(token, ct).Result;
         if (principalResult.IsFailure)
-            return Result<Guid>.Failure(principalResult.Error ?? "Token validation failed", principalResult.ErrorType);
+            return Task.FromResult(Result<Guid>.Failure(principalResult.Error ?? "Token validation failed", principalResult.ErrorType));
 
         var principal = principalResult.Value;
         var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier) ??
@@ -105,27 +105,27 @@ public class JwtTokenService : IJwtTokenService
 
         if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
         {
-            return Result<Guid>.Success(userId);
+            return Task.FromResult(Result<Guid>.Success(userId));
         }
 
-        return Result<Guid>.Failure("User ID claim not found in token", ErrorType.Validation);
+        return Task.FromResult(Result<Guid>.Failure("User ID claim not found in token", ErrorType.Validation));
     }
 
-    public async Task<bool> IsTokenExpiredAsync(string token, CancellationToken ct = default)
+    public Task<bool> IsTokenExpiredAsync(string token, CancellationToken ct = default)
     {
         try
         {
-            var principalResult = await ValidateTokenAsync(token, ct);
-            return principalResult.IsFailure;
+            var principalResult = ValidateTokenAsync(token, ct).Result;
+            return Task.FromResult(principalResult.IsFailure);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Error checking token expiration");
-            return true;
+            return Task.FromResult(true);
         }
     }
 
-    private static async Task<IEnumerable<Claim>> CreateClaimsAsync(User user)
+    private static Task<IEnumerable<Claim>> CreateClaimsAsync(User user)
     {
         var claims = new List<Claim>
         {
@@ -151,6 +151,6 @@ public class JwtTokenService : IJwtTokenService
             }
         }
 
-        return claims;
+        return Task.FromResult((IEnumerable<Claim>)claims);
     }
 }

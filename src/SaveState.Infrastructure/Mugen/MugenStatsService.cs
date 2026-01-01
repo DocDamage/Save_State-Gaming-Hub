@@ -1,0 +1,193 @@
+namespace SaveState.Infrastructure.Mugen;
+
+using SaveState.Core.Common;
+using SaveState.Core.Mugen.Entities;
+using SaveState.Core.Mugen.Services;
+using SaveState.Core.Mugen.ValueObjects;
+
+/// <summary>
+/// Implementation of the MUGEN statistics service.
+/// Tracks and retrieves match statistics and character performance.
+/// </summary>
+public class MugenStatsService : IMugenStatsService
+{
+    private readonly SaveState.Core.Mugen.IMugenCharacterRepository _characterRepository;
+    private readonly SaveState.Core.Mugen.IMugenMatchHistoryRepository _matchHistoryRepository;
+
+    public MugenStatsService(
+        SaveState.Core.Mugen.IMugenCharacterRepository characterRepository,
+        SaveState.Core.Mugen.IMugenMatchHistoryRepository matchHistoryRepository)
+    {
+        _characterRepository = characterRepository;
+        _matchHistoryRepository = matchHistoryRepository;
+    }
+
+    public async Task<Result<CharacterStats>> GetCharacterStatsAsync(
+        Guid characterId,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var characterResult = await _characterRepository.GetByIdAsync(characterId, ct);
+            if (characterResult.IsFailure)
+                return Result<CharacterStats>.Failure("Character not found");
+            var character = characterResult.Value!;
+
+            // Load actual match history from database
+            var matches = await _matchHistoryRepository.GetByCharacterAsync(characterId, limit: 1000, ct);
+
+            if (!matches.Any())
+            {
+                // Return empty stats if no matches
+                var emptyStats = new CharacterStats(
+                    characterId,
+                    character.Name,
+                    0, 0, 0, 0f, TimeSpan.Zero, Guid.Empty, Guid.Empty);
+                return Result<CharacterStats>.Success(emptyStats);
+            }
+
+            // Calculate statistics
+            var totalMatches = matches.Count;
+            var wins = matches.Count(m =>
+                (m.Player1CharacterId == characterId && m.Result == MatchResult.Player1Win) ||
+                (m.Player2CharacterId == characterId && m.Result == MatchResult.Player2Win));
+            var losses = totalMatches - wins;
+            var winRate = totalMatches > 0 ? (float)wins / totalMatches : 0f;
+            var totalPlaytime = matches.Aggregate(TimeSpan.Zero, (sum, m) => sum + m.MatchDuration);
+
+            // Find best and worst matchups
+            var opponentStats = matches
+                .Where(m => m.Player1CharacterId == characterId || m.Player2CharacterId == characterId)
+                .GroupBy(m => m.Player1CharacterId == characterId ? m.Player2CharacterId : m.Player1CharacterId)
+                .Select(g => new
+                {
+                    OpponentId = g.Key,
+                    OpponentMatches = g.ToList(),
+                    Wins = g.Count(m =>
+                        (m.Player1CharacterId == characterId && m.Result == MatchResult.Player1Win) ||
+                        (m.Player2CharacterId == characterId && m.Result == MatchResult.Player2Win))
+                })
+                .Where(x => x.OpponentMatches.Count >= 3) // Minimum 3 matches for meaningful stats
+                .ToList();
+
+            var bestMatchup = opponentStats
+                .OrderByDescending(x => (float)x.Wins / x.OpponentMatches.Count)
+                .ThenByDescending(x => x.OpponentMatches.Count)
+                .FirstOrDefault()?.OpponentId ?? Guid.Empty;
+
+            var worstMatchup = opponentStats
+                .OrderBy(x => (float)x.Wins / x.OpponentMatches.Count)
+                .ThenByDescending(x => x.OpponentMatches.Count)
+                .FirstOrDefault()?.OpponentId ?? Guid.Empty;
+
+            var stats = new CharacterStats(
+                characterId,
+                character.Name,
+                totalMatches,
+                wins,
+                losses,
+                winRate,
+                totalPlaytime,
+                bestMatchup,
+                worstMatchup);
+
+            return Result<CharacterStats>.Success(stats);
+        }
+        catch (Exception ex)
+        {
+            return Result<CharacterStats>.Failure($"Failed to get character stats: {ex.Message}");
+        }
+    }
+
+    public async Task<Result<IReadOnlyList<MatchupStats>>> GetMatchupStatsAsync(
+        Guid characterId,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            // Load matchup statistics from database
+            var matches = await _matchHistoryRepository.GetByCharacterAsync(characterId, limit: 1000, ct);
+
+            if (!matches.Any())
+            {
+                return Result<IReadOnlyList<MatchupStats>>.Success(new List<MatchupStats>());
+            }
+
+            // Group by opponent and calculate stats
+            var opponentStats = matches
+                .Where(m => m.Player1CharacterId == characterId || m.Player2CharacterId == characterId)
+                .GroupBy(m => m.Player1CharacterId == characterId ? m.Player2CharacterId : m.Player1CharacterId)
+                .Select(async g =>
+                {
+                    var opponentId = g.Key;
+                    var opponentMatches = g.ToList();
+                    var wins = opponentMatches.Count(m =>
+                        (m.Player1CharacterId == characterId && m.Result == MatchResult.Player1Win) ||
+                        (m.Player2CharacterId == characterId && m.Result == MatchResult.Player2Win));
+                    var losses = opponentMatches.Count - wins;
+                    var winRate = opponentMatches.Count > 0 ? (float)wins / opponentMatches.Count : 0f;
+
+                    // Get opponent character name
+                    var opponentCharacterResult = await _characterRepository.GetByIdAsync(opponentId, ct);
+                    var opponentName = opponentCharacterResult.IsSuccess ? opponentCharacterResult.Value!.Name : $"Character {opponentId}";
+
+                    return new MatchupStats(opponentId, opponentName, wins, losses, winRate);
+                })
+                .ToList();
+
+            // Wait for all async operations to complete
+            var matchupStats = await Task.WhenAll(opponentStats);
+
+            // Sort by total matches (most played first), then by win rate
+            var sortedStats = matchupStats
+                .OrderByDescending(m => m.Wins + m.Losses)
+                .ThenByDescending(m => m.WinRate)
+                .ToList();
+
+            return Result<IReadOnlyList<MatchupStats>>.Success(sortedStats);
+        }
+        catch (Exception ex)
+        {
+            return Result<IReadOnlyList<MatchupStats>>.Failure($"Failed to get matchup stats: {ex.Message}");
+        }
+    }
+
+    public async Task<Result<IReadOnlyList<MugenMatchHistory>>> GetRecentMatchesAsync(
+        int count = 20,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            // Load actual match history from database
+            var pagedResult = await _matchHistoryRepository.GetMatchHistoriesAsync(
+                pageNumber: 1,
+                pageSize: count,
+                ct: ct);
+
+            return Result<IReadOnlyList<MugenMatchHistory>>.Success(pagedResult.Items);
+        }
+        catch (Exception ex)
+        {
+            return Result<IReadOnlyList<MugenMatchHistory>>.Failure($"Failed to get recent matches: {ex.Message}");
+        }
+    }
+
+    public async Task<Result> RecordMatchAsync(
+        MugenMatchHistory match,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            // Persist match to database
+            var result = await _matchHistoryRepository.RecordMatchAsync(match, ct);
+            if (result.IsFailure)
+                return Result.Failure($"Failed to record match: {result.Error}");
+
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure($"Failed to record match: {ex.Message}");
+        }
+    }
+}

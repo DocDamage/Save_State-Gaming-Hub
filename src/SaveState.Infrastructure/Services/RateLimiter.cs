@@ -122,21 +122,21 @@ public class RateLimiter : IRateLimiter
         return Math.Max(0, rule.MaxRequests - rateLimitData.Requests.Count);
     }
 
-    public async Task<Result<DateTimeOffset>> GetResetTimeAsync(string key, string operation, CancellationToken cancellationToken = default)
+    public Task<Result<DateTimeOffset>> GetResetTimeAsync(string key, string operation, CancellationToken cancellationToken = default)
     {
         var rule = GetRuleForOperation(operation);
         if (rule == null)
-            return Result<DateTimeOffset>.Failure($"No rate limit rule found for operation: {operation}", ErrorType.Validation);
+            return Task.FromResult(Result<DateTimeOffset>.Failure($"No rate limit rule found for operation: {operation}", ErrorType.Validation));
 
         var cacheKey = $"{operation}:{key}";
         var rateLimitData = _cache.Get<RateLimitData>(cacheKey);
 
         if (rateLimitData == null || rateLimitData.Requests.Count == 0)
-            return Result<DateTimeOffset>.Failure("No rate limit data found for the specified key and operation", ErrorType.NotFound);
+            return Task.FromResult(Result<DateTimeOffset>.Failure("No rate limit data found for the specified key and operation", ErrorType.NotFound));
 
         // Reset time is when the oldest request in the current window expires
         var oldestRequest = rateLimitData.Requests.Min();
-        return Result<DateTimeOffset>.Success(oldestRequest + rule.WindowDuration);
+        return Task.FromResult(Result<DateTimeOffset>.Success(oldestRequest + rule.WindowDuration));
     }
 
     private RateLimitRule? GetRuleForOperation(string operation)

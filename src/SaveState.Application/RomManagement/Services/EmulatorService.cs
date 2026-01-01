@@ -190,11 +190,11 @@ public class EmulatorService : IEmulatorService
         }
     }
 
-    public async Task KillEmulatorProcessAsync(Guid romFileId, CancellationToken ct = default)
+    public Task KillEmulatorProcessAsync(Guid romFileId, CancellationToken ct = default)
     {
         if (!_runningProcesses.TryGetValue(romFileId, out var processInfo))
         {
-            return;
+            return Task.CompletedTask;
         }
 
         try
@@ -217,6 +217,7 @@ public class EmulatorService : IEmulatorService
         {
             _runningProcesses.Remove(romFileId);
         }
+        return Task.CompletedTask;
     }
 
     private static string BuildArguments(string? commandLineArgs, string romPath)

@@ -5,7 +5,7 @@ namespace SaveState.Application.GameLibrary.DTOs;
 
 public class GameDetailsDto
 {
-    public GameId Id { get; set; }
+    public required GameId Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string Platform { get; set; } = string.Empty;

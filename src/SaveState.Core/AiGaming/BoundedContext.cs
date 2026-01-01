@@ -263,7 +263,7 @@ public class CheatPattern : EntityBase
     public string Description { get; private set; } = string.Empty;
     public AiGamingContext.CheatSignature Signature { get; private set; } = null!;
     public string CheatType { get; private set; } = string.Empty;
-    public AiGamingContext.ConfidenceScore DetectionConfidence { get; private set; }
+    public AiGamingContext.ConfidenceScore DetectionConfidence { get; private set; } = null!;
 
     private CheatPattern() { }
 
@@ -311,10 +311,10 @@ public class TrainerCheat
 
 public class MemoryScan : EntityBase
 {
-    public AiGamingContext.ProcessId ProcessId { get; private set; }
+    public AiGamingContext.ProcessId ProcessId { get; private set; } = null!;
     public string ProcessName { get; private set; } = string.Empty;
-    public AiGamingContext.MemoryAddress StartAddress { get; private set; }
-    public AiGamingContext.MemoryAddress EndAddress { get; private set; }
+    public AiGamingContext.MemoryAddress StartAddress { get; private set; } = null!;
+    public AiGamingContext.MemoryAddress EndAddress { get; private set; } = null!;
     public string ScanType { get; private set; } = string.Empty;
     public List<MemoryScanResult> Results { get; private set; } = new();
     public DateTime ScannedAt { get; private set; }

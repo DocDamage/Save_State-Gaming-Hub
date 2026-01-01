@@ -1,0 +1,10 @@
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\Mugen\Commands\Handlers\ScanMugenCharactersCommandHandler.cs(85,35): error CS1061: 'Result<MugenCharacter>' does not contain a definition for 'UpdateMetadata' and no accessible extension method 'UpdateMetadata' accepting a first argument of type 'Result<MugenCharacter>' could be found (are you missing a using directive or an assembly reference?) [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\SaveState.Application.csproj]
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\Mugen\Commands\Handlers\ScanMugenCharactersCommandHandler.cs(86,56): error CS1503: Argument 1: cannot convert from 'SaveState.Core.Common.Result<SaveState.Core.Mugen.Entities.MugenCharacter>' to 'SaveState.Core.Mugen.Entities.MugenCharacter' [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\SaveState.Application.csproj]
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\Mugen\Commands\Handlers\ScanIkemenCharactersCommandHandler.cs(55,39): error CS1061: 'Result<MugenCharacter>' does not contain a definition for 'UpdateLastScanned' and no accessible extension method 'UpdateLastScanned' accepting a first argument of type 'Result<MugenCharacter>' could be found (are you missing a using directive or an assembly reference?) [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\SaveState.Application.csproj]
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\Mugen\Commands\Handlers\ScanIkemenCharactersCommandHandler.cs(56,60): error CS1503: Argument 1: cannot convert from 'SaveState.Core.Common.Result<SaveState.Core.Mugen.Entities.MugenCharacter>' to 'SaveState.Core.Mugen.Entities.MugenCharacter' [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\SaveState.Application.csproj]
+
+Build FAILED.
+    28 Warning(s)
+    4 Error(s)
+
+Time Elapsed 00:00:04.89

@@ -10,12 +10,26 @@ using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.RomManagement.Entities;
 using SaveState.Core.AiGaming.Entities;
 using SaveState.Core.Ai.Knowledge;
+using SaveState.Core.Analytics.Entities;
+using SaveState.Core.SaveStates.Entities;
+using SaveStateEntity = SaveState.Core.SaveStates.Entities.SaveState;
+using SaveStateBranchEntity = SaveState.Core.SaveStates.Entities.SaveStateBranch;
+using SaveState.Core.Input.Entities;
 using UserManagementUser = SaveState.Core.UserManagement.Entities.User;
 using UserManagementRole = SaveState.Core.UserManagement.Entities.Role;
 using UserManagementUserRole = SaveState.Core.UserManagement.Entities.UserRole;
 using UserManagementPermission = SaveState.Core.UserManagement.Entities.Permission;
 using UserManagementRolePermission = SaveState.Core.UserManagement.Entities.RolePermission;
 using UserManagementApiKey = SaveState.Core.UserManagement.Entities.ApiKey;
+using MugenTournamentEntity = SaveState.Core.Mugen.Entities.MugenTournament;
+using MugenMatchHistoryEntity = SaveState.Core.Mugen.Entities.MugenMatchHistory;
+using MugenMatchupStatsEntity = SaveState.Core.Mugen.Entities.MugenMatchupStats;
+using MugenCharacterCollectionEntity = SaveState.Core.Mugen.Entities.MugenCharacterCollection;
+using MugenCollectionCharacterEntity = SaveState.Core.Mugen.Entities.MugenCollectionCharacter;
+using MugenTrainingSessionEntity = SaveState.Core.Mugen.Entities.MugenTrainingSession;
+using MugenDummyRecordingEntity = SaveState.Core.Mugen.Entities.MugenDummyRecording;
+using TournamentMatchEntity = SaveState.Core.Mugen.Entities.TournamentMatchEntity;
+using TournamentParticipantEntity = SaveState.Core.Mugen.Entities.TournamentParticipant;
 
 namespace SaveState.Infrastructure.Persistence;
 
@@ -47,8 +61,31 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
 
     // MUGEN Character Management
     public DbSet<SaveState.Core.Mugen.Entities.MugenCharacter> MugenCharacters { get; set; }
+    public DbSet<MugenTournamentEntity> MugenTournaments { get; set; }
+    public DbSet<TournamentParticipantEntity> TournamentParticipants { get; set; }
+    public DbSet<TournamentMatchEntity> TournamentMatches { get; set; }
+    public DbSet<MugenMatchHistoryEntity> MugenMatchHistories { get; set; }
+    public DbSet<MugenMatchupStatsEntity> MugenMatchupStats { get; set; }
+    public DbSet<MugenCharacterCollectionEntity> MugenCharacterCollections { get; set; }
+    public DbSet<MugenCollectionCharacterEntity> MugenCollectionCharacters { get; set; }
+    public DbSet<MugenTrainingSessionEntity> MugenTrainingSessions { get; set; }
+    public DbSet<MugenDummyRecordingEntity> MugenDummyRecordings { get; set; }
     public DbSet<Backup> Backups { get; set; }
     public DbSet<KnowledgeRecord> KnowledgeRecords { get; set; }
+    public DbSet<GameSession> GameSessions { get; set; }
+    public DbSet<BacklogEntry> BacklogEntries { get; set; }
+    public DbSet<GamingGoal> GamingGoals { get; set; }
+    public DbSet<VirtualCollection> VirtualCollections { get; set; }
+    public DbSet<VirtualCollectionGame> VirtualCollectionGames { get; set; }
+    public DbSet<SaveStateEntity> SaveStates { get; set; }
+    public DbSet<SaveStateBranchEntity> SaveStateBranches { get; set; }
+    public DbSet<ControllerProfile> ControllerProfiles { get; set; }
+    public DbSet<Core.Social.Entities.GameReview> GameReviews { get; set; }
+    public DbSet<Core.Social.Entities.SharedCollection> SharedCollections { get; set; }
+    public DbSet<Core.Social.Entities.SharedCollectionItem> SharedCollectionItems { get; set; }
+    public DbSet<Core.Social.Entities.Friend> Friends { get; set; }
+    public DbSet<Core.Social.Entities.FriendActivity> FriendActivities { get; set; }
+
 
 
     public SaveStateDbContext(DbContextOptions<SaveStateDbContext> options)
@@ -57,6 +94,9 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
         // Simplified constructor for walking skeleton
         _options = new DatabaseOptions();
         _eventPublisher = null!;
+
+        // Enable WAL mode for better concurrency
+        EnableWalMode();
     }
 
     public SaveStateDbContext(
@@ -67,6 +107,9 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
     {
         _options = dbOptions.Value;
         _eventPublisher = eventPublisher;
+
+        // Enable WAL mode for better concurrency
+        EnableWalMode();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -89,6 +132,7 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
         ConfigureConversions(modelBuilder);
         ConfigureIndexes(modelBuilder);
     }
+
 
     private static void ConfigureGlobalFilters(ModelBuilder modelBuilder)
     {
@@ -263,6 +307,26 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
             entry.State = EntityState.Modified;
             entry.Entity.IsDeleted = true;
             entry.Entity.DeletedAt = DateTime.UtcNow;
+        }
+    }
+
+    private void EnableWalMode()
+    {
+        try
+        {
+            // Enable WAL mode for better concurrency support in SQLite
+            if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
+            {
+                Database.ExecuteSqlRaw("PRAGMA journal_mode=WAL;");
+                Database.ExecuteSqlRaw("PRAGMA synchronous=NORMAL;");
+                Database.ExecuteSqlRaw("PRAGMA cache_size=10000;");
+                Database.ExecuteSqlRaw("PRAGMA temp_store=MEMORY;");
+            }
+        }
+        catch
+        {
+            // WAL mode is not critical for basic functionality
+            // Tests will be marked as skipped for SQLite concurrency limitations
         }
     }
 }

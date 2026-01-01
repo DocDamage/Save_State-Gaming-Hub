@@ -30,10 +30,11 @@ public class DatabaseSeeder
         await SeedAdminUserAsync(ct);
     }
 
-    private static async Task SeedPermissionsAsync(CancellationToken ct)
+    private static Task SeedPermissionsAsync(CancellationToken ct)
     {
         // This would create permissions in a real implementation
         // For now, we'll work with role-based permissions only
+        return Task.CompletedTask;
     }
 
     private async Task SeedRolesAsync(CancellationToken ct)

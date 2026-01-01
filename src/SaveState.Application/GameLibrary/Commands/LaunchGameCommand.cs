@@ -9,6 +9,6 @@ namespace SaveState.Application.GameLibrary.Commands;
 
 public record LaunchGameCommand : IRequest<Result<ProcessInfo>>
 {
-    public GameId GameId { get; init; }
+    public required GameId GameId { get; init; }
     public LaunchOptions? Options { get; init; }
 }

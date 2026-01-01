@@ -146,6 +146,65 @@ public class AiOrchestrator : IAiOrchestrator
         }
     }
 
+    public async Task<Result<string>> GenerateTextAsync(string prompt, CancellationToken ct = default)
+    {
+        try
+        {
+            var request = new AiRequest(
+                Type: AiRequestType.Completion,
+                Prompt: prompt,
+                MaxTokens: 500,
+                Temperature: 0.7f);
+
+            var response = await ProcessRequestAsync(request, ct).ConfigureAwait(false);
+
+            if (response.IsSuccessful)
+            {
+                return Result<string>.Success(response.Content);
+            }
+            else
+            {
+                return Result<string>.Failure(response.Error ?? "AI generation failed");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to generate text for prompt: {Prompt}", prompt);
+            return Result<string>.Failure($"Text generation failed: {ex.Message}");
+        }
+    }
+
+    public async Task<Result<AiResponse>> ExecutePromptAsync(
+        string sessionId,
+        string prompt,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var request = new AiRequest(
+                Type: AiRequestType.Chat,
+                Prompt: prompt,
+                MaxTokens: 1000,
+                Temperature: 0.7f);
+
+            var response = await ProcessRequestWithContextAsync(sessionId, request, ct).ConfigureAwait(false);
+
+            if (response.IsSuccessful)
+            {
+                return Result<AiResponse>.Success(response);
+            }
+            else
+            {
+                return Result<AiResponse>.Failure(response.Error ?? "AI execution failed");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to execute prompt for session {SessionId}: {Prompt}", sessionId, prompt);
+            return Result<AiResponse>.Failure($"Prompt execution failed: {ex.Message}");
+        }
+    }
+
     public IReadOnlyList<string> GetAvailableProviders()
         => _providers.Where(p => p.IsAvailable).Select(p => p.ProviderName).ToList();
 

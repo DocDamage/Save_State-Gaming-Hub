@@ -9,7 +9,7 @@ namespace SaveState.Application.GameLibrary.ReadModels;
 /// </summary>
 public class GameDetail
 {
-    public GameId Id { get; init; }
+    public required GameId Id { get; init; }
     public string Title { get; init; } = string.Empty;
     public string? Description { get; init; }
     public string Platform { get; init; } = string.Empty;

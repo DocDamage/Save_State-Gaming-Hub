@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SaveState.Core.Configuration;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Configuration;
 using SaveState.Core.Common.Services;
 using SaveState.Core.Monitoring;
 using SaveState.Infrastructure.Services;
@@ -46,7 +47,19 @@ public static class DependencyInjection
     {
         // Database
         services.AddDbContext<ISaveStateDbContext, SaveStateDbContext>(options =>
-            options.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
+        {
+            options.UseSqlite(configuration.GetConnectionString("DefaultConnection"), sqliteOptions =>
+            {
+                sqliteOptions.CommandTimeout(30);
+            });
+        })
+        .AddDbContextFactory<SaveStateDbContext>(options =>
+        {
+            options.UseSqlite(configuration.GetConnectionString("DefaultConnection"), sqliteOptions =>
+            {
+                sqliteOptions.CommandTimeout(30);
+            });
+        });
 
         // Repositories
         services.AddScoped<IGameRepository, GameRepository>();
@@ -55,6 +68,36 @@ public static class DependencyInjection
         services.AddScoped<IEmulatorRepository, EmulatorRepository>();
         services.AddScoped<IAchievementRepository, AchievementRepository>();
         services.AddScoped<IPlatformExtensionRegistry, PlatformExtensionRegistry>();
+        services.AddScoped<IGameSessionRepository, GameSessionRepository>();
+        services.AddScoped<IBacklogRepository, BacklogRepository>();
+        services.AddScoped<SaveState.Core.Analytics.IGamingGoalRepository, Repositories.GamingGoalRepository>();
+        services.AddScoped<SaveState.Core.GameLibrary.IVirtualCollectionRepository, Repositories.VirtualCollectionRepository>();
+        services.AddScoped<SaveState.Core.SaveStates.ISaveStateRepository, Repositories.SaveStateRepository>();
+        services.AddScoped<ISaveStateBranchRepository, SaveStateBranchRepository>();
+        services.AddScoped<SaveState.Core.Input.IControllerProfileRepository, Repositories.ControllerProfileRepository>();
+
+        // Session Tracking Services
+        services.AddScoped<ISessionTrackingService, SessionTrackingService>();
+
+        // Game Detection Services
+        services.AddSingleton<GameLibrary.Detection.SteamLibraryScanner>();
+        services.AddSingleton<GameLibrary.Detection.EpicLibraryScanner>();
+        services.AddSingleton<GameLibrary.Detection.GogLibraryScanner>();
+        services.AddSingleton<GameLibrary.Detection.EmulatorRomScanner>();
+        services.AddSingleton<IGameDetectorService, GameLibrary.Detection.GameDetectorService>();
+
+        // Social Services
+        services.AddSingleton<SaveState.Core.Social.IDiscordPresenceService, Social.DiscordPresenceService>();
+        services.AddScoped<SaveState.Core.Social.IGameReviewRepository, Repositories.GameReviewRepository>();
+        services.AddScoped<SaveState.Core.Social.Services.IGameReviewService, Social.GameReviewService>();
+        services.AddScoped<SaveState.Core.Social.ISharedCollectionRepository, Repositories.SharedCollectionRepository>();
+        services.AddScoped<SaveState.Core.Social.Services.ISharedCollectionService, Social.SharedCollectionService>();
+        services.AddScoped<SaveState.Core.Social.IFriendRepository, Repositories.FriendRepository>();
+        services.AddScoped<SaveState.Core.Social.Services.IFriendActivityService, Social.FriendActivityService>();
+
+        // Plugin system
+        services.AddSingleton<SaveState.Core.Plugins.Services.IPluginManager, Plugins.PluginManager>();
+        services.AddHostedService<Plugins.PluginLoaderBackgroundService>();
 
         // User Services
         services.AddSingleton<SaveState.Core.Common.Services.IUserPreferencesService, SaveState.Infrastructure.Services.UserPreferencesService>();
@@ -90,6 +133,16 @@ public static class DependencyInjection
             client.BaseAddress = new Uri("https://api.epicgames.dev/");
         });
 
+        // RetroAchievements.org API Client
+        services.AddHttpClient<SaveState.Core.Achievements.IRetroAchievementsClient, RetroAchievementsClient>(client =>
+        {
+            client.BaseAddress = new Uri("https://retroachievements.org/API/");
+        });
+
+        // Cloud Sync Services
+        services.AddSingleton<SaveState.Core.Sync.ISyncService, Sync.SyncService>();
+
+
         // Caching
         services.AddMemoryCache();
         services.AddScoped<ICacheService, MemoryCacheService>();
@@ -100,6 +153,7 @@ public static class DependencyInjection
         // Authentication Services
         services.AddScoped<SaveState.Core.UserManagement.Services.IJwtTokenService, JwtTokenService>();
         services.AddScoped<SaveState.Core.UserManagement.Services.IPasswordHasher, PasswordHasher>();
+        services.AddScoped<SaveState.Core.UserManagement.Services.IUserContextService, UserManagement.UserContextService>();
 
         // Repositories (User Management)
         services.AddScoped<SaveState.Core.UserManagement.Repositories.IUserRepository, UserManagement.UserRepository>();
@@ -110,12 +164,107 @@ public static class DependencyInjection
         services.AddScoped<IMetadataService, IgdbMetadataService>();
         services.Decorate<IMetadataService, ResilientMetadataService>();
 
+        // Cover Art Services
+        services.AddScoped<ICoverArtService, GameLibrary.CoverArtService>();
+        services.AddScoped<IImageResizer, ImageResizer>();
+
+        // Analytics Services
+        services.AddScoped<SaveState.Core.Analytics.Services.IAnalyticsService, Analytics.AnalyticsService>();
+        services.AddScoped<SaveState.Core.Analytics.Services.IGoalService, Analytics.GoalService>();
+
+        // Backlog Services
+        services.AddScoped<SaveState.Core.GameLibrary.Services.IBacklogService, GameLibrary.Services.BacklogService>();
+
+        // Virtual Collection Services
+        services.AddScoped<SaveState.Core.GameLibrary.Services.IVirtualCollectionService, GameLibrary.VirtualCollectionService>();
+
+        // Smart Categorization Services
+        services.AddScoped<SaveState.Core.GameLibrary.Services.ISmartCategorizationService, GameLibrary.SmartCategorizationService>();
+
+        // Recommendation Services
+        services.AddScoped<SaveState.Core.Recommendations.Services.IRecommendationService, Recommendations.RecommendationService>();
+
+        // Assistant Services
+        services.AddScoped<SaveState.Core.Assistant.Services.IGameAssistantService, Assistant.GameAssistantService>();
+
+        // Save State Services
+        services.AddScoped<SaveState.Core.SaveStates.Services.ISaveStateManager, SaveStates.SaveStateManager>();
+        services.AddScoped<SaveState.Core.SaveStates.Services.ISaveStateBranchingService, SaveStates.SaveStateBranchingService>();
+        services.AddScoped<SaveState.Core.SaveStates.Services.IAutoSaveManager, SaveStates.AutoSaveManager>();
+
+        // Input Services
+        services.AddScoped<SaveState.Core.Input.Services.IControllerProfileService, Input.ControllerProfileService>();
+        services.AddScoped<SaveState.Core.Input.Services.ISteamDeckManager, Input.SteamDeckManager>();
+        services.AddScoped<SaveState.Core.Input.Services.ITouchController, Input.TouchController>();
+
+        // Performance Services
+        services.AddSingleton<SaveState.Core.Performance.Services.IPerformanceMonitor, Performance.PerformanceMonitor>();
+        services.AddSingleton<SaveState.Core.Performance.Services.IBatteryOptimizer, Performance.BatteryOptimizer>();
+
+        // Phase 3: Gaming Environment Optimization Services
+        services.AddSingleton<SaveState.Core.Performance.Services.ISystemResourceManager, Performance.SystemResourceManager>();
+        services.AddSingleton<SaveState.Core.Performance.Services.IDisplayCalibrator, Performance.DisplayCalibrator>();
+        services.AddSingleton<SaveState.Core.Performance.Services.IAudioOptimizer, Performance.AudioOptimizer>();
+
+        // Phase 4: Immersive Launch Experience Services
+        services.AddScoped<SaveState.Core.GameLibrary.Services.ILaunchExperienceManager, GameLibrary.Services.LaunchExperienceManager>();
+        services.AddScoped<SaveState.Core.GameLibrary.Services.IGameBriefingService, GameLibrary.Services.GameBriefingService>();
+
+        // Phase 5: Cloud Gaming & Network Quality Services
+        services.AddScoped<SaveState.Core.Sync.Services.ICloudGamingManager, Sync.CloudGamingManager>();
+        services.AddSingleton<SaveState.Core.Sync.Services.INetworkQualityMonitor, Sync.NetworkQualityMonitor>();
+
+        // Phase 6: Voice Command Integration Services
+        services.AddScoped<SaveState.Core.Input.Services.IVoiceCommandService, Input.VoiceCommandService>();
+        services.AddScoped<SaveState.Core.Ai.Services.ISpeechRecognitionService, Ai.SpeechRecognitionService>();
+
+        // Phase 7: Automation Services
+        services.AddScoped<SaveState.Core.Automation.Services.IMacroRecorder, Automation.MacroRecorder>();
+        services.AddScoped<SaveState.Core.Automation.Services.IMacroPlayer, Automation.MacroPlayer>();
+
+        // Phase 8: Game Memory Intelligence Services
+        services.AddSingleton<SaveState.Core.GameLibrary.Services.IGameMemoryReader, GameLibrary.Services.GameMemoryReader>();
+        services.AddSingleton<SaveState.Core.GameLibrary.Services.IPerformanceProfiler, GameLibrary.Services.PerformanceProfiler>();
+        services.AddScoped<SaveState.Core.GameLibrary.Services.IAiCoachService, GameLibrary.Services.AiCoachService>();
+        services.AddScoped<SaveState.Core.Social.Services.ISocialService, Social.Services.SocialService>();
+        services.AddSingleton<GameLibrary.Services.MemoryPatternDatabase>();
+        services.AddScoped<SaveState.Core.Automation.Services.IMacroManager, Automation.MacroManager>();
+        services.AddScoped<SaveState.Core.Automation.Services.IMacroService, Automation.MacroService>();
+        services.AddScoped<SaveState.Core.Automation.Services.IBackupScheduler, Automation.BackupScheduler>();
+        services.AddScoped<SaveState.Core.Automation.Services.IWorkflowAutomationService, Automation.WorkflowAutomationService>();
+
+        // Phase 9: MUGEN Tournament Features
+        services.AddScoped<SaveState.Core.Mugen.IMugenCharacterRepository, Repositories.MugenCharacterRepository>();
+
+        // MUGEN Repositories (Phase 3 Implementation)
+        services.AddScoped<SaveState.Core.Mugen.IMugenTournamentRepository, Repositories.MugenTournamentRepository>();
+        services.AddScoped<SaveState.Core.Mugen.IMugenMatchHistoryRepository, Repositories.MugenMatchHistoryRepository>();
+        services.AddScoped<SaveState.Core.Mugen.IMugenCollectionRepository, Repositories.MugenCollectionRepository>();
+        services.AddScoped<SaveState.Core.Mugen.IMugenTrainingRepository, Repositories.MugenTrainingRepository>();
+
+        services.AddScoped<SaveState.Core.Mugen.Services.IDeathMatchSimulator, Mugen.DeathMatchSimulator>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMatchPredictionEngine, Mugen.MatchPredictionEngine>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenTournamentService, Mugen.MugenTournamentService>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenStatsService, Mugen.MugenStatsService>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenCoachService, Mugen.MugenCoachService>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenCollectionService, Mugen.MugenCollectionService>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenTrainingService, Mugen.MugenTrainingService>();
+
         // Named HttpClient for Twitch authentication (used by IGDB)
         services.AddHttpClient("TwitchAuth");
 
         services.AddHttpClient<IIgdbApiClient, IgdbApiClient>(client =>
         {
             client.BaseAddress = new Uri("https://api.igdb.com/v4/");
+        });
+
+        // SteamGridDB API Client
+        services.AddHttpClient<ISteamGridDbApiClient, SteamGridDbApiClient>((sp, client) =>
+        {
+            var options = sp.GetRequiredService<IOptions<SteamGridDbOptions>>().Value;
+            client.BaseAddress = new Uri(options.BaseUrl);
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", options.ApiKey);
+            client.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("SaveState", "1.0"));
         });
 
         // Health Checks
@@ -149,14 +298,14 @@ public static class DependencyInjection
         {
             var options = sp.GetRequiredService<IOptions<OpenAiOptions>>().Value;
             client.BaseAddress = new Uri(options.BaseUrl);
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {options.ApiKey}");
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", options.ApiKey);
         });
 
         services.AddHttpClient<ILlmProvider, GroqProvider>((sp, client) =>
         {
             var options = sp.GetRequiredService<IOptions<GroqOptions>>().Value;
             client.BaseAddress = new Uri(options.BaseUrl);
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {options.ApiKey}");
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", options.ApiKey);
         });
 
         // Configuration with validation
@@ -184,7 +333,7 @@ public static class DependencyInjection
             }, "Invalid Groq configuration")
             .ValidateOnStart();
 
-        services.AddOptions<AiOptions>()
+        services.AddOptions<SaveState.Core.Common.Configuration.AiOptions>()
             .Bind(configuration.GetSection("Ai"))
             .ValidateDataAnnotations()
             .Validate(options => options != null, "AI options cannot be null")
@@ -229,6 +378,18 @@ public static class DependencyInjection
                 return !string.IsNullOrEmpty(options.ClientId) &&
                        !string.IsNullOrEmpty(options.ClientSecret);
             }, "Invalid IGDB configuration")
+            .ValidateOnStart();
+
+        services.AddOptions<SteamGridDbOptions>()
+            .Bind(configuration.GetSection("SteamGridDB"))
+            .ValidateDataAnnotations()
+            .Validate(options =>
+            {
+                return !string.IsNullOrEmpty(options.ApiKey) &&
+                       Uri.IsWellFormedUriString(options.BaseUrl, UriKind.Absolute) &&
+                       options.MaxConcurrentRequests > 0 &&
+                       options.CacheDurationHours > 0;
+            }, "Invalid SteamGridDB configuration")
             .ValidateOnStart();
 
         services.AddOptions<ResilienceConfig>()
@@ -319,7 +480,7 @@ public static class DependencyInjection
             var tempDir = Path.Combine(Path.GetTempPath(), "savestate-sync");
             return new LocalFileStorageProvider(tempDir, logger);
         });
-        services.AddScoped<AiResiliencePolicy>();
+        services.AddScoped<IAiResiliencePolicy, AiResiliencePolicy>();
         services.AddScoped<IFeedbackLoop, LocalLearningService>();
         services.AddScoped<IChaosTester, ChaosTester>();
 

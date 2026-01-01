@@ -1,0 +1,222 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.BigPicture"
+             mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+             x:Class="SaveState.Presentation.Views.BigPicture.LaunchExperienceView"
+             x:DataType="vm:LaunchExperienceViewModel"
+             Background="#FF000000">
+
+  <Design.DataContext>
+    <vm:LaunchExperienceViewModel/>
+  </Design.DataContext>
+
+  <!-- Main cinematic container -->
+  <Grid>
+
+    <!-- Background overlay -->
+    <Border Background="#DD000000" Opacity="0.8"/>
+
+    <!-- Loading state -->
+    <Border Background="#FF000000"
+            IsVisible="{Binding IsLoading}"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch">
+      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
+        <ProgressBar IsIndeterminate="True"
+                     Width="200"
+                     Height="4"
+                     Background="#FF333333"
+                     Foreground="#FF00CCFF"/>
+        <TextBlock Text="Preparing Launch Experience..."
+                   FontSize="18"
+                   Foreground="#FFFFFFFF"
+                   HorizontalAlignment="Center"/>
+      </StackPanel>
+    </Border>
+
+    <!-- Main content area -->
+    <Grid IsVisible="{Binding !IsLoading}" Margin="100">
+
+      <!-- Game title at top -->
+      <TextBlock Text="{Binding GameTitle}"
+                 FontSize="48"
+                 FontWeight="Bold"
+                 Foreground="#FFFFFFFF"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Top"
+                 Margin="0,50,0,0"
+                 TextAlignment="Center"/>
+
+      <!-- Central content area -->
+      <Border Background="#FF1A1A1A"
+              CornerRadius="12"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              MinWidth="800"
+              MaxWidth="1200"
+              Padding="40">
+
+        <Grid>
+
+          <!-- Step title -->
+          <TextBlock Text="{Binding CurrentStepTitle}"
+                     FontSize="32"
+                     FontWeight="SemiBold"
+                     Foreground="#FF00CCFF"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Top"
+                     Margin="0,0,0,30"/>
+
+          <!-- Content based on step type -->
+          <ScrollViewer VerticalScrollBarVisibility="Auto"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Margin="0,80,0,120">
+
+            <StackPanel Spacing="20">
+              <!-- Game facts display -->
+              <ItemsControl ItemsSource="{Binding GameFacts}"
+                            Margin="0,0,0,20">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Background="#FF2A2A2A"
+                            CornerRadius="8"
+                            Padding="20"
+                            Margin="0,0,0,15">
+                      <TextBlock Text="{Binding Fact}"
+                                 FontSize="18"
+                                 Foreground="#FFFFFFFF"
+                                 TextWrapping="Wrap"
+                                 LineHeight="24"/>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <!-- Progress summary -->
+              <Border Background="#FF2A2A2A"
+                      CornerRadius="8"
+                      Padding="20"
+                      Margin="0,0,0,20"
+                      IsVisible="{Binding ProgressSummary, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <StackPanel Spacing="15">
+                  <TextBlock Text="Your Gaming Progress"
+                             FontSize="20"
+                             FontWeight="SemiBold"
+                             Foreground="#FFFFFFFF"/>
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Spacing="10">
+                      <TextBlock Text="Total Playtime" FontSize="14" Foreground="#FFAAAAAA"/>
+                      <TextBlock Text="{Binding ProgressSummary.TotalPlaytime, StringFormat='hh\\:mm\\:ss'}"
+                                 FontSize="24"
+                                 FontWeight="Bold"
+                                 Foreground="#FF00CCFF"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Spacing="10">
+                      <TextBlock Text="Achievements Earned" FontSize="14" Foreground="#FFAAAAAA"/>
+                      <TextBlock Text="{Binding ProgressSummary.AchievementsEarned}"
+                                 FontSize="24"
+                                 FontWeight="Bold"
+                                 Foreground="#FF00CCFF"/>
+                    </StackPanel>
+                  </Grid>
+                </StackPanel>
+              </Border>
+
+              <!-- Generic content display -->
+              <TextBlock Text="{Binding CurrentStepContent}"
+                         FontSize="18"
+                         Foreground="#FFFFFFFF"
+                         TextWrapping="Wrap"
+                         LineHeight="26"
+                         HorizontalAlignment="Center"
+                         TextAlignment="Center"
+                         IsVisible="{Binding CurrentStepContent, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+            </StackPanel>
+
+          </ScrollViewer>
+
+          <!-- Bottom controls -->
+          <StackPanel Orientation="Horizontal"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Bottom"
+                      Spacing="20">
+
+            <!-- Progress indicator -->
+            <Border Background="#FF333333"
+                    CornerRadius="20"
+                    Padding="15,10"
+                    Margin="0,0,20,0">
+              <TextBlock Text="{Binding CurrentStepIndex, StringFormat='{}{0} of {1}'}"
+                         FontSize="14"
+                         Foreground="#FFFFFFFF">
+                <TextBlock.Text>
+                  <MultiBinding StringFormat="{}{0} of {1}">
+                    <Binding Path="CurrentStepIndex"/>
+                    <Binding Path="TotalSteps"/>
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+            </Border>
+
+            <!-- Progress bar -->
+            <ProgressBar Value="{Binding ProgressValue}"
+                         Width="300"
+                         Height="6"
+                         Background="#FF333333"
+                         Foreground="#FF00CCFF"
+                         Margin="0,0,20,0"/>
+
+            <!-- Skip button -->
+            <Button Content="Skip Intro"
+                    Command="{Binding SkipSequenceCommand}"
+                    Background="#FF404040"
+                    Foreground="#FFFFFFFF"
+                    FontSize="14"
+                    Padding="20,10"
+                    CornerRadius="6"
+                    IsVisible="{Binding ShowSkipButton}"/>
+
+          </StackPanel>
+
+        </Grid>
+
+      </Border>
+
+      <!-- Music indicator -->
+      <Border Background="#FF1A1A1A"
+              CornerRadius="25"
+              Padding="15"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Bottom"
+              Margin="0,0,50,50"
+              Opacity="0.9"
+              IsVisible="{Binding IsPlayingMusic}">
+
+        <StackPanel Orientation="Horizontal" Spacing="10">
+          <!-- Music note icon (simulated with text) -->
+          <TextBlock Text="♪"
+                     FontSize="18"
+                     Foreground="#FF00CCFF"
+                     VerticalAlignment="Center"/>
+          <TextBlock Text="Playing Music"
+                     FontSize="12"
+                     Foreground="#FFFFFFFF"
+                     VerticalAlignment="Center"/>
+        </StackPanel>
+
+      </Border>
+
+    </Grid>
+
+  </Grid>
+
+</UserControl>

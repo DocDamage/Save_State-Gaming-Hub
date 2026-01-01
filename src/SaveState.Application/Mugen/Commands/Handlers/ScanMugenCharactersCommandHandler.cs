@@ -70,8 +70,8 @@ public class ScanMugenCharactersCommandHandler : IRequestHandler<ScanMugenCharac
             var characterName = ExtractCharacterName(defFilePath, characterDirectory);
 
             // Check if character already exists
-            var existingCharacter = await _characterRepository.GetByNameAsync(characterName, ct);
-            if (existingCharacter != null && !overwriteExisting)
+            var existingResult = await _characterRepository.GetByNameAsync(characterName, ct);
+            if (existingResult.IsSuccess && !overwriteExisting)
             {
                 return; // Skip existing characters unless overwrite is enabled
             }
@@ -80,8 +80,9 @@ public class ScanMugenCharactersCommandHandler : IRequestHandler<ScanMugenCharac
             var metadata = await _characterParser.ParseCharacterAsync(defFilePath, characterDirectory, ct);
 
             // Create or update character
-            if (existingCharacter != null)
+            if (existingResult.IsSuccess)
             {
+                var existingCharacter = existingResult.Value!;
                 existingCharacter.UpdateMetadata(metadata);
                 await _characterRepository.UpdateAsync(existingCharacter, ct);
             }

@@ -25,12 +25,29 @@ public partial class GameLibraryViewModel : ObservableObject
     }
 
     // Localized properties
+    /// <summary>
+    /// Gets the game library title for display.
+    /// </summary>
     public string Title => _resources.GameLibrary_Title;
+
+    /// <summary>
+    /// Gets the message displayed when no games are available.
+    /// </summary>
     public string NoGamesMessage => _resources.GameLibrary_NoGames;
+
+    /// <summary>
+    /// Gets the placeholder text for the search box.
+    /// </summary>
     public string SearchPlaceholder => _resources.GameLibrary_Search_Placeholder;
 
+    /// <summary>
+    /// Gets the collection of games displayed in the library.
+    /// </summary>
     public ObservableCollection<Game> Games { get; }
 
+    /// <summary>
+    /// Gets the command to load games from the data source.
+    /// </summary>
     public IAsyncRelayCommand LoadGamesCommand { get; }
 
     private async Task LoadGamesAsync()

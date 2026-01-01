@@ -47,11 +47,12 @@ public class ScanIkemenCharactersCommandHandler : IRequestHandler<ScanIkemenChar
             try
             {
                 // Check if character already exists
-                var existingCharacter = await _characterRepository.GetByNameAsync(character.Name, cancellationToken);
-                if (existingCharacter != null)
+                var existingResult = await _characterRepository.GetByNameAsync(character.Name, cancellationToken);
+                if (existingResult.IsSuccess)
                 {
                     // Update existing character with new metadata
                     // For now, just mark as rescanned - full metadata update would need more complex logic
+                    var existingCharacter = existingResult.Value!;
                     existingCharacter.UpdateLastScanned();
                     await _characterRepository.UpdateAsync(existingCharacter, cancellationToken);
                 }
