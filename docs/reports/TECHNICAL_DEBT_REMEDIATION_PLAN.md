@@ -75,8 +75,8 @@ This document provides a comprehensive remediation plan for all technical debt i
 
 **Files**:
 
-- `src/SaveState.Core/Mugen/Entities/TournamentMatch.cs` - DUPLICATE (to delete)
-- `src/SaveState.Core/Mugen/Entities/TournamentMatchEntity.cs` - CANONICAL (to keep)
+-   `src/SaveState.Core/Mugen/Entities/TournamentMatch.cs` - DUPLICATE (to delete)
+-   `src/SaveState.Core/Mugen/Entities/TournamentMatchEntity.cs` - CANONICAL (to keep)
 
 **Errors** (11 total):
 
@@ -106,13 +106,13 @@ Remove-Item "src/SaveState.Core/Mugen/Entities/TournamentMatch.cs"
 
 **Error**: CS0104 - 'MugenCollection' is an ambiguous reference between:
 
-- `SaveState.Core.Mugen.Entities.MugenCollection` (Entity - 125 lines, full domain object)
-- `SaveState.Core.Mugen.ValueObjects.MugenCollection` (Record - 11 lines, DTO projection)
+-   `SaveState.Core.Mugen.Entities.MugenCollection` (Entity - 125 lines, full domain object)
+-   `SaveState.Core.Mugen.ValueObjects.MugenCollection` (Record - 11 lines, DTO projection)
 
 **Analysis**:
 
-- The Entity version is the rich domain object with behavior (`Create`, `Update`, `AddCharacter`, etc.)
-- The ValueObject version is a simple record for projections (Id, Name, Icon, CharacterCount, CreatedAt)
+-   The Entity version is the rich domain object with behavior (`Create`, `Update`, `AddCharacter`, etc.)
+-   The ValueObject version is a simple record for projections (Id, Name, Icon, CharacterCount, CreatedAt)
 
 **Recommended Fix**: Rename the ValueObject to `MugenCollectionSummary`
 
@@ -131,9 +131,9 @@ Then update all references to use the explicit type.
 
 ### 0.3 Success Criteria
 
-- [ ] Zero compilation errors
-- [ ] `dotnet build SaveStateReborn.sln` succeeds
-- [ ] `dotnet test` can execute (tests may fail, but should run)
+-   [ ] Zero compilation errors
+-   [ ] `dotnet build SaveStateReborn.sln` succeeds
+-   [ ] `dotnet test` can execute (tests may fail, but should run)
 
 ---
 
@@ -251,12 +251,12 @@ if (!IsAuthenticated)
 
 Files using explicit locking:
 
-- `SystemResourceManager.cs` - 6 locks
-- `DisplayCalibrator.cs` - 4 locks
-- `AudioOptimizer.cs` - 4 locks
-- `PerformanceMonitor.cs` - 3 locks
-- `MacroService.cs` - 3 locks
-- `CachePerformanceMonitor.cs` - 1 lock
+-   `SystemResourceManager.cs` - 6 locks
+-   `DisplayCalibrator.cs` - 4 locks
+-   `AudioOptimizer.cs` - 4 locks
+-   `PerformanceMonitor.cs` - 3 locks
+-   `MacroService.cs` - 3 locks
+-   `CachePerformanceMonitor.cs` - 1 lock
 
 **Assessment**: Most are appropriate for thread-safe state management. Review for potential `ConcurrentDictionary` or `ReaderWriterLockSlim` optimizations.
 
@@ -312,34 +312,34 @@ All 12 CLI command groups are now fully implemented.
 
 **Status**:
 
-- **Total TODOs Identified**: 29
-- **Resolved**: 29
-- **Remaining**: 0
+-   **Total TODOs Identified**: 29
+-   **Resolved**: 29
+-   **Remaining**: 0
 
     **Actions Taken**:
 
-- **Implementation Notes**: Converted TODOs that were actually notes into proper documentation/comments (e.g., `MugenCollectionService`, `ManualCollectionService`).
-- **Placeholder Logic**: Clarified strict placeholder logic with explicit logging (e.g., `GoalService` logs warnings for unimplemented aggregation logic).
-- **Future Features**: Annotated planned features (e.g., branching saves, replay parsing) with clearer comments instead of generic TODOs.
-- **User Context**: Updated user ID placeholders to explicit notes pending full Auth/UserContext integration.
+-   **Implementation Notes**: Converted TODOs that were actually notes into proper documentation/comments (e.g., `MugenCollectionService`, `ManualCollectionService`).
+-   **Placeholder Logic**: Clarified strict placeholder logic with explicit logging (e.g., `GoalService` logs warnings for unimplemented aggregation logic).
+-   **Future Features**: Annotated planned features (e.g., branching saves, replay parsing) with clearer comments instead of generic TODOs.
+-   **User Context**: Updated user ID placeholders to explicit notes pending full Auth/UserContext integration.
 
     **Key Files Cleaned**:
 
-- `GoalService.cs`
-- `GenericRecommendationService.cs` (Recommendations)
-- `LaunchExperienceViewModel.cs`
-- `GameDetectionPlugin.cs`
-- `MugenTrainingService.cs`
-- `VirtualCollectionService.cs`
-- `PerformanceMetricsCollector.cs`
-- `BackupScheduler.cs`
+-   `GoalService.cs`
+-   `GenericRecommendationService.cs` (Recommendations)
+-   `LaunchExperienceViewModel.cs`
+-   `GameDetectionPlugin.cs`
+-   `MugenTrainingService.cs`
+-   `VirtualCollectionService.cs`
+-   `PerformanceMetricsCollector.cs`
+-   `BackupScheduler.cs`
 
 ### 3.3 CLI Success Criteria
 
-- [x] All 12/12 CLI command groups implemented
-- [x] `Program.cs` registers all command groups
-- [x] Zero TODO comments in critical infrastructure paths
-- [x] Solution builds with 0 errors
+-   [x] All 12/12 CLI command groups implemented
+-   [x] `Program.cs` registers all command groups
+-   [x] Zero TODO comments in critical infrastructure paths
+-   [x] Solution builds with 0 errors
 
 ---
 
@@ -378,19 +378,19 @@ This phase focused on implementing the missing MUGEN persistence layer, ensuring
 
 ### 4.1 Implement MUGEN Repositories ✅ COMPLETE
 
-- **MugenCharacterRepository**: Implemented using EF Core (consistent with architecture) replacing the legacy stub. Added full filtering, pagination, and soft-delete support.
-- **MugenTournamentRepository**: Verified existing production-grade implementation.
-- **MugenMatchHistoryRepository**: Verified existing production-grade implementation.
-- **Integration**: Updated Dependency Injection to use the new high-performance repository.
+-   **MugenCharacterRepository**: Implemented using EF Core (consistent with architecture) replacing the legacy stub. Added full filtering, pagination, and soft-delete support.
+-   **MugenTournamentRepository**: Verified existing production-grade implementation.
+-   **MugenMatchHistoryRepository**: Verified existing production-grade implementation.
+-   **Integration**: Updated Dependency Injection to use the new high-performance repository.
 
 ### 4.2 Fix build regressions
 
-- Fixed `VirtualCollectionService.cs` errors (GameStatus enum mismatch, PlatformName access).
+-   Fixed `VirtualCollectionService.cs` errors (GameStatus enum mismatch, PlatformName access).
 
 ### 4.3 Success Criteria
 
-- [x] All MUGEN repositories implemented
-- [x] Build succeeds with 0 errors
+-   [x] All MUGEN repositories implemented
+-   [x] Build succeeds with 0 errors
 
     ***
 
@@ -403,31 +403,31 @@ This phase focused on implementing the missing MUGEN persistence layer, ensuring
 
 ### 5.1 Completed Conversions
 
-- ✅ `IMugenCharacterRepository` (`GetByIdAsync`, `GetByNameAsync`)
-- ✅ `IMugenTournamentRepository` (`GetByIdAsync`)
-- ✅ `IMugenMatchHistoryRepository` (`GetByIdAsync`)
-- ✅ `RetroAchievementsClient.cs` (15+ instances)
-- ✅ `GameMemoryReader.cs` (Scanning methods converted)
-- ✅ `NetworkQualityMonitor.cs` (Network helper methods converted)
-- ✅ `VoiceCommandService.cs` (Parameter extraction methods converted)
-- ✅ Application Handlers and Services updated to handle `Result<T>` for the above.
+-   ✅ `IMugenCharacterRepository` (`GetByIdAsync`, `GetByNameAsync`)
+-   ✅ `IMugenTournamentRepository` (`GetByIdAsync`)
+-   ✅ `IMugenMatchHistoryRepository` (`GetByIdAsync`)
+-   ✅ `RetroAchievementsClient.cs` (15+ instances)
+-   ✅ `GameMemoryReader.cs` (Scanning methods converted)
+-   ✅ `NetworkQualityMonitor.cs` (Network helper methods converted)
+-   ✅ `VoiceCommandService.cs` (Parameter extraction methods converted)
+-   ✅ Application Handlers and Services updated to handle `Result<T>` for the above.
 
 ### 5.2 Remaining Conversions
 
-- None. Phase 5 is effectively complete! 🎉
+-   None. Phase 5 is effectively complete! 🎉
 
 ### 5.3 Pragma Warning Suppressions
 
 Only 1 instance found (appropriate usage):
 
-- `MemoryCacheService.cs` line 54: CS8603 suppression for nullable cache operations
+-   `MemoryCacheService.cs` line 54: CS8603 suppression for nullable cache operations
 
 ### 5.2 Documentation Updates
 
-- [ ] Update DEVELOPMENT_STATUS.md with accurate metrics
-- [ ] Update AI_MASTER_CONTEXT.md with current state
-- [ ] Update AI_PROJECT_INDEX.md timestamps
-- [ ] Review ENGINEERING_RULES.md for compliance
+-   [ ] Update DEVELOPMENT_STATUS.md with accurate metrics
+-   [ ] Update AI_MASTER_CONTEXT.md with current state
+-   [ ] Update AI_PROJECT_INDEX.md timestamps
+-   [ ] Review ENGINEERING_RULES.md for compliance
 
 ---
 
@@ -465,38 +465,38 @@ Only 1 instance found (appropriate usage):
 
 ### Phase 0 Complete When
 
-- [ ] Zero compilation errors
-- [ ] Build succeeds with 0 errors
-- [ ] Tests can be executed
+-   [ ] Zero compilation errors
+-   [ ] Build succeeds with 0 errors
+-   [ ] Tests can be executed
 
 ### Phase 1 Complete When
 
-- [ ] Zero .Result calls in async code paths
-- [ ] Zero .Wait() calls (except intentional sync disposal)
-- [ ] All async operations properly awaited
+-   [ ] Zero .Result calls in async code paths
+-   [ ] Zero .Wait() calls (except intentional sync disposal)
+-   [ ] All async operations properly awaited
 
 ### Phase 2 Complete When
 
-- [ ] Zero return null in service methods (use Result pattern)
-- [ ] All catch blocks have appropriate logging
-- [ ] All TODOs addressed or documented as intentional deferrals
+-   [ ] Zero return null in service methods (use Result pattern)
+-   [ ] All catch blocks have appropriate logging
+-   [ ] All TODOs addressed or documented as intentional deferrals
 
 ### Phase 3 Complete When
 
-- [ ] All 12 CLI command groups implemented
-- [ ] Program.cs remains under 50 lines
-- [ ] All CLI commands functional
+-   [ ] All 12 CLI command groups implemented
+-   [ ] Program.cs remains under 50 lines
+-   [ ] All CLI commands functional
 
 ### Phase 4 Complete When
 
-- [ ] All MUGEN repositories implemented
-- [ ] All MUGEN services using repositories
-- [ ] EF Core migrations created and tested
+-   [ ] All MUGEN repositories implemented
+-   [ ] All MUGEN services using repositories
+-   [ ] EF Core migrations created and tested
 
 ### Phase 5 Complete When
 
-- [ ] All documentation current and accurate
-- [ ] Health score ≥95/100
+-   [ ] All documentation current and accurate
+-   [ ] Health score ≥95/100
 
 ---
 
@@ -519,22 +519,22 @@ Only 1 instance found (appropriate usage):
 
 ### ✅ Locked (Stable - Do Not Modify Without Review)
 
-- `SaveState.Core/Common/` - Result pattern, value objects
-- `SaveState.Core/GameLibrary/Entities/` - Core domain entities
-- `SaveState.Application/` - CQRS handlers
-- `SaveState.Infrastructure/Persistence/` - EF Core setup
-- `SaveState.Infrastructure/Ai/` - AI resilience policies
+-   `SaveState.Core/Common/` - Result pattern, value objects
+-   `SaveState.Core/GameLibrary/Entities/` - Core domain entities
+-   `SaveState.Application/` - CQRS handlers
+-   `SaveState.Infrastructure/Persistence/` - EF Core setup
+-   `SaveState.Infrastructure/Ai/` - AI resilience policies
 
 ### 🔓 Active Development
 
-- `SaveState.Core/Mugen/` - Needs duplicate resolution
-- `SaveState.CLI/Commands/` - Needs completion
-- `SaveState.Infrastructure/Mugen/` - Needs repository wiring
+-   `SaveState.Core/Mugen/` - Needs duplicate resolution
+-   `SaveState.CLI/Commands/` - Needs completion
+-   `SaveState.Infrastructure/Mugen/` - Needs repository wiring
 
 ### 🚧 Plugin System
 
-- All 19 plugins in various states
-- Plugin HttpClient usage needs standardization
+-   All 19 plugins in various states
+-   Plugin HttpClient usage needs standardization
 
 ---
 
@@ -567,25 +567,25 @@ Only 1 instance found (appropriate usage):
 
 ### 6.1 Critical Warning Fixes (Compliance)
 
-- [x] **CS8618: Non-nullable property uninitialized**
+-   [x] **CS8618: Non-nullable property uninitialized**
 
-  - [x] `SaveState.Core` Entities (BoundedContexts, ValueObjects)
-  - [x] `SaveState.Application` DTOs and Commands (Required Properties)
-  - [x] Result: 0 CS8618 warnings remaining.
+    -   [x] `SaveState.Core` Entities (BoundedContexts, ValueObjects)
+    -   [x] `SaveState.Application` DTOs and Commands (Required Properties)
+    -   [x] Result: 0 CS8618 warnings remaining.
 
-- [x] **CS1998: Async method lacks await**
+-   [x] **CS1998: Async method lacks await**
 
-  - [x] `SaveState.Infrastructure` (100% resolved)
-  - [x] `SaveState.Application` (100% resolved)
-  - [x] `SaveState.Core` (100% resolved)
-  - [ ] `SaveState.Presentation` (ViewModels)
-  - [ ] Test Projects (Low Priority) - 🚧 In Progress
+    -   [x] `SaveState.Infrastructure` (100% resolved)
+    -   [x] `SaveState.Application` (100% resolved)
+    -   [x] `SaveState.Core` (100% resolved)
+    -   [ ] `SaveState.Presentation` (ViewModels)
+    -   [ ] Test Projects (Low Priority) - 🚧 In Progress
 
-- [x] **CS1591: Missing XML Comments** (Phase 6.2 In Progress)
-  - [x] Removed CS1591 from all .csproj NoWarn tags
-  - [x] Infrastructure layer: ~60% documented (SyncService, DiscordPresenceService, GameReviewService, SharedCollectionService, SessionTrackingService, FriendActivityService, SocialService, MacroService, VoiceCommandService)
-  - [ ] Public APIs in `Core` and `Application`
-  - [ ] Presentation layer: warnings remaining
+-   [x] **CS1591: Missing XML Comments** (Phase 6.2 In Progress)
+    -   [x] Removed CS1591 from all .csproj NoWarn tags
+    -   [x] Infrastructure layer: ~60% documented (SyncService, DiscordPresenceService, GameReviewService, SharedCollectionService, SessionTrackingService, FriendActivityService, SocialService, MacroService, VoiceCommandService)
+    -   [ ] Public APIs in `Core` and `Application`
+    -   [ ] Presentation layer: warnings remaining
 
 ---
 
