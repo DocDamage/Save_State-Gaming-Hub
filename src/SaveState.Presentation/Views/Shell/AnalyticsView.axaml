@@ -1,0 +1,13 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             x:Class="SaveState.Presentation.Views.Shell.AnalyticsView"
+             x:DataType="vm:AnalyticsViewModel">
+    <Grid>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <TextBlock Text="📊" FontSize="64" HorizontalAlignment="Center" />
+            <TextBlock Text="Analytics View" FontSize="24" FontWeight="Bold" Margin="0,20" />
+            <TextBlock Text="Detailed session analytics and historical data coming soon." Foreground="{StaticResource TextSecondaryBrush}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

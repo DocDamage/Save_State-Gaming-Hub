@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:widgets="using:SaveState.Presentation.Services.Dashboard.Widgets"
+             x:Class="SaveState.Presentation.Views.Dashboard.Widgets.ActivityFeedWidgetView"
+             x:DataType="widgets:ActivityFeedWidget">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.activity-message">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+
+        <Style Selector="TextBlock.activity-time">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource SecondaryTextBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+        </Style>
+
+        <Style Selector="Border.activity-item">
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <ItemsControl ItemsSource="{Binding Activities}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Classes="activity-item">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0"
+                                     Text="{Binding Message}"
+                                     Classes="activity-message" />
+                            <TextBlock Grid.Column="1"
+                                     Text="{Binding TimeAgo}"
+                                     Classes="activity-time"
+                                     VerticalAlignment="Top" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </ScrollViewer>
+</UserControl>

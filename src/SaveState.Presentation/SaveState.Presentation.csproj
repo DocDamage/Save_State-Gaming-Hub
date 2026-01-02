@@ -8,16 +8,14 @@
     <NoWarn>$(NoWarn);CA1822;CA2007</NoWarn>
     <!-- Enable XML documentation -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <!-- Native AOT Configuration -->
-    <PublishAot>true</PublishAot>
+    <!-- Native AOT Configuration - Disabled for development/run to support EF Core reflection -->
+    <PublishAot>false</PublishAot>
+    <IlcDisableReflection>false</IlcDisableReflection>
     <OptimizationPreference>Speed</OptimizationPreference>
     <InvariantGlobalization>false</InvariantGlobalization>
-    <IlcOptimizationPreference>Speed</IlcOptimizationPreference>
-    <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
-    <IlcDisableReflection>true</IlcDisableReflection>
-    <!-- Allow trimming for smaller binaries -->
-    <TrimMode>link</TrimMode>
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <!-- Trimming settings -->
+    <TrimMode>copyused</TrimMode>
+    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,7 +25,8 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.2.3" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageReference Include="Splat" Version="14.8.12" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />

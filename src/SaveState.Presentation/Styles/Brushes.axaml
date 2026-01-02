@@ -1,5 +1,62 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2003/xaml">
-    <!-- Style resources removed due to XAML compilation issues -->
-    <!-- These can be re-added when Avalonia style support is properly configured -->
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Deep Space Theme Brushes -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="#0B0E14" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#161B22" />
+    <SolidColorBrush x:Key="PrimaryBrush" Color="#58A6FF" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#F78166" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F0F6FC" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#C9D1D9" />
+    <SolidColorBrush x:Key="BorderBrush" Color="#30363D" />
+    <SolidColorBrush x:Key="GlassBrush" Color="#80FFFFFF" Opacity="0.05" />
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#21262D" />
+    <SolidColorBrush x:Key="CardHoverBrush" Color="#30363D" />
+    <SolidColorBrush x:Key="HoverBrush" Color="#30363D" />
+
+    <!-- Title Bar Brushes -->
+    <SolidColorBrush x:Key="TitleBarForegroundBrush" Color="#C9D1D9" />
+    <SolidColorBrush x:Key="TitleBarSecondaryBrush" Color="#8B949E" />
+    <SolidColorBrush x:Key="TitleBarHoverBrush" Color="#30363D" />
+
+    <!-- Header Bar Brushes -->
+    <SolidColorBrush x:Key="HeaderForegroundBrush" Color="#C9D1D9" />
+    <SolidColorBrush x:Key="HeaderHoverBrush" Color="#21262D" />
+    <SolidColorBrush x:Key="HeaderActiveBrush" Color="#161B22" />
+    <SolidColorBrush x:Key="SearchBackgroundBrush" Color="#21262D" />
+    <SolidColorBrush x:Key="SearchBorderBrush" Color="#30363D" />
+
+    <!-- Status Bar Brushes -->
+    <SolidColorBrush x:Key="StatusBarBackgroundBrush" Color="#161B22" />
+    <SolidColorBrush x:Key="StatusBarForegroundBrush" Color="#8B949E" />
+    <SolidColorBrush x:Key="StatusOnlineBrush" Color="#3FB950" />
+    <SolidColorBrush x:Key="StatusOfflineBrush" Color="#8B949E" />
+
+    <!-- Overlay Brushes -->
+    <SolidColorBrush x:Key="OverlayBackgroundBrush" Color="#21262D" />
+    <SolidColorBrush x:Key="OverlayBorderBrush" Color="#30363D" />
+    <SolidColorBrush x:Key="ToastBackgroundBrush" Color="#21262D" />
+    <SolidColorBrush x:Key="VoiceIndicatorBackgroundBrush" Color="#21262D" />
+    <SolidColorBrush x:Key="LoadingBackgroundBrush" Color="#0B0E14" Opacity="0.8" />
+
+
+    <!-- Fighting Game Theme Brushes (SF / MVC2) -->
+    <SolidColorBrush x:Key="FightingRedBrush" Color="#EE1C24" />
+    <SolidColorBrush x:Key="FightingYellowBrush" Color="#FFF200" />
+    <SolidColorBrush x:Key="FightingOrangeBrush" Color="#FF7F27" />
+
+    <LinearGradientBrush x:Key="SFFireGradientBrush" StartPoint="0%,0%" EndPoint="100%,0%">
+        <GradientStop Offset="0" Color="#EE1C24" />
+        <GradientStop Offset="0.5" Color="#FF7F27" />
+        <GradientStop Offset="1" Color="#FFF200" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="MVC2GradientBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+        <GradientStop Offset="0" Color="#3F51B5" />
+        <GradientStop Offset="1" Color="#00BCD4" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="PremiumGradientBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Offset="0" Color="#58A6FF" />
+        <GradientStop Offset="1" Color="#F78166" />
+    </LinearGradientBrush>
 </ResourceDictionary>

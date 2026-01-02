@@ -1,0 +1,203 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             xmlns:views="using:SaveState.Presentation.Views.Shell.Overlays"
+             x:Class="SaveState.Presentation.Views.Shell.OverlayContainer"
+             x:DataType="vm:OverlayContainerViewModel">
+
+    <UserControl.Styles>
+        <!-- Dimming overlay for modals -->
+        <Style Selector="Border.dimming-overlay">
+            <Setter Property="Background" Value="#80000000" />
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+
+        <!-- Base overlay styles -->
+        <Style Selector="Border.overlay-base">
+            <Setter Property="Background" Value="{StaticResource OverlayBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource OverlayBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="BoxShadow" Value="0 8 32 #40000000" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid>
+        <!-- Dimming Background (for modals) -->
+        <Border Classes="dimming-overlay"
+                IsVisible="{Binding ShowDim}"
+                IsHitTestVisible="True"
+                PointerPressed="OnDimPressed" />
+
+        <!-- Command Palette (Top Center) -->
+        <Border Background="{StaticResource OverlayBackgroundBrush}"
+                BorderBrush="{StaticResource OverlayBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                BoxShadow="0 8 32 #40000000"
+                Width="600"
+                Height="400"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Center"
+                Margin="0,60,0,0"
+                IsVisible="{Binding ShowCommandPalette}"
+                IsHitTestVisible="True">
+            <TextBlock Text="Command Palette (Ctrl+Shift+P)"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     Foreground="White"
+                     FontSize="18" />
+        </Border>
+
+        <!-- Quick Search (Top Center) -->
+        <Border Background="{StaticResource OverlayBackgroundBrush}"
+                BorderBrush="{StaticResource OverlayBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                BoxShadow="0 8 32 #40000000"
+                Width="500"
+                Height="60"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Center"
+                Margin="0,80,0,0"
+                IsVisible="{Binding ShowQuickSearch}"
+                IsHitTestVisible="True">
+            <TextBlock Text="Quick Search (Ctrl+K)"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     Foreground="White"
+                     FontSize="16" />
+        </Border>
+
+        <!-- AI Assistant Panel (Right Side) -->
+        <Border Background="{StaticResource OverlayBackgroundBrush}"
+                BorderBrush="{StaticResource OverlayBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                BoxShadow="0 8 32 #40000000"
+                Width="400"
+                Height="500"
+                VerticalAlignment="Stretch"
+                HorizontalAlignment="Right"
+                Margin="0,48,20,24"
+                IsVisible="{Binding ShowAiAssistant}"
+                IsHitTestVisible="True">
+            <TextBlock Text="AI Assistant (Ctrl+Shift+A)"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     Foreground="White"
+                     FontSize="18" />
+        </Border>
+
+        <!-- Performance HUD (Floating, Draggable) -->
+        <Border Background="{StaticResource OverlayBackgroundBrush}"
+                BorderBrush="{StaticResource OverlayBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                BoxShadow="0 8 32 #40000000"
+                Width="300"
+                Height="200"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Right"
+                Margin="0,80,20,0"
+                IsVisible="{Binding ShowPerformanceHud}"
+                IsHitTestVisible="True">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+                <TextBlock Text="Performance HUD (F3)" Foreground="White" FontSize="16" />
+                <TextBlock Text="{Binding OverlayContainerViewModel.PerformanceHudViewModel.CpuUsageText, FallbackValue='CPU: --%'}"
+                         Foreground="White" />
+                <TextBlock Text="{Binding OverlayContainerViewModel.PerformanceHudViewModel.GpuUsageText, FallbackValue='GPU: --%'}"
+                         Foreground="White" />
+                <TextBlock Text="{Binding OverlayContainerViewModel.PerformanceHudViewModel.Fps, FallbackValue='FPS: --', StringFormat='FPS: {0}'}"
+                         Foreground="White" />
+            </StackPanel>
+        </Border>
+
+        <!-- Toast Notifications (Top Right) -->
+        <ItemsControl ItemsSource="{Binding Toasts}"
+                     VerticalAlignment="Top"
+                     HorizontalAlignment="Right"
+                     Margin="20"
+                     IsVisible="{Binding HasToasts}"
+                     IsHitTestVisible="True">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Vertical"
+                               Spacing="8"
+                               HorizontalAlignment="Right" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Classes="overlay-base"
+                            Width="350"
+                            Padding="16"
+                            Background="{StaticResource ToastBackgroundBrush}">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <StackPanel Grid.Column="0" Orientation="Vertical" Spacing="4">
+                                <TextBlock Text="{Binding Title}"
+                                         FontWeight="SemiBold"
+                                         FontSize="14" />
+                                <TextBlock Text="{Binding Message}"
+                                         FontSize="12"
+                                         TextWrapping="Wrap"
+                                         Opacity="0.9" />
+                                <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:T}'}"
+                                         FontSize="10"
+                                         Opacity="0.6" />
+                            </StackPanel>
+                            <Button Grid.Column="1"
+                                    Content="✕"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Command="{Binding CloseCommand}"
+                                    VerticalAlignment="Top"
+                                    Margin="8,0,0,0" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Voice Indicator (Bottom Center) -->
+        <Border Background="{StaticResource VoiceIndicatorBackgroundBrush}"
+                BorderBrush="{StaticResource OverlayBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="20"
+                Padding="16"
+                Width="200"
+                Height="60"
+                VerticalAlignment="Bottom"
+                HorizontalAlignment="Center"
+                Margin="0,0,0,20"
+                IsVisible="{Binding IsVoiceActive}"
+                IsHitTestVisible="True">
+            <TextBlock Text="{Binding OverlayContainerViewModel.VoiceIndicatorViewModel.StatusText, FallbackValue='Voice: Inactive'}"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     Foreground="White"
+                     FontSize="14" />
+        </Border>
+
+        <!-- Loading Indicator (Center) -->
+        <Border Classes="overlay-base"
+                IsVisible="{Binding IsLoading}"
+                Width="120"
+                Height="80"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                Background="{StaticResource LoadingBackgroundBrush}">
+            <StackPanel Orientation="Vertical"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Spacing="8">
+                <ProgressBar IsIndeterminate="True"
+                           Width="40"
+                           Height="4" />
+                <TextBlock Text="{Binding LoadingMessage}"
+                         FontSize="12"
+                         HorizontalAlignment="Center" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

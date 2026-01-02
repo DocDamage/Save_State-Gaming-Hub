@@ -116,13 +116,21 @@ public class MugenTrainingService : IMugenTrainingService
             await _trainingRepository.UpdateAsync(session, ct);
 
             // Calculate statistics from session data
+            var maxComboHits = session.Recordings.Any()
+                ? session.Recordings.Max(r => r.ComboHits)
+                : 0;
+
+            var maxComboDamage = session.Recordings.Any()
+                ? session.Recordings.Max(r => r.ComboDamage)
+                : 0;
+
             var stats = new TrainingStats(
                 sessionId,
                 session.Duration ?? TimeSpan.Zero,
-                session.RoundsPracticed, // Combo attempts
+                session.RoundsPracticed,
                 session.SuccessfulCombos,
-                0, // Max combo hits - TODO: Calculate from recordings
-                0); // Max combo damage - TODO: Calculate from recordings
+                maxComboHits,
+                maxComboDamage);
 
             return Result<TrainingStats>.Success(stats);
         }

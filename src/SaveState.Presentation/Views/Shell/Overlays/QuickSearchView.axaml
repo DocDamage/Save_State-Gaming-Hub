@@ -1,0 +1,13 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             x:Class="SaveState.Presentation.Views.Shell.Overlays.QuickSearchView"
+             x:DataType="vm:QuickSearchViewModel">
+
+    <TextBox Text="{Binding SearchText}"
+             Watermark="Quick search..."
+             FontSize="16"
+             Padding="16"
+             BorderThickness="0"
+             Background="Transparent" />
+</UserControl>

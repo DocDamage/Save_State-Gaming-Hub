@@ -1,0 +1,56 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:widgets="using:SaveState.Presentation.Services.Dashboard.Widgets"
+             x:Class="SaveState.Presentation.Views.Dashboard.Widgets.QuickActionsWidgetView"
+             x:DataType="widgets:QuickActionsWidget">
+
+    <UserControl.Styles>
+        <Style Selector="Button.quick-action">
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+
+        <Style Selector="Button.quick-action:hover">
+            <Setter Property="Background" Value="{StaticResource AccentHoverBrush}" />
+        </Style>
+
+        <Style Selector="Button.quick-action:pointerover">
+            <Setter Property="Background" Value="{StaticResource AccentHoverBrush}" />
+        </Style>
+
+        <Style Selector="Button.quick-action:disabled">
+            <Setter Property="Opacity" Value="0.5" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="*, *, *, *">
+        <Button Grid.Row="0"
+                Classes="quick-action"
+                Content="▶ Continue Playing"
+                Command="{Binding ContinuePlayingCommand}" />
+
+        <Button Grid.Row="1"
+                Classes="quick-action"
+                Content="🔍 Scan for Games"
+                Command="{Binding ScanForGamesCommand}" />
+
+        <Button Grid.Row="2"
+                Classes="quick-action"
+                Content="🎲 Random Game"
+                Command="{Binding RandomGameCommand}" />
+
+        <Button Grid.Row="3"
+                Classes="quick-action"
+                Content="🤖 AI Recommend"
+                Command="{Binding AiRecommendCommand}" />
+    </Grid>
+</UserControl>

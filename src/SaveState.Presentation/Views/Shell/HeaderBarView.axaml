@@ -1,0 +1,166 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             xmlns:services="using:SaveState.Presentation.Services"
+             x:Class="SaveState.Presentation.Views.Shell.HeaderBarView"
+             x:DataType="vm:HeaderBarViewModel"
+             Height="48">
+
+    <UserControl.Styles>
+        <!-- Tab Button Styles -->
+        <Style Selector="Button.tab-button">
+            <Setter Property="Height" Value="48" />
+            <Setter Property="Padding" Value="16,0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Foreground" Value="{StaticResource HeaderForegroundBrush}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid>
+                        <Border Name="BackgroundBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="{TemplateBinding CornerRadius}" />
+                        <StackPanel Orientation="Horizontal"
+                                   VerticalAlignment="Center"
+                                   Margin="{TemplateBinding Padding}">
+                            <TextBlock Name="IconText"
+                                     Text="{TemplateBinding Tag}"
+                                     FontSize="16"
+                                     Margin="0,0,8,0" />
+                            <ContentPresenter Name="PART_ContentPresenter"
+                                            Content="{TemplateBinding Content}"
+                                            VerticalAlignment="Center" />
+                        </StackPanel>
+                        <!-- Active indicator -->
+                        <Border Name="ActiveIndicator"
+                                Height="3"
+                                Background="{StaticResource AccentBrush}"
+                                VerticalAlignment="Bottom"
+                                IsVisible="False" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+
+        <Style Selector="Button.tab-button:pointerover">
+            <Setter Property="Background" Value="{StaticResource HeaderHoverBrush}" />
+        </Style>
+
+        <Style Selector="Button.tab-button.active">
+            <Setter Property="Background" Value="{StaticResource HeaderActiveBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+        </Style>
+
+        <Style Selector="Button.tab-button.active TextBlock#IconText">
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+        </Style>
+
+        <Style Selector="Button.tab-button.active Border#ActiveIndicator">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+
+        <!-- Search Box Styles -->
+        <Style Selector="TextBox.search-box">
+            <Setter Property="Width" Value="300" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="Background" Value="{StaticResource SearchBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource SearchBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Watermark" Value="Search games, commands, settings... (Ctrl+K)" />
+        </Style>
+
+        <!-- Header Button Styles -->
+        <Style Selector="Button.header-button">
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Margin" Value="4" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Foreground" Value="{StaticResource HeaderForegroundBrush}" />
+        </Style>
+
+        <Style Selector="Button.header-button:hover">
+            <Setter Property="Background" Value="{StaticResource HeaderHoverBrush}" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+
+        <Style Selector="Button.header-button.badge">
+            <Setter Property="ContentTemplate">
+                <DataTemplate>
+                    <Grid>
+                        <TextBlock Text="{Binding}" />
+                        <Ellipse Name="Badge"
+                                Width="8"
+                                Height="8"
+                                Fill="{StaticResource AccentBrush}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Margin="0,2,2,0"
+                                IsVisible="False" />
+                    </Grid>
+                </DataTemplate>
+            </Setter>
+        </Style>
+
+        <Style Selector="Button.header-button.badge[Tag=True] Ellipse#Badge">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid ColumnDefinitions="Auto, *, Auto, Auto, Auto, Auto">
+        <!-- Tab Navigation -->
+        <ItemsControl Grid.Column="0"
+                     ItemsSource="{Binding TabButtons}"
+                     Margin="8,0,0,0">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Button Classes="tab-button"
+                            Content="{Binding Label}"
+                            Tag="{Binding Icon}"
+                            Command="{Binding NavigateCommand}"
+                            CommandParameter="{Binding Name}"
+                            ToolTip.Tip="{Binding TooltipText}" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Universal Search -->
+        <TextBox Grid.Column="1"
+                 Classes="search-box"
+                 Text="{Binding SearchText}"
+                 Margin="24,8"
+                 KeyDown="OnSearchKeyDown" />
+
+        <!-- Notification Button -->
+        <Button Grid.Column="2"
+                Classes="header-button badge"
+                Content="🔔"
+                Command="{Binding ToggleNotificationsCommand}"
+                Tag="{Binding HasNotifications, Mode=OneWay}"
+                ToolTip.Tip="Notifications" />
+
+        <!-- Settings Button -->
+        <Button Grid.Column="3"
+                Classes="header-button"
+                Content="⚙️"
+                Command="{Binding OpenSettingsCommand}"
+                ToolTip.Tip="Settings (Ctrl+,)" />
+
+        <!-- User Profile Button -->
+        <Button Grid.Column="4"
+                Classes="header-button"
+                Content="👤"
+                Command="{Binding OpenUserProfileCommand}"
+                ToolTip.Tip="User Profile" />
+    </Grid>
+</UserControl>

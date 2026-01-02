@@ -267,7 +267,7 @@ public class GameRepository : IGameRepository
             {
                 Id = g.Id,
                 Title = g.Title,
-                PlatformName = g.Platform.Name.Value,
+                PlatformName = g.Platform != null ? g.Platform.Name.Value : "Unknown",
                 Status = g.Status,
                 CoverImageUrl = g.CoverImagePath
             })

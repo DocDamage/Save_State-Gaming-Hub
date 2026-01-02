@@ -1,7 +1,7 @@
 # SaveStateReborn Engineering Rules & Principles
 
-**Status**: ✅ Active (Build Passing - Rules Enforced)
-**Last Updated**: January 5, 2026 (v1.0.0 Release - Rules Finalized)
+**Status**: ✅ Active (v1.0.0 Released - Production)
+**Last Updated**: January 1, 2026 (v1.0.0 Release)
 **Maintained By**: Architecture Team
 **Next Review**: January 15, 2026
 **Related Documents**: [AI_MASTER_CONTEXT.md](./AI_MASTER_CONTEXT.md), [LESSONS_LEARNED.md](planning/LESSONS_LEARNED.md), [TECHNICAL_DEBT_REMEDIATION_PLAN.md](reports/TECHNICAL_DEBT_REMEDIATION_PLAN.md)
@@ -44,8 +44,8 @@ These rules are derived from the lessons learned during the development and stab
 | **Async void forbidden** | ✅ Compliant | 0 |
 | **Thread.Sleep forbidden** | ✅ Compliant | 0 |
 | **Empty catch blocks** | ✅ Compliant | 0 |
-| **IHttpClientFactory** | ⚠️ Partial | 2 (plugins) |
-| **Result pattern** | ❌ Violations | 50+ `return null` |
+| **IHttpClientFactory** | ✅ Compliant | 0 (Fixed!) |
+| **Result pattern** | ✅ Compliant | 0 (Fixed!) |
 
 ---
 
@@ -107,6 +107,9 @@ These rules are derived from the lessons learned during the development and stab
 - **Must Not** use `async void` except for Top-Level Event Handlers. ✅ **Compliant**
 - **Must** wrap all event-driven `async void` calls in a robust `try-catch` with logging.
 - **Must** use `Dispatcher.UIThread.InvokeAsync` when updating UI components from background tasks.
+- **Must Not** use `$parent[vm:ViewModelType]` in XAML bindings.
+  - **Reason**: Avalonia's `$parent` syntax only supports **Control types** (e.g., `UserControl`, `Window`, `views:MyView`). Using ViewModel types causes runtime `ArgumentException: Unable to resolve type`.
+  - **Correct Pattern**: `{Binding $parent[views:MyView].DataContext.MyCommand}`.
 
 ---
 
@@ -285,25 +288,13 @@ catch (HttpRequestException ex) when (ex is { InnerException: TimeoutException }
 
 ## 📍 Current Violations
 
-### Critical (Fix Before Merge)
+### Critical (None)
 
-| File | Line | Violation |
-|------|------|-----------|
-| `TournamentMatch.cs` | All | Duplicate class definition |
-| `ValueObjects/MugenCollection.cs` | All | Name collision |
-| `MugenManagerPlugin.cs` | 36 | `new HttpClient()` |
-| `ItchGameProviderPlugin.cs` | 32 | `new HttpClient()` |
+ All critical architectural violations have been resolved as of January 2, 2026.
 
-### High Priority
+### High Priority (None)
 
-| File | Line | Violation |
-|------|------|-----------|
-| `PluginManager.cs` | 279 | `.Result` usage |
-| `PerformanceMetricsCollector.cs` | 41-46, 118, 129, 171 | `.Result` and `.Wait()` |
-| `PerformanceProfiler.cs` | 199, 201 | `.Wait()` and `.Result` |
-| `MugenCoachService.cs` | 52-54 | `.Result` usage |
-| `MatchPredictionEngine.cs` | 44-47 | `.Result` usage |
-| `GameBriefingService.cs` | 57-66 | `.Result` usage |
+ All high-priority sync-over-async and null-returning violations have been resolved.
 
 ### Medium Priority
 

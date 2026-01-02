@@ -1,10 +1,10 @@
 # 🎓 Lessons Learned from Building SaveStateReborn V2.0
 
 **Status**: ✅ Active
-**Last Updated**: December 31, 2025
+**Last Updated**: January 1, 2026 (Feature Surfacing Plan Added)
 **Maintained By**: Development Team
-**Next Review**: January 15, 2026
-**Related Documents**: [AI_MASTER_CONTEXT.md](../AI_MASTER_CONTEXT.md), [ENGINEERING_RULES.md](../ENGINEERING_RULES.md)
+**Next Review**: February 15, 2026
+**Related Documents**: [AI_MASTER_CONTEXT.md](../AI_MASTER_CONTEXT.md), [ENGINEERING_RULES.md](../ENGINEERING_RULES.md), [FEATURE_SURFACING_PLAN.md](FEATURE_SURFACING_PLAN.md)
 
 ---
 
@@ -16,6 +16,7 @@
 - [Infrastructure Lessons](#-infrastructure-lessons)
 - [Testing Lessons](#-testing-lessons)
 - [Performance Lessons](#-performance-lessons)
+- [UI/UX Lessons](#-uiux-lessons) ⭐ NEW
 - [Process Lessons](#-process-lessons)
 - [Risk & Mitigation Summary](#-risk--mitigation-summary)
 - [New Project Startup Checklist](#-new-project-startup-checklist)
@@ -830,6 +831,169 @@ public record PagedResult<T>(
 
 ---
 
+## 🎨 UI/UX Lessons
+
+### 21. Plan UI Before Implementation (Feature Surfacing)
+
+**The problem we avoided:**
+
+```
+// Backend has 90+ services, UI exposes ~5%
+// Features exist but users can't find them
+// CLI has full access, UI is an afterthought
+```
+
+**What we created:**
+
+- **Feature Surfacing Plan**: Complete mapping of 90+ services to 118 UI views
+- **Detailed Specifications**: 9 sub-documents with wireframes, ViewModels, and service mappings
+- **16-week Timeline**: Phased implementation with clear milestones
+
+**Document Structure:**
+
+```
+FEATURE_SURFACING_PLAN.md (Master)
+├── 01_SHELL_AND_NAVIGATION.md
+├── 02_DASHBOARD_HUB.md (20 widgets)
+├── 03_LIBRARY_TAB.md (18 views)
+├── 04_MUGEN_TAB.md (12 views)
+├── 05_ANALYTICS_SOCIAL.md (13 views)
+├── 06_TOOLS_TAB.md (25 views)
+├── 07_TERMINAL_SETTINGS.md (17 views)
+├── 08_OVERLAYS_BIGPICTURE.md (13 views)
+└── 09_IMPLEMENTATION_TIMELINE.md
+```
+
+**Takeaway:** *Plan UI surface area before implementation. Know where every service will appear in the UI. A feature that users can't find doesn't exist.*
+
+---
+
+### 22. Widget Architecture Enables Customization
+
+**The dashboard pattern:**
+
+```csharp
+// Widget base class enables drag/drop, resize, persist
+public abstract class WidgetBase : ViewModelBase
+{
+    public string WidgetId { get; }
+    public WidgetSize Size { get; set; }
+    public WidgetPosition Position { get; set; }
+
+    public abstract Task RefreshAsync();
+    public abstract IEnumerable<WidgetAction> Actions { get; }
+}
+
+// Concrete widgets extend this
+public class QuickActionsWidget : WidgetBase { ... }
+public class TodayStatsWidget : WidgetBase { ... }
+public class ActivityFeedWidget : WidgetBase { ... }
+```
+
+**Benefits:**
+
+| Feature | Approach |
+|---------|----------|
+| Drag/Drop | Common code in base |
+| Persistence | LayoutService saves positions |
+| Refresh | Each widget controls its own data |
+| Context Menu | Common actions + widget-specific |
+
+**Takeaway:** *Design widget architecture from the start. A common base class with layout persistence enables user customization without per-widget complexity.*
+
+---
+
+### 23. Big Picture Mode Requires Separate UX Thinking
+
+**The constraint:**
+
+> "Everything must work with D-pad and 4 buttons"
+
+**What we learned:**
+
+- **Focus Navigation**: Every element must have visible focus states
+- **10-foot UI**: Text must be readable from couch distance (larger fonts)
+- **Controller Mapping**: Standard mapping (A=Select, B=Back) but context-sensitive
+- **On-Screen Keyboard**: Required for any text input
+
+**Controller mapping we standardized:**
+
+| Button | Action |
+|--------|--------|
+| A / Cross | Select / Confirm |
+| B / Circle | Back / Cancel |
+| Y / Triangle | Search / Context Action |
+| X / Square | Options / Secondary Action |
+| LB/RB | Tab / Page Navigation |
+| Start | Command Palette |
+
+**Takeaway:** *Big Picture Mode is not "UI plus controller". It's a separate UX paradigm. Design for it explicitly, not as an afterthought.*
+
+---
+
+### 24. Progressive Disclosure Balances Power and Simplicity
+
+**The tension:**
+
+> Power users want everything visible
+> Casual users are overwhelmed by options
+
+**The solution: Progressive Disclosure**
+
+```
+Level 1: Default View (80% of users)
+├── Core actions visible
+├── Clean, uncluttered interface
+└── "Advanced" button for Level 2
+
+Level 2: Power User View
+├── All options visible
+├── Expandable sections
+└── Command Palette (Ctrl+Shift+P)
+
+Level 3: Terminal (Full Control)
+├── CLI access in UI
+└── Script editor for automation
+```
+
+**Implementation pattern:**
+
+```csharp
+public partial class GameDetailViewModel
+{
+    [ObservableProperty] private bool _showAdvancedOptions;
+
+    public IEnumerable<GameAction> VisibleActions =>
+        ShowAdvancedOptions ? AllActions : BasicActions;
+}
+```
+
+**Takeaway:** *Default to simple. Reveal complexity progressively. Power users will find advanced features; casual users shouldn't need to.*
+
+---
+
+### 25. Section Personalities Create Visual Hierarchy
+
+**The insight:**
+
+> Different app sections serve different purposes. They should look different.
+
+**Personalities we defined:**
+
+| Section | Personality | Visual Treatment |
+|---------|-------------|------------------|
+| Dashboard | Personal, Dynamic | Cards, widgets, activity |
+| Library | Clean, Organized | Grid/list views, filters |
+| MUGEN | Arcade, Fighting Game | Fire gradients, neon, bold |
+| Analytics | Data-Driven | Charts, graphs, tables |
+| Social | Community | Avatars, feeds, sharing |
+| Tools | Technical, Utility | Functional, monospace |
+| Terminal | Hacker, Matrix | Green on black, CRT effects |
+
+**Takeaway:** *Give each major section a distinct visual personality. Users orient faster when visual treatment matches content type.*
+
+---
+
 ## 📝 Process Lessons
 
 ### 13. Technical Debt Tracking from Day One
@@ -1144,5 +1308,6 @@ Timeline: 1 week
 ---
 
 *Lessons Learned document created December 29, 2025*
+*Updated January 1, 2026 with UI/UX lessons from Feature Surfacing Plan*
 *Based on the complete development cycle of SaveStateReborn*
-*Health Score: 100/100 | Tests: 290+ passing | Technical Debt: Zero*
+*Health Score: 100/100 | Tests: 290+ passing | UI Views Planned: 118*

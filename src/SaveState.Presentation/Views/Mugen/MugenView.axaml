@@ -1,0 +1,252 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Mugen;assembly=SaveState.Presentation"
+             xmlns:dto="clr-namespace:SaveState.Application.Mugen.DTOs;assembly=SaveState.Application"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="SaveState.Presentation.Views.Mugen.MugenView"
+             x:DataType="vm:MugenViewModel"
+             x:Name="MugenRoot">
+
+    <Grid RowDefinitions="Auto, Auto, *, Auto">
+        <!-- SF Style Header -->
+        <Border Grid.Row="0" Background="{StaticResource SFFireGradientBrush}" Height="80">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <Button Command="{Binding GoBackCommand}"
+                        Background="Transparent" BorderThickness="0"
+                        Margin="20,0">
+                    <TextBlock Text="⬅ BACK" FontSize="20" FontWeight="Black" Foreground="White" />
+                </Button>
+
+                <TextBlock Grid.Column="1" Text="MUGEN BATTLE HUB"
+                           FontSize="42" FontWeight="Black"
+                           Foreground="White"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           RenderTransform="skewX(-10deg)">
+                    <TextBlock.Effect>
+                        <DropShadowEffect BlurRadius="10" Color="Black" OffsetX="3" OffsetY="3" />
+                    </TextBlock.Effect>
+                </TextBlock>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="20,0" Spacing="10">
+                    <Button Command="{Binding ScanCharactersCommand}" Classes="Accent">
+                        <TextBlock Text="SCAN DIRECTORY" FontWeight="Bold" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Player Selection Slots (SF Style) -->
+        <Border Grid.Row="1" Background="{StaticResource GlassBrush}" Height="180" Margin="10">
+            <Grid ColumnDefinitions="*, Auto, *">
+                <!-- Player 1 Slot -->
+                <Border Grid.Column="0" Margin="20" BorderBrush="{StaticResource FightingRedBrush}" BorderThickness="3" CornerRadius="8">
+                    <Grid>
+                        <TextBlock Text="PLAYER 1" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                   Margin="10" FontWeight="Black" Foreground="{StaticResource FightingRedBrush}" />
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding Player1.Name, FallbackValue='SELECT CHARACTER'}"
+                                       FontSize="28" FontWeight="Black" Foreground="White" TextAlignment="Center" />
+                            <TextBlock Text="{Binding Player1.Author}" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" TextAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- VS Indicator -->
+                <TextBlock Grid.Column="1" Text="VS" FontSize="64" FontWeight="Black"
+                           Foreground="{StaticResource FightingYellowBrush}"
+                           VerticalAlignment="Center" Margin="20,0"
+                           RenderTransform="scale(1.2) skewX(-15deg)" />
+
+                <!-- Player 2 Slot -->
+                <Border Grid.Column="2" Margin="20" BorderBrush="#00BCD4" BorderThickness="3" CornerRadius="8">
+                    <Grid>
+                        <TextBlock Text="PLAYER 2" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                   Margin="10" FontWeight="Black" Foreground="#00BCD4" />
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding Player2.Name, FallbackValue='SELECT CHARACTER'}"
+                                       FontSize="28" FontWeight="Black" Foreground="White" TextAlignment="Center" />
+                            <TextBlock Text="{Binding Player2.Author}" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" TextAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Main Content Area with Navigation Sidebars -->
+        <Grid Grid.Row="2" ColumnDefinitions="200, *">
+            <!-- Navigation Sidebar (SF Style) -->
+            <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+                <StackPanel Spacing="5" Margin="10">
+                    <RadioButton Classes="NavButton" Content="ROSTER"
+                                 IsChecked="{Binding CurrentSection, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Selection, Mode=OneWay}"
+                                 Command="{Binding SetSectionCommand}" CommandParameter="Selection" />
+                    <RadioButton Classes="NavButton" Content="DEATH BATTLE"
+                                 IsChecked="{Binding CurrentSection, Converter={StaticResource StringEqualsConverter}, ConverterParameter=DeathBattle, Mode=OneWay}"
+                                 Command="{Binding SetSectionCommand}" CommandParameter="DeathBattle" />
+                    <RadioButton Classes="NavButton" Content="ONLINE HUB"
+                                 IsChecked="{Binding CurrentSection, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Network, Mode=OneWay}"
+                                 Command="{Binding SetSectionCommand}" CommandParameter="Network" />
+                    <RadioButton Classes="NavButton" Content="CHARACTER FUSION"
+                                 IsChecked="{Binding CurrentSection, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Fusion, Mode=OneWay}"
+                                 Command="{Binding SetSectionCommand}" CommandParameter="Fusion" />
+                </StackPanel>
+            </Border>
+
+            <!-- Content -->
+            <ScrollViewer Grid.Column="1">
+                <Grid Margin="20">
+                    <!-- Section: Roster -->
+                    <StackPanel Spacing="20" IsVisible="{Binding CurrentSection, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Selection}">
+                        <ItemsControl ItemsSource="{Binding Characters}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="dto:MugenCharacterSummaryDto">
+                                    <Button Command="{Binding #MugenRoot.DataContext.SelectPlayerCommand}"
+                                            CommandParameter="{Binding}"
+                                            Padding="0" Background="Transparent" BorderThickness="0">
+                                        <Border Classes="GameCard" Width="160" Height="220" ClipToBounds="True">
+                                            <Grid RowDefinitions="*, Auto">
+                                                <!-- Portrait Placeholder -->
+                                                <Panel Grid.Row="0" Background="#1A1A1A">
+                                                    <TextBlock Text="PORTRAIT" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                               Foreground="#333333" FontWeight="Bold" />
+                                                </Panel>
+
+                                                <StackPanel Grid.Row="1" Background="#2D2D2D" Margin="0">
+                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" TextTrimming="CharacterEllipsis" Foreground="White" />
+                                                    <TextBlock Text="{Binding Author}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                                                </StackPanel>
+
+                                                <!-- Selection Glows -->
+                                                <Border BorderBrush="{StaticResource FightingRedBrush}" BorderThickness="4"
+                                                        IsVisible="{Binding #MugenRoot.DataContext.Player1, Converter={StaticResource ReferenceEqualsConverter}, ConverterParameter={Binding}}" />
+                                                <Border BorderBrush="#00BCD4" BorderThickness="4"
+                                                        IsVisible="{Binding #MugenRoot.DataContext.Player2, Converter={StaticResource ReferenceEqualsConverter}, ConverterParameter={Binding}}" />
+                                            </Grid>
+                                        </Border>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- Section: Death Battle -->
+                    <StackPanel Spacing="20" IsVisible="{Binding CurrentSection, Converter={StaticResource StringEqualsConverter}, ConverterParameter=DeathBattle}">
+                        <Border Classes="GlassContainer" Padding="30">
+                            <StackPanel Spacing="20" HorizontalAlignment="Center">
+                                <TextBlock Text="DEATH BATTLE SIMULATOR" FontSize="32" FontWeight="Black" Foreground="{StaticResource FightingYellowBrush}"
+                                           HorizontalAlignment="Center" />
+
+                                <Grid ColumnDefinitions="*, Auto, *" Width="600">
+                                    <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                         <TextBlock Text="{Binding Player1.Name}" FontSize="24" FontWeight="Bold" Foreground="White" />
+                                         <TextBlock Text="CHALLENGER" Foreground="{StaticResource FightingRedBrush}" HorizontalAlignment="Center" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="VS" FontSize="40" VerticalAlignment="Center" Margin="30,0" />
+                                    <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                                         <TextBlock Text="{Binding Player2.Name}" FontSize="24" FontWeight="Bold" Foreground="White" />
+                                         <TextBlock Text="DEFENDER" Foreground="#00BCD4" HorizontalAlignment="Center" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <Button Command="{Binding RunDeathBattleCommand}"
+                                        Background="{StaticResource SFFireGradientBrush}"
+                                        Padding="40,15" HorizontalAlignment="Center" CornerRadius="4">
+                                    <TextBlock Text="RUN SIMULATION" FontSize="20" FontWeight="Black" Foreground="White" />
+                                </Button>
+
+                                <Separator Background="{StaticResource BorderBrush}" Height="1" Margin="0,20" />
+
+                                <TextBlock Text="{Binding AiAdvice}" TextWrapping="Wrap" FontSize="16" Foreground="White" MaxWidth="800" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Section: Online Hub -->
+                    <StackPanel Spacing="20" IsVisible="{Binding CurrentSection, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Network}">
+                         <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Text="ONLINE BATTLE LOBBIES" FontSize="28" FontWeight="Black" Foreground="#00BCD4" />
+                            <Button Grid.Column="1" Command="{Binding ToggleNetworkCommand}" Classes="Accent">
+                                <TextBlock Text="{Binding IsNetworkConnected, Converter={StaticResource NetworkStatusConverter}}" />
+                            </Button>
+                         </Grid>
+
+                         <ItemsControl ItemsSource="{Binding OnlineLobbies}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:LobbyDto">
+                                    <Border Classes="GlassContainer" Margin="0,5" Padding="15">
+                                        <Grid ColumnDefinitions="*, *, Auto, Auto">
+                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="18" Foreground="White" />
+                                            <TextBlock Grid.Column="1" Text="{Binding GameMode}" Foreground="{StaticResource FightingYellowBrush}" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding Players}" Margin="20,0" Foreground="White" />
+                                            <Button Grid.Column="3" Content="JOIN" Classes="Primary" Height="30" Padding="15,0" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                         </ItemsControl>
+                    </StackPanel>
+
+                     <!-- Section: Character Fusion -->
+                    <StackPanel Spacing="20" IsVisible="{Binding CurrentSection, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Fusion}">
+                        <Border Classes="GlassContainer" Padding="30">
+                            <StackPanel Spacing="20">
+                                <TextBlock Text="CHARACTER FUSION LABORATORY" FontSize="32" FontWeight="Black" Foreground="#ADFF2F" HorizontalAlignment="Center" />
+                                <TextBlock Text="Select two characters to create a hybrid fighter with combined move-sets and AI-generated sprites."
+                                           TextAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" />
+
+                                <Button Command="{Binding CreateFusionCommand}"
+                                        Background="#ADFF2F"
+                                        Padding="40,15" HorizontalAlignment="Center" CornerRadius="4">
+                                    <TextBlock Text="GENERATE FUSION" FontSize="20" FontWeight="Black" Foreground="Black" />
+                                </Button>
+
+                                <Border Background="#111111" CornerRadius="8" Padding="20" Margin="0,20">
+                                    <TextBlock Text="{Binding AiAdvice}" TextWrapping="Wrap" FontFamily="Consolas" Foreground="#ADFF2F" />
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="3" Background="#1A1A1A" Height="40" Padding="15,0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+            <Grid ColumnDefinitions="*, Auto">
+                <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" />
+                <ProgressBar Grid.Column="1" IsIndeterminate="True" Width="200" Height="4" IsVisible="{Binding IsLoading}" />
+            </Grid>
+        </Border>
+    </Grid>
+
+    <UserControl.Resources>
+        <!-- I need some converters for visibility/strings -->
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <Style Selector="RadioButton.NavButton">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid>
+                        <Border Name="Highlight" Background="Transparent" BorderBrush="{StaticResource FightingYellowBrush}" BorderThickness="0,0,0,0">
+                             <ContentPresenter Content="{TemplateBinding Content}"
+                                              Padding="15,10" />
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="RadioButton.NavButton:checked /template/ Border#Highlight">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderThickness" Value="4,0,0,0" />
+            <Setter Property="TextBlock.Foreground" Value="{StaticResource FightingYellowBrush}" />
+        </Style>
+    </UserControl.Styles>
+</UserControl>

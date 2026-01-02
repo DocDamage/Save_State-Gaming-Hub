@@ -1,0 +1,13 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             x:Class="SaveState.Presentation.Views.Shell.ToolsView"
+             x:DataType="vm:ToolsViewModel">
+    <Grid>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <TextBlock Text="🛠️" FontSize="64" HorizontalAlignment="Center" />
+            <TextBlock Text="Tools &amp; Utilities" FontSize="24" FontWeight="Bold" Margin="0,20" />
+            <TextBlock Text="Performance optimization and calibration tools coming soon." Foreground="{StaticResource TextSecondaryBrush}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

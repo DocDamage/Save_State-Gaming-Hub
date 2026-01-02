@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Onboarding.Services;
 using SaveState.Core.Common.Services;
+using SaveState.Presentation.ViewModels.Mugen;
 using Splat;
 
 namespace SaveState.Presentation.ViewModels;
@@ -109,5 +110,15 @@ public partial class MainViewModel : ObservableObject
             Locator.Current.GetService<SaveState.Core.Common.Services.ICultureManager>()!,
             _resources,
             Locator.Current.GetService<SaveState.Presentation.Services.IThemeService>()!);
+    }
+
+    /// <summary>
+    /// Navigates to the MUGEN management view.
+    /// </summary>
+    public void NavigateToMugen()
+    {
+        var vm = Locator.Current.GetService<MugenViewModel>();
+        vm.SetParent(this);
+        CurrentViewModel = vm;
     }
 }

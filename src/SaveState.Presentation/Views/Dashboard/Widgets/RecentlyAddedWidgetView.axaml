@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:widgets="using:SaveState.Presentation.Services.Dashboard.Widgets"
+             x:Class="SaveState.Presentation.Views.Dashboard.Widgets.RecentlyAddedWidgetView"
+             x:DataType="widgets:RecentlyAddedWidget">
+
+    <UserControl.Styles>
+        <Style Selector="Button.game-item">
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+        </Style>
+
+        <Style Selector="Button.game-item:hover">
+            <Setter Property="Background" Value="{StaticResource HoverBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <StackPanel Spacing="4">
+        <ItemsControl ItemsSource="{Binding RecentlyAddedGames}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Button Classes="game-item"
+                            Content="{Binding Title}"
+                            Command="{Binding DataContext.ViewGameCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding}" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <Button Content="View All →"
+                Command="{Binding NavigateToLibraryCommand}"
+                HorizontalAlignment="Right"
+                Margin="0,8,0,0"
+                FontSize="12" />
+    </StackPanel>
+</UserControl>

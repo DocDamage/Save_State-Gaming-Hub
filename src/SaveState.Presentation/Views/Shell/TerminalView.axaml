@@ -1,0 +1,16 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             x:Class="SaveState.Presentation.Views.Shell.TerminalView"
+             x:DataType="vm:TerminalViewModel">
+    <Grid Background="Black" Margin="20">
+        <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4">
+            <ScrollViewer>
+                <TextBlock Text="[root@savestate ~]# _"
+                           FontFamily="Consolas, Monospace"
+                           Foreground="#00FF00"
+                           Margin="10" />
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,51 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+        xmlns:views="using:SaveState.Presentation.Views.Shell"
+        x:Class="SaveState.Presentation.Views.Shell.MainShell"
+        x:DataType="vm:MainShellViewModel"
+        Title="{Binding Title}"
+        Width="1400"
+        Height="900"
+        MinWidth="1024"
+        MinHeight="768"
+        WindowStartupLocation="CenterScreen"
+        TransparencyLevelHint="Mica, AcrylicBlur, Transparent"
+        Background="{StaticResource BackgroundBrush}"
+        RenderOptions.TextRenderingMode="Antialias"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        SystemDecorations="None">
+
+    <Window.Styles>
+        <!-- Window Chrome Styles -->
+        <Style Selector="Window">
+            <Setter Property="Background" Value="{StaticResource BackgroundBrush}" />
+        </Style>
+    </Window.Styles>
+
+    <!-- Main Grid Layout: TitleBar | HeaderBar | Content | StatusBar -->
+    <Grid RowDefinitions="Auto, Auto, *, Auto">
+        <!-- Row 0: Title Bar -->
+        <views:TitleBarView Grid.Row="0"
+                           DataContext="{Binding TitleBarViewModel}" />
+
+        <!-- Row 1: Header/Navigation Bar -->
+        <views:HeaderBarView Grid.Row="1"
+                            DataContext="{Binding HeaderBarViewModel}" />
+
+        <!-- Row 2: Main Content Area -->
+        <ContentControl Grid.Row="2"
+                       Content="{Binding CurrentView}"
+                       Margin="0" />
+
+        <!-- Row 3: Status Bar -->
+        <views:StatusBarView Grid.Row="3"
+                            DataContext="{Binding StatusBarViewModel}" />
+
+        <!-- Overlays Layer (spans all rows) -->
+        <views:OverlayContainer Grid.RowSpan="4"
+                               DataContext="{Binding OverlayContainerViewModel}" />
+    </Grid>
+</Window>

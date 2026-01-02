@@ -1,0 +1,220 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels"
+             xmlns:views="using:SaveState.Presentation.Views"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="SaveState.Presentation.Views.GameDetailView"
+             x:DataType="vm:GameDetailViewModel"
+             Background="{StaticResource BackgroundBrush}">
+
+    <Grid RowDefinitions="Auto, *, Auto">
+        <!-- Header -->
+        <Border Grid.Row="0" Classes="GlassContainer" Margin="20,20,20,10" Padding="20">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <!-- Back Button -->
+                <Button Grid.Column="0"
+                        Content="← Back"
+                        Classes="Secondary"
+                        Command="{Binding CloseCommand}"
+                        Margin="0,0,20,0" />
+
+                <!-- Title -->
+                <TextBlock Grid.Column="1"
+                          Text="{Binding Game.Title}"
+                          Classes="Header"
+                          VerticalAlignment="Center"
+                          HorizontalAlignment="Center" />
+
+                <!-- Action Buttons -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                    <Button Content="▶ PLAY"
+                            Classes="Primary"
+                            Command="{Binding LaunchGameCommand}" />
+                    <Button Content="⚙️ Settings"
+                            Classes="Secondary"
+                            Command="{Binding OpenSettingsCommand}" />
+                    <Button Content="⋮ More"
+                            Classes="Secondary"
+                            Command="{Binding OpenMoreMenuCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1" Margin="20,0,20,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="350" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Side - Tabs -->
+            <Border Grid.Column="0" Classes="GlassContainer" Margin="0,0,10,0" Padding="20">
+                <Grid RowDefinitions="Auto, *">
+                    <!-- Tab Headers -->
+                    <TabControl Grid.Row="0" SelectedIndex="{Binding SelectedTabIndex}">
+                        <TabItem Header="📖 Overview" />
+                        <TabItem Header="💾 Save States" />
+                        <TabItem Header="🏆 Achievements" />
+                        <TabItem Header="📊 Sessions" />
+                        <TabItem Header="📝 Notes" />
+                        <TabItem Header="🛠️ Mods" />
+                        <TabItem Header="📸 Screenshots" />
+                        <TabItem Header="⚡ Performance" />
+                    </TabControl>
+
+                    <!-- Tab Content -->
+                    <ContentControl Grid.Row="1" Margin="0,20,0,0">
+                        <ContentControl.Content>
+                            <MultiBinding Converter="{StaticResource TabContentConverter}">
+                                <Binding Path="SelectedTabIndex" />
+                                <Binding Path="." />
+                            </MultiBinding>
+                        </ContentControl.Content>
+                    </ContentControl>
+                </Grid>
+            </Border>
+
+            <!-- Right Side - Game Info Panel -->
+            <Border Grid.Column="1" Classes="GlassContainer" Padding="20">
+                <ScrollViewer>
+                    <StackPanel Spacing="20">
+                        <!-- Game Cover -->
+                        <Border Background="{StaticResource SurfaceBrush}"
+                                CornerRadius="8"
+                                Height="200"
+                                HorizontalAlignment="Center"
+                                Width="200">
+                            <TextBlock Text="🎮"
+                                      FontSize="80"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                        </Border>
+
+                        <!-- Game Title & Rating -->
+                        <StackPanel Spacing="10" HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding Game.Title}"
+                                      Classes="Header"
+                                      TextAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
+                                <TextBlock Text="⭐⭐⭐⭐⭐"
+                                          Classes="Body"
+                                          Foreground="{StaticResource AccentBrush}" />
+                                <TextBlock Text="(Your Rating: 10/10)"
+                                          Classes="Caption"
+                                          Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Game Details -->
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="{Binding Game.Description}"
+                                      Classes="Body"
+                                      TextWrapping="Wrap" />
+
+                            <Separator />
+
+                            <!-- Platform & Developer -->
+                            <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="Auto, *">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Platform:" Classes="Caption" />
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Game.Platform}" Classes="Body" Margin="10,0,0,0" />
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Developer:" Classes="Caption" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Game.Source}" Classes="Body" Margin="10,0,0,0" />
+                            </Grid>
+
+                            <Separator />
+
+                            <!-- Stats -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="📊 STATS" Classes="Subtitle" />
+
+                                <Grid RowDefinitions="Auto, Auto, Auto, Auto" ColumnDefinitions="*, Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Playtime:" Classes="Body" />
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Game.TotalPlayTime, StringFormat=h\\:mm}" Classes="Body" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Last Played:" Classes="Body" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Game.LastPlayed, StringFormat=d, FallbackValue='Never'}" Classes="Body" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Status:" Classes="Body" />
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Game.Status}" Classes="Body" />
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Install Path:" Classes="Body" />
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Game.InstallPath, FallbackValue='Not installed'}" Classes="Caption" />
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- Tags -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="🏷️ TAGS" Classes="Subtitle" />
+                                <WrapPanel>
+                                    <!-- TODO: Bind to actual tags -->
+                                    <Border Classes="Tag" Margin="0,0,8,8">
+                                        <TextBlock Text="Souls-like" Classes="Caption" />
+                                    </Border>
+                                    <Border Classes="Tag" Margin="0,0,8,8">
+                                        <TextBlock Text="Open World" Classes="Caption" />
+                                    </Border>
+                                    <Border Classes="Tag" Margin="0,0,8,8">
+                                        <TextBlock Text="Fantasy" Classes="Caption" />
+                                    </Border>
+                                </WrapPanel>
+                            </StackPanel>
+
+                            <!-- AI Briefing -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="🤖 AI BRIEFING" Classes="Subtitle" />
+                                <TextBlock Text="{Binding AiBriefing, FallbackValue='No AI briefing available yet. Click to generate one.'}"
+                                          Classes="Body"
+                                          TextWrapping="Wrap" />
+                                <Button Content="Generate AI Briefing"
+                                        Classes="Secondary"
+                                        Command="{Binding GenerateAiBriefingCommand}"
+                                        IsVisible="{Binding CanGenerateAiBriefing}" />
+                            </StackPanel>
+
+                            <!-- Price History -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="💰 PRICE HISTORY" Classes="Subtitle" />
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Current: $59.99" Classes="Body" />
+                                    <TextBlock Text="Lowest: $41.99" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <TextBlock Text="You saved: $18.00 (30%)" Classes="Caption" Foreground="{StaticResource SuccessBrush}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" Classes="GlassContainer" Margin="20,10,20,20" Padding="20">
+            <Grid ColumnDefinitions="*, Auto">
+                <!-- Quick Actions -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15">
+                    <Button Content="❤️ Add to Favorites"
+                            Classes="Secondary"
+                            Command="{Binding AddToFavoritesCommand}" />
+                    <Button Content="📋 Add to Backlog"
+                            Classes="Secondary"
+                            Command="{Binding AddToBacklogCommand}" />
+                    <Button Content="📤 Export Game Data"
+                            Classes="Secondary"
+                            Command="{Binding ExportGameDataCommand}" />
+                    <Button Content="🗑️ Uninstall"
+                            Classes="Danger"
+                            Command="{Binding UninstallCommand}" />
+                </StackPanel>
+
+                <!-- Close Button -->
+                <Button Grid.Column="1"
+                        Content="Close"
+                        Classes="Primary"
+                        Command="{Binding CloseCommand}" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

@@ -55,6 +55,16 @@ public class MugenDummyRecording : EntityBase
     public string? ReplayPath { get; private set; }
 
     /// <summary>
+    /// The number of hits achieved in the combo during this recording.
+    /// </summary>
+    public int ComboHits { get; private set; }
+
+    /// <summary>
+    /// The total damage dealt during the combo in this recording.
+    /// </summary>
+    public int ComboDamage { get; private set; }
+
+    /// <summary>
     /// Creates a new dummy recording.
     /// </summary>
     /// <param name="trainingSessionId">The training session ID.</param>
@@ -81,7 +91,9 @@ public class MugenDummyRecording : EntityBase
             Duration = duration,
             Description = description,
             IsSuccessful = isSuccessful,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            ComboHits = 0,
+            ComboDamage = 0
         };
     }
 
@@ -103,6 +115,17 @@ public class MugenDummyRecording : EntityBase
     public void SetReplayPath(string? path)
     {
         ReplayPath = path;
+    }
+
+    /// <summary>
+    /// Sets the combo statistics for this recording.
+    /// </summary>
+    /// <param name="comboHits">Number of hits in the combo.</param>
+    /// <param name="comboDamage">Total damage dealt by the combo.</param>
+    public void SetComboStats(int comboHits, int comboDamage)
+    {
+        ComboHits = Guard.Against.Negative(comboHits, nameof(comboHits));
+        ComboDamage = Guard.Against.Negative(comboDamage, nameof(comboDamage));
     }
 
     // EF Core constructor

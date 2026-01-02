@@ -1,0 +1,38 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             x:Class="SaveState.Presentation.Views.Shell.Overlays.AiAssistantPanel"
+             x:DataType="vm:AiAssistantViewModel">
+
+    <Grid RowDefinitions="*, Auto">
+        <!-- Messages -->
+        <ScrollViewer Grid.Row="0">
+            <ItemsControl ItemsSource="{Binding Messages}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{Binding Type, Converter={StaticResource MessageTypeToBrushConverter}}"
+                                CornerRadius="8"
+                                Padding="12"
+                                Margin="0,4"
+                                HorizontalAlignment="{Binding Type, Converter={StaticResource MessageTypeToAlignmentConverter}}">
+                            <TextBlock Text="{Binding Content}"
+                                     TextWrapping="Wrap" />
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Input -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, Auto">
+            <TextBox Grid.Column="0"
+                     Text="{Binding InputText}"
+                     Watermark="Ask me anything..."
+                     Margin="0,8,8,0" />
+            <Button Grid.Column="1"
+                    Content="🎤"
+                    Command="{Binding StartVoiceInput}"
+                    Margin="0,8,0,0" />
+        </Grid>
+    </Grid>
+</UserControl>

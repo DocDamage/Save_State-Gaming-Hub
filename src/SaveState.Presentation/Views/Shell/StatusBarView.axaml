@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             x:Class="SaveState.Presentation.Views.Shell.StatusBarView"
+             x:DataType="vm:StatusBarViewModel"
+             Height="24"
+             Background="{StaticResource StatusBarBackgroundBrush}">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.status-item">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource StatusBarForegroundBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,16,0" />
+        </Style>
+
+        <Style Selector="TextBlock.status-item.online">
+            <Setter Property="Foreground" Value="{StaticResource StatusOnlineBrush}" />
+        </Style>
+
+        <Style Selector="TextBlock.status-item.offline">
+            <Setter Property="Foreground" Value="{StaticResource StatusOfflineBrush}" />
+        </Style>
+
+        <Style Selector="TextBlock.status-item.clickable:hover">
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid ColumnDefinitions="Auto, Auto, Auto, Auto, *, Auto">
+        <!-- Connection Status -->
+        <TextBlock Grid.Column="0"
+                   Classes="status-item clickable"
+                   Text="{Binding ConnectionStatusText}"
+                   PointerPressed="OnConnectionStatusPressed"
+                   Margin="12,0,0,0" />
+
+        <!-- Game Count -->
+        <TextBlock Grid.Column="1"
+                   Classes="status-item clickable"
+                   Text="{Binding GameCountText}"
+                   PointerPressed="OnGameCountPressed"
+                   ToolTip.Tip="Open Library" />
+
+        <!-- Today's Playtime -->
+        <TextBlock Grid.Column="2"
+                   Classes="status-item clickable"
+                   Text="{Binding TodayPlaytimeText}"
+                   PointerPressed="OnPlaytimePressed"
+                   ToolTip.Tip="Open Analytics" />
+
+        <!-- Sync Status -->
+        <TextBlock Grid.Column="3"
+                   Classes="status-item clickable"
+                   Text="{Binding SyncStatusText}"
+                   PointerPressed="OnSyncStatusPressed" />
+
+        <!-- Spacer -->
+        <Grid Grid.Column="4" />
+
+        <!-- Performance Info -->
+        <StackPanel Grid.Column="5"
+                    Orientation="Horizontal"
+                    Margin="0,0,12,0"
+                    VerticalAlignment="Center">
+            <TextBlock Classes="status-item"
+                       Text="CPU:"
+                       Margin="0,0,4,0" />
+            <TextBlock Classes="status-item"
+                       Text="{Binding CpuUsageText}"
+                       Margin="0,0,12,0" />
+            <TextBlock Classes="status-item"
+                       Text="GPU:"
+                       Margin="0,0,4,0" />
+            <TextBlock Classes="status-item"
+                       Text="{Binding GpuUsageText}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

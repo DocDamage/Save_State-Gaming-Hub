@@ -95,8 +95,8 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
         _options = new DatabaseOptions();
         _eventPublisher = null!;
 
-        // Enable WAL mode for better concurrency
-        EnableWalMode();
+        // Enable WAL mode for better concurrency - Disabled in constructor to prevent breaking EnsureCreatedAsync
+        // EnableWalMode();
     }
 
     public SaveStateDbContext(
@@ -108,8 +108,8 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
         _options = dbOptions.Value;
         _eventPublisher = eventPublisher;
 
-        // Enable WAL mode for better concurrency
-        EnableWalMode();
+        // Enable WAL mode for better concurrency - Disabled in constructor to prevent breaking EnsureCreatedAsync
+        // EnableWalMode();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

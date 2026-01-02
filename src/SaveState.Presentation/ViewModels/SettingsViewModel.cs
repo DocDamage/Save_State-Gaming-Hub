@@ -17,16 +17,16 @@ public partial class SettingsViewModel : ObservableObject
     private CultureInfo _selectedCulture;
 
     [ObservableProperty]
-    private string _testLocalizedString;
+    private string? _testLocalizedString;
 
     [ObservableProperty]
-    private string _formattedDate;
+    private string? _formattedDate;
 
     [ObservableProperty]
-    private string _formattedNumber;
+    private string? _formattedNumber;
 
     [ObservableProperty]
-    private string _formattedCurrency;
+    private string? _formattedCurrency;
 
     [ObservableProperty]
     private ThemeType _selectedTheme;
@@ -39,8 +39,8 @@ public partial class SettingsViewModel : ObservableObject
         _cultureManager = cultureManager;
         _resources = resources;
         _themeService = themeService;
-        _selectedCulture = _cultureManager.CurrentCulture;
-        _selectedTheme = _themeService.CurrentTheme;
+        SelectedCulture = _cultureManager.CurrentCulture;
+        SelectedTheme = _themeService.CurrentTheme;
 
         // Subscribe to theme changes
         _themeService.ThemeChanged += (sender, theme) => SelectedTheme = theme;
@@ -51,7 +51,7 @@ public partial class SettingsViewModel : ObservableObject
 
     public IReadOnlyList<CultureInfo> SupportedCultures => _cultureManager.SupportedCultures;
 
-    public bool IsRightToLeft => _cultureManager.IsRightToLeft(_selectedCulture);
+    public bool IsRightToLeft => _cultureManager.IsRightToLeft(SelectedCulture);
 
     public IReadOnlyList<ThemeType> AvailableThemes => _themeService.AvailableThemes;
 
@@ -71,7 +71,7 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task ChangeCultureAsync(CultureInfo culture)
     {
-        if (culture == null || culture == _selectedCulture)
+        if (culture == null || culture == SelectedCulture)
             return;
 
         var success = await _cultureManager.SetCultureAsync(culture.Name);
@@ -86,7 +86,7 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private void ChangeTheme(ThemeType theme)
     {
-        if (theme == _selectedTheme)
+        if (theme == SelectedTheme)
             return;
 
         _themeService.SetTheme(theme);

@@ -2,20 +2,51 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:entities="using:SaveState.Core.GameLibrary.Entities"
-             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="280"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels;assembly=SaveState.Presentation"
+             xmlns:views="using:SaveState.Presentation.Views"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="320"
              x:Class="SaveState.Presentation.Views.GameCard"
-             x:DataType="entities:Game"
+             x:DataType="vm:GameSummaryViewModel"
              AutomationProperties.Name="{Binding Title, StringFormat='Game: {0}'}"
              AutomationProperties.HelpText="{Binding Title, StringFormat='View details for game {0}'}"
              AutomationProperties.AutomationId="{Binding Id, StringFormat='GameCard_{0}'}"
              Focusable="True"
              IsTabStop="True">
 
-  <Border Classes="GameCard" Width="280" Height="260"
-          AutomationProperties.Name="{Binding Title, StringFormat='Game card for {0}'}"
-          AutomationProperties.AutomationId="GameCardBorder">
-    <Grid RowDefinitions="*, Auto, Auto">
+  <Button Classes="GameCard"
+           Width="280" Height="300"
+           Command="{Binding $parent[views:GameLibraryView].DataContext.OpenGameDetailCommand}"
+           CommandParameter="{Binding}"
+           Background="Transparent"
+           BorderThickness="0"
+           AutomationProperties.Name="{Binding Title, StringFormat='Game card for {0}'}"
+           AutomationProperties.AutomationId="GameCardBorder">
+    <Grid RowDefinitions="*, Auto, Auto, Auto">
+      <!-- Selection Checkbox (shown in selection mode) -->
+      <Border Grid.Row="0"
+              Background="{StaticResource SurfaceBrush}"
+              CornerRadius="50"
+              Width="24" Height="24"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Top"
+              Margin="12"
+              IsVisible="{Binding $parent[views:GameLibraryView].DataContext.IsSelectionMode}">
+        <CheckBox IsChecked="{Binding IsSelected}"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Command="{Binding $parent[views:GameLibraryView].DataContext.ToggleGameSelectionCommand}"
+                  CommandParameter="{Binding}" />
+      </Border>
+
+      <!-- Selection Indicator -->
+      <Border Grid.Row="0"
+              Background="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}}"
+              CornerRadius="8,8,0,0"
+              Margin="12,12,12,0"
+              Height="4"
+              VerticalAlignment="Top"
+              IsVisible="{Binding IsSelected}" />
+
       <!-- Cover Image Placeholder -->
       <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" CornerRadius="8" Margin="12"
               AutomationProperties.Name="Game cover image"
@@ -44,16 +75,44 @@
                  AutomationProperties.Name="{Binding Title, StringFormat='Game title: {0}'}"
                  AutomationProperties.AutomationId="GameTitleText"/>
 
-      <!-- Platform/Genre Info -->
+      <!-- Platform Info -->
       <TextBlock Grid.Row="2"
-                 Text="{Binding Platform, StringFormat='Platform: {0}'}"
+                 Text="{Binding Platform}"
                  Classes="Body"
                  FontSize="12"
                  Foreground="{StaticResource TextSecondaryBrush}"
                  HorizontalAlignment="Center"
-                 Margin="12,0,12,12"
+                 Margin="12,0,12,4"
                  AutomationProperties.Name="{Binding Platform, StringFormat='Available on platform: {0}'}"
                  AutomationProperties.AutomationId="GamePlatformText"/>
+
+      <!-- Stats Row -->
+      <Grid Grid.Row="3" Margin="12,0,12,12">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Last Played -->
+        <StackPanel Grid.Column="0" Orientation="Vertical" Spacing="2">
+          <TextBlock Text="Last Played"
+                     Classes="Caption"
+                     FontSize="10"
+                     Foreground="{StaticResource TextSecondaryBrush}"
+                     HorizontalAlignment="Center" />
+          <TextBlock Text="{Binding LastPlayed, StringFormat=d, FallbackValue='Never'}"
+                     Classes="Caption"
+                     FontSize="10"
+                     HorizontalAlignment="Center" />
+        </StackPanel>
+
+        <!-- Playtime -->
+        <TextBlock Grid.Column="1"
+                   Text="{Binding TotalPlayTime, StringFormat=h\\:mm, FallbackValue='0:00'}"
+                   Classes="Caption"
+                   FontSize="10"
+                   HorizontalAlignment="Center" />
+      </Grid>
     </Grid>
-  </Border>
+  </Button>
 </UserControl>

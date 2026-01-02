@@ -7,7 +7,6 @@
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="SaveState.Presentation.Views.MainWindow"
         x:DataType="vm:MainViewModel"
-        Icon="/Assets/avalonia-logo.ico"
         Title="{Binding Title}"
         Background="{StaticResource BackgroundBrush}"
         AutomationProperties.Name="{Binding Title}"

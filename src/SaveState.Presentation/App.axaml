@@ -4,23 +4,26 @@
              xmlns:converters="using:SaveState.Presentation.Converters"
              x:Class="SaveState.Presentation.App">
   <Application.Resources>
-    <!-- Deep Space Theme -->
-    <SolidColorBrush x:Key="BackgroundBrush" Color="#0B0E14" />
-    <SolidColorBrush x:Key="SurfaceBrush" Color="#161B22" />
-    <SolidColorBrush x:Key="PrimaryBrush" Color="#58A6FF" />
-    <SolidColorBrush x:Key="AccentBrush" Color="#F78166" />
-    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F0F6FC" />
-    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#C9D1D9" />
-    <SolidColorBrush x:Key="BorderBrush" Color="#30363D" />
-    <SolidColorBrush x:Key="GlassBrush" Color="#80FFFFFF" Opacity="0.05" />
-    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#21262D" />
-    <SolidColorBrush x:Key="CardHoverBrush" Color="#30363D" />
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://SaveState.Presentation/Styles/Brushes.axaml" />
+      </ResourceDictionary.MergedDictionaries>
 
-    <!-- Converters -->
-    <converters:BoolToFlowDirectionConverter x:Key="BoolToFlowDirectionConverter" />
+      <!-- Converters -->
+      <converters:BoolToFlowDirectionConverter x:Key="BoolToFlowDirectionConverter" />
+      <converters:StringEqualsConverter x:Key="StringEqualsConverter" />
+      <converters:ReferenceEqualsConverter x:Key="ReferenceEqualsConverter" />
+      <converters:NetworkStatusConverter x:Key="NetworkStatusConverter" />
+      <converters:ViewModeToClassConverter x:Key="ViewModeToClassConverter" />
+      <converters:BoolToClassConverter x:Key="BoolToClassConverter" />
+      <converters:BoolToBrushConverter x:Key="BoolToBrushConverter" />
+      <converters:TabContentConverter x:Key="TabContentConverter" />
+      <converters:GreaterThanConverter x:Key="GreaterThanConverter" />
+    </ResourceDictionary>
   </Application.Resources>
 
   <Application.Styles>
+    <FluentTheme />
     <StyleInclude Source="avares://SaveState.Presentation/Styles/Controls.axaml" />
   </Application.Styles>
 

@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:widgets="using:SaveState.Presentation.Services.Dashboard.Widgets"
+             x:Class="SaveState.Presentation.Views.Dashboard.Widgets.GoalsProgressWidgetView"
+             x:DataType="widgets:GoalsProgressWidget">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.goal-title">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+
+        <Style Selector="TextBlock.goal-progress">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource SecondaryTextBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+        </Style>
+
+        <Style Selector="ProgressBar.goal-bar">
+            <Setter Property="Height" Value="6" />
+            <Setter Property="Margin" Value="0,4,0,8" />
+            <Setter Property="Background" Value="{StaticResource ProgressBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+        </Style>
+
+        <Style Selector="Border.goal-item">
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <ItemsControl ItemsSource="{Binding Goals}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Classes="goal-item">
+                        <Grid RowDefinitions="Auto, Auto, Auto">
+                            <TextBlock Grid.Row="0"
+                                     Text="{Binding Title}"
+                                     Classes="goal-title" />
+
+                            <ProgressBar Grid.Row="1"
+                                       Classes="goal-bar"
+                                       Value="{Binding ProgressPercentage}"
+                                       Maximum="100" />
+
+                            <TextBlock Grid.Row="2"
+                                     Text="{Binding ProgressText}"
+                                     Classes="goal-progress" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </ScrollViewer>
+</UserControl>

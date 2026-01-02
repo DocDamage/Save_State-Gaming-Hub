@@ -109,6 +109,7 @@ public static class DependencyInjection
         services.AddSingleton<SaveState.Core.Common.Services.IAccessibilityService, AccessibilityService>();
 
         // MUGEN Services
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenCharacterParser, SaveState.Core.Mugen.Services.MugenCharacterParser>();
         services.AddScoped<IMugenCharacterLoader, MugenCharacterLoader>();
         services.AddScoped<IMugenLauncher, MugenLauncher>();
 

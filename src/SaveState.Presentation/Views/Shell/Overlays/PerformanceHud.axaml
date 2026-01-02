@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             x:Class="SaveState.Presentation.Views.Shell.Overlays.PerformanceHud"
+             x:DataType="vm:PerformanceHudViewModel">
+
+    <Grid RowDefinitions="*, *, *">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
+            <TextBlock Text="CPU:" FontWeight="Bold" Margin="0,0,8,0" />
+            <TextBlock Text="{Binding CpuUsageText}" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
+            <TextBlock Text="GPU:" FontWeight="Bold" Margin="0,0,8,0" />
+            <TextBlock Text="{Binding GpuUsageText}" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+            <TextBlock Text="FPS:" FontWeight="Bold" Margin="0,0,8,0" />
+            <TextBlock Text="{Binding Fps}" />
+        </StackPanel>
+    </Grid>
+</UserControl>
