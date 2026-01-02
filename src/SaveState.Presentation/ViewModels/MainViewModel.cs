@@ -104,12 +104,7 @@ public partial class MainViewModel : ObservableObject
     /// </summary>
     public void NavigateToSettings()
     {
-        // Note: SettingsViewModel will be created by DI when the view is resolved
-        // For now, we'll create it manually to match the existing pattern
-        CurrentViewModel = new SettingsViewModel(
-            Locator.Current.GetService<SaveState.Core.Common.Services.ICultureManager>()!,
-            _resources,
-            Locator.Current.GetService<SaveState.Presentation.Services.IThemeService>()!);
+        CurrentViewModel = Locator.Current.GetService<SettingsViewModel>()!;
     }
 
     /// <summary>

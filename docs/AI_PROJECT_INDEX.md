@@ -1,10 +1,26 @@
 # 🤖 SaveState Reborn — Project Knowledge Index
 
-**Status**: ✅ Production Release v1.0.0 + UI Planning
-**Last Updated**: January 1, 2026 (Feature Surfacing Plan Complete)
+**Status**: ✅ Production Release v1.0.0 + Active Development
+**Last Updated**: January 2, 2026 (Technical Debt Audit Complete)
 **Maintained By**: Development Team
-**Next Review**: February 1, 2026
+**Next Review**: January 15, 2026 (Bi-weekly review for ENGINEERING_RULES)
 **Related Documents**: [All docs in this directory](./)
+
+---
+
+## 📋 Documentation Freshness Check
+
+| Document | Last Updated | Review Due | Status |
+|----------|--------------|-----------|--------|
+| [AI_QUICK_START.md](AI_QUICK_START.md) | Jan 2 | Weekly | ✅ NEW |
+| [ACTIVE_ISSUES.md](ACTIVE_ISSUES.md) | Jan 2 | Daily | ✅ NEW |
+| [PATTERNS_COOKBOOK.md](PATTERNS_COOKBOOK.md) | Jan 2 | Monthly | ✅ NEW |
+| [DECISIONS_LOG.md](DECISIONS_LOG.md) | Jan 2 | Monthly | ✅ NEW |
+| [PROJECT_METRICS.md](PROJECT_METRICS.md) | Jan 2 | Jan 9 | ✅ Current |
+| [AI_MASTER_CONTEXT.md](AI_MASTER_CONTEXT.md) | Jan 2 | Feb 1 | ✅ Current |
+| [ENGINEERING_RULES.md](ENGINEERING_RULES.md) | Jan 2 | Jan 15 | ⚠️ DUE SOON |
+| [DEVELOPMENT_STATUS.md](status/DEVELOPMENT_STATUS.md) | Jan 2 | Jan 16 | ✅ Current |
+| [GLOSSARY.md](GLOSSARY.md) | Jan 2 | Feb 2 | ✅ Current |
 
 ---
 
@@ -22,7 +38,7 @@
 ---
 
 > [!NOTE]
-> **UI Development Active** (January 1, 2026): Phase 1 (Shell & Navigation) and Phase 2 (Dashboard Hub) complete! 5/5 dashboard widgets implemented with real-time data. **494/494 tests passing (100%)**. Next: Phase 3 (Library Enhancement). See [FEATURE_SURFACING_PLAN.md](planning/FEATURE_SURFACING_PLAN.md) for 16-week roadmap.
+> **January 2, 2026 Update**: Comprehensive Technical Debt Audit completed. Health Score: 91/100. AI Knowledge Base with web search integration now active. Phase 1, 2, and 4 of UI development complete. See [TECHNICAL_DEBT_AUDIT_2026-01-02.md](reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md) for full findings.
 
 ---
 
@@ -51,7 +67,7 @@ This document defines how all project documentation is intended to be read, inte
 
 - Technical foundation (Clean Architecture, CQRS, Result Pattern)
 - Core project structure and tech stack
-- **Current codebase metrics (800+ files, 65K+ LOC, UI components added)**
+- **Current codebase metrics (763+ files, 58K+ LOC)**
 - Coding standards & behavioral handbook
 - **Current technical debt status**
 - Domain truth & invariants ("sacred" rules)
@@ -83,83 +99,47 @@ This document defines how all project documentation is intended to be read, inte
 
 ---
 
-### TECHNICAL_DEBT_REMEDIATION_PLAN.md ⭐ CRITICAL
+### TECHNICAL_DEBT_AUDIT_2026-01-02.md ⭐ NEW
 
-**Role**: Active technical debt tracking and remediation.
-**Priority**: **HIGHEST when fixing issues**.
-
-**Used when:**
-
-- **Fixing the build (START HERE)**
-- Addressing### 🛡️ Code Consistency
-**- **Health Score**: 🟢 95/100 (Target Achieved)
-- **Primary Focus**: Phase 6: Code Quality & Warning Reduction
-- **Compilation**: ✅ 0 Errors
-- **Architecture**: 90/100 (Clean Architecture enforced)
-- **Technical Debt**: 5/100 (Low - Main technical debt is now warnings and incomplete method stubs)
-- **TODO Comments**: 0 (All resolved)
-
-### 📈 Immediate Action Items
-
-1. **Phase 4: MUGEN Persistence Layer (High Priority)**
-   - Implement `MugenCharacterRepository` (`dapper` + `sqlite`)
-   - Implement `MugenTournamentRepository`
-   - Implement `MugenMatchHistoryRepository`
-
-2. **Phase 5: Convert "Return Null" to Pattern**
-   - Refactor `IMugenCharacterRepository.GetAsync`
-   - Refactor `IMugenTournamentRepository.FindMatchAsync`
-   - Systematic replacement across Infrastructure layer
-
-3. **Phase 6: Warning Reduction**
-   - Address 400+ compilation warnings (primarily CS8618/CS1998).
-
----
-
-### LESSONS_LEARNED.md
-
-**Role**: Historical justification.
-**Priority**: Informational.
+**Role**: Latest comprehensive debt scan.
+**Priority**: **HIGHEST when assessing current issues**.
 
 **Used when:**
 
-- Understanding *why* rules exist
-- Onboarding contributors
-- Avoiding repeated mistakes
-- Learning from past decisions
-- Evaluating architectural choices
+- **Understanding what needs fixing now (START HERE)**
+- Prioritizing remediation work
+- Understanding current health score
 
 **Contains:**
 
-- Architecture lessons (Clean Architecture, CQRS, Value Objects)
-- Code quality lessons (Result Pattern, async safety, logging)
-- Infrastructure lessons (IHttpClientFactory, configuration validation)
-- Testing lessons (test infrastructure, mocking limits)
-- Performance lessons (N+1 queries, pagination)
+- Health score breakdown (91/100)
+- Critical issues (3 `.Result` in JwtTokenService)
+- High priority issues (3 `async void`, 4 silent catches)
+- Medium priority issues (68+ TODOs, 45+ `return null`)
+- Prioritized remediation plan
 
 ---
 
-### ADVANCED_GAMING_FEATURES_IMPLEMENTATION_PLAN.md
+### TECHNICAL_DEBT_REMEDIATION_PLAN.md
 
-**Role**: Execution roadmap.
-**Priority**: Contextual and time-bound.
+**Role**: Historical remediation tracking.
+**Priority**: Reference for completed work.
 
 **Used when:**
 
-- Implementing new features
-- Planning milestones
-- Estimating effort
-- Understanding current development status
+- Understanding what debt was already fixed
+- Reviewing Phase 0-7 remediation history
+- Tracking completion status
 
 **Contains:**
 
-- Implementation progress for advanced gaming features
-- Phase-by-phase implementation details
-- Plugin system architecture
+- Completed Phase 0-7 remediation details
+- Historical violation counts
+- Resolution approaches
 
 ---
 
-### FEATURE_SURFACING_PLAN.md ⭐ NEW
+### [FEATURE_SURFACING_PLAN.md](planning/FEATURE_SURFACING_PLAN.md)
 
 **Role**: UI Implementation Plan - Surface all backend services.
 **Priority**: **HIGHEST for UI development**.
@@ -173,20 +153,29 @@ This document defines how all project documentation is intended to be read, inte
 
 **Contains:**
 
-- 118 views across 7 primary tabs
+- 118 views across 7 primary tabs planned
 - 20 dashboard widget specifications
-- Service-to-view mappings for 90+ services
-- 16-week implementation timeline
-- Detailed specifications in 9 sub-documents:
-  - [01_SHELL_AND_NAVIGATION.md](planning/surfacing/01_SHELL_AND_NAVIGATION.md)
-  - [02_DASHBOARD_HUB.md](planning/surfacing/02_DASHBOARD_HUB.md)
-  - [03_LIBRARY_TAB.md](planning/surfacing/03_LIBRARY_TAB.md)
-  - [04_MUGEN_TAB.md](planning/surfacing/04_MUGEN_TAB.md)
-  - [05_ANALYTICS_SOCIAL.md](planning/surfacing/05_ANALYTICS_SOCIAL.md)
-  - [06_TOOLS_TAB.md](planning/surfacing/06_TOOLS_TAB.md)
-  - [07_TERMINAL_SETTINGS.md](planning/surfacing/07_TERMINAL_SETTINGS.md)
-  - [08_OVERLAYS_BIGPICTURE.md](planning/surfacing/08_OVERLAYS_BIGPICTURE.md)
-  - [09_IMPLEMENTATION_TIMELINE.md](planning/surfacing/09_IMPLEMENTATION_TIMELINE.md)
+- Current implementation status (Phase 1, 2, 4 complete)
+- 16-week implementation timeline reference
+
+---
+
+### GLOSSARY.md
+
+**Role**: Domain terminology reference.
+**Priority**: Reference for new contributors.
+
+**Used when:**
+
+- Onboarding new team members
+- Understanding domain-specific terms
+- Clarifying architectural concepts
+
+**Contains:**
+
+- Domain terms and definitions
+- Architectural pattern explanations
+- Cross-reference to usage locations
 
 ---
 
@@ -194,33 +183,32 @@ This document defines how all project documentation is intended to be read, inte
 
 | Question | Go To | Section |
 |:---------|:------|:--------|
-| **Why won't it build?** | TECHNICAL_DEBT_REMEDIATION_PLAN.md | **Phase 0** |
-| **How do I build a new view?** | FEATURE_SURFACING_PLAN.md | Relevant tab section |
-| How do I write code? | AI_MASTER_CONTEXT.md | "Coding Standards" |
-| What are the metrics? | AI_MASTER_CONTEXT.md | "Codebase Metrics" |
-| Why does that rule exist? | planning/LESSONS_LEARNED.md | Use Ctrl+F |
-| What are the non-negotiables? | ENGINEERING_RULES.md | Top section |
-| What's being built next? | planning/FEATURE_SURFACING_PLAN.md | "Implementation Phases" |
-| Where should this service appear? | planning/FEATURE_SURFACING_PLAN.md | Service mappings |
-| What widgets exist? | planning/surfacing/02_DASHBOARD_HUB.md | Widget catalog |
-| How does Big Picture work? | planning/surfacing/08_OVERLAYS_BIGPICTURE.md | Controller mapping |
-| What technical debt exists? | TECHNICAL_DEBT_REMEDIATION_PLAN.md | "Phase 1-4" |
+| **What's broken right now?** | [TECHNICAL_DEBT_AUDIT_2026-01-02.md](reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md) | Critical Issues |
+| **What are the core metrics?** | [PROJECT_METRICS.md](PROJECT_METRICS.md) | Full Metrics |
+| **How do I build a new view?** | [FEATURE_SURFACING_PLAN.md](planning/FEATURE_SURFACING_PLAN.md) | Relevant tab section |
+| How do I write code? | [AI_MASTER_CONTEXT.md](AI_MASTER_CONTEXT.md) | "Coding Standards" |
+| Why does that rule exist? | [planning/LESSONS_LEARNED.md](planning/LESSONS_LEARNED.md) | Use Ctrl+F |
+| What are the non-negotiables? | [ENGINEERING_RULES.md](ENGINEERING_RULES.md) | Top section |
+| What's being built next? | [planning/FEATURE_SURFACING_PLAN.md](planning/FEATURE_SURFACING_PLAN.md) | "Implementation Phases" |
+| What technical debt exists? | [TECHNICAL_DEBT_AUDIT_2026-01-02.md](reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md) | Full document |
+| What was already fixed? | [TECHNICAL_DEBT_REMEDIATION_PLAN.md](reports/TECHNICAL_DEBT_REMEDIATION_PLAN.md) | Phases 0-7 |
+| What terms mean what? | [GLOSSARY.md](GLOSSARY.md) | Term lookup |
 
 ---
 
 ## 📋 Document Maintenance
 
 | Document | Last Updated | Confidence | Notes |
-|:---------|:-------------|:-----------|:------|
-| AI_PROJECT_INDEX.md | Jan 1, 2026 | 100% | Feature Surfacing added |
-| AI_MASTER_CONTEXT.md | Jan 1, 2026 | 100% | Feature Surfacing added |
-| ENGINEERING_RULES.md | Dec 31, 2025 | 95% | Rules still accurate |
-| **FEATURE_SURFACING_PLAN.md** | Jan 1, 2026 | 100% | ⭐ 118 views, 9 sub-docs |
-| TECHNICAL_DEBT_REMEDIATION_PLAN.md | Jan 1, 2026 | 100% | All phases complete |
-| planning/LESSONS_LEARNED.md | Jan 1, 2026 | 100% | Updated with UI lessons |
-| planning/ADVANCED_GAMING_FEATURES_IMPLEMENTATION_PLAN.md | Dec 31, 2025 | 85% | Backend complete |
-| status/DEVELOPMENT_STATUS.md | Dec 31, 2025 | 90% | Production release |
-| planning/V2_FEATURE_ROADMAP.md | Dec 30, 2025 | 80% | Features accurate |
+|:---------|:------|:--------|:------|
+| [PROJECT_METRICS.md](PROJECT_METRICS.md) | Jan 2, 2026 | 100% | Single source of truth |
+| [TECHNICAL_DEBT_AUDIT_2026-01-02.md](reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md) | Jan 2, 2026 | 100% | ⭐ Latest scan |
+| [AI_MASTER_CONTEXT.md](AI_MASTER_CONTEXT.md) | Jan 2, 2026 | 100% | AI KB integration added |
+| [AI_PROJECT_INDEX.md](AI_PROJECT_INDEX.md) | Jan 2, 2026 | 100% | Reorganized for new audit |
+| [ENGINEERING_RULES.md](ENGINEERING_RULES.md) | Jan 2, 2026 | 100% | Updated compliance status |
+| [GLOSSARY.md](GLOSSARY.md) | Jan 2, 2026 | 100% | Expanded with AI terms |
+| [FEATURE_SURFACING_PLAN.md](planning/FEATURE_SURFACING_PLAN.md) | Jan 2, 2026 | 100% | 118 views planned |
+| [TECHNICAL_DEBT_REMEDIATION_PLAN.md](reports/TECHNICAL_DEBT_REMEDIATION_PLAN.md) | Jan 2, 2026 | 95% | Historical reference |
+| [planning/LESSONS_LEARNED.md](planning/LESSONS_LEARNED.md) | Jan 1, 2026 | 100% | Updated with UI lessons |
 
 **Confidence**: How well this document reflects current code (verified via codebase scan).
 
@@ -230,22 +218,17 @@ This document defines how all project documentation is intended to be read, inte
 
 ### Precedence Rules
 
-1. **Architecture Rules** (ENGINEERING_RULES.md) - Non-negotiable
-2. **Context & Patterns** (AI_MASTER_CONTEXT.md) - Standard practice
-3. **Technical Debt** (TECHNICAL_DEBT_REMEDIATION_PLAN.md) - Current issues
-4. **Decision History** (LESSONS_LEARNED.md) - Learn why
-5. **Implementation Details** (ADVANCED_GAMING_FEATURES_IMPLEMENTATION_PLAN.md) - Tactical
+1. **Latest Audit** (TECHNICAL_DEBT_AUDIT_2026-01-02.md) - Current state of code
+2. **Architecture Rules** (ENGINEERING_RULES.md) - Non-negotiable
+3. **Context & Patterns** (AI_MASTER_CONTEXT.md) - Standard practice
+4. **Historical Debt** (TECHNICAL_DEBT_REMEDIATION_PLAN.md) - What was fixed
+5. **Decision History** (LESSONS_LEARNED.md) - Learn why
 
 ### Document Status Conflicts
 
-**Situation**: DEVELOPMENT_STATUS.md claims "0 errors" but build fails
-
-- **Resolution**: AI_MASTER_CONTEXT.md and TECHNICAL_DEBT_REMEDIATION_PLAN.md are authoritative
-- **Reason**: January 1, 2026 comprehensive audit supersedes December 31 status
-
 | Situation | Primary Source | Secondary Check |
 |-----------|----------------|-----------------|
-| **Build won't compile** | TECHNICAL_DEBT_REMEDIATION_PLAN.md | AI_MASTER_CONTEXT.md |
+| **What's currently broken** | TECHNICAL_DEBT_AUDIT_2026-01-02.md | AI_MASTER_CONTEXT.md |
 | **Writing new code** | AI_MASTER_CONTEXT.md | ENGINEERING_RULES.md |
 | **Architecture decisions** | ENGINEERING_RULES.md | AI_MASTER_CONTEXT.md |
 | **Understanding why** | LESSONS_LEARNED.md | Any other |
@@ -255,71 +238,64 @@ This document defines how all project documentation is intended to be read, inte
 
 ## 🔄 Reading Order by Task Type
 
-### 🚨 **Fixing the Build (START HERE)**
+### 🚨 **Fixing Technical Debt (START HERE)**
 
-1. **TECHNICAL_DEBT_REMEDIATION_PLAN.md** - Phase 0 has exact fixes
-2. **AI_MASTER_CONTEXT.md** - Understand what's broken
+1. **TECHNICAL_DEBT_AUDIT_2026-01-02.md** - Current issues
+2. **AI_MASTER_CONTEXT.md** - Understand patterns
 3. Verify fix with `dotnet build`
 
 ### 🚀 **Starting a New Feature**
 
-1. **TECHNICAL_DEBT_REMEDIATION_PLAN.md** - Check if build works first
+1. **TECHNICAL_DEBT_AUDIT_2026-01-02.md** - Check if build works first
 2. **AI_MASTER_CONTEXT.md** - Learn current patterns
 3. **ENGINEERING_RULES.md** - Understand constraints
 4. **planning/LESSONS_LEARNED.md** - Understand why
 
-### 🔧 **Refactoring Existing Code**
-
-1. **TECHNICAL_DEBT_REMEDIATION_PLAN.md** - Check for related debt
-2. **AI_MASTER_CONTEXT.md** - Review current patterns
-3. **ENGINEERING_RULES.md** - Ensure compliance
-
-### 🎨 **Building New UI Views** ⭐ NEW
+### 🎨 **Building New UI Views**
 
 1. **FEATURE_SURFACING_PLAN.md** - Find the view specification
 2. **Relevant surfacing/*.md** - Get detailed wireframes & ViewModel
 3. **AI_MASTER_CONTEXT.md** - Review MVVM patterns
 4. **ENGINEERING_RULES.md** - Ensure architectural compliance
 
-### 🐛 **Debugging Issues**
+### 🤖 **Working with AI System**
 
-1. **planning/LESSONS_LEARNED.md** - Check for similar past issues
-2. **AI_MASTER_CONTEXT.md** - Understand expected behavior
-3. **TECHNICAL_DEBT_REMEDIATION_PLAN.md** - Check if it's known debt
+1. **AI_MASTER_CONTEXT.md** - AI Architecture section
+2. **AiOrchestrator.cs** - Core coordination logic
+3. **WebSearchService.cs** - Internet fallback
+4. **MarkdownKnowledgeBaseService.cs** - Knowledge storage
 
 ### 📋 **Code Review**
 
 1. **AI_MASTER_CONTEXT.md** - Verify adherence to standards
 2. **ENGINEERING_RULES.md** - Check architectural compliance
-3. **FEATURE_SURFACING_PLAN.md** - Verify view matches specification
+3. **TECHNICAL_DEBT_AUDIT_2026-01-02.md** - Ensure no new debt added
 
 ---
 
 ## 🔗 Cross-Reference Map
 
-### Compilation Issues
+### Current Issues
 
-- **AI_MASTER_CONTEXT.md**: Current status - "11 compilation errors"
-- **TECHNICAL_DEBT_REMEDIATION_PLAN.md**: Phase 0 - Exact files and fixes
-- **DEVELOPMENT_STATUS.md**: ⚠️ OUTDATED - Claims 0 errors
+- **TECHNICAL_DEBT_AUDIT_2026-01-02.md**: Latest scan results
+- **AI_MASTER_CONTEXT.md**: Summary in "Current Technical Debt" section
 
 ### Result Pattern
 
 - **AI_MASTER_CONTEXT.md**: Rule - "MANDATORY. Never return null"
 - **ENGINEERING_RULES.md**: Law - "Must return Result<T>"
-- **TECHNICAL_DEBT_REMEDIATION_PLAN.md**: 50+ violations listed
-- **planning/LESSONS_LEARNED.md**: Why - Historical context
+- **TECHNICAL_DEBT_AUDIT_2026-01-02.md**: 45+ violations listed
 
 ### Async Safety
 
-- **AI_MASTER_CONTEXT.md**: Stats - ".Result: 10, .Wait(): 4"
+- **AI_MASTER_CONTEXT.md**: Current violations count
 - **ENGINEERING_RULES.md**: Law - "Must Not use async void"
-- **TECHNICAL_DEBT_REMEDIATION_PLAN.md**: Phase 1 - Specific instances
+- **TECHNICAL_DEBT_AUDIT_2026-01-02.md**: Specific instances
 
-### CLI Architecture
+### AI Knowledge Base
 
-- **AI_MASTER_CONTEXT.md**: Status - "3/12 command groups complete"
-- **TECHNICAL_DEBT_REMEDIATION_PLAN.md**: Phase 3 - Implementation plan
+- **AI_MASTER_CONTEXT.md**: AI Architecture section
+- **GLOSSARY.md**: RAG, BMAD definitions
 
 ---
 
@@ -328,29 +304,32 @@ This document defines how all project documentation is intended to be read, inte
 ### 🤖 **For AI Models (Recommended Reading Sequence)**
 
 ```
-1. AI_PROJECT_INDEX.md (This file) - 3 minutes
-   → Understand document structure, current blockers
+1. AI_QUICK_START.md - 30 seconds ⭐ START HERE
+   → Build commands, current status, critical issues
 
-2. TECHNICAL_DEBT_REMEDIATION_PLAN.md - 10 minutes
-   → CRITICAL: Understand compilation issues first
+2. ACTIVE_ISSUES.md - 2 minutes
+   → What's broken right now, fix templates
 
-3. AI_MASTER_CONTEXT.md - 15 minutes
-   → Architecture, patterns, current metrics
+3. PATTERNS_COOKBOOK.md - 5 minutes (reference)
+   → Copy-paste code patterns
 
-4. ENGINEERING_RULES.md - 10 minutes
+4. AI_MASTER_CONTEXT.md - 10 minutes
+   → Architecture, full context
+
+5. DECISIONS_LOG.md - 5 minutes (as needed)
+   → Why we made key choices
+
+6. ENGINEERING_RULES.md - 5 minutes
    → Non-negotiable constraints
-
-5. planning/LESSONS_LEARNED.md - 30 minutes (as needed)
-   → Historical context
 ```
 
 ### 👥 **For Human Contributors**
 
 ```
-1. AI_PROJECT_INDEX.md (This file) - 2 minutes
-2. TECHNICAL_DEBT_REMEDIATION_PLAN.md - 5 minutes (if build fails)
+1. AI_QUICK_START.md - 30 seconds
+2. ACTIVE_ISSUES.md - 2 minutes
 3. AI_MASTER_CONTEXT.md - 10 minutes
-4. ENGINEERING_RULES.md - 10 minutes
+4. ENGINEERING_RULES.md - 5 minutes
 5. Begin development
 ```
 
@@ -363,91 +342,48 @@ This document defines how all project documentation is intended to be read, inte
 | **Build Status** | ✅ PASSING (0 errors) |
 | **Source Projects** | 25 (6 main + 19 plugins) |
 | **Test Projects** | 13 |
-| **Source Files** | 763 C# files |
+| **Source Files** | 763+ C# files |
 | **Test Files** | 148 C# files |
-| **Source LOC** | 58,571 lines |
+| **Source LOC** | 58,571+ lines |
 | **Test LOC** | 11,056 lines |
 | **Test Methods** | 529 |
-| **Warnings** | **1** (99.8% reduction) ✅ |
-| **Health Score** | **95/100** ✅ |
+| **Warnings** | ~1,220 (CS1591 docs) |
+| **Health Score** | **91/100** |
 
-### File Distribution
+### Technical Debt Summary (Jan 2, 2026)
 
-| Project | Files |
-|---------|-------|
-| Core | 262 |
-| Application | 221 |
-| Infrastructure | 180 |
-| Presentation | 38 |
-| CLI | 10 |
-| Plugins | 52 |
+| Priority | Issue | Count |
+|----------|-------|-------|
+| 🔴 Critical | `.Result` sync-over-async | 3 |
+| 🟠 High | `async void` methods | 3 |
+| 🟠 High | Silent exception handlers | 4 |
+| 🟡 Medium | TODO comments | 68+ |
+| 🟡 Medium | `return null` | 45+ |
+| 🟡 Medium | Manual HttpClient | 2 |
+| ✅ Resolved | Compilation errors | 0 |
+| ✅ Resolved | CLI command groups | 12/12 |
 
-### Technical Debt Summary
-
-| Priority | Count |
-|----------|-------|
-| ✅ Compilation Errors | 0 (Fixed!) |
-| ✅ Sync-over-async | 0 (Fixed!) |
-| ✅ return null | 0 (Fixed!) |
-| ✅ TODO comments | 0 (Fixed!) |
-| ✅ CLI Groups | 12/12 (Complete) |
-| ✅ Warnings | 1 (99.8% reduction) |
-
- ---
+---
 
 ## 🎯 Immediate Action Items
 
-### ✅ Completed (January 1, 2026)
+### Priority 1: Critical Fixes
 
- **Phase 0-1:**
- 1. ~~**DELETE** Duplicate Classes~~ ✅ Done
- 2. ~~**FIX** Sync-over-async violations~~ ✅ Done
- 3. ~~**VERIFY** build~~ ✅ Build passing
+1. **Fix JwtTokenService.cs** - 3 `.Result` calls causing sync-over-async
+2. **Wrap async void ViewModels** - Add try-catch to prevent crashes
 
- **Phase 3:**
- 4. ~~**IMPLEMENT** 12/12 CLI Command Groups~~ ✅ Done
- 5. ~~**RESOLVE** 29 remaining TODOs~~ ✅ Done
+### Priority 2: High Priority
 
- **Phase 4:**
- 6. ~~**IMPLEMENT** MUGEN Persistence (Repositories)~~ ✅ Done
+1. **Add logging to silent catches** - 4 files need structured logging
+2. **Complete StatusBar bindings** - Wire real-time data
 
- **UI Phase 1 (Shell & Navigation):**
- 7. ~~**IMPLEMENT** MainShell with 7-tab navigation~~ ✅ Done
- 8. ~~**IMPLEMENT** Command palette, AI assistant, performance HUD~~ ✅ Done
- 9. ~~**IMPLEMENT** Global shortcuts (Ctrl+1-7, Ctrl+Shift+P)~~ ✅ Done
+### Priority 3: Documentation
 
- **UI Phase 2 (Dashboard Hub):**
- 10. ~~**IMPLEMENT** Complete widget system (IWidget, WidgetBase, WidgetSize)~~ ✅ Done
- 11. ~~**IMPLEMENT** 5 dashboard widgets with real-time data~~ ✅ Done
- 12. ~~**SURFACE** 5 backend services via UI widgets~~ ✅ Done
-
-  **Phase 5:**
-  7. ~~**REFACTOR** MUGEN Repositories to Result<T>~~ ✅ Done (Character, Tournament, MatchHistory)
-  8. ~~**REFACTOR** RetroAchievementsClient to Result<T>~~ ✅ Done
-  9. ~~**REFACTOR** GameMemoryReader to Result<T>~~ ✅ Done
-  10. ~~**REFACTOR** NetworkQualityMonitor to Result<T>~~ ✅ Done
-  11. ~~**REFACTOR** VoiceCommandService to Result<T>~~ ✅ Done
-
-### ✅ All Technical Debt Phases Complete (January 1, 2026)
-
-### 🎨 UI Development Phases Complete (January 1, 2026)
-
-  1. **Phase 6: Warning Reduction ✅ COMPLETE**
-     - ~~Address CS8618 (Non-nullable property uninitialized)~~ ✅ Done (0 remaining)
-     - ~~Address CS1998 (Async method lacks await)~~ ✅ Done (0 remaining in src)
-     - ~~Address Missing XML Comments (CS1591)~~ ✅ Done (100% documented)
-
- **Phase 7: Project Completion ✅ COMPLETE**
-     - ~~Fix 14 failing tests~~ ✅ Done (14/14 resolved - all tests now pass)
-     - ~~Complete XML documentation~~ ✅ Done (Infrastructure layer: 0 warnings)
-     - ~~Enhance test coverage~~ ✅ Done (100% pass rate achieved)
-     - ~~Update status documents~~ ✅ Done (All documents updated)
-
-  **UI Development Result**: Phase 1 & 2 complete - Complete shell architecture with 7 tabs, 5 dashboard widgets surfacing 5 backend services. Widget system with auto-refresh, error handling, and responsive design. Ready for Phase 3 (Library Enhancement).
+1. **Reduce CS1591 warnings** - Document public APIs
 
 ---
 
 *This index ensures no document is read in isolation. Each document reinforces the others, creating a cohesive knowledge system that scales with the project's complexity.*
 
-**Last Audit**: January 1, 2026 - UI Phase 1 & 2 Complete
-**Next Review**: February 1, 2026 - Phase 3 Planning
+**Last Audit**: January 2, 2026 - Technical Debt Audit Complete
+**Next Review**: February 1, 2026

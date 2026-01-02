@@ -1,5 +1,12 @@
 # Character Management API
 
+**Status**: ✅ Implemented
+**Last Updated**: January 2, 2026
+**Layer**: Core + Application + Infrastructure
+**Related**: [IKEMEN Integration](ikemen_integration.md), [MUGEN Plugins](mugen-plugins.md)
+
+---
+
 This document describes the APIs for managing MUGEN/IKEMEN characters in SaveState Reborn V2.0.
 
 **Note**: This is part of the included fighting game platform features in V2.0, providing IKEMEN GO integration alongside the universal game library management.
@@ -85,6 +92,15 @@ public interface IMugenLauncher
 }
 ```
 
+## Implementation Files
+
+| Component | File |
+|-----------|------|
+| Entity | `src/SaveState.Core/Mugen/Entities/MugenCharacter.cs` |
+| Repository | `src/SaveState.Infrastructure/Repositories/MugenCharacterRepository.cs` |
+| Character Loader | `src/SaveState.Infrastructure/Mugen/MugenCharacterLoader.cs` |
+| Stats Service | `src/SaveState.Infrastructure/Mugen/MugenStatsService.cs` |
+
 ## API Usage
 
 ### Scanning Characters
@@ -117,10 +133,17 @@ var trainingProcess = await launcher.LaunchTrainingAsync("Ryu");
 ## Directory Structure
 
 ```
-data/characters/
-├── streetfighter/     # SF characters (Ryu, Ken, Chun-Li, etc.)
-├── mvc2/             # MVC2 characters (Ryu, Megaman, etc.)
-└── builtin/          # Custom and additional characters
+SaveStateReborn/
+├── engines/
+│   └── ikemen/           # IKEMEN executable and config
+├── data/
+│   ├── characters/       # Character packs
+│   │   ├── streetfighter/
+│   │   ├── mvc2/
+│   │   └── builtin/
+│   ├── stages/          # Fighting arenas
+│   └── music/           # Background music
+└── src/                 # SaveState application
 ```
 
 ## File Format Support
@@ -192,21 +215,10 @@ defence = 100
 ### Character Loading Errors
 
 ```csharp
-try
+var result = await loader.LoadCharacterFromDefAsync("ryu.def");
+if (result.IsFailure)
 {
-    var characters = await loader.ScanIkemenCharactersAsync(cancellationToken);
-}
-catch (DirectoryNotFoundException)
-{
-    // Character directory missing
-}
-catch (FileNotFoundException)
-{
-    // Required character files missing
-}
-catch (FormatException)
-{
-    // Invalid .def file format
+    logger.LogWarning("Failed to load character: {Error}", result.ErrorMessage);
 }
 ```
 
@@ -295,3 +307,11 @@ public async Task Should_Scan_All_Ikemen_Characters()
 2. Use cancellation tokens for long operations
 3. Cache frequently accessed character data
 4. Monitor memory usage with large character collections
+
+---
+
+**Related Documentation**:
+
+- [IKEMEN Integration](ikemen_integration.md) - Engine setup
+- [MUGEN Plugins](mugen-plugins.md) - Advanced features
+- [AI_MASTER_CONTEXT](../AI_MASTER_CONTEXT.md) - Architecture overview

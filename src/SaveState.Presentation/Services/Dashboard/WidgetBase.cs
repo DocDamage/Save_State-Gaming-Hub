@@ -8,7 +8,7 @@ namespace SaveState.Presentation.Services.Dashboard;
 /// </summary>
 public abstract partial class WidgetBase : ObservableObject, IWidget
 {
-    private readonly ILogger _logger;
+    protected readonly ILogger Logger;
     private System.Timers.Timer? _refreshTimer;
 
     /// <summary>
@@ -31,7 +31,7 @@ public abstract partial class WidgetBase : ObservableObject, IWidget
 
     protected WidgetBase(ILogger logger)
     {
-        _logger = logger;
+        Logger = logger;
     }
 
     /// <inheritdoc />
@@ -81,7 +81,7 @@ public abstract partial class WidgetBase : ObservableObject, IWidget
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to initialize widget {WidgetId}", Id);
+            Logger.LogError(ex, "Failed to initialize widget {WidgetId}", Id);
             ErrorMessage = "Failed to load widget data";
         }
         finally
@@ -100,7 +100,7 @@ public abstract partial class WidgetBase : ObservableObject, IWidget
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to refresh widget {WidgetId}", Id);
+            Logger.LogError(ex, "Failed to refresh widget {WidgetId}", Id);
             ErrorMessage = "Failed to refresh widget data";
         }
     }

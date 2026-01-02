@@ -18,6 +18,7 @@ public static class WidgetRegistry
         typeof(ActivityFeedWidget),
         typeof(RecentlyAddedWidget),
         typeof(GoalsProgressWidget),
+        typeof(EmulatorStatusWidget),
     };
 
     /// <summary>
@@ -31,7 +32,8 @@ public static class WidgetRegistry
             new WidgetPosition("todays-stats", 4, 0, WidgetSize.Medium),
             new WidgetPosition("activity-feed", 0, 2, WidgetSize.Full),
             new WidgetPosition("recently-added", 0, 4, WidgetSize.Medium),
-            new WidgetPosition("goals-progress", 4, 4, WidgetSize.Medium),
+            new WidgetPosition("emulator-status", 4, 4, WidgetSize.Medium),
+            new WidgetPosition("goals-progress", 8, 4, WidgetSize.Medium),
         }
     };
 

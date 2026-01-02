@@ -15,12 +15,11 @@
 
   <Button Classes="GameCard"
            Width="280" Height="300"
-           Command="{Binding $parent[views:GameLibraryView].DataContext.OpenGameDetailCommand}"
-           CommandParameter="{Binding}"
            Background="Transparent"
            BorderThickness="0"
            AutomationProperties.Name="{Binding Title, StringFormat='Game card for {0}'}"
-           AutomationProperties.AutomationId="GameCardBorder">
+           AutomationProperties.AutomationId="GameCardBorder"
+           Click="OnGameCardClick">
     <Grid RowDefinitions="*, Auto, Auto, Auto">
       <!-- Selection Checkbox (shown in selection mode) -->
       <Border Grid.Row="0"
@@ -29,13 +28,10 @@
               Width="24" Height="24"
               HorizontalAlignment="Right"
               VerticalAlignment="Top"
-              Margin="12"
-              IsVisible="{Binding $parent[views:GameLibraryView].DataContext.IsSelectionMode}">
+              Margin="12">
         <CheckBox IsChecked="{Binding IsSelected}"
                   HorizontalAlignment="Center"
-                  VerticalAlignment="Center"
-                  Command="{Binding $parent[views:GameLibraryView].DataContext.ToggleGameSelectionCommand}"
-                  CommandParameter="{Binding}" />
+                  VerticalAlignment="Center" />
       </Border>
 
       <!-- Selection Indicator -->

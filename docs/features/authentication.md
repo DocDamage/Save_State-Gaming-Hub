@@ -1,5 +1,12 @@
 # Authentication & Authorization System
 
+**Status**: ✅ Implemented (V2.0 Enterprise Feature)
+**Last Updated**: January 2, 2026
+**Layer**: Core + Infrastructure
+**Related**: [THREAT_MODEL](../architecture/THREAT_MODEL.md), [ENGINEERING_RULES](../ENGINEERING_RULES.md)
+
+---
+
 This document describes the comprehensive authentication and authorization system implemented in SaveStateReborn V2.0.
 
 **Note**: This authentication system is part of the V2.0 enterprise features and may be used for future web API integrations or multi-user scenarios.
@@ -49,7 +56,7 @@ SaveStateReborn implements a complete enterprise-grade authentication and author
   "id": "guid",
   "name": "My Application",
   "description": "API key for my app",
-  "key": "sk_live_**************************", // Replace with your actual Stripe API key
+  "key": "sk_live_**************************",
   "createdAt": "2025-12-29T14:30:00Z",
   "expiresAt": "2026-12-29T00:00:00Z"
 }
@@ -148,9 +155,22 @@ var customRole = new Role
 ### Input Validation
 
 - XSS prevention
-- SQL injection protection
+- SQL injection protection (EF Core parameterization)
 - Command injection blocking
 - Path traversal validation
+
+## Implementation Files
+
+| Component | File |
+|-----------|------|
+| JWT Service | `src/SaveState.Infrastructure/UserManagement/JwtTokenService.cs` |
+| Password Hasher | `src/SaveState.Infrastructure/UserManagement/PasswordHasher.cs` |
+| API Key Repository | `src/SaveState.Infrastructure/UserManagement/ApiKeyRepository.cs` |
+| Rate Limiter | `src/SaveState.Infrastructure/UserManagement/RateLimiter.cs` |
+
+## Known Technical Debt
+
+⚠️ **JwtTokenService.cs** has 3 sync-over-async violations (`.Result` calls) that need to be fixed. See [Technical Debt Audit](../reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md).
 
 ## Usage Examples
 
@@ -284,5 +304,10 @@ Enable debug logging to troubleshoot authentication issues:
 - `DELETE /api/keys/{id}` - Delete API key
 
 ---
+
+**Related Documentation**:
+
+- [Threat Model](../architecture/THREAT_MODEL.md) - Security considerations
+- [Engineering Rules](../ENGINEERING_RULES.md) - Code standards
 
 **Note**: This authentication system provides enterprise-grade security suitable for production applications. All sensitive operations are logged and monitored for security compliance.

@@ -20,6 +20,7 @@ public static class TabRegistry
         ["Social"] = new("Social", "👥", typeof(ViewModels.Shell.SocialViewModel), Key.D5, KeyModifiers.Control),
         ["Tools"] = new("Tools", "🛠️", typeof(ViewModels.Shell.ToolsViewModel), Key.D6, KeyModifiers.Control),
         ["Terminal"] = new("Terminal", "💻", typeof(ViewModels.Shell.TerminalViewModel), Key.D7, KeyModifiers.Control),
+        ["Settings"] = new("Settings", "⚙️", typeof(ViewModels.SettingsViewModel), Key.D8, KeyModifiers.Control),
     };
 
     /// <summary>
@@ -34,6 +35,7 @@ public static class TabRegistry
         yield return Tabs["Social"];
         yield return Tabs["Tools"];
         yield return Tabs["Terminal"];
+        yield return Tabs["Settings"];
     }
 
     /// <summary>

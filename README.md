@@ -1,18 +1,19 @@
 # SaveState Reborn 🎮
 
-> **The Complete Gaming Management Platform - V2.0 + UI Development Active**
+> **Backend 100% Complete** | **UI Development Active** (Phase 1-2 & 4 Complete)
 
-## 🤖 AI Developer Ingestion Order
+## 🏛️ Getting Started
 
-**For AI models working on this codebase, read these documents in this exact order:**
+**🤖 AI/LLM Start Here**: [docs/AI_QUICK_START.md](docs/AI_QUICK_START.md) - 30-second briefing
 
-1. **[docs/AI_PROJECT_INDEX.md](docs/AI_PROJECT_INDEX.md)** (2 min) - Document roles and reading guidance
-2. **[docs/AI_MASTER_CONTEXT.md](docs/AI_MASTER_CONTEXT.md)** (15 min) - Architecture patterns and coding standards
-3. **[docs/ENGINEERING_RULES.md](docs/ENGINEERING_RULES.md)** (10 min) - Non-negotiable constraints and rules
-4. **[docs/planning/ADVANCED_GAMING_FEATURES_IMPLEMENTATION_PLAN.md](docs/planning/ADVANCED_GAMING_FEATURES_IMPLEMENTATION_PLAN.md)** (20 min) - Current implementation status
-5. **[docs/planning/LESSONS_LEARNED.md](docs/planning/LESSONS_LEARNED.md)** (30 min) - Historical context and why decisions were made
+**Quick Links**:
 
-**Conflict Resolution**: If documents disagree, AI_MASTER_CONTEXT.md and ENGINEERING_RULES.md have equal highest priority.
+| Role | Start With |
+|------|------------|
+| 🤖 AI Coder | [AI_QUICK_START.md](docs/AI_QUICK_START.md) → [ACTIVE_ISSUES.md](docs/ACTIVE_ISSUES.md) |
+| 👨‍💻 Developer | [AI_QUICK_START.md](docs/AI_QUICK_START.md) → [PATTERNS_COOKBOOK.md](docs/PATTERNS_COOKBOOK.md) |
+| 🏗️ Architect | [DECISIONS_LOG.md](docs/DECISIONS_LOG.md) → [ENGINEERING_RULES.md](docs/ENGINEERING_RULES.md) |
+| 📊 Manager | [PROJECT_METRICS.md](docs/PROJECT_METRICS.md) |
 
 ---
 
@@ -20,7 +21,7 @@
 [![Test Coverage](https://img.shields.io/badge/tests-494/494_passing_(100%25)-brightgreen)](https://github.com/yourusername/SaveStateReborn)
 [![.NET Version](https://img.shields.io/badge/.NET-9.0-blue)](https://dotnet.microsoft.com/)
 [![Version](https://img.shields.io/badge/version-1.0.0-blue)](CHANGELOG.md)
-[![Health Score](https://img.shields.io/badge/health_score-98/100_UI_ACTIVE-gold)](PERFECT_SCORE_ACHIEVED.md)
+[![Health Score](https://img.shields.io/badge/health_score-91/100_UI_ACTIVE-gold)](PERFECT_SCORE_ACHIEVED.md)
 [![UI Progress](https://img.shields.io/badge/UI_progress-15%25_Phase_1%2B2_Complete-blue)](docs/planning/FEATURE_SURFACING_PLAN.md)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 

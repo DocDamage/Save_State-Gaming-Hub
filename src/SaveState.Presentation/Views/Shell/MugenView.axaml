@@ -1,0 +1,303 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             x:Class="SaveState.Presentation.Views.Shell.MugenView"
+             x:DataType="vm:MugenViewModel">
+
+    <Grid ColumnDefinitions="200, *">
+        <!-- Left Sidebar: Sections -->
+        <Border Grid.Column="0" Classes="GlassContainer" Margin="20,20,10,20" Padding="15">
+            <StackPanel Spacing="10">
+                <TextBlock Text="🥊 MUGEN"
+                          Classes="Subtitle"
+                          FontWeight="Bold"
+                          Margin="0,0,0,15"/>
+
+                <ItemsControl ItemsSource="{Binding MugenSections}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Classes="SidebarButton"
+                                   Command="{Binding $parent[UserControl].DataContext.SelectSectionCommand}"
+                                   CommandParameter="{Binding}"
+                                   Margin="0,0,0,5">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{Binding Icon}" FontSize="20"/>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+        <!-- Right Panel: Content -->
+        <ScrollViewer Grid.Column="1" Margin="10,20,20,20">
+            <StackPanel Spacing="15">
+
+                <!-- Roster Section -->
+                <Border Classes="GlassContainer" Padding="20"
+                       IsVisible="{Binding SelectedSection.Id, Converter={StaticResource EqualToConverter}, ConverterParameter='Roster'}">
+                    <StackPanel Spacing="15">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Text="🎮 CHARACTER ROSTER" Classes="Subtitle" FontWeight="Bold"/>
+                            <Button Grid.Column="1" Content="Scan Directory" Command="{Binding LoadCharactersCommand}"/>
+                        </Grid>
+
+                        <TextBlock Text="{Binding TotalCharacters, StringFormat='Showing {0} characters'}"
+                                  Classes="Caption"
+                                  Foreground="{StaticResource TextSecondaryBrush}"/>
+
+                        <!-- Character Grid -->
+                        <ItemsControl ItemsSource="{Binding Characters}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="GlassContainer"
+                                           Width="150"
+                                           Height="200"
+                                           Margin="5"
+                                           Padding="10">
+                                        <StackPanel Spacing="8">
+                                            <TextBlock Text="🥋" FontSize="48" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Name}"
+                                                      FontWeight="Bold"
+                                                      HorizontalAlignment="Center"
+                                                      TextAlignment="Center"/>
+                                            <TextBlock Text="{Binding Franchise}"
+                                                      Classes="Caption"
+                                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                                      HorizontalAlignment="Center"/>
+                                            <TextBlock Text="{Binding WinRate, StringFormat='Win Rate: {0}%'}"
+                                                      Classes="Caption"
+                                                      Foreground="{StaticResource AccentBrush}"
+                                                      HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Death Battle Section -->
+                <Border Classes="GlassContainer" Padding="20"
+                       IsVisible="{Binding SelectedSection.Id, Converter={StaticResource EqualToConverter}, ConverterParameter='DeathBattle'}">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="💀 DEATH BATTLE SIMULATOR" Classes="Subtitle" FontWeight="Bold"/>
+
+                        <!-- Player Selection -->
+                        <Grid ColumnDefinitions="*, Auto, *">
+                            <!-- Player 1 -->
+                            <Border Classes="GlassContainer" Padding="20">
+                                <StackPanel Spacing="10">
+                                    <TextBlock Text="PLAYER 1" Classes="Caption" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="🥋" FontSize="64" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player1.Name, FallbackValue='Not Selected'}"
+                                              FontSize="18"
+                                              FontWeight="Bold"
+                                              HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player1.Franchise, FallbackValue=''}"
+                                              Classes="Caption"
+                                              Foreground="{StaticResource TextSecondaryBrush}"
+                                              HorizontalAlignment="Center"/>
+                                    <ComboBox ItemsSource="{Binding Characters}"
+                                             SelectedItem="{Binding Player1}"
+                                             HorizontalAlignment="Stretch">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding DisplayName}"/>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- VS -->
+                            <TextBlock Grid.Column="1"
+                                      Text="VS"
+                                      FontSize="32"
+                                      FontWeight="Bold"
+                                      VerticalAlignment="Center"
+                                      Margin="20,0"/>
+
+                            <!-- Player 2 -->
+                            <Border Grid.Column="2" Classes="GlassContainer" Padding="20">
+                                <StackPanel Spacing="10">
+                                    <TextBlock Text="PLAYER 2" Classes="Caption" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="🥋" FontSize="64" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player2.Name, FallbackValue='Not Selected'}"
+                                              FontSize="18"
+                                              FontWeight="Bold"
+                                              HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player2.Franchise, FallbackValue=''}"
+                                              Classes="Caption"
+                                              Foreground="{StaticResource TextSecondaryBrush}"
+                                              HorizontalAlignment="Center"/>
+                                    <ComboBox ItemsSource="{Binding Characters}"
+                                             SelectedItem="{Binding Player2}"
+                                             HorizontalAlignment="Stretch">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding DisplayName}"/>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- AI Prediction -->
+                        <Border Classes="GlassContainer" Padding="15">
+                            <TextBlock Text="{Binding PredictionText}"
+                                      TextWrapping="Wrap"
+                                      HorizontalAlignment="Center"/>
+                        </Border>
+
+                        <!-- Simulation Settings -->
+                        <StackPanel Orientation="Horizontal" Spacing="15" HorizontalAlignment="Center">
+                            <TextBlock Text="Matches:" VerticalAlignment="Center"/>
+                            <ComboBox SelectedItem="{Binding MatchCount}" Width="100">
+                                <ComboBoxItem Content="1"/>
+                                <ComboBoxItem Content="10" IsSelected="True"/>
+                                <ComboBoxItem Content="100"/>
+                                <ComboBoxItem Content="1000"/>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <!-- Run Button -->
+                        <Button Content="🔥 RUN DEATH BATTLE 🔥"
+                               Command="{Binding RunDeathBattleCommand}"
+                               HorizontalAlignment="Center"
+                               Padding="30,15"
+                               FontSize="16"
+                               FontWeight="Bold"
+                               IsEnabled="{Binding !IsSimulating}"/>
+
+                        <!-- Results -->
+                        <Border Classes="GlassContainer" Padding="15" IsVisible="{Binding BattleResults, Converter={StaticResource StringNotEmptyConverter}}">
+                            <TextBlock Text="{Binding BattleResults}"
+                                      TextWrapping="Wrap"
+                                      FontFamily="Consolas"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Downloads Section -->
+                <Border Classes="GlassContainer" Padding="20"
+                       IsVisible="{Binding SelectedSection.Id, Converter={StaticResource EqualToConverter}, ConverterParameter='Downloads'}">
+                    <StackPanel Spacing="20">
+                        <TextBlock Text="📥 MUGEN ASSET DOWNLOADER" Classes="Subtitle" FontWeight="Bold"/>
+
+                        <TextBlock Text="Paste a URL from a MUGEN repository (characters, stages, etc.) to download and automatically install it."
+                                  Classes="Body"
+                                  TextWrapping="Wrap"
+                                  Foreground="{StaticResource TextSecondaryBrush}"/>
+
+                        <!-- URL Input -->
+                        <Border Classes="GlassContainer" Background="#1A1A1A" Padding="15">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <TextBox Text="{Binding AssetUrl}"
+                                        Watermark="https://mugen-archive.com/file..."
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Padding="10"/>
+                                <Button Grid.Column="1"
+                                        Content="Download &amp; Install"
+                                        Classes="Primary"
+                                        Command="{Binding DownloadAssetCommand}"
+                                        IsEnabled="{Binding !IsDownloading}"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Progress Section -->
+                        <StackPanel IsVisible="{Binding IsDownloading}" Spacing="10">
+                            <ProgressBar Value="{Binding DownloadProgress}"
+                                        Minimum="0" Maximum="100"
+                                        Height="10"
+                                        Foreground="{StaticResource AccentBrush}"/>
+                            <TextBlock Text="{Binding DownloadStatus}"
+                                      HorizontalAlignment="Center"
+                                      Classes="Caption"/>
+                        </StackPanel>
+
+                        <TextBlock Text="{Binding DownloadStatus}"
+                                  IsVisible="{Binding !IsDownloading}"
+                                  HorizontalAlignment="Center"
+                                  Classes="Caption"
+                                  Foreground="{StaticResource AccentBrush}"/>
+
+                        <!-- Quick Links -->
+                        <TextBlock Text="EXTERNAL REPOSITORIES" Classes="Caption" FontWeight="Bold" Margin="0,10,0,0"/>
+                        <WrapPanel>
+                            <Button Content="MUGEN Archive" Classes="SidebarButton" Width="150" Margin="5"/>
+                            <Button Content="Mugen Free For All" Classes="SidebarButton" Width="150" Margin="5"/>
+                            <Button Content="Mugen Guild" Classes="SidebarButton" Width="150" Margin="5"/>
+                            <Button Content="AltMugen" Classes="SidebarButton" Width="150" Margin="5"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Stats Section -->
+                <Border Classes="GlassContainer" Padding="20"
+                       IsVisible="{Binding SelectedSection.Id, Converter={StaticResource EqualToConverter}, ConverterParameter='Stats'}">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="📊 MUGEN STATISTICS" Classes="Subtitle" FontWeight="Bold"/>
+
+                        <Grid ColumnDefinitions="*, *, *">
+                            <Border Classes="GlassContainer" Padding="20" Margin="0,0,7.5,0">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="🎮" FontSize="32" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding TotalMatches}"
+                                              FontSize="28"
+                                              FontWeight="Bold"
+                                              HorizontalAlignment="Center"
+                                              Foreground="{StaticResource AccentBrush}"/>
+                                    <TextBlock Text="Total Matches"
+                                              Classes="Caption"
+                                              HorizontalAlignment="Center"
+                                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="1" Classes="GlassContainer" Padding="20" Margin="7.5,0,7.5,0">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="⭐" FontSize="32" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding MostPlayedCharacter}"
+                                              FontSize="20"
+                                              FontWeight="Bold"
+                                              HorizontalAlignment="Center"
+                                              Foreground="#ff6b35"/>
+                                    <TextBlock Text="Most Played"
+                                              Classes="Caption"
+                                              HorizontalAlignment="Center"
+                                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="2" Classes="GlassContainer" Padding="20" Margin="7.5,0,0,0">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="🏆" FontSize="32" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding HighestWinRate}"
+                                              FontSize="20"
+                                              FontWeight="Bold"
+                                              HorizontalAlignment="Center"
+                                              Foreground="#44cc11"/>
+                                    <TextBlock Text="Highest Win Rate"
+                                              Classes="Caption"
+                                              HorizontalAlignment="Center"
+                                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

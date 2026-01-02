@@ -124,7 +124,7 @@ public class SocialService : ISocialService
     /// <param name="limit">Maximum number of entries to return.</param>
     /// <param name="ct">Cancellation token for the operation.</param>
     /// <returns>A result containing the leaderboard entries.</returns>
-    public Task<Result<IReadOnlyList<LeaderboardEntry>>> GetLeaderboardAsync(LeaderboardType type, string gameId = null, int limit = 50, CancellationToken ct = default)
+    public Task<Result<IReadOnlyList<LeaderboardEntry>>> GetLeaderboardAsync(LeaderboardType type, string gameId = "", int limit = 50, CancellationToken ct = default)
     {
         try
         {

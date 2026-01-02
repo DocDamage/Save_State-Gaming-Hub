@@ -15,4 +15,13 @@ public interface IUserPreferencesService
     /// Marks the onboarding flow as completed.
     /// </summary>
     Task CompleteOnboardingAsync(CancellationToken cancellationToken = default);
+
+    Task<string> GetPreferredAiProviderAsync(CancellationToken ct = default);
+    Task SetPreferredAiProviderAsync(string provider, CancellationToken ct = default);
+
+    Task<string> GetPreferredAiModelAsync(CancellationToken ct = default);
+    Task SetPreferredAiModelAsync(string model, CancellationToken ct = default);
+
+    Task<string> GetAiApiKeyAsync(string provider, CancellationToken ct = default);
+    Task SetAiApiKeyAsync(string provider, string apiKey, CancellationToken ct = default);
 }

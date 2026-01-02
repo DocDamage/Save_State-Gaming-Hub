@@ -9,6 +9,7 @@ public interface IKnowledgeStore
     Task BoostAsync(string id, float relevanceMultiplier, CancellationToken ct);
     Task FlagAsync(string id, CancellationToken ct);
     Task PruneLowQualityAsync(float relevanceThreshold, CancellationToken ct);
+    Task ClearAllAsync(CancellationToken ct);
 }
 
 public record KnowledgeHit(string Id, string Content, object Metadata, float Relevance);

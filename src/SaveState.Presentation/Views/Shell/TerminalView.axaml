@@ -3,14 +3,46 @@
              xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
              x:Class="SaveState.Presentation.Views.Shell.TerminalView"
              x:DataType="vm:TerminalViewModel">
-    <Grid Background="Black" Margin="20">
-        <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4">
-            <ScrollViewer>
-                <TextBlock Text="[root@savestate ~]# _"
-                           FontFamily="Consolas, Monospace"
-                           Foreground="#00FF00"
-                           Margin="10" />
+    <Border Background="#0C0C0C" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8" Margin="20">
+        <Grid RowDefinitions="*, Auto">
+            <!-- Output Log -->
+            <ScrollViewer Grid.Row="0" x:Name="LogScrollViewer">
+                <ItemsControl ItemsSource="{Binding History}" Padding="15">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}"
+                                     FontFamily="Consolas, Monospace"
+                                     Foreground="#DCDCDC"
+                                     TextWrapping="Wrap"
+                                     Margin="0,0,0,5" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </ScrollViewer>
-        </Border>
-    </Grid>
+
+            <!-- Input Area -->
+            <Border Grid.Row="1" Background="#1A1A1A" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="10">
+                <Grid ColumnDefinitions="Auto, *">
+                    <TextBlock Text="[root@savestate]# "
+                             VerticalAlignment="Center"
+                             FontFamily="Consolas, Monospace"
+                             Foreground="{StaticResource AccentBrush}"
+                             FontWeight="Bold" />
+                    <TextBox Grid.Column="1"
+                            Text="{Binding CommandText, Mode=TwoWay}"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            FontFamily="Consolas, Monospace"
+                            Foreground="White"
+                            Padding="5,0"
+                            Watermark="Enter command..."
+                            VerticalContentAlignment="Center">
+                        <TextBox.KeyBindings>
+                            <KeyBinding Gesture="Enter" Command="{Binding ExecuteCommand}" />
+                        </TextBox.KeyBindings>
+                    </TextBox>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
 </UserControl>

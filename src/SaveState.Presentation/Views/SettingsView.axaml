@@ -101,8 +101,55 @@
             <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding FormattedCurrency}" Classes="Body" FontWeight="Bold" />
 
           </Grid>
+        </StackPanel>
+      </Border>
 
-          <TextBlock Text="Formatting examples show how dates, numbers, and currency are displayed in the current culture." Classes="Caption" />
+      <!-- AI Integration Section -->
+      <Border Classes="Card" Padding="16">
+        <StackPanel Spacing="15">
+          <TextBlock Text="🤖 AI Integration" Classes="Header" />
+          <TextBlock Text="Configure your preferred Large Language Model (LLM) and local embedded AI features."
+                    Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
+
+          <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto, Auto">
+            <!-- Provider Selection -->
+            <StackPanel Grid.Row="0" Grid.Column="0" Spacing="8" Margin="0,0,10,10">
+              <TextBlock Text="AI Provider" Classes="Label" />
+              <ComboBox ItemsSource="{Binding AvailableAiProviders}"
+                       SelectedItem="{Binding SelectedAiProvider}"
+                       HorizontalAlignment="Stretch" />
+            </StackPanel>
+
+            <!-- Model Selection -->
+            <StackPanel Grid.Row="0" Grid.Column="1" Spacing="8" Margin="10,0,0,10">
+              <TextBlock Text="Active LLM Model" Classes="Label" />
+              <ComboBox ItemsSource="{Binding AvailableAiModels}"
+                       SelectedItem="{Binding SelectedAiModel}"
+                       HorizontalAlignment="Stretch" />
+            </StackPanel>
+
+            <!-- AI API Keys -->
+            <StackPanel Grid.Row="1" Grid.Column="0" Spacing="8" Margin="0,10,10,10">
+              <TextBlock Text="OpenAI API Key" Classes="Label" />
+              <TextBox PasswordChar="*" Text="{Binding OpenAiApiKey}" Watermark="sk-..." />
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="8" Margin="10,10,0,10">
+              <TextBlock Text="Groq API Key" Classes="Label" />
+              <TextBox PasswordChar="*" Text="{Binding GroqApiKey}" Watermark="gsk_..." />
+            </StackPanel>
+
+            <!-- Local AI Features -->
+            <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Spacing="10">
+              <TextBlock Text="Advanced Local Features" Classes="Label" />
+              <StackPanel Orientation="Horizontal" Spacing="20">
+                <CheckBox Content="Enable RAG (Retrieval-Augmented Generation)" IsChecked="True" />
+                <CheckBox Content="Enable BMAD (Behavioral Model &amp; Data)" IsChecked="True" />
+              </StackPanel>
+              <TextBlock Text="Local features run entirely on your hardware for maximum privacy and low latency."
+                        Classes="Caption" Foreground="{StaticResource AccentBrush}" />
+            </StackPanel>
+          </Grid>
         </StackPanel>
       </Border>
 

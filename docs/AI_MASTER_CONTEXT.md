@@ -1,9 +1,9 @@
 # 🤖 AI Master Context: SaveState Reborn
 
-**Status**: 🚀 UI Development Phase - Phase 3 (Library) Active
-**Last Updated**: January 2, 2026 (Library UI Stabilization & Repository Safety Fixes)
+**Status**: 🚀 Production + Active Development
+**Last Updated**: January 2, 2026 (Technical Debt Audit + AI Knowledge Base Integration)
 **Maintained By**: Development Team
-**Next Review**: February 1, 2026 (Phase 3 Planning)
+**Next Review**: February 1, 2026
 **Related Documents**: [AI_PROJECT_INDEX.md](./AI_PROJECT_INDEX.md), [ENGINEERING_RULES.md](./ENGINEERING_RULES.md), [LESSONS_LEARNED.md](planning/LESSONS_LEARNED.md), [FEATURE_SURFACING_PLAN.md](planning/FEATURE_SURFACING_PLAN.md)
 
 ---
@@ -28,32 +28,38 @@
 ---
 
 > [!NOTE]
-> **UI Development Active**: Phase 1 (Core Shell & Navigation) and Phase 2 (Dashboard Hub) completed. 5/5 dashboard widgets implemented with real-time data. See [FEATURE_SURFACING_PLAN.md](planning/FEATURE_SURFACING_PLAN.md) for 16-week UI implementation roadmap.
+> **UI Development Active**: Phase 1 (Core Shell & Navigation), Phase 2 (Dashboard Hub), and Phase 4 (Analytics & Social) completed. AI Knowledge Base with internet search integration now active. See [FEATURE_SURFACING_PLAN.md](planning/FEATURE_SURFACING_PLAN.md) for 16-week UI implementation roadmap.
 
 ---
 
-## ✅ Build Status (Fixed January 1, 2026)
+## ✅ Build Status & Critical Issues
 
-### Compilation Status
+### Build Health
 
 | Metric | Status |
 |--------|--------|
 | **Build Result** | ✅ PASSING (0 errors) |
-| **Warnings** | 0 (100% reduction) ✅ |
-| **Tests Runnable** | ✅ Yes (494/494 tests passing - 100%) |
-| **Health Score** | **100/100** ✅ PERFECT |
+| **Full Metrics** | See [PROJECT_METRICS.md](PROJECT_METRICS.md) |
+| **Tests Runnable** | ✅ Yes (529 test methods) |
+| **Health Score** | **91/100** ⚠️ (Minor debt remaining) |
 
-### Fixes Applied
+### Recent Fixes Applied (January 2, 2026)
 
-1. ✅ Deleted duplicate `TournamentMatch.cs` file
-2. ✅ Renamed `ValueObjects/MugenCollection.cs` to `MugenCollectionSummary.cs`
-3. ✅ Fixed enum references (`MatchStatus` and `ParticipantStatus`)
-4. ✅ Fixed Result pattern usage in `MugenMatchHistoryRepository`
-5. ✅ Aligned `IMugenCollectionService` to use `MugenCharacterCollection`
-6. ✅ Resolved critical Library tab crash (XAML parent binding errors)
-7. ✅ Improved `GameRepository` safety with platform null-checks
-8. ✅ Updated database seeding to include valid platform relationships
-9. ✅ Enhanced `ViewLocator` with Dashboard Widget support
+1. ✅ Integrated `IWebSearchService` for internet search fallback
+2. ✅ Implemented `SaveToKnowledgeBaseAsync` for auto-saving search results
+3. ✅ Refactored `AiOrchestrator.ProcessRequestWithContextAsync` to reduce cyclomatic complexity
+4. ✅ Registered web search service in DI container
+5. ✅ Created comprehensive Technical Debt Audit Report
+
+### Known Issues (From January 2, 2026 Audit)
+
+| Issue | Count | Severity |
+|-------|-------|----------|
+| `.Result` sync-over-async | 3 (JwtTokenService) | 🔴 CRITICAL |
+| `async void` methods | 3 (ViewModels) | 🟠 HIGH |
+| Silent exception handlers | 4 | 🟡 MEDIUM |
+| TODO Comments | 68+ | 🟡 MEDIUM |
+| `return null` statements | 45+ | 🟡 MEDIUM |
 
 ---
 
@@ -64,15 +70,16 @@
 - **Clean Architecture**: Domain at the center (`Core`), Infrastructure (`Infrastructure`) on the outside.
 - **CQRS**: Command-Query Responsibility Segregation via `IMediator`.
 - **Result Pattern**: **MANDATORY**. Never return `null` or throw business exceptions. Use `Result<T>`.
-- **Dependency Injection**: Registered in `src/SaveState.Infrastructure/DependencyInjection.cs` (479 lines).
+- **Dependency Injection**: Registered in `src/SaveState.Infrastructure/DependencyInjection.cs` (494 lines).
 
 ### 🧠 AI Architecture (The "Brain")
 
-- **Orchestrator**: `AiOrchestrator` coordinates all AI tasks. NO MORE "God Services".
-- **Knowledge**: `SqliteVectorStore` (Semantic Kernel style) for long-term data.
+- **Orchestrator**: `AiOrchestrator` coordinates all AI tasks with RAG, BMAD, and Web Search.
+- **Knowledge Base**: `SqliteVectorStore` (Semantic Kernel style) for long-term data + `MarkdownKnowledgeBaseService` for file-based knowledge.
+- **Web Search**: `IWebSearchService` for internet fallback when local knowledge is insufficient.
 - **Memory**: `EnhancedShortTermMemory` for context retention.
 - **Resilience**: `AiResiliencePolicy` handles retries/circuit breakers (Polly).
-- **Prompt Strategy**: Decentralized. Services (e.g., `GameBriefingService`) build their own prompts; Orchestrator executes them.
+- **Auto-Learning**: Search results are automatically saved to knowledge base as Markdown files.
 
 ### 🛠️ Tech Stack
 
@@ -87,42 +94,22 @@
 
 ## 🗺️ Core Project Structure
 
-| Project | Files | Purpose | Key Patterns |
-|---------|-------|---------|--------------|
-| `SaveState.Core` | 262 | 22 bounded contexts, Entities, Value Objects, Interfaces | Domain Events, Guard Clauses, Result Pattern |
-| `SaveState.Application` | 221 | Use Cases, MediatR Handlers, DTOs | FluentValidation, 50+ Commands/Queries |
-| `SaveState.Infrastructure` | 180 | Persistence, APIs, DI, 60+ services | EF Core, Resilient HTTP Clients, Polly |
-| `SaveState.Presentation` | 38 | XAML Views, ViewModels, Big Picture Mode | ReactiveUI, MVVM |
-| `SaveState.CLI` | 10 | Power-user console (15+ commands) | Spectre.Console, System.CommandLine |
-| `SaveState.Plugins.*` | 52 | 19 specialized plugins | IPlugin interface, capability-based loading |
+> For detailed file counts and line metrics, see [PROJECT_METRICS.md](PROJECT_METRICS.md).
+
+| Project | Purpose | Key Patterns |
+|---------|---------|--------------|
+| `SaveState.Core` | 22 bounded contexts, Entities, Value Objects, Interfaces | Domain Events, Guard Clauses, Result Pattern |
+| `SaveState.Application` | Use Cases, MediatR Handlers, DTOs | FluentValidation, 50+ Commands/Queries |
+| `SaveState.Infrastructure` | Persistence, APIs, DI, 60+ services | EF Core, Resilient HTTP Clients, Polly |
+| `SaveState.Presentation` | XAML Views, ViewModels, Big Picture Mode | ReactiveUI, MVVM |
+| `SaveState.CLI` | Power-user console (15+ commands) | Spectre.Console, System.CommandLine |
+| `SaveState.Plugins.*` | 19 specialized plugins | IPlugin interface, capability-based loading |
 
 ---
 
 ## 📊 Codebase Metrics
 
-### Source Code (January 1, 2026 Audit)
-
-| Metric | Value |
-|--------|-------|
-| **Source Projects** | 25 (6 main + 19 plugins) |
-| **Test Projects** | 13 |
-| **Source Files** | 763 C# files |
-| **Test Files** | 148 C# files |
-| **Source LOC** | 58,571 lines |
-| **Test LOC** | 11,056 lines |
-| **Test Methods** | 529 (Fact + Theory) |
-| **Bounded Contexts** | 22 in Core |
-
-### Project File Distribution
-
-```
-SaveState.Core:           262 files (Domain Layer)
-SaveState.Application:    221 files (Application Layer)
-SaveState.Infrastructure: 180 files (Infrastructure Layer)
-SaveState.Presentation:    38 files (UI Layer)
-SaveState.CLI:             10 files (CLI)
-19 Plugin Projects:        52 files (Extensibility)
-```
+See [PROJECT_METRICS.md](PROJECT_METRICS.md) for a comprehensive, single source of truth for all project statistics, build health, and technical debt metrics.
 
 ---
 
@@ -136,13 +123,13 @@ NEVER return `null` for failures.
 - **Failure**: `Result<T>.Failure(errorMessage, ErrorType)` (e.g., `ErrorType.NotFound`)
 - **Validation**: Use `Guard.Against` (Ardalis) in constructors.
 
-⚠️ **Current Violations**: ~50 `return null` statements need conversion (see Tech Debt Report)
+⚠️ **Current Violations**: ~45 `return null` statements need conversion (see Tech Debt Audit)
 
 ### 2. Async Safety
 
-- **Avoid `async void`**: Use `async Task` everywhere. ✅ **0 violations found**
-- **Avoid `.Result`**: 10 instances need fixing
-- **Avoid `.Wait()`**: 4 instances need fixing
+- **Avoid `async void`**: Use `async Task` everywhere. ⚠️ **3 violations in ViewModels**
+- **Avoid `.Result`**: 3 instances need fixing in `JwtTokenService.cs`
+- **Avoid `.Wait()`**: ✅ 0 violations
 - **Avoid `GetAwaiter().GetResult()`**: 2 instances (in Dispose methods - acceptable)
 - **Exception**: Top-level event handlers in UI can be `async void`, but **MUST** wrap in `try-catch` with structured logging.
 - **UI Thread**: Use `Dispatcher.UIThread.InvokeAsync` for UI updates from background tasks.
@@ -175,42 +162,42 @@ NEVER return `null` for failures.
 | **Value Object** | [GameTitle.cs](../src/SaveState.Core/Common/ValueObjects/GameTitle.cs) |
 | **DI Registration** | [DependencyInjection.cs](../src/SaveState.Infrastructure/DependencyInjection.cs) |
 | **Command Group** | [GameCommands.cs](../src/SaveState.CLI/Commands/GameCommands.cs) |
+| **Web Search Service** | [WebSearchService.cs](../src/SaveState.Infrastructure/Ai/Services/WebSearchService.cs) |
+| **Knowledge Base** | [MarkdownKnowledgeBaseService.cs](../src/SaveState.Infrastructure/Ai/Knowledge/MarkdownKnowledgeBaseService.cs) |
 
 ---
 
 ## 🔧 Current Technical Debt
 
-### Critical (Blocking)
+### Critical (Fix Immediately)
 
-| Issue | Count | Impact |
-|-------|-------|--------|
-| Compilation Errors | 11 | 🚨 Blocks all development |
+| Issue | Location | Impact |
+|-------|----------|--------|
+| `.Result` sync-over-async | `JwtTokenService.cs:29,98,118` | Thread starvation, deadlocks |
 
 ### High Priority
 
 | Issue | Count | Files |
 |-------|-------|-------|
-| `.Result` usage | 10 | PluginManager, MugenCoachService, PerformanceMetricsCollector, etc. |
-| `.Wait()` usage | 4 | PerformanceMetricsCollector, PerformanceProfiler |
-| Manual HttpClient | 2 | MugenManagerPlugin, ItchGameProviderPlugin |
+| `async void` methods | 3 | DashboardViewModel, StatusBarViewModel, TerminalViewModel |
+| Silent exception handlers | 4 | RecommendationService, SmartCategorizationService, EmulatorRomScanner |
 
 ### Medium Priority
 
 | Issue | Count | Files |
 |-------|-------|-------|
-| `return null` | 50+ | RetroAchievementsClient (15), GameMemoryReader (12), etc. |
-| TODO comments | 32 | 17 files across MUGEN, CLI, Analytics |
-| CLI command groups | 9 remaining | Only 3/12 implemented |
+| `return null` | 45+ | GameMemoryReader (8), PerformanceProfiler (4), etc. |
+| TODO comments | 68+ | Mostly in Presentation layer ViewModels |
+| Manual HttpClient | 2 | MugenManagerPlugin, ItchGameProviderPlugin |
 
 ### Low Priority
 
 | Issue | Count | Notes |
 |-------|-------|-------|
-| `lock()` statements | 21 | Appropriate usage in monitoring/state |
-| `#pragma warning` | 1 | Intentional - cache operations |
-| **Total Warnings** | **1** | **99.8% reduction achieved** ✅ |
+| CS1591 XML docs | ~1200 | Documentation gaps |
+| `GetAwaiter().GetResult()` | 2 | In Dispose methods - acceptable |
 
-**Full Details**: [TECHNICAL_DEBT_REMEDIATION_PLAN.md](reports/TECHNICAL_DEBT_REMEDIATION_PLAN.md)
+**Full Details**: [TECHNICAL_DEBT_AUDIT_2026-01-02.md](reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md)
 
 ---
 
@@ -225,6 +212,7 @@ Key decisions that shaped the codebase:
 | **Result<T> Pattern** | Type-safe error handling | Exceptions, Option types |
 | **IHttpClientFactory** | Socket pooling | Manual HttpClient |
 | **Plugin Architecture** | Extensibility | Monolithic features |
+| **AI Knowledge Base** | RAG + Web Search fallback | Static prompts only |
 
 **When to reference**: Before proposing architectural changes.
 
@@ -234,11 +222,12 @@ Key decisions that shaped the codebase:
 
 | Location | Reason | Caution |
 |----------|--------|---------|
-| `src/SaveState.Core/Mugen/Entities/` | 🚨 **BROKEN** - Duplicate definitions | Fix Phase 0 first |
+| `src/SaveState.Infrastructure/Ai/AiOrchestrator.cs` | Core AI coordination | Changes affect all AI features |
 | `src/SaveState.Core/GameLibrary/Entities/Game.cs` | Core domain model | Changes cascade widely |
-| `src/SaveState.Infrastructure/DependencyInjection.cs` | 479 lines of registration | Keep in sync with services |
+| `src/SaveState.Infrastructure/DependencyInjection.cs` | 494 lines of registration | Keep in sync with services |
 | `src/SaveState.Application/GameLibrary/Commands/` | Primary business logic | Heavy test coverage required |
 | `src/SaveState.Infrastructure/Persistence/SaveStateDbContext.cs` | Database schema | Requires migration management |
+| `src/SaveState.Presentation/ViewModels/` | UI logic | Many TODOs remaining |
 
 **Rule**: Changes to these files require architectural review + tests.
 
@@ -248,30 +237,39 @@ Key decisions that shaped the codebase:
 
 | Anti-Pattern | Current Violations | Use Instead |
 |--------------|-------------------|-------------|
-| Null returns | 50+ | `Result<T>.Failure("msg")` |
-| `.Result` sync-over-async | 10 | `await` with ConfigureAwait |
-| `.Wait()` blocking | 4 | `await` with ConfigureAwait |
+| Null returns | 45+ | `Result<T>.Failure("msg")` |
+| `.Result` sync-over-async | 3 | `await` with ConfigureAwait |
+| `.Wait()` blocking | 0 ✅ | `await` with ConfigureAwait |
 | Manual HttpClient | 2 (plugins) | `IHttpClientFactory` |
-| async void | 0 ✅ | `async Task` |
-| Silent catches | 0 ✅ | Logging required |
+| async void | 3 | `async Task` with fire-and-forget |
+| Silent catches | 4 | Logging required |
 | Thread.Sleep | 0 ✅ | `Task.Delay` |
 
 ---
 
 ## 🚦 Current Status & Roadmap
 
-### Build Health (January 1, 2026 - UI Development Active)
+### Build Health (January 2, 2026)
 
 | Metric | Status |
 |--------|--------|
-| Compilation | ⚠️ Minor XAML warnings (core functionality intact) |
-| Tests | ✅ **494/494 passing (100%)** |
-| Source Files | 800+ C# files (UI components added) |
+| Compilation | ✅ 0 errors |
+| Tests | ✅ 529 test methods |
+| Source Files | 763+ C# files |
 | Test Projects | 13 |
-| Test Methods | 529 |
 | Architecture Compliance | ✅ 100% |
-| UI Implementation | ✅ **Phase 1 & 2 Complete** |
-| **Health Score** | **98/100** (UI stabilization in progress) |
+| UI Implementation | Phase 1, 2, 4 Complete |
+| **Health Score** | **91/100** |
+
+### AI System Status
+
+| Component | Status |
+|-----------|--------|
+| AiOrchestrator | ✅ Production |
+| RAG (Knowledge Base) | ✅ Active |
+| BMAD (Short-term Memory) | ✅ Active |
+| Web Search Fallback | ✅ Integrated |
+| Auto-save to KB | ✅ Active |
 
 ### Plugin System Architecture
 
@@ -285,65 +283,19 @@ Key decisions that shaped the codebase:
 - **Content**: Themes, Screenshot Capture, Twitch Streaming (3 plugins)
 - **Integration**: Discord, Google Drive Sync, Playnite (2 plugins)
 
-### MUGEN Ecosystem Status
-
-**Status**: ✅ **READY** - Compilation errors resolved, entity layer stable
-
-**Status**: All MUGEN entities properly defined and compilation issues resolved as of January 1, 2026.
-
-### Known Issues Summary
-
-| Category | Count | Severity |
-|----------|-------|----------|
-| UI XAML Compilation | ~5 | 🟡 LOW (non-blocking) |
-| Minor Async Warnings | ~10 | 🟢 LOW |
-| TODO Comments | ~25 | 🟢 LOW |
-| CLI Groups | 9 remaining | 🟡 MEDIUM |
-| **OVERALL STATUS** | **RESOLVED** | ✅ **STABLE** |
-
-### UI Development Status
-
-**Phase 1 (Shell & Navigation)**: ✅ **COMPLETE**
-
-- 7-tab navigation system implemented (Dashboard, Library, MUGEN, Analytics, Social, Tools, Terminal)
-- Command palette (Ctrl+Shift+P), AI assistant (Ctrl+Shift+A), performance HUD (F3) overlays
-- Global shortcuts (Ctrl+1-7 for tabs, Ctrl+K for search, Ctrl+Shift+P for palette)
-- Status bar with real-time indicators (142 games, playtime, CPU/GPU usage)
-- Navigation service with history and deep linking
-- Overlay system with dimming and modal support
-
-**Phase 2 (Dashboard Hub)**: ✅ **COMPLETE**
-
-- Complete widget system architecture (IWidget interface, WidgetBase, WidgetSize enum)
-- 5 dashboard widgets implemented with real-time data:
-  - Quick Actions (continue playing, scan, random, AI recommend)
-  - Today's Stats (2.5h playtime, 3 sessions, 5 achievements)
-  - Activity Feed (recent gaming activities)
-  - Recently Added (latest games in library)
-  - Goals Progress (achievement tracking)
-- Widget auto-refresh, error handling, and loading states
-- Responsive grid system (12-column layout)
-
-**Services Surfaced**: 5 core backend services now accessible via UI
-
-### UI Implementation Progress - Feature Surfacing (16 Weeks)
+### UI Implementation Progress
 
 | Phase | Weeks | Focus | Status | Completion |
 |-------|-------|-------|--------|------------|
 | **1** | **1-2** | **Core Shell & Navigation** | ✅ **COMPLETE** | 100% |
 | **2** | **3-4** | **Dashboard Hub** | ✅ **COMPLETE** | 100% |
 | 3 | 5-6 | Library Enhancement | 🏗️ IN PROGRESS | 25% |
-| 4 | 7-8 | Analytics & Social | 📋 PLANNED | 0% |
+| **4** | **7-8** | **Analytics & Social** | ✅ **COMPLETE** | 100% |
 | 5 | 9-10 | Tools & Utilities | 📋 PLANNED | 0% |
 | 6 | 11 | Terminal & CLI | 📋 PLANNED | 0% |
 | 7 | 12 | MUGEN Enhancement | 📋 PLANNED | 0% |
 | 8 | 13-14 | Big Picture Mode | 📋 PLANNED | 0% |
 | 9 | 15-16 | Polish & Accessibility | 📋 PLANNED | 0% |
-
-**Current Progress**: **12.5% Complete** (2/16 phases)
-**Services Surfaced**: **5/90+** backend services now accessible via UI
-**UI Coverage**: **~15%** of planned functionality implemented
-**Widget System**: Complete extensible architecture for dashboard customization
 
 **Full Details**: [FEATURE_SURFACING_PLAN.md](planning/FEATURE_SURFACING_PLAN.md)
 
@@ -352,11 +304,12 @@ Key decisions that shaped the codebase:
 ## 🔌 Integration Setup
 
 - **Database**: `savestate.db` (SQLite) in the root.
+- **Knowledge Base**: `%LOCALAPPDATA%/SaveStateReborn/KnowledgeBase/` for Markdown files.
 - **Config**: Root `appsettings.json` contains API keys and validation policies.
 - **Plugins**: Automatic loading from `Plugins/` directory at application startup.
-- **UI**: Main application now launches with full shell (MainShell.axaml) featuring 7-tab navigation.
-- **Testing**: Run tests using `dotnet test`. All 494 tests passing (100% success rate).
-- **Development**: UI development active - Phase 1 & 2 complete, Phase 3 (Library) ready to start.
+- **UI**: Main application launches with full shell (MainShell.axaml) featuring 7-tab navigation.
+- **Testing**: Run tests using `dotnet test`.
+- **AI**: Web search automatically falls back when local knowledge is insufficient.
 
 ---
 
@@ -365,10 +318,11 @@ Key decisions that shaped the codebase:
 | Document | Purpose |
 |----------|---------|
 | [Engineering Rules](./ENGINEERING_RULES.md) | The "Must/Must Not" List |
-| [Technical Debt Remediation Plan](reports/TECHNICAL_DEBT_REMEDIATION_PLAN.md) | Technical debt tracking |
-| [Feature Surfacing Plan](planning/FEATURE_SURFACING_PLAN.md) | ⭐ **UI IMPLEMENTATION** - 118 views |
-| [Development Status](status/DEVELOPMENT_STATUS.md) | Overall project status |
-| [V2 Feature Roadmap](planning/V2_FEATURE_ROADMAP.md) | Feature planning |
+| [Technical Debt Audit](reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md) | ⭐ **Latest debt scan** |
+| [Technical Debt Remediation Plan](reports/TECHNICAL_DEBT_REMEDIATION_PLAN.md) | Remediation tracking |
+| [Feature Surfacing Plan](planning/FEATURE_SURFACING_PLAN.md) | UI implementation roadmap |
+| [Development Status](DEVELOPMENT_STATUS.md) | Overall project status |
+| [V2 Feature Roadmap](V2_FEATURE_ROADMAP.md) | Feature planning |
 | [Lessons Learned](planning/LESSONS_LEARNED.md) | Historical decisions |
 
 ---
@@ -377,8 +331,9 @@ Key decisions that shaped the codebase:
 
 | Date | Version | Changes |
 |------|---------|---------|
-| Jan 1, 2026 | 2.2 | Updated UI development status - Phase 1 & 2 complete, 5 dashboard widgets implemented |
-| Jan 1, 2026 | 2.1 | Added Feature Surfacing Plan reference, updated roadmap with UI phases |
-| Jan 1, 2026 | 2.0 | Comprehensive audit, accurate metrics, critical issue identification |
-| Dec 31, 2025 | 1.1 | Status reassessment |
+| Jan 2, 2026 | 2.4 | Technical debt audit, AI knowledge base integration, web search fallback |
+| Jan 2, 2026 | 2.3 | Library UI stabilization, repository safety fixes |
+| Jan 1, 2026 | 2.2 | UI development status - Phase 1 & 2 complete |
+| Jan 1, 2026 | 2.1 | Added Feature Surfacing Plan reference |
+| Jan 1, 2026 | 2.0 | Comprehensive audit, accurate metrics |
 | Dec 31, 2025 | 1.0 | Initial creation |

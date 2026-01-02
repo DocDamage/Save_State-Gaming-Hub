@@ -98,7 +98,7 @@ public partial class HeaderBarViewModel : ObservableObject
     [RelayCommand]
     private void OpenSettings()
     {
-        // TODO: Navigate to settings tab or overlay
+        _navigationService.NavigateTo("Settings");
     }
 
     /// <summary>

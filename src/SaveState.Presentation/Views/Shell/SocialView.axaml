@@ -2,12 +2,414 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
              x:Class="SaveState.Presentation.Views.Shell.SocialView"
-             x:DataType="vm:SocialViewModel">
-    <Grid>
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <TextBlock Text="👥" FontSize="64" HorizontalAlignment="Center" />
-            <TextBlock Text="Social Hub" FontSize="24" FontWeight="Bold" Margin="0,20" />
-            <TextBlock Text="Activity feed and friend management coming soon." Foreground="{StaticResource TextSecondaryBrush}" />
-        </StackPanel>
+             x:DataType="vm:SocialViewModel"
+             Background="{StaticResource BackgroundBrush}">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Border Grid.Row="0" Classes="GlassContainer" Margin="20,20,20,10" Padding="20">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <TextBlock Text="{Binding Title}" Classes="Header" VerticalAlignment="Center" />
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                    <Button Content="🎮 Sync Discord"
+                            Classes="Primary"
+                            Command="{Binding SyncDiscordCommand}"
+                            IsEnabled="{Binding !IsLoading}" />
+
+                    <Button Content="🎮 Sync Steam"
+                            Classes="Secondary"
+                            Command="{Binding SyncSteamCommand}"
+                            IsEnabled="{Binding !IsLoading}" />
+
+                    <Button Content="🔄 Refresh"
+                            Classes="Secondary"
+                            Command="{Binding RefreshCommand}"
+                            IsEnabled="{Binding !IsLoading}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, 350" Margin="20,0,20,20">
+            <!-- Left Column: Activity Feed -->
+            <ScrollViewer>
+                <StackPanel Spacing="15">
+                    <!-- Loading Indicator -->
+                    <Border IsVisible="{Binding IsLoading}"
+                            Classes="GlassContainer"
+                            Padding="40"
+                            HorizontalAlignment="Center">
+                        <StackPanel Spacing="15" HorizontalAlignment="Center">
+                            <TextBlock Text="⏳" FontSize="48" HorizontalAlignment="Center" />
+                            <TextBlock Text="Loading social data..." Classes="Subtitle" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Error Message -->
+                    <Border IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                            Background="#cc3333"
+                            CornerRadius="8"
+                            Padding="15">
+                        <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap" />
+                    </Border>
+
+                    <!-- Statistics Cards -->
+                    <Grid ColumnDefinitions="*, *, *" IsVisible="{Binding !IsLoading}">
+                        <Border Classes="GlassContainer" Padding="20" Margin="0,0,7.5,0">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="👥" FontSize="32" HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding TotalFriends}"
+                                          FontSize="28"
+                                          FontWeight="Bold"
+                                          HorizontalAlignment="Center"
+                                          Foreground="{StaticResource AccentBrush}" />
+                                <TextBlock Text="Total Friends"
+                                          Classes="Caption"
+                                          HorizontalAlignment="Center"
+                                          Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="1" Classes="GlassContainer" Padding="20" Margin="7.5,0,7.5,0">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="🟢" FontSize="32" HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding OnlineCount}"
+                                          FontSize="28"
+                                          FontWeight="Bold"
+                                          HorizontalAlignment="Center"
+                                          Foreground="#44cc11" />
+                                <TextBlock Text="Online Now"
+                                          Classes="Caption"
+                                          HorizontalAlignment="Center"
+                                          Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="2" Classes="GlassContainer" Padding="20" Margin="7.5,0,0,0">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="📝" FontSize="32" HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding TodayActivities}"
+                                          FontSize="28"
+                                          FontWeight="Bold"
+                                          HorizontalAlignment="Center"
+                                          Foreground="#ff6b35" />
+                                <TextBlock Text="Today's Activities"
+                                          Classes="Caption"
+                                          HorizontalAlignment="Center"
+                                          Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- Activity Feed -->
+                    <Border Classes="GlassContainer" Padding="20" IsVisible="{Binding !IsLoading}">
+                        <StackPanel Spacing="15">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <TextBlock Text="📰 Activity Feed" Classes="Subtitle" FontWeight="Bold" />
+
+                                <ComboBox Grid.Column="1"
+                                         Width="120"
+                                         ItemsSource="{Binding FilterOptions}"
+                                         SelectedItem="{Binding SelectedFilter}"
+                                         PlaceholderText="Filter..." />
+                            </Grid>
+
+                            <!-- Activity Items -->
+                            <ScrollViewer MaxHeight="600">
+                                <ItemsControl ItemsSource="{Binding ActivityFeed}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#1a1a1a"
+                                                   CornerRadius="8"
+                                                   Padding="15"
+                                                   Margin="0,0,0,10">
+                                                <Grid ColumnDefinitions="Auto, *">
+                                                    <!-- Avatar -->
+                                                    <Border Grid.Column="0"
+                                                           Width="48"
+                                                           Height="48"
+                                                           CornerRadius="24"
+                                                           Background="#333333"
+                                                           Margin="0,0,15,0">
+                                                        <TextBlock Text="👤"
+                                                                  FontSize="24"
+                                                                  HorizontalAlignment="Center"
+                                                                  VerticalAlignment="Center" />
+                                                    </Border>
+
+                                                    <!-- Activity Content -->
+                                                    <StackPanel Grid.Column="1" Spacing="5">
+                                                        <Grid ColumnDefinitions="*, Auto">
+                                                            <TextBlock Grid.Column="0"
+                                                                      Classes="Body"
+                                                                      FontWeight="Bold">
+                                                                <Run Text="{Binding FriendName}" />
+                                                                <Run Text=" " />
+                                                                <Run Text="{Binding ActivityMessage}" FontWeight="Normal" />
+                                                            </TextBlock>
+
+                                                            <TextBlock Grid.Column="1"
+                                                                      Text="{Binding TimeAgo}"
+                                                                      Classes="Caption"
+                                                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                                                      VerticalAlignment="Center" />
+                                                        </Grid>
+
+                                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                                            <TextBlock Text="{Binding ActivityIcon}"
+                                                                      FontSize="14" />
+                                                            <TextBlock Text="{Binding PlatformIcon}"
+                                                                      FontSize="14" />
+                                                            <TextBlock Text="{Binding Details}"
+                                                                      Classes="Caption"
+                                                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                                                      IsVisible="{Binding Details, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+
+                            <!-- Empty State for Activity Feed -->
+                            <StackPanel Spacing="15"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,40"
+                                       IsVisible="{Binding ActivityFeed.Count, Converter={StaticResource EqualToConverter}, ConverterParameter='0'}">
+                                <TextBlock Text="📭" FontSize="64" HorizontalAlignment="Center" />
+                                <TextBlock Text="No Recent Activity"
+                                          Classes="Subtitle"
+                                          FontWeight="Bold"
+                                          HorizontalAlignment="Center" />
+                                <TextBlock Text="Connect with friends to see their gaming activity!"
+                                          Classes="Body"
+                                          Foreground="{StaticResource TextSecondaryBrush}"
+                                          HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Right Column: Friends List & Stats -->
+            <ScrollViewer Grid.Column="1" Margin="15,0,0,0">
+                <StackPanel Spacing="15">
+                    <!-- Platform Connection Status -->
+                    <Border Classes="GlassContainer" Padding="15" IsVisible="{Binding !IsLoading}">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="🔗 Connected Platforms" Classes="Subtitle" FontWeight="Bold" />
+
+                            <Grid ColumnDefinitions="Auto, *" Margin="0,5">
+                                <TextBlock Text="🎮" FontSize="20" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Discord" Classes="Body" FontWeight="Bold" />
+                                    <TextBlock Text="Connected"
+                                              Classes="Caption"
+                                              Foreground="#44cc11"
+                                              IsVisible="{Binding IsDiscordConnected}" />
+                                    <TextBlock Text="Not Connected"
+                                              Classes="Caption"
+                                              Foreground="#888888"
+                                              IsVisible="{Binding !IsDiscordConnected}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="Auto, *" Margin="0,5">
+                                <TextBlock Text="🎮" FontSize="20" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Steam" Classes="Body" FontWeight="Bold" />
+                                    <TextBlock Text="Connected"
+                                              Classes="Caption"
+                                              Foreground="#44cc11"
+                                              IsVisible="{Binding IsSteamConnected}" />
+                                    <TextBlock Text="Not Connected"
+                                              Classes="Caption"
+                                              Foreground="#888888"
+                                              IsVisible="{Binding !IsSteamConnected}" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Online Friends -->
+                    <Border Classes="GlassContainer" Padding="15" IsVisible="{Binding !IsLoading}">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="🟢 Online Friends" Classes="Subtitle" FontWeight="Bold" />
+
+                            <ScrollViewer MaxHeight="300">
+                                <ItemsControl ItemsSource="{Binding OnlineFriends}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#1a1a1a"
+                                                   CornerRadius="6"
+                                                   Padding="10"
+                                                   Margin="0,0,0,8">
+                                                <Grid ColumnDefinitions="Auto, *">
+                                                    <!-- Avatar with Status -->
+                                                    <Grid Grid.Column="0" Width="40" Height="40" Margin="0,0,10,0">
+                                                        <Border Width="40"
+                                                               Height="40"
+                                                               CornerRadius="20"
+                                                               Background="#333333">
+                                                            <TextBlock Text="👤"
+                                                                      FontSize="20"
+                                                                      HorizontalAlignment="Center"
+                                                                      VerticalAlignment="Center" />
+                                                        </Border>
+
+                                                        <!-- Online Status Indicator -->
+                                                        <Ellipse Width="12"
+                                                                Height="12"
+                                                                Fill="{Binding StatusColor}"
+                                                                HorizontalAlignment="Right"
+                                                                VerticalAlignment="Bottom"
+                                                                Margin="0,0,2,2" />
+                                                    </Grid>
+
+                                                    <!-- Friend Info -->
+                                                    <StackPanel Grid.Column="1" Spacing="3">
+                                                        <TextBlock Text="{Binding Name}"
+                                                                  Classes="Body"
+                                                                  FontWeight="Bold" />
+                                                        <TextBlock Text="{Binding StatusText}"
+                                                                  Classes="Caption"
+                                                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                                                  TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+
+                            <!-- Empty State for Online Friends -->
+                            <StackPanel Spacing="10"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,20"
+                                       IsVisible="{Binding OnlineFriends.Count, Converter={StaticResource EqualToConverter}, ConverterParameter='0'}">
+                                <TextBlock Text="😴" FontSize="32" HorizontalAlignment="Center" />
+                                <TextBlock Text="No friends online"
+                                          Classes="Caption"
+                                          Foreground="{StaticResource TextSecondaryBrush}"
+                                          HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- All Friends -->
+                    <Border Classes="GlassContainer" Padding="15" IsVisible="{Binding !IsLoading}">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="👥 All Friends" Classes="Subtitle" FontWeight="Bold" />
+
+                            <ScrollViewer MaxHeight="400">
+                                <ItemsControl ItemsSource="{Binding AllFriends}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#1a1a1a"
+                                                   CornerRadius="6"
+                                                   Padding="10"
+                                                   Margin="0,0,0,8">
+                                                <Grid ColumnDefinitions="Auto, *">
+                                                    <!-- Avatar -->
+                                                    <Border Grid.Column="0"
+                                                           Width="36"
+                                                           Height="36"
+                                                           CornerRadius="18"
+                                                           Background="#333333"
+                                                           Margin="0,0,10,0">
+                                                        <TextBlock Text="👤"
+                                                                  FontSize="18"
+                                                                  HorizontalAlignment="Center"
+                                                                  VerticalAlignment="Center" />
+                                                    </Border>
+
+                                                    <!-- Friend Info -->
+                                                    <StackPanel Grid.Column="1" Spacing="3">
+                                                        <Grid ColumnDefinitions="*, Auto">
+                                                            <TextBlock Grid.Column="0"
+                                                                      Text="{Binding Name}"
+                                                                      Classes="Body"
+                                                                      FontWeight="Bold" />
+                                                            <TextBlock Grid.Column="1"
+                                                                      Text="{Binding PlatformIcon}"
+                                                                      FontSize="14" />
+                                                        </Grid>
+                                                        <TextBlock Text="{Binding StatusText}"
+                                                                  Classes="Caption"
+                                                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                                                  TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+
+                            <!-- Empty State for All Friends -->
+                            <StackPanel Spacing="10"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,20"
+                                       IsVisible="{Binding AllFriends.Count, Converter={StaticResource EqualToConverter}, ConverterParameter='0'}">
+                                <TextBlock Text="👥" FontSize="48" HorizontalAlignment="Center" />
+                                <TextBlock Text="No Friends Yet"
+                                          Classes="Subtitle"
+                                          FontWeight="Bold"
+                                          HorizontalAlignment="Center" />
+                                <TextBlock Text="Sync your platforms to import friends!"
+                                          Classes="Caption"
+                                          Foreground="{StaticResource TextSecondaryBrush}"
+                                          HorizontalAlignment="Center"
+                                          TextWrapping="Wrap"
+                                          TextAlignment="Center" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Social Stats -->
+                    <Border Classes="GlassContainer" Padding="15" IsVisible="{Binding !IsLoading}">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="📊 Social Stats" Classes="Subtitle" FontWeight="Bold" />
+
+                            <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto">
+                                <StackPanel Spacing="3" Margin="0,0,5,5">
+                                    <TextBlock Text="Total Activities"
+                                              Classes="Caption"
+                                              Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <TextBlock Text="{Binding TotalActivities}"
+                                              Classes="Body"
+                                              FontWeight="Bold"
+                                              FontSize="20" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Spacing="3" Margin="5,0,0,5">
+                                    <TextBlock Text="Today"
+                                              Classes="Caption"
+                                              Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <TextBlock Text="{Binding TodayActivities}"
+                                              Classes="Body"
+                                              FontWeight="Bold"
+                                              FontSize="20" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Spacing="3" Margin="0,5,0,0">
+                                    <TextBlock Text="Most Played Game"
+                                              Classes="Caption"
+                                              Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <TextBlock Text="{Binding MostPlayedGame}"
+                                              Classes="Body"
+                                              FontWeight="Bold"
+                                              TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </UserControl>

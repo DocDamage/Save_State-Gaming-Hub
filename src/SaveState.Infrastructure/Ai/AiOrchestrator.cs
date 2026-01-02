@@ -1,8 +1,12 @@
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SaveState.Core.Ai.Context;
+using SaveState.Core.Ai.Knowledge;
+using SaveState.Core.Ai.Memory;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Ai.Context;
+using SaveState.Infrastructure.Ai.Knowledge;
 using SaveState.Core.Configuration;
 using SaveState.Core.Monitoring;
 
@@ -17,6 +21,10 @@ public class AiOrchestrator : IAiOrchestrator
     private readonly IApplicationMetrics _metrics;
     private readonly ICachePerformanceMonitor _cacheMonitor;
     private readonly IConversationContextService _contextService;
+    private readonly SemanticKnowledgeClient _knowledgeClient;
+    private readonly IShortTermMemory _memory;
+    private readonly IWebSearchService _searchService;
+    private readonly IKnowledgeBaseService _kbService;
     private long _cacheRequests;
     private long _cacheHits;
 
@@ -27,7 +35,11 @@ public class AiOrchestrator : IAiOrchestrator
         ILogger<AiOrchestrator> logger,
         IApplicationMetrics metrics,
         ICachePerformanceMonitor cacheMonitor,
-        IConversationContextService contextService)
+        IConversationContextService contextService,
+        SemanticKnowledgeClient knowledgeClient,
+        IShortTermMemory memory,
+        IWebSearchService searchService,
+        IKnowledgeBaseService kbService)
     {
         _providers = providers;
         _cache = cache;
@@ -36,6 +48,10 @@ public class AiOrchestrator : IAiOrchestrator
         _metrics = metrics;
         _cacheMonitor = cacheMonitor;
         _contextService = contextService;
+        _knowledgeClient = knowledgeClient;
+        _memory = memory;
+        _searchService = searchService;
+        _kbService = kbService;
     }
 
     public async Task<AiResponse> ProcessRequestAsync(AiRequest request, CancellationToken ct = default)
@@ -252,35 +268,23 @@ public class AiOrchestrator : IAiOrchestrator
         ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);
         ArgumentNullException.ThrowIfNull(request);
 
-        // Get conversation history
+        var query = request.Prompt ?? request.Messages?.LastOrDefault()?.Content ?? "";
+
+        // 1. Retrieve Contexts
+        var relevantContext = await _knowledgeClient.GetRelevantContextAsync(query, ct);
+        var webContext = await HandleWebSearchFallbackAsync(query, relevantContext, ct);
+
+        var shortTermMemories = await _memory.SearchAsync(query, 3, ct);
+        var stmContext = string.Join("\n", shortTermMemories.Select(m => m.Content));
+
+        // 2. Build Message History
         var historyResult = await _contextService.GetHistoryAsync(sessionId, ct);
+        var messagesWithHistory = BuildMessageHistory(request, historyResult.Value);
 
-        List<ChatMessage> messagesWithHistory;
+        // 3. Inject Context
+        InjectContextMessages(messagesWithHistory, relevantContext, webContext, stmContext);
 
-        if (historyResult.IsSuccess && historyResult.Value!.Count > 0)
-        {
-            messagesWithHistory = historyResult.Value.ToList();
-
-            // Add current user message if this is a chat request
-            if (request.Messages?.Count > 0)
-            {
-                messagesWithHistory.AddRange(request.Messages);
-            }
-            else if (!string.IsNullOrEmpty(request.Prompt))
-            {
-                messagesWithHistory.Add(new ChatMessage("user", request.Prompt));
-            }
-        }
-        else
-        {
-            messagesWithHistory = request.Messages?.ToList() ?? new List<ChatMessage>();
-            if (!string.IsNullOrEmpty(request.Prompt) && messagesWithHistory.Count == 0)
-            {
-                messagesWithHistory.Add(new ChatMessage("user", request.Prompt));
-            }
-        }
-
-        // Store user message in context
+        // 4. Update Conversation History
         if (messagesWithHistory.Count > 0)
         {
             var lastUserMessage = messagesWithHistory.LastOrDefault(m => m.Role == "user");
@@ -290,27 +294,91 @@ public class AiOrchestrator : IAiOrchestrator
             }
         }
 
-        // Create modified request with full history
+        // 5. Process Request
         var contextualRequest = request with
         {
             Messages = messagesWithHistory,
             Type = AiRequestType.Chat,
-            AllowCache = false  // Don't cache contextual responses
+            AllowCache = false
         };
 
-        // Process request
         var response = await ProcessRequestAsync(contextualRequest, ct);
 
-        // Store AI response in context
+        // 6. Record Outcome
         if (response.IsSuccessful && !string.IsNullOrEmpty(response.Content))
         {
-            await _contextService.AddMessageAsync(
-                sessionId,
-                new ChatMessage("assistant", response.Content),
-                ct);
+            await _contextService.AddMessageAsync(sessionId, new ChatMessage("assistant", response.Content), ct);
+            await _memory.StoreAsync(new MemoryEntry(
+                Guid.NewGuid().ToString(),
+                $"User asked: {query}\nAI responded: {response.Content}",
+                DateTime.UtcNow,
+                new[] { "conversation", sessionId }), ct);
         }
 
         return response;
+    }
+
+    private async Task<string?> HandleWebSearchFallbackAsync(string query, string relevantContext, CancellationToken ct)
+    {
+        if (!string.IsNullOrEmpty(relevantContext) && !query.Contains("search", StringComparison.OrdinalIgnoreCase) && !query.Contains("internet", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        _logger.LogInformation("Insufficient local knowledge or search requested for '{Query}'. Triggering web search.", query);
+        var webContext = await _searchService.SearchAsync(query, ct);
+
+        if (!string.IsNullOrEmpty(webContext))
+        {
+            var sanitizedQuery = Regex.Replace(query, @"[^a-zA-Z0-9_\-]", "_");
+            if (sanitizedQuery.Length > 50) sanitizedQuery = sanitizedQuery.Substring(0, 50);
+
+            var fileName = $"Search_{DateTime.UtcNow:yyyyMMdd_HHmmss}_{sanitizedQuery}.md";
+            var mdContent = $"# Web Search Result: {query}\n" +
+                           $"**Date**: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}\n" +
+                           $"**Query**: {query}\n\n" +
+                           $"## Summary\n{webContext}\n\n" +
+                           $"---\n*This information was automatically retrieved from the internet and saved to the knowledge base.*";
+
+            _ = _kbService.SaveToKnowledgeBaseAsync("internet-search", fileName, mdContent, CancellationToken.None);
+        }
+
+        return webContext;
+    }
+
+    private List<ChatMessage> BuildMessageHistory(AiRequest request, IReadOnlyList<ChatMessage>? history)
+    {
+        var messages = history?.ToList() ?? new List<ChatMessage>();
+
+        if (request.Messages?.Count > 0)
+        {
+            messages.AddRange(request.Messages);
+        }
+        else if (!string.IsNullOrEmpty(request.Prompt))
+        {
+            // Avoid duplicates if the history already has it
+            if (messages.Count == 0 || messages.Last().Content != request.Prompt)
+            {
+                messages.Add(new ChatMessage("user", request.Prompt));
+            }
+        }
+
+        return messages;
+    }
+
+    private void InjectContextMessages(List<ChatMessage> messages, string? localContext, string? webContext, string? stmContext)
+    {
+        if (string.IsNullOrEmpty(localContext) && string.IsNullOrEmpty(webContext) && string.IsNullOrEmpty(stmContext))
+        {
+            return;
+        }
+
+        var contextMsg = "CONTEXT INFORMATION (RAG/BMAD/WEB):\n";
+        if (!string.IsNullOrEmpty(localContext)) contextMsg += $"[Local Knowledge Base]: {localContext}\n";
+        if (!string.IsNullOrEmpty(webContext)) contextMsg += $"[Recent Web Search]: {webContext}\n";
+        if (!string.IsNullOrEmpty(stmContext)) contextMsg += $"[Short-term Memory]: {stmContext}\n";
+
+        messages.Insert(0, new ChatMessage("system", contextMsg));
     }
 
     public async Task<bool> ClearConversationAsync(string sessionId, CancellationToken ct = default)

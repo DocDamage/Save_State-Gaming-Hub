@@ -299,15 +299,15 @@ public static class DependencyInjection
         {
             var options = sp.GetRequiredService<IOptions<OpenAiOptions>>().Value;
             client.BaseAddress = new Uri(options.BaseUrl);
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", options.ApiKey);
         });
 
         services.AddHttpClient<ILlmProvider, GroqProvider>((sp, client) =>
         {
             var options = sp.GetRequiredService<IOptions<GroqOptions>>().Value;
             client.BaseAddress = new Uri(options.BaseUrl);
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", options.ApiKey);
         });
+
+        services.AddSingleton<ILlmProvider, LocalEmbeddedProvider>();
 
         // Configuration with validation
         services.AddOptions<OpenAiOptions>()
@@ -470,7 +470,9 @@ public static class DependencyInjection
         services.AddScoped<SemanticKnowledgeClient>();
         services.AddScoped<IShortTermMemory, EnhancedShortTermMemory>();
         services.AddScoped<IAiOrchestrator, AiOrchestrator>();
+        services.AddScoped<IKnowledgeBaseService, MarkdownKnowledgeBaseService>();
         services.AddSingleton<IConversationContextService, InMemoryConversationContextService>();
+        services.AddHttpClient<IWebSearchService, SaveState.Infrastructure.Ai.Services.WebSearchService>();
         services.AddScoped<IVoiceProcessor, WhisperVoiceProcessor>();
 
         // Register cloud sync services

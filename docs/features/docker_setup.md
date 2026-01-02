@@ -1,5 +1,14 @@
 # Docker Setup Guide
 
+**Status**: 📋 Planned (V2.0 Deployment Option)
+**Last Updated**: January 2, 2026
+**Layer**: DevOps / Deployment
+**Related**: [ENGINEERING_RULES](../ENGINEERING_RULES.md)
+
+---
+
+> **Note**: Docker deployment is a planned feature for production deployments. The current SaveState Reborn application runs as a native desktop application using Avalonia UI. This guide is for future web API or headless deployments.
+
 This guide explains how to run SaveStateReborn using Docker and Docker Compose.
 
 ## Prerequisites
@@ -155,6 +164,7 @@ services:
 ### Common Issues
 
 1. **Port already in use**
+
    ```bash
    # Find process using port
    lsof -i :8080
@@ -162,12 +172,14 @@ services:
    ```
 
 2. **Permission denied on Linux**
+
    ```bash
    # Ensure user has Docker permissions
    sudo usermod -aG docker $USER
    ```
 
 3. **Database file locked**
+
    ```bash
    # Reset database volume
    docker-compose down -v
@@ -175,6 +187,7 @@ services:
    ```
 
 4. **GUI applications in containers**
+
    ```bash
    # For Avalonia GUI apps, enable X11 forwarding
    xhost +local:docker
@@ -265,3 +278,10 @@ When adding new features:
 2. Test with `docker-compose.ci.yml`
 3. Update this documentation
 4. Ensure all environments work (dev, prod, ci)
+
+---
+
+**Related Documentation**:
+
+- [Engineering Rules](../ENGINEERING_RULES.md) - Code standards
+- [Threat Model](../architecture/THREAT_MODEL.md) - Security considerations

@@ -160,4 +160,10 @@ public class SqliteVectorStore : IKnowledgeStore
             _logger.LogDebug("No low-quality knowledge records to prune");
         }
     }
+
+    public async Task ClearAllAsync(CancellationToken ct)
+    {
+        await _context.Database.ExecuteSqlRawAsync("DELETE FROM KnowledgeRecords", ct).ConfigureAwait(false);
+        _logger.LogInformation("Knowledge base cleared.");
+    }
 }

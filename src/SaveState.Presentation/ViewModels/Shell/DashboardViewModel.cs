@@ -42,16 +42,28 @@ public partial class DashboardViewModel : ObservableObject
     {
         try
         {
-            foreach (var widgetType in WidgetRegistry.AvailableWidgets)
+            var layout = WidgetRegistry.DefaultLayout;
+            foreach (var position in layout.Widgets)
             {
+                var widgetType = WidgetRegistry.AvailableWidgets.FirstOrDefault(t =>
+                    t.Name.Contains(position.WidgetId.Replace("-", ""), StringComparison.OrdinalIgnoreCase) ||
+                    t.Name.EndsWith(position.WidgetId.Replace("-", "") + "Widget", StringComparison.OrdinalIgnoreCase));
+
+                if (widgetType == null)
+                {
+                    // Fallback search if name mapping fails
+                    _logger.LogWarning("Could not find widget type for ID: {WidgetId}", position.WidgetId);
+                    continue;
+                }
+
                 var widget = WidgetRegistry.CreateWidget(widgetType, _serviceProvider);
                 await widget.InitializeAsync();
 
-                var instance = new WidgetInstance(widget, 0, 0); // Default position
+                var instance = new WidgetInstance(widget, position.Column, position.Row);
                 Widgets.Add(instance);
             }
 
-            _logger.LogInformation("Dashboard widgets initialized successfully");
+            _logger.LogInformation("Dashboard widgets initialized with default layout");
         }
         catch (Exception ex)
         {

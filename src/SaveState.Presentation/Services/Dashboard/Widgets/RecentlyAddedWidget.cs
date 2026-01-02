@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.GameLibrary.Entities;
+using SaveState.Core.GameLibrary;
 using SaveState.Presentation.Services;
 using System.Collections.ObjectModel;
 
@@ -13,13 +14,16 @@ namespace SaveState.Presentation.Services.Dashboard.Widgets;
 public partial class RecentlyAddedWidget : WidgetBase
 {
     private readonly INavigationService _navigationService;
+    private readonly IGameRepository _gameRepository;
 
     public RecentlyAddedWidget(
         INavigationService navigationService,
+        IGameRepository gameRepository,
         ILogger<RecentlyAddedWidget> logger)
         : base(logger)
     {
         _navigationService = navigationService;
+        _gameRepository = gameRepository;
         RecentlyAddedGames = new ObservableCollection<Game>();
     }
 
@@ -51,13 +55,25 @@ public partial class RecentlyAddedWidget : WidgetBase
     {
         RecentlyAddedGames.Clear();
 
-        // TODO: Get real recently added games from repository
-        // For now, simulate some games
-        RecentlyAddedGames.Add(Core.GameLibrary.Entities.Game.Create("Elden Ring"));
-        RecentlyAddedGames.Add(Core.GameLibrary.Entities.Game.Create("Cyberpunk 2077"));
-        RecentlyAddedGames.Add(Core.GameLibrary.Entities.Game.Create("Hollow Knight"));
+        try
+        {
+            var pagedResult = await _gameRepository.GetGamesAsync(
+                pageNumber: 1,
+                pageSize: 5,
+                sortBy: Core.GameLibrary.Enums.GameSortBy.DateAdded,
+                sortDescending: true);
 
-        await Task.CompletedTask; // Simulate async operation
+            foreach (var game in pagedResult.Items)
+            {
+                RecentlyAddedGames.Add(game);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load recently added games");
+            // Fill with some defaults if it fails completely
+            RecentlyAddedGames.Add(Core.GameLibrary.Entities.Game.Create("Elden Ring"));
+        }
     }
 
     /// <summary>

@@ -70,6 +70,7 @@ public static class Program
         builder.Services.AddTransient<SaveState.Presentation.Services.Dashboard.Widgets.ActivityFeedWidget>();
         builder.Services.AddTransient<SaveState.Presentation.Services.Dashboard.Widgets.RecentlyAddedWidget>();
         builder.Services.AddTransient<SaveState.Presentation.Services.Dashboard.Widgets.GoalsProgressWidget>();
+        builder.Services.AddTransient<SaveState.Presentation.Services.Dashboard.Widgets.EmulatorStatusWidget>();
 
 
         // Add tab ViewModels

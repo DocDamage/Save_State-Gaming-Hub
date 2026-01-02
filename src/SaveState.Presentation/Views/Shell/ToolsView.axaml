@@ -3,11 +3,298 @@
              xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
              x:Class="SaveState.Presentation.Views.Shell.ToolsView"
              x:DataType="vm:ToolsViewModel">
-    <Grid>
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <TextBlock Text="🛠️" FontSize="64" HorizontalAlignment="Center" />
-            <TextBlock Text="Tools &amp; Utilities" FontSize="24" FontWeight="Bold" Margin="0,20" />
-            <TextBlock Text="Performance optimization and calibration tools coming soon." Foreground="{StaticResource TextSecondaryBrush}" />
-        </StackPanel>
+
+    <Grid ColumnDefinitions="200, *">
+        <!-- Left Sidebar: Categories -->
+        <Border Grid.Column="0" Classes="GlassContainer" Margin="20,20,10,20" Padding="15">
+            <StackPanel Spacing="10">
+                <TextBlock Text="🛠️ TOOLS"
+                          Classes="Subtitle"
+                          FontWeight="Bold"
+                          Margin="0,0,0,15"/>
+
+                <ItemsControl ItemsSource="{Binding ToolCategories}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Classes="SidebarButton"
+                                   Command="{Binding $parent[UserControl].DataContext.SelectCategoryCommand}"
+                                   CommandParameter="{Binding}"
+                                   Margin="0,0,0,5">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{Binding Icon}" FontSize="20"/>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+        <!-- Right Panel: Content -->
+        <ScrollViewer Grid.Column="1" Margin="10,20,20,20">
+            <StackPanel Spacing="15">
+
+                <!-- Performance Monitor Section -->
+                <Border Classes="GlassContainer" Padding="20"
+                       IsVisible="{Binding SelectedCategory.Id, Converter={StaticResource EqualToConverter}, ConverterParameter='Performance'}">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="⚡ PERFORMANCE MONITOR" Classes="Subtitle" FontWeight="Bold"/>
+
+                        <!-- Real-time Stats -->
+                        <Grid ColumnDefinitions="*, *, *">
+                            <!-- CPU -->
+                            <Border Classes="GlassContainer" Padding="20" Margin="0,0,7.5,0">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="💻 CPU" FontSize="16" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding CpuUsage, StringFormat='{}{0:F1}%'}"
+                                              FontSize="32"
+                                              FontWeight="Bold"
+                                              Foreground="{StaticResource AccentBrush}"/>
+                                    <TextBlock Text="{Binding CpuTemp, StringFormat='Temp: {0:F0}°C'}"
+                                              Classes="Caption"
+                                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- GPU -->
+                            <Border Grid.Column="1" Classes="GlassContainer" Padding="20" Margin="7.5,0,7.5,0">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="🎮 GPU" FontSize="16" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding GpuUsage, StringFormat='{}{0:F1}%'}"
+                                              FontSize="32"
+                                              FontWeight="Bold"
+                                              Foreground="#ff6b35"/>
+                                    <TextBlock Text="{Binding GpuTemp, StringFormat='Temp: {0:F0}°C'}"
+                                              Classes="Caption"
+                                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- RAM -->
+                            <Border Grid.Column="2" Classes="GlassContainer" Padding="20" Margin="7.5,0,0,0">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="🧠 RAM" FontSize="16" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding RamUsageMb, StringFormat='{}{0:N0} MB'}"
+                                              FontSize="32"
+                                              FontWeight="Bold"
+                                              Foreground="#4ecdc4"/>
+                                    <TextBlock Text="Memory Usage"
+                                              Classes="Caption"
+                                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- FPS Stats -->
+                        <Grid ColumnDefinitions="*, *">
+                            <Border Classes="GlassContainer" Padding="15" Margin="0,0,7.5,0">
+                                <StackPanel Spacing="5">
+                                    <TextBlock Text="FPS" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding Fps, StringFormat='{}{0:F0}'}"
+                                              FontSize="24"
+                                              FontWeight="Bold"
+                                              Foreground="#44cc11"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="1" Classes="GlassContainer" Padding="15" Margin="7.5,0,0,0">
+                                <StackPanel Spacing="5">
+                                    <TextBlock Text="Frame Time" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding FrameTimeMs, StringFormat='{}{0:F1} ms'}"
+                                              FontSize="24"
+                                              FontWeight="Bold"
+                                              Foreground="{StaticResource AccentBrush}"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- Quick Actions -->
+                        <TextBlock Text="QUICK ACTIONS" Classes="Caption" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <Grid ColumnDefinitions="*, *, *, *">
+                            <Button Classes="ActionButton" Command="{Binding ToggleGameModeCommand}" Margin="0,0,5,0">
+                                <StackPanel Spacing="5">
+                                    <TextBlock Text="🚀" FontSize="24" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Game Mode" Classes="Caption" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Grid.Column="1" Classes="ActionButton" Command="{Binding ToggleQuietModeCommand}" Margin="5,0,5,0">
+                                <StackPanel Spacing="5">
+                                    <TextBlock Text="🔇" FontSize="24" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Quiet Mode" Classes="Caption" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Grid.Column="2" Classes="ActionButton" Command="{Binding ApplyPerformanceModeCommand}" Margin="5,0,5,0">
+                                <StackPanel Spacing="5">
+                                    <TextBlock Text="⚡" FontSize="24" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Performance" Classes="Caption" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Grid.Column="3" Classes="ActionButton" Command="{Binding ApplyPowerSaverCommand}" Margin="5,0,0,0">
+                                <StackPanel Spacing="5">
+                                    <TextBlock Text="🔋" FontSize="24" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Power Saver" Classes="Caption" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Emulators Section -->
+                <Border Classes="GlassContainer" Padding="20"
+                       IsVisible="{Binding SelectedCategory.Id, Converter={StaticResource EqualToConverter}, ConverterParameter='Emulators'}">
+                    <StackPanel Spacing="15">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Text="🎮 EMULATOR MANAGEMENT" Classes="Subtitle" FontWeight="Bold"/>
+                            <Button Grid.Column="1" Content="Scan for Emulators" IsEnabled="{Binding !IsLoadingEmulators}"/>
+                        </Grid>
+
+                        <ProgressBar IsIndeterminate="True"
+                                    IsVisible="{Binding IsLoadingEmulators}"
+                                    Margin="0,10"/>
+
+                        <ItemsControl ItemsSource="{Binding Emulators}" Margin="0,10,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="GlassContainer" Padding="15" Margin="0,0,0,10">
+                                        <Grid ColumnDefinitions="Auto, *, Auto">
+                                            <TextBlock Text="{Binding StatusIcon}"
+                                                       FontSize="24"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,15,0"/>
+
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontSize="18"
+                                                           FontWeight="Bold"/>
+                                                <TextBlock Text="{Binding Platform}"
+                                                           FontSize="12"
+                                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{Binding ExecutablePath}"
+                                                           FontSize="10"
+                                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                                           IsVisible="{Binding IsInstalled}"/>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                                                <TextBlock Text="{Binding Version}"
+                                                           VerticalAlignment="Center"
+                                                           Margin="0,0,10,0"
+                                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <Button Content="Launch"
+                                                        Command="{Binding LaunchCommand}"
+                                                        IsVisible="{Binding IsInstalled}"/>
+                                                <Button Content="{Binding StatusText}"
+                                                        Command="{Binding ConfigureCommand}"
+                                                        IsEnabled="True"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Diagnostics Section -->
+                <Border Classes="GlassContainer" Padding="20"
+                       IsVisible="{Binding SelectedCategory.Id, Converter={StaticResource EqualToConverter}, ConverterParameter='Diagnostics'}">
+                    <StackPanel Spacing="15">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Text="🔍 DIAGNOSTICS" Classes="Subtitle" FontWeight="Bold"/>
+                            <Button Grid.Column="1" Content="Run Health Check" Command="{Binding RunHealthCheckCommand}"/>
+                        </Grid>
+
+                        <!-- System Health -->
+                        <TextBlock Text="SYSTEM HEALTH" Classes="Caption" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <Border Classes="GlassContainer" Padding="15">
+                            <StackPanel Spacing="10">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="Database" Classes="Body"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding DatabaseStatus}" Classes="Body"/>
+                                </Grid>
+
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="API Connections" Classes="Body"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding ApiStatus}" Classes="Body"/>
+                                </Grid>
+
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="System Status" Classes="Body"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding SystemStatus}" Classes="Body"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Database Info -->
+                        <TextBlock Text="DATABASE INFO" Classes="Caption" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <Border Classes="GlassContainer" Padding="15">
+                            <StackPanel Spacing="10">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="Total Games" Classes="Body"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding TotalGames}" Classes="Body" FontWeight="Bold"/>
+                                </Grid>
+
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="Total Sessions" Classes="Body"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding TotalSessions}" Classes="Body" FontWeight="Bold"/>
+                                </Grid>
+
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="Database Size" Classes="Body"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding DatabaseSize}" Classes="Body" FontWeight="Bold"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Database Tools -->
+                        <TextBlock Text="DATABASE TOOLS" Classes="Caption" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button Content="Compact Database" Command="{Binding CompactDatabaseCommand}"/>
+                            <Button Content="Clear Cache"/>
+                            <Button Content="Backup Now"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Themes Section -->
+                <Border Classes="GlassContainer" Padding="20"
+                       IsVisible="{Binding SelectedCategory.Id, Converter={StaticResource EqualToConverter}, ConverterParameter='Themes'}">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="🎨 THEMES" Classes="Subtitle" FontWeight="Bold"/>
+
+                        <TextBlock Text="CURRENT THEME" Classes="Caption" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <Border Classes="GlassContainer" Padding="15">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <TextBlock Text="{Binding CurrentTheme}" Classes="Body" FontSize="16" FontWeight="Bold"/>
+                                <Button Grid.Column="1" Content="Edit"/>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Text="AVAILABLE THEMES" Classes="Caption" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <ItemsControl ItemsSource="{Binding AvailableThemes}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="GlassContainer" Padding="15" Margin="0,0,0,10">
+                                        <Grid ColumnDefinitions="Auto, *, Auto">
+                                            <TextBlock Text="🎨" FontSize="24" VerticalAlignment="Center" Margin="0,0,15,0"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding}" Classes="Body" VerticalAlignment="Center"/>
+                                            <Button Grid.Column="2"
+                                                   Content="Apply"
+                                                   Command="{Binding $parent[UserControl].DataContext.ApplyThemeCommand}"
+                                                   CommandParameter="{Binding}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

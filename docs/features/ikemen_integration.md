@@ -1,10 +1,18 @@
 # IKEMEN Bundle - Complete Fighting Game Platform
 
+**Status**: ✅ Implemented
+**Last Updated**: January 2, 2026
+**Layer**: Infrastructure + Presentation
+**Related**: [Character API](character-api.md), [MUGEN Plugins](mugen-plugins.md)
+
+---
+
 SaveState Reborn includes a complete IKEMEN fighting game bundle with pre-configured character packs and launch integration.
 
 ## 🎮 What's Included
 
 ### Engine
+
 - **IKEMEN GO v0.99** - Latest stable version with Lua scripting support
 - **MUGEN Compatibility Mode** - Plays traditional MUGEN characters
 - **Training Mode** - Practice with customizable dummies
@@ -14,18 +22,21 @@ SaveState Reborn includes a complete IKEMEN fighting game bundle with pre-config
 ### Character Packs
 
 #### Street Fighter Series
+
 - Ryu, Ken, Chun-Li, Guile, Zangief
 - Blanka, Dhalsim, Honda, Sagat, Balrog
 - Vega, M. Bison, Akuma, Cammy, Fei Long
 - And many more classic characters
 
 #### Marvel vs Capcom 2
+
 - Ryu, Ken, Mega Man, Roll, Tron Bonne
 - Morrigan, Felicia, Hsien-Ko, Anakaris
 - Captain Commando, Jin Saotome, Sonson
 - All MVC2 roster with accurate movesets
 
 #### Built-in Characters
+
 - KFM (Kung Fu Man) - Training dummy
 - Common MUGEN characters
 - Tutorial characters
@@ -33,6 +44,7 @@ SaveState Reborn includes a complete IKEMEN fighting game bundle with pre-config
 ## 🚀 Quick Start
 
 1. **Setup IKEMEN**:
+
    ```powershell
    .\engines\setup-ikemen.ps1
    ```
@@ -65,16 +77,19 @@ SaveStateReborn/
 ## 🎯 Game Modes
 
 ### Versus Mode
+
 - Player vs Player matches
 - Configurable round counts
 - All standard fighting game rules
 
 ### Training Mode
+
 - Practice individual moves/techs
 - Customizable dummy AI
 - Combo trials and tutorials
 
 ### Single Player
+
 - Story mode (character-specific)
 - Survival mode
 - Time attack challenges
@@ -109,11 +124,13 @@ IKEMEN settings are in `engines/ikemen/config.json`:
 ## 🎨 Customization
 
 ### Adding Characters
+
 1. Place character folder in `data/characters/`
 2. Run character scan in SaveState
 3. Character appears in library
 
 ### Modding
+
 - Edit character .def files
 - Modify Lua scripts
 - Create custom stages
@@ -122,16 +139,19 @@ IKEMEN settings are in `engines/ikemen/config.json`:
 ## 🐛 Troubleshooting
 
 ### IKEMEN Won't Start
+
 - Ensure `Ikemen_GO.exe` is in `engines/ikemen/`
 - Check antivirus isn't blocking the executable
 - Verify character files are not corrupted
 
 ### Characters Not Loading
+
 - Run character scan in SaveState
 - Check .def file paths in character folders
 - Ensure required sprite/sound files exist
 
 ### Performance Issues
+
 - Lower resolution in IKEMEN settings
 - Close other applications
 - Update graphics drivers
@@ -143,5 +163,11 @@ IKEMEN settings are in `engines/ikemen/config.json`:
 - [Character Creation Tutorials](https://mugenarchive.com/forums/)
 
 ---
+
+**Related Documentation**:
+
+- [Character API](character-api.md) - Character management
+- [MUGEN Plugins](mugen-plugins.md) - Advanced features
+- [AI_MASTER_CONTEXT](../AI_MASTER_CONTEXT.md) - Architecture overview
 
 **SaveState Reborn** makes IKEMEN accessible to everyone - no technical setup required! 🎮✨

@@ -2,12 +2,360 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
              x:Class="SaveState.Presentation.Views.Shell.AnalyticsView"
-             x:DataType="vm:AnalyticsViewModel">
-    <Grid>
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <TextBlock Text="📊" FontSize="64" HorizontalAlignment="Center" />
-            <TextBlock Text="Analytics View" FontSize="24" FontWeight="Bold" Margin="0,20" />
-            <TextBlock Text="Detailed session analytics and historical data coming soon." Foreground="{StaticResource TextSecondaryBrush}" />
-        </StackPanel>
+             x:DataType="vm:AnalyticsViewModel"
+             Background="{StaticResource BackgroundBrush}">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Border Grid.Row="0" Classes="GlassContainer" Margin="20,20,20,10" Padding="20">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <TextBlock Text="{Binding Title}" Classes="Header" VerticalAlignment="Center" />
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                    <Button Content="🔄 Refresh"
+                            Classes="Primary"
+                            Command="{Binding RefreshCommand}"
+                            IsEnabled="{Binding !IsLoading}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1" Margin="20,0,20,20">
+            <StackPanel Spacing="15">
+                <!-- Loading Indicator -->
+                <Border IsVisible="{Binding IsLoading}"
+                        Classes="GlassContainer"
+                        Padding="40"
+                        HorizontalAlignment="Center">
+                    <StackPanel Spacing="15" HorizontalAlignment="Center">
+                        <TextBlock Text="⏳" FontSize="48" HorizontalAlignment="Center" />
+                        <TextBlock Text="Loading analytics data..." Classes="Subtitle" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Error Message -->
+                <Border IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                        Background="#cc3333"
+                        CornerRadius="8"
+                        Padding="15"
+                        Margin="0,0,0,10">
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap" />
+                </Border>
+
+                <!-- Key Statistics Cards -->
+                <Grid ColumnDefinitions="*, *, *, *" IsVisible="{Binding !IsLoading}">
+                    <!-- Total Playtime -->
+                    <Border Classes="GlassContainer" Padding="20" Margin="0,0,7.5,0">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="⏱️" FontSize="32" HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding TotalPlaytime}"
+                                      FontSize="28"
+                                      FontWeight="Bold"
+                                      HorizontalAlignment="Center"
+                                      Foreground="{StaticResource AccentBrush}" />
+                            <TextBlock Text="Total Playtime"
+                                      Classes="Caption"
+                                      HorizontalAlignment="Center"
+                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Current Streak -->
+                    <Border Grid.Column="1" Classes="GlassContainer" Padding="20" Margin="7.5,0,7.5,0">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="🔥" FontSize="32" HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding CurrentStreak, StringFormat='{}{0} days'}"
+                                      FontSize="28"
+                                      FontWeight="Bold"
+                                      HorizontalAlignment="Center"
+                                      Foreground="#ff6b35" />
+                            <TextBlock Text="Current Streak"
+                                      Classes="Caption"
+                                      HorizontalAlignment="Center"
+                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Active Days -->
+                    <Border Grid.Column="2" Classes="GlassContainer" Padding="20" Margin="7.5,0,7.5,0">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="📅" FontSize="32" HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding ActiveDays, StringFormat='{}{0} days'}"
+                                      FontSize="28"
+                                      FontWeight="Bold"
+                                      HorizontalAlignment="Center"
+                                      Foreground="#4ecdc4" />
+                            <TextBlock Text="Active Days"
+                                      Classes="Caption"
+                                      HorizontalAlignment="Center"
+                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Total Sessions -->
+                    <Border Grid.Column="3" Classes="GlassContainer" Padding="20" Margin="7.5,0,0,0">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="🎮" FontSize="32" HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding TotalSessions}"
+                                      FontSize="28"
+                                      FontWeight="Bold"
+                                      HorizontalAlignment="Center"
+                                      Foreground="#a8e6cf" />
+                            <TextBlock Text="Total Sessions"
+                                      Classes="Caption"
+                                      HorizontalAlignment="Center"
+                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Gaming Heatmap Section -->
+                <Border Classes="GlassContainer" Padding="20" IsVisible="{Binding !IsLoading}">
+                    <StackPanel Spacing="15">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Text="📊 Gaming Activity Heatmap" Classes="Subtitle" FontWeight="Bold" />
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                                <Button Content="◀ 2023"
+                                        Classes="Secondary"
+                                        Command="{Binding ChangeYearCommand}"
+                                        CommandParameter="2023" />
+                                <TextBlock Text="{Binding SelectedYear}"
+                                          Classes="Body"
+                                          FontWeight="Bold"
+                                          VerticalAlignment="Center"
+                                          Margin="10,0" />
+                                <Button Content="2025 ▶"
+                                        Classes="Secondary"
+                                        Command="{Binding ChangeYearCommand}"
+                                        CommandParameter="2025" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*, *, *">
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="Longest Streak" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}" />
+                                <TextBlock Text="{Binding LongestStreak, StringFormat='{}{0} days'}" Classes="Body" FontWeight="Bold" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="5">
+                                <TextBlock Text="Most Active Day" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}" />
+                                <TextBlock Text="{Binding MostActiveDay}" Classes="Body" FontWeight="Bold" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="5">
+                                <TextBlock Text="Avg Session" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}" />
+                                <TextBlock Text="{Binding AverageSessionLength}" Classes="Body" FontWeight="Bold" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Heatmap visualization would appear here (requires custom control)"
+                                  Classes="Caption"
+                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                  HorizontalAlignment="Center"
+                                  Margin="0,20" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Two Column Layout for Charts and Lists -->
+                <Grid ColumnDefinitions="2*, *" IsVisible="{Binding !IsLoading}">
+                    <!-- Left Column: Weekly Trends -->
+                    <Border Classes="GlassContainer" Padding="20" Margin="0,0,7.5,0">
+                        <StackPanel Spacing="15">
+                            <TextBlock Text="📈 Weekly Trends (Last 12 Weeks)" Classes="Subtitle" FontWeight="Bold" />
+
+                            <ScrollViewer MaxHeight="400">
+                                <ItemsControl ItemsSource="{Binding WeeklyTrends}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#1a1a1a"
+                                                   CornerRadius="6"
+                                                   Padding="15"
+                                                   Margin="0,0,0,8">
+                                                <Grid ColumnDefinitions="Auto, *, Auto, Auto">
+                                                    <TextBlock Grid.Column="0"
+                                                              Text="{Binding WeekNumber, StringFormat='Week {0}'}"
+                                                              Classes="Body"
+                                                              FontWeight="Bold"
+                                                              VerticalAlignment="Center"
+                                                              Width="80" />
+
+                                                    <StackPanel Grid.Column="1" Spacing="3">
+                                                        <TextBlock Text="{Binding PlaytimeText}"
+                                                                  Classes="Body"
+                                                                  FontWeight="Bold" />
+                                                        <TextBlock Text="{Binding SessionCount, StringFormat='{}{0} sessions'}"
+                                                                  Classes="Caption"
+                                                                  Foreground="{StaticResource TextSecondaryBrush}" />
+                                                    </StackPanel>
+
+                                                    <TextBlock Grid.Column="2"
+                                                              Text="{Binding ChangeText}"
+                                                              Classes="Caption"
+                                                              FontWeight="Bold"
+                                                              VerticalAlignment="Center"
+                                                              Margin="10,0">
+                                                        <TextBlock.Foreground>
+                                                            <SolidColorBrush Color="{Binding IsPositiveChange, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#44cc11|#cc3333'}" />
+                                                        </TextBlock.Foreground>
+                                                    </TextBlock>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Right Column: Top Games -->
+                    <Border Grid.Column="1" Classes="GlassContainer" Padding="20" Margin="7.5,0,0,0">
+                        <StackPanel Spacing="15">
+                            <TextBlock Text="🏆 Top Games" Classes="Subtitle" FontWeight="Bold" />
+
+                            <ScrollViewer MaxHeight="400">
+                                <ItemsControl ItemsSource="{Binding TopGames}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#1a1a1a"
+                                                   CornerRadius="6"
+                                                   Padding="12"
+                                                   Margin="0,0,0,8">
+                                                <Grid ColumnDefinitions="Auto, *">
+                                                    <TextBlock Grid.Column="0"
+                                                              Text="{Binding RankEmoji}"
+                                                              FontSize="24"
+                                                              VerticalAlignment="Center"
+                                                              Margin="0,0,12,0" />
+
+                                                    <StackPanel Grid.Column="1" Spacing="3">
+                                                        <TextBlock Text="{Binding Title}"
+                                                                  Classes="Body"
+                                                                  FontWeight="Bold"
+                                                                  TextTrimming="CharacterEllipsis" />
+                                                        <Grid ColumnDefinitions="Auto, Auto">
+                                                            <TextBlock Text="{Binding PlaytimeText}"
+                                                                      Classes="Caption"
+                                                                      Foreground="{StaticResource AccentBrush}"
+                                                                      FontWeight="Bold" />
+                                                            <TextBlock Grid.Column="1"
+                                                                      Text="{Binding SessionCount, StringFormat=' • {0} sessions'}"
+                                                                      Classes="Caption"
+                                                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                                                        </Grid>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Time Distribution -->
+                <Grid ColumnDefinitions="*, *" IsVisible="{Binding !IsLoading}">
+                    <!-- Day of Week Distribution -->
+                    <Border Classes="GlassContainer" Padding="20" Margin="0,0,7.5,0">
+                        <StackPanel Spacing="15">
+                            <TextBlock Text="📅 Playtime by Day of Week" Classes="Subtitle" FontWeight="Bold" />
+
+                            <ItemsControl ItemsSource="{Binding DayDistribution}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="100, *, Auto" Margin="0,0,0,8">
+                                            <TextBlock Grid.Column="0"
+                                                      Text="{Binding DayName}"
+                                                      Classes="Body"
+                                                      VerticalAlignment="Center" />
+
+                                            <Border Grid.Column="1"
+                                                   Background="#1a1a1a"
+                                                   CornerRadius="4"
+                                                   Height="24"
+                                                   VerticalAlignment="Center"
+                                                   Margin="10,0">
+                                                <Border Background="{StaticResource AccentBrush}"
+                                                       CornerRadius="4"
+                                                       HorizontalAlignment="Left"
+                                                       Width="{Binding Playtime.TotalHours, Converter={StaticResource PercentageConverter}}" />
+                                            </Border>
+
+                                            <TextBlock Grid.Column="2"
+                                                      Text="{Binding PlaytimeText}"
+                                                      Classes="Caption"
+                                                      FontWeight="Bold"
+                                                      VerticalAlignment="Center"
+                                                      Margin="10,0,0,0" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Hour of Day Distribution -->
+                    <Border Grid.Column="1" Classes="GlassContainer" Padding="20" Margin="7.5,0,0,0">
+                        <StackPanel Spacing="15">
+                            <TextBlock Text="🕐 Playtime by Hour of Day" Classes="Subtitle" FontWeight="Bold" />
+
+                            <TextBlock Text="{Binding MostActiveHour, StringFormat='Peak hour: {0}'}"
+                                      Classes="Caption"
+                                      Foreground="{StaticResource AccentBrush}"
+                                      FontWeight="Bold" />
+
+                            <ScrollViewer MaxHeight="300">
+                                <ItemsControl ItemsSource="{Binding HourDistribution}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="60, *, Auto" Margin="0,0,0,6">
+                                                <TextBlock Grid.Column="0"
+                                                          Text="{Binding HourText}"
+                                                          Classes="Caption"
+                                                          VerticalAlignment="Center" />
+
+                                                <Border Grid.Column="1"
+                                                       Background="#1a1a1a"
+                                                       CornerRadius="3"
+                                                       Height="20"
+                                                       VerticalAlignment="Center"
+                                                       Margin="8,0">
+                                                    <Border Background="#4ecdc4"
+                                                           CornerRadius="3"
+                                                           HorizontalAlignment="Left"
+                                                           Width="{Binding Playtime.TotalHours, Converter={StaticResource PercentageConverter}}" />
+                                                </Border>
+
+                                                <TextBlock Grid.Column="2"
+                                                          Text="{Binding PlaytimeText}"
+                                                          Classes="Caption"
+                                                          VerticalAlignment="Center"
+                                                          Margin="8,0,0,0" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Empty State -->
+                <Border IsVisible="{Binding !IsLoading}"
+                        Classes="GlassContainer"
+                        Padding="60"
+                        HorizontalAlignment="Center"
+                        Margin="0,40">
+                    <StackPanel Spacing="15" HorizontalAlignment="Center" IsVisible="{Binding TotalSessions, Converter={StaticResource EqualToConverter}, ConverterParameter='0'}">
+                        <TextBlock Text="📊" FontSize="64" HorizontalAlignment="Center" />
+                        <TextBlock Text="No Analytics Data Yet" Classes="Subtitle" FontWeight="Bold" HorizontalAlignment="Center" />
+                        <TextBlock Text="Start playing games to see your analytics!"
+                                  Classes="Body"
+                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                  HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

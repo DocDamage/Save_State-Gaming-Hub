@@ -16,6 +16,7 @@ public class OpenAiProvider : ILlmProvider
     private readonly OpenAiOptions _options;
     private readonly ILogger<OpenAiProvider> _logger;
     private readonly AsyncPolicyWrap _resiliencePolicy;
+    private readonly SaveState.Core.Common.Services.IUserPreferencesService _preferencesService;
 
     public string ProviderName => "OpenAI";
     public bool IsAvailable => !string.IsNullOrEmpty(_options.ApiKey);
@@ -25,21 +26,28 @@ public class OpenAiProvider : ILlmProvider
         HttpClient httpClient,
         IOptions<OpenAiOptions> options,
         IAiResiliencePolicy resiliencePolicy,
+        SaveState.Core.Common.Services.IUserPreferencesService preferencesService,
         ILogger<OpenAiProvider> logger)
     {
         _httpClient = httpClient;
         _options = options.Value;
+        _preferencesService = preferencesService;
         _logger = logger;
         _resiliencePolicy = resiliencePolicy.GetPipelinePolicy("OpenAI");
 
         _httpClient.BaseAddress = new Uri(_options.BaseUrl);
-        _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _options.ApiKey);
 
         AvailableModels = new Dictionary<string, ModelInfo>
         {
             ["gpt-4"] = new("GPT-4", 8192, 0.00003m),
             ["gpt-3.5-turbo"] = new("GPT-3.5 Turbo", 4096, 0.000002m)
         };
+    }
+
+    private async Task<string> GetApiKeyAsync(CancellationToken ct)
+    {
+        var key = await _preferencesService.GetAiApiKeyAsync("OpenAI", ct);
+        return !string.IsNullOrEmpty(key) ? key : _options.ApiKey;
     }
 
     public async Task<Result<CompletionResult>> CompleteAsync(CompletionRequest request, CancellationToken ct)
@@ -56,7 +64,14 @@ public class OpenAiProvider : ILlmProvider
                     temperature = request.Temperature
                 };
 
-                var response = await _httpClient.PostAsJsonAsync("completions", payload, ct).ConfigureAwait(false);
+                var apiKey = await GetApiKeyAsync(token);
+                var requestMsg = new HttpRequestMessage(HttpMethod.Post, "completions")
+                {
+                    Content = JsonContent.Create(payload)
+                };
+                requestMsg.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+
+                var response = await _httpClient.SendAsync(requestMsg, token).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
 
                 var result = await response.Content.ReadFromJsonAsync<OpenAiCompletionResponse>(ct).ConfigureAwait(false);
@@ -92,7 +107,14 @@ public class OpenAiProvider : ILlmProvider
                     max_tokens = request.MaxTokens
                 };
 
-                var response = await _httpClient.PostAsJsonAsync("chat/completions", payload, ct).ConfigureAwait(false);
+                var apiKey = await GetApiKeyAsync(token);
+                var requestMsg = new HttpRequestMessage(HttpMethod.Post, "chat/completions")
+                {
+                    Content = JsonContent.Create(payload)
+                };
+                requestMsg.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+
+                var response = await _httpClient.SendAsync(requestMsg, token).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
 
                 var result = await response.Content.ReadFromJsonAsync<OpenAiChatResponse>(ct).ConfigureAwait(false);

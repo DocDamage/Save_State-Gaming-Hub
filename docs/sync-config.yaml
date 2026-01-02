@@ -1,0 +1,93 @@
+# Metrics Sync Configuration
+# This file defines how metrics from PROJECT_METRICS.md are propagated to other documents.
+
+source_file: "docs/PROJECT_METRICS.md"
+
+# 1. Define Patterns to Capture Metrics from Source
+# Captures values using regex named groups.
+metrics:
+  - name: health_score
+    pattern: "\\| \\*\\*Health Score\\*\\* \\| (?<value>\\d+)/100"
+    type: number
+    validation:
+      min: 0
+      max: 100
+
+  - name: build_errors
+    pattern: "\\| \\*\\*Build Compilation\\*\\* \\| (?<value>\\d+) errors"
+    type: number
+    validation:
+      max: 0 # Strict
+
+  - name: test_pass_rate
+    pattern: "\\| \\*\\*Test Pass Rate\\*\\* \\| (?<value>\\d+)% \\(\\d+/\\d+\\)"
+    type: percentage
+    validation:
+      max: 100
+
+  - name: source_files
+    pattern: "\\| \\*\\*Source Files\\*\\* \\| (?<value>\\d+)\\+ C# files"
+    type: number
+
+  - name: source_loc
+    pattern: "\\| \\*\\*Source Lines of Code\\*\\* \\| (?<value>[\\d,]+)\\+"
+    type: string
+
+  - name: test_methods
+    pattern: "\\| \\*\\*Test Methods\\*\\* \\| (?<value>\\d+)"
+    type: number
+
+  - name: critical_issues
+    pattern: "\\| 🔴 \\*\\*CRITICAL\\*\\* \\|.*?\\| (?<value>\\d+) \\|"
+    type: number
+
+# 2. Define Sync Targets
+# Where to inject these metrics.
+targets:
+  - file: "docs/AI_MASTER_CONTEXT.md"
+    updates:
+      - metric: health_score
+        # Finds "| **Health Score** | **91/100**" table row
+        regex: "\\| \\*\\*Health Score\\*\\* \\| \\*\\*(?<current>\\d+)/100\\*\\*"
+        replace: "| **Health Score** | **{value}/100**"
+
+      - metric: build_errors
+        regex: "\\| \\*\\*Build Result\\*\\* \\| ✅ PASSING \\((?<current>\\d+) errors\\)"
+        replace: "| **Build Result** | ✅ PASSING ({value} errors)"
+
+      - metric: test_methods
+        regex: "\\| \\*\\*Tests Runnable\\*\\* \\| ✅ Yes \\((?<current>\\d+) test methods\\)"
+        replace: "| **Tests Runnable** | ✅ Yes ({value} test methods)"
+
+  - file: "docs/ENGINEERING_RULES.md"
+    updates:
+      - metric: health_score
+        regex: "Health Score (?<current>\\d+)/100"
+        replace: "Health Score {value}/100"
+
+  - file: "docs/status/DEVELOPMENT_STATUS.md"
+    updates:
+      - metric: health_score
+        regex: "\\| \\*\\*Health Score\\*\\* \\| (?<current>\\d+)/100"
+        replace: "| **Health Score** | {value}/100"
+
+      - metric: build_errors
+        regex: "\\| \\*\\*Build Status\\*\\* \\| (?<current>\\d+) errors"
+        replace: "| **Build Status** | {value} errors"
+
+  - file: "README.md"
+    updates:
+      - metric: health_score
+        regex: "health_score-(?<current>\\d+)/100"
+        replace: "health_score-{value}/100"
+
+# 3. Narrative Warnings
+# Warn user if key metrics shift significantly, suggesting a narrative update.
+narrative_checks:
+  - metric: health_score
+    change_threshold: 5
+    message: "⚠️ Health Score changed by {diff} points. Please review Executive Summary in PROJECT_METRICS.md."
+
+  - metric: critical_issues
+    change_threshold: 1
+    message: "⚠️ Critical Issue count changed. Update 'Risks' section if necessary."

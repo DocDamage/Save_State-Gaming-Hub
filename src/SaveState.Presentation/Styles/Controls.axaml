@@ -60,6 +60,15 @@
         <Setter Property="BorderThickness" Value="1" />
     </Style>
 
+    <!-- Card Style -->
+    <Style Selector="Border.Card">
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="16" />
+    </Style>
+
     <!-- Text Styles -->
     <Style Selector="TextBlock.Header">
         <Setter Property="FontSize" Value="24" />
@@ -96,5 +105,28 @@
     <Style Selector="Border.GameCard:pointerover">
         <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
         <Setter Property="RenderTransform" Value="scale(1.05)" />
+    </Style>
+
+    <!-- Sidebar Button Style -->
+    <Style Selector="Button.SidebarButton">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+
+    <Style Selector="Button.SidebarButton TextBlock">
+        <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <Style Selector="Button.SidebarButton:pointerover">
+        <Setter Property="Background" Value="{StaticResource HoverBrush}" />
+    </Style>
+
+    <Style Selector="Button.SidebarButton:pressed">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}" />
     </Style>
 </Styles>

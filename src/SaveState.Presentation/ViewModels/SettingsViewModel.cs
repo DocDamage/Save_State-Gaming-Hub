@@ -1,7 +1,9 @@
 using System.Globalization;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveState.Core.Common.Services;
+using SaveState.Core.Ai.Services;
 using SaveState.Presentation.Resources;
 using SaveState.Presentation.Services;
 
@@ -12,6 +14,8 @@ public partial class SettingsViewModel : ObservableObject
     private readonly ICultureManager _cultureManager;
     private readonly SaveState.Presentation.Resources.Resources _resources;
     private readonly IThemeService _themeService;
+    private readonly IAiOrchestrator _aiOrchestrator;
+    private readonly IUserPreferencesService _preferencesService;
 
     [ObservableProperty]
     private CultureInfo _selectedCulture;
@@ -31,16 +35,42 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private ThemeType _selectedTheme;
 
+    [ObservableProperty]
+    private string _selectedAiProvider = "OpenAI"; // Added
+
+    [ObservableProperty]
+    private string _selectedAiModel = "gpt-4"; // Added
+
+    [ObservableProperty]
+    private ObservableCollection<string> _availableAiProviders = new(); // Added
+
+    [ObservableProperty]
+    private ObservableCollection<string> _availableAiModels = new(); // Added
+
+    [ObservableProperty]
+    private string _openAiApiKey = string.Empty;
+
+    [ObservableProperty]
+    private string _groqApiKey = string.Empty;
+
     public SettingsViewModel(
         ICultureManager cultureManager,
         SaveState.Presentation.Resources.Resources resources,
-        IThemeService themeService)
+        IThemeService themeService,
+        IAiOrchestrator aiOrchestrator, // Added
+        IUserPreferencesService preferencesService)
     {
         _cultureManager = cultureManager;
         _resources = resources;
         _themeService = themeService;
+        _aiOrchestrator = aiOrchestrator; // Added
+        _preferencesService = preferencesService;
+
         SelectedCulture = _cultureManager.CurrentCulture;
         SelectedTheme = _themeService.CurrentTheme;
+
+        // Initialize AI options
+        _ = LoadAiPreferencesAsync();
 
         // Subscribe to theme changes
         _themeService.ThemeChanged += (sender, theme) => SelectedTheme = theme;
@@ -91,6 +121,84 @@ public partial class SettingsViewModel : ObservableObject
 
         _themeService.SetTheme(theme);
         // SelectedTheme will be updated via the ThemeChanged event
+    }
+
+    private async Task LoadAiPreferencesAsync()
+    {
+        SelectedAiProvider = await _preferencesService.GetPreferredAiProviderAsync();
+        SelectedAiModel = await _preferencesService.GetPreferredAiModelAsync();
+        OpenAiApiKey = await _preferencesService.GetAiApiKeyAsync("OpenAI");
+        GroqApiKey = await _preferencesService.GetAiApiKeyAsync("Groq");
+        RefreshAiOptions();
+    }
+
+    private void RefreshAiOptions()
+    {
+        AvailableAiProviders.Clear();
+        foreach (var provider in _aiOrchestrator.GetAvailableProviders())
+        {
+            AvailableAiProviders.Add(provider);
+        }
+
+        if (AvailableAiProviders.Count > 0 && string.IsNullOrEmpty(SelectedAiProvider))
+        {
+            SelectedAiProvider = AvailableAiProviders[0];
+        }
+    }
+
+    async partial void OnSelectedAiProviderChanged(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return;
+
+        await _preferencesService.SetPreferredAiProviderAsync(value);
+
+        AvailableAiModels.Clear();
+        if (value == "OpenAI")
+        {
+            AvailableAiModels.Add("gpt-4");
+            AvailableAiModels.Add("gpt-3.5-turbo");
+        }
+        else if (value == "Groq")
+        {
+            AvailableAiModels.Add("llama3-70b-8192");
+            AvailableAiModels.Add("mixtral-8x7b-32768");
+        }
+        else if (value == "Embedded (Local)")
+        {
+            AvailableAiModels.Add("phi-3-mini");
+            AvailableAiModels.Add("mistral-tiny");
+            AvailableAiModels.Add("llama-3-8b");
+            AvailableAiModels.Add("savestate-base");
+        }
+
+        if (AvailableAiModels.Count > 0)
+        {
+            var savedModel = await _preferencesService.GetPreferredAiModelAsync();
+            if (AvailableAiModels.Contains(savedModel))
+            {
+                SelectedAiModel = savedModel;
+            }
+            else
+            {
+                SelectedAiModel = AvailableAiModels[0];
+            }
+        }
+    }
+
+    async partial void OnSelectedAiModelChanged(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return;
+        await _preferencesService.SetPreferredAiModelAsync(value);
+    }
+
+    async partial void OnOpenAiApiKeyChanged(string value)
+    {
+        await _preferencesService.SetAiApiKeyAsync("OpenAI", value);
+    }
+
+    async partial void OnGroqApiKeyChanged(string value)
+    {
+        await _preferencesService.SetAiApiKeyAsync("Groq", value);
     }
 
     private void UpdateTestString()

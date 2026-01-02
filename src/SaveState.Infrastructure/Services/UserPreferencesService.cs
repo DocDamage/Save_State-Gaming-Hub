@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SaveState.Infrastructure.Services;
 
@@ -52,6 +54,89 @@ public class UserPreferencesService : SaveState.Core.Common.Services.IUserPrefer
         }
     }
 
+    public async Task<string> GetPreferredAiProviderAsync(CancellationToken ct = default)
+    {
+        var prefs = await LoadPreferencesAsync(ct);
+        return prefs.PreferredAiProvider;
+    }
+
+    public async Task SetPreferredAiProviderAsync(string provider, CancellationToken ct = default)
+    {
+        var prefs = await LoadPreferencesAsync(ct);
+        prefs.PreferredAiProvider = provider;
+        await SavePreferencesAsync(prefs, ct);
+    }
+
+    public async Task<string> GetPreferredAiModelAsync(CancellationToken ct = default)
+    {
+        var prefs = await LoadPreferencesAsync(ct);
+        return prefs.PreferredAiModel;
+    }
+
+    public async Task SetPreferredAiModelAsync(string model, CancellationToken ct = default)
+    {
+        var prefs = await LoadPreferencesAsync(ct);
+        prefs.PreferredAiModel = model;
+        await SavePreferencesAsync(prefs, ct);
+    }
+
+    public async Task<string> GetAiApiKeyAsync(string provider, CancellationToken ct = default)
+    {
+        var prefs = await LoadPreferencesAsync(ct);
+        var encrypted = provider.ToLower() switch
+        {
+            "openai" => prefs.EncryptedOpenAiApiKey,
+            "groq" => prefs.EncryptedGroqApiKey,
+            _ => null
+        };
+
+        if (string.IsNullOrEmpty(encrypted)) return string.Empty;
+
+        try
+        {
+            return Decrypt(encrypted);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to decrypt API key for {Provider}", provider);
+            return string.Empty;
+        }
+    }
+
+    public async Task SetAiApiKeyAsync(string provider, string apiKey, CancellationToken ct = default)
+    {
+        var prefs = await LoadPreferencesAsync(ct);
+        var encrypted = string.IsNullOrEmpty(apiKey) ? string.Empty : Encrypt(apiKey);
+
+        switch (provider.ToLower())
+        {
+            case "openai":
+                prefs.EncryptedOpenAiApiKey = encrypted;
+                break;
+            case "groq":
+                prefs.EncryptedGroqApiKey = encrypted;
+                break;
+        }
+
+        await SavePreferencesAsync(prefs, ct);
+    }
+
+    private string Encrypt(string clearText)
+    {
+        if (string.IsNullOrEmpty(clearText)) return string.Empty;
+        var data = Encoding.UTF8.GetBytes(clearText);
+        var encrypted = ProtectedData.Protect(data, null, DataProtectionScope.CurrentUser);
+        return Convert.ToBase64String(encrypted);
+    }
+
+    private string Decrypt(string encryptedText)
+    {
+        if (string.IsNullOrEmpty(encryptedText)) return string.Empty;
+        var data = Convert.FromBase64String(encryptedText);
+        var decrypted = ProtectedData.Unprotect(data, null, DataProtectionScope.CurrentUser);
+        return Encoding.UTF8.GetString(decrypted);
+    }
+
     private async Task<UserPreferences> LoadPreferencesAsync(CancellationToken cancellationToken)
     {
         if (_cachedPreferences != null)
@@ -83,5 +168,9 @@ public class UserPreferencesService : SaveState.Core.Common.Services.IUserPrefer
     {
         public bool OnboardingCompleted { get; set; }
         public DateTime? OnboardingCompletedAt { get; set; }
+        public string PreferredAiProvider { get; set; } = "OpenAI";
+        public string PreferredAiModel { get; set; } = "gpt-4";
+        public string? EncryptedOpenAiApiKey { get; set; }
+        public string? EncryptedGroqApiKey { get; set; }
     }
 }

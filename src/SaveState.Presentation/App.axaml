@@ -19,6 +19,10 @@
       <converters:BoolToBrushConverter x:Key="BoolToBrushConverter" />
       <converters:TabContentConverter x:Key="TabContentConverter" />
       <converters:GreaterThanConverter x:Key="GreaterThanConverter" />
+      <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
+      <converters:EqualToConverter x:Key="EqualToConverter" />
+      <converters:PercentageConverter x:Key="PercentageConverter" />
+      <converters:StringNotEmptyConverter x:Key="StringNotEmptyConverter" />
     </ResourceDictionary>
   </Application.Resources>
 

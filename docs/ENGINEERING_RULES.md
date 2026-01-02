@@ -1,10 +1,10 @@
 # SaveStateReborn Engineering Rules & Principles
 
-**Status**: ✅ Active (v1.0.0 Released - Production)
-**Last Updated**: January 1, 2026 (v1.0.0 Release)
+**Status**: ✅ Active (Production + Development)
+**Last Updated**: January 2, 2026 (Technical Debt Audit)
 **Maintained By**: Architecture Team
 **Next Review**: January 15, 2026
-**Related Documents**: [AI_MASTER_CONTEXT.md](./AI_MASTER_CONTEXT.md), [LESSONS_LEARNED.md](planning/LESSONS_LEARNED.md), [TECHNICAL_DEBT_REMEDIATION_PLAN.md](reports/TECHNICAL_DEBT_REMEDIATION_PLAN.md)
+**Related Documents**: [AI_MASTER_CONTEXT.md](./AI_MASTER_CONTEXT.md), [LESSONS_LEARNED.md](planning/LESSONS_LEARNED.md), [TECHNICAL_DEBT_AUDIT_2026-01-02.md](reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md)
 
 ---
 
@@ -24,7 +24,7 @@
 
 ---
 
-**Version**: 2.1 (January 1, 2026 - Post-Compilation Fix Update)
+**Version**: 2.2 (January 2, 2026 - Technical Debt Audit Update)
 
 These rules are derived from the lessons learned during the development and stabilization of V2.1. They must be followed for all new feature development and refactoring.
 
@@ -33,19 +33,20 @@ These rules are derived from the lessons learned during the development and stab
 ## 📊 Current Compliance Status
 
 > [!NOTE]
-> **Phase 0 & 1 Complete**: All compilation errors and sync-over-async violations resolved on January 1, 2026.
+> **January 2, 2026 Audit**: Health Score 91/100. Most rules compliant. See [PROJECT_METRICS.md](PROJECT_METRICS.md) for full metrics and [TECHNICAL_DEBT_AUDIT_2026-01-02.md](reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md) for details.
 
-### Rule Compliance Summary (January 1, 2026 Audit)
+### Rule Compliance Summary (January 2, 2026)
 
 | Rule Category | Status | Violations |
 |---------------|--------|------------|
 | **Build compiles** | ✅ Compliant | 0 errors |
-| **Sync-over-async** | ✅ Compliant | 0 (Fixed!) |
-| **Async void forbidden** | ✅ Compliant | 0 |
+| **Sync-over-async (.Result)** | ⚠️ Violation | 3 (JwtTokenService) |
+| **Async void forbidden** | ⚠️ Violation | 3 (ViewModels) |
 | **Thread.Sleep forbidden** | ✅ Compliant | 0 |
-| **Empty catch blocks** | ✅ Compliant | 0 |
-| **IHttpClientFactory** | ✅ Compliant | 0 (Fixed!) |
-| **Result pattern** | ✅ Compliant | 0 (Fixed!) |
+| **Empty catch blocks** | ⚠️ Violation | 4 (needs logging) |
+| **IHttpClientFactory** | ⚠️ Violation | 2 (plugins) |
+| **Result pattern** | ⚠️ Violation | 45+ `return null` |
+| **.Wait() forbidden** | ✅ Compliant | 0 |
 
 ---
 
@@ -69,7 +70,7 @@ These rules are derived from the lessons learned during the development and stab
 - **Must Not** return `null` to indicate failure or "not found".
 - **Must Not** use exceptions for expected validation errors.
 
-**Current Violations**: 50+ `return null` statements (see [Tech Debt Report](reports/TECHNICAL_DEBT_REMEDIATION_PLAN.md))
+**Current Violations**: 45+ `return null` statements (see [Tech Debt Audit](reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md))
 
 ---
 
@@ -83,8 +84,16 @@ These rules are derived from the lessons learned during the development and stab
   - Circuit breaker for 5XX errors.
   - Timeout policy (max 30s).
 - **Must** use **Semantic Caching** for repetitive AI briefings/summaries.
+- **Must** implement web search fallback when local knowledge is insufficient.
+- **Must** auto-save search results to knowledge base for future queries.
 
-### 2. Workflow Automation
+### 2. Knowledge Base
+
+- **Must** store all knowledge in Markdown format in `%LOCALAPPDATA%/SaveStateReborn/KnowledgeBase/`.
+- **Must** use `IKnowledgeBaseService.SaveToKnowledgeBaseAsync` for persisting new information.
+- **Must** immediately index new knowledge files for RAG availability.
+
+### 3. Workflow Automation
 
 - **Must** use the `IMacroManager` for keyboard/input recording.
 - **Must Not** hardcode input delays; use configurable retry/wait intervals.
@@ -100,11 +109,11 @@ These rules are derived from the lessons learned during the development and stab
 - **Must Not** define duplicate command names at the root level.
 - **Must** ensure `SetHandler` delegate signatures exactly match the argument/option count and order.
 
-**Current Status**: 3/12 command groups implemented
+**Current Status**: 12/12 command groups implemented ✅
 
 ### 2. UI Stability (Avalonia)
 
-- **Must Not** use `async void` except for Top-Level Event Handlers. ✅ **Compliant**
+- **Must Not** use `async void` except for Top-Level Event Handlers. ⚠️ **3 violations**
 - **Must** wrap all event-driven `async void` calls in a robust `try-catch` with logging.
 - **Must** use `Dispatcher.UIThread.InvokeAsync` when updating UI components from background tasks.
 - **Must Not** use `$parent[vm:ViewModelType]` in XAML bindings.
@@ -128,17 +137,23 @@ These rules are derived from the lessons learned during the development and stab
 
 ### 2. Async Best Practices
 
-- **Must Not** use `.Result` to block on async operations.
-- **Must Not** use `.Wait()` to block on async operations.
+- **Must Not** use `.Result` to block on async operations. ⚠️ **3 violations**
+- **Must Not** use `.Wait()` to block on async operations. ✅ **Compliant**
 - **Must Not** use `GetAwaiter().GetResult()` except in Dispose methods.
 - **Must** use `await` with `ConfigureAwait(false)` in library code.
 
-**Current Violations**: 14 instances (see [Tech Debt Report Phase 1](reports/TECHNICAL_DEBT_REMEDIATION_PLAN.md))
+**Current Violations**: 3 instances in `JwtTokenService.cs` (lines 29, 98, 118)
 
 ### 3. Logging & Diagnostics
 
 - **Must** use **Structured Logging**. Include context parameters like `GameId`, `UserId`, or `ProviderName`.
-- **Must Not** use silent `catch (Exception) {}` blocks. ✅ **Compliant**
+- **Must Not** use silent `catch (Exception) {}` blocks. ⚠️ **4 violations**
+
+**Silent Catch Violations**:
+
+- `RecommendationService.cs:318`
+- `EmulatorRomScanner.cs:154`
+- `SmartCategorizationService.cs:236, 262`
 
 ### 4. Startup & Configuration
 
@@ -172,7 +187,7 @@ These rules are derived from the lessons learned during the development and stab
 | Test Files | 148 |
 | Test Methods | 529 |
 | Test LOC | 11,056 |
-| Tests Runnable | ❌ Blocked by build |
+| Tests Runnable | ✅ Yes |
 
 ---
 
@@ -194,29 +209,20 @@ These rules are derived from the lessons learned during the development and stab
 - **Must** use appropriate synchronization for shared state.
 - **Should** prefer `ConcurrentDictionary` over `lock()` for simple key-value scenarios.
 
-**Current Status**: 21 `lock()` statements in monitoring/state management (appropriate usage)
-
 ---
 
 ## 🤖 How These Rules Are Enforced
 
 | Rule | Enforcement | Tool | Current Status |
 |:-----|:------------|:-----|:---------------|
-| Build compiles | CI/CD | dotnet build | ❌ 11 errors |
+| Build compiles | CI/CD | dotnet build | ✅ 0 errors |
 | Pagination required | Code review | Manual | ✅ Compliant |
-| Result pattern | Static analyzer | Roslyn | ⚠️ 50+ violations |
+| Result pattern | Static analyzer | Roslyn | ⚠️ 45+ violations |
 | IHttpClientFactory | IDE inspection | ReSharper | ⚠️ 2 violations |
 | Structured logging | Code review | SonarQube | ✅ Compliant |
-| Async void forbidden | Static analyzer | StyleCop | ✅ Compliant |
-| No silent catches | Automated scan | Custom | ✅ Compliant |
-| No .Result/.Wait() | Code review | Manual | ❌ 14 violations |
-
-**Enforcement setup**:
-
-```bash
-dotnet tool install -g dotnet-format
-dotnet format --verify-no-changes
-```
+| Async void forbidden | Static analyzer | StyleCop | ⚠️ 3 violations |
+| No silent catches | Automated scan | Custom | ⚠️ 4 violations |
+| No .Result/.Wait() | Code review | Manual | ⚠️ 3 violations |
 
 ---
 
@@ -226,11 +232,11 @@ dotnet format --verify-no-changes
 
 | Rule | Status |
 |------|--------|
-| Build must compile | ❌ 11 errors |
-| No `async void` in business code | ✅ Compliant |
+| Build must compile | ✅ Compliant |
+| No `async void` in business code | ⚠️ 3 violations |
 | No manual `new HttpClient()` | ⚠️ 2 violations |
-| Result pattern on all service methods | ❌ 50+ violations |
-| No silent exception catches | ✅ Compliant |
+| Result pattern on all service methods | ⚠️ 45+ violations |
+| No silent exception catches | ⚠️ 4 violations |
 
 ### 🟡 HIGH (Code Review Required)
 
@@ -240,7 +246,7 @@ dotnet format --verify-no-changes
 | Structured logging in catch blocks | ✅ Compliant |
 | Configuration validation at startup | ✅ Compliant |
 | N+1 query prevention | ✅ Compliant |
-| No sync-over-async | ❌ 14 violations |
+| No sync-over-async | ⚠️ 3 violations |
 
 ### 🟢 MEDIUM (Guideline)
 
@@ -248,10 +254,8 @@ dotnet format --verify-no-changes
 |------|--------|
 | Prefer constants over magic strings | ✅ Mostly compliant |
 | Use guard clauses in constructors | ✅ Compliant |
-| Document complex algorithms | ⚠️ Some TODOs |
-| Keep methods under 30 lines | ⚠️ DependencyInjection.cs is 479 lines |
-
-**CI/CD Integration**: Critical violations fail build. High violations require approval.
+| Document complex algorithms | ⚠️ 68+ TODOs |
+| Keep methods under 30 lines | ✅ Mostly compliant |
 
 ---
 
@@ -288,21 +292,26 @@ catch (HttpRequestException ex) when (ex is { InnerException: TimeoutException }
 
 ## 📍 Current Violations
 
-### Critical (None)
+### Critical (3)
 
- All critical architectural violations have been resolved as of January 2, 2026.
+| Issue | File | Line |
+|-------|------|------|
+| `.Result` sync-over-async | `JwtTokenService.cs` | 29, 98, 118 |
 
-### High Priority (None)
+### High Priority (7)
 
- All high-priority sync-over-async and null-returning violations have been resolved.
+| Category | Count | Files |
+|----------|-------|-------|
+| `async void` methods | 3 | DashboardViewModel, StatusBarViewModel, TerminalViewModel |
+| Silent catch blocks | 4 | RecommendationService, SmartCategorizationService (2), EmulatorRomScanner |
 
 ### Medium Priority
 
 | Category | Count | Reference |
 |----------|-------|-----------|
-| `return null` | 50+ | [Tech Debt Report](reports/TECHNICAL_DEBT_REMEDIATION_PLAN.md) |
-| TODO comments | 32 | 17 files |
-| Incomplete CLI groups | 9 | [Tech Debt Report Phase 3](reports/TECHNICAL_DEBT_REMEDIATION_PLAN.md) |
+| `return null` | 45+ | [Tech Debt Audit](reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md) |
+| TODO comments | 68+ | Presentation layer |
+| Manual HttpClient | 2 | Plugin projects |
 
 ---
 
@@ -311,13 +320,14 @@ catch (HttpRequestException ex) when (ex is { InnerException: TimeoutException }
 | Date | Health Score | Critical Violations | High Violations |
 |------|--------------|---------------------|-----------------|
 | Dec 31, 2025 | 86/100 | 0 | Unknown |
-| Jan 1, 2026 | 65/100 | 11 (compilation) | 14 (sync-over-async) |
+| Jan 1, 2026 | 98/100 | 0 | 0 |
+| Jan 2, 2026 | 91/100 | 3 | 7 |
 
-**Target**: 95/100 by January 19, 2026
+**Target**: 95/100 by January 15, 2026
 
 ---
 
 **Failure to adhere to these rules is considered a regression in project quality.**
 
-*Last Audit*: January 1, 2026 (Comprehensive codebase scan)
+*Last Audit*: January 2, 2026 (Comprehensive codebase scan)
 *Audit Method*: grep, file analysis, build verification

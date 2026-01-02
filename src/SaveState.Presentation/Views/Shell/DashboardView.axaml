@@ -7,42 +7,72 @@
 
     <UserControl.Styles>
         <Style Selector="Border.widget-container">
-            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="Background" Value="#1AFFFFFF" />
+            <Setter Property="BorderBrush" Value="#2AFFFFFF" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="BoxShadow" Value="0 2px 8px rgba(0,0,0,0.1)" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="ClipToBounds" Value="True" />
+        </Style>
+
+        <Style Selector="Border.widget-container:pointerover">
+            <Setter Property="Background" Value="#25FFFFFF" />
+            <Setter Property="BoxShadow" Value="0 8 24 rgba(0,0,0,0.4)" />
+            <Setter Property="RenderTransform" Value="scale(1.01)" />
         </Style>
 
         <Style Selector="TextBlock.widget-title">
-            <Setter Property="FontSize" Value="16" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Margin" Value="0,0,0,12" />
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="White" />
         </Style>
 
-        <Style Selector="Button.widget-action">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="8" />
-            <Setter Property="Cursor" Value="Hand" />
+        <Style Selector="Button.header-action">
+            <Setter Property="Background" Value="#1AFFFFFF" />
+            <Setter Property="BorderBrush" Value="#2AFFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="16,8" />
+            <Setter Property="CornerRadius" Value="8" />
         </Style>
 
-        <Style Selector="Button.widget-action:hover">
-            <Setter Property="Background" Value="{StaticResource HoverBrush}" />
+        <Style Selector="Button.header-action:hover">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+            <Setter Property="BorderBrush" Value="Transparent" />
         </Style>
     </UserControl.Styles>
 
-    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-        <Grid RowDefinitions="Auto, *">
-            <!-- Header -->
-            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
-                <TextBlock Text="Dashboard" FontSize="24" FontWeight="Bold" />
-                <Button Content="⚙️ Customize" Command="{Binding CustomizeCommand}" Margin="20,0,0,0" />
-                <Button Content="🔄 Reset Layout" Command="{Binding ResetLayoutCommand}" Margin="10,0,0,0" />
-            </StackPanel>
+    <Grid RowDefinitions="Auto, *">
+        <!-- Dashboard Header -->
+        <Border Grid.Row="0" Margin="20,20,20,10">
+            <Grid ColumnDefinitions="*, Auto">
+                <StackPanel>
+                    <TextBlock Text="Welcome back, Commander"
+                               FontSize="32"
+                               FontWeight="Heavy"
+                               Foreground="White" />
+                    <TextBlock Text="Your gaming command center is online."
+                               FontSize="16"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
 
-            <!-- Widget Grid -->
-            <ItemsControl Grid.Row="1" ItemsSource="{Binding Widgets}">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <Button Classes="header-action" Command="{Binding CustomizeCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="⚙️" VerticalAlignment="Center"/>
+                            <TextBlock Text="Customize" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="header-action" Command="{Binding ResetLayoutCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="🔄" VerticalAlignment="Center"/>
+                            <TextBlock Text="Reset" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Widgets}" Padding="12">
                 <ItemsControl.Styles>
                     <Style Selector="ItemsControl > ContentPresenter">
                         <Setter Property="Grid.Column" Value="{Binding Column}"/>
@@ -54,8 +84,8 @@
 
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <Grid ShowGridLines="False">
-                            <!-- Define 12 columns for the grid -->
+                        <Grid>
+                            <!-- 12-column grid for maximum flexibility -->
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
@@ -70,8 +100,6 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-
-                            <!-- Define enough rows for the grid -->
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
@@ -88,15 +116,21 @@
                     <DataTemplate>
                         <Border Classes="widget-container"
                                 Margin="8"
-                                Padding="16">
+                                Padding="20">
                             <Grid RowDefinitions="Auto, *">
                                 <!-- Widget Header -->
-                                <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Widget.Icon}" FontSize="18" Margin="0,0,8,0" />
-                                        <TextBlock Text="{Binding Widget.Title}" Classes="widget-title" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto" Margin="0,0,0,15">
+                                    <TextBlock Text="{Binding Widget.Icon}"
+                                               FontSize="24"
+                                               Margin="0,0,12,0"
+                                               VerticalAlignment="Center" />
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Widget.Title}"
+                                               Classes="widget-title"
+                                               VerticalAlignment="Center" />
+
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
                                         <Button Classes="widget-action"
                                                 Content="−"
                                                 Command="{Binding Widget.MinimizeCommand}"
@@ -110,13 +144,12 @@
 
                                 <!-- Widget Content -->
                                 <ContentControl Grid.Row="1"
-                                              Content="{Binding Widget.ViewModel}"
-                                              Margin="0,12,0,0" />
+                                              Content="{Binding Widget.ViewModel}" />
                             </Grid>
                         </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-        </Grid>
-    </ScrollViewer>
+        </ScrollViewer>
+    </Grid>
 </UserControl>

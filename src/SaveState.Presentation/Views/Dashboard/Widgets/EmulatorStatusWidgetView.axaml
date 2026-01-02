@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:widgets="using:SaveState.Presentation.Services.Dashboard.Widgets"
+             x:Class="SaveState.Presentation.Views.Dashboard.Widgets.EmulatorStatusWidgetView"
+             x:DataType="widgets:EmulatorStatusWidget">
+
+    <Grid>
+        <ListBox ItemsSource="{Binding Emulators}"
+                 Background="Transparent"
+                 BorderThickness="0"
+                 Padding="0">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid ColumnDefinitions="Auto, *, Auto" Margin="0,4">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding StatusIcon}"
+                                   Margin="0,0,12,0"
+                                   VerticalAlignment="Center" />
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Name}"
+                                       FontWeight="Medium"
+                                       FontSize="14" />
+                            <TextBlock Text="{Binding Platform}"
+                                       FontSize="12"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+
+                        <TextBlock Grid.Column="2"
+                                   Text="{Binding StatusText}"
+                                   FontSize="12"
+                                   VerticalAlignment="Center"
+                                   Foreground="{Binding IsAvailable, Converter={StaticResource BoolToBrushConverter}, ConverterParameter='Green|Red'}" />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- Loading Overlay -->
+        <Border Background="{StaticResource SurfaceBrush}"
+                Opacity="0.7"
+                IsVisible="{Binding IsLoading}"
+                CornerRadius="8">
+            <ProgressBar IsIndeterminate="True"
+                         VerticalAlignment="Center"
+                         HorizontalAlignment="Center"
+                         Width="100" />
+        </Border>
+
+        <!-- Error Message -->
+        <Border Padding="12"
+                IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Foreground="Red"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center" />
+        </Border>
+    </Grid>
+</UserControl>
