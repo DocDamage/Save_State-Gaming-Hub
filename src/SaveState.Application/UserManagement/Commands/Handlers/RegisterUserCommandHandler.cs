@@ -8,6 +8,10 @@ using SaveState.Core.UserManagement.Services;
 
 namespace SaveState.Application.UserManagement.Commands.Handlers;
 
+/// <summary>
+/// Handler for user registration.
+/// Creates new user accounts with validation and role assignment.
+/// </summary>
 public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, Result<RegisterUserResponse>>
 {
     private readonly IUserRepository _userRepository;
@@ -27,6 +31,12 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, R
         _logger = logger;
     }
 
+    /// <summary>
+    /// Handles the command to register a new user.
+    /// </summary>
+    /// <param name="request">The register user command with user details.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the registration response or an error.</returns>
     public async Task<Result<RegisterUserResponse>> Handle(RegisterUserCommand request, CancellationToken ct)
     {
         try

@@ -6,8 +6,18 @@ using SaveState.Core.Common.Enums;
 
 namespace SaveState.Application.AiGaming.Queries.Handlers;
 
+/// <summary>
+/// Handler for retrieving AI-generated cheat patterns for games.
+/// Returns known cheat codes and patterns that can be applied to games.
+/// </summary>
 public class GetCheatPatternsQueryHandler : IRequestHandler<GetCheatPatternsQuery, Result<IReadOnlyList<CheatPatternDto>>>
 {
+    /// <summary>
+    /// Handles the request to get cheat patterns for a game.
+    /// </summary>
+    /// <param name="request">The query containing game information.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the list of cheat patterns or an error.</returns>
     public Task<Result<IReadOnlyList<CheatPatternDto>>> Handle(GetCheatPatternsQuery request, CancellationToken ct)
     {
         // Mock implementation - in a real system, this would query a database of known cheat patterns

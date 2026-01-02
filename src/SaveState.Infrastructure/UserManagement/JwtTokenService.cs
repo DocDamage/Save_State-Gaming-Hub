@@ -24,9 +24,9 @@ public class JwtTokenService : IJwtTokenService
         _logger = logger;
     }
 
-    public Task<string> GenerateAccessTokenAsync(User user, CancellationToken ct = default)
+    public async Task<string> GenerateAccessTokenAsync(User user, CancellationToken ct = default)
     {
-        var claims = CreateClaimsAsync(user).Result;
+        var claims = await CreateClaimsAsync(user);
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -38,7 +38,7 @@ public class JwtTokenService : IJwtTokenService
             signingCredentials: credentials
         );
 
-        return Task.FromResult(new JwtSecurityTokenHandler().WriteToken(token));
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     public Task<string> GenerateRefreshTokenAsync(User user, CancellationToken ct = default)
@@ -93,11 +93,11 @@ public class JwtTokenService : IJwtTokenService
         }
     }
 
-    public Task<Result<Guid>> GetUserIdFromTokenAsync(string token, CancellationToken ct = default)
+    public async Task<Result<Guid>> GetUserIdFromTokenAsync(string token, CancellationToken ct = default)
     {
-        var principalResult = ValidateTokenAsync(token, ct).Result;
+        var principalResult = await ValidateTokenAsync(token, ct);
         if (principalResult.IsFailure)
-            return Task.FromResult(Result<Guid>.Failure(principalResult.Error ?? "Token validation failed", principalResult.ErrorType));
+            return Result<Guid>.Failure(principalResult.Error ?? "Token validation failed", principalResult.ErrorType);
 
         var principal = principalResult.Value;
         var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier) ??
@@ -105,23 +105,23 @@ public class JwtTokenService : IJwtTokenService
 
         if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
         {
-            return Task.FromResult(Result<Guid>.Success(userId));
+            return Result<Guid>.Success(userId);
         }
 
-        return Task.FromResult(Result<Guid>.Failure("User ID claim not found in token", ErrorType.Validation));
+        return Result<Guid>.Failure("User ID claim not found in token", ErrorType.Validation);
     }
 
-    public Task<bool> IsTokenExpiredAsync(string token, CancellationToken ct = default)
+    public async Task<bool> IsTokenExpiredAsync(string token, CancellationToken ct = default)
     {
         try
         {
-            var principalResult = ValidateTokenAsync(token, ct).Result;
-            return Task.FromResult(principalResult.IsFailure);
+            var principalResult = await ValidateTokenAsync(token, ct);
+            return principalResult.IsFailure;
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Error checking token expiration");
-            return Task.FromResult(true);
+            return true;
         }
     }
 

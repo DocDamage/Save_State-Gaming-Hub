@@ -7,6 +7,10 @@ using SaveState.Infrastructure.Repositories;
 
 namespace SaveState.Infrastructure.SaveStates;
 
+/// <summary>
+/// Service for managing save state branching and versioning.
+/// Allows creating branches, merging save states, and managing save state history.
+/// </summary>
 public class SaveStateBranchingService : ISaveStateBranchingService
 {
     private readonly ISaveStateRepository _saveStateRepository;
@@ -20,6 +24,12 @@ public class SaveStateBranchingService : ISaveStateBranchingService
         _branchRepository = branchRepository;
     }
 
+    /// <summary>
+    /// Creates a new branch from an existing save state.
+    /// </summary>
+    /// <param name="request">The branch creation request containing source state and branch details.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the created branch or an error.</returns>
     public async Task<Result<SaveStateBranch>> CreateBranchAsync(CreateBranchRequest request, CancellationToken ct = default)
     {
         try
@@ -54,6 +64,13 @@ public class SaveStateBranchingService : ISaveStateBranchingService
         }
     }
 
+    /// <summary>
+    /// Compares two save states and returns the differences.
+    /// </summary>
+    /// <param name="stateId1">The ID of the first save state to compare.</param>
+    /// <param name="stateId2">The ID of the second save state to compare.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the save state differences or an error.</returns>
     public async Task<Result<SaveStateDiff>> CompareStatesAsync(Guid stateId1, Guid stateId2, CancellationToken ct = default)
     {
         try
@@ -110,6 +127,13 @@ public class SaveStateBranchingService : ISaveStateBranchingService
         }
     }
 
+    /// <summary>
+    /// Merges a branch into the target save state.
+    /// </summary>
+    /// <param name="branchId">The ID of the branch to merge.</param>
+    /// <param name="targetStateId">The ID of the target save state to merge into.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result indicating success or failure.</returns>
     public async Task<Result> MergeBranchAsync(Guid branchId, Guid targetStateId, CancellationToken ct = default)
     {
         try
@@ -138,6 +162,12 @@ public class SaveStateBranchingService : ISaveStateBranchingService
         }
     }
 
+    /// <summary>
+    /// Retrieves all branches for a specific game.
+    /// </summary>
+    /// <param name="gameId">The ID of the game to get branches for.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the list of branches or an error.</returns>
     public async Task<Result<IReadOnlyList<SaveStateBranch>>> GetBranchesAsync(Guid gameId, CancellationToken ct = default)
     {
         try
@@ -151,6 +181,12 @@ public class SaveStateBranchingService : ISaveStateBranchingService
         }
     }
 
+    /// <summary>
+    /// Retrieves the complete branch tree structure for a game.
+    /// </summary>
+    /// <param name="gameId">The ID of the game to get the branch tree for.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the branch tree or an error.</returns>
     public async Task<Result<BranchTree>> GetBranchTreeAsync(Guid gameId, CancellationToken ct = default)
     {
         try

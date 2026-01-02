@@ -13,6 +13,10 @@ using SaveState.Core.GameLibrary.ValueObjects;
 
 namespace SaveState.Application.GameLibrary.Commands.Handlers;
 
+/// <summary>
+/// Handler for importing games into the library.
+/// Validates game data and creates game entities with proper metadata.
+/// </summary>
 public class ImportGameCommandHandler : IRequestHandler<ImportGameCommand, Result<GameId>>
 {
     private readonly IGameRepository _gameRepository;
@@ -35,6 +39,12 @@ public class ImportGameCommandHandler : IRequestHandler<ImportGameCommand, Resul
         _logger = logger;
     }
 
+    /// <summary>
+    /// Handles the command to import a game into the library.
+    /// </summary>
+    /// <param name="request">The import game command with game details.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the game ID or an error.</returns>
     public async Task<Result<GameId>> Handle(ImportGameCommand request, CancellationToken ct)
     {
         try

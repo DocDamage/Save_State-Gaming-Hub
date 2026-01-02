@@ -199,11 +199,12 @@ public partial class StatusBarViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Refreshes all status information.
+    /// Handles the timer elapsed event by refreshing stats.
+    /// Uses fire-and-forget pattern with existing try/catch in RefreshStatsAsync.
     /// </summary>
-    private async void OnRefreshTimerElapsed(object? sender, ElapsedEventArgs e)
+    private void OnRefreshTimerElapsed(object? sender, ElapsedEventArgs e)
     {
-        await RefreshStatsAsync();
+        _ = RefreshStatsAsync();
     }
 
     /// <summary>

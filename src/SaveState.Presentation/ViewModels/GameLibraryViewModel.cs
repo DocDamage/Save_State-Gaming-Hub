@@ -11,6 +11,10 @@ using SaveState.Application.GameLibrary.ReadModels;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.Enums;
 
+/// <summary>
+/// View model for the game library, managing game collections, search, and filtering.
+/// Provides the main interface for browsing and managing the user's game collection.
+/// </summary>
 public partial class GameLibraryViewModel : ObservableObject
 {
     private readonly IMediator _mediator;

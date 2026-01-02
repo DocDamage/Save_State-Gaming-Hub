@@ -16,8 +16,17 @@ using SaveState.Presentation.Views;
 using SaveState.Presentation.Services;
 using SaveState.Core.Mugen.Entities;
 
+/// <summary>
+/// Entry point for the SaveState Avalonia application.
+/// Configures dependency injection, initializes the database, and starts the UI.
+/// </summary>
 public static class Program
 {
+    /// <summary>
+    /// Application entry point. Configures services, initializes database, and starts the Avalonia UI.
+    /// </summary>
+    /// <param name="args">Command line arguments.</param>
+    /// <returns>A task representing the application execution.</returns>
     [STAThread]
     public static async Task Main(string[] args)
     {

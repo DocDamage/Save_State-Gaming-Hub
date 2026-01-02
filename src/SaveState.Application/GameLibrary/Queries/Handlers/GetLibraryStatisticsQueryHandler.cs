@@ -8,6 +8,10 @@ using SaveState.Core.GameLibrary.Enums;
 
 namespace SaveState.Application.GameLibrary.Queries.Handlers;
 
+/// <summary>
+/// Handler for retrieving library statistics.
+/// Calculates and aggregates various metrics about the game collection.
+/// </summary>
 public class GetLibraryStatisticsQueryHandler : IRequestHandler<GetLibraryStatisticsQuery, Result<LibraryStatisticsDto>>
 {
     private readonly IGameRepository _gameRepository;
@@ -17,6 +21,12 @@ public class GetLibraryStatisticsQueryHandler : IRequestHandler<GetLibraryStatis
         _gameRepository = gameRepository;
     }
 
+    /// <summary>
+    /// Handles the query to get library statistics.
+    /// </summary>
+    /// <param name="request">The library statistics query.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the library statistics or an error.</returns>
     public async Task<Result<LibraryStatisticsDto>> Handle(GetLibraryStatisticsQuery request, CancellationToken ct)
     {
         // Get efficient aggregate data from the database

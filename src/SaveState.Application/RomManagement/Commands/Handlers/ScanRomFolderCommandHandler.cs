@@ -9,6 +9,10 @@ using SaveState.Core.RomManagement;
 
 namespace SaveState.Application.RomManagement.Commands.Handlers;
 
+/// <summary>
+/// Handler for scanning ROM folders.
+/// Discovers and catalogs ROM files in specified directories.
+/// </summary>
 public class ScanRomFolderCommandHandler : MediatR.IRequestHandler<ScanRomFolderCommand, Result<ScanResult>>
 {
     private readonly IRomScannerService _scannerService;
@@ -28,6 +32,12 @@ public class ScanRomFolderCommandHandler : MediatR.IRequestHandler<ScanRomFolder
         _logger = logger;
     }
 
+    /// <summary>
+    /// Handles the command to scan a ROM folder.
+    /// </summary>
+    /// <param name="request">The scan ROM folder command with folder path.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the scan results or an error.</returns>
     public async Task<Result<ScanResult>> Handle(ScanRomFolderCommand request, CancellationToken ct)
     {
         try

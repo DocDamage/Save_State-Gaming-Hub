@@ -5,8 +5,21 @@ using SaveState.Presentation.ViewModels;
 
 namespace SaveState.Presentation.Converters;
 
+/// <summary>
+/// Converts ViewMode values to CSS class names for styling.
+/// Used in game library view to apply different styles based on view mode.
+/// </summary>
 public class ViewModeToClassConverter : IValueConverter
 {
+    /// <summary>
+    /// Converts a ViewMode value to a CSS class name.
+    /// Returns "Primary" if the view mode matches the parameter, otherwise "Secondary".
+    /// </summary>
+    /// <param name="value">The ViewMode value to convert.</param>
+    /// <param name="targetType">The target type (string).</param>
+    /// <param name="parameter">The mode parameter to compare against.</param>
+    /// <param name="culture">Culture information (not used).</param>
+    /// <returns>"Primary" if matched, "Secondary" otherwise.</returns>
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is ViewMode viewMode && parameter is string mode)
@@ -16,14 +29,35 @@ public class ViewModeToClassConverter : IValueConverter
         return "Secondary";
     }
 
+    /// <summary>
+    /// ConvertBack is not implemented for this converter.
+    /// </summary>
+    /// <param name="value">The value to convert back.</param>
+    /// <param name="targetType">The target type.</param>
+    /// <param name="parameter">Converter parameter.</param>
+    /// <param name="culture">Culture information.</param>
+    /// <returns>Not implemented.</returns>
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         throw new NotImplementedException();
     }
 }
 
+/// <summary>
+/// Converts boolean values to CSS class names.
+/// Useful for conditional styling based on boolean states.
+/// </summary>
 public class BoolToClassConverter : IValueConverter
 {
+    /// <summary>
+    /// Converts a boolean value to a CSS class name.
+    /// Returns the parameter value if true, otherwise returns "Default".
+    /// </summary>
+    /// <param name="value">The boolean value to convert.</param>
+    /// <param name="targetType">The target type (string).</param>
+    /// <param name="parameter">The class name to return when true.</param>
+    /// <param name="culture">Culture information (not used).</param>
+    /// <returns>The parameter value if true, "Default" if false.</returns>
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is bool boolValue && parameter is string className)

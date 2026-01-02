@@ -6,6 +6,10 @@ using SaveState.Core.Input.Services;
 
 namespace SaveState.Infrastructure.Input;
 
+/// <summary>
+/// Service for managing controller profiles and input configurations.
+/// Handles mapping of controller inputs to game actions.
+/// </summary>
 public class ControllerProfileService : IControllerProfileService
 {
     private readonly IControllerProfileRepository _profileRepository;

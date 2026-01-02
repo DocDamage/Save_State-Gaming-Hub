@@ -6,6 +6,10 @@ using SaveState.Core.GameLibrary;
 
 namespace SaveState.Application.GameLibrary.Commands.Handlers;
 
+/// <summary>
+/// Handler for updating game metadata.
+/// Modifies game information like titles, descriptions, and other metadata.
+/// </summary>
 public class UpdateGameMetadataCommandHandler : IRequestHandler<UpdateGameMetadataCommand, Result>
 {
     private readonly IGameRepository _gameRepository;
@@ -19,6 +23,12 @@ public class UpdateGameMetadataCommandHandler : IRequestHandler<UpdateGameMetada
         _logger = logger;
     }
 
+    /// <summary>
+    /// Handles the command to update game metadata.
+    /// </summary>
+    /// <param name="request">The update game metadata command with new metadata.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result indicating success or failure.</returns>
     public async Task<Result> Handle(UpdateGameMetadataCommand request, CancellationToken ct)
     {
         var game = await _gameRepository.GetByIdAsync(request.GameId, ct).ConfigureAwait(false);

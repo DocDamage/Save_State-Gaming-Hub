@@ -5,6 +5,10 @@ using SaveState.Core.GameLibrary.DTOs;
 
 namespace SaveState.Infrastructure.External;
 
+/// <summary>
+/// Service for retrieving game metadata from IGDB (Internet Game Database).
+/// Provides game information, covers, and other metadata using the IGDB API.
+/// </summary>
 public class IgdbMetadataService : IMetadataService
 {
     private readonly IIgdbApiClient _apiClient;

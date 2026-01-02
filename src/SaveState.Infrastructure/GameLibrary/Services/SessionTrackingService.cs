@@ -41,6 +41,12 @@ public class SessionTrackingService : ISessionTrackingService
     /// <param name="gameId">The unique identifier of the game.</param>
     /// <param name="ct">Cancellation token for the operation.</param>
     /// <returns>A result containing the created session or an error.</returns>
+    /// <summary>
+    /// Starts a new gaming session for the specified game.
+    /// </summary>
+    /// <param name="gameId">The unique identifier of the game.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the started game session or an error.</returns>
     public async Task<Result<GameSession>> StartSessionAsync(Guid gameId, CancellationToken ct = default)
     {
         try
@@ -92,6 +98,13 @@ public class SessionTrackingService : ISessionTrackingService
     /// <param name="reason">The reason the session is ending.</param>
     /// <param name="ct">Cancellation token for the operation.</param>
     /// <returns>A result indicating success or failure.</returns>
+    /// <summary>
+    /// Ends a gaming session with the specified reason.
+    /// </summary>
+    /// <param name="sessionId">The unique identifier of the session to end.</param>
+    /// <param name="reason">The reason for ending the session.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result indicating success or failure.</returns>
     public async Task<Result> EndSessionAsync(Guid sessionId, SessionEndReason reason, CancellationToken ct = default)
     {
         try
@@ -140,6 +153,13 @@ public class SessionTrackingService : ISessionTrackingService
     /// <param name="reason">The reason the session is ending.</param>
     /// <param name="ct">Cancellation token for the operation.</param>
     /// <returns>A result indicating success or failure.</returns>
+    /// <summary>
+    /// Ends the currently active session for a game.
+    /// </summary>
+    /// <param name="gameId">The unique identifier of the game.</param>
+    /// <param name="reason">The reason for ending the session.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result indicating success or failure.</returns>
     public async Task<Result> EndActiveSessionAsync(Guid gameId, SessionEndReason reason, CancellationToken ct = default)
     {
         try
@@ -166,6 +186,12 @@ public class SessionTrackingService : ISessionTrackingService
     /// <param name="gameId">The unique identifier of the game.</param>
     /// <param name="ct">Cancellation token for the operation.</param>
     /// <returns>A result containing the active session or null.</returns>
+    /// <summary>
+    /// Retrieves the currently active session for a game.
+    /// </summary>
+    /// <param name="gameId">The unique identifier of the game.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the active session or null if none exists.</returns>
     public async Task<Result<GameSession?>> GetActiveSessionAsync(Guid gameId, CancellationToken ct = default)
     {
         try
@@ -185,6 +211,11 @@ public class SessionTrackingService : ISessionTrackingService
     /// </summary>
     /// <param name="ct">Cancellation token for the operation.</param>
     /// <returns>A result containing the list of active sessions.</returns>
+    /// <summary>
+    /// Retrieves all currently active gaming sessions.
+    /// </summary>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing all active sessions.</returns>
     public async Task<Result<IReadOnlyList<GameSession>>> GetAllActiveSessionsAsync(CancellationToken ct = default)
     {
         try
@@ -206,6 +237,9 @@ public class SessionTrackingService : ISessionTrackingService
     /// <param name="limit">Maximum number of sessions to return.</param>
     /// <param name="ct">Cancellation token for the operation.</param>
     /// <returns>A result containing the list of historical sessions.</returns>
+    /// <summary>
+    /// Retrieves the session history for a game within a date range.
+    /// </summary>
     public async Task<Result<IReadOnlyList<GameSession>>> GetSessionHistoryAsync(
         Guid gameId,
         int limit = 50,
@@ -225,6 +259,12 @@ public class SessionTrackingService : ISessionTrackingService
 
     /// <summary>
     /// Gets playtime statistics for a specific game.
+    /// </summary>
+    /// <param name="gameId">The unique identifier of the game.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the playtime statistics.</returns>
+    /// <summary>
+    /// Retrieves playtime statistics for a game.
     /// </summary>
     /// <param name="gameId">The unique identifier of the game.</param>
     /// <param name="ct">Cancellation token for the operation.</param>

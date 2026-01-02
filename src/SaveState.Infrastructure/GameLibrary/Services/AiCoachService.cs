@@ -6,6 +6,10 @@ using SaveState.Core.GameLibrary.Services;
 
 namespace SaveState.Infrastructure.GameLibrary.Services;
 
+/// <summary>
+/// AI-powered coaching service for gaming improvement.
+/// Provides real-time feedback, strategy suggestions, and performance analysis.
+/// </summary>
 public class AiCoachService : IAiCoachService
 {
     private readonly IAiOrchestrator _aiOrchestrator;
@@ -26,6 +30,13 @@ public class AiCoachService : IAiCoachService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Starts a new AI coaching session for a game.
+    /// </summary>
+    /// <param name="gameId">The unique identifier of the game.</param>
+    /// <param name="preferences">The coaching preferences for the session.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the coaching session or an error.</returns>
     public async Task<Result<CoachingSession>> StartCoachingSessionAsync(Guid gameId, CoachingPreferences preferences, CancellationToken ct = default)
     {
         try
@@ -55,6 +66,12 @@ public class AiCoachService : IAiCoachService
         }
     }
 
+    /// <summary>
+    /// Ends an AI coaching session.
+    /// </summary>
+    /// <param name="sessionId">The unique identifier of the coaching session.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result indicating success or failure.</returns>
     public async Task<Result> EndCoachingSessionAsync(Guid sessionId, CancellationToken ct = default)
     {
         try
@@ -87,6 +104,13 @@ public class AiCoachService : IAiCoachService
         }
     }
 
+    /// <summary>
+    /// Gets real-time coaching feedback based on current game state.
+    /// </summary>
+    /// <param name="sessionId">The unique identifier of the coaching session.</param>
+    /// <param name="gameState">The current snapshot of the game state.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the coaching feedback or an error.</returns>
     public async Task<Result<CoachingFeedback>> GetRealTimeFeedbackAsync(Guid sessionId, GameStateSnapshot gameState, CancellationToken ct = default)
     {
         try
@@ -125,6 +149,13 @@ public class AiCoachService : IAiCoachService
         }
     }
 
+    /// <summary>
+    /// Analyzes the player's strategy based on recent game actions.
+    /// </summary>
+    /// <param name="sessionId">The unique identifier of the coaching session.</param>
+    /// <param name="recentActions">The list of recent game actions to analyze.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the strategy analysis or an error.</returns>
     public async Task<Result<StrategyAnalysis>> AnalyzePlayerStrategyAsync(Guid sessionId, IReadOnlyList<GameAction> recentActions, CancellationToken ct = default)
     {
         try

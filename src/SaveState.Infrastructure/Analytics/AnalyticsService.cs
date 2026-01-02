@@ -7,6 +7,10 @@ using SaveState.Core.GameLibrary.Entities;
 
 namespace SaveState.Infrastructure.Analytics;
 
+/// <summary>
+/// Service for analyzing gaming sessions and providing insights.
+/// Generates heatmaps, trends, and playtime distribution analytics.
+/// </summary>
 public class AnalyticsService : IAnalyticsService
 {
     private readonly IGameSessionRepository _sessionRepository;
@@ -26,6 +30,12 @@ public class AnalyticsService : IAnalyticsService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Generates a gaming heatmap showing playtime distribution across days and hours for a given year.
+    /// </summary>
+    /// <param name="year">The year to generate the heatmap for.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the heatmap data or an error.</returns>
     public async Task<Result<GamingHeatmapData>> GetHeatmapAsync(int year, CancellationToken ct = default)
     {
         try
@@ -95,6 +105,12 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
+    /// <summary>
+    /// Retrieves weekly gaming trends showing playtime patterns over time.
+    /// </summary>
+    /// <param name="weeks">Number of weeks to look back (default: 12).</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the weekly trends data or an error.</returns>
     public async Task<Result<IReadOnlyList<WeeklyTrend>>> GetWeeklyTrendsAsync(int weeks = 12, CancellationToken ct = default)
     {
         try
@@ -150,6 +166,11 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
+    /// <summary>
+    /// Analyzes playtime distribution across different time periods and categories.
+    /// </summary>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the playtime distribution data or an error.</returns>
     public async Task<Result<TimeDistribution>> GetPlaytimeDistributionAsync(CancellationToken ct = default)
     {
         try
@@ -190,6 +211,13 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
+    /// <summary>
+    /// Retrieves the top games by playtime within an optional date range.
+    /// </summary>
+    /// <param name="count">Number of top games to return (default: 10).</param>
+    /// <param name="since">Optional start date to filter games played since this date.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the list of top games or an error.</returns>
     public async Task<Result<IReadOnlyList<TopGame>>> GetTopGamesAsync(int count = 10, DateOnly? since = null, CancellationToken ct = default)
     {
         try

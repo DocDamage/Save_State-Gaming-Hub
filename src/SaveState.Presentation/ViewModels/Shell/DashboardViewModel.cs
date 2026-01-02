@@ -22,7 +22,7 @@ public partial class DashboardViewModel : ObservableObject
         _serviceProvider = serviceProvider;
 
         Widgets = new ObservableCollection<WidgetInstance>();
-        InitializeWidgets();
+        _ = InitializeWidgetsAsync();
     }
 
     /// <summary>
@@ -36,9 +36,9 @@ public partial class DashboardViewModel : ObservableObject
     public string Title => "Dashboard";
 
     /// <summary>
-    /// Initializes the default set of widgets.
+    /// Initializes the default set of widgets asynchronously.
     /// </summary>
-    private async void InitializeWidgets()
+    private async Task InitializeWidgetsAsync()
     {
         try
         {

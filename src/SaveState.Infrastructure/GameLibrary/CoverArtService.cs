@@ -6,6 +6,10 @@ using SaveState.Infrastructure.External;
 
 namespace SaveState.Infrastructure.GameLibrary;
 
+/// <summary>
+/// Service for managing game cover art retrieval, caching, and processing.
+/// Integrates with multiple sources including SteamGridDB and metadata services.
+/// </summary>
 public class CoverArtService : ICoverArtService
 {
     private readonly IMetadataService _metadataService;
@@ -28,6 +32,13 @@ public class CoverArtService : ICoverArtService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Fetches the best available cover art for a game.
+    /// Searches multiple sources and returns the highest quality image.
+    /// </summary>
+    /// <param name="gameId">The unique identifier of the game.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the cover art information or an error.</returns>
     public async Task<Result<CoverArtResult>> FetchCoverArtAsync(Guid gameId, CancellationToken ct = default)
     {
         try
@@ -55,6 +66,13 @@ public class CoverArtService : ICoverArtService
         }
     }
 
+    /// <summary>
+    /// Searches for cover art options using the provided query.
+    /// Returns multiple cover art options for user selection.
+    /// </summary>
+    /// <param name="query">The search query for finding cover art.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing a list of cover art options or an error.</returns>
     public async Task<Result<IReadOnlyList<CoverArtOption>>> SearchCoverArtAsync(string query, CancellationToken ct = default)
     {
         try
@@ -92,6 +110,14 @@ public class CoverArtService : ICoverArtService
         }
     }
 
+    /// <summary>
+    /// Sets the cover art for a game using the provided image URL.
+    /// Downloads and caches the image for the specified game.
+    /// </summary>
+    /// <param name="gameId">The unique identifier of the game.</param>
+    /// <param name="imageUrl">The URL of the cover art image to set.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result indicating success or failure.</returns>
     public async Task<Result> SetCoverArtAsync(Guid gameId, string imageUrl, CancellationToken ct = default)
     {
         try
@@ -114,6 +140,14 @@ public class CoverArtService : ICoverArtService
         }
     }
 
+    /// <summary>
+    /// Downloads and caches a cover art image for a game.
+    /// Processes the image and stores it in the cache for future use.
+    /// </summary>
+    /// <param name="gameId">The unique identifier of the game.</param>
+    /// <param name="imageUrl">The URL of the image to download and cache.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result indicating success or failure.</returns>
     public async Task<Result> DownloadAndCacheAsync(Guid gameId, string imageUrl, CancellationToken ct = default)
     {
         try

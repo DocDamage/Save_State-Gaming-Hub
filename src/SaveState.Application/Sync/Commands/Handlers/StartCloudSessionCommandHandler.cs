@@ -8,6 +8,10 @@ using SaveState.Core.Sync.Services.DTOs;
 
 namespace SaveState.Application.Sync.Commands.Handlers;
 
+/// <summary>
+/// Handler for starting cloud gaming sessions.
+/// Manages cloud gaming infrastructure and session initialization.
+/// </summary>
 public class StartCloudSessionCommandHandler :
     IRequestHandler<StartCloudSessionCommand, Result<CloudSession>>
 {

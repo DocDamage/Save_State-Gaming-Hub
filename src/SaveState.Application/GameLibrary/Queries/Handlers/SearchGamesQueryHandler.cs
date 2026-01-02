@@ -9,6 +9,10 @@ using SaveState.Core.GameLibrary.Enums;
 
 namespace SaveState.Application.GameLibrary.Queries.Handlers;
 
+/// <summary>
+/// Handler for searching games in the library.
+/// Supports text search, filtering, and pagination of game results.
+/// </summary>
 public class SearchGamesQueryHandler : IRequestHandler<SearchGamesQuery, Result<Application.Common.DTOs.PagedResult<GameSummaryDto>>>
 {
     private readonly IGameRepository _gameRepository;
@@ -18,6 +22,12 @@ public class SearchGamesQueryHandler : IRequestHandler<SearchGamesQuery, Result<
         _gameRepository = gameRepository;
     }
 
+    /// <summary>
+    /// Handles the query to search for games.
+    /// </summary>
+    /// <param name="request">The search games query with search criteria.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the paged search results or an error.</returns>
     public async Task<Result<Application.Common.DTOs.PagedResult<GameSummaryDto>>> Handle(SearchGamesQuery request, CancellationToken ct)
     {
         // Map SortOption to GameSortBy

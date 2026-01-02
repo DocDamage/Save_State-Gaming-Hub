@@ -9,6 +9,10 @@ using SaveState.Presentation.Services;
 
 namespace SaveState.Presentation.ViewModels;
 
+/// <summary>
+/// View model for application settings and preferences.
+/// Manages user preferences, localization, themes, and AI configuration.
+/// </summary>
 public partial class SettingsViewModel : ObservableObject
 {
     private readonly ICultureManager _cultureManager;

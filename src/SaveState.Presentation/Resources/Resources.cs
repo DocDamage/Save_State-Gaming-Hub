@@ -9,6 +9,10 @@ public partial class Resources
 {
     private readonly IStringLocalizer<Resources> _localizer;
 
+    /// <summary>
+    /// Initializes a new instance of the Resources class with localized strings.
+    /// </summary>
+    /// <param name="localizer">The string localizer for resource localization.</param>
     public Resources(IStringLocalizer<Resources> localizer)
     {
         _localizer = localizer;
@@ -120,6 +124,9 @@ public partial class Resources
         _localizer["GameLibrary_Genre_Filter", genre];
 
     // Game Details
+    /// <summary>
+    /// Gets the game title localized string.
+    /// </summary>
     /// <summary>
     /// Gets the game title localized string.
     /// </summary>

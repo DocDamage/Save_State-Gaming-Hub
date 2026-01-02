@@ -4,6 +4,10 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Ai.Knowledge;
 using SaveState.Core.Ai.Learning;
 
+/// <summary>
+/// Local learning service for processing AI feedback and improving responses.
+/// Implements feedback loop for continuous AI model improvement.
+/// </summary>
 public class LocalLearningService : IFeedbackLoop
 {
     private readonly IKnowledgeStore _store;

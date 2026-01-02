@@ -31,6 +31,12 @@ public class GameBriefingService : IGameBriefingService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Generates a comprehensive game briefing with session summary, objectives, and tips.
+    /// </summary>
+    /// <param name="gameId">The unique identifier of the game.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the game briefing or an error.</returns>
     public async Task<Result<GameBriefing>> GenerateBriefingAsync(
         Guid gameId,
         CancellationToken ct = default)
@@ -89,6 +95,9 @@ public class GameBriefingService : IGameBriefingService
         }
     }
 
+    /// <summary>
+    /// Generates a summary of the player's last gaming session.
+    /// </summary>
     public async Task<Result<string>> GenerateLastSessionSummaryAsync(
         Guid gameId,
         CancellationToken ct = default)
@@ -144,6 +153,9 @@ public class GameBriefingService : IGameBriefingService
         }
     }
 
+    /// <summary>
+    /// Retrieves current objectives and goals for the game.
+    /// </summary>
     public async Task<Result<IReadOnlyList<string>>> GetCurrentObjectivesAsync(
         Guid gameId,
         CancellationToken ct = default)
@@ -205,6 +217,9 @@ public class GameBriefingService : IGameBriefingService
         }
     }
 
+    /// <summary>
+    /// Retrieves helpful tips and strategies for the game.
+    /// </summary>
     public async Task<Result<IReadOnlyList<string>>> GetGameTipsAsync(
         Guid gameId,
         CancellationToken ct = default)
@@ -256,6 +271,9 @@ public class GameBriefingService : IGameBriefingService
         }
     }
 
+    /// <summary>
+    /// Generates a simplified briefing with essential information only.
+    /// </summary>
     public async Task<Result<GameBriefing>> GenerateQuickBriefingAsync(
         Guid gameId,
         CancellationToken ct = default)

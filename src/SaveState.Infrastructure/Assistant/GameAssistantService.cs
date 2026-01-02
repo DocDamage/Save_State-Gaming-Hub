@@ -9,6 +9,10 @@ using SaveState.Core.GameLibrary.Entities;
 
 namespace SaveState.Infrastructure.Assistant;
 
+/// <summary>
+/// AI-powered game assistant service.
+/// Provides intelligent game recommendations, tips, and analysis.
+/// </summary>
 public class GameAssistantService : IGameAssistantService
 {
     private readonly IAiOrchestrator _aiOrchestrator;
@@ -28,6 +32,9 @@ public class GameAssistantService : IGameAssistantService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Asks the AI assistant a question about a game.
+    /// </summary>
     public async Task<Result<AssistantResponse>> AskAsync(
         Guid gameId,
         string question,

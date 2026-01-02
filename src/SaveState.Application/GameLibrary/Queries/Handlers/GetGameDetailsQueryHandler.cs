@@ -7,6 +7,10 @@ using SaveState.Core.GameLibrary;
 
 namespace SaveState.Application.GameLibrary.Queries.Handlers;
 
+/// <summary>
+/// Handler for retrieving detailed game information.
+/// Provides comprehensive game data including metadata and statistics.
+/// </summary>
 public class GetGameDetailsQueryHandler : IRequestHandler<GetGameDetailsQuery, Result<GameDetail>>
 {
     private readonly IGameRepository _gameRepository;
@@ -16,6 +20,12 @@ public class GetGameDetailsQueryHandler : IRequestHandler<GetGameDetailsQuery, R
         _gameRepository = gameRepository;
     }
 
+    /// <summary>
+    /// Handles the query to get detailed game information.
+    /// </summary>
+    /// <param name="request">The game details query with game ID.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the game details or an error.</returns>
     public async Task<Result<GameDetail>> Handle(GetGameDetailsQuery request, CancellationToken ct)
     {
         var game = await _gameRepository.GetByIdAsync(request.GameId, ct).ConfigureAwait(false);

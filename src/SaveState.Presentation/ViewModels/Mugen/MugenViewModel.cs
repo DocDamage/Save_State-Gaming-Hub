@@ -10,6 +10,10 @@ using SaveState.Core.Configuration;
 
 namespace SaveState.Presentation.ViewModels.Mugen;
 
+/// <summary>
+/// View model for MUGEN fighting game engine integration.
+/// Manages character selection, tournament creation, and match configuration.
+/// </summary>
 public partial class MugenViewModel : ObservableObject
 {
     private readonly IMediator _mediator;

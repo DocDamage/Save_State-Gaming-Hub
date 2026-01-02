@@ -7,6 +7,10 @@ using SaveState.Core.Configuration;
 
 namespace SaveState.Infrastructure.Ai.Knowledge;
 
+/// <summary>
+/// Service for managing a knowledge base stored in Markdown files.
+/// Provides semantic search and retrieval of documentation and knowledge.
+/// </summary>
 public class MarkdownKnowledgeBaseService : IKnowledgeBaseService
 {
     private readonly SemanticKnowledgeClient _knowledgeClient;

@@ -7,6 +7,10 @@ using SaveState.Core.Ai.Services;
 
 namespace SaveState.Infrastructure.Ai.Services;
 
+/// <summary>
+/// Service for performing web searches to gather information.
+/// Used by AI services to retrieve current data from the internet.
+/// </summary>
 public class WebSearchService : IWebSearchService
 {
     private readonly HttpClient _httpClient;
@@ -21,6 +25,12 @@ public class WebSearchService : IWebSearchService
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
     }
 
+    /// <summary>
+    /// Performs a web search with the given query and returns the results.
+    /// </summary>
+    /// <param name="query">The search query to execute.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>The search results as a string.</returns>
     public async Task<string> SearchAsync(string query, CancellationToken ct = default)
     {
         try

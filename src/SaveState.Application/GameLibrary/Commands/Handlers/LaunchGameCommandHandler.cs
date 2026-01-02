@@ -11,6 +11,10 @@ using SaveState.Core.GameLibrary.Entities;
 
 namespace SaveState.Application.GameLibrary.Commands.Handlers;
 
+/// <summary>
+/// Handler for launching games.
+/// Validates game existence and launches game processes with proper monitoring.
+/// </summary>
 public class LaunchGameCommandHandler : IRequestHandler<LaunchGameCommand, Result<ProcessInfo>>
 {
     private readonly IGameRepository _gameRepository;
@@ -30,6 +34,12 @@ public class LaunchGameCommandHandler : IRequestHandler<LaunchGameCommand, Resul
         _logger = logger;
     }
 
+    /// <summary>
+    /// Handles the command to launch a game.
+    /// </summary>
+    /// <param name="request">The launch game command with game ID.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the process information or an error.</returns>
     public async Task<Result<ProcessInfo>> Handle(LaunchGameCommand request, CancellationToken ct)
     {
         var game = await _gameRepository.GetByIdAsync(request.GameId, ct).ConfigureAwait(false);

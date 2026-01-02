@@ -9,6 +9,10 @@ using System.Text.Json;
 
 namespace SaveState.Infrastructure.GameLibrary;
 
+/// <summary>
+/// AI-powered service for intelligent game categorization and tagging.
+/// Automatically categorizes games based on metadata, content analysis, and user patterns.
+/// </summary>
 public class SmartCategorizationService : ISmartCategorizationService
 {
     private readonly IAiOrchestrator _aiOrchestrator;

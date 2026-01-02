@@ -9,6 +9,10 @@ using SaveState.Core.UserManagement.Services;
 
 namespace SaveState.Infrastructure.Analytics;
 
+/// <summary>
+/// Service for managing gaming goals and achievements.
+/// Tracks progress toward gaming objectives and unlocks achievements.
+/// </summary>
 public class GoalService : IGoalService
 {
     private readonly IGamingGoalRepository _goalRepository;

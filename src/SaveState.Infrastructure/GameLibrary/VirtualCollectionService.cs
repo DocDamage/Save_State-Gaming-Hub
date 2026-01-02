@@ -7,6 +7,10 @@ using SaveState.Core.GameLibrary.Services;
 
 namespace SaveState.Infrastructure.GameLibrary;
 
+/// <summary>
+/// Service for managing virtual game collections.
+/// Provides dynamic collections based on rules, filters, and user preferences.
+/// </summary>
 public class VirtualCollectionService : IVirtualCollectionService
 {
     private readonly IVirtualCollectionRepository _collectionRepository;
@@ -23,6 +27,13 @@ public class VirtualCollectionService : IVirtualCollectionService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Creates a new manual virtual collection with the specified name.
+    /// </summary>
+    /// <param name="name">The name of the collection.</param>
+    /// <param name="icon">Optional icon for the collection.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the created collection or an error.</returns>
     public async Task<Result<VirtualCollection>> CreateManualCollectionAsync(string name, string? icon = null, CancellationToken ct = default)
     {
         try
@@ -40,6 +51,14 @@ public class VirtualCollectionService : IVirtualCollectionService
         }
     }
 
+    /// <summary>
+    /// Creates a new smart collection with automatic filtering rules.
+    /// </summary>
+    /// <param name="name">The name of the collection.</param>
+    /// <param name="filter">The filter rules for the smart collection.</param>
+    /// <param name="icon">Optional icon for the collection.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the created collection or an error.</returns>
     public async Task<Result<VirtualCollection>> CreateSmartCollectionAsync(string name, CollectionFilter filter, string? icon = null, CancellationToken ct = default)
     {
         try
@@ -57,6 +76,12 @@ public class VirtualCollectionService : IVirtualCollectionService
         }
     }
 
+    /// <summary>
+    /// Deletes a virtual collection.
+    /// </summary>
+    /// <param name="collectionId">The unique identifier of the collection to delete.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result indicating success or failure.</returns>
     public async Task<Result> DeleteCollectionAsync(Guid collectionId, CancellationToken ct = default)
     {
         try
@@ -80,6 +105,13 @@ public class VirtualCollectionService : IVirtualCollectionService
         }
     }
 
+    /// <summary>
+    /// Adds a game to a virtual collection.
+    /// </summary>
+    /// <param name="collectionId">The unique identifier of the collection.</param>
+    /// <param name="gameId">The unique identifier of the game to add.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result indicating success or failure.</returns>
     public async Task<Result> AddGameToCollectionAsync(Guid collectionId, Guid gameId, CancellationToken ct = default)
     {
         try
@@ -103,6 +135,13 @@ public class VirtualCollectionService : IVirtualCollectionService
         }
     }
 
+    /// <summary>
+    /// Removes a game from a virtual collection.
+    /// </summary>
+    /// <param name="collectionId">The unique identifier of the collection.</param>
+    /// <param name="gameId">The unique identifier of the game to remove.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result indicating success or failure.</returns>
     public async Task<Result> RemoveGameFromCollectionAsync(Guid collectionId, Guid gameId, CancellationToken ct = default)
     {
         try
@@ -126,6 +165,12 @@ public class VirtualCollectionService : IVirtualCollectionService
         }
     }
 
+    /// <summary>
+    /// Retrieves all games in a virtual collection.
+    /// </summary>
+    /// <param name="collectionId">The unique identifier of the collection.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the list of games in the collection.</returns>
     public async Task<Result<IReadOnlyList<Game>>> GetGamesInCollectionAsync(Guid collectionId, CancellationToken ct = default)
     {
         try
@@ -159,6 +204,12 @@ public class VirtualCollectionService : IVirtualCollectionService
         }
     }
 
+    /// <summary>
+    /// Retrieves all virtual collections.
+    /// </summary>
+    /// <param name="includeSystem">Whether to include system collections in the results.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the list of all collections.</returns>
     public async Task<Result<IReadOnlyList<VirtualCollection>>> GetAllCollectionsAsync(bool includeSystem = true, CancellationToken ct = default)
     {
         try
@@ -173,6 +224,12 @@ public class VirtualCollectionService : IVirtualCollectionService
         }
     }
 
+    /// <summary>
+    /// Executes a smart filter to find games matching the criteria.
+    /// </summary>
+    /// <param name="filter">The collection filter criteria.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the filtered list of games.</returns>
     public async Task<Result<IReadOnlyList<Game>>> ExecuteSmartFilterAsync(CollectionFilter filter, CancellationToken ct = default)
     {
         try
@@ -190,6 +247,11 @@ public class VirtualCollectionService : IVirtualCollectionService
         }
     }
 
+    /// <summary>
+    /// Creates default system collections for the application.
+    /// </summary>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result indicating success or failure.</returns>
     public async Task<Result> CreateSystemCollectionsAsync(CancellationToken ct = default)
     {
         try

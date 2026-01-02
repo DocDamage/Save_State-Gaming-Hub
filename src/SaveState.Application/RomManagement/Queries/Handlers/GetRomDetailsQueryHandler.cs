@@ -7,6 +7,10 @@ using SaveState.Core.RomManagement;
 
 namespace SaveState.Application.RomManagement.Queries.Handlers;
 
+/// <summary>
+/// Handler for retrieving ROM file details.
+/// Provides information about ROM files, metadata, and validation status.
+/// </summary>
 public class GetRomDetailsQueryHandler : IRequestHandler<GetRomDetailsQuery, Result<RomDetailsDto>>
 {
     private readonly IRomFileRepository _romRepository;
@@ -16,6 +20,12 @@ public class GetRomDetailsQueryHandler : IRequestHandler<GetRomDetailsQuery, Res
         _romRepository = romRepository;
     }
 
+    /// <summary>
+    /// Handles the query to get ROM file details.
+    /// </summary>
+    /// <param name="request">The ROM details query with file path.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the ROM details or an error.</returns>
     public async Task<Result<RomDetailsDto>> Handle(GetRomDetailsQuery request, CancellationToken ct)
     {
         var rom = await _romRepository.GetByIdAsync(request.RomFileId.Value, ct).ConfigureAwait(false);

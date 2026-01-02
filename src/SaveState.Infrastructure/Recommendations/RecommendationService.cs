@@ -10,6 +10,10 @@ using SaveState.Core.Analytics.Services;
 
 namespace SaveState.Infrastructure.Recommendations;
 
+/// <summary>
+/// Service for generating personalized game recommendations.
+/// Uses AI and analytics to suggest games based on user preferences and play patterns.
+/// </summary>
 public class RecommendationService : IRecommendationService
 {
     private readonly IAiOrchestrator _aiOrchestrator;
@@ -35,6 +39,9 @@ public class RecommendationService : IRecommendationService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Generates personalized game recommendations based on user preferences and play history.
+    /// </summary>
     public async Task<Result<IReadOnlyList<GameRecommendation>>> GetRecommendationsAsync(
         int count = 10,
         CancellationToken ct = default)
@@ -66,6 +73,9 @@ public class RecommendationService : IRecommendationService
         }
     }
 
+    /// <summary>
+    /// Finds games similar to a specified game based on various criteria.
+    /// </summary>
     public async Task<Result<IReadOnlyList<GameRecommendation>>> GetSimilarGamesAsync(
         Guid gameId,
         int count = 5,
@@ -118,6 +128,9 @@ public class RecommendationService : IRecommendationService
         }
     }
 
+    /// <summary>
+    /// Records user feedback on recommendations to improve future suggestions.
+    /// </summary>
     public Task<Result> ProvideRecommendationFeedbackAsync(
         Guid recommendationId,
         RecommendationFeedback feedback,

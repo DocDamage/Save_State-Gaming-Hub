@@ -10,13 +10,25 @@ using SaveState.Presentation.ViewModels;
 using SaveState.Presentation.Views;
 using System.Linq;
 
+/// <summary>
+/// Main Avalonia application class for SaveState.
+/// Handles application lifecycle, UI initialization, and service setup.
+/// </summary>
 public partial class App : Application
 {
+    /// <summary>
+    /// Initializes the Avalonia application and loads XAML resources.
+    /// Called during application startup before framework initialization.
+    /// </summary>
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
     }
 
+    /// <summary>
+    /// Called when Avalonia framework initialization is complete.
+    /// Sets up the main window, view models, and disables duplicate data validation.
+    /// </summary>
     public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)

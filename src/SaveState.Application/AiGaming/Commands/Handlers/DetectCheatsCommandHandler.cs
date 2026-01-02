@@ -9,6 +9,10 @@ using SaveState.Core.Common.ValueObjects;
 
 namespace SaveState.Application.AiGaming.Commands.Handlers;
 
+/// <summary>
+/// Handler for detecting cheats in games.
+/// Analyzes game memory and behavior patterns to identify cheating.
+/// </summary>
 public class DetectCheatsCommandHandler : IRequestHandler<DetectCheatsCommand, Result<CheatDetectionResult>>
 {
     private readonly ICheatDetectionService _cheatDetectionService;
@@ -22,6 +26,12 @@ public class DetectCheatsCommandHandler : IRequestHandler<DetectCheatsCommand, R
         _logger = logger;
     }
 
+    /// <summary>
+    /// Handles the command to detect cheats in a game.
+    /// </summary>
+    /// <param name="request">The detect cheats command with game information.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the cheat detection results or an error.</returns>
     public async Task<Result<CheatDetectionResult>> Handle(DetectCheatsCommand request, CancellationToken ct)
     {
         try

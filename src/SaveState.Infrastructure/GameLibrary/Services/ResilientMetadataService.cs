@@ -8,6 +8,10 @@ using SaveState.Core.GameLibrary.DTOs;
 
 namespace SaveState.Infrastructure.GameLibrary.Services;
 
+/// <summary>
+/// Resilient wrapper for metadata services using Polly policies.
+/// Provides retry logic, circuit breaker, and fault tolerance for external metadata APIs.
+/// </summary>
 public class ResilientMetadataService : IMetadataService
 {
     private readonly IMetadataService _inner;

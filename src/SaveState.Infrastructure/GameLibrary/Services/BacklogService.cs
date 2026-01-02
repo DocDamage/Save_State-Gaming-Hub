@@ -6,6 +6,10 @@ using SaveState.Core.GameLibrary.Services;
 
 namespace SaveState.Infrastructure.GameLibrary.Services;
 
+/// <summary>
+/// Service for managing gaming backlog and wishlists.
+/// Tracks games to play, prioritizes them, and manages completion status.
+/// </summary>
 public class BacklogService : IBacklogService
 {
     private readonly IBacklogRepository _backlogRepository;
@@ -22,6 +26,13 @@ public class BacklogService : IBacklogService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Adds a game to the user's backlog with specified priority.
+    /// </summary>
+    /// <param name="gameId">The unique identifier of the game to add.</param>
+    /// <param name="priority">The priority level (default: 50).</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result containing the backlog entry or an error.</returns>
     public async Task<Result<BacklogEntry>> AddToBacklogAsync(Guid gameId, int priority = 50, CancellationToken ct = default)
     {
         try
@@ -56,6 +67,12 @@ public class BacklogService : IBacklogService
         }
     }
 
+    /// <summary>
+    /// Removes a game from the user's backlog.
+    /// </summary>
+    /// <param name="gameId">The unique identifier of the game to remove.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result indicating success or failure.</returns>
     public async Task<Result> RemoveFromBacklogAsync(Guid gameId, CancellationToken ct = default)
     {
         try
@@ -80,6 +97,13 @@ public class BacklogService : IBacklogService
         }
     }
 
+    /// <summary>
+    /// Updates the status of a backlog entry.
+    /// </summary>
+    /// <param name="gameId">The unique identifier of the game.</param>
+    /// <param name="status">The new backlog status.</param>
+    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <returns>A result indicating success or failure.</returns>
     public async Task<Result> UpdateBacklogStatusAsync(Guid gameId, BacklogStatus status, CancellationToken ct = default)
     {
         try
