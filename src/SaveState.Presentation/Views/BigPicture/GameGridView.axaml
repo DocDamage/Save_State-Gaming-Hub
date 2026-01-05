@@ -60,52 +60,63 @@
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <Border Background="{Binding BackgroundBrush}"
-                    BorderBrush="{Binding BorderBrush}"
-                    BorderThickness="{Binding BorderThickness}"
-                    CornerRadius="8"
-                    Margin="0,0,20,20"
-                    Width="220"
-                    Height="280"
-                    Cursor="Hand">
-              <Grid>
-                <!-- Game cover -->
-                <Image Source="{Binding CoverImage}"
-                       Stretch="UniformToFill"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       Width="200"
-                       Height="240"
-                       Margin="10,10,10,40"/>
-
-                <!-- Game title overlay -->
-                <Border Background="#CC000000"
-                        VerticalAlignment="Bottom"
-                        Height="40"
-                        CornerRadius="0,0,8,8">
-                  <TextBlock Text="{Binding Title}"
-                             FontSize="14"
-                             FontWeight="SemiBold"
-                             Foreground="#FFFFFFFF"
-                             TextWrapping="Wrap"
-                             TextTrimming="CharacterEllipsis"
-                             Margin="10,5"
-                             VerticalAlignment="Center"
-                             MaxLines="2"/>
+            <Border Width="220" Height="300" Margin="0,0,20,20" Name="GameCard">
+              <Panel>
+                <!-- Focus Glow -->
+                <Border IsVisible="{Binding IsFocused}"
+                        Margin="-5"
+                        CornerRadius="12"
+                        BorderThickness="3"
+                        BorderBrush="#FF00CCFF">
+                  <Border.Effect>
+                    <DropShadowEffect Color="#FF00CCFF" BlurRadius="20" Opacity="0.5" />
+                  </Border.Effect>
                 </Border>
 
-                <!-- Selection indicator -->
-                <Border Background="#FF00CCFF"
-                        Opacity="{Binding SelectionOpacity}"
+                <!-- Main Card -->
+                <Border Background="#FF2D2D2D"
+                        BorderBrush="{Binding IsFocused, Converter={StaticResource BoolToBrushConverter}, ConverterParameter='#FF00CCFF|#FF404040'}"
+                        BorderThickness="2"
                         CornerRadius="8"
-                        IsVisible="{Binding IsSelected}"/>
+                        ClipToBounds="True">
+                  <Grid>
+                    <!-- Game cover -->
+                    <Image Source="{Binding CoverImage}"
+                           Stretch="UniformToFill"
+                           HorizontalAlignment="Stretch"
+                           VerticalAlignment="Stretch"
+                           Opacity="{Binding IsFocused, Converter={StaticResource BoolToBrushConverter}, ConverterParameter='1.0|0.7'}" />
 
-                <!-- Focus indicator -->
-                <Border BorderBrush="#FF00CCFF"
-                        BorderThickness="3"
-                        CornerRadius="8"
-                        IsVisible="{Binding IsFocused}"/>
-              </Grid>
+                    <!-- Stats Overlay -->
+                    <Border IsVisible="{Binding IsFocused}"
+                            VerticalAlignment="Top"
+                            HorizontalAlignment="Right"
+                            Background="#CC000000"
+                            CornerRadius="0,0,0,8"
+                            Padding="8,4">
+                       <TextBlock Text="{Binding Rating, StringFormat='⭐ {0:F1}'}" FontSize="12" Foreground="#FFFFD700" FontWeight="Bold"/>
+                    </Border>
+
+                    <!-- Title Banner -->
+                    <Border Background="#EE1A1A1A"
+                            VerticalAlignment="Bottom"
+                            Height="60"
+                            Padding="12,8">
+                      <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Title}"
+                                   FontSize="14"
+                                   FontWeight="Bold"
+                                   Foreground="White"
+                                   TextTrimming="CharacterEllipsis"
+                                   MaxLines="1"/>
+                        <TextBlock Text="{Binding PlatformName}"
+                                   FontSize="11"
+                                   Foreground="#FFAAAAAA"/>
+                      </StackPanel>
+                    </Border>
+                  </Grid>
+                </Border>
+              </Panel>
             </Border>
           </DataTemplate>
         </ItemsControl.ItemTemplate>

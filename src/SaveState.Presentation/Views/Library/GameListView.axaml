@@ -1,0 +1,103 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Library;assembly=SaveState.Presentation"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Library.GameListView"
+             x:DataType="vm:GameListViewModel">
+
+    <Border Classes="GlassContainer" Margin="20" Padding="0">
+        <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto">
+            <Grid RowDefinitions="Auto, *">
+                <!-- Table Header -->
+                <Border Grid.Row="0"
+                        Background="{StaticResource SurfaceBrush}"
+                        Padding="15,10">
+                    <Grid ColumnDefinitions="50, 60, *, 120, 100, 100, 120, 80">
+                    <CheckBox Grid.Column="0"
+                              IsChecked="{Binding IsAllSelected}"
+                              Command="{Binding ToggleSelectAllCommand}"
+                              ToolTip.Tip="Select/Deselect All" />
+
+                    <TextBlock Grid.Column="1" Text="Cover" Classes="Caption" FontWeight="Bold" />
+                    <TextBlock Grid.Column="2" Text="Title &amp; Developer" Classes="Caption" FontWeight="Bold" />
+                    <TextBlock Grid.Column="3" Text="Platform" Classes="Caption" FontWeight="Bold" />
+                    <TextBlock Grid.Column="4" Text="Status" Classes="Caption" FontWeight="Bold" />
+                    <TextBlock Grid.Column="5" Text="Last Played" Classes="Caption" FontWeight="Bold" />
+                    <TextBlock Grid.Column="6" Text="Playtime" Classes="Caption" FontWeight="Bold" />
+                    <TextBlock Grid.Column="7" Text="Rating" Classes="Caption" FontWeight="Bold" />
+                    </Grid>
+                </Border>
+
+                <!-- Table Rows -->
+                <ItemsControl Grid.Row="1" ItemsSource="{Binding Games}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{Binding BackgroundBrush}"
+                                    Padding="15,8">
+                                <Grid ColumnDefinitions="50, 60, *, 120, 100, 100, 120, 80">
+                                <CheckBox Grid.Column="0"
+                                          IsChecked="{Binding IsSelected}"
+                                          VerticalAlignment="Center" />
+
+                                <Image Grid.Column="1"
+                                       Source="{Binding CoverArtUrl}"
+                                       Width="40"
+                                       Height="60"
+                                       Stretch="UniformToFill"
+                                       VerticalAlignment="Center"
+                                       ToolTip.Tip="{Binding Title}" />
+
+                                <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2">
+                                    <TextBlock Text="{Binding Title}"
+                                               Classes="Body"
+                                               FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding Developer}"
+                                               Classes="Caption"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="3" VerticalAlignment="Center" Spacing="2">
+                                    <TextBlock Text="{Binding PlatformIcon}"
+                                               FontSize="16" />
+                                    <TextBlock Text="{Binding PlatformName}"
+                                               Classes="Caption"
+                                               TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+
+                                <TextBlock Grid.Column="4"
+                                           Text="{Binding StatusText}"
+                                           Classes="Caption"
+                                           VerticalAlignment="Center"
+                                           Foreground="{Binding StatusColor}" />
+
+                                <TextBlock Grid.Column="5"
+                                           Text="{Binding LastPlayedText}"
+                                           Classes="Caption"
+                                           VerticalAlignment="Center" />
+
+                                <TextBlock Grid.Column="6"
+                                           Text="{Binding PlaytimeText}"
+                                           Classes="Caption"
+                                           VerticalAlignment="Center" />
+
+                                <StackPanel Grid.Column="7" VerticalAlignment="Center" Orientation="Horizontal">
+                                    <TextBlock Text="{Binding RatingStars}" FontSize="14" />
+                                    <TextBlock Text="{Binding RatingText}"
+                                               Classes="Caption"
+                                               Margin="5,0,0,0"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </ScrollViewer>
+    </Border>
+</UserControl>

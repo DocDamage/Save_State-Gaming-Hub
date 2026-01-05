@@ -33,6 +33,7 @@ public class GetUserAchievementsQueryHandler : IRequestHandler<GetUserAchievemen
 
         var result = userAchievements
             .Where(ua => request.IncludeLocked || ua.IsUnlocked)
+            .Where(ua => !request.GameId.HasValue || (ua.Achievement != null && ua.Achievement.GameId == request.GameId.Value))
             .Select(ua => new UserAchievementDto(
                 ua.Id,
                 ua.UserId,

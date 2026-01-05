@@ -1,9 +1,9 @@
 # IKEMEN Bundle - Complete Fighting Game Platform
 
 **Status**: ✅ Implemented
-**Last Updated**: January 2, 2026
+**Last Updated**: January 3, 2026
 **Layer**: Infrastructure + Presentation
-**Related**: [Character API](character-api.md), [MUGEN Plugins](mugen-plugins.md)
+**Related**: [Character API](character-api.md), [MUGEN Plugins](mugen-plugins.md), [Character Development Integration Plan](../planning/character_development_integration_plan.md)
 
 ---
 
@@ -156,9 +156,37 @@ IKEMEN settings are in `engines/ikemen/config.json`:
 - Close other applications
 - Update graphics drivers
 
+## 🎨 Visual Resources
+
+SaveState Reborn includes comprehensive visual resources:
+
+### Elecbyte Screenpack
+- Default UI, fonts, stages, and system resources
+- Located in `engines/ikemen/data/`
+- Automatically configured during setup
+- License: Creative Commons 3.0 Non-commercial
+
+### Round Transition Effects
+- Custom round start/end transition animations
+- Based on [ikemenroundendfx](https://github.com/kamekaze-world/ikemenroundendfx)
+- Configurable transition time (default: 80 frames)
+- Located in `engines/ikemen/data/commonFX/`
+
+### Shader Collection
+- Visual shader effects for retro/arcade aesthetics
+- Based on [ikgo-shaders](https://github.com/wily-coyote/ikgo-shaders)
+- Presets: NTSC, Kapuesu, PowerVR2, Level, Border, Scale
+- Located in `engines/ikemen/external/shaders/`
+- Default preset: NTSC
+
+All visual resources are automatically configured and ready to use.
+
 ## 📚 Resources
 
-- [IKEMEN GO GitHub](https://github.com/K4thos/Ikemen_GO)
+- [IKEMEN GO GitHub](https://github.com/ikemen-engine/Ikemen_GO)
+- [Elecbyte Screenpack](https://github.com/ikemen-engine/Ikemen_GO-Elecbyte-Screenpack)
+- [Round Transition FX](https://github.com/kamekaze-world/ikemenroundendfx)
+- [Shader Collection](https://github.com/wily-coyote/ikgo-shaders)
 - [MUGEN Documentation](https://mugenarchive.com/docs/)
 - [Character Creation Tutorials](https://mugenarchive.com/forums/)
 
@@ -168,6 +196,8 @@ IKEMEN settings are in `engines/ikemen/config.json`:
 
 - [Character API](character-api.md) - Character management
 - [MUGEN Plugins](mugen-plugins.md) - Advanced features
+- [Character Development Integration Plan](../planning/character_development_integration_plan.md) - Character development tools (MugenHook, LuaSupernull, OpenMK, etc.)
+- [IKEMEN Repository Analysis](../planning/ikemen_repositories_analysis.md) - Repository evaluation and integration strategies
 - [AI_MASTER_CONTEXT](../AI_MASTER_CONTEXT.md) - Architecture overview
 
 **SaveState Reborn** makes IKEMEN accessible to everyone - no technical setup required! 🎮✨

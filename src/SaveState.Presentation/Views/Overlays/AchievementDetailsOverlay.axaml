@@ -1,0 +1,270 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Overlays"
+             x:Class="SaveState.Presentation.Views.Overlays.AchievementDetailsOverlay"
+             x:DataType="vm:AchievementDetailsOverlayViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.overlay-panel">
+            <Setter Property="Background" Value="#E6000000" />
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+
+        <Style Selector="Border.content-panel">
+            <Setter Property="Background" Value="{StaticResource OverlayBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource OverlayBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="BoxShadow" Value="0 16 48 #60000000" />
+        </Style>
+
+        <Style Selector="Button.close">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+
+        <Style Selector="Button.close:pointerover">
+            <Setter Property="Background" Value="#20FFFFFF" />
+        </Style>
+    </UserControl.Styles>
+
+    <!-- Dimming Background -->
+    <Border Classes="overlay-panel"
+            PointerPressed="OnCloseClick">
+
+        <!-- Content Panel -->
+        <Border Classes="content-panel"
+                Width="700"
+                Height="600"
+                MaxWidth="900"
+                MaxHeight="800">
+
+            <Grid RowDefinitions="Auto,*">
+                <!-- Header -->
+                <Grid Grid.Row="0"
+                      ColumnDefinitions="*,Auto"
+                      Margin="24,20,20,16"
+                      Background="Transparent">
+                    <StackPanel Grid.Column="0" Spacing="4">
+                        <TextBlock Text="🏆 Achievement Details"
+                                  FontSize="24"
+                                  FontWeight="Bold"
+                                  Foreground="White" />
+                        <TextBlock Text="{Binding AchievementName}"
+                                  FontSize="14"
+                                  Opacity="0.7"
+                                  Foreground="White" />
+                    </StackPanel>
+
+                    <Button Grid.Column="1"
+                           Classes="close"
+                           Content="✕"
+                           Click="OnCloseClick"
+                           VerticalAlignment="Top" />
+                </Grid>
+
+                <!-- Content -->
+                <ScrollViewer Grid.Row="1" Margin="24,0,24,24">
+                    <StackPanel Spacing="24">
+                        <!-- Achievement Icon & Status -->
+                        <Border Background="#10FFFFFF"
+                               BorderBrush="#20FFFFFF"
+                               BorderThickness="1"
+                               CornerRadius="8"
+                               Padding="24">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <!-- Icon -->
+                                <Border Grid.Column="0"
+                                       Width="120"
+                                       Height="120"
+                                       Background="#20FFFFFF"
+                                       BorderBrush="{Binding IconBorderColor}"
+                                       BorderThickness="3"
+                                       CornerRadius="12"
+                                       Margin="0,0,24,0">
+                                    <TextBlock Text="{Binding Icon}"
+                                              FontSize="64"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                                </Border>
+
+                                <!-- Info -->
+                                <StackPanel Grid.Column="1" Spacing="12" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding AchievementName}"
+                                              FontSize="22"
+                                              FontWeight="Bold"
+                                              Foreground="White"
+                                              TextWrapping="Wrap" />
+
+                                    <TextBlock Text="{Binding Description}"
+                                              FontSize="14"
+                                              Opacity="0.8"
+                                              Foreground="White"
+                                              TextWrapping="Wrap" />
+
+                                    <StackPanel Orientation="Horizontal" Spacing="16">
+                                        <!-- Status Badge -->
+                                        <Border Background="{Binding StatusColor}"
+                                               CornerRadius="4"
+                                               Padding="12,6">
+                                            <TextBlock Text="{Binding Status}"
+                                                      FontSize="12"
+                                                      FontWeight="SemiBold"
+                                                      Foreground="White" />
+                                        </Border>
+
+                                        <!-- Rarity Badge -->
+                                        <Border Background="{Binding RarityColor}"
+                                               CornerRadius="4"
+                                               Padding="12,6">
+                                            <TextBlock Text="{Binding Rarity}"
+                                                      FontSize="12"
+                                                      FontWeight="SemiBold"
+                                                      Foreground="White" />
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Progress -->
+                        <StackPanel Spacing="12" IsVisible="{Binding ShowProgress}">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0"
+                                          Text="Progress"
+                                          FontSize="16"
+                                          FontWeight="SemiBold"
+                                          Foreground="White" />
+                                <TextBlock Grid.Column="1"
+                                          Text="{Binding ProgressText}"
+                                          FontSize="14"
+                                          FontWeight="SemiBold"
+                                          Foreground="#4A90FF" />
+                            </Grid>
+
+                            <Border Background="#10FFFFFF"
+                                   BorderBrush="#20FFFFFF"
+                                   BorderThickness="1"
+                                   CornerRadius="8"
+                                   Height="12">
+                                <Border Background="#4A90FF"
+                                       CornerRadius="6"
+                                       HorizontalAlignment="Left"
+                                       Width="{Binding ProgressBarWidth}" />
+                            </Border>
+
+                            <TextBlock Text="{Binding ProgressDescription}"
+                                      FontSize="13"
+                                      Opacity="0.7"
+                                      Foreground="White"
+                                      TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <!-- Unlock Info -->
+                        <Border Background="#10FFFFFF"
+                               BorderBrush="#20FFFFFF"
+                               BorderThickness="1"
+                               CornerRadius="8"
+                               Padding="20"
+                               IsVisible="{Binding IsUnlocked}">
+                            <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                          Text="Unlocked On"
+                                          FontSize="12"
+                                          Opacity="0.6"
+                                          Foreground="White" />
+                                <TextBlock Grid.Row="0" Grid.Column="1"
+                                          Text="{Binding UnlockDate}"
+                                          FontSize="14"
+                                          FontWeight="SemiBold"
+                                          Foreground="White" />
+
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                          Text="Unlock Time"
+                                          FontSize="12"
+                                          Opacity="0.6"
+                                          Foreground="White"
+                                          Margin="0,12,0,0" />
+                                <TextBlock Grid.Row="1" Grid.Column="1"
+                                          Text="{Binding UnlockTime}"
+                                          FontSize="14"
+                                          FontWeight="SemiBold"
+                                          Foreground="White"
+                                          Margin="0,12,0,0" />
+
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                          Text="Global Unlock Rate"
+                                          FontSize="12"
+                                          Opacity="0.6"
+                                          Foreground="White"
+                                          Margin="0,12,0,0" />
+                                <TextBlock Grid.Row="2" Grid.Column="1"
+                                          Text="{Binding GlobalUnlockRate}"
+                                          FontSize="14"
+                                          FontWeight="SemiBold"
+                                          Foreground="#10B981"
+                                          Margin="0,12,0,0" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Tips & Hints -->
+                        <StackPanel Spacing="12" IsVisible="{Binding ShowTips}">
+                            <TextBlock Text="💡 Tips &amp; Hints"
+                                      FontSize="16"
+                                      FontWeight="SemiBold"
+                                      Foreground="White" />
+
+                            <ItemsControl ItemsSource="{Binding Tips}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#10FFFFFF"
+                                               BorderBrush="#20FFFFFF"
+                                               BorderThickness="1"
+                                               CornerRadius="8"
+                                               Padding="16"
+                                               Margin="0,0,0,8">
+                                            <TextBlock Text="{Binding}"
+                                                      FontSize="13"
+                                                      Foreground="White"
+                                                      TextWrapping="Wrap" />
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- Rewards -->
+                        <StackPanel Spacing="12" IsVisible="{Binding HasRewards}">
+                            <TextBlock Text="🎁 Rewards"
+                                      FontSize="16"
+                                      FontWeight="SemiBold"
+                                      Foreground="White" />
+
+                            <Border Background="#10FFFFFF"
+                                   BorderBrush="#20FFFFFF"
+                                   BorderThickness="1"
+                                   CornerRadius="8"
+                                   Padding="16">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="{Binding RewardPoints, StringFormat='{}{0} XP'}"
+                                              FontSize="16"
+                                              FontWeight="SemiBold"
+                                              Foreground="#F59E0B" />
+                                    <TextBlock Text="{Binding RewardDescription}"
+                                              FontSize="13"
+                                              Opacity="0.7"
+                                              Foreground="White"
+                                              TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+    </Border>
+</UserControl>

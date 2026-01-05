@@ -73,19 +73,19 @@ public class NavigationService : ObservableObject, INavigationService
     public bool CanGoBack => _history.Count > 0;
 
     /// <inheritdoc />
-    public void NavigateTo<TViewModel>() where TViewModel : ObservableObject
+    public async Task NavigateTo<TViewModel>() where TViewModel : ObservableObject
     {
-        NavigateTo(typeof(TViewModel), null);
+        await NavigateTo(typeof(TViewModel), null);
     }
 
     /// <inheritdoc />
-    public void NavigateTo(string tabName)
+    public async Task NavigateTo(string tabName)
     {
-        NavigateTo(tabName, null);
+        await NavigateTo(tabName, null);
     }
 
     /// <inheritdoc />
-    public void NavigateTo(string tabName, object parameter)
+    public async Task NavigateTo(string tabName, object parameter)
     {
         var tab = TabRegistry.GetTab(tabName);
         if (tab == null)
@@ -108,6 +108,12 @@ public class NavigationService : ObservableObject, INavigationService
         CurrentTab = tabName;
         CurrentViewModel = viewModel;
         _currentEntry = entry;
+
+        // Notify the view model if it implements INavigationAware
+        if (viewModel is INavigationAware navigationAware)
+        {
+            await navigationAware.OnNavigatedTo(parameter);
+        }
 
         _logger.LogInformation("Navigated to tab: {TabName}", tabName);
 
@@ -142,13 +148,13 @@ public class NavigationService : ObservableObject, INavigationService
     /// <inheritdoc />
     public event EventHandler<NavigationEventArgs>? Navigated;
 
-    private void NavigateTo(Type viewModelType, object? parameter)
+    private async Task NavigateTo(Type viewModelType, object? parameter)
     {
         // Find tab that matches this view model type
         var tab = TabRegistry.Tabs.FirstOrDefault(t => t.Value.ViewModelType == viewModelType);
         if (tab.Value != null)
         {
-            NavigateTo(tab.Key, parameter);
+            await NavigateTo(tab.Key, parameter);
         }
         else
         {

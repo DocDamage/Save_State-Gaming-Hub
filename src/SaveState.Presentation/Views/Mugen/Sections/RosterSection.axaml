@@ -1,0 +1,100 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Shell.Mugen"
+             xmlns:root="clr-namespace:SaveState.Presentation.Views.Mugen"
+             xmlns:dto="clr-namespace:SaveState.Application.Mugen.DTOs;assembly=SaveState.Application"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Mugen.Sections.RosterSection"
+             x:DataType="vm:MugenRosterViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Roster Header & Filter -->
+        <Border Grid.Row="0" Background="{StaticResource GlassBrush}" Margin="20" Padding="15" CornerRadius="8">
+            <Grid ColumnDefinitions="*, Auto, Auto">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="CHARACTER ROSTER" FontSize="14" FontWeight="Bold" Foreground="{StaticResource FightingYellowBrush}" />
+                    <TextBox Text="{Binding SearchTerm}" Watermark="Search by name or author..." Width="300" HorizontalAlignment="Left" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Bottom">
+                    <Button Command="{Binding ScanCharactersCommand}" Classes="Accent">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <TextBlock Text="🔍" />
+                            <TextBlock Text="SCAN DIRECTORY" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Characters Grid -->
+        <ScrollViewer Grid.Row="1" Padding="20,0,20,20">
+            <ItemsControl ItemsSource="{Binding FilteredCharacters}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel HorizontalAlignment="Center" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="dto:MugenCharacterSummaryDto">
+                        <Button Command="{Binding $parent[UserControl;1].DataContext.SelectPlayerCommand}"
+                                CommandParameter="{Binding}"
+                                Padding="0" Background="Transparent" BorderThickness="0"
+                                Margin="8">
+                            <Border Classes="CharacterCard" Width="160" Height="220" ClipToBounds="True">
+                                <Grid RowDefinitions="*, Auto">
+                                    <!-- Character Avatar Placeholder -->
+                                    <Panel Grid.Row="0" Background="#1A1A1A">
+                                        <TextBlock Text="IMAGE" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                   Foreground="#333333" FontSize="20" FontWeight="Black" />
+
+                                        <!-- Selection Indicator -->
+                                        <Border Name="SelectionBorder" BorderBrush="{StaticResource FightingYellowBrush}" BorderThickness="4"
+                                                IsVisible="False" />
+                                    </Panel>
+
+                                    <!-- Info Bar -->
+                                    <Border Grid.Row="1" Background="#2D2D2D" Padding="10">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Name}" FontWeight="Black" FontSize="14"
+                                                       TextTrimming="CharacterEllipsis" Foreground="White" />
+                                            <TextBlock Text="{Binding Author}" FontSize="11"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Loading Overlay -->
+        <Border Grid.RowSpan="2" Background="#80000000" IsVisible="{Binding IsLoading}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="20">
+                <ProgressBar IsIndeterminate="True" Width="200" Foreground="{StaticResource FightingYellowBrush}" />
+                <TextBlock Text="{Binding StatusMessage}" Foreground="White" HorizontalAlignment="Center" />
+            </StackPanel>
+        </Border>
+    </Grid>
+
+    <UserControl.Styles>
+        <Style Selector="Border.CharacterCard">
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button:pointerover Border.CharacterCard">
+            <Setter Property="BorderBrush" Value="{StaticResource FightingYellowBrush}" />
+            <Setter Property="RenderTransform" Value="scale(1.05)" />
+        </Style>
+    </UserControl.Styles>
+</UserControl>

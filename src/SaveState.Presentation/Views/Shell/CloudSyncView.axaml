@@ -1,0 +1,253 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             x:Class="SaveState.Presentation.Views.Shell.CloudSyncView"
+             x:DataType="vm:CloudSyncViewModel"
+             Background="{StaticResource BackgroundBrush}">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Border Grid.Row="0" Classes="GlassContainer" Margin="20,20,20,10" Padding="20">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <TextBlock Text="☁️ Cloud &amp; Sync" Classes="Header" VerticalAlignment="Center" />
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                    <Button Content="⚙️ Configure"
+                            Classes="Secondary"
+                            Command="{Binding ConfigureProviderCommand}"
+                            ToolTip.Tip="Configure cloud provider" />
+
+                    <Button Content="🔄 Sync"
+                            Classes="Primary"
+                            Command="{Binding SyncCommand}"
+                            IsEnabled="{Binding !IsSyncing}"
+                            ToolTip.Tip="Synchronize all files" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1" Margin="20,0,20,20">
+            <StackPanel Spacing="15">
+                <!-- Sync Status Card -->
+                <Border Classes="GlassContainer" Padding="20">
+                    <Grid RowDefinitions="Auto, Auto, Auto, Auto">
+                        <TextBlock Text="Sync Status" Classes="SectionHeader" />
+
+                        <Grid Grid.Row="1" ColumnDefinitions="*, *, *" Margin="0,15,0,0">
+                            <StackPanel Grid.Column="0" Spacing="5">
+                                <TextBlock Text="Status" Classes="Label" />
+                                <TextBlock Text="{Binding SyncStatusMessage}" Classes="Value" FontWeight="Bold" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="5">
+                                <TextBlock Text="Provider" Classes="Label" />
+                                <TextBlock Text="{Binding CurrentProvider}" Classes="Value" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Spacing="5">
+                                <TextBlock Text="Last Sync" Classes="Label" />
+                                <TextBlock Text="{Binding LastSyncTime}" Classes="Value" />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Progress Bar -->
+                        <ProgressBar Grid.Row="2"
+                                     Margin="0,15,0,0"
+                                     Value="{Binding SyncProgress}"
+                                     IsVisible="{Binding IsSyncing}"
+                                     Height="8" />
+
+                        <!-- Action Buttons -->
+                        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="10" Margin="0,15,0,0">
+                            <Button Content="⬆️ Push"
+                                    Classes="Secondary"
+                                    Command="{Binding PushCommand}"
+                                    IsEnabled="{Binding !IsSyncing}"
+                                    ToolTip.Tip="Upload local changes to cloud" />
+
+                            <Button Content="⬇️ Pull"
+                                    Classes="Secondary"
+                                    Command="{Binding PullCommand}"
+                                    IsEnabled="{Binding !IsSyncing}"
+                                    ToolTip.Tip="Download cloud changes to local" />
+
+                            <Button Content="🔧 View Conflicts"
+                                    Classes="Secondary"
+                                    Command="{Binding ViewConflictsCommand}"
+                                    ToolTip.Tip="Resolve sync conflicts" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Backup Management Card -->
+                <Border Classes="GlassContainer" Padding="20">
+                    <Grid RowDefinitions="Auto, Auto, Auto">
+                        <TextBlock Text="Backup Management" Classes="SectionHeader" />
+
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="0,15,0,0">
+                            <Button Content="💾 Create Backup"
+                                    Classes="Primary"
+                                    Command="{Binding CreateBackupCommand}"
+                                    ToolTip.Tip="Create a full backup now" />
+
+                            <Button Content="📅 Schedule Backup"
+                                    Classes="Secondary"
+                                    ToolTip.Tip="Configure automatic backups" />
+
+                            <Button Content="📥 Restore"
+                                    Classes="Secondary"
+                                    ToolTip.Tip="Restore from backup" />
+                        </StackPanel>
+
+                        <!-- Backup History -->
+                        <Border Grid.Row="2" Margin="0,15,0,0">
+                            <ScrollViewer MaxHeight="200">
+                                <ItemsControl ItemsSource="{Binding BackupHistory}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Classes="ListItem" Padding="12" Margin="0,0,0,5">
+                                                <Grid ColumnDefinitions="*, Auto, Auto">
+                                                    <StackPanel Spacing="3">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                                        <TextBlock Classes="Subtitle">
+                                                            <Run Text="{Binding BackupType}" />
+                                                            <Run Text="•" />
+                                                            <Run Text="{Binding CreatedAt, StringFormat='{}{0:g}'}" />
+                                                        </TextBlock>
+                                                    </StackPanel>
+
+                                                    <TextBlock Grid.Column="1"
+                                                               Text="{Binding SizeBytes, StringFormat='{}{0:N0} bytes'}"
+                                                               VerticalAlignment="Center"
+                                                               Margin="10,0" />
+
+                                                    <TextBlock Grid.Column="2"
+                                                               Text="{Binding Status}"
+                                                               VerticalAlignment="Center"
+                                                               Classes="Badge" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Network Quality Card -->
+                <Border Classes="GlassContainer" Padding="20">
+                    <Grid RowDefinitions="Auto, Auto, Auto">
+                        <TextBlock Text="Network Quality" Classes="SectionHeader" />
+
+                        <Grid Grid.Row="1" ColumnDefinitions="*, *, *, *" Margin="0,15,0,0">
+                            <StackPanel Grid.Column="0" Spacing="5">
+                                <TextBlock Text="Quality" Classes="Label" />
+                                <TextBlock Text="{Binding NetworkQualityLevel}" Classes="Value" FontWeight="Bold" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="5" IsVisible="{Binding !!NetworkQuality}">
+                                <TextBlock Text="Latency" Classes="Label" />
+                                <TextBlock Classes="Value">
+                                    <Run Text="{Binding NetworkQuality.LatencyMs}" />
+                                    <Run Text="ms" />
+                                </TextBlock>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Spacing="5" IsVisible="{Binding !!NetworkQuality}">
+                                <TextBlock Text="Bandwidth" Classes="Label" />
+                                <TextBlock Classes="Value">
+                                    <Run Text="{Binding NetworkQuality.BandwidthMbps}" />
+                                    <Run Text="Mbps" />
+                                </TextBlock>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="3" Spacing="5" IsVisible="{Binding !!NetworkQuality}">
+                                <TextBlock Text="Packet Loss" Classes="Label" />
+                                <TextBlock Classes="Value">
+                                    <Run Text="{Binding NetworkQuality.PacketLossPercent}" />
+                                    <Run Text="%" />
+                                </TextBlock>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Network Actions -->
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" Margin="0,15,0,0">
+                            <Button Content="🧪 Test Network"
+                                    Classes="Secondary"
+                                    Command="{Binding TestNetworkQualityCommand}"
+                                    ToolTip.Tip="Run network quality test" />
+
+                            <Button Content="📊 Start Monitoring"
+                                    Classes="Secondary"
+                                    Command="{Binding StartNetworkMonitoringCommand}"
+                                    IsVisible="{Binding !IsNetworkMonitoring}"
+                                    ToolTip.Tip="Begin continuous network monitoring" />
+
+                            <Button Content="⏸️ Stop Monitoring"
+                                    Classes="Secondary"
+                                    Command="{Binding StopNetworkMonitoringCommand}"
+                                    IsVisible="{Binding IsNetworkMonitoring}"
+                                    ToolTip.Tip="Stop network monitoring" />
+
+                            <Button Content="🔍 Diagnostics"
+                                    Classes="Secondary"
+                                    ToolTip.Tip="View detailed network diagnostics" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Cloud Gaming Card -->
+                <Border Classes="GlassContainer" Padding="20">
+                    <Grid RowDefinitions="Auto, Auto, Auto">
+                        <TextBlock Text="Cloud Gaming" Classes="SectionHeader" />
+
+                        <Grid Grid.Row="1" ColumnDefinitions="*, *" Margin="0,15,0,0">
+                            <StackPanel Grid.Column="0" Spacing="5">
+                                <TextBlock Text="Available Providers" Classes="Label" />
+                                <ItemsControl ItemsSource="{Binding CloudProviders}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" Classes="Subtitle" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="5">
+                                <TextBlock Text="Active Sessions" Classes="Label" />
+                                <TextBlock Text="{Binding ActiveSessions.Count}" Classes="Value" FontWeight="Bold" />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Active Sessions List -->
+                        <Border Grid.Row="2" Margin="0,15,0,0" IsVisible="{Binding ActiveSessions.Count}">
+                            <ScrollViewer MaxHeight="150">
+                                <ItemsControl ItemsSource="{Binding ActiveSessions}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Classes="ListItem" Padding="12" Margin="0,0,0,5">
+                                                <Grid ColumnDefinitions="*, Auto">
+                                                    <StackPanel Spacing="3">
+                                                        <TextBlock Text="{Binding Provider}" FontWeight="SemiBold" />
+                                                        <TextBlock Text="{Binding Status}" Classes="Subtitle" />
+                                                    </StackPanel>
+
+                                                    <TextBlock Grid.Column="1"
+                                                               Text="{Binding StartedAt, StringFormat='{}{0:t}'}"
+                                                               VerticalAlignment="Center"
+                                                               Classes="Subtitle" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

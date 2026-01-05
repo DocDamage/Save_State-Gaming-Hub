@@ -3,6 +3,7 @@ using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.Common.Enums;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
+using System.Text.Json;
 
 namespace SaveState.Application.CloudServices.Services;
 
@@ -34,18 +35,13 @@ public class BackupService : IBackupService
             // Determine which games to backup
             var gamesToBackup = await GetGamesToBackupAsync(gameIds, ct).ConfigureAwait(false);
 
-            // Create backup directory
-            var backupPath = CreateBackupDirectory(backupId, name);
+        // Create backup directory
+        var backupPath = CreateBackupDirectory(backupId, name);
 
         // Perform backup based on type
-        var result = await PerformBackupAsync((Core.Common.Enums.BackupType)type, gamesToBackup, backupPath, includeSettings, ct).ConfigureAwait(false);
+        var result = await PerformBackupAsync(type, gamesToBackup, backupPath, includeSettings, backupId, startTime, ct).ConfigureAwait(false);
 
-            var duration = DateTime.UtcNow - startTime;
-
-            _logger.LogInformation("Backup {BackupId} completed in {Duration}. Backed up {GameCount} games, {Size} bytes",
-                backupId, duration, result.GamesBackedUp, result.TotalSize);
-
-            return result;
+        return result;
         }
         catch (Exception ex)
         {
@@ -105,6 +101,8 @@ public class BackupService : IBackupService
         IReadOnlyList<Game> games,
         string backupPath,
         bool includeSettings,
+        BackupId backupId,
+        DateTime startTime,
         CancellationToken ct)
     {
         long totalSize = 0;
@@ -136,13 +134,36 @@ public class BackupService : IBackupService
             totalSize += settingsSize;
         }
 
+        // Update metadata with final results
+        await UpdateBackupMetadataAsync(backupPath, totalSize, gamesBackedUp, ct).ConfigureAwait(false);
+
+        var duration = DateTime.UtcNow - startTime;
+        _logger.LogInformation("Backup {BackupId} completed in {Duration}. Backed up {GameCount} games, {Size} bytes",
+            backupId, duration, gamesBackedUp, totalSize);
+
         return new BackupResult(
-            BackupId: BackupId.NewId(), // Should use the same ID passed in
+            BackupId: backupId,
             BackupPath: backupPath,
             TotalSize: totalSize,
             GamesBackedUp: gamesBackedUp,
-            Duration: TimeSpan.Zero // Will be calculated by caller
+            Duration: duration
         );
+    }
+
+    private async Task UpdateBackupMetadataAsync(string backupPath, long totalSize, int gamesBackedUp, CancellationToken ct)
+    {
+        var metadataPath = Path.Combine(backupPath, "backup.json");
+        if (File.Exists(metadataPath))
+        {
+            var json = await File.ReadAllTextAsync(metadataPath, ct);
+            var metadata = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+            if (metadata != null)
+            {
+                metadata["TotalSize"] = totalSize;
+                metadata["GamesBackedUp"] = gamesBackedUp;
+                await File.WriteAllTextAsync(metadataPath, JsonSerializer.Serialize(metadata), ct);
+            }
+        }
     }
 
     private static async Task<long> BackupGameAsync(Game game, string backupPath, Core.Common.Enums.BackupType type, CancellationToken ct)
@@ -195,5 +216,44 @@ public class BackupService : IBackupService
         await File.WriteAllTextAsync(settingsFile, settingsJson, ct).ConfigureAwait(false);
 
         return settingsJson.Length;
+    }
+    public async Task<IReadOnlyList<BackupMetadata>> GetBackupHistoryAsync(CancellationToken ct = default)
+    {
+        var history = new List<BackupMetadata>();
+        var basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Backups");
+
+        if (!Directory.Exists(basePath))
+        {
+            return history;
+        }
+
+        try
+        {
+            var directories = Directory.GetDirectories(basePath);
+            foreach (var dir in directories)
+            {
+                var metadataPath = Path.Combine(dir, "backup.json");
+                if (File.Exists(metadataPath))
+                {
+                    var json = await File.ReadAllTextAsync(metadataPath, ct);
+                    using var doc = JsonDocument.Parse(json);
+                    var root = doc.RootElement;
+
+                    history.Add(new BackupMetadata(
+                        BackupId: BackupId.From(root.GetProperty("BackupId").GetGuid()),
+                        Name: root.GetProperty("Name").GetString() ?? "Unknown",
+                        CreatedAt: root.GetProperty("CreatedAt").GetDateTime(),
+                        TotalSize: root.TryGetProperty("TotalSize", out var sizeProp) ? sizeProp.GetInt64() : 0,
+                        GamesBackedUp: root.TryGetProperty("GamesBackedUp", out var gamesProp) ? gamesProp.GetInt32() : 0
+                    ));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load backup history");
+        }
+
+        return history.OrderByDescending(b => b.CreatedAt).ToList();
     }
 }

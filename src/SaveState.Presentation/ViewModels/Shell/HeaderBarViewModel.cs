@@ -60,18 +60,33 @@ public partial class HeaderBarViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Executes the current search.
+    /// Executes the current search or opens appropriate overlay.
     /// </summary>
     public void ExecuteSearch()
     {
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
-            // TODO: Implement universal search
-            // For now, just show command palette if search starts with ">"
+            // Command palette: starts with ">"
             if (SearchText.TrimStart().StartsWith(">"))
             {
                 _overlayService.ShowCommandPaletteOverlay();
             }
+            // AI Assistant: starts with "@"
+            else if (SearchText.TrimStart().StartsWith("@"))
+            {
+                _overlayService.ShowAiAssistantOverlay();
+            }
+            // Otherwise: Quick search
+            else
+            {
+                _overlayService.ShowQuickSearchOverlay();
+            }
+            SearchText = string.Empty;
+        }
+        else
+        {
+            // Empty search opens quick search
+            _overlayService.ShowQuickSearchOverlay();
         }
     }
 
@@ -89,16 +104,16 @@ public partial class HeaderBarViewModel : ObservableObject
     [RelayCommand]
     private void ToggleNotifications()
     {
-        // TODO: Implement notifications panel
+        _overlayService.ToggleNotificationsOverlay();
     }
 
     /// <summary>
     /// Command to open settings.
     /// </summary>
     [RelayCommand]
-    private void OpenSettings()
+    private async Task OpenSettings()
     {
-        _navigationService.NavigateTo("Settings");
+        await _navigationService.NavigateTo("Settings");
     }
 
     /// <summary>
@@ -107,7 +122,7 @@ public partial class HeaderBarViewModel : ObservableObject
     [RelayCommand]
     private void OpenUserProfile()
     {
-        // TODO: Implement user profile dropdown/panel
+        _overlayService.ToggleUserProfileOverlay();
     }
 
     private void OnNavigated(object? sender, NavigationEventArgs e)
@@ -175,8 +190,8 @@ public partial class TabButtonViewModel : ObservableObject
     /// Command to navigate to this tab.
     /// </summary>
     [RelayCommand]
-    private void Navigate()
+    private async Task Navigate()
     {
-        _navigationService.NavigateTo(Name);
+        await _navigationService.NavigateTo(Name);
     }
 }

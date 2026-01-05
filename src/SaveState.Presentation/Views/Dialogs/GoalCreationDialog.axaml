@@ -1,0 +1,160 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        x:Class="SaveState.Presentation.Views.Dialogs.GoalCreationDialog"
+        x:DataType="vm:GoalCreationDialogViewModel"
+        Title="Create Goal"
+        Width="600"
+        Height="550"
+        MinWidth="500"
+        MinHeight="400"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True"
+        Background="{StaticResource DialogBackgroundBrush}">
+
+    <Window.Styles>
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="12,8" />
+        </Style>
+
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="24,10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style Selector="Button.secondary">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="24,10" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,20">
+            <TextBlock Text="🎯 Create Goal"
+                      FontSize="24"
+                      FontWeight="Bold"
+                      Foreground="{StaticResource ForegroundBrush}" />
+            <TextBlock Text="Set a personal goal for this game"
+                      FontSize="14"
+                      Opacity="0.7"
+                      Foreground="{StaticResource ForegroundBrush}" />
+        </StackPanel>
+
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="16">
+                <!-- Goal Title -->
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Goal Title *"
+                              FontWeight="SemiBold"
+                              FontSize="13"
+                              Foreground="{StaticResource ForegroundBrush}" />
+                    <TextBox Text="{Binding Title}"
+                            Watermark="e.g., Complete all achievements..."
+                            MaxLength="200" />
+                </StackPanel>
+
+                <!-- Goal Type -->
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Goal Type *"
+                              FontWeight="SemiBold"
+                              FontSize="13"
+                              Foreground="{StaticResource ForegroundBrush}" />
+                    <ComboBox SelectedItem="{Binding GoalType}"
+                             ItemsSource="{Binding GoalTypes}"
+                             HorizontalAlignment="Stretch">
+                        <ComboBox.Styles>
+                            <Style Selector="ComboBox">
+                                <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
+                                <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+                                <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+                                <Setter Property="CornerRadius" Value="4" />
+                            </Style>
+                        </ComboBox.Styles>
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- Description -->
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Description"
+                              FontWeight="SemiBold"
+                              FontSize="13"
+                              Foreground="{StaticResource ForegroundBrush}" />
+                    <TextBox Text="{Binding Description}"
+                            Watermark="Describe your goal in detail..."
+                            AcceptsReturn="True"
+                            TextWrapping="Wrap"
+                            MinHeight="120"
+                            MaxHeight="200" />
+                </StackPanel>
+
+                <!-- Target Date -->
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Target Completion Date (Optional)"
+                              FontWeight="SemiBold"
+                              FontSize="13"
+                              Foreground="{StaticResource ForegroundBrush}" />
+                    <DatePicker SelectedDate="{Binding TargetDate}"
+                               HorizontalAlignment="Stretch">
+                        <DatePicker.Styles>
+                            <Style Selector="DatePicker">
+                                <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
+                                <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+                                <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+                                <Setter Property="CornerRadius" Value="4" />
+                            </Style>
+                        </DatePicker.Styles>
+                    </DatePicker>
+                </StackPanel>
+
+                <!-- Progress Tracking -->
+                <StackPanel Spacing="12">
+                    <CheckBox IsChecked="{Binding TrackProgress}"
+                             Content="Track progress automatically"
+                             Foreground="{StaticResource ForegroundBrush}" />
+                    <CheckBox IsChecked="{Binding NotifyOnCompletion}"
+                             Content="Notify me when goal is completed"
+                             Foreground="{StaticResource ForegroundBrush}" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Footer -->
+        <Grid Grid.Row="2"
+              ColumnDefinitions="*,Auto,Auto"
+              Margin="0,20,0,0">
+            <TextBlock Grid.Column="0"
+                      Text="* Required fields"
+                      FontSize="12"
+                      Opacity="0.6"
+                      VerticalAlignment="Center"
+                      Foreground="{StaticResource ForegroundBrush}" />
+
+            <Button Grid.Column="1"
+                   Classes="secondary"
+                   Content="Cancel"
+                   Command="{Binding CancelCommand}"
+                   Margin="0,0,12,0" />
+
+            <Button Grid.Column="2"
+                   Classes="primary"
+                   Content="Create Goal"
+                   Command="{Binding SaveCommand}"
+                   IsEnabled="{Binding CanSave}" />
+        </Grid>
+    </Grid>
+</Window>

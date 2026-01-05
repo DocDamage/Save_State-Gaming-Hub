@@ -46,7 +46,7 @@ var commandGroups = new ICommandGroup[]
 
 foreach (var group in commandGroups)
 {
-    group.RegisterCommands(rootCommand, mediator, host);
+    group.RegisterCommands(rootCommand, mediator, host, AnsiConsole.Console);
 }
 
 return await rootCommand.InvokeAsync(args).ConfigureAwait(false);

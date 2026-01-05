@@ -1,7 +1,10 @@
+using System.Net;
+using System.Net.Sockets;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Plugins;
 
 namespace SaveState.Plugins.MugenNetwork;
@@ -14,6 +17,7 @@ public class MugenNetworkPlugin : IPlugin
 {
     private IPluginContext? _context;
     private ILogger? _logger;
+    private ITaskRunner? _taskRunner;
     private readonly HttpClient _httpClient;
     private NetworkStatus _networkStatus = NetworkStatus.Disconnected;
     private readonly List<LobbyInfo> _availableLobbies = new();
@@ -31,6 +35,7 @@ public class MugenNetworkPlugin : IPlugin
     {
         _context = context;
         _logger = context.Logger;
+        _taskRunner = context.Services.GetService(typeof(ITaskRunner)) as ITaskRunner;
 
         _logger.LogInformation("Initializing MUGEN Network plugin");
 
@@ -89,23 +94,44 @@ public class MugenNetworkPlugin : IPlugin
         return Task.CompletedTask;
     }
 
+    private MugenNetworkManager? _networkManager;
+
     private async Task InitializeNetworkAsync(CancellationToken ct)
     {
         try
         {
             _logger?.LogInformation("Connecting to MUGEN network...");
+            _networkStatus = NetworkStatus.Connecting;
 
-            // Simulate network connection
-            await Task.Delay(2000, ct);
+            // Initialize P2P network manager
+            _networkManager = new MugenNetworkManager(_logger, _taskRunner);
+            var port = Random.Shared.Next(10000, 20000);
+
+            _logger?.LogInformation("Starting P2P listener on port {Port}", port);
+            _networkManager.StartListener(port);
+
+            // Simulate discovery/connection delay
+            await Task.Delay(1000, ct);
 
             // Load cached user profile
             await LoadUserProfileAsync(ct);
 
             _networkStatus = NetworkStatus.Connected;
 
-            // Start background services
-            _ = Task.Run(() => UpdateLobbiesAsync(ct), ct);
-            _ = Task.Run(() => SyncWorkshopAsync(ct), ct);
+            // Start background services using centralized TaskRunner
+            if (_taskRunner != null)
+            {
+                _taskRunner.Run(async () => await UpdateLobbiesAsync(ct), "MugenUpdateLobbies");
+                _taskRunner.Run(async () => await SyncWorkshopAsync(ct), "MugenSyncWorkshop");
+                _taskRunner.Run(async () => await _networkManager.MaintainConnectionsAsync(ct), "MugenMaintainConnections");
+            }
+            else
+            {
+                // Fallback to basic Task.Run if TaskRunner is not available
+                _ = Task.Run(() => UpdateLobbiesAsync(ct), ct);
+                _ = Task.Run(() => SyncWorkshopAsync(ct), ct);
+                _ = Task.Run(() => _networkManager.MaintainConnectionsAsync(ct), ct);
+            }
 
             _logger?.LogInformation("Connected to MUGEN network successfully");
         }
@@ -489,6 +515,134 @@ public class MugenNetworkPlugin : IPlugin
             >= 1800 => "Bronze",
             _ => "Unranked"
         };
+
+        private readonly ILogger? _logger;
+        private readonly ITaskRunner? _taskRunner;
+        private TcpListener? _listener;
+        private readonly List<TcpClient> _peers = new();
+        private bool _isRunning;
+
+        public MugenNetworkManager(ILogger? logger, ITaskRunner? taskRunner = null)
+        {
+            _logger = logger;
+            _taskRunner = taskRunner;
+        }
+
+        public void StartListener(int port)
+        {
+            try
+            {
+                _listener = new TcpListener(IPAddress.Any, port);
+                _listener.Start();
+                _isRunning = true;
+
+                if (_taskRunner != null)
+                {
+                    _taskRunner.Run(AcceptPeersAsync(), "MugenAcceptPeers");
+                }
+                else
+                {
+                    _ = Task.Run(AcceptPeersAsync);
+                }
+
+                _logger?.LogInformation("MUGEN P2P Listener started on port {Port}", port);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Failed to start P2P listener");
+            }
+        }
+
+        private async Task AcceptPeersAsync()
+        {
+            while (_isRunning && _listener != null)
+            {
+                try
+                {
+                    var client = await _listener.AcceptTcpClientAsync();
+                    lock (_peers)
+                    {
+                        _peers.Add(client);
+                    }
+
+                    if (_taskRunner != null)
+                    {
+                        _taskRunner.Run(HandlePeerMessagesAsync(client), $"MugenHandlePeer_{client.Client.RemoteEndPoint}");
+                    }
+                    else
+                    {
+                        _ = Task.Run(() => HandlePeerMessagesAsync(client));
+                    }
+                }
+                catch (Exception ex) when (_isRunning)
+                {
+                    _logger?.LogError(ex, "Error accepting peer connection");
+                }
+            }
+        }
+
+        private async Task HandlePeerMessagesAsync(TcpClient client)
+        {
+            using var stream = client.GetStream();
+            var buffer = new byte[4096];
+
+            try
+            {
+                while (client.Connected)
+                {
+                    var read = await stream.ReadAsync(buffer, 0, buffer.Length);
+                    if (read == 0) break;
+
+                    // Handle MUGEN network protocol messages (sync, input, etc.)
+                    var message = System.Text.Encoding.UTF8.GetString(buffer, 0, read);
+                    _logger?.LogDebug("Received from peer: {Message}", message);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning("Peer disconnected: {Message}", ex.Message);
+            }
+            finally
+            {
+                lock (_peers)
+                {
+                    _peers.Remove(client);
+                }
+                client.Dispose();
+            }
+        }
+
+        public async Task MaintainConnectionsAsync(CancellationToken ct)
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                // Send heartbeats, check peer health, etc.
+                await Task.Delay(15000, ct);
+
+                lock (_peers)
+                {
+                    foreach (var peer in _peers.ToList())
+                    {
+                        if (!peer.Connected)
+                        {
+                            _peers.Remove(peer);
+                        }
+                    }
+                }
+            }
+        }
+
+        public void Stop()
+        {
+            _isRunning = false;
+            _listener?.Stop();
+            lock (_peers)
+            {
+                foreach (var peer in _peers) peer.Dispose();
+                _peers.Clear();
+            }
+        }
+    }
 }
 
 /// <summary>

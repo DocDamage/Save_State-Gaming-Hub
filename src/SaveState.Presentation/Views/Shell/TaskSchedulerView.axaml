@@ -1,0 +1,320 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             x:Class="SaveState.Presentation.Views.Shell.TaskSchedulerView"
+             x:DataType="vm:TaskSchedulerViewModel"
+             Background="{StaticResource BackgroundBrush}">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Border Grid.Row="0" Classes="GlassContainer" Margin="20,20,20,10" Padding="20">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <TextBlock Text="📅 Task Scheduler" Classes="Header" VerticalAlignment="Center" />
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                    <Button Content="➕ New Schedule"
+                            Classes="Primary"
+                            Command="{Binding ShowCreateDialogCommand}"
+                            ToolTip.Tip="Create new backup schedule" />
+
+                    <Button Content="🔄 Refresh"
+                            Classes="Secondary"
+                            Command="{Binding RefreshCommand}"
+                            IsEnabled="{Binding !IsLoading}"
+                            ToolTip.Tip="Refresh schedules" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, 400" Margin="20,0,20,20">
+            <!-- Left Column: Schedules List -->
+            <Border Classes="GlassContainer" Padding="20" Margin="0,0,10,0">
+                <Grid RowDefinitions="Auto, Auto, *">
+                    <TextBlock Text="Backup Schedules" Classes="SectionHeader" />
+
+                    <!-- Statistics -->
+                    <Grid Grid.Row="1" ColumnDefinitions="*, *, *" Margin="0,15,0,15">
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Total" Classes="Label" />
+                            <TextBlock Text="{Binding TotalSchedules}" FontWeight="Bold" FontSize="20" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Spacing="5">
+                            <TextBlock Text="Active" Classes="Label" />
+                            <TextBlock Text="{Binding ActiveSchedules}" FontWeight="Bold" FontSize="20" Foreground="#10B981" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Spacing="5">
+                            <TextBlock Text="Backups" Classes="Label" />
+                            <TextBlock Text="{Binding TotalBackups}" FontWeight="Bold" FontSize="20" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Schedules List -->
+                    <ScrollViewer Grid.Row="2">
+                        <Grid>
+                            <!-- Loading Indicator -->
+                            <Border IsVisible="{Binding IsLoading}"
+                                    Padding="40"
+                                    HorizontalAlignment="Center">
+                                <StackPanel Spacing="15" HorizontalAlignment="Center">
+                                    <TextBlock Text="⏳" FontSize="48" HorizontalAlignment="Center" />
+                                    <TextBlock Text="Loading schedules..." Classes="Subtitle" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Schedule Items -->
+                            <ItemsControl ItemsSource="{Binding Schedules}"
+                                          IsVisible="{Binding !IsLoading}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="ListItem"
+                                            Padding="15"
+                                            Margin="0,0,0,8">
+                                        <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="*, Auto">
+                                            <!-- Name & Status -->
+                                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontWeight="SemiBold"
+                                                           FontSize="16" />
+
+                                                <Border Background="#10B981"
+                                                        CornerRadius="4"
+                                                        Padding="6,2"
+                                                        IsVisible="{Binding IsEnabled}">
+                                                    <TextBlock Text="Active"
+                                                               Foreground="White"
+                                                               FontSize="11"
+                                                               FontWeight="SemiBold" />
+                                                </Border>
+
+                                                <Border Background="#666666"
+                                                        CornerRadius="4"
+                                                        Padding="6,2"
+                                                        IsVisible="{Binding !IsEnabled}">
+                                                    <TextBlock Text="Disabled"
+                                                               Foreground="White"
+                                                               FontSize="11"
+                                                               FontWeight="SemiBold" />
+                                                </Border>
+                                            </StackPanel>
+
+                                            <!-- Action Buttons -->
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5">
+                                                <Button Content="▶️"
+                                                        Classes="Secondary"
+                                                        Command="{Binding $parent[ItemsControl].((vm:TaskSchedulerViewModel)DataContext).RunNowCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        ToolTip.Tip="Run now"
+                                                        Padding="8,4" />
+
+                                                <Button Content="⏸️"
+                                                        Classes="Secondary"
+                                                        Command="{Binding $parent[ItemsControl].((vm:TaskSchedulerViewModel)DataContext).DisableScheduleCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        IsVisible="{Binding IsEnabled}"
+                                                        ToolTip.Tip="Disable"
+                                                        Padding="8,4" />
+
+                                                <Button Content="▶️"
+                                                        Classes="Secondary"
+                                                        Command="{Binding $parent[ItemsControl].((vm:TaskSchedulerViewModel)DataContext).EnableScheduleCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        IsVisible="{Binding !IsEnabled}"
+                                                        ToolTip.Tip="Enable"
+                                                        Padding="8,4" />
+
+                                                <Button Content="🗑️"
+                                                        Classes="Secondary"
+                                                        Command="{Binding $parent[ItemsControl].((vm:TaskSchedulerViewModel)DataContext).DeleteScheduleCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        ToolTip.Tip="Delete"
+                                                        Padding="8,4" />
+                                            </StackPanel>
+
+                                            <!-- Description -->
+                                            <TextBlock Grid.Row="1"
+                                                       Grid.ColumnSpan="2"
+                                                       Text="{Binding Description}"
+                                                       Classes="Subtitle"
+                                                       TextWrapping="Wrap"
+                                                       Margin="0,5,0,0"
+                                                       IsVisible="{Binding !!Description}" />
+
+                                            <!-- Metadata -->
+                                            <StackPanel Grid.Row="2"
+                                                        Grid.ColumnSpan="2"
+                                                        Orientation="Horizontal"
+                                                        Spacing="10"
+                                                        Margin="0,8,0,0">
+                                                <TextBlock Classes="Subtitle">
+                                                    <Run Text="Created:" />
+                                                    <Run Text="{Binding CreatedAt, StringFormat='{}{0:g}'}" />
+                                                </TextBlock>
+
+                                                <TextBlock Classes="Subtitle"
+                                                           IsVisible="{Binding !!LastExecutedAt}">
+                                                    <Run Text="•" />
+                                                    <Run Text="Last run:" />
+                                                    <Run Text="{Binding LastExecutedAt, StringFormat='{}{0:g}'}" />
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                            <!-- Empty State -->
+                            <Border IsVisible="{Binding Schedules.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}"
+                                    Padding="40">
+                                <StackPanel Spacing="15" HorizontalAlignment="Center">
+                                    <TextBlock Text="📭" FontSize="48" HorizontalAlignment="Center" />
+                                    <TextBlock Text="No schedules configured" Classes="Subtitle" HorizontalAlignment="Center" />
+                                    <TextBlock Text="Create a schedule to automate backups" Classes="Subtitle" HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Right Column: Create Schedule Form -->
+            <Border Grid.Column="1" Classes="GlassContainer" Padding="20" IsVisible="{Binding IsCreateDialogVisible}">
+                <Grid RowDefinitions="Auto, *,Auto">
+                    <TextBlock Text="📝 New Schedule" Classes="SectionHeader" />
+
+                    <ScrollViewer Grid.Row="1" Margin="0,15,0,0">
+                        <StackPanel Spacing="15">
+                            <!-- Name -->
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="Schedule Name" Classes="Label" />
+                                <TextBox Text="{Binding ScheduleName}"
+                                         Watermark="e.g. Daily Backup" />
+                            </StackPanel>
+
+                            <!-- Description -->
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="Description (optional)" Classes="Label" />
+                                <TextBox Text="{Binding ScheduleDescription}"
+                                         Watermark="What does this schedule do?"
+                                         MinHeight="60"
+                                         TextWrapping="Wrap"
+                                         AcceptsReturn="True" />
+                            </StackPanel>
+
+                            <!-- Frequency -->
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="Frequency" Classes="Label" />
+                                <ComboBox ItemsSource="{Binding FrequencyOptions}"
+                                          SelectedItem="{Binding SelectedFrequency}"
+                                          HorizontalAlignment="Stretch" />
+                            </StackPanel>
+
+                            <!-- Time -->
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="Time of Day" Classes="Label" />
+                                <TimePicker SelectedTime="{Binding ScheduleTime}"
+                                            HorizontalAlignment="Stretch" />
+                            </StackPanel>
+
+                            <!-- Backup Options -->
+                            <TextBlock Text="Backup Options" Classes="Label" Margin="0,10,0,0" />
+
+                            <CheckBox Content="Include save states"
+                                      IsChecked="{Binding IncludeSaveStates}" />
+
+                            <CheckBox Content="Include game files"
+                                      IsChecked="{Binding IncludeGameFiles}" />
+
+                            <CheckBox Content="Include screenshots"
+                                      IsChecked="{Binding IncludeScreenshots}" />
+
+                            <CheckBox Content="Compress backups"
+                                      IsChecked="{Binding CompressBackup}" />
+
+                            <!-- Retention -->
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="Keep last N backups" Classes="Label" />
+                                <NumericUpDown Value="{Binding MaxBackupsToKeep}"
+                                               Minimum="1"
+                                               Maximum="100"
+                                               Increment="1"
+                                               HorizontalAlignment="Stretch" />
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" Margin="0,15,0,0">
+                        <Button Content="✅ Create"
+                                Classes="Primary"
+                                Command="{Binding CreateScheduleCommand}"
+                                HorizontalAlignment="Stretch" />
+
+                        <Button Content="❌ Cancel"
+                                Classes="Secondary"
+                                Command="{Binding CancelCreateDialogCommand}"
+                                HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Right Column: Schedule Details (when not creating) -->
+            <Border Grid.Column="1" Classes="GlassContainer" Padding="20" IsVisible="{Binding !IsCreateDialogVisible}">
+                <Grid RowDefinitions="Auto, *">
+                    <TextBlock Text="💡 Quick Tips" Classes="SectionHeader" />
+
+                    <ScrollViewer Grid.Row="1" Margin="0,15,0,0">
+                        <StackPanel Spacing="15">
+                            <Border Background="#1a1a1a" CornerRadius="8" Padding="15">
+                                <StackPanel Spacing="10">
+                                    <TextBlock Text="📅 Automated Backups"
+                                               FontWeight="SemiBold"
+                                               FontSize="14" />
+                                    <TextBlock Text="Set up daily, weekly, or monthly backups to protect your game progress automatically."
+                                               TextWrapping="Wrap"
+                                               Classes="Subtitle" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="#1a1a1a" CornerRadius="8" Padding="15">
+                                <StackPanel Spacing="10">
+                                    <TextBlock Text="💾 What Gets Backed Up"
+                                               FontWeight="SemiBold"
+                                               FontSize="14" />
+                                    <TextBlock Text="Choose which data to include: save states, game files, screenshots, and more."
+                                               TextWrapping="Wrap"
+                                               Classes="Subtitle" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="#1a1a1a" CornerRadius="8" Padding="15">
+                                <StackPanel Spacing="10">
+                                    <TextBlock Text="🔄 Retention Policy"
+                                               FontWeight="SemiBold"
+                                               FontSize="14" />
+                                    <TextBlock Text="Control how many backups to keep. Older backups are automatically cleaned up."
+                                               TextWrapping="Wrap"
+                                               Classes="Subtitle" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="#1a1a1a" CornerRadius="8" Padding="15">
+                                <StackPanel Spacing="10">
+                                    <TextBlock Text="⚡ Run Anytime"
+                                               FontWeight="SemiBold"
+                                               FontSize="14" />
+                                    <TextBlock Text="Don't want to wait? Click 'Run now' to execute any schedule immediately."
+                                               TextWrapping="Wrap"
+                                               Classes="Subtitle" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

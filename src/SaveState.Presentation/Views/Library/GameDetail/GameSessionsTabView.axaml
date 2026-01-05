@@ -1,0 +1,253 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Library.GameDetail;assembly=SaveState.Presentation"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Library.GameDetail.GameSessionsTabView"
+             x:DataType="vm:GameSessionsTabViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header with Stats -->
+        <Border Grid.Row="0" Classes="GlassContainer" Padding="20" Margin="0,0,0,15">
+            <Grid ColumnDefinitions="*, *, *, Auto">
+                <StackPanel Grid.Column="0" Spacing="5">
+                    <TextBlock Text="🎮 SESSIONS" Classes="Subtitle" />
+                    <TextBlock Text="{Binding SessionCountText}"
+                               Classes="Caption"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Spacing="5" HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding TotalPlaytimeText}" Classes="Body" FontWeight="Bold" />
+                    <TextBlock Text="Total Playtime" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Spacing="5" HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding AverageSessionText}" Classes="Body" FontWeight="Bold" />
+                    <TextBlock Text="Avg Session" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="10">
+                    <ComboBox ItemsSource="{Binding TimeRangeOptions}"
+                              SelectedItem="{Binding SelectedTimeRange}"
+                              Width="120"
+                              PlaceholderText="Time range..." />
+
+                    <Button Content="📊 View Charts"
+                            Classes="Secondary"
+                            Command="{Binding ViewChartsCommand}"
+                            ToolTip.Tip="View detailed session analytics" />
+
+                    <Button Content="📤 Export Data"
+                            Classes="Secondary"
+                            Command="{Binding ExportDataCommand}"
+                            ToolTip.Tip="Export session data" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, Auto">
+            <!-- Sessions List -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Sessions}" Margin="0,0,15,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{Binding BackgroundBrush}"
+                                    BorderBrush="{Binding BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="15"
+                                    Margin="0,0,0,10">
+                                <Grid ColumnDefinitions="Auto, *, Auto, Auto">
+                                    <!-- Session Icon -->
+                                    <Border Grid.Column="0"
+                                            Background="{Binding SessionIconBackground}"
+                                            CornerRadius="20"
+                                            Width="40" Height="40"
+                                            Margin="0,0,15,0">
+                                        <TextBlock Text="{Binding SessionIcon}"
+                                                   FontSize="16"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center" />
+                                    </Border>
+
+                                    <!-- Session Details -->
+                                    <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding SessionTitle}"
+                                                   Classes="Body"
+                                                   FontWeight="SemiBold" />
+
+                                        <StackPanel Orientation="Horizontal" Spacing="15">
+                                            <TextBlock Text="{Binding StartTimeText}"
+                                                       Classes="Caption"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+
+                                            <TextBlock Text="{Binding DurationText}"
+                                                       Classes="Caption"
+                                                       Foreground="{StaticResource AccentBrush}" />
+
+                                            <TextBlock Text="{Binding EndTimeText}"
+                                                       Classes="Caption"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                        </StackPanel>
+
+                                        <TextBlock Text="{Binding SessionNotes}"
+                                                   Classes="Caption"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                                   TextWrapping="Wrap"
+                                                   MaxLines="2"
+                                                   IsVisible="{Binding HasNotes}" />
+                                    </StackPanel>
+
+                                    <!-- Achievement Progress -->
+                                    <StackPanel Grid.Column="2"
+                                                Spacing="5"
+                                                VerticalAlignment="Center"
+                                                Margin="15,0"
+                                                IsVisible="{Binding HasAchievementProgress}">
+                                        <TextBlock Text="🏆 Achievements" Classes="Caption" HorizontalAlignment="Center" />
+                                        <TextBlock Text="{Binding AchievementProgressText}"
+                                                   Classes="Caption"
+                                                   FontWeight="Bold"
+                                                   HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource AccentBrush}" />
+                                    </StackPanel>
+
+                                    <!-- Quick Actions -->
+                                    <StackPanel Grid.Column="3" Spacing="8" VerticalAlignment="Center">
+                                        <Button Content="📝 Edit Notes"
+                                                Classes="Secondary"
+                                                Command="{Binding EditNotesCommand}"
+                                                ToolTip.Tip="Edit session notes" />
+
+                                        <Button Content="📊 View Details"
+                                                Classes="Secondary"
+                                                Command="{Binding ViewDetailsCommand}"
+                                                ToolTip.Tip="View detailed session info" />
+
+                                        <Button Content="🗑️ Delete"
+                                                Classes="Danger"
+                                                Command="{Binding DeleteCommand}"
+                                                ToolTip.Tip="Delete this session" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Sidebar with Stats and Calendar -->
+            <Border Grid.Column="1" Classes="GlassContainer" Padding="20" Width="280">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="20">
+                        <TextBlock Text="📈 SESSION STATS" Classes="Subtitle" />
+
+                        <!-- Quick Stats -->
+                        <Border Background="{StaticResource SurfaceBrush}" Padding="15" CornerRadius="6">
+                            <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto" ColumnDefinitions="*, Auto">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Total Sessions:" Classes="Caption" />
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalSessions}" Classes="Caption" />
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Longest Session:" Classes="Caption" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding LongestSessionText}" Classes="Caption" />
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Shortest Session:" Classes="Caption" />
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ShortestSessionText}" Classes="Caption" />
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Most Active Day:" Classes="Caption" />
+                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding MostActiveDay}" Classes="Caption" />
+
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Most Active Hour:" Classes="Caption" />
+                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding MostActiveHour}" Classes="Caption" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Playtime by Day -->
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="📅 PLAYTIME BY DAY" Classes="Caption" FontWeight="Bold" />
+
+                            <ItemsControl ItemsSource="{Binding PlaytimeByDay}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="*, Auto, Auto" Margin="0,2">
+                                            <TextBlock Grid.Column="0" Text="{Binding DayName}" Classes="Caption" />
+                                            <ProgressBar Grid.Column="1"
+                                                        Value="{Binding Percentage}"
+                                                        Maximum="100"
+                                                        Height="6"
+                                                        Width="60"
+                                                        Margin="10,0" />
+                                            <TextBlock Grid.Column="2" Text="{Binding TimeText}" Classes="Caption" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- Playtime by Hour -->
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="🕐 PLAYTIME BY HOUR" Classes="Caption" FontWeight="Bold" />
+
+                            <ItemsControl ItemsSource="{Binding PlaytimeByHour}" MaxHeight="150">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="Auto, *, Auto" Margin="0,1">
+                                            <TextBlock Grid.Column="0" Text="{Binding HourLabel}" Classes="Caption" Width="30" />
+                                            <ProgressBar Grid.Column="1"
+                                                        Value="{Binding Percentage}"
+                                                        Maximum="100"
+                                                        Height="4"
+                                                        Margin="5,0" />
+                                            <TextBlock Grid.Column="2" Text="{Binding TimeText}" Classes="Caption" Margin="5,0,0,0" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- Session Goals -->
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="🎯 SESSION GOALS" Classes="Caption" FontWeight="Bold" />
+
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Today's Goal:" Classes="Caption" />
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <ProgressBar Grid.Column="0"
+                                                Value="{Binding TodayGoalProgress}"
+                                                Maximum="100"
+                                                Height="8"
+                                                Margin="0,0,10,0" />
+                                    <TextBlock Grid.Column="1" Text="{Binding TodayGoalText}" Classes="Caption" />
+                                </Grid>
+
+                                <TextBlock Text="This Week:" Classes="Caption" Margin="0,10,0,0" />
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <ProgressBar Grid.Column="0"
+                                                Value="{Binding WeekGoalProgress}"
+                                                Maximum="100"
+                                                Height="8"
+                                                Margin="0,0,10,0" />
+                                    <TextBlock Grid.Column="1" Text="{Binding WeekGoalText}" Classes="Caption" />
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Quick Actions -->
+                        <StackPanel Spacing="10">
+                            <Button Content="➕ Start New Session"
+                                    Classes="Primary"
+                                    Command="{Binding StartNewSessionCommand}" />
+
+                            <Button Content="📝 Add Manual Session"
+                                    Classes="Secondary"
+                                    Command="{Binding AddManualSessionCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

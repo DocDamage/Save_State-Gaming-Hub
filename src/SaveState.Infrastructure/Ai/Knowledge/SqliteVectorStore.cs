@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Ai.Knowledge;
 using Microsoft.Extensions.DependencyInjection;
+using SaveState.Core.Common.Services;
 using SaveState.Infrastructure.Persistence;
 
 namespace SaveState.Infrastructure.Ai.Knowledge;
@@ -10,15 +11,18 @@ public class SqliteVectorStore : IKnowledgeStore
 {
     private readonly SaveStateDbContext _context;
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ITaskRunner _taskRunner;
     private readonly ILogger<SqliteVectorStore> _logger;
 
     public SqliteVectorStore(
         SaveStateDbContext context,
         IServiceScopeFactory scopeFactory,
+        ITaskRunner taskRunner,
         ILogger<SqliteVectorStore> logger)
     {
         _context = context;
         _scopeFactory = scopeFactory;
+        _taskRunner = taskRunner;
         _logger = logger;
     }
 
@@ -60,32 +64,25 @@ public class SqliteVectorStore : IKnowledgeStore
             .Take(limit)
             .ToList();
 
-        // Update access counts asynchronously (fire and forget safely)
+        // Update access counts asynchronously using centralized TaskRunner
         var hitIds = hits.Select(h => h.Id).ToList();
-        _ = Task.Run(async () =>
+        _taskRunner.Run(async () =>
         {
-            try
+            using var scope = _scopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<SaveStateDbContext>();
+
+            var recordsToUpdate = await dbContext.KnowledgeRecords
+                .Where(r => hitIds.Contains(r.Id))
+                .ToListAsync(CancellationToken.None)
+                .ConfigureAwait(false);
+
+            foreach (var record in recordsToUpdate)
             {
-                using var scope = _scopeFactory.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<SaveStateDbContext>();
-
-                var recordsToUpdate = await dbContext.KnowledgeRecords
-                    .Where(r => hitIds.Contains(r.Id))
-                    .ToListAsync(CancellationToken.None)
-                    .ConfigureAwait(false);
-
-                foreach (var record in recordsToUpdate)
-                {
-                    record.RecordAccess();
-                }
-
-                await dbContext.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
+                record.RecordAccess();
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to update access counts in background");
-            }
-        });
+
+            await dbContext.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
+        }, "UpdateKnowledgeAccessCounts");
 
         _logger.LogDebug("Found {HitCount} relevant knowledge hits for query", hits.Count);
         return hits;

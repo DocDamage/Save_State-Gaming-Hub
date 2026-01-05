@@ -8,5 +8,6 @@ using SaveState.Application.GameLibrary.DTOs;
 /// </summary>
 public record GetUserAchievementsQuery(
     Guid UserId,
+    Guid? GameId = null,
     bool IncludeLocked = true
 ) : IRequest<IReadOnlyList<UserAchievementDto>>;

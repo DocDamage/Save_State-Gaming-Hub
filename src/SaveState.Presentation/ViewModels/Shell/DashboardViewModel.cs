@@ -38,32 +38,49 @@ public partial class DashboardViewModel : ObservableObject
     /// <summary>
     /// Initializes the default set of widgets asynchronously.
     /// </summary>
+    /// <summary>
+    /// Initializes the default set of widgets asynchronously.
+    /// </summary>
     private async Task InitializeWidgetsAsync()
     {
         try
         {
             var layout = WidgetRegistry.DefaultLayout;
+            _logger.LogInformation("Initializing dashboard with {Count} widgets", layout.Widgets.Length);
+
             foreach (var position in layout.Widgets)
             {
                 var widgetType = WidgetRegistry.AvailableWidgets.FirstOrDefault(t =>
-                    t.Name.Contains(position.WidgetId.Replace("-", ""), StringComparison.OrdinalIgnoreCase) ||
-                    t.Name.EndsWith(position.WidgetId.Replace("-", "") + "Widget", StringComparison.OrdinalIgnoreCase));
+                    t.Name.Replace("Widget", "", StringComparison.OrdinalIgnoreCase)
+                         .Equals(position.WidgetId.Replace("-", ""), StringComparison.OrdinalIgnoreCase) ||
+                    t.Name.Contains(position.WidgetId.Replace("-", ""), StringComparison.OrdinalIgnoreCase));
 
                 if (widgetType == null)
                 {
-                    // Fallback search if name mapping fails
                     _logger.LogWarning("Could not find widget type for ID: {WidgetId}", position.WidgetId);
                     continue;
                 }
 
-                var widget = WidgetRegistry.CreateWidget(widgetType, _serviceProvider);
-                await widget.InitializeAsync();
+                try
+                {
+                    var widget = WidgetRegistry.CreateWidget(widgetType, _serviceProvider);
+                    await widget.InitializeAsync();
 
-                var instance = new WidgetInstance(widget, position.Column, position.Row);
-                Widgets.Add(instance);
+                    var instance = new WidgetInstance(widget, position.Column, position.Row);
+
+                    // Safe update on UI thread
+                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        Widgets.Add(instance);
+                    });
+                }
+                catch (Exception wEx)
+                {
+                    _logger.LogError(wEx, "Failed to create/init widget {WidgetId}", position.WidgetId);
+                }
             }
 
-            _logger.LogInformation("Dashboard widgets initialized with default layout");
+            _logger.LogInformation("Dashboard widgets initialized successfully");
         }
         catch (Exception ex)
         {
@@ -77,18 +94,32 @@ public partial class DashboardViewModel : ObservableObject
     [RelayCommand]
     private void Customize()
     {
-        // TODO: Open customization dialog
-        _logger.LogInformation("Customize dashboard requested");
+        _logger.LogInformation("Dashboard customization requested");
+        // Future: Show widget selection and layout customization dialog
+        // For now, log the action
+    }
+
+    /// <summary>
+    /// Command to remove a widget from the dashboard.
+    /// </summary>
+    [RelayCommand]
+    private void RemoveWidget(WidgetInstance widgetInstance)
+    {
+        if (widgetInstance == null) return;
+
+        Widgets.Remove(widgetInstance);
+        _logger.LogInformation("Removed widget instance {WidgetId}", widgetInstance.Widget.Id);
     }
 
     /// <summary>
     /// Command to reset the dashboard layout.
     /// </summary>
     [RelayCommand]
-    private void ResetLayout()
+    private async Task ResetLayout()
     {
-        // TODO: Reset to default layout
-        _logger.LogInformation("Reset dashboard layout requested");
+        _logger.LogInformation("Resetting dashboard layout to default");
+        Widgets.Clear();
+        await InitializeWidgetsAsync();
     }
 }
 

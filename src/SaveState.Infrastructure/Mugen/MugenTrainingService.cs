@@ -4,6 +4,7 @@ using SaveState.Core.Common;
 using SaveState.Core.Mugen.Entities;
 using SaveState.Core.Mugen.Services;
 using SaveState.Core.Mugen.ValueObjects;
+using SaveState.Core.UserManagement.Services;
 
 /// <summary>
 /// Implementation of the MUGEN training service.
@@ -13,13 +14,16 @@ public class MugenTrainingService : IMugenTrainingService
 {
     private readonly SaveState.Core.Mugen.IMugenCharacterRepository _characterRepository;
     private readonly SaveState.Core.Mugen.IMugenTrainingRepository _trainingRepository;
+    private readonly IUserContextService _userContextService;
 
     public MugenTrainingService(
         SaveState.Core.Mugen.IMugenCharacterRepository characterRepository,
-        SaveState.Core.Mugen.IMugenTrainingRepository trainingRepository)
+        SaveState.Core.Mugen.IMugenTrainingRepository trainingRepository,
+        IUserContextService userContextService)
     {
         _characterRepository = characterRepository;
         _trainingRepository = trainingRepository;
+        _userContextService = userContextService;
     }
 
     public Task<Result> RecordDummyActionsAsync(
@@ -73,11 +77,14 @@ public class MugenTrainingService : IMugenTrainingService
             if (dummyResult.IsFailure)
                 return Result<TrainingSession>.Failure("Dummy character not found");
 
+            // Get current user ID
+            var userId = _userContextService.GetCurrentUserIdRequired();
+
             // Create and persist training session
             var sessionEntity = MugenTrainingSession.Create(
                 characterId,
                 config.DummyCharacterId,
-                Guid.NewGuid(), // Placeholder user ID - will be replaced when user context service is integrated
+                userId,
                 TrainingSessionType.GeneralPractice); // Default training type - config mapping can be added later
 
             await _trainingRepository.AddAsync(sessionEntity, ct);

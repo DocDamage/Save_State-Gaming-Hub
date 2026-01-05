@@ -32,20 +32,20 @@ public interface INavigationService
     /// Navigates to a specific view model type.
     /// </summary>
     /// <typeparam name="TViewModel">The view model type to navigate to.</typeparam>
-    void NavigateTo<TViewModel>() where TViewModel : ObservableObject;
+    Task NavigateTo<TViewModel>() where TViewModel : ObservableObject;
 
     /// <summary>
     /// Navigates to a specific tab by name.
     /// </summary>
     /// <param name="tabName">The name of the tab to navigate to.</param>
-    void NavigateTo(string tabName);
+    Task NavigateTo(string tabName);
 
     /// <summary>
     /// Navigates to a specific tab with a parameter.
     /// </summary>
     /// <param name="tabName">The name of the tab to navigate to.</param>
     /// <param name="parameter">The navigation parameter.</param>
-    void NavigateTo(string tabName, object parameter);
+    Task NavigateTo(string tabName, object parameter);
 
     /// <summary>
     /// Navigates back to the previous view.

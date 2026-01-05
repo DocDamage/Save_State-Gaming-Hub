@@ -6,6 +6,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>SaveState.Plugins.TwitchStreaming</AssemblyName>
     <RootNamespace>SaveState.Plugins.TwitchStreaming</RootNamespace>
+      <NoWarn>$(NoWarn);CS1591;CA2007</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,5 +20,4 @@
   <ItemGroup>
     <ProjectReference Include="..\SaveState.Core\SaveState.Core.csproj" />
   </ItemGroup>
-</Project></contents>
-</xai:function_call">The project file for the Twitch Streaming plugin
+</Project>

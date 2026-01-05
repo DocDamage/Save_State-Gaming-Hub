@@ -1,3 +1,5 @@
+using System;
+
 namespace SaveState.Presentation.Services;
 
 /// <summary>
@@ -100,6 +102,164 @@ public interface IOverlayService
     /// </summary>
     /// <param name="isActive">Whether voice recognition is active.</param>
     void SetVoiceActive(bool isActive);
+
+    /// <summary>
+    /// Shows the session details overlay for a specific game.
+    /// </summary>
+    /// <param name="gameId">The game ID to show session details for.</param>
+    void ShowSessionDetailsOverlay(Guid gameId);
+
+    /// <summary>
+    /// Shows the achievement details overlay for a specific achievement.
+    /// </summary>
+    /// <param name="achievementId">The achievement ID to show details for.</param>
+    void ShowAchievementDetailsOverlay(Guid achievementId);
+
+    /// <summary>
+    /// Shows the mod details overlay for a specific mod.
+    /// </summary>
+    /// <param name="modId">The mod ID to show details for.</param>
+    void ShowModDetailsOverlay(Guid modId);
+
+    /// <summary>
+    /// Shows the notifications panel overlay.
+    /// </summary>
+    void ShowNotificationsOverlay();
+
+    /// <summary>
+    /// Hides the notifications panel overlay.
+    /// </summary>
+    void HideNotificationsOverlay();
+
+    /// <summary>
+    /// Toggles the notifications panel overlay.
+    /// </summary>
+    void ToggleNotificationsOverlay();
+
+    /// <summary>
+    /// Gets whether the notifications panel is visible.
+    /// </summary>
+    bool ShowNotifications { get; }
+
+    /// <summary>
+    /// Gets whether the user profile overlay is visible.
+    /// </summary>
+    bool ShowUserProfile { get; }
+
+    /// <summary>
+    /// Shows the user profile overlay.
+    /// </summary>
+    void ShowUserProfileOverlay();
+
+    /// <summary>
+    /// Hides the user profile overlay.
+    /// </summary>
+    void HideUserProfileOverlay();
+
+    /// <summary>
+    /// Toggles the user profile overlay.
+    /// </summary>
+    void ToggleUserProfileOverlay();
+
+    /// <summary>
+    /// Gets whether the network diagnostics overlay is visible.
+    /// </summary>
+    bool ShowNetworkDiagnostics { get; }
+
+    /// <summary>
+    /// Shows the network diagnostics overlay.
+    /// </summary>
+    void ShowNetworkDiagnosticsOverlay();
+
+    /// <summary>
+    /// Hides the network diagnostics overlay.
+    /// </summary>
+    void HideNetworkDiagnosticsOverlay();
+
+    /// <summary>
+    /// Toggles the network diagnostics overlay.
+    /// </summary>
+    void ToggleNetworkDiagnosticsOverlay();
+
+    /// <summary>
+    /// Gets whether the sync status overlay is visible.
+    /// </summary>
+    bool ShowSyncStatus { get; }
+
+    /// <summary>
+    /// Shows the sync status overlay.
+    /// </summary>
+    void ShowSyncStatusOverlay();
+
+    /// <summary>
+    /// Hides the sync status overlay.
+    /// </summary>
+    void HideSyncStatusOverlay();
+
+    /// <summary>
+    /// Toggles the sync status overlay.
+    /// </summary>
+    void ToggleSyncStatusOverlay();
+
+    /// <summary>
+    /// Gets whether the conflicts resolution overlay is visible.
+    /// </summary>
+    bool ShowConflictsResolution { get; }
+
+    /// <summary>
+    /// Shows the conflicts resolution overlay.
+    /// </summary>
+    void ShowConflictsResolutionOverlay();
+
+    /// <summary>
+    /// Hides the conflicts resolution overlay.
+    /// </summary>
+    void HideConflictsResolutionOverlay();
+
+    /// <summary>
+    /// Gets whether the provider configuration dialog is visible.
+    /// </summary>
+    bool ShowProviderConfiguration { get; }
+
+    /// <summary>
+    /// Shows the provider configuration dialog.
+    /// </summary>
+    void ShowProviderConfigurationDialog();
+
+    /// <summary>
+    /// Hides the provider configuration dialog.
+    /// </summary>
+    void HideProviderConfigurationDialog();
+
+    /// <summary>
+    /// Gets whether the dashboard customization dialog is visible.
+    /// </summary>
+    bool ShowDashboardCustomization { get; }
+
+    /// <summary>
+    /// Shows the dashboard customization dialog.
+    /// </summary>
+    void ShowDashboardCustomizationDialog();
+
+    /// <summary>
+    /// Hides the dashboard customization dialog.
+    /// </summary>
+    void HideDashboardCustomizationDialog();
+
+    /// <summary>
+    /// Gets whether the create collection dialog is visible.
+    /// </summary>
+    bool ShowCreateCollection { get; }
+
+    /// <summary>
+    /// Shows the create collection dialog.
+    /// </summary>
+    void ShowCreateCollectionDialog();
+
+    /// <summary>
+    /// Hides the create collection dialog.
+    /// </summary>
+    void HideCreateCollectionDialog();
 
     /// <summary>
     /// Hides all overlays.

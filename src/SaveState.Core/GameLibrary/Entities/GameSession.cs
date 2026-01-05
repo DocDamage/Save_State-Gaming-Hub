@@ -14,6 +14,7 @@ public class GameSession : EntityBase
     public DateTime StartedAt { get; private set; }
     public DateTime? EndedAt { get; private set; }
     public SessionEndReason? EndReason { get; private set; }
+    public string? Notes { get; private set; }
 
     /// <summary>
     /// Gets the duration of this session.
@@ -53,5 +54,14 @@ public class GameSession : EntityBase
 
         EndedAt = DateTime.UtcNow;
         EndReason = reason;
+    }
+
+    /// <summary>
+    /// Updates the session notes.
+    /// </summary>
+    /// <param name="notes">The notes content.</param>
+    public void UpdateNotes(string? notes)
+    {
+        Notes = notes;
     }
 }

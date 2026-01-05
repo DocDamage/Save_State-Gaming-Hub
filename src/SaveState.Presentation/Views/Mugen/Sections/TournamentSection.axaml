@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Shell.Mugen"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="SaveState.Presentation.Views.Mugen.Sections.TournamentSection"
+             x:DataType="vm:MugenTournamentViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.MatchBox">
+            <Setter Property="Background" Value="#1A1A1A"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="Height" Value="60"/>
+            <Setter Property="Width" Value="220"/>
+        </Style>
+        <Style Selector="Border.MatchBox TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Border Grid.Row="0" Margin="20" Background="{StaticResource SFFireGradientBrush}" CornerRadius="12" Padding="20">
+            <Grid ColumnDefinitions="*, Auto">
+                <StackPanel>
+                    <TextBlock Text="TOURNAMENT VISUALIZER" FontSize="26" FontWeight="Black" Foreground="White" />
+                    <TextBlock Text="TRACK YOUR PATH TO GLORY" FontSize="12" Foreground="{StaticResource FightingYellowBrush}" />
+                </StackPanel>
+                <Button Grid.Column="1" Command="{Binding RefreshTournamentCommand}" Classes="Secondary" Content="REFRESH BRACKET" VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+
+        <!-- Bracket Area -->
+        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Margin="20,0,20,20">
+            <Grid RowDefinitions="Auto" ColumnDefinitions="250, 100, 250, 100, 250" Margin="40">
+                <!-- Quarter Finals -->
+                <StackPanel Grid.Column="0" Spacing="40" VerticalAlignment="Center">
+                    <TextBlock Text="QUARTER FINALS" FontWeight="Black" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                    <Border Classes="MatchBox"><TextBlock Text="Ryu vs Ken"/></Border>
+                    <Border Classes="MatchBox"><TextBlock Text="Chun-Li vs Akuma"/></Border>
+                    <Border Classes="MatchBox"><TextBlock Text="Guile vs Bison"/></Border>
+                    <Border Classes="MatchBox"><TextBlock Text="Zangief vs Terry"/></Border>
+                </StackPanel>
+
+                <!-- Connectors QF to SF -->
+                <Canvas Grid.Column="1">
+                    <!-- Lines would go here, using shapes for simplicity -->
+                </Canvas>
+
+                <!-- Semi Finals -->
+                <StackPanel Grid.Column="2" Spacing="160" VerticalAlignment="Center">
+                    <TextBlock Text="SEMI FINALS" FontWeight="Black" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                    <Border Classes="MatchBox" BorderBrush="{StaticResource FightingYellowBrush}" BorderThickness="2"><TextBlock Text="Ryu vs Chun-Li"/></Border>
+                    <Border Classes="MatchBox"><TextBlock Text="Bison vs Terry"/></Border>
+                </StackPanel>
+
+                <!-- Finals -->
+                <StackPanel Grid.Column="4" VerticalAlignment="Center">
+                    <TextBlock Text="GRAND FINALS" FontWeight="Black" Foreground="{StaticResource FightingYellowBrush}" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                    <Border Classes="MatchBox" Background="{StaticResource AccentBrush}" Height="80">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="🏆 RYU" FontSize="20" FontWeight="Black" HorizontalAlignment="Center"/>
+                            <TextBlock Text="CHAMPION" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{StaticResource FightingYellowBrush}"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

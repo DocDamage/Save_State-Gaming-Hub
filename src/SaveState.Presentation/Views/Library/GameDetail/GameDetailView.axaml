@@ -1,0 +1,173 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Library.GameDetail;assembly=SaveState.Presentation"
+             xmlns:views="using:SaveState.Presentation.Views.Library.GameDetail"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="SaveState.Presentation.Views.Library.GameDetail.GameDetailView"
+             x:DataType="vm:GameDetailViewModel">
+
+    <Grid RowDefinitions="Auto, Auto, *">
+        <!-- Header Navigation -->
+        <Border Grid.Row="0" Classes="GlassContainer" Margin="20,20,20,10" Padding="20">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <Button Grid.Column="0"
+                        Content="← Back to Library"
+                        Classes="Secondary"
+                        Command="{Binding NavigateBackCommand}"
+                        ToolTip.Tip="Return to game library" />
+
+                <TextBlock Grid.Column="1"
+                           Text="{Binding Title}"
+                           Classes="Header"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                    <Button Content="⚙️ Settings"
+                            Classes="Secondary"
+                            Command="{Binding OpenSettingsCommand}"
+                            ToolTip.Tip="Game settings" />
+
+                    <Button Content="⋯ More"
+                            Classes="Secondary"
+                            ToolTip.Tip="More options" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Game Header -->
+        <Border Grid.Row="1" Classes="GlassContainer" Margin="20,0,20,10" Padding="20">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <!-- Cover Art -->
+                <Border Grid.Column="0"
+                        Background="{StaticResource SurfaceBrush}"
+                        CornerRadius="8"
+                        Width="180" Height="240"
+                        Margin="0,0,20,0">
+                    <Image Source="{Binding CoverArtUrl}"
+                           Stretch="UniformToFill"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           ToolTip.Tip="{Binding GameTitle}" />
+                </Border>
+
+                <!-- Game Info -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="8">
+                    <TextBlock Text="{Binding GameTitle}"
+                               Classes="Header"
+                               FontSize="28" />
+
+                    <TextBlock Text="{Binding DeveloperAndPublisher}"
+                               Classes="Body"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="15">
+                        <TextBlock Text="{Binding ReleaseDateText}"
+                                   Classes="Caption" />
+
+                        <TextBlock Text="{Binding PlatformText}"
+                                   Classes="Caption" />
+
+                        <TextBlock Text="{Binding GenreText}"
+                                   Classes="Caption" />
+                    </StackPanel>
+
+                    <!-- Rating and Status -->
+                    <StackPanel Orientation="Horizontal" Spacing="20" Margin="0,10,0,0">
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Your Rating" Classes="Caption" />
+                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                <TextBlock Text="{Binding UserRatingStars}" FontSize="18" />
+                                <Button Content="Rate"
+                                        Classes="Link"
+                                        Command="{Binding RateGameCommand}"
+                                        FontSize="12" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Status" Classes="Caption" />
+                            <ComboBox ItemsSource="{Binding StatusOptions}"
+                                      SelectedItem="{Binding SelectedStatus}"
+                                      Width="120"
+                                      PlaceholderText="Set status..." />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Action Buttons -->
+                <StackPanel Grid.Column="2" Spacing="10" VerticalAlignment="Center">
+                    <Button Content="▶ PLAY"
+                            Classes="Primary"
+                            FontSize="16"
+                            Padding="20,10"
+                            Command="{Binding LaunchGameCommand}"
+                            IsEnabled="{Binding CanLaunch}" />
+
+                    <Button Content="⚙️ Configure Launch"
+                            Classes="Secondary"
+                            Command="{Binding ConfigureLaunchCommand}" />
+
+                    <Button Content="📁 Browse Files"
+                            Classes="Secondary"
+                            Command="{Binding BrowseFilesCommand}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,10,0,0">
+                        <Button Content="❤️ Favorite"
+                                Classes="Secondary"
+                                Command="{Binding ToggleFavoriteCommand}" />
+
+                        <Button Content="📋 Add to Backlog"
+                                Classes="Secondary"
+                                Command="{Binding AddToBacklogCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Tab Content -->
+        <Grid Grid.Row="2" Margin="20,0,20,20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Tab Headers -->
+            <Border Grid.Row="0" Classes="GlassContainer" Margin="0,0,0,10" Padding="0">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{Binding TabItems}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Classes.Primary="{Binding IsSelected}"
+                                        Classes.Secondary="{Binding !IsSelected}"
+                                        Command="{Binding SelectCommand}"
+                                        Padding="20,12"
+                                        Margin="0"
+                                        BorderThickness="0"
+                                        Background="Transparent"
+                                        CornerRadius="0">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="{Binding Icon}" />
+                                        <TextBlock Text="{Binding Title}" />
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Tab Content Area -->
+            <Border Grid.Row="1" Classes="GlassContainer" Padding="20">
+                <ContentControl Content="{Binding SelectedTabView}" />
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

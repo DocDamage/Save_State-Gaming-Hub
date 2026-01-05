@@ -1,0 +1,238 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             x:Class="SaveState.Presentation.Views.Shell.VoiceControlView"
+             x:DataType="vm:VoiceControlViewModel"
+             Background="{StaticResource BackgroundBrush}">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header with Controls -->
+        <Border Grid.Row="0" Classes="GlassContainer" Margin="20,20,20,10" Padding="20">
+            <Grid ColumnDefinitions="*, Auto">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="🎤 Voice &amp; AI Control" Classes="SectionHeader" />
+                    <TextBlock Text="{Binding StatusMessage}" Classes="Subtitle" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                    <Button Content="{Binding IsListening, Converter={StaticResource BoolToStringConverter}, ConverterParameter='🔴 Stop Listening|🎤 Start Listening'}"
+                            Command="{Binding ToggleListeningCommand}"
+                            Classes.Danger="{Binding IsListening}"
+                            Classes.Primary="{Binding !IsListening}"
+                            Padding="15,8" />
+
+                    <Button Content="🔄 Refresh"
+                            Classes="Secondary"
+                            Command="{Binding RefreshCommandsCommand}"
+                            Padding="12,8" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Content Area -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="20" Margin="20,0,20,20">
+                <!-- Voice Status Panel -->
+                <Border Classes="GlassContainer" Padding="20">
+                    <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="*, *">
+                        <TextBlock Text="🎙️ Voice Status" Classes="SectionHeader" Grid.ColumnSpan="2" />
+
+                        <!-- Status Row -->
+                        <StackPanel Grid.Row="1" Grid.Column="0" Spacing="10" Margin="0,15,10,0">
+                            <Grid ColumnDefinitions="Auto, *">
+                                <TextBlock Text="Listening:" Classes="Label" Width="120" />
+                                <TextBlock Grid.Column="1"
+                                          Text="{Binding IsListening, Converter={StaticResource BoolToStringConverter}, ConverterParameter='Active|Inactive'}"
+                                          Foreground="{Binding IsListening, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#10B981|#6B7280'}"
+                                          FontWeight="SemiBold" />
+                            </Grid>
+
+                            <Grid ColumnDefinitions="Auto, *">
+                                <TextBlock Text="Continuous Mode:" Classes="Label" Width="120" />
+                                <ToggleSwitch Grid.Column="1"
+                                            IsChecked="{Binding IsContinuousMode}"
+                                            Command="{Binding ToggleContinuousModeCommand}"
+                                            OnContent="On"
+                                            OffContent="Off" />
+                            </Grid>
+
+                            <Grid ColumnDefinitions="Auto, *">
+                                <TextBlock Text="Language:" Classes="Label" Width="120" />
+                                <ComboBox Grid.Column="1"
+                                        ItemsSource="{Binding AvailableLanguages}"
+                                        SelectedItem="{Binding CurrentLanguage}"
+                                        HorizontalAlignment="Stretch" />
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Statistics -->
+                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="10" Margin="10,15,0,0">
+                            <Grid ColumnDefinitions="Auto, *">
+                                <TextBlock Text="Commands Recognized:" Classes="Label" Width="180" />
+                                <TextBlock Grid.Column="1" Text="{Binding TotalCommandsRecognized}" FontWeight="Bold" />
+                            </Grid>
+
+                            <Grid ColumnDefinitions="Auto, *">
+                                <TextBlock Text="Commands Executed:" Classes="Label" Width="180" />
+                                <TextBlock Grid.Column="1" Text="{Binding TotalCommandsExecuted}" FontWeight="Bold" Foreground="#10B981" />
+                            </Grid>
+
+                            <Grid ColumnDefinitions="Auto, *">
+                                <TextBlock Text="Failed Commands:" Classes="Label" Width="180" />
+                                <TextBlock Grid.Column="1" Text="{Binding FailedCommands}" FontWeight="Bold" Foreground="#EF4444" />
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Calibration Button -->
+                        <Button Grid.Row="2" Grid.ColumnSpan="2"
+                                Content="{Binding IsCalibrating, Converter={StaticResource BoolToStringConverter}, ConverterParameter='⏳ Calibrating...|🎚️ Calibrate Microphone'}"
+                                Classes="Secondary"
+                                Command="{Binding CalibrateMicrophoneCommand}"
+                                IsEnabled="{Binding !IsCalibrating}"
+                                HorizontalAlignment="Stretch"
+                                Margin="0,15,0,0"
+                                Padding="15,10" />
+                    </Grid>
+                </Border>
+
+                <!-- Recent Transcriptions -->
+                <Border Classes="GlassContainer" Padding="20">
+                    <Grid RowDefinitions="Auto, *">
+                        <TextBlock Text="📝 Recent Transcriptions" Classes="SectionHeader" />
+
+                        <ItemsControl Grid.Row="1"
+                                    ItemsSource="{Binding RecentTranscriptions}"
+                                    Margin="0,15,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="ListItem" Padding="12" Margin="0,0,0,5">
+                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Empty State -->
+                        <Border Grid.Row="1"
+                                IsVisible="{Binding RecentTranscriptions.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}"
+                                Padding="40">
+                            <StackPanel Spacing="10" HorizontalAlignment="Center">
+                                <TextBlock Text="📝" FontSize="48" HorizontalAlignment="Center" />
+                                <TextBlock Text="No transcriptions yet" Classes="Subtitle" HorizontalAlignment="Center" />
+                                <TextBlock Text="Start listening to see voice transcriptions" Classes="Subtitle" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Registered Commands -->
+                <Border Classes="GlassContainer" Padding="20">
+                    <Grid RowDefinitions="Auto, *">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Text="⚙️ Voice Commands" Classes="SectionHeader" />
+                            <TextBlock Grid.Column="1"
+                                      Text="{Binding RegisteredCommands.Count, StringFormat='{}{0} commands'}"
+                                      Classes="Subtitle"
+                                      VerticalAlignment="Center" />
+                        </Grid>
+
+                        <ItemsControl Grid.Row="1"
+                                    ItemsSource="{Binding RegisteredCommands}"
+                                    Margin="0,15,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="ListItem" Padding="15" Margin="0,0,0,8">
+                                        <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="*, Auto, Auto">
+                                            <TextBlock Text="{Binding CommandPhrase}"
+                                                      FontWeight="SemiBold"
+                                                      FontSize="14" />
+
+                                            <TextBlock Grid.Row="1"
+                                                      Text="{Binding Description}"
+                                                      Classes="Subtitle"
+                                                      Margin="0,5,0,0" />
+
+                                            <Button Grid.Column="1"
+                                                   Grid.RowSpan="2"
+                                                   Content="▶️ Test"
+                                                   Classes="Secondary"
+                                                   Command="{Binding $parent[ItemsControl].((vm:VoiceControlViewModel)DataContext).TestCommandCommand}"
+                                                   CommandParameter="{Binding}"
+                                                   Padding="10,6"
+                                                   Margin="0,0,5,0" />
+
+                                            <Button Grid.Column="2"
+                                                   Grid.RowSpan="2"
+                                                   Content="🗑️"
+                                                   Classes="Danger"
+                                                   Command="{Binding $parent[ItemsControl].((vm:VoiceControlViewModel)DataContext).DeleteCommandCommand}"
+                                                   CommandParameter="{Binding}"
+                                                   Padding="10,6" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Empty State -->
+                        <Border Grid.Row="1"
+                                IsVisible="{Binding RegisteredCommands.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}"
+                                Padding="40">
+                            <StackPanel Spacing="10" HorizontalAlignment="Center">
+                                <TextBlock Text="⚙️" FontSize="48" HorizontalAlignment="Center" />
+                                <TextBlock Text="No commands registered" Classes="Subtitle" HorizontalAlignment="Center" />
+                                <TextBlock Text="Voice commands will appear here once registered" Classes="Subtitle" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Quick Actions Guide -->
+                <Border Classes="GlassContainer" Padding="20">
+                    <Grid RowDefinitions="Auto, *">
+                        <TextBlock Text="💡 Quick Guide" Classes="SectionHeader" />
+
+                        <StackPanel Grid.Row="1" Spacing="15" Margin="0,15,0,0">
+                            <Border Background="#1a1a1a" CornerRadius="8" Padding="15">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="🎤 Getting Started"
+                                              FontWeight="SemiBold"
+                                              FontSize="14" />
+                                    <TextBlock Text="1. Click 'Start Listening' to activate voice control"
+                                              TextWrapping="Wrap"
+                                              Classes="Subtitle" />
+                                    <TextBlock Text="2. Enable continuous mode for hands-free operation"
+                                              TextWrapping="Wrap"
+                                              Classes="Subtitle" />
+                                    <TextBlock Text="3. Calibrate your microphone for best accuracy"
+                                              TextWrapping="Wrap"
+                                              Classes="Subtitle" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="#1a1a1a" CornerRadius="8" Padding="15">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="🗣️ Common Commands"
+                                              FontWeight="SemiBold"
+                                              FontSize="14" />
+                                    <TextBlock Text="• 'Launch [game name]' - Start a game"
+                                              TextWrapping="Wrap"
+                                              Classes="Subtitle" />
+                                    <TextBlock Text="• 'Open library' - Navigate to game library"
+                                              TextWrapping="Wrap"
+                                              Classes="Subtitle" />
+                                    <TextBlock Text="• 'Create save state' - Quick save current game"
+                                              TextWrapping="Wrap"
+                                              Classes="Subtitle" />
+                                    <TextBlock Text="• 'Ask assistant [question]' - Get AI help"
+                                              TextWrapping="Wrap"
+                                              Classes="Subtitle" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

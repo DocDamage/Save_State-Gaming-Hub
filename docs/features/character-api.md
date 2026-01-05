@@ -1,9 +1,9 @@
 # Character Management API
 
 **Status**: ✅ Implemented
-**Last Updated**: January 2, 2026
+**Last Updated**: January 3, 2026
 **Layer**: Core + Application + Infrastructure
-**Related**: [IKEMEN Integration](ikemen_integration.md), [MUGEN Plugins](mugen-plugins.md)
+**Related**: [IKEMEN Integration](ikemen_integration.md), [MUGEN Plugins](mugen-plugins.md), [Character Development Integration Plan](../planning/character_development_integration_plan.md)
 
 ---
 

@@ -1,0 +1,152 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Library;assembly=SaveState.Presentation"
+             mc:Ignorable="d" d:DesignWidth="250" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Library.LibrarySidebar"
+             x:DataType="vm:LibrarySidebarViewModel">
+
+    <Border Classes="GlassContainer" Padding="15">
+        <ScrollViewer>
+            <StackPanel Spacing="15">
+                <!-- Smart Filters Section -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="🎯 Smart Filters" Classes="Subtitle" />
+
+                    <ListBox ItemsSource="{Binding SmartFilters}"
+                             SelectedItem="{Binding SelectedSmartFilter}"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             SelectionMode="Single">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Button Classes="SidebarButton"
+                                        Command="{Binding SelectCommand}"
+                                        HorizontalContentAlignment="Stretch">
+                                    <Grid ColumnDefinitions="Auto, *, Auto">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Icon}"
+                                                   FontSize="16"
+                                                   Margin="0,0,8,0" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Name}"
+                                                   Classes="Body"
+                                                   HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding Count, StringFormat='({0})'}"
+                                                   Classes="Caption"
+                                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+
+                <!-- Separator -->
+                <Separator />
+
+                <!-- Collections Section -->
+                <StackPanel Spacing="8">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <TextBlock Grid.Column="0" Text="📁 Collections" Classes="Subtitle" />
+                        <Button Grid.Column="1"
+                                Content="➕"
+                                Classes="IconButton"
+                                ToolTip.Tip="Create Collection"
+                                Command="{Binding CreateCollectionCommand}" />
+                    </Grid>
+
+                    <ListBox ItemsSource="{Binding Collections}"
+                             SelectedItem="{Binding SelectedCollection}"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             SelectionMode="Single">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Button Classes="SidebarButton"
+                                        Command="{Binding SelectCommand}"
+                                        HorizontalContentAlignment="Stretch">
+                                    <Grid ColumnDefinitions="Auto, *, Auto">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Icon}"
+                                                   FontSize="16"
+                                                   Margin="0,0,8,0" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Name}"
+                                                   Classes="Body"
+                                                   HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding GameCount, StringFormat='({0})'}"
+                                                   Classes="Caption"
+                                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+
+                <!-- Separator -->
+                <Separator />
+
+                <!-- Platforms Section -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="🎮 Platforms" Classes="Subtitle" />
+
+                    <ListBox ItemsSource="{Binding Platforms}"
+                             SelectedItem="{Binding SelectedPlatform}"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             SelectionMode="Single">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Button Classes="SidebarButton"
+                                        Command="{Binding SelectCommand}"
+                                        HorizontalContentAlignment="Stretch">
+                                    <Grid ColumnDefinitions="Auto, *, Auto">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Icon}"
+                                                   FontSize="16"
+                                                   Margin="0,0,8,0" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Name}"
+                                                   Classes="Body"
+                                                   HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding GameCount, StringFormat='({0})'}"
+                                                   Classes="Caption"
+                                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+
+                <!-- Separator -->
+                <Separator />
+
+                <!-- Statistics Section -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="📊 Statistics" Classes="Subtitle" />
+
+                    <Grid RowDefinitions="Auto, Auto, Auto, Auto" ColumnDefinitions="*, Auto">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Total Games:" Classes="Caption" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalGames}" Classes="Caption" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Installed:" Classes="Caption" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding InstalledGames}" Classes="Caption" />
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Playing:" Classes="Caption" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding CurrentlyPlaying}" Classes="Caption" />
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Completed:" Classes="Caption" />
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding CompletedGames}" Classes="Caption" />
+                    </Grid>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Border>
+</UserControl>

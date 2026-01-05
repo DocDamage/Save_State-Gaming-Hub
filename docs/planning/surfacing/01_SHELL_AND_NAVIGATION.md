@@ -345,9 +345,9 @@ public interface INavigationService
     string CurrentTab { get; }
     Stack<NavigationEntry> History { get; }
 
-    void NavigateTo<TViewModel>() where TViewModel : ObservableObject;
-    void NavigateTo(string tabName);
-    void NavigateTo(string tabName, object parameter);
+    Task NavigateTo<TViewModel>() where TViewModel : ObservableObject;
+    Task NavigateTo(string tabName);
+    Task NavigateTo(string tabName, object parameter);
     void GoBack();
     bool CanGoBack { get; }
 
@@ -356,6 +356,8 @@ public interface INavigationService
 
 public record NavigationEntry(string Tab, Type ViewModelType, object? Parameter, DateTime Timestamp);
 ```
+
+**Note**: All `NavigateTo` methods are now `async Task` to support `INavigationAware` ViewModels that may perform asynchronous initialization. Always use `await` when calling these methods in ViewModels.
 
 ### 6.2 Tab Registration
 

@@ -95,6 +95,11 @@ public class MugenCharacter : EntityBase, ISoftDelete
     /// </summary>
     public string? ValidationErrors { get; private set; }
 
+    /// <summary>
+    /// Whether this character is marked as a favorite.
+    /// </summary>
+    public bool IsFavorite { get; private set; }
+
     // ISoftDelete implementation
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
@@ -115,7 +120,10 @@ public class MugenCharacter : EntityBase, ISoftDelete
             DefinitionFilePath = definitionFilePath,
             CharacterDirectory = characterDirectory,
             LastScannedAt = DateTime.UtcNow,
-            IsValid = true
+            IsValid = true,
+            PaletteInfo = PaletteInfo.Default,
+            ArcadeInfo = ArcadeInfo.Default,
+            Directories = CharacterDirectories.Empty
         };
 
         return character;
@@ -158,6 +166,15 @@ public class MugenCharacter : EntityBase, ISoftDelete
     public void UpdateLastScanned()
     {
         LastScannedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Sets the favorite status of this character.
+    /// </summary>
+    /// <param name="isFavorite">Whether the character should be marked as favorite.</param>
+    public void SetFavorite(bool isFavorite)
+    {
+        IsFavorite = isFavorite;
     }
 
     // EF Core constructor

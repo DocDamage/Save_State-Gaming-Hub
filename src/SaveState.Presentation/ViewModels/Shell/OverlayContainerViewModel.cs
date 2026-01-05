@@ -1,5 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Extensions.Logging;
 using SaveState.Presentation.Services;
+using Splat;
 using System.Collections.ObjectModel;
 
 namespace SaveState.Presentation.ViewModels.Shell;
@@ -21,11 +23,18 @@ public partial class OverlayContainerViewModel : ObservableObject
         // Subscribe to overlay service events
         _overlayService.OverlayChanged += OnOverlayChanged;
 
-        // Initialize child view models
+        // Resolve dependencies for child ViewModels
+        var gameRepository = Locator.Current.GetService<SaveState.Core.GameLibrary.IGameRepository>()!;
+        var navigationService = Locator.Current.GetService<INavigationService>()!;
+        var aiOrchestrator = Locator.Current.GetService<SaveState.Core.Ai.Services.IAiOrchestrator>()!;
+        var performanceMonitor = Locator.Current.GetService<SaveState.Core.Performance.Services.IPerformanceMonitor>();
+        var loggerFactory = Locator.Current.GetService<ILoggerFactory>()!;
+
+        // Initialize child view models with real dependencies
         CommandPaletteViewModel = new CommandPaletteViewModel(_overlayService);
-        QuickSearchViewModel = new QuickSearchViewModel(_overlayService);
-        AiAssistantViewModel = new AiAssistantViewModel(_overlayService);
-        PerformanceHudViewModel = new PerformanceHudViewModel(_overlayService);
+        QuickSearchViewModel = new QuickSearchViewModel(_overlayService, gameRepository, navigationService);
+        AiAssistantViewModel = new AiAssistantViewModel(_overlayService, aiOrchestrator, loggerFactory.CreateLogger<AiAssistantViewModel>());
+        PerformanceHudViewModel = new PerformanceHudViewModel(_overlayService, performanceMonitor);
         VoiceIndicatorViewModel = new VoiceIndicatorViewModel();
 
         // Initialize toasts collection

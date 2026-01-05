@@ -51,10 +51,10 @@ public partial class QuickActionsWidget : WidgetBase
     /// Command to continue playing the last game.
     /// </summary>
     [RelayCommand]
-    private void ContinuePlaying()
+    private async Task ContinuePlaying()
     {
         // TODO: Navigate to the currently playing game
-        _navigationService.NavigateTo("Library");
+        await _navigationService.NavigateTo("Library");
     }
 
     /// <summary>
@@ -71,10 +71,10 @@ public partial class QuickActionsWidget : WidgetBase
     /// Command to pick a random game.
     /// </summary>
     [RelayCommand]
-    private void RandomGame()
+    private async Task RandomGame()
     {
         // TODO: Navigate to random game
-        _navigationService.NavigateTo("Library");
+        await _navigationService.NavigateTo("Library");
     }
 
     /// <summary>

@@ -1,0 +1,72 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Shell.Mugen"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Mugen.Sections.ReplaySection"
+             x:DataType="vm:MugenReplayViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Border Grid.Row="0" Margin="20" Background="{StaticResource GlassBrush}" CornerRadius="12" Padding="20">
+            <StackPanel Orientation="Horizontal" Spacing="20">
+                <TextBlock Text="🎬 REPLAY THEATER" FontSize="24" FontWeight="Black" Foreground="White" />
+                <TextBlock Text="REVIEW AND ANALYZE YOUR ASCENDANCE" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, 300" Margin="20,0,20,20">
+            <!-- Replay List -->
+            <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="10">
+                <ListBox ItemsSource="{Binding Replays}" SelectedItem="{Binding SelectedReplay}" Background="Transparent">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:MugenReplayDto">
+                            <Grid ColumnDefinitions="Auto, *, Auto" Margin="10">
+                                <TextBlock Text="🎞️" FontSize="24" Margin="0,0,15,0" VerticalAlignment="Center" />
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding MatchTitle}" FontWeight="Bold" FontSize="16" Foreground="White" />
+                                    <TextBlock Text="{Binding Date, StringFormat='{}{0:f}'}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                                </StackPanel>
+                                <TextBlock Grid.Column="2" Text="{Binding Duration}" VerticalAlignment="Center" Foreground="{StaticResource FightingYellowBrush}" FontWeight="Bold" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+
+            <!-- Actions Panel -->
+            <StackPanel Grid.Column="1" Margin="15,0,0,0" Spacing="15">
+                <Border Background="{StaticResource GlassBrush}" CornerRadius="12" Padding="20" Height="200">
+                    <StackPanel Spacing="10" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="SELECTION" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding SelectedReplay.MatchTitle, FallbackValue='NO REPLAY SELECTED'}"
+                                   TextWrapping="Wrap" TextAlignment="Center" FontWeight="Black" Foreground="White" />
+                    </StackPanel>
+                </Border>
+
+                <Button Command="{Binding PlayReplayCommand}" Classes="Accent" HorizontalAlignment="Stretch" Height="50" IsEnabled="{Binding SelectedReplay, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="▶️" />
+                        <TextBlock Text="PLAY REPLAY" FontWeight="Bold" />
+                    </StackPanel>
+                </Button>
+
+                <Button Command="{Binding AnalyzeReplayCommand}" Classes="Secondary" HorizontalAlignment="Stretch" Height="50" IsEnabled="{Binding SelectedReplay, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="🧠" />
+                        <TextBlock Text="AI ANALYSIS" FontWeight="Bold" />
+                    </StackPanel>
+                </Button>
+
+                <Button Classes="Secondary" HorizontalAlignment="Stretch" Height="50" IsEnabled="{Binding SelectedReplay, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="📤" />
+                        <TextBlock Text="EXPORT CLIPS" FontWeight="Bold" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

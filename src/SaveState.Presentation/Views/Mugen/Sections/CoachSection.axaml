@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Shell.Mugen"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Mugen.Sections.CoachSection"
+             x:DataType="vm:MugenCoachViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Border Grid.Row="0" Margin="20" Background="{StaticResource SFFireGradientBrush}" CornerRadius="12" Height="80">
+            <StackPanel VerticalAlignment="Center" Margin="20,0">
+                <TextBlock Text="AI SENSEI DOJO" FontSize="28" FontWeight="Black" Foreground="White" RenderTransform="skewX(-10deg)" />
+                <TextBlock Text="MASTER YOUR FRAME DATA. CONQUER YOUR WEAKNESS." FontSize="10" FontWeight="Bold" Foreground="{StaticResource FightingYellowBrush}" />
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*, 350" Margin="20,0,20,20">
+            <!-- Chat Interface -->
+            <Border Grid.Column="0" Background="#121212" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="15">
+                <Grid RowDefinitions="*, Auto">
+                    <ScrollViewer Grid.Row="0" Margin="0,0,0,15">
+                        <ItemsControl ItemsSource="{Binding ChatHistory}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ChatMessage">
+                                    <Border Margin="0,0,0,15" Padding="15" CornerRadius="8"
+                                            Background="#2D2D2D"
+                                            HorizontalAlignment="{Binding Sender, Converter={StaticResource EqualToConverter}, ConverterParameter='You'}">
+                                        <StackPanel Spacing="5">
+                                            <TextBlock Text="{Binding Sender}" FontSize="10" FontWeight="Bold"
+                                                       Foreground="{StaticResource FightingYellowBrush}" />
+                                            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <Grid Grid.Row="1" ColumnDefinitions="*, Auto">
+                        <TextBox Text="{Binding ChatInput}" Watermark="Ask about your last match or a character matchup..."
+                                 BorderThickness="1" BorderBrush="{StaticResource BorderBrush}" CornerRadius="8" Height="45">
+                            <TextBox.KeyBindings>
+                                <KeyBinding Gesture="Enter" Command="{Binding SendMessageCommand}" />
+                            </TextBox.KeyBindings>
+                        </TextBox>
+                        <Button Grid.Column="1" Command="{Binding SendMessageCommand}" Margin="10,0,0,0" Classes="Accent" Width="80" Height="45">
+                            <TextBlock Text="SEND" FontWeight="Bold" />
+                        </Button>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- Stats/Advice Panel -->
+            <StackPanel Grid.Column="1" Margin="15,0,0,0" Spacing="15">
+                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="MATCHUP ADVICE" FontSize="14" FontWeight="Bold" Foreground="{StaticResource FightingYellowBrush}" />
+                        <Border Background="#1A1A1A" Padding="15" CornerRadius="8">
+                            <TextBlock Text="{Binding Advice}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="RECOMMENDED DRILLS" FontSize="14" FontWeight="Bold" Foreground="White" />
+                        <StackPanel Spacing="8">
+                            <CheckBox IsChecked="True" Content="Anti-Air Spacing Practice" Foreground="{StaticResource TextSecondaryBrush}" />
+                            <CheckBox IsChecked="False" Content="Hit Confirmation (3-Hit Combo)" Foreground="{StaticResource TextSecondaryBrush}" />
+                            <CheckBox IsChecked="False" Content="Wake-up Pressure Timing" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                        <Button Classes="Secondary" Content="LOAD DRILL IN TRAINING" HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

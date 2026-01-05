@@ -193,7 +193,51 @@ public class GameCommands : CommandGroupBase
             AnsiConsole.WriteLine();
         }, yearOption);
 
+        // Scan command
+        var scanCommand = new Command("scan", "Scan all game libraries for new content");
+        scanCommand.SetHandler(async () =>
+        {
+            await AnsiConsole.Status()
+                .StartAsync("Scanning libraries...", async ctx =>
+                {
+                    ctx.Spinner(Spinner.Known.Dots);
+                    var result = await Mediator.Send(new SaveState.Application.GameLibrary.Commands.ScanLibraryCommand()).ConfigureAwait(false);
+
+                    if (!result.IsSuccess)
+                    {
+                        AnsiConsole.MarkupLine($"[red]Error: {result.Error}[/]");
+                    }
+                    else
+                    {
+                        AnsiConsole.MarkupLine("[green]Library scan completed successfully![/]");
+                    }
+                });
+        });
+
+        // Setup Emulators command
+        var setupEmulatorsCommand = new Command("setup-emulators", "Register installed emulators and cores");
+        setupEmulatorsCommand.SetHandler(async () =>
+        {
+            await AnsiConsole.Status()
+                .StartAsync("Registering emulators...", async ctx =>
+                {
+                    ctx.Spinner(Spinner.Known.Dots);
+                    var result = await Mediator.Send(new SaveState.Application.RomManagement.Commands.RegisterEmulatorsCommand()).ConfigureAwait(false);
+
+                    if (!result.IsSuccess)
+                    {
+                        AnsiConsole.MarkupLine($"[red]Error: {result.Error}[/]");
+                    }
+                    else
+                    {
+                        AnsiConsole.MarkupLine("[green]Emulators registered successfully![/]");
+                    }
+                });
+        });
+
         // Register commands
+        rootCommand.AddCommandChecked(setupEmulatorsCommand);
+        rootCommand.AddCommandChecked(scanCommand);
         rootCommand.AddCommandChecked(listCommand);
         rootCommand.AddCommandChecked(searchCommand);
         rootCommand.AddCommandChecked(statsCommand);

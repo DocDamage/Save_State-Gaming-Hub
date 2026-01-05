@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:services="clr-namespace:SaveState.Presentation.Services"
+             xmlns:views="clr-namespace:SaveState.Presentation.Views.Shell"
+             x:Class="SaveState.Presentation.Views.Shell.NotificationContainerView"
+             x:DataType="services:NotificationService">
+
+    <!-- Notifications positioned at top-right corner -->
+    <ItemsControl ItemsSource="{Binding Notifications}"
+                  HorizontalAlignment="Right"
+                  VerticalAlignment="Top"
+                  Margin="16">
+        <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="services:NotificationViewModel">
+                <views:NotificationToastView />
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
+</UserControl>

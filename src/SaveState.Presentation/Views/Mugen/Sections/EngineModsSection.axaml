@@ -1,0 +1,117 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Shell.Mugen"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Mugen.Sections.EngineModsSection"
+             x:DataType="vm:MugenEngineModsViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <Border Grid.Row="0" Margin="20" Background="{StaticResource GlassBrush}" CornerRadius="12" Padding="20">
+            <StackPanel Orientation="Horizontal" Spacing="20">
+                <TextBlock Text="🛠️ ENGINE MODIFICATIONS" FontSize="24" FontWeight="Black" Foreground="White" />
+                <TextBlock Text="TWEAK GAMEPLAY MECHANICS" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
+
+        <ScrollViewer Grid.Row="1" Margin="20,0,20,20">
+            <StackPanel Spacing="15">
+                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="ACTIVE TAG SYSTEM" FontSize="16" FontWeight="Bold" Foreground="White" />
+                            <TextBlock Text="Enable Marvel vs. Capcom style active tagging." FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding ActiveTagEnabled}" />
+                    </Grid>
+                </Border>
+
+                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="DASH CANCEL" FontSize="16" FontWeight="Bold" Foreground="White" />
+                            <TextBlock Text="Allows cancelling attacks into a dash for extended combos." FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding DashCancelEnabled}" />
+                    </Grid>
+                </Border>
+
+                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="DRAMATIC ZOOM" FontSize="16" FontWeight="Bold" Foreground="White" />
+                            <TextBlock Text="Adds cinematic zoom effects on powerful hits and finishers." FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding DramaticZoomEnabled}" />
+                    </Grid>
+                </Border>
+
+                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="GUARD BREAK" FontSize="16" FontWeight="Bold" Foreground="White" />
+                            <TextBlock Text="Enable guard meter and guard breaking mechanics." FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding GuardBreakEnabled}" />
+                    </Grid>
+                </Border>
+
+                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="CLASHING SYSTEM" FontSize="16" FontWeight="Bold" Foreground="White" />
+                            <TextBlock Text="Attacks clash when they collide, creating dramatic moments." FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding ClashingEnabled}" />
+                    </Grid>
+                </Border>
+
+                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="SHADOW ASSIST" FontSize="16" FontWeight="Bold" Foreground="White" />
+                            <TextBlock Text="Call shadow versions of your character for combo extensions." FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding ShadowAssistEnabled}" />
+                    </Grid>
+                </Border>
+
+                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="RAINBOW EDITION" FontSize="16" FontWeight="Bold" Foreground="White" />
+                            <TextBlock Text="Enables special cancel mechanics and enhanced combo freedom." FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding RainbowEditionEnabled}" />
+                    </Grid>
+                </Border>
+
+                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="AUTO STAGE CAMERA" FontSize="16" FontWeight="Bold" Foreground="White" />
+                            <TextBlock Text="Dynamic camera that follows the action automatically." FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding AutoCameraEnabled}" />
+                    </Grid>
+                </Border>
+
+                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="ATTACK DATA DISPLAY" FontSize="16" FontWeight="Bold" Foreground="White" />
+                            <TextBlock Text="Shows frame data and hitbox information during training mode." FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding AttackDataDisplayEnabled}" />
+                    </Grid>
+                </Border>
+
+                <Button Command="{Binding ApplyModsCommand}" Classes="Accent" HorizontalAlignment="Right" Height="50" Width="200" Margin="0,20,0,0">
+                    <TextBlock Text="APPLY CHANGES" FontWeight="Black" />
+                </Button>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
+

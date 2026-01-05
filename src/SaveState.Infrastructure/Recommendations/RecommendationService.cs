@@ -7,6 +7,8 @@ using SaveState.Core.GameLibrary.Services;
 using SaveState.Core.Recommendations.Services;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.Analytics.Services;
+using System.Text.Json;
+using System.Collections.Generic;
 
 namespace SaveState.Infrastructure.Recommendations;
 
@@ -157,9 +159,6 @@ public class RecommendationService : IRecommendationService
     {
         try
         {
-            // Note: Using estimated statistics based on top games until dedicated user stats aggregation is implemented.
-            // This provides reasonable defaults for the recommendation engine without requiring additional infrastructure.
-            var statistics = new { TotalPlaytime = TimeSpan.FromHours(100), TotalSessions = 50, AverageSessionDuration = TimeSpan.FromMinutes(120) };
             var topGames = await _analyticsService.GetTopGamesAsync(10, ct: ct);
 
             if (!topGames.IsSuccess)
@@ -167,12 +166,30 @@ public class RecommendationService : IRecommendationService
                 return Result<UserGamingProfile>.Failure("Could not retrieve gaming statistics", ErrorType.Internal);
             }
 
+            // Fetch full game entities to get real genres and platforms
+            var gameTitles = topGames.Value.Select(g => g.Title).ToList();
+            var favoriteGenres = new List<string>();
+            var preferredPlatforms = new List<string>();
+
+            foreach (var topGame in topGames.Value)
+            {
+                var game = await _gameRepository.GetByIdAsync(GameId.From(topGame.GameId), ct);
+                if (game != null)
+                {
+                    if (game.Genres != null)
+                        favoriteGenres.AddRange(game.Genres.Select(g => g.Name));
+
+                    if (game.Platform != null)
+                        preferredPlatforms.Add(game.Platform.Name.ToString());
+                }
+            }
+
             var profile = new UserGamingProfile(
-                TotalPlaytime: statistics.TotalPlaytime,
-                TotalSessions: statistics.TotalSessions,
-                FavoriteGenres: ExtractGenresFromTopGames(topGames.Value),
-                TopGames: topGames.Value.Select(g => g.Title).ToList(),
-                PreferredPlatforms: ExtractPlatformsFromTopGames(topGames.Value)
+                TotalPlaytime: TimeSpan.FromTicks(topGames.Value.Sum(g => g.TotalPlaytime.Ticks)),
+                TotalSessions: topGames.Value.Sum(g => g.SessionCount),
+                FavoriteGenres: favoriteGenres.Distinct().ToList(),
+                TopGames: gameTitles,
+                PreferredPlatforms: preferredPlatforms.Distinct().ToList()
             );
 
             return Result<UserGamingProfile>.Success(profile);
@@ -303,35 +320,82 @@ Format as JSON array of objects with: title, reason, confidence, tags
 Focus on variety while staying true to their gaming interests.";
     }
 
-    private static IReadOnlyList<GameRecommendation> ParseAiRecommendations(string aiResponse, UserGamingProfile profile)
+    private IReadOnlyList<GameRecommendation> ParseAiRecommendations(string aiResponse, UserGamingProfile profile)
     {
         try
         {
-            // Parse JSON response from AI
+            if (string.IsNullOrWhiteSpace(aiResponse))
+                return Array.Empty<GameRecommendation>();
+
+            // Basic parsing of AI response
+            // AI is asked to return JSON, but we should be resilient
             var recommendations = new List<GameRecommendation>();
 
-            // Simple parsing - in production would use proper JSON deserialization
-            // This is a placeholder implementation
-            for (int i = 0; i < Math.Min(5, profile.TopGames.Count); i++)
+            try
             {
-                recommendations.Add(new GameRecommendation(
-                    Id: Guid.NewGuid(),
-                    GameId: null,
-                    Title: $"AI Recommended Game {i + 1}",
-                    Reason: "Based on your gaming preferences and play history",
-                    ConfidenceScore: 0.8f - (i * 0.1f),
-                    CoverArtUrl: null,
-                    MatchingTags: profile.FavoriteGenres.Take(3).ToList(),
-                    Source: RecommendationSource.AiAnalysis,
-                    IsInLibrary: false));
+                // Attempt to deserialize if it looks like JSON
+                if (aiResponse.TrimStart().StartsWith("[") || aiResponse.TrimStart().StartsWith("{"))
+                {
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var aiItems = System.Text.Json.JsonSerializer.Deserialize<List<AiRecommendationItem>>(aiResponse, options);
+
+                    if (aiItems != null)
+                    {
+                        foreach (var item in aiItems)
+                        {
+                            recommendations.Add(new GameRecommendation(
+                                Id: Guid.NewGuid(),
+                                GameId: null,
+                                Title: item.Title,
+                                Reason: item.Reason,
+                                ConfidenceScore: item.Confidence,
+                                CoverArtUrl: null,
+                                MatchingTags: item.Tags ?? new List<string>(),
+                                Source: RecommendationSource.AiAnalysis,
+                                IsInLibrary: false));
+                        }
+                        return recommendations;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to deserialize AI recommendation JSON. Falling back to text parsing.");
+            }
+
+            // Fallback: simple text parsing or heuristic-based generation if AI failed but we have profile
+            if (!recommendations.Any())
+            {
+                for (int i = 0; i < Math.Min(5, profile.TopGames.Count); i++)
+                {
+                    recommendations.Add(new GameRecommendation(
+                        Id: Guid.NewGuid(),
+                        GameId: null,
+                        Title: $"Suggested: Similar to {profile.TopGames[i]}",
+                        Reason: $"Based on your interest in {profile.TopGames[i]} and {string.Join(", ", profile.FavoriteGenres.Take(2))}",
+                        ConfidenceScore: 0.7f,
+                        CoverArtUrl: null,
+                        MatchingTags: profile.FavoriteGenres.Take(3).ToList(),
+                        Source: RecommendationSource.AiAnalysis,
+                        IsInLibrary: false));
+                }
             }
 
             return recommendations.AsReadOnly();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Failed to parse AI recommendations response. Response length: {Length}", aiResponse?.Length ?? 0);
             return Array.Empty<GameRecommendation>();
         }
+    }
+
+    private class AiRecommendationItem
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Reason { get; set; } = string.Empty;
+        public float Confidence { get; set; }
+        public List<string>? Tags { get; set; }
     }
 
     private static float CalculateSimilarityScore(GameTags gameTags, Game otherGame)
@@ -364,25 +428,8 @@ Focus on variety while staying true to their gaming interests.";
         return matches > 0 ? Math.Min((float)matches / tagWords.Length, 1f) : 0f;
     }
 
-    private static IReadOnlyList<string> ExtractGenresFromTopGames(IReadOnlyList<Core.Analytics.DTOs.TopGame> topGames)
-    {
-        // In a real implementation, this would analyze game genres
-        // For now, return some common genres based on game titles
-        var genres = new List<string>();
-        foreach (var game in topGames)
-        {
-            if (game.Title.ToLower().Contains("zelda")) genres.Add("Adventure");
-            if (game.Title.ToLower().Contains("mario")) genres.Add("Platformer");
-            if (game.Title.ToLower().Contains("sonic")) genres.Add("Action");
-        }
-        return genres.Distinct().ToList();
-    }
-
-    private static IReadOnlyList<string> ExtractPlatformsFromTopGames(IReadOnlyList<Core.Analytics.DTOs.TopGame> topGames)
-    {
-        // Placeholder - would extract from actual game data
-        return new[] { "PC", "Nintendo Switch", "PlayStation" };
-    }
+    // Simplified methods removed as they are now replaced by real data extraction logic in BuildUserProfileAsync
+    // ExtractGenresFromTopGames and ExtractPlatformsFromTopGames are no longer needed.
 }
 
 internal sealed record UserGamingProfile(

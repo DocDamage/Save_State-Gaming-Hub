@@ -1,4 +1,6 @@
+using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.SaveStates.Services;
 using SaveState.Core.SaveStates.Entities;
 using SaveState.Core.SaveStates;
@@ -12,6 +14,8 @@ public class AutoSaveManager : IAutoSaveManager
     private readonly ISaveStateManager _saveStateManager;
     private readonly ISessionTrackingService _sessionTrackingService;
     private readonly IGameMemoryReader _gameMemoryReader;
+    private readonly ITaskRunner _taskRunner;
+    private readonly ILogger<AutoSaveManager> _logger;
     private readonly Dictionary<Guid, AutoSaveConfig> _activeConfigs = new();
     private readonly Dictionary<Guid, Timer> _timers = new();
     private readonly Dictionary<Guid, GameStateType> _lastKnownStates = new();
@@ -19,11 +23,15 @@ public class AutoSaveManager : IAutoSaveManager
     public AutoSaveManager(
         ISaveStateManager saveStateManager,
         ISessionTrackingService sessionTrackingService,
-        IGameMemoryReader gameMemoryReader)
+        IGameMemoryReader gameMemoryReader,
+        ITaskRunner taskRunner,
+        ILogger<AutoSaveManager> logger)
     {
         _saveStateManager = saveStateManager;
         _sessionTrackingService = sessionTrackingService;
         _gameMemoryReader = gameMemoryReader;
+        _taskRunner = taskRunner;
+        _logger = logger;
 
         // Subscribe to game state changes for intelligent auto-saving
         _gameMemoryReader.StateChanged += OnGameStateChanged;
@@ -195,8 +203,9 @@ public class AutoSaveManager : IAutoSaveManager
             {
                 if (config.Enabled && config.EnabledTriggers.Contains(SaveTrigger.SignificantProgress))
                 {
-                    // Fire and forget - we don't want to block the event handler
-                    _ = Task.Run(() => TriggerSaveAsync(gameId, SaveTrigger.SignificantProgress, CancellationToken.None));
+                    // Fire and forget using centralized TaskRunner
+                    _taskRunner.Run(async () => await TriggerSaveAsync(gameId, SaveTrigger.SignificantProgress, CancellationToken.None),
+                        $"AutoSave_{gameId}_{SaveTrigger.SignificantProgress}");
                 }
             }
         }

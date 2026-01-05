@@ -1,0 +1,183 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        x:Class="SaveState.Presentation.Views.Dialogs.TagEditorDialog"
+        x:DataType="vm:TagEditorDialogViewModel"
+        Title="Edit Tags"
+        Width="600"
+        Height="500"
+        MinWidth="400"
+        MinHeight="300"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True"
+        Background="{StaticResource DialogBackgroundBrush}">
+
+    <Window.Styles>
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="12,8" />
+        </Style>
+
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="24,10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style Selector="Button.secondary">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="24,10" />
+        </Style>
+
+        <Style Selector="Border.tag">
+            <Setter Property="Background" Value="{StaticResource TagBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource TagBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="12,6" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,20">
+            <TextBlock Text="Tag Editor"
+                      FontSize="24"
+                      FontWeight="Bold"
+                      Foreground="{StaticResource ForegroundBrush}" />
+            <TextBlock Text="Add or remove tags for this game"
+                      FontSize="14"
+                      Opacity="0.7"
+                      Foreground="{StaticResource ForegroundBrush}" />
+        </StackPanel>
+
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="20">
+                <!-- Add New Tag -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Add New Tag"
+                              FontWeight="SemiBold"
+                              FontSize="13"
+                              Foreground="{StaticResource ForegroundBrush}" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox Grid.Column="0"
+                                Text="{Binding NewTagText}"
+                                Watermark="Enter tag name..."
+                                Margin="0,0,8,0" />
+                        <Button Grid.Column="1"
+                               Classes="primary"
+                               Content="Add"
+                               Command="{Binding AddTagCommand}"
+                               IsEnabled="{Binding CanAddTag}" />
+                    </Grid>
+                </StackPanel>
+
+                <!-- Current Tags -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="{Binding TagCountText}"
+                              FontWeight="SemiBold"
+                              FontSize="13"
+                              Foreground="{StaticResource ForegroundBrush}" />
+
+                    <ItemsControl ItemsSource="{Binding Tags}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Classes="tag" Margin="0,0,8,8">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0"
+                                                  Text="{Binding}"
+                                                  VerticalAlignment="Center"
+                                                  Margin="0,0,8,0"
+                                                  Foreground="{StaticResource ForegroundBrush}" />
+                                        <Button Grid.Column="1"
+                                               Content="✕"
+                                               Background="Transparent"
+                                               BorderThickness="0"
+                                               Padding="4"
+                                               FontSize="12"
+                                               Command="{Binding $parent[Window].((vm:TagEditorDialogViewModel)DataContext).RemoveTagCommand}"
+                                               CommandParameter="{Binding}"
+                                               Foreground="{StaticResource ForegroundBrush}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <TextBlock Text="No tags added yet"
+                              IsVisible="{Binding !HasTags}"
+                              Opacity="0.5"
+                              FontStyle="Italic"
+                              Foreground="{StaticResource ForegroundBrush}" />
+                </StackPanel>
+
+                <!-- Suggested Tags -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Suggested Tags"
+                              FontWeight="SemiBold"
+                              FontSize="13"
+                              Foreground="{StaticResource ForegroundBrush}" />
+
+                    <ItemsControl ItemsSource="{Binding SuggestedTags}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Content="{Binding}"
+                                       Classes="secondary"
+                                       Margin="0,0,8,8"
+                                       Padding="12,6"
+                                       FontSize="12"
+                                       Command="{Binding $parent[Window].((vm:TagEditorDialogViewModel)DataContext).AddSuggestedTagCommand}"
+                                       CommandParameter="{Binding}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Footer -->
+        <Grid Grid.Row="2"
+              ColumnDefinitions="*,Auto,Auto"
+              Margin="0,20,0,0">
+            <TextBlock Grid.Column="0"
+                      Text="💡 Tip: Tags help organize and filter your games"
+                      FontSize="12"
+                      Opacity="0.6"
+                      VerticalAlignment="Center"
+                      Foreground="{StaticResource ForegroundBrush}" />
+
+            <Button Grid.Column="1"
+                   Classes="secondary"
+                   Content="Cancel"
+                   Command="{Binding CancelCommand}"
+                   Margin="0,0,12,0" />
+
+            <Button Grid.Column="2"
+                   Classes="primary"
+                   Content="Save Tags"
+                   Command="{Binding SaveCommand}" />
+        </Grid>
+    </Grid>
+</Window>

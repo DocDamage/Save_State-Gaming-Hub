@@ -3,6 +3,7 @@ namespace SaveState.Presentation;
 using Avalonia;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SaveState.Application.GameLibrary.Queries;
@@ -48,7 +49,6 @@ public static class Program
         builder.Services.AddTransient<GameLibraryViewModel>();
         builder.Services.AddTransient<MainViewModel>();
         builder.Services.AddTransient<SettingsViewModel>();
-        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Mugen.MugenViewModel>();
 
         // Phase 4: Immersive Launch Experience ViewModels
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.BigPicture.LaunchExperienceViewModel>();
@@ -60,6 +60,11 @@ public static class Program
         builder.Services.AddSingleton<INavigationService, NavigationService>();
         builder.Services.AddSingleton<IShortcutService, ShortcutService>();
         builder.Services.AddSingleton<IOverlayService, OverlayService>();
+        builder.Services.AddSingleton<INotificationService, NotificationService>();
+        builder.Services.AddSingleton<IDialogService, DialogService>();
+
+        // Add terminal services
+        builder.Services.AddSingleton<SaveState.Presentation.Services.Terminal.ICommandExecutor, SaveState.Presentation.Services.Terminal.CommandExecutor>();
 
         // Add shell ViewModels
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.MainShellViewModel>();
@@ -83,13 +88,30 @@ public static class Program
 
 
         // Add tab ViewModels
+        // Add tab ViewModels
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.DashboardViewModel>();
-        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.LibraryViewModel>();
+
+        // Add Library UI components
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Library.LibrarySidebarViewModel>();
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Library.LibraryToolbarViewModel>();
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Library.GameGridViewModel>();
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Library.GameListViewModel>();
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Library.LibraryViewModel>();
+        // builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.LibraryViewModel>(); // Remove if unused or duplicate
+
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.MugenHubViewModel>();
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.MugenViewModel>();
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.AnalyticsViewModel>();
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.SocialViewModel>();
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.CloudSyncViewModel>();
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.MacroRecorderViewModel>();
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.TaskSchedulerViewModel>();
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Automation.AutomationDashboardViewModel>();
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.AutomationViewModel>();
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.VoiceControlViewModel>();
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.ToolsViewModel>();
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.TerminalViewModel>();
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.GameMemoryViewModel>();
 
         var host = builder.Build();
 
@@ -127,6 +149,8 @@ public static class Program
             }
 
             // Seed MUGEN characters if empty
+            // TODO: Re-enable after verifying PaletteInfo configuration
+            /*
             if (!await dbContext.MugenCharacters.AnyAsync())
             {
                 var kfm = MugenCharacter.Create("Kung Fu Man", "chars/kfm/kfm.def", "chars/kfm");
@@ -134,9 +158,16 @@ public static class Program
                 dbContext.MugenCharacters.AddRange(kfm, ryu);
                 await dbContext.SaveChangesAsync();
             }
+            */
+
+            // Enable WAL Mode for performance
+            dbContext.EnableWalMode();
         }
 
         Console.WriteLine("[DEBUG] Database initialization complete");
+
+        // Run startup content scanning
+        await RunStartupContentScanAsync(host.Services);
 
         // Setup the service locator for Avalonia
         Locator.Current.SetServices(host.Services);
@@ -162,4 +193,57 @@ public static class Program
             throw;
         }
     }
+
+    /// <summary>
+    /// Scans for MUGEN characters and ROM files on startup.
+    /// </summary>
+    private static async Task RunStartupContentScanAsync(IServiceProvider services)
+    {
+        Console.WriteLine("[DEBUG] Starting content discovery scan...");
+
+        try
+        {
+            var mediator = services.GetRequiredService<IMediator>();
+            var configuration = services.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>();
+
+            // Get MUGEN character directories from configuration
+            var mugenSection = configuration.GetSection("Mugen");
+            var characterDirs = mugenSection.GetSection("CharacterDirectories").Get<string[]>()
+                ?? new[] { "data/characters" };
+
+            var scannedCount = 0;
+            foreach (var dir in characterDirs)
+            {
+                var fullPath = Path.IsPathRooted(dir) ? dir : Path.Combine(AppContext.BaseDirectory, dir);
+                if (Directory.Exists(fullPath))
+                {
+                    Console.WriteLine($"[DEBUG] Scanning MUGEN characters in: {fullPath}");
+                    try
+                    {
+                        await mediator.Send(new SaveState.Application.Mugen.Commands.ScanMugenCharactersCommand(
+                            fullPath,
+                            IncludeSubdirectories: true,
+                            OverwriteExisting: false));
+                        scannedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[WARN] Failed to scan {fullPath}: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"[DEBUG] Directory not found: {fullPath}");
+                }
+            }
+
+            Console.WriteLine($"[DEBUG] Content scan complete. Scanned {scannedCount} directories.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[WARN] Content scan failed: {ex.Message}");
+            // Don't throw - app should still start even if scan fails
+        }
+    }
 }
+

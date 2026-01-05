@@ -1,7 +1,10 @@
 using System.Globalization;
+using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using SaveState.Presentation.ViewModels;
+using SaveState.Presentation.ViewModels.Library;
+using SaveState.Presentation.ViewModels.Library.GameDetail;
 
 namespace SaveState.Presentation.Converters;
 
@@ -39,7 +42,7 @@ public class ViewModeToClassConverter : IValueConverter
     /// <returns>Not implemented.</returns>
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        throw new NotImplementedException();
+        return BindingOperations.DoNothing;
     }
 }
 
@@ -69,7 +72,7 @@ public class BoolToClassConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        throw new NotImplementedException();
+        return BindingOperations.DoNothing;
     }
 }
 
@@ -84,7 +87,7 @@ public class BoolToBrushConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        throw new NotImplementedException();
+        return BindingOperations.DoNothing;
     }
 }
 
@@ -102,7 +105,7 @@ public class TabContentConverter : IMultiValueConverter
                 3 => viewModel.SessionsTab,
                 4 => viewModel.NotesTab,
                 5 => viewModel.ModsTab,
-                6 => viewModel.ScreenshotsTab,
+                6 => viewModel.MediaTab,
                 7 => viewModel.PerformanceTab,
                 _ => viewModel.OverviewTab
             };
@@ -124,7 +127,7 @@ public class GreaterThanConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        throw new NotImplementedException();
+        return BindingOperations.DoNothing;
     }
 }
 
@@ -149,7 +152,7 @@ public class BoolToColorConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        throw new NotImplementedException();
+        return BindingOperations.DoNothing;
     }
 }
 
@@ -171,7 +174,7 @@ public class EqualToConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        throw new NotImplementedException();
+        return BindingOperations.DoNothing;
     }
 }
 
@@ -193,7 +196,7 @@ public class PercentageConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        throw new NotImplementedException();
+        return BindingOperations.DoNothing;
     }
 }
 
@@ -209,6 +212,6 @@ public class StringNotEmptyConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        throw new NotImplementedException();
+        return BindingOperations.DoNothing;
     }
 }

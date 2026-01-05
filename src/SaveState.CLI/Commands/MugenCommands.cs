@@ -7,6 +7,8 @@ using SaveState.Core.Mugen.ValueObjects;
 using Spectre.Console;
 using SaveState.CLI.Extensions;
 
+using SaveState.Application.Mugen.Commands; // Added import
+
 namespace SaveState.CLI.Commands;
 
 /// <summary>
@@ -22,6 +24,24 @@ public class MugenCommands : CommandGroupBase
     {
         // MUGEN command group
         var mugenCommand = new Command("mugen", "MUGEN fighting game management");
+
+        // Scan command
+        var scanCommand = new Command("scan", "Scan for MUGEN characters");
+        var pathOption = new Option<string?>("--path", "Path to scan (defaults to data/characters)");
+        scanCommand.AddOption(pathOption);
+        scanCommand.SetHandler(async (string? path) =>
+        {
+             var targetPath = path ?? Path.Combine(Environment.CurrentDirectory, "data", "characters");
+             await AnsiConsole.Status()
+                .StartAsync("Scanning characters...", async ctx =>
+                {
+                    ctx.Spinner(Spinner.Known.Dots);
+                    await Mediator.Send(new ScanMugenCharactersCommand(targetPath)).ConfigureAwait(false);
+                    AnsiConsole.MarkupLine($"[green]Scanned characters in {targetPath}[/]");
+                });
+        }, pathOption);
+
+        mugenCommand.AddCommand(scanCommand);
 
         // Characters subgroup
         var charsCommand = new Command("characters", "Manage MUGEN characters");
@@ -491,12 +511,69 @@ public class MugenCommands : CommandGroupBase
             AnsiConsole.Write(table);
         }, matchCountOption);
 
+        // Deathmatch subgroup
+        var deathmatchCommand = new Command("deathmatch", "Simulate death matches");
+        var p1Arg = new Argument<string>("player1", "Player 1 ID (GUID)");
+        var p2Arg = new Argument<string>("player2", "Player 2 ID (GUID)");
+        var simsOption = new Option<int>("--simulations", () => 1000, "Number of simulations");
+
+        deathmatchCommand.AddArgument(p1Arg);
+        deathmatchCommand.AddArgument(p2Arg);
+        deathmatchCommand.AddOption(simsOption);
+
+        deathmatchCommand.SetHandler(async (string p1Str, string p2Str, int sims) =>
+        {
+            if (!Guid.TryParse(p1Str, out var p1Id) || !Guid.TryParse(p2Str, out var p2Id))
+            {
+                AnsiConsole.MarkupLine("[red]Invalid character ID format.[/]");
+                return;
+            }
+
+            var simulator = Host.Services.GetService<IDeathMatchSimulator>();
+            if (simulator == null)
+            {
+                AnsiConsole.MarkupLine("[red]Death Match Simulator service not available.[/]");
+                return;
+            }
+
+            await AnsiConsole.Status()
+                .StartAsync($"Simulating {sims} matches...", async ctx =>
+                {
+                    ctx.Spinner(Spinner.Known.Aesthetic);
+
+                    var result = await simulator.SimulateMatchesAsync(p1Id, p2Id, sims).ConfigureAwait(false);
+                    if (!result.IsSuccess)
+                    {
+                        AnsiConsole.MarkupLine($"[red]Error: {result.Error}[/]");
+                        return;
+                    }
+
+                    var sim = result.Value!;
+
+                    var chart = new BreakdownChart()
+                        .Width(60)
+                        .AddItem(sim.Character1Name, sim.Character1Wins, Color.Blue)
+                        .AddItem(sim.Character2Name, sim.Character2Wins, Color.Red)
+                        .AddItem("Draws", sim.Draws, Color.Grey);
+
+                    AnsiConsole.Write(chart);
+                    AnsiConsole.WriteLine();
+
+                    AnsiConsole.MarkupLine($"[bold]{sim.Character1Name}[/] Wins: [blue]{sim.Character1Wins}[/] ({sim.Character1WinRate:P1})");
+                    AnsiConsole.MarkupLine($"[bold]{sim.Character2Name}[/] Wins: [red]{sim.Character2Wins}[/] ({sim.Character2WinRate:P1})");
+                    AnsiConsole.MarkupLine($"Draws: [grey]{sim.Draws}[/]");
+                    AnsiConsole.MarkupLine($"Confidence: {sim.Confidence:P1}");
+                    AnsiConsole.MarkupLine($"[dim]Simulation took {sim.SimulationDuration.TotalSeconds:F2}s[/]");
+                });
+        }, p1Arg, p2Arg, simsOption);
+
         // Add all subgroups
         mugenCommand.AddCommand(charsCommand);
         mugenCommand.AddCommand(collectionsCommand);
         mugenCommand.AddCommand(tournamentCommand);
         mugenCommand.AddCommand(coachCommand);
         mugenCommand.AddCommand(matchesCommand);
+        mugenCommand.AddCommand(deathmatchCommand);
 
         // Register the main command
         rootCommand.AddCommandChecked(mugenCommand);

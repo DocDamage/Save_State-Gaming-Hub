@@ -10,5 +10,7 @@ public enum GameSortBy
     Platform,
     Status,
     LastPlayed,
-    PlayTime
+    PlayTime,
+    ReleaseDate,
+    UserRating
 }

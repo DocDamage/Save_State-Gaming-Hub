@@ -81,21 +81,28 @@ public class GoogleDriveSyncPlugin : IPlugin, ICloudStorageProvider
     {
         try
         {
-            _logger?.LogInformation("Authenticating with Google Drive");
+            _logger?.LogInformation("Authenticating with Google Drive using OAuth 2.0");
 
-            // In a real implementation, this would use OAuth 2.0 flow
-            // For demo purposes, we'll simulate authentication
-
-            if (!credentials.ContainsKey("ClientId") || !credentials.ContainsKey("ClientSecret"))
+            if (!credentials.TryGetValue("ClientId", out var clientId) || !credentials.TryGetValue("ClientSecret", out var clientSecret))
             {
                 return Result.Failure("Google Drive credentials missing. Required: ClientId, ClientSecret");
             }
 
-            // Simulate OAuth flow and service creation
-            await Task.Delay(2000, ct); // Simulate authentication time
+            var secrets = new ClientSecrets
+            {
+                ClientId = clientId,
+                ClientSecret = clientSecret
+            };
 
-            // Create Drive service (in real implementation, this would use actual credentials)
-            var credential = GoogleCredential.FromAccessToken("demo_token"); // Placeholder
+            var scopes = new[] { DriveService.Scope.DriveFile, DriveService.Scope.DriveAppdata };
+
+            // This will open a browser window for the user to authenticate
+            var credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                secrets,
+                scopes,
+                "user",
+                ct);
+
             _driveService = new DriveService(new BaseClientService.Initializer
             {
                 HttpClientInitializer = credential,

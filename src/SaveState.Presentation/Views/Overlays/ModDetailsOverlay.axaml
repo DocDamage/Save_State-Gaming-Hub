@@ -1,0 +1,308 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Overlays"
+             x:Class="SaveState.Presentation.Views.Overlays.ModDetailsOverlay"
+             x:DataType="vm:ModDetailsOverlayViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.overlay-panel">
+            <Setter Property="Background" Value="#E6000000" />
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+
+        <Style Selector="Border.content-panel">
+            <Setter Property="Background" Value="{StaticResource OverlayBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource OverlayBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="BoxShadow" Value="0 16 48 #60000000" />
+        </Style>
+
+        <Style Selector="Button.close">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+
+        <Style Selector="Button.close:pointerover">
+            <Setter Property="Background" Value="#20FFFFFF" />
+        </Style>
+
+        <Style Selector="Button.action">
+            <Setter Property="Background" Value="#4A90FF" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="16,8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+
+        <Style Selector="Button.action:pointerover">
+            <Setter Property="Background" Value="#5A9FFF" />
+        </Style>
+    </UserControl.Styles>
+
+    <!-- Dimming Background -->
+    <Border Classes="overlay-panel"
+            PointerPressed="OnCloseClick">
+
+        <!-- Content Panel -->
+        <Border Classes="content-panel"
+                Width="800"
+                Height="700"
+                MaxWidth="1000"
+                MaxHeight="900">
+
+            <Grid RowDefinitions="Auto,*,Auto">
+                <!-- Header -->
+                <Grid Grid.Row="0"
+                      ColumnDefinitions="*,Auto"
+                      Margin="24,20,20,16"
+                      Background="Transparent">
+                    <StackPanel Grid.Column="0" Spacing="4">
+                        <TextBlock Text="🔧 Mod Details"
+                                  FontSize="24"
+                                  FontWeight="Bold"
+                                  Foreground="White" />
+                        <TextBlock Text="{Binding ModName}"
+                                  FontSize="14"
+                                  Opacity="0.7"
+                                  Foreground="White" />
+                    </StackPanel>
+
+                    <Button Grid.Column="1"
+                           Classes="close"
+                           Content="✕"
+                           Click="OnCloseClick"
+                           VerticalAlignment="Top" />
+                </Grid>
+
+                <!-- Content -->
+                <ScrollViewer Grid.Row="1" Margin="24,0,24,24">
+                    <StackPanel Spacing="24">
+                        <!-- Mod Info -->
+                        <Border Background="#10FFFFFF"
+                               BorderBrush="#20FFFFFF"
+                               BorderThickness="1"
+                               CornerRadius="8"
+                               Padding="20">
+                            <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="120,*">
+                                <!-- Name -->
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                          Text="Name"
+                                          FontSize="12"
+                                          Opacity="0.6"
+                                          Foreground="White" />
+                                <TextBlock Grid.Row="0" Grid.Column="1"
+                                          Text="{Binding ModName}"
+                                          FontSize="16"
+                                          FontWeight="SemiBold"
+                                          Foreground="White"
+                                          TextWrapping="Wrap" />
+
+                                <!-- Version -->
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                          Text="Version"
+                                          FontSize="12"
+                                          Opacity="0.6"
+                                          Foreground="White"
+                                          Margin="0,12,0,0" />
+                                <TextBlock Grid.Row="1" Grid.Column="1"
+                                          Text="{Binding Version}"
+                                          FontSize="14"
+                                          Foreground="White"
+                                          Margin="0,12,0,0" />
+
+                                <!-- Author -->
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                          Text="Author"
+                                          FontSize="12"
+                                          Opacity="0.6"
+                                          Foreground="White"
+                                          Margin="0,12,0,0" />
+                                <TextBlock Grid.Row="2" Grid.Column="1"
+                                          Text="{Binding Author}"
+                                          FontSize="14"
+                                          Foreground="White"
+                                          Margin="0,12,0,0" />
+
+                                <!-- Size -->
+                                <TextBlock Grid.Row="3" Grid.Column="0"
+                                          Text="Size"
+                                          FontSize="12"
+                                          Opacity="0.6"
+                                          Foreground="White"
+                                          Margin="0,12,0,0" />
+                                <TextBlock Grid.Row="3" Grid.Column="1"
+                                          Text="{Binding Size}"
+                                          FontSize="14"
+                                          Foreground="White"
+                                          Margin="0,12,0,0" />
+
+                                <!-- Install Date -->
+                                <TextBlock Grid.Row="4" Grid.Column="0"
+                                          Text="Installed"
+                                          FontSize="12"
+                                          Opacity="0.6"
+                                          Foreground="White"
+                                          Margin="0,12,0,0" />
+                                <TextBlock Grid.Row="4" Grid.Column="1"
+                                          Text="{Binding InstallDate}"
+                                          FontSize="14"
+                                          Foreground="White"
+                                          Margin="0,12,0,0" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Description -->
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="📝 Description"
+                                      FontSize="16"
+                                      FontWeight="SemiBold"
+                                      Foreground="White" />
+
+                            <Border Background="#10FFFFFF"
+                                   BorderBrush="#20FFFFFF"
+                                   BorderThickness="1"
+                                   CornerRadius="8"
+                                   Padding="16">
+                                <TextBlock Text="{Binding Description}"
+                                          FontSize="13"
+                                          Foreground="White"
+                                          TextWrapping="Wrap" />
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Changelog -->
+                        <StackPanel Spacing="12" IsVisible="{Binding HasChangelog}">
+                            <TextBlock Text="📋 Changelog"
+                                      FontSize="16"
+                                      FontWeight="SemiBold"
+                                      Foreground="White" />
+
+                            <ItemsControl ItemsSource="{Binding ChangelogEntries}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#10FFFFFF"
+                                               BorderBrush="#20FFFFFF"
+                                               BorderThickness="1"
+                                               CornerRadius="8"
+                                               Padding="16"
+                                               Margin="0,0,0,8">
+                                            <StackPanel Spacing="8">
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <TextBlock Grid.Column="0"
+                                                              Text="{Binding Version}"
+                                                              FontSize="14"
+                                                              FontWeight="SemiBold"
+                                                              Foreground="White" />
+                                                    <TextBlock Grid.Column="1"
+                                                              Text="{Binding Date}"
+                                                              FontSize="12"
+                                                              Opacity="0.6"
+                                                              Foreground="White" />
+                                                </Grid>
+                                                <TextBlock Text="{Binding Changes}"
+                                                          FontSize="13"
+                                                          Opacity="0.8"
+                                                          Foreground="White"
+                                                          TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- Conflicts -->
+                        <StackPanel Spacing="12" IsVisible="{Binding HasConflicts}">
+                            <TextBlock Text="⚠️ Conflicts"
+                                      FontSize="16"
+                                      FontWeight="SemiBold"
+                                      Foreground="#F59E0B" />
+
+                            <ItemsControl ItemsSource="{Binding Conflicts}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#20F59E0B"
+                                               BorderBrush="#F59E0B"
+                                               BorderThickness="1"
+                                               CornerRadius="8"
+                                               Padding="16"
+                                               Margin="0,0,0,8">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="{Binding ModName}"
+                                                          FontSize="14"
+                                                          FontWeight="SemiBold"
+                                                          Foreground="White" />
+                                                <TextBlock Text="{Binding ConflictReason}"
+                                                          FontSize="12"
+                                                          Opacity="0.8"
+                                                          Foreground="White"
+                                                          TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- Dependencies -->
+                        <StackPanel Spacing="12" IsVisible="{Binding HasDependencies}">
+                            <TextBlock Text="🔗 Dependencies"
+                                      FontSize="16"
+                                      FontWeight="SemiBold"
+                                      Foreground="White" />
+
+                            <ItemsControl ItemsSource="{Binding Dependencies}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#10FFFFFF"
+                                               BorderBrush="#20FFFFFF"
+                                               BorderThickness="1"
+                                               CornerRadius="8"
+                                               Padding="12"
+                                               Margin="0,0,0,8">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBlock Grid.Column="0"
+                                                          Text="{Binding Name}"
+                                                          FontSize="13"
+                                                          Foreground="White" />
+                                                <TextBlock Grid.Column="1"
+                                                          Text="{Binding Status}"
+                                                          FontSize="12"
+                                                          Foreground="{Binding StatusColor}" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Actions -->
+                <Grid Grid.Row="2"
+                      ColumnDefinitions="*,Auto,Auto"
+                      Margin="24,0,24,24">
+                    <Panel Grid.Column="0" />
+
+                    <Button Grid.Column="1"
+                           Classes="action"
+                           Content="Configure"
+                           Margin="0,0,12,0"
+                           IsVisible="{Binding CanConfigure}" />
+
+                    <Button Grid.Column="2"
+                           Classes="action"
+                           Content="Uninstall"
+                           Background="#EF4444" />
+                </Grid>
+            </Grid>
+        </Border>
+    </Border>
+</UserControl>

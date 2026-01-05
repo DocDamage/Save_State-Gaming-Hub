@@ -1,0 +1,82 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Shell.Mugen"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Mugen.Sections.DeathBattleSection"
+             x:DataType="vm:MugenDeathBattleViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Section Header -->
+        <Border Grid.Row="0" Margin="20" Background="{StaticResource SFFireGradientBrush}" CornerRadius="12" Height="100">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Text="DEATH BATTLE SIMULATOR" FontSize="32" FontWeight="Black" Foreground="White"
+                           RenderTransform="skewX(-10deg)">
+                    <TextBlock.Effect>
+                        <DropShadowEffect BlurRadius="10" Color="Black" OffsetX="2" OffsetY="2" />
+                    </TextBlock.Effect>
+                </TextBlock>
+                <TextBlock Text="AI-POWERED MATCH PREDICTION &amp; ANALYSIS" FontSize="12" FontWeight="Bold"
+                           Foreground="{StaticResource FightingYellowBrush}" HorizontalAlignment="Center" />
+            </StackPanel>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, 2*, *">
+            <!-- Player 1 -->
+            <StackPanel Grid.Column="0" Margin="20" Spacing="10">
+                <Border Background="{StaticResource FightingRedBrush}" Height="5" CornerRadius="2" />
+                <TextBlock Text="CHALLENGER 1" FontWeight="Black" Foreground="{StaticResource FightingRedBrush}" HorizontalAlignment="Center" />
+                <Border Background="{StaticResource GlassBrush}" Height="200" CornerRadius="12">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding Player1.Name, FallbackValue='?'}" FontSize="24" FontWeight="Black" Foreground="White" />
+                        <TextBlock Text="{Binding Player1.Author, FallbackValue='SELECT IN ROSTER'}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Simulation Controls & Results -->
+            <Border Grid.Column="1" Margin="20" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1" CornerRadius="12" Padding="20">
+                <Grid RowDefinitions="Auto, *, Auto">
+                    <StackPanel Grid.Row="0" Spacing="10">
+                        <Button Command="{Binding RunSimulationCommand}"
+                                HorizontalAlignment="Stretch" Height="60" Classes="Accent">
+                            <TextBlock Text="RUN SIMULATION" FontSize="20" FontWeight="Black" />
+                        </Button>
+                        <Button Command="{Binding LaunchBattleCommand}"
+                                HorizontalAlignment="Stretch" Height="60" Classes="Secondary"
+                                BorderBrush="{StaticResource FightingRedBrush}" BorderThickness="2">
+                            <TextBlock Text="🔥 LAUNCH BATTLE 🔥" FontSize="20" FontWeight="Black" Foreground="{StaticResource FightingRedBrush}" />
+                        </Button>
+                    </StackPanel>
+
+                    <ScrollViewer Grid.Row="1" Margin="0,20">
+                        <Border Background="#121212" Padding="20" CornerRadius="8">
+                            <TextBlock Text="{Binding SimulationReport, FallbackValue='Awaiting simulation data...'}"
+                                       FontFamily="Consolas, Monospace"
+                                       Foreground="{StaticResource FightingYellowBrush}"
+                                       TextWrapping="Wrap" />
+                        </Border>
+                    </ScrollViewer>
+
+                    <ProgressBar Grid.Row="2" IsIndeterminate="True" IsVisible="{Binding IsSimulating}"
+                                 Foreground="{StaticResource FightingYellowBrush}" />
+                </Grid>
+            </Border>
+
+            <!-- Player 2 -->
+            <StackPanel Grid.Column="2" Margin="20" Spacing="10">
+                <Border Background="#00BCD4" Height="5" CornerRadius="2" />
+                <TextBlock Text="CHALLENGER 2" FontWeight="Black" Foreground="#00BCD4" HorizontalAlignment="Center" />
+                <Border Background="{StaticResource GlassBrush}" Height="200" CornerRadius="12">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding Player2.Name, FallbackValue='?'}" FontSize="24" FontWeight="Black" Foreground="White" />
+                        <TextBlock Text="{Binding Player2.Author, FallbackValue='SELECT IN ROSTER'}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -47,5 +47,10 @@
         <!-- Overlays Layer (spans all rows) -->
         <views:OverlayContainer Grid.RowSpan="4"
                                DataContext="{Binding OverlayContainerViewModel}" />
+
+        <!-- Notifications Layer (top-right, spans all rows) -->
+        <views:NotificationContainerView Grid.RowSpan="4"
+                                        DataContext="{Binding NotificationService}"
+                                        IsHitTestVisible="False" />
     </Grid>
 </Window>

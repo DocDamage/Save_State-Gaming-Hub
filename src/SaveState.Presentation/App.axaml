@@ -3,9 +3,11 @@
              xmlns:local="using:SaveState.Presentation"
              xmlns:converters="using:SaveState.Presentation.Converters"
              x:Class="SaveState.Presentation.App">
+
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
+        <!-- Brushes must be loaded at application level for all controls to access them -->
         <ResourceInclude Source="avares://SaveState.Presentation/Styles/Brushes.axaml" />
       </ResourceDictionary.MergedDictionaries>
 
@@ -23,11 +25,36 @@
       <converters:EqualToConverter x:Key="EqualToConverter" />
       <converters:PercentageConverter x:Key="PercentageConverter" />
       <converters:StringNotEmptyConverter x:Key="StringNotEmptyConverter" />
+      <converters:EqualityConverter x:Key="EqualityConverter" />
+      <converters:InequalityConverter x:Key="InequalityConverter" />
+      <converters:EqualityToFontWeightConverter x:Key="EqualityToFontWeightConverter" />
+
+      <!-- Icons -->
+      <Geometry x:Key="SettingsRegular">M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm0-6.176l.375 2.155a5.952 5.952 0 0 1 3.518 1.458l2.067-.783 1.576 2.73-1.666 1.488a5.962 5.962 0 0 1 0 3.856l1.666 1.488-1.576 2.73-2.067-.783a5.952 5.952 0 0 1-3.518 1.458l-.375 2.155h-3.153l-.375-2.155a5.952 5.952 0 0 1-3.518-1.458l-2.067.783-1.576-2.73 1.666-1.488a5.962 5.962 0 0 1 0-3.856l-1.666-1.488 1.576-2.73 2.067.783a5.952 5.952 0 0 1 3.518-1.458l.375-2.155h3.153z</Geometry>
     </ResourceDictionary>
   </Application.Resources>
 
   <Application.Styles>
+    <!-- Modern Dark FluentTheme -->
     <FluentTheme />
+
+    <!-- Global Font Settings -->
+    <Style Selector="Window">
+      <Setter Property="FontFamily" Value="Segoe UI, Inter, -apple-system, BlinkMacSystemFont, Roboto, Helvetica Neue, Arial, sans-serif" />
+      <Setter Property="FontSize" Value="15" />
+      <Setter Property="Background" Value="{StaticResource BackgroundBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock">
+      <Setter Property="FontFamily" Value="Segoe UI, Inter, -apple-system, BlinkMacSystemFont, Roboto, Helvetica Neue, Arial, sans-serif" />
+      <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+
+    <Style Selector="Button">
+      <Setter Property="FontFamily" Value="Segoe UI, Inter, -apple-system, BlinkMacSystemFont, Roboto, Helvetica Neue, Arial, sans-serif" />
+    </Style>
+
+    <!-- Custom Control Styles -->
     <StyleInclude Source="avares://SaveState.Presentation/Styles/Controls.axaml" />
   </Application.Styles>
 

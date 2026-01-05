@@ -1,0 +1,237 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Library.GameDetail;assembly=SaveState.Presentation"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Library.GameDetail.GameAchievementsTabView"
+             x:DataType="vm:GameAchievementsTabViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header with Stats -->
+        <Border Grid.Row="0" Classes="GlassContainer" Padding="20" Margin="0,0,0,15">
+            <Grid ColumnDefinitions="*, *, *, Auto">
+                <StackPanel Grid.Column="0" Spacing="5">
+                    <TextBlock Text="🏆 ACHIEVEMENTS" Classes="Subtitle" />
+                    <TextBlock Text="{Binding AchievementProgressText}"
+                               Classes="Caption"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+
+                <ProgressBar Grid.Column="1"
+                            Value="{Binding CompletionPercentage}"
+                            Maximum="100"
+                            Height="8"
+                            Margin="20,0"
+                            Classes="CompletionProgress" />
+
+                <StackPanel Grid.Column="2" Spacing="5" HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding CompletionPercentageText}" Classes="Body" FontWeight="Bold" />
+                    <TextBlock Text="Complete" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="10">
+                    <Button Content="🔍 Search"
+                            Classes="Secondary"
+                            Command="{Binding ToggleSearchCommand}"
+                            ToolTip.Tip="Search achievements" />
+
+                    <ComboBox ItemsSource="{Binding FilterOptions}"
+                              SelectedItem="{Binding SelectedFilter}"
+                              Width="120"
+                              PlaceholderText="Filter..." />
+
+                    <Button Content="📊 View Stats"
+                            Classes="Secondary"
+                            Command="{Binding ViewStatsCommand}"
+                            ToolTip.Tip="Detailed achievement statistics" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, Auto">
+            <!-- Achievements List -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Achievements}" Margin="0,0,15,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{Binding BackgroundBrush}"
+                                    BorderBrush="{Binding BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="15"
+                                    Margin="0,0,0,10"
+                                    Opacity="{Binding Opacity}">
+                                <Grid ColumnDefinitions="60, *, Auto, Auto">
+                                    <!-- Achievement Icon -->
+                                    <Border Grid.Column="0"
+                                            Background="{StaticResource SurfaceBrush}"
+                                            CornerRadius="6"
+                                            Width="50" Height="50"
+                                            Margin="0,0,15,0">
+                                        <Image Source="{Binding IconUrl}"
+                                               Stretch="Uniform"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+                                    </Border>
+
+                                    <!-- Achievement Details -->
+                                    <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}"
+                                                   Classes="Body"
+                                                   FontWeight="SemiBold" />
+
+                                        <TextBlock Text="{Binding Description}"
+                                                   Classes="Caption"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                                   TextWrapping="Wrap" />
+
+                                        <StackPanel Orientation="Horizontal" Spacing="15">
+                                            <TextBlock Text="{Binding RarityText}"
+                                                       Classes="Caption"
+                                                       Foreground="{Binding RarityColor}" />
+
+                                            <TextBlock Text="{Binding PointsText}"
+                                                       Classes="Caption"
+                                                       Foreground="{StaticResource AccentBrush}" />
+
+                                            <TextBlock Text="{Binding UnlockedText}"
+                                                       Classes="Caption"
+                                                       Foreground="{Binding StatusColor}" />
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- Progress Bar (for partial achievements) -->
+                                    <StackPanel Grid.Column="2"
+                                                Spacing="5"
+                                                VerticalAlignment="Center"
+                                                Margin="15,0"
+                                                IsVisible="{Binding ShowProgress}">
+                                        <ProgressBar Value="{Binding ProgressValue}"
+                                                    Maximum="{Binding ProgressMax}"
+                                                    Height="6"
+                                                    Width="100" />
+                                        <TextBlock Text="{Binding ProgressText}"
+                                                   Classes="Caption"
+                                                   HorizontalAlignment="Center" />
+                                    </StackPanel>
+
+                                    <!-- Status Badge -->
+                                    <Border Grid.Column="3"
+                                            Background="{Binding StatusBadgeColor}"
+                                            CornerRadius="15"
+                                            Padding="10,5"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding StatusBadgeText}"
+                                                   Classes="Caption"
+                                                   Foreground="White"
+                                                   FontWeight="Bold" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Sidebar with Filters and Stats -->
+            <Border Grid.Column="1" Classes="GlassContainer" Padding="20" Width="280">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="20">
+                        <TextBlock Text="📊 ACHIEVEMENT STATS" Classes="Subtitle" />
+
+                        <!-- Completion Overview -->
+                        <Border Background="{StaticResource SurfaceBrush}" Padding="15" CornerRadius="6">
+                            <Grid RowDefinitions="Auto, Auto, Auto, Auto" ColumnDefinitions="*, Auto">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Total Achievements:" Classes="Caption" />
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalAchievements}" Classes="Caption" />
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Unlocked:" Classes="Caption" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding UnlockedCount}" Classes="Caption" Foreground="Green" />
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Locked:" Classes="Caption" />
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding LockedCount}" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}" />
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Total Points:" Classes="Caption" />
+                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding TotalPoints}" Classes="Caption" FontWeight="Bold" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Rarity Breakdown -->
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="🎖️ RARITY BREAKDOWN" Classes="Caption" FontWeight="Bold" />
+
+                            <StackPanel Spacing="8">
+                                <Grid ColumnDefinitions="*, Auto, Auto">
+                                    <TextBlock Grid.Column="0" Text="Common" Classes="Caption" />
+                                    <ProgressBar Grid.Column="1" Value="{Binding CommonPercentage}" Maximum="100" Height="6" Margin="10,0" />
+                                    <TextBlock Grid.Column="2" Text="{Binding CommonCountText}" Classes="Caption" />
+                                </Grid>
+
+                                <Grid ColumnDefinitions="*, Auto, Auto">
+                                    <TextBlock Grid.Column="0" Text="Uncommon" Classes="Caption" />
+                                    <ProgressBar Grid.Column="1" Value="{Binding UncommonPercentage}" Maximum="100" Height="6" Margin="10,0" />
+                                    <TextBlock Grid.Column="2" Text="{Binding UncommonCountText}" Classes="Caption" />
+                                </Grid>
+
+                                <Grid ColumnDefinitions="*, Auto, Auto">
+                                    <TextBlock Grid.Column="0" Text="Rare" Classes="Caption" />
+                                    <ProgressBar Grid.Column="1" Value="{Binding RarePercentage}" Maximum="100" Height="6" Margin="10,0" />
+                                    <TextBlock Grid.Column="2" Text="{Binding RareCountText}" Classes="Caption" />
+                                </Grid>
+
+                                <Grid ColumnDefinitions="*, Auto, Auto">
+                                    <TextBlock Grid.Column="0" Text="Epic" Classes="Caption" />
+                                    <ProgressBar Grid.Column="1" Value="{Binding EpicPercentage}" Maximum="100" Height="6" Margin="10,0" />
+                                    <TextBlock Grid.Column="2" Text="{Binding EpicCountText}" Classes="Caption" />
+                                </Grid>
+
+                                <Grid ColumnDefinitions="*, Auto, Auto">
+                                    <TextBlock Grid.Column="0" Text="Legendary" Classes="Caption" />
+                                    <ProgressBar Grid.Column="1" Value="{Binding LegendaryPercentage}" Maximum="100" Height="6" Margin="10,0" />
+                                    <TextBlock Grid.Column="2" Text="{Binding LegendaryCountText}" Classes="Caption" />
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Recent Unlocks -->
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="🆕 RECENT UNLOCKS" Classes="Caption" FontWeight="Bold" />
+
+                            <ItemsControl ItemsSource="{Binding RecentUnlocks}" MaxHeight="200">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{StaticResource SurfaceBrush}"
+                                                CornerRadius="4"
+                                                Padding="8"
+                                                Margin="0,0,0,5">
+                                            <Grid ColumnDefinitions="Auto, *">
+                                                <TextBlock Grid.Column="0" Text="{Binding Icon}" FontSize="16" Margin="0,0,8,0" />
+                                                <StackPanel Grid.Column="1" Spacing="2">
+                                                    <TextBlock Text="{Binding Name}" Classes="Caption" FontWeight="SemiBold" />
+                                                    <TextBlock Text="{Binding UnlockedAtText}" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- Achievement Settings -->
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="⚙️ SETTINGS" Classes="Caption" FontWeight="Bold" />
+
+                            <StackPanel Spacing="8">
+                                <CheckBox Content="Show Hidden Achievements" IsChecked="{Binding ShowHiddenAchievements}" />
+                                <CheckBox Content="Show Progress Bars" IsChecked="{Binding ShowProgressBars}" />
+                                <CheckBox Content="Sort by Rarity" IsChecked="{Binding SortByRarity}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

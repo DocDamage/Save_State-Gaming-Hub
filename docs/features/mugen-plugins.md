@@ -1,11 +1,11 @@
 # 🥊 MUGEN Plugin Ecosystem - Complete Implementation Guide
 
 **Status**: ✅ **5/5 Advanced MUGEN Plugins Complete** (84 hours total development)
-**Last Updated**: January 2, 2026
+**Last Updated**: January 3, 2026
 **Layer**: Infrastructure (Plugins)
 **Architecture**: Clean Architecture with Plugin System Integration
 **Compatibility**: MUGEN 1.0/1.1, IKEMEN GO, Standard Fighting Game Engines
-**Related**: [Character API](character-api.md), [IKEMEN Integration](ikemen_integration.md), [AI_MASTER_CONTEXT](../AI_MASTER_CONTEXT.md)
+**Related**: [Character API](character-api.md), [IKEMEN Integration](ikemen_integration.md), [Character Development Integration Plan](../planning/character_development_integration_plan.md), [AI_MASTER_CONTEXT](../AI_MASTER_CONTEXT.md)
 
 ---
 
@@ -464,6 +464,9 @@ savestate mugen network friends invite --player username
 
 **Status**: ✅ Complete | **Effort**: 24 hours | **Date**: Dec 31, 2025
 
+> [!NOTE]
+> **Character Development Tools**: For comprehensive character creation and modification tools (MugenHook, LuaSupernull, OpenMK, iguana, ikemenarmor), see [Character Development Integration Plan](../planning/character_development_integration_plan.md).
+
 ### Features
 
 #### Full Asset Fusion
@@ -804,6 +807,12 @@ savestate mugen fusion workshop publish <fusion-id> --title "Ultimate Fighter"
 
 ### Planned Features
 
+- **Character Development Tools**: Full character modification and creation capabilities (see [Character Development Integration Plan](../planning/character_development_integration_plan.md))
+  - MugenHook integration (animated portraits, multiple characters per slot)
+  - LuaSupernull framework (advanced character templates)
+  - OpenMK toolkit (Mortal Kombat-style character development)
+  - Movelist extraction (iguana integration)
+  - Character mechanics modification (ikemenarmor integration)
 - **Advanced AI Training**: Machine learning opponents
 - **Tournament System**: Automated bracket management
 - **Character Database**: Comprehensive move/frame data

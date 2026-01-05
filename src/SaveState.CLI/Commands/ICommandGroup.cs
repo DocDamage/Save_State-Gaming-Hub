@@ -1,6 +1,7 @@
 using System.CommandLine;
 using MediatR;
 using Microsoft.Extensions.Hosting;
+using Spectre.Console;
 
 namespace SaveState.CLI.Commands;
 
@@ -15,5 +16,6 @@ public interface ICommandGroup
     /// <param name="rootCommand">The root command to register commands with.</param>
     /// <param name="mediator">The MediatR mediator for sending commands/queries.</param>
     /// <param name="host">The host instance for service resolution.</param>
-    void RegisterCommands(RootCommand rootCommand, IMediator mediator, IHost host);
+    /// <param name="console">The console instance for output.</param>
+    void RegisterCommands(RootCommand rootCommand, IMediator mediator, IHost host, IAnsiConsole console);
 }

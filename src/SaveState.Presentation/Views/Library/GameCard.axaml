@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Library;assembly=SaveState.Presentation"
+             mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="280"
+             x:Class="SaveState.Presentation.Views.Library.GameCard"
+             x:DataType="vm:GameCardViewModel">
+
+    <Button Classes="GameCardButton"
+            Width="180" Height="260"
+            Background="Transparent"
+            BorderThickness="0"
+            Command="{Binding OpenGameCommand}"
+            ToolTip.Tip="{Binding Title}">
+
+        <Grid RowDefinitions="*, Auto, Auto, Auto">
+            <!-- Selection Checkbox (shown in selection mode) -->
+            <CheckBox Grid.Row="0"
+                      IsChecked="{Binding IsSelected}"
+                      HorizontalAlignment="Left"
+                      VerticalAlignment="Top"
+                      Margin="8"
+                      IsVisible="{Binding IsSelectionMode}"
+                      ToolTip.Tip="Select game" />
+
+            <!-- Cover Art -->
+            <Border Grid.Row="0"
+                    Background="{StaticResource SurfaceBrush}"
+                    CornerRadius="6"
+                    Margin="8,8,8,0">
+                <Image Source="{Binding CoverArtUrl}"
+                       Stretch="UniformToFill"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       ToolTip.Tip="{Binding Title}" />
+            </Border>
+
+            <!-- Title -->
+            <TextBlock Grid.Row="1"
+                       Text="{Binding Title}"
+                       Classes="Body"
+                       FontWeight="SemiBold"
+                       TextWrapping="Wrap"
+                       MaxLines="2"
+                       Height="40"
+                       Margin="8,8,8,0"
+                       TextTrimming="CharacterEllipsis"
+                       ToolTip.Tip="{Binding Title}" />
+
+            <!-- Platform & Status -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="8,4,8,0" Spacing="8">
+                <TextBlock Text="{Binding PlatformIcon}" FontSize="14" />
+                <TextBlock Text="{Binding PlatformName}"
+                           Classes="Caption"
+                           Foreground="{StaticResource TextSecondaryBrush}" />
+                <TextBlock Text="{Binding StatusIcon}"
+                           FontSize="12"
+                           Margin="4,0,0,0"
+                           Foreground="{Binding StatusColor}" />
+            </StackPanel>
+
+            <!-- Playtime & Rating -->
+            <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="8,4,8,8" Spacing="8">
+                <TextBlock Text="{Binding PlaytimeText}"
+                           Classes="Caption"
+                           Foreground="{StaticResource TextSecondaryBrush}" />
+                <TextBlock Text="{Binding RatingStars}"
+                           FontSize="12"
+                           Margin="8,0,0,0" />
+            </StackPanel>
+        </Grid>
+    </Button>
+</UserControl>

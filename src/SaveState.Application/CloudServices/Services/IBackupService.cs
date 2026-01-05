@@ -11,7 +11,16 @@ public interface IBackupService
         IEnumerable<GameId>? gameIds,
         bool includeSettings,
         CancellationToken ct = default);
+
+    Task<IReadOnlyList<BackupMetadata>> GetBackupHistoryAsync(CancellationToken ct = default);
 }
+
+public record BackupMetadata(
+    BackupId BackupId,
+    string Name,
+    DateTime CreatedAt,
+    long TotalSize,
+    int GamesBackedUp);
 
 public record BackupResult(
     BackupId BackupId,

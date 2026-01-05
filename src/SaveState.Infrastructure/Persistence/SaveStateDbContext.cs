@@ -41,6 +41,9 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
     // Aggregate roots from bounded contexts
     public DbSet<Game> Games { get; set; }
     public DbSet<GameFile> GameFiles { get; set; }
+    public DbSet<GameNote> GameNotes { get; set; }
+    public DbSet<GameMod> GameMods { get; set; }
+    public DbSet<GameMedia> GameMedia { get; set; }
     public DbSet<Platform> Platforms { get; set; }
     public DbSet<Genre> Genres { get; set; }
     public DbSet<Developer> Developers { get; set; }
@@ -127,6 +130,11 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
         modelBuilder.Entity<SaveState.Core.Mugen.Entities.MugenCharacter>()
             .OwnsOne(e => e.ArcadeInfo);
 
+        // Configure relationships
+        modelBuilder.Entity<Game>()
+            .HasMany(g => g.Genres)
+            .WithMany();
+
         // Global configurations
         ConfigureGlobalFilters(modelBuilder);
         ConfigureConversions(modelBuilder);
@@ -152,6 +160,17 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
     private static void ConfigureConversions(ModelBuilder modelBuilder)
     {
         // Value object conversions will be added as entities are created
+
+        // Tags conversion (JSON)
+        modelBuilder.Entity<Game>()
+            .Property(g => g.Tags)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>(),
+                new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<ICollection<string>>(
+                    (c1, c2) => c1 != null && c2 != null && c1.SequenceEqual(c2),
+                    c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                    c => (ICollection<string>)c.ToList()));
     }
 
     private static void ConfigureIndexes(ModelBuilder modelBuilder)
@@ -310,7 +329,7 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
         }
     }
 
-    private void EnableWalMode()
+    public void EnableWalMode()
     {
         try
         {

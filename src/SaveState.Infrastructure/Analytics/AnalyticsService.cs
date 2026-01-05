@@ -264,22 +264,14 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
-    private Task<IReadOnlyList<GameSession>> GetAllSessionsAsync(CancellationToken ct = default)
+    private async Task<IReadOnlyList<GameSession>> GetAllSessionsAsync(CancellationToken ct = default)
     {
-        // This is a simplified implementation. In reality, we'd need to implement
-        // a method to get all sessions across all games, possibly with pagination
-        // For now, return empty list as this would require extending the repository
-        _logger.LogWarning("GetAllSessionsAsync not fully implemented - returning empty list");
-        return Task.FromResult((IReadOnlyList<GameSession>)Array.Empty<GameSession>());
+        return await _sessionRepository.GetAllAsync(ct).ConfigureAwait(false);
     }
 
-    private Task<IReadOnlyList<GameSession>> GetAllSessionsInDateRangeAsync(DateTime startDate, DateTime endDate, CancellationToken ct = default)
+    private async Task<IReadOnlyList<GameSession>> GetAllSessionsInDateRangeAsync(DateTime startDate, DateTime endDate, CancellationToken ct = default)
     {
-        // This is a simplified implementation. In reality, we'd need to implement
-        // a method to get all sessions in a date range across all games
-        // For now, return empty list as this would require extending the repository
-        _logger.LogWarning("GetAllSessionsInDateRangeAsync not fully implemented - returning empty list");
-        return Task.FromResult((IReadOnlyList<GameSession>)Array.Empty<GameSession>());
+        return await _sessionRepository.GetByDateRangeAsync(startDate, endDate, ct).ConfigureAwait(false);
     }
 
     private static ActivityLevel GetActivityLevel(TimeSpan playtime)

@@ -1,0 +1,98 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Shell.GameMemoryView"
+             x:DataType="vm:GameMemoryViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header / Status Bar -->
+        <Border Grid.Row="0" Classes="GlassContainer" Padding="15" Margin="0,0,0,15">
+            <Grid ColumnDefinitions="*, Auto">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="🧠 MEMORY INTELLIGENCE" Classes="Subtitle" FontWeight="Bold"/>
+                    <StackPanel Orientation="Horizontal" Spacing="15">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <TextBlock Text="Status:" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding IsAttached, Converter={StaticResource BooleanToStatusTextConverter}}"
+                                       FontWeight="Bold"
+                                       Foreground="{Binding IsAttached, Converter={StaticResource BooleanToStatusColorConverter}}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <TextBlock Text="Process:" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding CurrentProcessName}" FontWeight="Bold"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <TextBlock Text="State:" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding CurrentGameState}" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                    <Button Content="🔗 Attach" Command="{Binding AttachToProcessCommand}" IsVisible="{Binding !IsAttached}"/>
+                    <Button Content="🔓 Detach" Command="{Binding DetachCommand}" IsVisible="{Binding IsAttached}" Classes="Secondary"/>
+                    <Button Content="🔄 Scan Patterns" Command="{Binding ScanPatternsCommand}" IsEnabled="{Binding IsAttached}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="2*, 1*" >
+            <!-- Patterns List -->
+            <Border Grid.Column="0" Classes="GlassContainer" Padding="0" Margin="0,0,10,0">
+                <Grid RowDefinitions="Auto, *">
+                    <TextBlock Grid.Row="0" Text="DETECTED PATTERNS" Classes="Caption" FontWeight="Bold" Margin="15,15,0,10"/>
+
+                    <Grid Grid.Row="1" RowDefinitions="Auto, *">
+                        <!-- Header -->
+                        <Border Grid.Row="0" Background="#1AFFFFFF" Padding="10,5">
+                            <Grid ColumnDefinitions="*, 120, 120">
+                                <TextBlock Text="Pattern Name" FontWeight="Bold" Classes="Caption"/>
+                                <TextBlock Grid.Column="1" Text="Value" FontWeight="Bold" Classes="Caption"/>
+                                <TextBlock Grid.Column="2" Text="Address" FontWeight="Bold" Classes="Caption"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- List -->
+                        <ScrollViewer Grid.Row="1">
+                            <ItemsControl ItemsSource="{Binding DetectedPatterns}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="#11FFFFFF" BorderThickness="0,0,0,1" Padding="10,8">
+                                            <Grid ColumnDefinitions="*, 120, 120">
+                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Value}" FontFamily="Courier New" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding Address}" FontFamily="Courier New" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- Event Log -->
+            <Border Grid.Column="1" Classes="GlassContainer" Padding="15" Margin="5,0,0,0">
+                <Grid RowDefinitions="Auto, *">
+                    <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,10">
+                        <TextBlock Text="ACTIVITY LOG" Classes="Caption" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Content="Clear" Command="{Binding ClearLogCommand}" Classes="Small"/>
+                    </Grid>
+
+                    <ListBox Grid.Row="1" ItemsSource="{Binding ScanLog}" Background="Transparent">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" FontSize="12" TextWrapping="Wrap" Margin="0,2"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

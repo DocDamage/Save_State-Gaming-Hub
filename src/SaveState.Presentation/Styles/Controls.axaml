@@ -1,132 +1,219 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!-- Premium Button Style -->
+
+    <Styles.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://SaveState.Presentation/Styles/Brushes.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Styles.Resources>
+
+    <!-- WeMod-Inspired "Midnight" Controls -->
+
+    <!-- ========================================
+         TYPOGRAPHY
+         ======================================== -->
+
+    <Style Selector="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI, Inter, San Francisco, Helvetica Neue"/>
+    </Style>
+
+    <Style Selector="TextBlock.H1">
+        <Setter Property="FontSize" Value="28"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="LetterSpacing" Value="-0.5"/>
+    </Style>
+
+    <Style Selector="TextBlock.H2">
+        <Setter Property="FontSize" Value="20"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+
+    <Style Selector="TextBlock.Body">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+    </Style>
+
+    <Style Selector="TextBlock.Caption">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}"/>
+    </Style>
+
+    <!-- ========================================
+         BUTTONS (Pill Shape & Ghost)
+         ======================================== -->
+
+    <!-- Primary Action (Big Pill - e.g. "Play") -->
     <Style Selector="Button.Primary">
-        <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-        <Setter Property="Padding" Value="16,8" />
-        <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Background" Value="{StaticResource PrimaryActionGradient}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Padding" Value="32,10"/>
+        <Setter Property="CornerRadius" Value="24"/> <!-- Full Pill -->
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Transitions">
             <Transitions>
-                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1" />
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1"/>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.1"/>
             </Transitions>
         </Setter>
     </Style>
 
     <Style Selector="Button.Primary:pointerover">
-        <Setter Property="RenderTransform" Value="scale(1.02)" />
-        <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="RenderTransform" Value="scale(1.02)"/>
+        <Setter Property="Opacity" Value="0.9"/>
     </Style>
 
     <Style Selector="Button.Primary:pressed">
-        <Setter Property="RenderTransform" Value="scale(0.98)" />
-        <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+        <Setter Property="RenderTransform" Value="scale(0.98)"/>
+        <Setter Property="Opacity" Value="0.8"/>
     </Style>
 
-    <!-- Accent Button Style -->
-    <Style Selector="Button.Accent">
-        <Setter Property="Background" Value="{StaticResource AccentBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-        <Setter Property="Padding" Value="16,8" />
-        <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="BorderThickness" Value="0" />
+    <!-- Navigation Button (Sidebar) -->
+    <Style Selector="Button.Nav">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="Padding" Value="16,10"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Margin" Value="0,2"/>
         <Setter Property="Transitions">
             <Transitions>
-                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1" />
+                <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                <BrushTransition Property="Foreground" Duration="0:0:0.15"/>
             </Transitions>
         </Setter>
     </Style>
 
-    <Style Selector="Button.Accent:pointerover">
-        <Setter Property="RenderTransform" Value="scale(1.02)" />
-        <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+    <Style Selector="Button.Nav:pointerover">
+        <Setter Property="Background" Value="#10FFFFFF"/> <!-- Subtle White Overlay -->
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
     </Style>
 
-    <Style Selector="Button.Accent:pressed">
-        <Setter Property="RenderTransform" Value="scale(0.98)" />
-        <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+    <Style Selector="Button.Nav:pressed">
+        <Setter Property="Background" Value="#08FFFFFF"/>
     </Style>
 
-    <!-- Glass Container Style -->
-    <Style Selector="Border.GlassContainer">
-        <Setter Property="Background" Value="{StaticResource GlassBrush}" />
-        <Setter Property="CornerRadius" Value="12" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
+    <!-- Active Navigation State -->
+    <Style Selector="Button.Nav.Active">
+        <Setter Property="Background" Value="#1AFFFFFF"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
     </Style>
 
-    <!-- Card Style -->
+    <!-- Secondary/Outline Button -->
+    <Style Selector="Button.Outline">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="20"/>
+        <Setter Property="Padding" Value="20,8"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+
+    <Style Selector="Button.Outline:pointerover">
+        <Setter Property="Background" Value="{StaticResource CardHoverBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource TextSecondaryBrush}"/>
+    </Style>
+
+    <!-- ========================================
+         CARDS & CONTAINERS
+         ======================================== -->
+
     <Style Selector="Border.Card">
-        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
-        <Setter Property="CornerRadius" Value="12" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="16" />
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Padding" Value="24"/>
+        <Setter Property="BoxShadow" Value="0 4 12 #20000000"/>
     </Style>
 
-    <!-- Text Styles -->
-    <Style Selector="TextBlock.Header">
-        <Setter Property="FontSize" Value="24" />
-        <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-    </Style>
-
-    <Style Selector="TextBlock.Subtitle">
-        <Setter Property="FontSize" Value="18" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
-    </Style>
-
-    <Style Selector="TextBlock.Body">
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-    </Style>
-
-    <!-- Game Card Styles -->
     <Style Selector="Border.GameCard">
-        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
-        <Setter Property="CornerRadius" Value="12" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Margin" Value="8" />
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="ClipToBounds" Value="True"/>
         <Setter Property="Transitions">
             <Transitions>
-                <BrushTransition Property="Background" Duration="0:0:0.2" />
-                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" />
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15"/>
+                <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.15"/>
             </Transitions>
         </Setter>
     </Style>
 
     <Style Selector="Border.GameCard:pointerover">
-        <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
-        <Setter Property="RenderTransform" Value="scale(1.05)" />
+        <Setter Property="RenderTransform" Value="translateY(-4px)"/>
+        <Setter Property="BoxShadow" Value="0 12 24 #40000000"/>
+        <Setter Property="Cursor" Value="Hand"/>
     </Style>
 
-    <!-- Sidebar Button Style -->
-    <Style Selector="Button.SidebarButton">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="White" />
-        <Setter Property="HorizontalAlignment" Value="Stretch" />
-        <Setter Property="HorizontalContentAlignment" Value="Left" />
-        <Setter Property="Padding" Value="12,8" />
-        <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="BorderThickness" Value="0" />
+    <!-- ========================================
+         INPUTS
+         ======================================== -->
+
+    <Style Selector="TextBox">
+        <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="12,10"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="SelectionBrush" Value="{StaticResource FocusBorderBrush}"/>
     </Style>
 
-    <Style Selector="Button.SidebarButton TextBlock">
-        <Setter Property="Foreground" Value="White" />
+    <Style Selector="TextBox:focus">
+        <Setter Property="Background" Value="#32343A"/>
     </Style>
 
-    <Style Selector="Button.SidebarButton:pointerover">
-        <Setter Property="Background" Value="{StaticResource HoverBrush}" />
+    <!-- ========================================
+         COMBOBOX
+         ======================================== -->
+
+    <Style Selector="ComboBox">
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="PlaceholderForeground" Value="{StaticResource TextTertiaryBrush}"/>
     </Style>
 
-    <Style Selector="Button.SidebarButton:pressed">
-        <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+    <Style Selector="ComboBox:pointerover /template/ Border#Background">
+        <Setter Property="Background" Value="{StaticResource CardHoverBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource TextSecondaryBrush}"/>
     </Style>
+
+    <Style Selector="ComboBox:dropdownopen /template/ Border#Background">
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryActionGradient}"/>
+    </Style>
+
+    <Style Selector="ComboBoxItem">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="Margin" Value="2"/>
+    </Style>
+
+    <Style Selector="ComboBoxItem:pointerover">
+        <Setter Property="Background" Value="{StaticResource HoverBrush}"/>
+    </Style>
+
+    <Style Selector="ComboBoxItem:selected">
+        <Setter Property="Background" Value="{StaticResource PrimaryActionGradient}"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+
 </Styles>

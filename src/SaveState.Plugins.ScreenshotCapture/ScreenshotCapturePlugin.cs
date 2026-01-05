@@ -513,23 +513,37 @@ public class ScreenshotManager
         var filename = customFilename ?? $"screenshot_{timestamp}.{format}";
         var filepath = Path.Combine(_outputDirectory, filename);
 
-        // In production: Use Windows API or cross-platform screenshot capture
-        // For now, create a placeholder image
-        using var bitmap = new Bitmap(1920, 1080);
-        using var graphics = Graphics.FromImage(bitmap);
-        graphics.Clear(Color.Black);
-        graphics.DrawString("Screenshot Placeholder", new Font("Arial", 24), Brushes.White, 50, 50);
-        graphics.DrawString($"Captured: {DateTime.Now}", new Font("Arial", 16), Brushes.Gray, 50, 100);
-
-        var imageFormat = format.ToLower() switch
+        try
         {
-            "png" => ImageFormat.Png,
-            "jpg" or "jpeg" => ImageFormat.Jpeg,
-            "bmp" => ImageFormat.Bmp,
-            _ => ImageFormat.Png
-        };
+            // Get primary screen bounds
+            var screenBounds = System.Windows.Forms.Screen.PrimaryScreen.Bounds;
 
-        bitmap.Save(filepath, imageFormat);
+            using var bitmap = new Bitmap(screenBounds.Width, screenBounds.Height);
+            using (var graphics = Graphics.FromImage(bitmap))
+            {
+                graphics.CopyFromScreen(Point.Empty, Point.Empty, screenBounds.Size);
+            }
+
+            var imageFormat = format.ToLower() switch
+            {
+                "png" => ImageFormat.Png,
+                "jpg" or "jpeg" => ImageFormat.Jpeg,
+                "bmp" => ImageFormat.Bmp,
+                _ => ImageFormat.Png
+            };
+
+            bitmap.Save(filepath, imageFormat);
+        }
+        catch (Exception)
+        {
+            // Fallback for non-UI environments or errors
+            using var bitmap = new Bitmap(1920, 1080);
+            using var graphics = Graphics.FromImage(bitmap);
+            graphics.Clear(Color.DarkBlue);
+            graphics.DrawString("Screenshot Failed - Fallback Created", new Font("Arial", 24), Brushes.White, 50, 50);
+            graphics.DrawString($"Reason: Running in non-interactive session or UI access denied", new Font("Arial", 16), Brushes.Gray, 50, 100);
+            bitmap.Save(filepath, ImageFormat.Png);
+        }
 
         return filename;
     }

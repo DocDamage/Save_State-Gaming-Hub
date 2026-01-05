@@ -1,0 +1,297 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Library.GameDetail;assembly=SaveState.Presentation"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Library.GameDetail.GameModsTabView"
+             x:DataType="vm:GameModsTabViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Border Grid.Row="0" Classes="GlassContainer" Padding="20" Margin="0,0,0,15">
+            <Grid ColumnDefinitions="Auto, *, Auto, Auto, Auto">
+                <TextBlock Grid.Column="0" Text="🛠️ MODS" Classes="Subtitle" VerticalAlignment="Center" />
+
+                <TextBlock Grid.Column="1"
+                           Text="{Binding ModsCountText}"
+                           Classes="Caption"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center" />
+
+                <Button Grid.Column="2"
+                        Content="🔄 Check Updates"
+                        Classes="Secondary"
+                        Command="{Binding CheckUpdatesCommand}"
+                        Margin="10,0" />
+
+                <Button Grid.Column="3"
+                        Content="📥 Download Mods"
+                        Classes="Secondary"
+                        Command="{Binding DownloadModsCommand}"
+                        Margin="0,0,10,0" />
+
+                <Button Grid.Column="4"
+                        Content="+ Install Mod"
+                        Classes="Primary"
+                        Command="{Binding InstallModCommand}" />
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, Auto">
+            <!-- Mods List -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Mods}" Margin="0,0,15,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{Binding BackgroundBrush}"
+                                    BorderBrush="{Binding BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="15"
+                                    Margin="0,0,0,10">
+                                <Grid ColumnDefinitions="60, *, Auto, Auto">
+                                    <!-- Mod Icon/Image -->
+                                    <Border Grid.Column="0"
+                                            Background="{StaticResource SurfaceBrush}"
+                                            CornerRadius="6"
+                                            Width="50" Height="50"
+                                            Margin="0,0,15,0">
+                                        <Image Source="{Binding IconUrl}"
+                                               Stretch="Uniform"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+                                    </Border>
+
+                                    <!-- Mod Details -->
+                                    <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
+                                        <Grid ColumnDefinitions="*, Auto">
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{Binding Name}"
+                                                       Classes="Body"
+                                                       FontWeight="SemiBold" />
+
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding Version}"
+                                                       Classes="Caption"
+                                                       Foreground="{StaticResource AccentBrush}"
+                                                       Margin="10,0,0,0" />
+                                        </Grid>
+
+                                        <TextBlock Text="{Binding Description}"
+                                                   Classes="Caption"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                                   TextWrapping="Wrap"
+                                                   MaxLines="2" />
+
+                                        <StackPanel Orientation="Horizontal" Spacing="15">
+                                            <TextBlock Text="{Binding AuthorText}"
+                                                       Classes="Caption" />
+
+                                            <TextBlock Text="{Binding DownloadsText}"
+                                                       Classes="Caption"
+                                                       Foreground="{StaticResource AccentBrush}" />
+
+                                            <TextBlock Text="{Binding LastUpdatedText}"
+                                                       Classes="Caption"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+
+                                            <TextBlock Text="{Binding CompatibilityText}"
+                                                       Classes="Caption"
+                                                       Foreground="{Binding CompatibilityColor}" />
+                                        </StackPanel>
+
+                                        <!-- Tags -->
+                                        <WrapPanel Margin="0,5,0,0">
+                                            <ItemsControl ItemsSource="{Binding Tags}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel Orientation="Horizontal" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="{StaticResource PrimaryBrush}"
+                                                                CornerRadius="10"
+                                                                Padding="5,2"
+                                                                Margin="0,0,6,0">
+                                                            <TextBlock Text="{Binding}"
+                                                                       Classes="Caption"
+                                                                       Foreground="White"
+                                                                       FontSize="11" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </WrapPanel>
+                                    </StackPanel>
+
+                                    <!-- Status & Actions -->
+                                    <StackPanel Grid.Column="2" Spacing="8" VerticalAlignment="Center" Margin="15,0">
+                                        <Border Background="{Binding StatusColor}"
+                                                CornerRadius="12"
+                                                Padding="8,4">
+                                            <TextBlock Text="{Binding StatusText}"
+                                                       Classes="Caption"
+                                                       Foreground="White"
+                                                       HorizontalAlignment="Center" />
+                                        </Border>
+
+                                        <StackPanel Spacing="5" IsVisible="{Binding ShowProgress}">
+                                            <ProgressBar Value="{Binding DownloadProgress}"
+                                                        Maximum="100"
+                                                        Height="4" />
+                                            <TextBlock Text="{Binding ProgressText}"
+                                                       Classes="Caption"
+                                                       HorizontalAlignment="Center"
+                                                       FontSize="10" />
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- Action Buttons -->
+                                    <StackPanel Grid.Column="3" Spacing="6" VerticalAlignment="Center">
+                                        <Button Content="{Binding PrimaryActionText}"
+                                                Classes="Primary"
+                                                Command="{Binding PrimaryActionCommand}"
+                                                IsEnabled="{Binding PrimaryActionEnabled}" />
+
+                                        <Button Content="⚙️ Settings"
+                                                Classes="Secondary"
+                                                Command="{Binding SettingsCommand}"
+                                                IsVisible="{Binding IsInstalled}" />
+
+                                        <Button Content="🗑️ Uninstall"
+                                                Classes="Danger"
+                                                Command="{Binding UninstallCommand}"
+                                                IsVisible="{Binding IsInstalled}" />
+
+                                        <Button Content="⭐ Rate"
+                                                Classes="Secondary"
+                                                Command="{Binding RateCommand}"
+                                                IsVisible="{Binding CanRate}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Sidebar -->
+            <Border Grid.Column="1" Classes="GlassContainer" Padding="20" Width="280">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="20">
+                        <TextBlock Text="📊 MOD MANAGER" Classes="Subtitle" />
+
+                        <!-- Mod Stats -->
+                        <Border Background="{StaticResource SurfaceBrush}" Padding="15" CornerRadius="6">
+                            <Grid RowDefinitions="Auto, Auto, Auto, Auto" ColumnDefinitions="*, Auto">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Installed Mods:" Classes="Caption" />
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding InstalledModsCount}" Classes="Caption" />
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Available Updates:" Classes="Caption" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AvailableUpdatesCount}" Classes="Caption" />
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Total Downloads:" Classes="Caption" />
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TotalDownloads}" Classes="Caption" />
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Mod Storage:" Classes="Caption" />
+                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ModStorageSize}" Classes="Caption" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Quick Filters -->
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="🔍 FILTERS" Classes="Caption" FontWeight="Bold" />
+
+                            <StackPanel Spacing="5">
+                                <CheckBox Content="Show Installed Only" IsChecked="{Binding ShowInstalledOnly}" />
+                                <CheckBox Content="Show Updates Available" IsChecked="{Binding ShowUpdatesOnly}" />
+                                <CheckBox Content="Show Compatible Only" IsChecked="{Binding ShowCompatibleOnly}" />
+                            </StackPanel>
+
+                            <ComboBox ItemsSource="{Binding CategoryFilters}"
+                                      SelectedItem="{Binding SelectedCategory}"
+                                      PlaceholderText="Category..." />
+                        </StackPanel>
+
+                        <!-- Popular Tags -->
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="🏷️ POPULAR TAGS" Classes="Caption" FontWeight="Bold" />
+
+                            <WrapPanel>
+                                <ItemsControl ItemsSource="{Binding PopularTags}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Content="{Binding Name}"
+                                                    Classes="TagButton"
+                                                    Command="{Binding SelectCommand}"
+                                                    Margin="0,0,8,8" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </WrapPanel>
+                        </StackPanel>
+
+                        <!-- Mod Sources -->
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="📚 SOURCES" Classes="Caption" FontWeight="Bold" />
+
+                            <ItemsControl ItemsSource="{Binding ModSources}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Classes="SidebarButton"
+                                                Command="{Binding SelectCommand}"
+                                                HorizontalContentAlignment="Stretch">
+                                            <Grid ColumnDefinitions="Auto, *, Auto">
+                                                <TextBlock Grid.Column="0"
+                                                           Text="{Binding Icon}"
+                                                           FontSize="16"
+                                                           Margin="0,0,8,0" />
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{Binding Name}"
+                                                           Classes="Caption" />
+                                                <TextBlock Grid.Column="2"
+                                                           Text="{Binding ModCount, StringFormat='({0})'}"
+                                                           Classes="Caption"
+                                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                            </Grid>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- Settings -->
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="⚙️ SETTINGS" Classes="Caption" FontWeight="Bold" />
+
+                            <StackPanel Spacing="8">
+                                <CheckBox Content="Auto-check for updates" IsChecked="{Binding AutoUpdateCheck}" />
+                                <CheckBox Content="Download on install" IsChecked="{Binding DownloadOnInstall}" />
+                                <CheckBox Content="Backup before modding" IsChecked="{Binding BackupBeforeModding}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Quick Actions -->
+                        <StackPanel Spacing="10">
+                            <Button Content="🔄 Refresh Mod List"
+                                    Classes="Secondary"
+                                    Command="{Binding RefreshModsCommand}" />
+
+                            <Button Content="📦 Create Mod Pack"
+                                    Classes="Secondary"
+                                    Command="{Binding CreateModPackCommand}" />
+
+                            <Button Content="🗂️ Open Mods Folder"
+                                    Classes="Secondary"
+                                    Command="{Binding OpenModsFolderCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

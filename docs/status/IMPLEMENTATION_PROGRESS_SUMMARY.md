@@ -31,6 +31,24 @@
 
 **Impact**: +3 health points, enterprise-grade code quality
 
+### ✅ Phase 2.5: Navigation & Logger Type Safety (COMPLETED - January 2, 2026)
+
+**Core Achievements:**
+- ✅ **Navigation Service Refactoring**: Converted all `INavigationService.NavigateTo` methods from `void` to `async Task` to support `INavigationAware` ViewModels with async initialization
+- ✅ **ViewModel Commands**: Updated navigation commands in `GameCardViewModel`, `LibraryViewModel`, and `GameDetailViewModel` to use proper `async Task` pattern (removed `async void`)
+- ✅ **Logger Type Safety**: Fixed logger type mismatches by creating specific logger instances for each ViewModel type using `NullLoggerFactory.Instance.CreateLogger<T>()`
+- ✅ **ViewMode Enum**: Added `ViewMode` enumeration to `LibrarySidebarViewModel` for library view mode management
+
+**Files Updated:**
+- `src/SaveState.Presentation/Services/NavigationService.cs` - All `NavigateTo` methods now `async Task`
+- `src/SaveState.Presentation/ViewModels/Library/GameCardViewModel.cs` - `OpenGame()` now `async Task`
+- `src/SaveState.Presentation/ViewModels/Library/LibraryViewModel.cs` - `OpenSettings()` now `async Task`
+- `src/SaveState.Presentation/ViewModels/Library/GameDetail/GameDetailViewModel.cs` - `NavigateBack()` now `async Task`
+- `src/SaveState.Presentation/ViewModels/GameLibraryViewModel.cs` - Fixed logger type mismatches for child ViewModels
+- `src/SaveState.Presentation/ViewModels/MainViewModel.cs` - Fixed logger variable naming consistency
+
+**Impact**: Improved async safety, proper navigation initialization, type-safe logger usage
+
 ### 🚧 Phase 3: MUGEN Persistence Infrastructure (IN PROGRESS - 3/7 tasks complete)
 
 **Completed Infrastructure:**

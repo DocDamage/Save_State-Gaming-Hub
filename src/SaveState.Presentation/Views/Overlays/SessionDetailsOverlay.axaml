@@ -1,0 +1,263 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Overlays"
+             x:Class="SaveState.Presentation.Views.Overlays.SessionDetailsOverlay"
+             x:DataType="vm:SessionDetailsOverlayViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.overlay-panel">
+            <Setter Property="Background" Value="#E6000000" />
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+
+        <Style Selector="Border.content-panel">
+            <Setter Property="Background" Value="{StaticResource OverlayBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource OverlayBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="BoxShadow" Value="0 16 48 #60000000" />
+        </Style>
+
+        <Style Selector="Button.close">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+
+        <Style Selector="Button.close:pointerover">
+            <Setter Property="Background" Value="#20FFFFFF" />
+        </Style>
+    </UserControl.Styles>
+
+    <!-- Dimming Background -->
+    <Border Classes="overlay-panel"
+            PointerPressed="OnCloseClick">
+
+        <!-- Content Panel -->
+        <Border Classes="content-panel"
+                Width="900"
+                Height="700"
+                MaxWidth="1200"
+                MaxHeight="900">
+
+            <Grid RowDefinitions="Auto,*">
+                <!-- Header -->
+                <Grid Grid.Row="0"
+                      ColumnDefinitions="*,Auto"
+                      Margin="24,20,20,16"
+                      Background="Transparent">
+                    <StackPanel Grid.Column="0" Spacing="4">
+                        <TextBlock Text="📊 Session Details"
+                                  FontSize="24"
+                                  FontWeight="Bold"
+                                  Foreground="White" />
+                        <TextBlock Text="{Binding SessionSummary}"
+                                  FontSize="14"
+                                  Opacity="0.7"
+                                  Foreground="White" />
+                    </StackPanel>
+
+                    <Button Grid.Column="1"
+                           Classes="close"
+                           Content="✕"
+                           Click="OnCloseClick"
+                           VerticalAlignment="Top" />
+                </Grid>
+
+                <!-- Content -->
+                <ScrollViewer Grid.Row="1" Margin="24,0,24,24">
+                    <StackPanel Spacing="24">
+                        <!-- Session Overview -->
+                        <Border Background="#10FFFFFF"
+                               BorderBrush="#20FFFFFF"
+                               BorderThickness="1"
+                               CornerRadius="8"
+                               Padding="20">
+                            <Grid ColumnDefinitions="*,*,*,*" RowDefinitions="Auto,Auto">
+                                <!-- Total Playtime -->
+                                <StackPanel Grid.Column="0" Spacing="8">
+                                    <TextBlock Text="Total Playtime"
+                                              FontSize="12"
+                                              Opacity="0.6"
+                                              Foreground="White" />
+                                    <TextBlock Text="{Binding TotalPlaytime}"
+                                              FontSize="28"
+                                              FontWeight="Bold"
+                                              Foreground="#4A90FF" />
+                                </StackPanel>
+
+                                <!-- Session Count -->
+                                <StackPanel Grid.Column="1" Spacing="8">
+                                    <TextBlock Text="Sessions"
+                                              FontSize="12"
+                                              Opacity="0.6"
+                                              Foreground="White" />
+                                    <TextBlock Text="{Binding SessionCount}"
+                                              FontSize="28"
+                                              FontWeight="Bold"
+                                              Foreground="#10B981" />
+                                </StackPanel>
+
+                                <!-- Average Session -->
+                                <StackPanel Grid.Column="2" Spacing="8">
+                                    <TextBlock Text="Avg Session"
+                                              FontSize="12"
+                                              Opacity="0.6"
+                                              Foreground="White" />
+                                    <TextBlock Text="{Binding AverageSession}"
+                                              FontSize="28"
+                                              FontWeight="Bold"
+                                              Foreground="#F59E0B" />
+                                </StackPanel>
+
+                                <!-- Last Played -->
+                                <StackPanel Grid.Column="3" Spacing="8">
+                                    <TextBlock Text="Last Played"
+                                              FontSize="12"
+                                              Opacity="0.6"
+                                              Foreground="White" />
+                                    <TextBlock Text="{Binding LastPlayed}"
+                                              FontSize="28"
+                                              FontWeight="Bold"
+                                              Foreground="#8B5CF6" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Recent Sessions -->
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Recent Sessions"
+                                      FontSize="18"
+                                      FontWeight="SemiBold"
+                                      Foreground="White" />
+
+                            <ItemsControl ItemsSource="{Binding RecentSessions}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#10FFFFFF"
+                                               BorderBrush="#20FFFFFF"
+                                               BorderThickness="1"
+                                               CornerRadius="8"
+                                               Padding="16"
+                                               Margin="0,0,0,8">
+                                            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                                <!-- Date -->
+                                                <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,16,0">
+                                                    <TextBlock Text="{Binding Date, StringFormat='{}{0:MMM dd}'}"
+                                                              FontSize="14"
+                                                              FontWeight="SemiBold"
+                                                              Foreground="White" />
+                                                    <TextBlock Text="{Binding Date, StringFormat='{}{0:yyyy}'}"
+                                                              FontSize="11"
+                                                              Opacity="0.6"
+                                                              Foreground="White" />
+                                                </StackPanel>
+
+                                                <!-- Time Range -->
+                                                <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding TimeRange}"
+                                                              FontSize="13"
+                                                              Foreground="White" />
+                                                    <TextBlock Text="{Binding Platform}"
+                                                              FontSize="11"
+                                                              Opacity="0.6"
+                                                              Foreground="White" />
+                                                </StackPanel>
+
+                                                <!-- Duration -->
+                                                <StackPanel Grid.Column="2" Spacing="4" Margin="16,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Duration}"
+                                                              FontSize="16"
+                                                              FontWeight="SemiBold"
+                                                              Foreground="#4A90FF"
+                                                              HorizontalAlignment="Right" />
+                                                    <TextBlock Text="playtime"
+                                                              FontSize="10"
+                                                              Opacity="0.6"
+                                                              Foreground="White"
+                                                              HorizontalAlignment="Right" />
+                                                </StackPanel>
+
+                                                <!-- Performance -->
+                                                <StackPanel Grid.Column="3" Spacing="4" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding AvgFps, StringFormat='{}{0} FPS'}"
+                                                              FontSize="13"
+                                                              Foreground="#10B981"
+                                                              HorizontalAlignment="Right" />
+                                                    <TextBlock Text="{Binding Performance}"
+                                                              FontSize="11"
+                                                              Opacity="0.6"
+                                                              Foreground="White"
+                                                              HorizontalAlignment="Right" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- Performance Metrics -->
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Performance Metrics"
+                                      FontSize="18"
+                                      FontWeight="SemiBold"
+                                      Foreground="White" />
+
+                            <Border Background="#10FFFFFF"
+                                   BorderBrush="#20FFFFFF"
+                                   BorderThickness="1"
+                                   CornerRadius="8"
+                                   Padding="20">
+                                <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
+                                    <!-- Average FPS -->
+                                    <TextBlock Grid.Row="0" Grid.Column="0"
+                                              Text="Average FPS"
+                                              FontSize="14"
+                                              Foreground="White"
+                                              VerticalAlignment="Center" />
+                                    <TextBlock Grid.Row="0" Grid.Column="1"
+                                              Text="{Binding AvgFps}"
+                                              FontSize="16"
+                                              FontWeight="SemiBold"
+                                              Foreground="#10B981" />
+
+                                    <!-- CPU Usage -->
+                                    <TextBlock Grid.Row="1" Grid.Column="0"
+                                              Text="Avg CPU Usage"
+                                              FontSize="14"
+                                              Foreground="White"
+                                              VerticalAlignment="Center"
+                                              Margin="0,12,0,0" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1"
+                                              Text="{Binding AvgCpu, StringFormat='{}{0}%'}"
+                                              FontSize="16"
+                                              FontWeight="SemiBold"
+                                              Foreground="#F59E0B"
+                                              Margin="0,12,0,0" />
+
+                                    <!-- GPU Usage -->
+                                    <TextBlock Grid.Row="2" Grid.Column="0"
+                                              Text="Avg GPU Usage"
+                                              FontSize="14"
+                                              Foreground="White"
+                                              VerticalAlignment="Center"
+                                              Margin="0,12,0,0" />
+                                    <TextBlock Grid.Row="2" Grid.Column="1"
+                                              Text="{Binding AvgGpu, StringFormat='{}{0}%'}"
+                                              FontSize="16"
+                                              FontWeight="SemiBold"
+                                              Foreground="#8B5CF6"
+                                              Margin="0,12,0,0" />
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+    </Border>
+</UserControl>

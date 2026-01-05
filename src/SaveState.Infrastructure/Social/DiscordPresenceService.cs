@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Social;
+using DiscordRPC;
+using DiscordRPC.Logging;
 
 namespace SaveState.Infrastructure.Social;
 
 /// <summary>
 /// Discord Rich Presence implementation using the DiscordRichPresence NuGet package.
-/// Note: For full functionality, add the DiscordRichPresence package:
-/// dotnet add package DiscordRichPresence
 /// </summary>
 public class DiscordPresenceService : IDiscordPresenceService
 {
@@ -15,9 +15,7 @@ public class DiscordPresenceService : IDiscordPresenceService
     private bool _isDisposed;
     private string? _applicationId;
 
-    // In production, this would be the DiscordRpcClient from DiscordRichPresence package
-    // For now, implementing as a placeholder with logging
-    private object? _client;
+    private DiscordRpcClient? _client;
 
     /// <summary>
     /// Gets a value indicating whether the service is connected to Discord.
@@ -55,18 +53,28 @@ public class DiscordPresenceService : IDiscordPresenceService
 
         try
         {
-            // Placeholder for actual Discord RPC initialization
-            // In production:
-            // _client = new DiscordRpcClient(applicationId);
-            // _client.OnReady += (s, e) => { _isConnected = true; ConnectionStatusChanged?.Invoke(this, true); };
-            // _client.OnConnectionFailed += (s, e) => { _isConnected = false; ConnectionStatusChanged?.Invoke(this, false); };
-            // _client.Initialize();
+            _client = new DiscordRpcClient(applicationId);
+
+            // Set up logging
+            _client.Logger = new ConsoleLogger(DiscordRPC.Logging.LogLevel.Warning);
+
+            _client.OnReady += (s, e) =>
+            {
+                _isConnected = true;
+                _logger.LogInformation("Discord RPC Ready. User: {User}", e.User.Username);
+                ConnectionStatusChanged?.Invoke(this, true);
+            };
+
+            _client.OnConnectionFailed += (s, e) =>
+            {
+                _isConnected = false;
+                _logger.LogWarning("Discord RPC Connection Failed: {Error}", e);
+                ConnectionStatusChanged?.Invoke(this, false);
+            };
+
+            _client.Initialize();
 
             _logger.LogInformation("Discord Rich Presence initialized with Application ID: {AppId}", applicationId);
-
-            // Simulate connection
-            _isConnected = true;
-            ConnectionStatusChanged?.Invoke(this, true);
         }
         catch (Exception ex)
         {
@@ -99,31 +107,29 @@ public class DiscordPresenceService : IDiscordPresenceService
         DateTime? startTimestamp = null,
         CancellationToken ct = default)
     {
-        if (!_isConnected)
+        if (_client == null || !IsConnected) // Check client existance
         {
-            _logger.LogWarning("Cannot set presence: Discord not connected");
-            return Task.CompletedTask;
+            // _logger.LogWarning("Cannot set presence: Discord not connected");
+            // Allow setting presence even if not fully connected yet, client handles it
         }
 
         try
         {
-            // Placeholder for actual presence update
-            // In production:
-            // _client?.SetPresence(new RichPresence
-            // {
-            //     Details = gameTitle,
-            //     State = details,
-            //     Assets = new Assets
-            //     {
-            //         LargeImageKey = largeImageKey ?? "default_game",
-            //         LargeImageText = largeImageText ?? gameTitle,
-            //         SmallImageKey = smallImageKey ?? "savestate_icon",
-            //         SmallImageText = smallImageText ?? "SaveState Gaming Hub"
-            //     },
-            //     Timestamps = startTimestamp.HasValue
-            //         ? new Timestamps(startTimestamp.Value)
-            //         : Timestamps.Now
-            // });
+             _client?.SetPresence(new RichPresence
+             {
+                 Details = gameTitle,
+                 State = details,
+                 Assets = new Assets
+                 {
+                     LargeImageKey = largeImageKey ?? "default_game",
+                     LargeImageText = largeImageText ?? gameTitle,
+                     SmallImageKey = smallImageKey ?? "savestate_icon",
+                     SmallImageText = smallImageText ?? "SaveState Gaming Hub"
+                 },
+                 Timestamps = startTimestamp.HasValue
+                     ? new Timestamps(startTimestamp.Value)
+                     : Timestamps.Now
+             });
 
             _logger.LogInformation("Discord presence updated: Playing {GameTitle}{Details}",
                 gameTitle,
@@ -146,7 +152,7 @@ public class DiscordPresenceService : IDiscordPresenceService
     /// <returns>A task representing the asynchronous operation.</returns>
     public Task SetIdleAsync(string? status = null, CancellationToken ct = default)
     {
-        if (!_isConnected)
+        if (_client == null)
         {
             return Task.CompletedTask;
         }
@@ -155,17 +161,15 @@ public class DiscordPresenceService : IDiscordPresenceService
         {
             var idleStatus = status ?? "Browsing Library";
 
-            // Placeholder for actual idle presence
-            // In production:
-            // _client?.SetPresence(new RichPresence
-            // {
-            //     Details = idleStatus,
-            //     Assets = new Assets
-            //     {
-            //         LargeImageKey = "savestate_logo",
-            //         LargeImageText = "SaveState Gaming Hub"
-            //     }
-            // });
+             _client.SetPresence(new RichPresence
+             {
+                 Details = idleStatus,
+                 Assets = new Assets
+                 {
+                     LargeImageKey = "savestate_logo",
+                     LargeImageText = "SaveState Gaming Hub"
+                 }
+             });
 
             _logger.LogInformation("Discord presence set to idle: {Status}", idleStatus);
         }
@@ -187,7 +191,7 @@ public class DiscordPresenceService : IDiscordPresenceService
     {
         try
         {
-            // In production: _client?.ClearPresence();
+            _client?.ClearPresence();
             _logger.LogInformation("Discord presence cleared");
         }
         catch (Exception ex)
@@ -208,7 +212,8 @@ public class DiscordPresenceService : IDiscordPresenceService
     {
         try
         {
-            // In production: _client?.Dispose();
+            _client?.Dispose();
+            _client = null;
             _isConnected = false;
             ConnectionStatusChanged?.Invoke(this, false);
             _logger.LogInformation("Discord Rich Presence disconnected");

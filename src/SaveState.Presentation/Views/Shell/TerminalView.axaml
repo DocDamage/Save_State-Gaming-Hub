@@ -3,46 +3,200 @@
              xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
              x:Class="SaveState.Presentation.Views.Shell.TerminalView"
              x:DataType="vm:TerminalViewModel">
-    <Border Background="#0C0C0C" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8" Margin="20">
-        <Grid RowDefinitions="*, Auto">
-            <!-- Output Log -->
-            <ScrollViewer Grid.Row="0" x:Name="LogScrollViewer">
-                <ItemsControl ItemsSource="{Binding History}" Padding="15">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding}"
-                                     FontFamily="Consolas, Monospace"
-                                     Foreground="#DCDCDC"
-                                     TextWrapping="Wrap"
-                                     Margin="0,0,0,5" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
 
-            <!-- Input Area -->
-            <Border Grid.Row="1" Background="#1A1A1A" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="10">
-                <Grid ColumnDefinitions="Auto, *">
-                    <TextBlock Text="[root@savestate]# "
-                             VerticalAlignment="Center"
-                             FontFamily="Consolas, Monospace"
-                             Foreground="{StaticResource AccentBrush}"
-                             FontWeight="Bold" />
-                    <TextBox Grid.Column="1"
-                            Text="{Binding CommandText, Mode=TwoWay}"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            FontFamily="Consolas, Monospace"
-                            Foreground="White"
-                            Padding="5,0"
-                            Watermark="Enter command..."
-                            VerticalContentAlignment="Center">
-                        <TextBox.KeyBindings>
-                            <KeyBinding Gesture="Enter" Command="{Binding ExecuteCommand}" />
-                        </TextBox.KeyBindings>
-                    </TextBox>
+    <UserControl.Styles>
+        <Style Selector="ItemsControl TextBlock">
+            <Setter Property="FontFamily" Value="Consolas, 'Courier New', monospace" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Margin="20">
+        <SplitView IsPaneOpen="{Binding IsScriptEditorVisible}"
+                  DisplayMode="Overlay"
+                  OpenPaneLength="350"
+                  PanePlacement="Right">
+
+            <!-- Pane (Script Editor) -->
+            <SplitView.Pane>
+                <Border Background="#1A1A1A"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1,0,0,0"
+                        Padding="20">
+                    <Grid RowDefinitions="Auto, *, Auto">
+                        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                            <TextBlock Text="Script Editor"
+                                     FontSize="20"
+                                     FontWeight="Bold"
+                                     Foreground="{DynamicResource AccentBrush}"
+                                     Margin="0,0,0,5" />
+                            <TextBlock Text="Manage and run custom command scripts"
+                                     FontSize="12"
+                                     Foreground="#888888" />
+                        </StackPanel>
+
+                        <Grid Grid.Row="1" RowDefinitions="*, 2*">
+                            <!-- Script List -->
+                            <ListBox Grid.Row="0"
+                                     ItemsSource="{Binding Scripts}"
+                                     SelectedItem="{Binding SelectedScript}"
+                                     Background="Transparent"
+                                     Margin="0,0,0,15">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Name}" FontWeight="Medium" />
+                                            <TextBlock Text="{Binding FilePath}" FontSize="11" Foreground="#666666" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <!-- Script Content -->
+                            <Border Grid.Row="1"
+                                    Background="#0C0C0C"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
+                                <TextBox Text="{Binding SelectedScript.Content, FallbackValue=''}"
+                                        AcceptsReturn="True"
+                                        FontFamily="Consolas"
+                                        FontSize="12"
+                                        Foreground="#DCDCDC"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Watermark="Script content..." />
+                            </Border>
+                        </Grid>
+
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" Margin="0,20,0,0">
+                            <Button Content="Run Script"
+                                    Command="{Binding RunSelectedScriptCommand}"
+                                    Classes="accent"
+                                    IsVisible="{Binding SelectedScript, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                            <Button Content="Save"
+                                    Classes="outline"
+                                    IsVisible="{Binding SelectedScript, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                            <Button Content="New" Classes="outline" />
+                            <Button Content="Close"
+                                    Command="{Binding ToggleScriptEditorCommand}"
+                                    Classes="outline" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </SplitView.Pane>
+
+            <!-- Content (Terminal) -->
+            <Border Background="#0C0C0C"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    BoxShadow="0 4 20 0 #40000000">
+                <Grid RowDefinitions="Auto, *, Auto, Auto">
+                    <!-- Terminal Header -->
+                    <Border Grid.Row="0" Background="#141414" Padding="15,10" CornerRadius="12,12,0,0">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Ellipse Width="12" Height="12" Fill="#ff5f56" />
+                                <Ellipse Width="12" Height="12" Fill="#ffbd2e" />
+                                <Ellipse Width="12" Height="12" Fill="#27c93f" />
+                                <TextBlock Text="Terminal Session"
+                                         VerticalAlignment="Center"
+                                         Margin="10,0,0,0"
+                                         FontSize="12"
+                                         Foreground="#888888" />
+                            </StackPanel>
+                            <Button Grid.Column="1"
+                                    Command="{Binding ToggleScriptEditorCommand}"
+                                    Padding="10,5"
+                                    Classes="outline">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="📜" />
+                                    <TextBlock Text="Scripts" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- Output Log -->
+                    <ScrollViewer Grid.Row="1"
+                                  x:Name="LogScrollViewer"
+                                  VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding History}" Padding="20">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}"
+                                             Foreground="#E0E0E0"
+                                             TextWrapping="Wrap"
+                                             Margin="0,0,0,4" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Progress Bar (shown during sync) -->
+                    <Border Grid.Row="2"
+                            Background="#141414"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="0,1,0,0"
+                            Padding="12,8"
+                            IsVisible="{Binding IsSyncing}"
+                            CornerRadius="0,0,12,12">
+                        <Grid RowDefinitions="Auto, Auto">
+                            <ProgressBar Grid.Row="0"
+                                       Value="{Binding SyncProgress}"
+                                       Maximum="100"
+                                       Height="6"
+                                       Margin="0,0,0,8"
+                                       Background="#333333"
+                                       Foreground="{DynamicResource AccentBrush}" />
+                            <TextBlock Grid.Row="1"
+                                     Text="{Binding SyncStatus}"
+                                     FontSize="12"
+                                     Foreground="#888888"
+                                     HorizontalAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Input Area -->
+                    <Border Grid.Row="3"
+                            Background="#141414"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="0,1,0,0"
+                            Padding="12,8"
+                            CornerRadius="0,0,12,12">
+                        <Grid ColumnDefinitions="Auto, *">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,8,0">
+                                <TextBlock Text="[" FontFamily="Consolas" Foreground="#666666" />
+                                <TextBlock Text="root" FontFamily="Consolas" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" />
+                                <TextBlock Text="@" FontFamily="Consolas" Foreground="#666666" />
+                                <TextBlock Text="savestate" FontFamily="Consolas" Foreground="#44cc11" />
+                                <TextBlock Text="]" FontFamily="Consolas" Foreground="#666666" />
+                                <TextBlock Text="# " FontFamily="Consolas" Foreground="#DCDCDC" FontWeight="Bold" />
+                            </StackPanel>
+
+                            <TextBox Grid.Column="1"
+                                    Text="{Binding CommandText, Mode=TwoWay}"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    FontFamily="Consolas, Monospace"
+                                    FontSize="14"
+                                    Foreground="Black"
+                                    Padding="0"
+                                    Watermark="Enter command or talk to AI..."
+                                    VerticalContentAlignment="Center"
+                                    CaretBrush="{DynamicResource AccentBrush}">
+                                <TextBox.KeyBindings>
+                                    <KeyBinding Gesture="Enter" Command="{Binding ExecuteCommand}" />
+                                    <KeyBinding Gesture="Up" Command="{Binding HistoryUpCommand}" />
+                                    <KeyBinding Gesture="Down" Command="{Binding HistoryDownCommand}" />
+                                    <KeyBinding Gesture="Tab" Command="{Binding TabCompleteCommand}" />
+                                </TextBox.KeyBindings>
+                            </TextBox>
+                        </Grid>
+                    </Border>
                 </Grid>
             </Border>
-        </Grid>
-    </Border>
+        </SplitView>
+    </Grid>
 </UserControl>

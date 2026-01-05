@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SaveState.Core.Performance.Services;
 using SaveState.Presentation.Services;
 using System.Timers;
 
@@ -11,18 +12,31 @@ namespace SaveState.Presentation.ViewModels.Shell;
 public partial class PerformanceHudViewModel : ObservableObject, IDisposable
 {
     private readonly IOverlayService _overlayService;
+    private readonly IPerformanceMonitor? _performanceMonitor;
     private readonly System.Timers.Timer _updateTimer;
 
     private int _cpuUsage;
     private int _gpuUsage;
     private long _memoryUsage;
     private int _fps;
+    private float _frameTimeMs;
+    private float? _cpuTemp;
+    private float? _gpuTemp;
 
-    public PerformanceHudViewModel(IOverlayService overlayService)
+    public PerformanceHudViewModel(
+        IOverlayService overlayService,
+        IPerformanceMonitor? performanceMonitor)
     {
         _overlayService = overlayService;
+        _performanceMonitor = performanceMonitor;
 
-        // Update performance stats every second
+        // Subscribe to performance updates if monitor is available
+        if (_performanceMonitor != null)
+        {
+            _performanceMonitor.SnapshotUpdated += OnSnapshotUpdated;
+        }
+
+        // Fallback: Update performance stats every second
         _updateTimer = new System.Timers.Timer(1000);
         _updateTimer.Elapsed += OnUpdateTimerElapsed;
         _updateTimer.Start();
@@ -68,12 +82,51 @@ public partial class PerformanceHudViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
+    /// Gets the frame time in milliseconds.
+    /// </summary>
+    public float FrameTimeMs
+    {
+        get => _frameTimeMs;
+        private set => SetProperty(ref _frameTimeMs, value);
+    }
+
+    /// <summary>
+    /// Gets the CPU temperature (if available).
+    /// </summary>
+    public float? CpuTemp
+    {
+        get => _cpuTemp;
+        private set => SetProperty(ref _cpuTemp, value);
+    }
+
+    /// <summary>
+    /// Gets the GPU temperature (if available).
+    /// </summary>
+    public float? GpuTemp
+    {
+        get => _gpuTemp;
+        private set => SetProperty(ref _gpuTemp, value);
+    }
+
+    /// <summary>
     /// Command to close the performance HUD.
     /// </summary>
     [RelayCommand]
     private void Close()
     {
         _overlayService.HidePerformanceHudOverlay();
+    }
+
+    private void OnSnapshotUpdated(object? sender, PerformanceSnapshot snapshot)
+    {
+        // Update from real performance data
+        CpuUsage = (int)snapshot.CpuUsagePercent;
+        GpuUsage = (int)snapshot.GpuUsagePercent;
+        MemoryUsage = snapshot.RamUsageMb;
+        Fps = (int)snapshot.Fps;
+        FrameTimeMs = snapshot.FrameTimeMs;
+        CpuTemp = snapshot.CpuTempCelsius;
+        GpuTemp = snapshot.GpuTempCelsius;
     }
 
     private void OnUpdateTimerElapsed(object? sender, ElapsedEventArgs e)
@@ -83,12 +136,18 @@ public partial class PerformanceHudViewModel : ObservableObject, IDisposable
 
     private void UpdateStats()
     {
-        // TODO: Get real performance data from IPerformanceMonitor
-        // For now, simulate some data
-        CpuUsage = new Random().Next(10, 90);
-        GpuUsage = new Random().Next(20, 95);
-        MemoryUsage = new Random().Next(1000, 8000);
-        Fps = new Random().Next(30, 144);
+        // Try to get real performance data
+        var snapshot = _performanceMonitor?.GetCurrentSnapshot();
+        if (snapshot != null)
+        {
+            OnSnapshotUpdated(this, snapshot);
+        }
+        else
+        {
+            // Fallback to system memory usage
+            var process = System.Diagnostics.Process.GetCurrentProcess();
+            MemoryUsage = process.WorkingSet64 / (1024 * 1024); // Convert to MB
+        }
     }
 
     /// <summary>
@@ -97,5 +156,9 @@ public partial class PerformanceHudViewModel : ObservableObject, IDisposable
     public void Dispose()
     {
         _updateTimer?.Dispose();
+        if (_performanceMonitor != null)
+        {
+            _performanceMonitor.SnapshotUpdated -= OnSnapshotUpdated;
+        }
     }
 }

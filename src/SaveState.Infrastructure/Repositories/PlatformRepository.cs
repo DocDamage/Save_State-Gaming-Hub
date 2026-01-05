@@ -48,6 +48,14 @@ public class PlatformRepository : IPlatformRepository
             .ConfigureAwait(false);
     }
 
+    public async Task<IReadOnlyList<Platform>> GetAllAsync(CancellationToken ct = default)
+    {
+        return await _context.Platforms
+            .OrderBy(p => p.Name)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+    }
+
     public async Task AddAsync(Platform platform, CancellationToken ct = default)
     {
         await _context.Platforms.AddAsync(platform, ct).ConfigureAwait(false);

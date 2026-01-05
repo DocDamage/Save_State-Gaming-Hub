@@ -118,7 +118,7 @@ public class EmulatorRomScanner
         return games;
     }
 
-    private static DetectedGame? ParseRomFile(string filePath)
+    private DetectedGame? ParseRomFile(string filePath)
     {
         try
         {
@@ -151,8 +151,9 @@ public class EmulatorRomScanner
                 Metadata: metadata
             );
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Failed to parse ROM file: {FilePath}", filePath);
             return null;
         }
     }

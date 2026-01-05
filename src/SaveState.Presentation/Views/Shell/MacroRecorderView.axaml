@@ -1,0 +1,300 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             x:Class="SaveState.Presentation.Views.Shell.MacroRecorderView"
+             x:DataType="vm:MacroRecorderViewModel"
+             Background="{StaticResource BackgroundBrush}">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Border Grid.Row="0" Classes="GlassContainer" Margin="20,20,20,10" Padding="20">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <TextBlock Text="🎬 Macro Recorder" Classes="Header" VerticalAlignment="Center" />
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                    <Button Content="🔄 Refresh"
+                            Classes="Secondary"
+                            Command="{Binding RefreshMacrosCommand}"
+                            IsEnabled="{Binding !IsLoading}"
+                            ToolTip.Tip="Refresh macro list" />
+
+                    <Button Content="📤 Export"
+                            Classes="Secondary"
+                            Command="{Binding ExportMacroCommand}"
+                            IsEnabled="{Binding !!SelectedMacro}"
+                            ToolTip.Tip="Export selected macro" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, 400" Margin="20,0,20,20">
+            <!-- Left Column: Macro Library -->
+            <Border Classes="GlassContainer" Padding="20" Margin="0,0,10,0">
+                <Grid RowDefinitions="Auto, Auto, *">
+                    <TextBlock Text="Macro Library" Classes="SectionHeader" />
+
+                    <!-- Search Bar -->
+                    <TextBox Grid.Row="1"
+                             Text="{Binding SearchText}"
+                             Watermark="Search macros..."
+                             Margin="0,15,0,15" />
+
+                    <!-- Macro List -->
+                    <ScrollViewer Grid.Row="2">
+                        <Grid>
+                            <!-- Loading Indicator -->
+                            <Border IsVisible="{Binding IsLoading}"
+                                    Padding="40"
+                                    HorizontalAlignment="Center">
+                                <StackPanel Spacing="15" HorizontalAlignment="Center">
+                                    <TextBlock Text="⏳" FontSize="48" HorizontalAlignment="Center" />
+                                    <TextBlock Text="Loading macros..." Classes="Subtitle" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Macro Items -->
+                            <ItemsControl ItemsSource="{Binding Macros}"
+                                          IsVisible="{Binding !IsLoading}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="ListItem"
+                                            Padding="15"
+                                            Margin="0,0,0,8"
+                                            Background="{Binding $parent[ItemsControl].((vm:MacroRecorderViewModel)DataContext).SelectedMacro, Converter={StaticResource EqualityToBrushConverter}, ConverterParameter={Binding}}"
+                                            PointerPressed="MacroItem_PointerPressed">
+                                        <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="*, Auto">
+                                            <!-- Name -->
+                                            <TextBlock Text="{Binding Name}"
+                                                       FontWeight="SemiBold"
+                                                       FontSize="16" />
+
+                                            <!-- Actions Count -->
+                                            <TextBlock Grid.Column="1"
+                                                       VerticalAlignment="Center"
+                                                       Classes="Subtitle">
+                                                <Run Text="{Binding Actions.Count}" />
+                                                <Run Text="actions" />
+                                            </TextBlock>
+
+                                            <!-- Description -->
+                                            <TextBlock Grid.Row="1"
+                                                       Grid.ColumnSpan="2"
+                                                       Text="{Binding Description}"
+                                                       Classes="Subtitle"
+                                                       TextWrapping="Wrap"
+                                                       Margin="0,5,0,0"
+                                                       IsVisible="{Binding !!Description}" />
+
+                                            <!-- Metadata -->
+                                            <StackPanel Grid.Row="2"
+                                                        Grid.ColumnSpan="2"
+                                                        Orientation="Horizontal"
+                                                        Spacing="10"
+                                                        Margin="0,8,0,0">
+                                                <TextBlock Classes="Subtitle">
+                                                    <Run Text="Created:" />
+                                                    <Run Text="{Binding CreatedAt, StringFormat='{}{0:g}'}" />
+                                                </TextBlock>
+
+                                                <TextBlock Classes="Subtitle"
+                                                           IsVisible="{Binding !!Metadata.Statistics}">
+                                                    <Run Text="•" />
+                                                    <Run Text="{Binding Metadata.Statistics.TotalExecutions}" />
+                                                    <Run Text="runs" />
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                            <!-- Empty State -->
+                            <Border IsVisible="{Binding Macros.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}"
+                                    Padding="40">
+                                <StackPanel Spacing="15" HorizontalAlignment="Center">
+                                    <TextBlock Text="📭" FontSize="48" HorizontalAlignment="Center" />
+                                    <TextBlock Text="No macros yet" Classes="Subtitle" HorizontalAlignment="Center" />
+                                    <TextBlock Text="Start recording to create your first macro" Classes="Subtitle" HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Right Column: Recording &amp; Playback -->
+            <StackPanel Grid.Column="1" Spacing="15">
+                <!-- Recording Panel -->
+                <Border Classes="GlassContainer" Padding="20">
+                    <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto">
+                        <TextBlock Text="⏺️ Record Macro" Classes="SectionHeader" />
+
+                        <!-- Recording Form -->
+                        <StackPanel Grid.Row="1" Spacing="10" Margin="0,15,0,0" IsEnabled="{Binding !IsRecording}">
+                            <TextBox Text="{Binding RecordingName}"
+                                     Watermark="Macro name"
+                                     FontWeight="SemiBold" />
+
+                            <TextBox Text="{Binding RecordingDescription}"
+                                     Watermark="Description (optional)"
+                                     MinHeight="60"
+                                     TextWrapping="Wrap"
+                                     AcceptsReturn="True" />
+                        </StackPanel>
+
+                        <!-- Recording Status -->
+                        <Border Grid.Row="2"
+                                Margin="0,15,0,0"
+                                IsVisible="{Binding IsRecording}"
+                                Background="#1a1a1a"
+                                CornerRadius="8"
+                                Padding="15">
+                            <Grid RowDefinitions="Auto, Auto, Auto">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="⏺️"
+                                               FontSize="20"
+                                               Foreground="Red"
+                                               IsVisible="{Binding !IsPaused}" />
+                                    <TextBlock Text="⏸️"
+                                               FontSize="20"
+                                               IsVisible="{Binding IsPaused}" />
+                                    <TextBlock Text="Recording..."
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center" />
+                                </StackPanel>
+
+                                <Grid Grid.Row="1" ColumnDefinitions="*, *" Margin="0,10,0,0">
+                                    <StackPanel Spacing="3">
+                                        <TextBlock Text="Actions" Classes="Label" />
+                                        <TextBlock Text="{Binding ActionsRecorded}" FontWeight="Bold" FontSize="18" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Spacing="3">
+                                        <TextBlock Text="Duration" Classes="Label" />
+                                        <TextBlock Text="{Binding RecordingDuration}" FontWeight="Bold" FontSize="18" />
+                                    </StackPanel>
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <!-- Recording Controls -->
+                        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="10" Margin="0,15,0,0">
+                            <!-- Start Recording -->
+                            <Button Content="⏺️ Start"
+                                    Classes="Primary"
+                                    Command="{Binding StartRecordingCommand}"
+                                    IsVisible="{Binding !IsRecording}"
+                                    HorizontalAlignment="Stretch" />
+
+                            <!-- Pause/Resume -->
+                            <Button Content="⏸️ Pause"
+                                    Classes="Secondary"
+                                    Command="{Binding PauseRecordingCommand}"
+                                    IsVisible="{Binding IsRecording}"
+                                    IsEnabled="{Binding !IsPaused}" />
+
+                            <Button Content="▶️ Resume"
+                                    Classes="Primary"
+                                    Command="{Binding ResumeRecordingCommand}"
+                                    IsVisible="{Binding IsPaused}" />
+
+                            <!-- Stop -->
+                            <Button Content="⏹️ Save"
+                                    Classes="Primary"
+                                    Command="{Binding StopRecordingCommand}"
+                                    IsVisible="{Binding IsRecording}" />
+
+                            <!-- Cancel -->
+                            <Button Content="❌ Cancel"
+                                    Classes="Secondary"
+                                    Command="{Binding CancelRecordingCommand}"
+                                    IsVisible="{Binding IsRecording}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Playback Panel -->
+                <Border Classes="GlassContainer" Padding="20">
+                    <Grid RowDefinitions="Auto, Auto, Auto, Auto">
+                        <TextBlock Text="▶️ Playback" Classes="SectionHeader" />
+
+                        <!-- Playback Settings -->
+                        <StackPanel Grid.Row="1" Spacing="10" Margin="0,15,0,0" IsEnabled="{Binding !IsPlaying}">
+                            <Grid ColumnDefinitions="Auto, *">
+                                <TextBlock Text="Speed:"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,10,0" />
+
+                                <ComboBox Grid.Column="1"
+                                          ItemsSource="{Binding SpeedOptions}"
+                                          SelectedItem="{Binding SelectedSpeed}"
+                                          HorizontalAlignment="Stretch" />
+                            </Grid>
+
+                            <CheckBox Content="Loop playback"
+                                      IsChecked="{Binding LoopPlayback}" />
+                        </StackPanel>
+
+                        <!-- Playback Status -->
+                        <Border Grid.Row="2"
+                                Margin="0,15,0,0"
+                                IsVisible="{Binding IsPlaying}"
+                                Background="#1a1a1a"
+                                CornerRadius="8"
+                                Padding="15">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="▶️" FontSize="20" Foreground="Green" />
+                                <TextBlock Text="Playing macro..."
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Playback Controls -->
+                        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="10" Margin="0,15,0,0">
+                            <Button Content="▶️ Play"
+                                    Classes="Primary"
+                                    Command="{Binding PlayMacroCommand}"
+                                    IsVisible="{Binding !IsPlaying}"
+                                    IsEnabled="{Binding !!SelectedMacro}"
+                                    HorizontalAlignment="Stretch" />
+
+                            <Button Content="⏹️ Stop"
+                                    Classes="Secondary"
+                                    Command="{Binding StopPlaybackCommand}"
+                                    IsVisible="{Binding IsPlaying}"
+                                    HorizontalAlignment="Stretch" />
+
+                            <Button Content="🗑️ Delete"
+                                    Classes="Secondary"
+                                    Command="{Binding DeleteMacroCommand}"
+                                    IsEnabled="{Binding !!SelectedMacro}"
+                                    ToolTip.Tip="Delete selected macro" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Statistics Panel -->
+                <Border Classes="GlassContainer" Padding="20" IsVisible="{Binding !!Statistics}">
+                    <Grid RowDefinitions="Auto, Auto">
+                        <TextBlock Text="📊 Statistics" Classes="SectionHeader" />
+
+                        <Grid Grid.Row="1" ColumnDefinitions="*, *" Margin="0,15,0,0">
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="Total Macros" Classes="Label" />
+                                <TextBlock Text="{Binding Macros.Count}" FontWeight="Bold" FontSize="20" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="5">
+                                <TextBlock Text="Total Executions" Classes="Label" />
+                                <TextBlock Text="{Binding Statistics.TotalExecutions}" FontWeight="Bold" FontSize="20" />
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

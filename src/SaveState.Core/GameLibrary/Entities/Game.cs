@@ -24,11 +24,15 @@ public class Game : EntityBase, ISoftDelete
     public DateTime? UpdatedAt { get; private set; }
     public DateTime? LastPlayedAt { get; private set; }
     public TimeSpan TotalPlayTime { get; private set; }
+    public DateOnly? ReleaseDate { get; private set; }
+    public double? UserRating { get; private set; }
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
 
     // Navigation properties
     public ICollection<GameFile> Files { get; private set; } = new List<GameFile>();
+    public ICollection<Genre> Genres { get; private set; } = new List<Genre>();
+    public ICollection<string> Tags { get; private set; } = new List<string>();
 
     private Game() { } // EF Core
 
@@ -107,5 +111,28 @@ public class Game : EntityBase, ISoftDelete
 
         IsDeleted = true;
         DeletedAt = DateTime.UtcNow;
+    }
+
+    public void UpdateTags(IEnumerable<string> tags)
+    {
+        Tags = tags.ToList();
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void AddTag(string tag)
+    {
+        if (!Tags.Contains(tag))
+        {
+            Tags.Add(tag);
+            UpdatedAt = DateTime.UtcNow;
+        }
+    }
+
+    public void RemoveTag(string tag)
+    {
+        if (Tags.Remove(tag))
+        {
+            UpdatedAt = DateTime.UtcNow;
+        }
     }
 }

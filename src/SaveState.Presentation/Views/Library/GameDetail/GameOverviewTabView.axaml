@@ -1,0 +1,207 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Library.GameDetail;assembly=SaveState.Presentation"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Library.GameDetail.GameOverviewTabView"
+             x:DataType="vm:GameOverviewTabViewModel">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="20" Margin="0,0,0,20">
+            <!-- Top Row: Stats and Description -->
+            <Grid ColumnDefinitions="*, 1.2*, *">
+                <!-- Your Stats -->
+                <Border Classes="GlassContainer" Padding="20">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="📊 YOUR STATS" Classes="Subtitle" />
+
+                        <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto" ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Total Playtime:" Classes="Caption" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalPlaytimeText}" Classes="Caption" />
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Sessions:" Classes="Caption" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SessionCount}" Classes="Caption" />
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Last Played:" Classes="Caption" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding LastPlayedText}" Classes="Caption" />
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="First Played:" Classes="Caption" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding FirstPlayedText}" Classes="Caption" />
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Achievements:" Classes="Caption" />
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding AchievementProgress}" Classes="Caption" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Game Description -->
+                <Border Grid.Column="1" Classes="GlassContainer" Padding="20" Margin="15,0">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="📝 DESCRIPTION" Classes="Subtitle" />
+
+                        <TextBlock Text="{Binding GameDescription}"
+                                   Classes="Body"
+                                   TextWrapping="Wrap"
+                                   MaxHeight="200"
+                                   VerticalAlignment="Top" />
+
+                        <Button Content="[Read More]"
+                                Classes="Link"
+                                HorizontalAlignment="Left"
+                                Command="{Binding ReadMoreCommand}"
+                                IsVisible="{Binding HasLongDescription}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Quick Actions -->
+                <Border Grid.Column="2" Classes="GlassContainer" Padding="20">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="⚡ QUICK ACTIONS" Classes="Subtitle" />
+
+                        <StackPanel Spacing="10">
+                            <Button Content="🎯 Add Goal"
+                                    Classes="Secondary"
+                                    Command="{Binding AddGoalCommand}" />
+
+                            <Button Content="📊 View Analytics"
+                                    Classes="Secondary"
+                                    Command="{Binding ViewAnalyticsCommand}" />
+
+                            <Button Content="🏷️ Edit Tags"
+                                    Classes="Secondary"
+                                    Command="{Binding EditTagsCommand}" />
+
+                            <Button Content="📝 Write Review"
+                                    Classes="Secondary"
+                                    Command="{Binding WriteReviewCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                </Grid>
+
+            <!-- Middle Row: HLTB and Price History -->
+            <Grid ColumnDefinitions="*, *">
+                <!-- How Long To Beat -->
+                <Border Classes="GlassContainer" Padding="20">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="🎯 HOW LONG TO BEAT" Classes="Subtitle" />
+
+                        <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Main Story:" Classes="Caption" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding HltbMainStory}" Classes="Caption" />
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Main + Extras:" Classes="Caption" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding HltbMainExtras}" Classes="Caption" />
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Completionist:" Classes="Caption" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding HltbCompletionist}" Classes="Caption" />
+                        </Grid>
+
+                        <Separator />
+
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Your Progress:" Classes="Caption" />
+                            <ProgressBar Value="{Binding CompletionPercentage}"
+                                        Maximum="100"
+                                        Height="8"
+                                        Classes="CompletionProgress" />
+                            <TextBlock Text="{Binding CompletionText}" Classes="Caption" HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Price History -->
+                <Border Grid.Column="1" Classes="GlassContainer" Padding="20" Margin="15,0,0,0">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="💰 PRICE HISTORY" Classes="Subtitle" />
+
+                        <Grid RowDefinitions="Auto, Auto, Auto, Auto" ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Current Price:" Classes="Caption" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentPrice}" Classes="Caption" FontWeight="Bold" />
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Lowest Price:" Classes="Caption" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding LowestPrice}" Classes="Caption" Foreground="Green" />
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Historical Low:" Classes="Caption" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding HistoricalLow}" Classes="Caption" />
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Price History:" Classes="Caption" />
+                            <Button Grid.Row="3" Grid.Column="1" Content="[View Chart]" Classes="Link" Command="{Binding ViewPriceHistoryCommand}" />
+                        </Grid>
+
+                        <StackPanel Spacing="10" Margin="0,10,0,0">
+                            <CheckBox Content="🔔 Notify on Sale" IsChecked="{Binding NotifyOnSale}" />
+                            <Button Content="Set Price Alert" Classes="Secondary" Command="{Binding SetPriceAlertCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Bottom Row: Tags and AI Briefing -->
+            <Grid ColumnDefinitions="*, 1.2*">
+                <!-- Tags -->
+                <Border Classes="GlassContainer" Padding="20">
+                    <StackPanel Spacing="15">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="🏷️ TAGS" Classes="Subtitle" />
+                            <Button Grid.Column="1" Content="➕ Add Tag" Classes="Link" Command="{Binding AddTagCommand}" />
+                        </Grid>
+
+                        <WrapPanel>
+                            <ItemsControl ItemsSource="{Binding GameTags}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{StaticResource PrimaryBrush}"
+                                                CornerRadius="12"
+                                                Padding="8,4"
+                                                Margin="0,0,8,8">
+                                            <Grid ColumnDefinitions="*, Auto">
+                                                <TextBlock Grid.Column="0"
+                                                           Text="{Binding}"
+                                                           Classes="Caption"
+                                                           Foreground="White"
+                                                           VerticalAlignment="Center" />
+                                                <Button Grid.Column="1"
+                                                        Content="×"
+                                                        Classes="IconButton"
+                                                        Foreground="White"
+                                                        Command="{Binding RemoveCommand}"
+                                                        Margin="5,0,0,0" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- AI Briefing -->
+                <Border Grid.Column="1" Classes="GlassContainer" Padding="20" Margin="15,0,0,0">
+                    <StackPanel Spacing="15">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="🤖 AI BRIEFING" Classes="Subtitle" />
+                            <Button Grid.Column="1" Content="🔄 Generate New" Classes="Link" Command="{Binding GenerateAiBriefingCommand}" />
+                        </Grid>
+
+                        <TextBlock Text="{Binding AiBriefingText}"
+                                   Classes="Body"
+                                   TextWrapping="Wrap"
+                                   MinHeight="100" />
+
+                        <TextBlock Text="{Binding AiBriefingTimestamp}"
+                                   Classes="Caption"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   HorizontalAlignment="Right" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

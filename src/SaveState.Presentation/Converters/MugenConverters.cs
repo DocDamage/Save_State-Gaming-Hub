@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using Avalonia.Data;
 using Avalonia.Data.Converters;
 
 namespace SaveState.Presentation.Converters;
@@ -35,7 +36,7 @@ public class StringEqualsConverter : IValueConverter
     /// <returns>Not implemented.</returns>
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        throw new NotImplementedException();
+        return BindingOperations.DoNothing;
     }
 }
 
@@ -49,7 +50,7 @@ public class ReferenceEqualsConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        throw new NotImplementedException();
+        return BindingOperations.DoNothing;
     }
 }
 
@@ -62,6 +63,6 @@ public class NetworkStatusConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        throw new NotImplementedException();
+        return BindingOperations.DoNothing;
     }
 }

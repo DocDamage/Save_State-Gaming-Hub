@@ -6,6 +6,7 @@ using SaveState.Core.GameLibrary.DTOs;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.Enums;
 using SaveState.Core.GameLibrary.Services;
+using SaveState.Core.Analytics.Services;
 
 
 namespace SaveState.Infrastructure.GameLibrary.Services;
@@ -18,6 +19,7 @@ public class SessionTrackingService : ISessionTrackingService
     private readonly IGameSessionRepository _sessionRepository;
     private readonly IGameRepository _gameRepository;
     private readonly ILogger<SessionTrackingService> _logger;
+    private readonly IRealTimeNotificationService _notificationService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SessionTrackingService"/> class.
@@ -28,11 +30,13 @@ public class SessionTrackingService : ISessionTrackingService
     public SessionTrackingService(
         IGameSessionRepository sessionRepository,
         IGameRepository gameRepository,
-        ILogger<SessionTrackingService> logger)
+        ILogger<SessionTrackingService> logger,
+        IRealTimeNotificationService notificationService)
     {
         _sessionRepository = sessionRepository;
         _gameRepository = gameRepository;
         _logger = logger;
+        _notificationService = notificationService;
     }
 
     /// <summary>
@@ -81,6 +85,8 @@ public class SessionTrackingService : ISessionTrackingService
 
             _logger.LogInformation("Started session {SessionId} for game {GameTitle}",
                 session.Id, game.Title);
+
+            await _notificationService.NotifyAnalyticsUpdatedAsync("SessionStarted", ct);
 
             return Result<GameSession>.Success(session);
         }
@@ -136,6 +142,8 @@ public class SessionTrackingService : ISessionTrackingService
 
             _logger.LogInformation("Ended session {SessionId} after {Duration} - Reason: {Reason}",
                 sessionId, session.Duration, reason);
+
+            await _notificationService.NotifyAnalyticsUpdatedAsync("SessionEnded", ct);
 
             return Result.Success();
         }

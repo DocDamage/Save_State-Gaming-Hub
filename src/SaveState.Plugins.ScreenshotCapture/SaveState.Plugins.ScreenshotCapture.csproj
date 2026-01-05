@@ -6,6 +6,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>SaveState.Plugins.ScreenshotCapture</AssemblyName>
     <RootNamespace>SaveState.Plugins.ScreenshotCapture</RootNamespace>
+      <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

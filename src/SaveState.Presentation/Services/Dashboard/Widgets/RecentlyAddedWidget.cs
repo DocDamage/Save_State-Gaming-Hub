@@ -80,18 +80,18 @@ public partial class RecentlyAddedWidget : WidgetBase
     /// Command to navigate to the library.
     /// </summary>
     [RelayCommand]
-    private void NavigateToLibrary()
+    private async Task NavigateToLibrary()
     {
-        _navigationService.NavigateTo("Library");
+        await _navigationService.NavigateTo("Library");
     }
 
     /// <summary>
     /// Command to view a specific game.
     /// </summary>
     [RelayCommand]
-    private void ViewGame(Game game)
+    private async Task ViewGame(Game game)
     {
         // TODO: Navigate to game detail view
-        _navigationService.NavigateTo("Library");
+        await _navigationService.NavigateTo("Library");
     }
 }

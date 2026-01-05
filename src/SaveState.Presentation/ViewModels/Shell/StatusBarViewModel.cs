@@ -1,6 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.GameLibrary;
+using SaveState.Core.Analytics.Services;
+using SaveState.Core.Performance.Services;
 using SaveState.Presentation.Services;
 using System.Timers;
 
@@ -12,6 +15,10 @@ namespace SaveState.Presentation.ViewModels.Shell;
 public partial class StatusBarViewModel : ObservableObject, IDisposable
 {
     private readonly INavigationService _navigationService;
+    private readonly IOverlayService _overlayService;
+    private readonly IGameRepository _gameRepository;
+    private readonly IAnalyticsService _analyticsService;
+    private readonly IPerformanceMonitor? _performanceMonitor;
     private readonly ILogger<StatusBarViewModel> _logger;
     private readonly System.Timers.Timer _refreshTimer;
 
@@ -25,9 +32,17 @@ public partial class StatusBarViewModel : ObservableObject, IDisposable
 
     public StatusBarViewModel(
         INavigationService navigationService,
+        IOverlayService overlayService,
+        IGameRepository gameRepository,
+        IAnalyticsService analyticsService,
+        IPerformanceMonitor? performanceMonitor,
         ILogger<StatusBarViewModel> logger)
     {
         _navigationService = navigationService;
+        _overlayService = overlayService;
+        _gameRepository = gameRepository;
+        _analyticsService = analyticsService;
+        _performanceMonitor = performanceMonitor;
         _logger = logger;
 
         // Initialize timer for periodic updates
@@ -165,37 +180,39 @@ public partial class StatusBarViewModel : ObservableObject, IDisposable
     /// <summary>
     /// Shows network connection details.
     /// </summary>
+    [RelayCommand]
     public void ShowNetworkDetails()
     {
-        // TODO: Implement network diagnostics overlay
-        _logger.LogInformation("Showing network details");
+        _overlayService.ShowNetworkDiagnosticsOverlay();
+        _logger.LogInformation("Showing network diagnostics overlay");
     }
 
     /// <summary>
     /// Navigates to the library tab.
     /// </summary>
     [RelayCommand]
-    public void NavigateToLibrary()
+    public async Task NavigateToLibrary()
     {
-        _navigationService.NavigateTo("Library");
+        await _navigationService.NavigateTo("Library");
     }
 
     /// <summary>
     /// Navigates to the analytics tab.
     /// </summary>
     [RelayCommand]
-    public void NavigateToAnalytics()
+    public async Task NavigateToAnalytics()
     {
-        _navigationService.NavigateTo("Analytics");
+        await _navigationService.NavigateTo("Analytics");
     }
 
     /// <summary>
     /// Shows sync status details.
     /// </summary>
+    [RelayCommand]
     public void ShowSyncDetails()
     {
-        // TODO: Implement sync status overlay
-        _logger.LogInformation("Showing sync details");
+        _overlayService.ShowSyncStatusOverlay();
+        _logger.LogInformation("Showing sync status overlay");
     }
 
     /// <summary>
@@ -208,21 +225,46 @@ public partial class StatusBarViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Refreshes all status statistics.
+    /// Refreshes all status statistics from real services.
     /// </summary>
     private async Task RefreshStatsAsync()
     {
         try
         {
-            // TODO: Get real data from services
-            // For now, simulate some data
-            IsOnline = true; // TODO: Implement network connectivity check
-            GameCount = 142; // TODO: Get from IGameRepository
-            TodayPlaytime = TimeSpan.FromHours(2.5); // TODO: Get from IAnalyticsService
-            SyncStatus = "Idle"; // TODO: Get from ISyncService
+            // Network check (simple connectivity test)
+            IsOnline = System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
+
+            // Get real game count from repository
+            GameCount = await _gameRepository.CountAsync();
+
+            // Get today's playtime from analytics
+            var heatmapResult = await _analyticsService.GetHeatmapAsync(DateTime.Now.Year);
+            if (heatmapResult.IsSuccess && heatmapResult.Value != null)
+            {
+                var todayKey = DateOnly.FromDateTime(DateTime.Today);
+                if (heatmapResult.Value.Activities.TryGetValue(todayKey, out var todayActivity))
+                {
+                    TodayPlaytime = todayActivity.TotalPlaytime;
+                }
+                else
+                {
+                    TodayPlaytime = TimeSpan.Zero;
+                }
+            }
+
+            // Get performance data if available
+            if (_performanceMonitor != null)
+            {
+                var snapshot = _performanceMonitor.GetCurrentSnapshot();
+                if (snapshot != null)
+                {
+                    CpuUsage = (int)snapshot.CpuUsagePercent;
+                    GpuUsage = (int)snapshot.GpuUsagePercent;
+                }
+            }
+
+            SyncStatus = "Idle";
             IsSyncing = false;
-            CpuUsage = 23; // TODO: Get from IPerformanceMonitor
-            GpuUsage = 45; // TODO: Get from IPerformanceMonitor
         }
         catch (Exception ex)
         {

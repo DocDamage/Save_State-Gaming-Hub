@@ -115,4 +115,23 @@ public class GameSessionRepository : IGameSessionRepository
             .FirstOrDefaultAsync(ct)
             .ConfigureAwait(false);
     }
+
+    public async Task<IReadOnlyList<GameSession>> GetAllAsync(CancellationToken ct = default)
+    {
+        return await _context.GameSessions
+            .Include(s => s.Game)
+            .OrderByDescending(s => s.StartedAt)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<IReadOnlyList<GameSession>> GetByDateRangeAsync(DateTime start, DateTime end, CancellationToken ct = default)
+    {
+        return await _context.GameSessions
+            .Include(s => s.Game)
+            .Where(s => s.StartedAt >= start && s.StartedAt <= end)
+            .OrderByDescending(s => s.StartedAt)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+    }
 }

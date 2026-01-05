@@ -97,6 +97,16 @@ public interface IWidget : IDisposable
     /// Refreshes the widget data asynchronously.
     /// </summary>
     Task RefreshAsync();
+
+    /// <summary>
+    /// Command to minimize/expand the widget.
+    /// </summary>
+    System.Windows.Input.ICommand? MinimizeCommand { get; }
+
+    /// <summary>
+    /// Command to remove the widget from the dashboard.
+    /// </summary>
+    System.Windows.Input.ICommand? RemoveCommand { get; }
 }
 
 /// <summary>

@@ -1,0 +1,191 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Analytics"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
+             x:Class="SaveState.Presentation.Views.Analytics.AnalyticsDashboardView"
+             x:DataType="vm:AnalyticsDashboardViewModel">
+
+    <ScrollViewer>
+        <StackPanel Spacing="20" Margin="20">
+            <!-- Header -->
+            <Grid ColumnDefinitions="*, Auto, Auto">
+                <StackPanel>
+                    <TextBlock Text="Analytics Dashboard" FontSize="28" FontWeight="Light"/>
+                    <TextBlock Text="Track your gaming habits, backlog, and predictions" FontSize="14" Opacity="0.6"/>
+                </StackPanel>
+
+                <Button Grid.Column="1" Command="{Binding LoadAnalyticsCommand}" Content="Refresh Data" Margin="0,0,10,0"/>
+                <Button Grid.Column="2" Command="{Binding ExportDataCommand}" Content="Export JSON"/>
+            </Grid>
+
+            <!-- Loading Indicator -->
+            <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsLoading}" Height="2"/>
+
+            <!-- Summary Stats -->
+            <UniformGrid Columns="4" Rows="1">
+                <Border Margin="0,0,10,0" Padding="15" Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8">
+                    <StackPanel>
+                        <TextBlock Text="Total Play Time" Opacity="0.7"/>
+                        <TextBlock Text="{Binding TotalPlayTime}" FontSize="24" FontWeight="Bold"/>
+                    </StackPanel>
+                </Border>
+                <Border Margin="0,0,10,0" Padding="15" Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8">
+                    <StackPanel>
+                        <TextBlock Text="Total Games" Opacity="0.7"/>
+                        <TextBlock Text="{Binding TotalGames}" FontSize="24" FontWeight="Bold"/>
+                    </StackPanel>
+                </Border>
+                <Border Margin="0,0,10,0" Padding="15" Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8">
+                    <StackPanel>
+                        <TextBlock Text="Avg Session" Opacity="0.7"/>
+                        <TextBlock Text="{Binding AverageSessionLength}" FontSize="24" FontWeight="Bold"/>
+                    </StackPanel>
+                </Border>
+                <Border Padding="15" Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8">
+                    <StackPanel>
+                        <TextBlock Text="Longest Streak" Opacity="0.7"/>
+                        <TextBlock Text="{Binding LongestStreak}" FontSize="24" FontWeight="Bold"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- Main Content Area -->
+            <Grid ColumnDefinitions="*, 20, *">
+
+                <!-- Left Column: Patterns & Predictions -->
+                <StackPanel Grid.Column="0" Spacing="20">
+
+                    <!-- AI Predictions -->
+                    <Border Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8" Padding="15">
+                        <StackPanel Spacing="15">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="✨" FontSize="16"/>
+                                <TextBlock Text="AI Completion Predictions" FontWeight="Bold" FontSize="16"/>
+                            </StackPanel>
+
+                            <ItemsControl ItemsSource="{Binding Predictions}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="*, Auto" Margin="0,8">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding GameName}" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding EstimatedTimeRemaining, StringFormat='Estimated: \{0:h\}h \{0:m\}m remaining'}" FontSize="12" Opacity="0.7"/>
+                                            </StackPanel>
+                                            <Border Grid.Column="1" Background="#30FFFFFF" CornerRadius="4" Padding="8,4" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding ConfidenceScore, StringFormat='\{0:F0\}% Conf.'}" FontSize="12"/>
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <TextBlock Text="No active games sufficient for prediction."
+                                       IsVisible="{Binding !Predictions.Count}"
+                                       Opacity="0.5" FontStyle="Italic" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Genre Distribution -->
+                    <Border Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8" Padding="15">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Top Genres by Playtime" FontWeight="Bold" FontSize="16"/>
+                            <ItemsControl ItemsSource="{Binding GenreData}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="Auto, *, Auto" Margin="0,6">
+                                            <TextBlock Text="{Binding Genre}" Width="110" TextTrimming="CharacterEllipsis"/>
+                                            <ProgressBar Grid.Column="1" Value="{Binding Percentage}" Maximum="100" Height="6" Margin="10,0" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding Hours, StringFormat='\{0:F1\}h'}" Width="50" TextAlignment="Right"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Play Streaks -->
+                    <Border Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8" Padding="15">
+                         <StackPanel Spacing="10">
+                            <TextBlock Text="Recent Play Streaks" FontWeight="Bold" FontSize="16"/>
+                            <ItemsControl ItemsSource="{Binding PlayStreaks}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="*, Auto" Margin="0,4">
+                                            <TextBlock Text="{Binding DateRange}" Opacity="0.8"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding StreakText}" FontWeight="Bold"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Right Column: Trends & History -->
+                <StackPanel Grid.Column="2" Spacing="20">
+
+                    <!-- Backlog Trend -->
+                    <Border Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8" Padding="15">
+                        <StackPanel Spacing="15">
+                            <TextBlock Text="Backlog Growth (6 Months)" FontWeight="Bold" FontSize="16"/>
+
+                            <ItemsControl ItemsSource="{Binding BacklogData}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="Auto, *, Auto" Margin="0,6">
+                                            <TextBlock Text="{Binding Date, StringFormat='MMM'}" Width="40" VerticalAlignment="Center"/>
+                                            <!-- Visualizing count relative to 100 max for now -->
+                                            <ProgressBar Grid.Column="1" Value="{Binding BacklogCount}" Maximum="100" Height="12" Margin="10,0" Foreground="#FF6B6B" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding BacklogCount}" Width="30" TextAlignment="Right"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <TextBlock Text="Shows uncompleted games added over time" FontSize="11" Opacity="0.5" HorizontalAlignment="Right"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Completion Rates -->
+                     <Border Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8" Padding="15">
+                        <StackPanel Spacing="15">
+                            <TextBlock Text="Completion Rate Trend" FontWeight="Bold" FontSize="16"/>
+                            <ItemsControl ItemsSource="{Binding CompletionRates}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="Auto, *, Auto" Margin="0,6">
+                                            <TextBlock Text="{Binding Date, StringFormat='MMM'}" Width="40" VerticalAlignment="Center"/>
+                                            <ProgressBar Grid.Column="1" Value="{Binding CompletionRate}" Maximum="100" Height="12" Margin="10,0" Foreground="#4ECDC4" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding CompletionRate, StringFormat='\{0:F0\}%'}" Width="40" TextAlignment="Right"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Day Distribution -->
+                     <Border Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8" Padding="15">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Weekly Habits" FontWeight="Bold" FontSize="16"/>
+                            <ItemsControl ItemsSource="{Binding DayOfWeekData}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="Auto, *, Auto" Margin="0,4">
+                                            <TextBlock Text="{Binding Label}" Width="40"/>
+                                            <ProgressBar Grid.Column="1" Value="{Binding Value}" Maximum="100" Height="6" Margin="10,0"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding Value, StringFormat='\{0:F0\}%'}" Width="40" TextAlignment="Right"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

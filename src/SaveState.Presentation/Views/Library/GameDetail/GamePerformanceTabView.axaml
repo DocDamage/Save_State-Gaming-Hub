@@ -1,0 +1,86 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Library.GameDetail;assembly=SaveState.Presentation"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Library.GameDetail.GamePerformanceTabView"
+             x:DataType="vm:GamePerformanceTabViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header with Summary -->
+        <Border Grid.Row="0" Classes="GlassContainer" Padding="20" Margin="0,0,0,15">
+            <Grid ColumnDefinitions="*, *, *, *, Auto">
+                <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                    <TextBlock Text="CPU" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{Binding CpuUsage}" Classes="Body" FontWeight="Bold" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                    <TextBlock Text="GPU" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{Binding GpuUsage}" Classes="Body" FontWeight="Bold" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                    <TextBlock Text="RAM" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{Binding RamUsage}" Classes="Body" FontWeight="Bold" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="3" HorizontalAlignment="Center">
+                    <TextBlock Text="FPS" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{Binding Fps}" Classes="Body" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" />
+                </StackPanel>
+
+                <Button Grid.Column="4"
+                        Content="⚡ Optimize System"
+                        Classes="Primary"
+                        Command="{Binding OptimizeSystemCommand}"
+                        IsEnabled="{Binding !IsOptimizing}" />
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*, 300">
+            <!-- Main Monitoring Area -->
+            <Border Grid.Column="0" Classes="GlassContainer" Padding="20">
+                <Grid RowDefinitions="Auto, *">
+                    <TextBlock Grid.Row="0" Text="📊 REAL-TIME MONITORING" Classes="Subtitle" Margin="0,0,0,15" />
+
+                    <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" CornerRadius="8">
+                        <Canvas>
+                            <TextBlock Text="[Live Performance Graph - Coming Soon]"
+                                     Foreground="{StaticResource TextSecondaryBrush}"
+                                     Canvas.Left="50" Canvas.Top="100" />
+                        </Canvas>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Optimization History / Logs -->
+            <Border Grid.Column="1" Classes="GlassContainer" Padding="20" Margin="15,0,0,0">
+                <Grid RowDefinitions="Auto, *, Auto">
+                    <TextBlock Grid.Row="0" Text="📝 EVENT LOG" Classes="Subtitle" Margin="0,0,0,10" />
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding PerformanceLogs}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}"
+                                             FontSize="11"
+                                             Margin="0,0,0,5"
+                                             TextWrapping="Wrap" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <Button Grid.Row="2"
+                            Content="Clear Logs"
+                            Classes="Secondary"
+                            HorizontalAlignment="Stretch"
+                            Command="{Binding ClearLogsCommand}"
+                            Margin="0,10,0,0" />
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

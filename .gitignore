@@ -35,6 +35,11 @@ TestResults/
 *.db-shm
 *.db-wal
 
+# Large data directories
+data/
+downloads/
+engines/
+
 # User secrets
 secrets.json
 

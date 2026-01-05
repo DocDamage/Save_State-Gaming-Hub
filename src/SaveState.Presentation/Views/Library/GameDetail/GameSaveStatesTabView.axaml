@@ -1,0 +1,202 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Library.GameDetail;assembly=SaveState.Presentation"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Library.GameDetail.GameSaveStatesTabView"
+             x:DataType="vm:GameSaveStatesTabViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header with Controls -->
+        <Border Grid.Row="0" Classes="GlassContainer" Padding="20" Margin="0,0,0,15">
+            <Grid ColumnDefinitions="Auto, *, Auto, Auto, Auto">
+                <TextBlock Grid.Column="0" Text="💾 SAVE STATES" Classes="Subtitle" VerticalAlignment="Center" />
+
+                <TextBlock Grid.Column="1"
+                           Text="{Binding SaveStatesCountText}"
+                           Classes="Caption"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center" />
+
+                <Button Grid.Column="2"
+                        Content="⚙️ Auto-Save Settings"
+                        Classes="Secondary"
+                        Command="{Binding ConfigureAutoSaveCommand}"
+                        Margin="10,0" />
+
+                <Button Grid.Column="3"
+                        Content="+ Create Branch"
+                        Classes="Primary"
+                        Command="{Binding CreateBranchCommand}"
+                        Margin="0,0,10,0" />
+
+                <Button Grid.Column="4"
+                        Content="📁 Import Saves"
+                        Classes="Secondary"
+                        Command="{Binding ImportSavesCommand}" />
+            </Grid>
+        </Border>
+
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, Auto">
+            <!-- Save States Tree/List -->
+            <Border Classes="GlassContainer" Padding="20">
+                <Grid RowDefinitions="Auto, *">
+                    <!-- Current Branch Info -->
+                    <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" Padding="15" Margin="0,0,0,15">
+                        <Grid ColumnDefinitions="Auto, *, Auto, Auto, Auto">
+                            <TextBlock Grid.Column="0" Text="📊 Current Branch:" Classes="Caption" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="{Binding CurrentBranchName}" Classes="Body" VerticalAlignment="Center" Margin="10,0" />
+
+                            <Button Grid.Column="2" Content="Merge" Classes="Secondary" Command="{Binding MergeBranchCommand}" Margin="10,0" />
+                            <Button Grid.Column="3" Content="Compare" Classes="Secondary" Command="{Binding CompareBranchesCommand}" Margin="0,0,10,0" />
+                            <Button Grid.Column="4" Content="Switch Branch" Classes="Secondary" Command="{Binding SwitchBranchCommand}" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Save States List -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding SaveStates}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{Binding BackgroundBrush}"
+                                            BorderBrush="{Binding BorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Padding="15"
+                                            Margin="0,0,0,10">
+                                        <Grid ColumnDefinitions="Auto, *, Auto, Auto, Auto">
+                                            <!-- Branch Indicator -->
+                                            <Border Grid.Column="0"
+                                                    Background="{Binding BranchColor}"
+                                                    Width="4"
+                                                    CornerRadius="2"
+                                                    Margin="0,0,15,0"
+                                                    VerticalAlignment="Stretch" />
+
+                                            <!-- Save Info -->
+                                            <StackPanel Grid.Column="1" Spacing="5">
+                                                <TextBlock Text="{Binding DisplayName}"
+                                                           Classes="Body"
+                                                           FontWeight="SemiBold" />
+
+                                                <TextBlock Text="{Binding Description}"
+                                                           Classes="Caption"
+                                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                                           TextWrapping="Wrap" />
+
+                                                <StackPanel Orientation="Horizontal" Spacing="15">
+                                                    <TextBlock Text="{Binding CreatedText}"
+                                                               Classes="Caption"
+                                                               Foreground="{StaticResource TextSecondaryBrush}" />
+
+                                                    <TextBlock Text="{Binding FileSizeText}"
+                                                               Classes="Caption"
+                                                               Foreground="{StaticResource TextSecondaryBrush}" />
+
+                                                    <TextBlock Text="{Binding BranchName}"
+                                                               Classes="Caption"
+                                                               Foreground="{StaticResource AccentBrush}" />
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <!-- Quick Actions -->
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" Margin="10,0">
+                                                <Button Content="▶ Load"
+                                                        Classes="Secondary"
+                                                        Command="{Binding LoadCommand}"
+                                                        ToolTip.Tip="Load this save state" />
+
+                                                <Button Content="💾 Save As"
+                                                        Classes="Secondary"
+                                                        Command="{Binding SaveAsCommand}"
+                                                        ToolTip.Tip="Create new save from this state" />
+                                            </StackPanel>
+
+                                            <!-- Branch Actions -->
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" Margin="10,0">
+                                                <Button Content="🔀 Branch"
+                                                        Classes="Secondary"
+                                                        Command="{Binding CreateBranchFromCommand}"
+                                                        ToolTip.Tip="Create new branch from this save" />
+
+                                                <Button Content="📋 Copy"
+                                                        Classes="Secondary"
+                                                        Command="{Binding CopyToBranchCommand}"
+                                                        ToolTip.Tip="Copy to different branch" />
+                                            </StackPanel>
+
+                                            <!-- Delete -->
+                                            <Button Grid.Column="4"
+                                                    Content="🗑️"
+                                                    Classes="Danger"
+                                                    Command="{Binding DeleteCommand}"
+                                                    ToolTip.Tip="Delete this save state"
+                                                    Margin="10,0,0,0" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Sidebar with Quick Stats -->
+            <Border Grid.Column="1" Classes="GlassContainer" Padding="20" Margin="15,0,0,0" Width="250">
+                <StackPanel Spacing="20">
+                    <TextBlock Text="📈 QUICK STATS" Classes="Subtitle" />
+
+                    <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto" ColumnDefinitions="*, Auto">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Total Saves:" Classes="Caption" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalSaveCount}" Classes="Caption" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Current Branch:" Classes="Caption" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CurrentBranchSaveCount}" Classes="Caption" />
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Auto-Saves:" Classes="Caption" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AutoSaveCount}" Classes="Caption" />
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Total Size:" Classes="Caption" />
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding TotalSizeText}" Classes="Caption" />
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Last Backup:" Classes="Caption" />
+                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding LastBackupText}" Classes="Caption" />
+                    </Grid>
+
+                    <Separator />
+
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="🔄 AUTO-SAVE" Classes="Caption" FontWeight="Bold" />
+
+                        <StackPanel Spacing="8">
+                            <CheckBox Content="Enable Auto-Save" IsChecked="{Binding AutoSaveEnabled}" />
+                            <TextBlock Text="Interval:" Classes="Caption" />
+                            <ComboBox ItemsSource="{Binding AutoSaveIntervals}"
+                                      SelectedItem="{Binding SelectedAutoSaveInterval}"
+                                      PlaceholderText="Select interval..." />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Separator />
+
+                    <StackPanel Spacing="10">
+                        <Button Content="💾 Create Manual Save"
+                                Classes="Primary"
+                                Command="{Binding CreateManualSaveCommand}" />
+
+                        <Button Content="📦 Backup All Saves"
+                                Classes="Secondary"
+                                Command="{Binding BackupAllCommand}" />
+
+                        <Button Content="🧹 Clean Old Saves"
+                                Classes="Secondary"
+                                Command="{Binding CleanOldSavesCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

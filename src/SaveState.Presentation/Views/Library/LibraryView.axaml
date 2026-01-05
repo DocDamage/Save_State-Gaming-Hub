@@ -1,0 +1,145 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Library;assembly=SaveState.Presentation"
+             xmlns:views="using:SaveState.Presentation.Views.Library"
+             mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="900"
+             x:Class="SaveState.Presentation.Views.Library.LibraryView"
+             x:DataType="vm:LibraryViewModel">
+
+    <Grid RowDefinitions="Auto, Auto, *">
+        <!-- Header -->
+        <Border Grid.Row="0" Classes="GlassContainer" Margin="20,20,20,10" Padding="20">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <TextBlock Grid.Column="0"
+                           Text="🎮 Game Library"
+                           Classes="Header"
+                           VerticalAlignment="Center" />
+
+                <TextBlock Grid.Column="1"
+                           Text="{Binding LibraryStats}"
+                           Classes="Body"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           Foreground="{StaticResource TextSecondaryBrush}" />
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                    <Button Content="🔄 Refresh"
+                            Classes="Secondary"
+                            Command="{Binding RefreshCommand}"
+                            ToolTip.Tip="Refresh library data" />
+
+                    <Button Content="⚙️ Settings"
+                            Classes="Secondary"
+                            Command="{Binding OpenSettingsCommand}"
+                            ToolTip.Tip="Library settings" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Toolbar -->
+        <views:LibraryToolbar Grid.Row="1"
+                              Margin="20,0,20,10"
+                              DataContext="{Binding ToolbarViewModel}" />
+
+        <!-- Main Content Area -->
+        <Grid Grid.Row="2" Margin="20,0,20,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Sidebar -->
+            <views:LibrarySidebar Grid.Column="0"
+                                  Margin="0,0,20,0"
+                                  DataContext="{Binding SidebarViewModel}" />
+
+            <!-- Games Content -->
+            <Grid Grid.Column="1" RowDefinitions="*, Auto">
+                <!-- Game Views Container -->
+                <Grid Grid.Row="0">
+                    <!-- Grid View -->
+                    <views:GameGridView IsVisible="{Binding IsGridView}"
+                                        DataContext="{Binding GridViewModel}" />
+
+                    <!-- List View -->
+                    <views:GameListView IsVisible="{Binding IsListView}"
+                                        DataContext="{Binding ListViewModel}" />
+
+                    <!-- Compact View -->
+                    <views:GameGridView IsVisible="{Binding IsCompactView}"
+                                        DataContext="{Binding CompactViewModel}" />
+
+                    <!-- Table View -->
+                    <views:GameListView IsVisible="{Binding IsTableView}"
+                                        DataContext="{Binding TableViewModel}" />
+
+                    <!-- Empty State -->
+                    <Border IsVisible="{Binding IsEmpty}"
+                            Classes="GlassContainer"
+                            Padding="40"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                        <StackPanel Spacing="20" HorizontalAlignment="Center">
+                            <TextBlock Text="📚 No games found"
+                                       Classes="Header"
+                                       HorizontalAlignment="Center" />
+
+                            <TextBlock Text="{Binding EmptyStateMessage}"
+                                       Classes="Body"
+                                       HorizontalAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       MaxWidth="400" />
+
+                            <Button Content="➕ Add Your First Game"
+                                    Classes="Primary"
+                                    Command="{Binding AddGameCommand}"
+                                    HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Pagination Footer -->
+                <Border Grid.Row="1"
+                        Classes="GlassContainer"
+                        Margin="0,20,0,0"
+                        Padding="20"
+                        IsVisible="{Binding HasGames}">
+                    <Grid ColumnDefinitions="Auto, *, Auto">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding PaginationInfo}"
+                                   Classes="Body"
+                                   VerticalAlignment="Center" />
+
+                        <StackPanel Grid.Column="2"
+                                    Orientation="Horizontal"
+                                    Spacing="10"
+                                    VerticalAlignment="Center">
+                            <Button Content="◀ Previous"
+                                    Classes="Secondary"
+                                    Command="{Binding PreviousPageCommand}"
+                                    IsEnabled="{Binding HasPreviousPage}" />
+
+                            <TextBlock Text="{Binding CurrentPageInfo}"
+                                       Classes="Body"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0" />
+
+                            <Button Content="Next ▶"
+                                    Classes="Secondary"
+                                    Command="{Binding NextPageCommand}"
+                                    IsEnabled="{Binding HasNextPage}" />
+
+                            <ComboBox ItemsSource="{Binding PageSizeOptions}"
+                                      SelectedItem="{Binding SelectedPageSize}"
+                                      Width="80"
+                                      Margin="20,0,0,0"
+                                      ToolTip.Tip="Games per page" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

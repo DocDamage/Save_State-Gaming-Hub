@@ -18,4 +18,6 @@ public interface IGameSessionRepository
     Task<TimeSpan> GetTotalPlaytimeAsync(Guid gameId, CancellationToken ct = default);
     Task<GameSession?> GetLongestSessionAsync(Guid gameId, CancellationToken ct = default);
     Task<GameSession?> GetFirstSessionAsync(Guid gameId, CancellationToken ct = default);
+    Task<IReadOnlyList<GameSession>> GetAllAsync(CancellationToken ct = default);
+    Task<IReadOnlyList<GameSession>> GetByDateRangeAsync(DateTime start, DateTime end, CancellationToken ct = default);
 }

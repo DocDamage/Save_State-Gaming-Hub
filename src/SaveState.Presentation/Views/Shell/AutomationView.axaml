@@ -1,0 +1,63 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             xmlns:views="using:SaveState.Presentation.Views.Shell"
+             xmlns:vmAuto="using:SaveState.Presentation.ViewModels.Automation"
+             xmlns:viewsAuto="using:SaveState.Presentation.Views.Automation"
+             x:Class="SaveState.Presentation.Views.Shell.AutomationView"
+             x:DataType="vm:AutomationViewModel"
+             Background="{StaticResource BackgroundBrush}">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Sub-Tab Header -->
+        <Border Grid.Row="0" Classes="GlassContainer" Margin="20,20,20,10" Padding="20">
+            <Grid ColumnDefinitions="Auto, *">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <!-- Dashboard Tab Button -->
+                    <Button Content="📊 Dashboard"
+                            Command="{Binding ShowDashboardCommand}"
+                            Classes.Primary="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Dashboard}"
+                            Classes.Secondary="{Binding SelectedTab, Converter={StaticResource InequalityConverter}, ConverterParameter=Dashboard}"
+                            Padding="15,8"
+                            FontWeight="{Binding SelectedTab, Converter={StaticResource EqualityToFontWeightConverter}, ConverterParameter=Dashboard}" />
+
+                    <!-- Macros Tab Button -->
+                    <Button Content="🎬 Macros"
+                            Command="{Binding ShowMacrosCommand}"
+                            Classes.Primary="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Macros}"
+                            Classes.Secondary="{Binding SelectedTab, Converter={StaticResource InequalityConverter}, ConverterParameter=Macros}"
+                            Padding="15,8"
+                            FontWeight="{Binding SelectedTab, Converter={StaticResource EqualityToFontWeightConverter}, ConverterParameter=Macros}" />
+
+                    <!-- Scheduler Tab Button -->
+                    <Button Content="📅 Scheduler"
+                            Command="{Binding ShowSchedulerCommand}"
+                            Classes.Primary="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Scheduler}"
+                            Classes.Secondary="{Binding SelectedTab, Converter={StaticResource InequalityConverter}, ConverterParameter=Scheduler}"
+                            Padding="15,8"
+                            FontWeight="{Binding SelectedTab, Converter={StaticResource EqualityToFontWeightConverter}, ConverterParameter=Scheduler}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Content Area -->
+        <ContentControl Grid.Row="1" Content="{Binding CurrentSubView}">
+            <ContentControl.DataTemplates>
+                <!-- Dashboard Template -->
+                <DataTemplate DataType="vmAuto:AutomationDashboardViewModel">
+                    <viewsAuto:AutomationDashboardView />
+                </DataTemplate>
+
+                <!-- Macro Recorder Template -->
+                <DataTemplate DataType="vm:MacroRecorderViewModel">
+                    <views:MacroRecorderView />
+                </DataTemplate>
+
+                <!-- Task Scheduler Template -->
+                <DataTemplate DataType="vm:TaskSchedulerViewModel">
+                    <views:TaskSchedulerView />
+                </DataTemplate>
+            </ContentControl.DataTemplates>
+        </ContentControl>
+    </Grid>
+</UserControl>

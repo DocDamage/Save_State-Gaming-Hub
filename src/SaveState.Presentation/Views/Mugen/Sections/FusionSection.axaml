@@ -1,0 +1,71 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Shell.Mugen"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Mugen.Sections.FusionSection"
+             x:DataType="vm:MugenFusionViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <Border Grid.Row="0" Margin="20" Background="{StaticResource GlassBrush}" CornerRadius="12" Padding="20">
+            <StackPanel Orientation="Horizontal" Spacing="20">
+                <TextBlock Text="🧬 CHARACTER FUSION LAB" FontSize="24" FontWeight="Black" Foreground="White" />
+                <TextBlock Text="EXPERIMENT WITH GENETIC RECOMBINATION" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*, Auto, *" Margin="20,0,20,20">
+            <!-- Base Character -->
+            <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                <StackPanel Spacing="20" VerticalAlignment="Center">
+                    <TextBlock Text="BASE GENOME" FontSize="14" FontWeight="Bold" Foreground="#00BCD4" HorizontalAlignment="Center" />
+                    <Border Background="#1A1A1A" Height="250" CornerRadius="12">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
+                            <TextBlock Text="{Binding BaseCharacter.Name, FallbackValue='?'}" FontSize="32" FontWeight="Black" Foreground="White" />
+                            <TextBlock Text="P1 SELECTION" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Fusion Core -->
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="30" Spacing="20">
+                <Path Data="M 0,0 L 50,25 L 0,50 Z" Fill="{StaticResource FightingYellowBrush}" Width="50" Height="50" Stretch="Fill" />
+
+                <Button Command="{Binding FuseCharactersCommand}" Width="120" Height="120" CornerRadius="60" Classes="Accent">
+                    <TextBlock Text="FUSE" FontSize="20" FontWeight="Black" />
+                </Button>
+
+                <Path Data="M 50,0 L 0,25 L 50,50 Z" Fill="{StaticResource FightingYellowBrush}" Width="50" Height="50" Stretch="Fill" />
+            </StackPanel>
+
+            <!-- Fusion Partner -->
+            <Border Grid.Column="2" Background="{StaticResource SurfaceBrush}" CornerRadius="12" Padding="20">
+                <StackPanel Spacing="20" VerticalAlignment="Center">
+                    <TextBlock Text="MUTAGEN PARTNER" FontSize="14" FontWeight="Bold" Foreground="{StaticResource FightingRedBrush}" HorizontalAlignment="Center" />
+                    <Border Background="#1A1A1A" Height="250" CornerRadius="12">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
+                            <TextBlock Text="{Binding FusionPartner.Name, FallbackValue='?'}" FontSize="32" FontWeight="Black" Foreground="White" />
+                            <TextBlock Text="P2 SELECTION" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Loading Overlay for Fusion Processing -->
+        <Border Grid.RowSpan="2" Background="#CC000000" IsVisible="{Binding IsFusing}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="20">
+                <TextBlock Text="SPLICING GENOMES..." FontSize="24" FontWeight="Black" Foreground="{StaticResource FightingYellowBrush}" />
+                <ProgressBar IsIndeterminate="True" Width="300" Foreground="{StaticResource FightingYellowBrush}" />
+            </StackPanel>
+        </Border>
+
+        <!-- Result Status -->
+        <Border Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Margin="50" Padding="15"
+                Background="{StaticResource GlassBrush}" CornerRadius="8" IsVisible="{Binding !IsFusing}">
+            <TextBlock Text="{Binding FusionResult}" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" />
+        </Border>
+    </Grid>
+</UserControl>

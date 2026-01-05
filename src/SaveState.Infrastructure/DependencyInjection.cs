@@ -75,6 +75,9 @@ public static class DependencyInjection
         services.AddScoped<SaveState.Core.SaveStates.ISaveStateRepository, Repositories.SaveStateRepository>();
         services.AddScoped<ISaveStateBranchRepository, SaveStateBranchRepository>();
         services.AddScoped<SaveState.Core.Input.IControllerProfileRepository, Repositories.ControllerProfileRepository>();
+        services.AddScoped<IGameNoteRepository, GameNoteRepository>();
+        services.AddScoped<IGameModRepository, GameModRepository>();
+        services.AddScoped<IGameMediaRepository, GameMediaRepository>();
 
         // Session Tracking Services
         services.AddScoped<ISessionTrackingService, SessionTrackingService>();
@@ -95,12 +98,16 @@ public static class DependencyInjection
         services.AddScoped<SaveState.Core.Social.IFriendRepository, Repositories.FriendRepository>();
         services.AddScoped<SaveState.Core.Social.Services.IFriendActivityService, Social.FriendActivityService>();
 
+        services.AddScoped<IAchievementService, AchievementService>();
+        services.AddScoped<IModManagementService, ModManagementService>();
+
         // Plugin system
         services.AddSingleton<SaveState.Core.Plugins.Services.IPluginManager, Plugins.PluginManager>();
         services.AddHostedService<Plugins.PluginLoaderBackgroundService>();
 
         // User Services
         services.AddSingleton<SaveState.Core.Common.Services.IUserPreferencesService, SaveState.Infrastructure.Services.UserPreferencesService>();
+        services.AddSingleton<ITaskRunner, TaskRunner>();
 
         // Culture and Localization Services
         services.AddSingleton<SaveState.Core.Common.Services.ICultureManager, CultureManager>();
@@ -172,6 +179,8 @@ public static class DependencyInjection
         // Analytics Services
         services.AddScoped<SaveState.Core.Analytics.Services.IAnalyticsService, Analytics.AnalyticsService>();
         services.AddScoped<SaveState.Core.Analytics.Services.IGoalService, Analytics.GoalService>();
+        services.AddSingleton<SaveState.Core.Analytics.Services.IRealTimeNotificationService, Analytics.RealTimeNotificationService>();
+        services.AddScoped<SaveState.Core.Analytics.Services.IAnalyticsExportService, Analytics.AnalyticsExportService>();
 
         // Backlog Services
         services.AddScoped<SaveState.Core.GameLibrary.Services.IBacklogService, GameLibrary.Services.BacklogService>();
@@ -194,6 +203,7 @@ public static class DependencyInjection
         services.AddScoped<SaveState.Core.SaveStates.Services.IAutoSaveManager, SaveStates.AutoSaveManager>();
 
         // Input Services
+        services.AddScoped<SaveState.Core.Input.Services.IInputService, Input.InputService>();
         services.AddScoped<SaveState.Core.Input.Services.IControllerProfileService, Input.ControllerProfileService>();
         services.AddScoped<SaveState.Core.Input.Services.ISteamDeckManager, Input.SteamDeckManager>();
         services.AddScoped<SaveState.Core.Input.Services.ITouchController, Input.TouchController>();

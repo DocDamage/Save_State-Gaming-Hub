@@ -15,12 +15,14 @@ public static class TabRegistry
     {
         ["Dashboard"] = new("Dashboard", "🏠", typeof(ViewModels.Shell.DashboardViewModel), Key.D1, KeyModifiers.Control),
         ["Library"] = new("Library", "📚", typeof(ViewModels.GameLibraryViewModel), Key.D2, KeyModifiers.Control),
-        ["MUGEN"] = new("MUGEN", "🥊", typeof(ViewModels.Mugen.MugenViewModel), Key.D3, KeyModifiers.Control),
+        ["MUGEN"] = new("MUGEN", "🥊", typeof(ViewModels.Shell.MugenViewModel), Key.D3, KeyModifiers.Control),
         ["Analytics"] = new("Analytics", "📊", typeof(ViewModels.Shell.AnalyticsViewModel), Key.D4, KeyModifiers.Control),
         ["Social"] = new("Social", "👥", typeof(ViewModels.Shell.SocialViewModel), Key.D5, KeyModifiers.Control),
-        ["Tools"] = new("Tools", "🛠️", typeof(ViewModels.Shell.ToolsViewModel), Key.D6, KeyModifiers.Control),
-        ["Terminal"] = new("Terminal", "💻", typeof(ViewModels.Shell.TerminalViewModel), Key.D7, KeyModifiers.Control),
-        ["Settings"] = new("Settings", "⚙️", typeof(ViewModels.SettingsViewModel), Key.D8, KeyModifiers.Control),
+        ["Cloud"] = new("Cloud", "☁️", typeof(ViewModels.Shell.CloudSyncViewModel), Key.D6, KeyModifiers.Control),
+        ["Automation"] = new("Automation", "🎬", typeof(ViewModels.Shell.AutomationViewModel), Key.D7, KeyModifiers.Control),
+        ["Tools"] = new("Tools", "🛠️", typeof(ViewModels.Shell.ToolsViewModel), Key.D8, KeyModifiers.Control),
+        ["Terminal"] = new("Terminal", "💻", typeof(ViewModels.Shell.TerminalViewModel), Key.D9, KeyModifiers.Control),
+        ["Settings"] = new("Settings", "⚙️", typeof(ViewModels.SettingsViewModel), Key.D0, KeyModifiers.Control),
     };
 
     /// <summary>
@@ -33,6 +35,8 @@ public static class TabRegistry
         yield return Tabs["MUGEN"];
         yield return Tabs["Analytics"];
         yield return Tabs["Social"];
+        yield return Tabs["Cloud"];
+        yield return Tabs["Automation"];
         yield return Tabs["Tools"];
         yield return Tabs["Terminal"];
         yield return Tabs["Settings"];

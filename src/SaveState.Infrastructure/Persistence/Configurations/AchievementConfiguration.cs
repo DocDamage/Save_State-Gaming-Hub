@@ -29,13 +29,21 @@ public class AchievementConfiguration : IEntityTypeConfiguration<Achievement>
             .IsRequired()
             .HasConversion<string>();
 
+        builder.Property(a => a.TargetValue)
+            .IsRequired()
+            .HasDefaultValue(1);
+
         builder.Property(a => a.Criteria)
             .HasMaxLength(1000);
 
         builder.Property(a => a.CreatedAt)
             .IsRequired();
 
+        builder.Property(a => a.GameId)
+            .IsRequired(false);
+
         // Indexes
+        builder.HasIndex(a => a.GameId);
         builder.HasIndex(a => a.Name).IsUnique();
         builder.HasIndex(a => a.Type);
         builder.HasIndex(a => a.IsActive);

@@ -1,0 +1,250 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Library.GameDetail;assembly=SaveState.Presentation"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Library.GameDetail.GameNotesTabView"
+             x:DataType="vm:GameNotesTabViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Border Grid.Row="0" Classes="GlassContainer" Padding="20" Margin="0,0,0,15">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <TextBlock Grid.Column="0" Text="📝 NOTES" Classes="Subtitle" VerticalAlignment="Center" />
+
+                <TextBlock Grid.Column="1"
+                           Text="{Binding NotesCountText}"
+                           Classes="Caption"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center" />
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                    <ComboBox ItemsSource="{Binding SortOptions}"
+                              SelectedItem="{Binding SelectedSort}"
+                              Width="120"
+                              PlaceholderText="Sort by..." />
+
+                    <Button Content="🔍 Search"
+                            Classes="Secondary"
+                            Command="{Binding ToggleSearchCommand}" />
+
+                    <Button Content="+ Add Note"
+                            Classes="Primary"
+                            Command="{Binding AddNoteCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, Auto">
+            <!-- Notes List -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Notes}" Margin="0,0,15,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{Binding BackgroundBrush}"
+                                    BorderBrush="{Binding BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="20"
+                                    Margin="0,0,0,15">
+                                <Grid RowDefinitions="Auto, Auto, Auto">
+                                    <!-- Note Header -->
+                                    <Grid Grid.Row="0" ColumnDefinitions="*, Auto, Auto, Auto" Margin="0,0,0,15">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Title}"
+                                                   Classes="Body"
+                                                   FontWeight="SemiBold"
+                                                   VerticalAlignment="Center" />
+
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding CreatedText}"
+                                                   Classes="Caption"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                                   VerticalAlignment="Center"
+                                                   Margin="15,0" />
+
+                                        <Border Grid.Column="2"
+                                                 Background="{Binding CategoryColor}"
+                                                 CornerRadius="10"
+                                                 Padding="6,2"
+                                                 VerticalAlignment="Center"
+                                                 Margin="0,0,15,0">
+                                            <TextBlock Text="{Binding CategoryText}"
+                                                       Classes="Caption"
+                                                       HorizontalAlignment="Center" />
+                                        </Border>
+
+                                        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                            <Button Content="✏️ Edit"
+                                                    Classes="Secondary"
+                                                    Command="{Binding EditCommand}"
+                                                    ToolTip.Tip="Edit this note" />
+
+                                            <Button Content="📋 Copy"
+                                                    Classes="Secondary"
+                                                    Command="{Binding CopyCommand}"
+                                                    ToolTip.Tip="Copy note content" />
+
+                                            <Button Content="🗑️ Delete"
+                                                    Classes="Danger"
+                                                    Command="{Binding DeleteCommand}"
+                                                    ToolTip.Tip="Delete this note" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Note Content -->
+                                    <TextBlock Grid.Row="1"
+                                               Text="{Binding Content}"
+                                               Classes="Body"
+                                               TextWrapping="Wrap"
+                                               Margin="0,0,0,15"
+                                               LineHeight="1.6" />
+
+                                    <!-- Note Footer -->
+                                    <Grid Grid.Row="2" ColumnDefinitions="*, Auto, Auto">
+                                        <WrapPanel Grid.Column="0" Orientation="Horizontal">
+                                            <ItemsControl ItemsSource="{Binding Tags}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel Orientation="Horizontal" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="{StaticResource AccentBrush}"
+                                                                CornerRadius="10"
+                                                                Padding="6,2"
+                                                                Margin="0,0,8,0">
+                                                            <TextBlock Text="{Binding}"
+                                                                       Classes="Caption"
+                                                                       Foreground="White" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </WrapPanel>
+
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding WordCountText}"
+                                                   Classes="Caption"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                                   VerticalAlignment="Center"
+                                                   Margin="15,0" />
+
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding LastModifiedText}"
+                                                   Classes="Caption"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Sidebar -->
+            <Border Grid.Column="1" Classes="GlassContainer" Padding="20" Width="280">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="20">
+                        <TextBlock Text="📊 NOTES STATS" Classes="Subtitle" />
+
+                        <!-- Quick Stats -->
+                        <Border Background="{StaticResource SurfaceBrush}" Padding="15" CornerRadius="6">
+                            <Grid RowDefinitions="Auto, Auto, Auto, Auto" ColumnDefinitions="*, Auto">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Total Notes:" Classes="Caption" />
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalNotes}" Classes="Caption" />
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Total Words:" Classes="Caption" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalWords}" Classes="Caption" />
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Avg Note Length:" Classes="Caption" />
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AverageNoteLength}" Classes="Caption" />
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Last Updated:" Classes="Caption" />
+                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding LastUpdatedText}" Classes="Caption" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Categories -->
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="🏷️ CATEGORIES" Classes="Caption" FontWeight="Bold" />
+
+                            <ItemsControl ItemsSource="{Binding Categories}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Classes="SidebarButton"
+                                                Command="{Binding SelectCommand}"
+                                                HorizontalContentAlignment="Stretch">
+                                            <Grid ColumnDefinitions="Auto, *, Auto">
+                                                <Border Grid.Column="0"
+                                                        Background="{Binding Color}"
+                                                        Width="12" Height="12"
+                                                        CornerRadius="6"
+                                                        Margin="0,0,8,0" />
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{Binding Name}"
+                                                           Classes="Caption" />
+                                                <TextBlock Grid.Column="2"
+                                                           Text="{Binding Count, StringFormat='({0})'}"
+                                                           Classes="Caption"
+                                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                            </Grid>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- Recent Tags -->
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="🏷️ RECENT TAGS" Classes="Caption" FontWeight="Bold" />
+
+                            <WrapPanel>
+                                <ItemsControl ItemsSource="{Binding RecentTags}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Content="{Binding Name}"
+                                                    Classes="TagButton"
+                                                    Command="{Binding SelectCommand}"
+                                                    Margin="0,0,8,8" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </WrapPanel>
+                        </StackPanel>
+
+                        <!-- Quick Actions -->
+                        <StackPanel Spacing="15">
+                            <Button Content="📄 Create Template"
+                                    Classes="Secondary"
+                                    Command="{Binding CreateTemplateCommand}" />
+
+                            <Button Content="📤 Export Notes"
+                                    Classes="Secondary"
+                                    Command="{Binding ExportNotesCommand}" />
+
+                            <Button Content="📥 Import Notes"
+                                    Classes="Secondary"
+                                    Command="{Binding ImportNotesCommand}" />
+
+                            <Separator />
+
+                            <TextBlock Text="⚙️ SETTINGS" Classes="Caption" FontWeight="Bold" />
+
+                            <StackPanel Spacing="8">
+                                <CheckBox Content="Auto-save notes" IsChecked="{Binding AutoSaveEnabled}" />
+                                <CheckBox Content="Rich text editing" IsChecked="{Binding RichTextEnabled}" />
+                                <CheckBox Content="Show word count" IsChecked="{Binding ShowWordCount}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

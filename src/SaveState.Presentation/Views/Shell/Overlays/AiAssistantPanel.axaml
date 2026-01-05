@@ -24,14 +24,23 @@
         </ScrollViewer>
 
         <!-- Input -->
-        <Grid Grid.Row="1" ColumnDefinitions="*, Auto">
+        <Grid Grid.Row="1" ColumnDefinitions="*, Auto, Auto">
             <TextBox Grid.Column="0"
                      Text="{Binding InputText}"
                      Watermark="Ask me anything..."
-                     Margin="0,8,8,0" />
+                     Margin="0,8,8,0">
+                <TextBox.KeyBindings>
+                    <KeyBinding Gesture="Enter" Command="{Binding SendMessageCommand}" />
+                </TextBox.KeyBindings>
+            </TextBox>
             <Button Grid.Column="1"
+                    Content="Send"
+                    Command="{Binding SendMessageCommand}"
+                    IsEnabled="{Binding !IsProcessing}"
+                    Margin="0,8,8,0" />
+            <Button Grid.Column="2"
                     Content="🎤"
-                    Command="{Binding StartVoiceInput}"
+                    Command="{Binding StartVoiceInputCommand}"
                     Margin="0,8,0,0" />
         </Grid>
     </Grid>

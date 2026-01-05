@@ -1,19 +1,14 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SaveState.Core.GameLibrary.Services;
-using SaveState.Core.GameLibrary.Services.DTOs;
+using System;
 using System.Collections.ObjectModel;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SaveState.Presentation.ViewModels.BigPicture;
 
-/// <summary>
-/// ViewModel for the cinematic game launch experience.
-/// </summary>
 public partial class LaunchExperienceViewModel : ObservableObject
 {
-    private readonly ILaunchExperienceManager _launchExperienceManager;
-    private readonly IGameBriefingService _gameBriefingService;
-
     [ObservableProperty]
     private bool isLoading = true;
 
@@ -30,7 +25,7 @@ public partial class LaunchExperienceViewModel : ObservableObject
     private int currentStepIndex;
 
     [ObservableProperty]
-    private int totalSteps;
+    private int totalSteps = 4;
 
     [ObservableProperty]
     private double progressValue;
@@ -47,187 +42,69 @@ public partial class LaunchExperienceViewModel : ObservableObject
     [ObservableProperty]
     private bool isPlayingMusic;
 
-    private LaunchSequence? _currentSequence;
     private CancellationTokenSource? _sequenceCts;
 
-    public LaunchExperienceViewModel(
-        ILaunchExperienceManager launchExperienceManager,
-        IGameBriefingService gameBriefingService)
-    {
-        _launchExperienceManager = launchExperienceManager;
-        _gameBriefingService = gameBriefingService;
-    }
-
-    public async Task InitializeForGameAsync(Guid gameId, string title)
+    public LaunchExperienceViewModel(string title)
     {
         GameTitle = title;
+
+        // Seed some mock data for the experience
+        GameFacts.Add(new GameFactViewModel { Fact = "Did you know? This game was developed by a team of over 200 people." });
+        GameFacts.Add(new GameFactViewModel { Fact = "Pro-tip: You can parry most physical attacks by timing your block." });
+        GameFacts.Add(new GameFactViewModel { Fact = "The game's world is precisely 42 square kilometers." });
+
+        ProgressSummary = new ProgressSummaryViewModel
+        {
+            TotalPlaytime = TimeSpan.FromHours(45),
+            AchievementsEarned = 12
+        };
+    }
+
+    public async Task StartSequenceAsync()
+    {
         IsLoading = true;
-
-        try
-        {
-            // Generate the launch sequence
-            var sequenceResult = await _launchExperienceManager.GenerateLaunchSequenceAsync(gameId);
-            if (!sequenceResult.IsSuccess || sequenceResult.Value == null)
-            {
-                // Skip to direct launch if sequence generation fails
-                await LaunchGameDirectlyAsync(gameId);
-                return;
-            }
-
-            _currentSequence = sequenceResult.Value;
-            TotalSteps = _currentSequence.Steps.Count;
-            CurrentStepIndex = 0;
-            ProgressValue = 0;
-
-            // Prepare UI elements for each step
-            PrepareSequenceSteps(_currentSequence);
-
-            IsLoading = false;
-
-            // Start the sequence
-            await ExecuteSequenceAsync();
-        }
-        catch (Exception ex)
-        {
-            // On error, skip to direct launch
-            await LaunchGameDirectlyAsync(gameId);
-        }
-    }
-
-    private void PrepareSequenceSteps(LaunchSequence sequence)
-    {
-        GameFacts.Clear();
-
-        foreach (var step in sequence.Steps)
-        {
-            switch (step)
-            {
-                case GameFactsStep factsStep:
-                    foreach (var fact in factsStep.Facts)
-                    {
-                        GameFacts.Add(new GameFactViewModel { Fact = fact });
-                    }
-                    break;
-
-                case ProgressSummaryStep progressStep:
-                    ProgressSummary = new ProgressSummaryViewModel
-                    {
-                        TotalPlaytime = progressStep.TotalPlaytime,
-                        AchievementsEarned = progressStep.AchievementsEarned
-                    };
-                    break;
-
-                case AmbientMusicStep musicStep:
-                    IsPlayingMusic = true;
-                    break;
-            }
-        }
-    }
-
-    private async Task ExecuteSequenceAsync()
-    {
-        if (_currentSequence == null) return;
+        await Task.Delay(1500); // Simulate initial loading
+        IsLoading = false;
 
         _sequenceCts = new CancellationTokenSource();
 
         try
         {
-            for (int i = 0; i < _currentSequence.Steps.Count; i++)
-            {
-                _sequenceCts.Token.ThrowIfCancellationRequested();
+            // Step 1: Checking Requirements
+            await RunStepAsync("System Check", "Optimizing GPU performance and checking for updates...", 25, 2000);
 
-                var step = _currentSequence.Steps[i];
-                CurrentStepIndex = i + 1;
+            // Step 2: Syncing Saves
+            await RunStepAsync("Cloud Sync", "Synchronizing save data with the cloud...", 50, 1500);
 
-                // Update UI for current step
-                await UpdateStepUIAsync(step);
+            // Step 3: Game Facts
+            CurrentStepTitle = "Game Insight";
+            CurrentStepContent = "Preparing your gaming session...";
+            ProgressValue = 75;
+            CurrentStepIndex = 3;
+            await Task.Delay(3000, _sequenceCts.Token);
 
-                // Calculate progress
-                ProgressValue = (double)(i + 1) / _currentSequence.Steps.Count * 100;
-
-                // Wait for step duration
-                await Task.Delay(step.Duration, _sequenceCts.Token);
-            }
-
-            // Sequence complete, launch the game
-            await LaunchGameDirectlyAsync(_currentSequence.GameId);
+            // Step 4: Finalizing
+            await RunStepAsync("Ready to Play", "Launch imminent. Enjoy your session!", 100, 1000);
         }
-        catch (OperationCanceledException)
+        catch (TaskCanceledException)
         {
-            // Sequence was skipped
-            if (_currentSequence != null)
-            {
-                await LaunchGameDirectlyAsync(_currentSequence.GameId);
-            }
-        }
-        catch (Exception ex)
-        {
-            // On error, still try to launch the game
-            if (_currentSequence != null)
-            {
-                await LaunchGameDirectlyAsync(_currentSequence.GameId);
-            }
+            // Handled via skip
         }
     }
 
-    private Task UpdateStepUIAsync(LaunchStep step)
+    private async Task RunStepAsync(string title, string content, double progress, int delay)
     {
-        switch (step)
-        {
-            case GameFactsStep factsStep:
-                CurrentStepTitle = "Game Facts";
-                CurrentStepContent = string.Join("\n\n", factsStep.Facts);
-                break;
-
-            case ProgressSummaryStep progressStep:
-                CurrentStepTitle = "Your Progress";
-                CurrentStepContent = $"Total Playtime: {progressStep.TotalPlaytime.TotalHours:F1} hours\n" +
-                                   $"Achievements: {progressStep.AchievementsEarned}";
-                break;
-
-            case AmbientMusicStep musicStep:
-                CurrentStepTitle = "Preparing Game";
-                CurrentStepContent = musicStep.TrackName != null
-                    ? $"Playing: {musicStep.TrackName}"
-                    : "Loading ambient music...";
-                break;
-
-            case LoadingScreenStep loadingStep:
-                CurrentStepTitle = "Loading";
-                CurrentStepContent = string.Join("\n", loadingStep.Tips);
-                break;
-
-            default:
-                CurrentStepTitle = "Loading Game";
-                CurrentStepContent = "Please wait...";
-                break;
-        }
-        return Task.CompletedTask;
-    }
-
-    private Task LaunchGameDirectlyAsync(Guid gameId)
-    {
-        // Launch logic resides in GameLauncherService.
-        // This view model handles the pre-launch cinematic experience only.
-        IsLoading = false;
-        CurrentStepTitle = "Launching Game";
-        CurrentStepContent = "Starting " + GameTitle;
-        return Task.CompletedTask;
+        CurrentStepTitle = title;
+        CurrentStepContent = content;
+        ProgressValue = progress;
+        CurrentStepIndex++;
+        await Task.Delay(delay, _sequenceCts.Token);
     }
 
     [RelayCommand]
     private void SkipSequence()
     {
         _sequenceCts?.Cancel();
-    }
-
-    [RelayCommand]
-    private Task ConfigureLaunchExperience()
-    {
-        // Navigate to configuration screen
-        // Navigation to settings would use INavigationService.
-        // Pending implementation of global navigation structure.
-        return Task.CompletedTask;
     }
 }
 

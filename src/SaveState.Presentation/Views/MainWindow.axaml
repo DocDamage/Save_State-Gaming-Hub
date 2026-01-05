@@ -9,17 +9,73 @@
         x:DataType="vm:MainViewModel"
         Title="{Binding Title}"
         Background="{StaticResource BackgroundBrush}"
-        AutomationProperties.Name="{Binding Title}"
-        AutomationProperties.HelpText="SaveState application main window for managing game collections"
-        MinWidth="800"
-        MinHeight="600"
-        CanResize="True"
-        WindowStartupLocation="CenterScreen"
-        ExtendClientAreaToDecorationsHint="False">
+        TransparencyLevelHint="Mica"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="PreferSystemChrome"
+        MinWidth="1024"
+        MinHeight="768"
+        WindowStartupLocation="CenterScreen">
 
     <Design.DataContext>
         <vm:MainViewModel/>
     </Design.DataContext>
 
-    <ContentControl Content="{Binding CurrentViewModel}" />
+    <Grid ColumnDefinitions="260, *">
+
+        <!-- SIDEBAR NAVIGATION -->
+        <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" BorderThickness="0,0,1,0" BorderBrush="{StaticResource DividerBrush}">
+            <Grid RowDefinitions="Auto, *, Auto" Margin="16,40,16,20">
+
+                <!-- 1. App Header -->
+                <StackPanel Grid.Row="0" Margin="0,0,0,40">
+                    <TextBlock Text="SAVESTATE" Classes="H2" Foreground="White" LetterSpacing="1" HorizontalAlignment="Left" Margin="12,0,0,0"/>
+                    <TextBlock Text="REBORN" Classes="Caption" Foreground="{StaticResource AccentBrush}" FontWeight="Bold" LetterSpacing="4" HorizontalAlignment="Left" Margin="12,4,0,0"/>
+                </StackPanel>
+
+                <!-- 2. Main Navigation -->
+                <StackPanel Grid.Row="1" Spacing="4">
+                    <TextBlock Text="MAIN MENU" Classes="Caption" FontWeight="Bold" Margin="12,0,0,8"/>
+
+                    <Button Classes="Nav" Content="Dashboard" Command="{Binding NavigateToDashboardCommand}">
+                        <Button.Styles>
+                            <Style Selector="Button.Nav:pointerover /template/ ContentPresenter">
+                                <Setter Property="Foreground" Value="White"/>
+                            </Style>
+                        </Button.Styles>
+                    </Button>
+
+                    <Button Classes="Nav" Content="My Games" Command="{Binding NavigateToGameLibraryCommand}" />
+
+                    <Button Classes="Nav" Content="MUGEN" Command="{Binding NavigateToMugenCommand}" />
+
+                    <Border Classes="Divider" Margin="0,16"/>
+
+                    <TextBlock Text="GENERAL" Classes="Caption" FontWeight="Bold" Margin="12,0,0,8"/>
+                    <Button Classes="Nav" Content="Settings" Command="{Binding NavigateToSettingsCommand}" />
+                </StackPanel>
+
+                <!-- 3. User Profile / Status -->
+                <Border Grid.Row="2" Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="12">
+                    <Grid ColumnDefinitions="40, *, Auto">
+                        <Border Grid.Column="0" Width="32" Height="32" CornerRadius="16" Background="{StaticResource AccentBrush}" Margin="0,0,10,0">
+                            <TextBlock Text="DOC" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" Foreground="White" FontSize="10"/>
+                        </Border>
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Dr. Brown" FontWeight="SemiBold" FontSize="13" Foreground="White"/>
+                            <TextBlock Text="Pro User" FontSize="11" Foreground="{StaticResource AccentBrush}"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="2" Classes="Icon" Width="24" Height="24" Padding="4">
+                            <PathIcon Data="{StaticResource SettingsRegular}" Width="12" Height="12"/>
+                        </Button>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- MAIN CONTENT AREA -->
+        <ContentControl Grid.Column="1" Content="{Binding CurrentViewModel}" Padding="0" />
+
+    </Grid>
 </Window>

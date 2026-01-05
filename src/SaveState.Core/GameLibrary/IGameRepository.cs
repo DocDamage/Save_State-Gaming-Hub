@@ -45,6 +45,7 @@ public interface IGameRepository
         int pageSize = 50,
         string? searchTerm = null,
         Guid? platformId = null,
+        Guid? collectionId = null,
         GameStatus? statusFilter = null,
         string? platformFilter = null,
         GameSortBy sortBy = GameSortBy.Title,

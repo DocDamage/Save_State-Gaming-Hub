@@ -318,3 +318,93 @@ public class DeleteMacroCommandHandler :
         }
     }
 }
+
+public class GetMacroStatisticsCommandHandler :
+    IRequestHandler<GetMacroStatisticsCommand, Result<MacroStatistics>>
+{
+    private readonly IMacroManager _macroManager;
+    private readonly ILogger<GetMacroStatisticsCommandHandler> _logger;
+
+    public GetMacroStatisticsCommandHandler(
+        IMacroManager macroManager,
+        ILogger<GetMacroStatisticsCommandHandler> logger)
+    {
+        _macroManager = macroManager;
+        _logger = logger;
+    }
+
+    public async Task<Result<MacroStatistics>> Handle(
+        GetMacroStatisticsCommand request,
+        CancellationToken ct)
+    {
+        try
+        {
+            return await _macroManager.GetStatisticsAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get macro statistics");
+            return Result<MacroStatistics>.Failure($"Failed to get macro statistics: {ex.Message}");
+        }
+    }
+}
+
+public class GetMacroCategoriesCommandHandler :
+    IRequestHandler<GetMacroCategoriesCommand, Result<MacroCategories>>
+{
+    private readonly IMacroManager _macroManager;
+    private readonly ILogger<GetMacroCategoriesCommandHandler> _logger;
+
+    public GetMacroCategoriesCommandHandler(
+        IMacroManager macroManager,
+        ILogger<GetMacroCategoriesCommandHandler> logger)
+    {
+        _macroManager = macroManager;
+        _logger = logger;
+    }
+
+    public async Task<Result<MacroCategories>> Handle(
+        GetMacroCategoriesCommand request,
+        CancellationToken ct)
+    {
+        try
+        {
+            return await _macroManager.GetCategoriesAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get macro categories");
+            return Result<MacroCategories>.Failure($"Failed to get macro categories: {ex.Message}");
+        }
+    }
+}
+
+public class SearchMacrosCommandHandler :
+    IRequestHandler<SearchMacrosCommand, Result<IReadOnlyList<Macro>>>
+{
+    private readonly IMacroManager _macroManager;
+    private readonly ILogger<SearchMacrosCommandHandler> _logger;
+
+    public SearchMacrosCommandHandler(
+        IMacroManager macroManager,
+        ILogger<SearchMacrosCommandHandler> logger)
+    {
+        _macroManager = macroManager;
+        _logger = logger;
+    }
+
+    public async Task<Result<IReadOnlyList<Macro>>> Handle(
+        SearchMacrosCommand request,
+        CancellationToken ct)
+    {
+        try
+        {
+            return await _macroManager.SearchMacrosAsync(request.Query, request.Filters, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to search macros with query '{Query}'", request.Query);
+            return Result<IReadOnlyList<Macro>>.Failure($"Failed to search macros: {ex.Message}");
+        }
+    }
+}

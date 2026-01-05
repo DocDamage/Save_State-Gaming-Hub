@@ -6,6 +6,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>SaveState.Plugins.Accessibility</AssemblyName>
     <RootNamespace>SaveState.Plugins.Accessibility</RootNamespace>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

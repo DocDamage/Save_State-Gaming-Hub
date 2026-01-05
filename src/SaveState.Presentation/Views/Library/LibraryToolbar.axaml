@@ -1,0 +1,75 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Library;assembly=SaveState.Presentation"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="60"
+             x:Class="SaveState.Presentation.Views.Library.LibraryToolbar"
+             x:DataType="vm:LibraryToolbarViewModel">
+
+    <Border Classes="GlassContainer" Padding="15">
+        <Grid ColumnDefinitions="Auto, Auto, Auto, *, Auto, Auto">
+            <!-- View Mode Selector -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="5" Margin="0,0,20,0">
+                <Button Content="⊞ Grid"
+                        Classes="Secondary"
+                        Command="{Binding SetGridViewCommand}"
+                        ToolTip.Tip="Grid View" />
+
+                <Button Content="≡ List"
+                        Classes="Secondary"
+                        Command="{Binding SetListViewCommand}"
+                        ToolTip.Tip="List View" />
+
+                <Button Content="⋯ Compact"
+                        Classes="Secondary"
+                        Command="{Binding SetCompactViewCommand}"
+                        ToolTip.Tip="Compact View" />
+
+                <Button Content="▤ Table"
+                        Classes="Secondary"
+                        Command="{Binding SetTableViewCommand}"
+                        ToolTip.Tip="Table View" />
+            </StackPanel>
+
+            <!-- Sort Options -->
+            <ComboBox Grid.Column="1"
+                      Width="150"
+                      Margin="0,0,15,0"
+                      ItemsSource="{Binding SortOptions}"
+                      SelectedItem="{Binding SelectedSortOption}"
+                      PlaceholderText="Sort by..."
+                      ToolTip.Tip="Sort games by various criteria" />
+
+            <!-- Filter Button -->
+            <Button Grid.Column="2"
+                    Content="🔍 Filter"
+                    Classes="Secondary"
+                    Command="{Binding ToggleFilterPanelCommand}"
+                    Margin="0,0,15,0"
+                    ToolTip.Tip="Show/Hide advanced filters" />
+
+            <!-- Search Box -->
+            <TextBox Grid.Column="3"
+                     Text="{Binding SearchTerm}"
+                     Watermark="Search games..."
+                     Margin="0,0,15,0"
+                     ToolTip.Tip="Search by title, developer, or tags" />
+
+            <!-- Game Count -->
+            <TextBlock Grid.Column="4"
+                       Text="{Binding GameCountText}"
+                       Classes="Body"
+                       VerticalAlignment="Center"
+                       Margin="15,0"
+                       ToolTip.Tip="Total games in current view" />
+
+            <!-- Add Game Button -->
+            <Button Grid.Column="5"
+                    Content="➕ Add Game"
+                    Classes="Primary"
+                    Command="{Binding AddGameCommand}"
+                    ToolTip.Tip="Add new game to library" />
+        </Grid>
+    </Border>
+</UserControl>

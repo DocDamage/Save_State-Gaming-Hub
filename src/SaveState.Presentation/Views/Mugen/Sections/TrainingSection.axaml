@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Shell.Mugen"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Mugen.Sections.TrainingSection"
+             x:DataType="vm:MugenTrainingViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <Border Grid.Row="0" Margin="20" Background="{StaticResource GlassBrush}" CornerRadius="12" Padding="20">
+            <StackPanel Orientation="Horizontal" Spacing="40" HorizontalAlignment="Center">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="PRACTICE TARGET" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{Binding SelectedCharacter.Name, FallbackValue='None'}" FontSize="24" FontWeight="Black" Foreground="White" />
+                </StackPanel>
+
+                <TextBlock Text="VS" FontSize="48" FontWeight="Black" Foreground="{StaticResource FightingYellowBrush}"
+                           VerticalAlignment="Center" RenderTransform="skewX(-10deg)" />
+
+                <StackPanel Spacing="5">
+                    <TextBlock Text="TRAINING DUMMY" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{Binding DummyCharacter.Name, FallbackValue='None'}" FontSize="24" FontWeight="Black" Foreground="White" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*, 350">
+            <!-- Training Tools -->
+            <Border Grid.Column="0" Margin="20,0,10,20" Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                <StackPanel Spacing="20">
+                    <TextBlock Text="TRAINING TOOLS" FontSize="20" FontWeight="Black" Foreground="{StaticResource FightingYellowBrush}" />
+
+                    <WrapPanel HorizontalAlignment="Center">
+                        <Button Width="150" Height="100" Margin="10" Background="#1A1A1A">
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="📊" FontSize="32" HorizontalAlignment="Center" />
+                                <TextBlock Text="FRAME DATA" FontWeight="Bold" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <Button Width="150" Height="100" Margin="10" Background="#1A1A1A">
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="⚔️" FontSize="32" HorizontalAlignment="Center" />
+                                <TextBlock Text="COMBO LIST" FontWeight="Bold" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <Button Width="150" Height="100" Margin="10" Background="#1A1A1A">
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="⏺️" FontSize="32" HorizontalAlignment="Center" />
+                                <TextBlock Text="RECORD AI" FontWeight="Bold" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <Button Width="150" Height="100" Margin="10" Background="#1A1A1A">
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="🛡️" FontSize="32" HorizontalAlignment="Center" />
+                                <TextBlock Text="HITBOXES" FontWeight="Bold" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Status & History -->
+            <Border Grid.Column="1" Margin="10,0,20,20" Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="SESSION LOG" FontSize="18" FontWeight="Bold" Foreground="White" />
+                    <Border Background="#121212" CornerRadius="8" Padding="15" Height="300">
+                        <TextBlock Text="{Binding TrainingStatus}" TextWrapping="Wrap"
+                                   FontFamily="Consolas" Foreground="{StaticResource TextSecondaryBrush}" />
+                    </Border>
+                    <Button Command="{Binding StartTrainingCommand}" HorizontalAlignment="Stretch" Classes="Accent">
+                        <TextBlock Text="LAUNCH TRAINING" FontWeight="Bold" />
+                    </Button>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -6,6 +6,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>SaveState.Plugins.DiscordIntegration</AssemblyName>
     <RootNamespace>SaveState.Plugins.DiscordIntegration</RootNamespace>
+    <NoWarn>$(NoWarn);CS1591;CA2007</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

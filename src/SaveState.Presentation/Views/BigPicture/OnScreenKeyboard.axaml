@@ -2,95 +2,106 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="400"
-             x:Class="SaveState.Presentation.Views.BigPicture.OnScreenKeyboard">
+             xmlns:vm="using:SaveState.Presentation.ViewModels.BigPicture"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.BigPicture.OnScreenKeyboard"
+             x:DataType="vm:OnScreenKeyboardViewModel">
 
-  <Border Background="#CC000000" CornerRadius="8" Margin="50">
-    <Border Background="#FF2D2D2D" CornerRadius="8" Margin="2">
-      <Grid Margin="20">
+  <Border Background="#CC000000" CornerRadius="8" Padding="50">
+    <Border Background="#FF2D2D2D" CornerRadius="12" BorderBrush="#FF404040" BorderThickness="1">
+      <Grid Margin="30" RowDefinitions="Auto, *, Auto">
 
         <!-- Input display -->
-        <Border Background="#FF1A1A1A"
-                CornerRadius="4"
-                Margin="0,0,0,20"
-                Padding="15"
-                Height="50">
-          <TextBlock Text="Search games..."
-                     FontSize="18"
-                     Foreground="#FFCCCCCC"
-                     VerticalAlignment="Center"/>
+        <Border Grid.Row="0" Background="#FF1A1A1A"
+                CornerRadius="8"
+                Margin="0,0,0,30"
+                Padding="20"
+                BorderBrush="#FF00CCFF"
+                BorderThickness="2">
+          <TextBlock Text="{Binding InputText}"
+                     FontSize="24"
+                     Foreground="White"
+                     VerticalAlignment="Center"
+                     IsVisible="{Binding !!InputText}"/>
+        </Border>
+
+        <!-- Placeholder -->
+        <Border Grid.Row="0" Margin="22,0,0,30" VerticalAlignment="Center" IsHitTestVisible="False">
+           <TextBlock Text="{Binding PlaceholderText}"
+                      FontSize="24"
+                      Foreground="#FFAAAAAA"
+                      IsVisible="{Binding !InputText}"/>
         </Border>
 
         <!-- Keyboard layout -->
-        <UniformGrid Rows="4" Columns="10" Margin="0,70,0,0">
+        <UniformGrid Grid.Row="1" Rows="4" Columns="10">
+          <!-- Mapping keys is tedious but necessary for full functionality -->
+          <Button Content="1" Command="{Binding KeyPressedCommand}" CommandParameter="1" Classes="Key"/>
+          <Button Content="2" Command="{Binding KeyPressedCommand}" CommandParameter="2" Classes="Key"/>
+          <Button Content="3" Command="{Binding KeyPressedCommand}" CommandParameter="3" Classes="Key"/>
+          <Button Content="4" Command="{Binding KeyPressedCommand}" CommandParameter="4" Classes="Key"/>
+          <Button Content="5" Command="{Binding KeyPressedCommand}" CommandParameter="5" Classes="Key"/>
+          <Button Content="6" Command="{Binding KeyPressedCommand}" CommandParameter="6" Classes="Key"/>
+          <Button Content="7" Command="{Binding KeyPressedCommand}" CommandParameter="7" Classes="Key"/>
+          <Button Content="8" Command="{Binding KeyPressedCommand}" CommandParameter="8" Classes="Key"/>
+          <Button Content="9" Command="{Binding KeyPressedCommand}" CommandParameter="9" Classes="Key"/>
+          <Button Content="0" Command="{Binding KeyPressedCommand}" CommandParameter="0" Classes="Key"/>
 
-          <!-- Row 1: Numbers -->
-          <Button Content="1" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="2" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="3" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="4" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="5" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="6" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="7" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="8" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="9" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="0" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="Q" Command="{Binding KeyPressedCommand}" CommandParameter="Q" Classes="Key"/>
+          <Button Content="W" Command="{Binding KeyPressedCommand}" CommandParameter="W" Classes="Key"/>
+          <Button Content="E" Command="{Binding KeyPressedCommand}" CommandParameter="E" Classes="Key"/>
+          <Button Content="R" Command="{Binding KeyPressedCommand}" CommandParameter="R" Classes="Key"/>
+          <Button Content="T" Command="{Binding KeyPressedCommand}" CommandParameter="T" Classes="Key"/>
+          <Button Content="Y" Command="{Binding KeyPressedCommand}" CommandParameter="Y" Classes="Key"/>
+          <Button Content="U" Command="{Binding KeyPressedCommand}" CommandParameter="U" Classes="Key"/>
+          <Button Content="I" Command="{Binding KeyPressedCommand}" CommandParameter="I" Classes="Key"/>
+          <Button Content="O" Command="{Binding KeyPressedCommand}" CommandParameter="O" Classes="Key"/>
+          <Button Content="P" Command="{Binding KeyPressedCommand}" CommandParameter="P" Classes="Key"/>
 
-          <!-- Row 2: QWERTYUIOP -->
-          <Button Content="Q" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="W" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="E" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="R" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="T" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="Y" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="U" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="I" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="O" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="P" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
+          <Button Content="A" Command="{Binding KeyPressedCommand}" CommandParameter="A" Classes="Key"/>
+          <Button Content="S" Command="{Binding KeyPressedCommand}" CommandParameter="S" Classes="Key"/>
+          <Button Content="D" Command="{Binding KeyPressedCommand}" CommandParameter="D" Classes="Key"/>
+          <Button Content="F" Command="{Binding KeyPressedCommand}" CommandParameter="F" Classes="Key"/>
+          <Button Content="G" Command="{Binding KeyPressedCommand}" CommandParameter="G" Classes="Key"/>
+          <Button Content="H" Command="{Binding KeyPressedCommand}" CommandParameter="H" Classes="Key"/>
+          <Button Content="J" Command="{Binding KeyPressedCommand}" CommandParameter="J" Classes="Key"/>
+          <Button Content="K" Command="{Binding KeyPressedCommand}" CommandParameter="K" Classes="Key"/>
+          <Button Content="L" Command="{Binding KeyPressedCommand}" CommandParameter="L" Classes="Key"/>
+          <Button Content="⌫" Command="{Binding KeyPressedCommand}" CommandParameter="⌫" Classes="Key" Foreground="#FFFF5555"/>
 
-          <!-- Row 3: ASDFGHJKL -->
-          <Button Content="A" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="S" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="D" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="F" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="G" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="H" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="J" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="K" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="L" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="⌫" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2" FontFamily="Segoe UI Symbol"/>
-
-          <!-- Row 4: Special keys -->
-          <Button Content="Shift" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="14" Margin="2" Grid.ColumnSpan="2"/>
-          <Button Content="Z" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="X" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="C" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="V" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="B" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="N" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="M" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="18" Margin="2"/>
-          <Button Content="Space" Background="#FF404040" Foreground="#FFFFFFFF" FontSize="14" Margin="2" Grid.ColumnSpan="2"/>
-
+          <Button Content="Shift" Command="{Binding KeyPressedCommand}" CommandParameter="Shift" Classes="Key"/>
+          <Button Content="Z" Command="{Binding KeyPressedCommand}" CommandParameter="Z" Classes="Key"/>
+          <Button Content="X" Command="{Binding KeyPressedCommand}" CommandParameter="X" Classes="Key"/>
+          <Button Content="C" Command="{Binding KeyPressedCommand}" CommandParameter="C" Classes="Key"/>
+          <Button Content="V" Command="{Binding KeyPressedCommand}" CommandParameter="V" Classes="Key"/>
+          <Button Content="B" Command="{Binding KeyPressedCommand}" CommandParameter="B" Classes="Key"/>
+          <Button Content="N" Command="{Binding KeyPressedCommand}" CommandParameter="N" Classes="Key"/>
+          <Button Content="M" Command="{Binding KeyPressedCommand}" CommandParameter="M" Classes="Key"/>
+          <Button Content="Space" Command="{Binding KeyPressedCommand}" CommandParameter="Space" Classes="Key" Grid.ColumnSpan="2"/>
         </UniformGrid>
 
         <!-- Action buttons -->
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="20" Margin="0,20,0,0">
-          <Button Content="Enter"
-                  Background="#FF00CCFF"
-                  Foreground="#FF000000"
-                  FontSize="16"
-                  Padding="30,12"
-                  CornerRadius="6"/>
-          <Button Content="Cancel"
-                  Background="#FF404040"
-                  Foreground="#FFFFFFFF"
-                  FontSize="16"
-                  Padding="30,12"
-                  CornerRadius="6"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="20" Margin="0,30,0,0">
+          <Button Content="CANCEL" Command="{Binding CancelCommand}" Classes="Secondary" Width="150" Height="50" CornerRadius="25"/>
+          <Button Content="SUBMIT" Command="{Binding SubmitCommand}" Classes="Accent" Width="150" Height="50" CornerRadius="25"/>
         </StackPanel>
 
       </Grid>
     </Border>
-  </Border>
 
+    <Border.Styles>
+        <Style Selector="Button.Key">
+            <Setter Property="Background" Value="#FF3A3A3A"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="CornerRadius" Value="8"/>
+        </Style>
+    </Border.Styles>
+  </Border>
 </UserControl>

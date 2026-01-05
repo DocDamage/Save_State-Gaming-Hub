@@ -3,6 +3,7 @@ namespace SaveState.Infrastructure.Mugen;
 using SaveState.Core.Common;
 using SaveState.Core.Mugen.Entities;
 using SaveState.Core.Mugen.Services;
+using SaveState.Core.UserManagement.Services;
 
 /// <summary>
 /// Implementation of the MUGEN collection service.
@@ -12,13 +13,16 @@ public class MugenCollectionService : IMugenCollectionService
 {
     private readonly SaveState.Core.Mugen.IMugenCharacterRepository _characterRepository;
     private readonly SaveState.Core.Mugen.IMugenCollectionRepository _collectionRepository;
+    private readonly IUserContextService _userContextService;
 
     public MugenCollectionService(
         SaveState.Core.Mugen.IMugenCharacterRepository characterRepository,
-        SaveState.Core.Mugen.IMugenCollectionRepository collectionRepository)
+        SaveState.Core.Mugen.IMugenCollectionRepository collectionRepository,
+        IUserContextService userContextService)
     {
         _characterRepository = characterRepository;
         _collectionRepository = collectionRepository;
+        _userContextService = userContextService;
     }
 
     public async Task<Result<MugenCharacterCollection>> CreateCollectionAsync(
@@ -28,8 +32,11 @@ public class MugenCollectionService : IMugenCollectionService
     {
         try
         {
+            // Get current user ID
+            var userId = _userContextService.GetCurrentUserIdRequired();
+
             // Create and persist collection entity
-            var collection = MugenCharacterCollection.Create(name, Guid.NewGuid(), null, icon, false); // Placeholder user ID - user context integration pending
+            var collection = MugenCharacterCollection.Create(name, userId, null, icon, false);
 
             await _collectionRepository.AddAsync(collection, ct);
 
@@ -128,12 +135,17 @@ public class MugenCollectionService : IMugenCollectionService
         try
         {
             // Validate character exists
-            var character = await _characterRepository.GetByIdAsync(characterId, ct);
-            if (character is null)
+            var characterResult = await _characterRepository.GetByIdAsync(characterId, ct);
+            if (characterResult.IsFailure)
                 return Result.Failure("Character not found");
 
-            // Favorite status is tracked but requires entity property update.
-            // The character entity needs an IsFavorite property for persistence.
+            var character = characterResult.Value!;
+
+            // Update favorite status
+            character.SetFavorite(isFavorite);
+
+            // Save changes
+            await _characterRepository.UpdateAsync(character, ct);
 
             return Result.Success();
         }
@@ -148,13 +160,9 @@ public class MugenCollectionService : IMugenCollectionService
     {
         try
         {
-            // Returns characters marked as favorites. Currently returns first 3 as placeholder
-            // until IsFavorite property is added to MugenCharacter entity.
-
+            // Get all characters and filter by favorite status
             var allCharacters = await _characterRepository.GetAllAsync(ct);
-
-            // Mock: return first 3 characters as favorites
-            var favorites = allCharacters.Take(3).ToList();
+            var favorites = allCharacters.Where(c => c.IsFavorite).ToList();
 
             return Result<IReadOnlyList<MugenCharacter>>.Success(favorites);
         }

@@ -1,0 +1,57 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
+        x:Class="SaveState.Presentation.Views.Dialogs.MacroRecorderDialog"
+        x:DataType="vm:MacroRecorderDialogViewModel"
+        Width="400" Height="300"
+        WindowStartupLocation="CenterOwner"
+        Title="Record Macro"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        SystemDecorations="None"
+        TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent">
+
+    <Border Classes="DialogSurface">
+        <Grid RowDefinitions="Auto, *, Auto">
+            <!-- Header -->
+            <TextBlock Grid.Row="0" Text="Record Macro" Classes="DialogTitle" />
+
+            <!-- Content -->
+            <StackPanel Grid.Row="1" Spacing="20" Margin="0,20" HorizontalAlignment="Center">
+                <TextBox Text="{Binding MacroName}" Width="200" HorizontalContentAlignment="Center" />
+
+                <Border Width="120" Height="120" CornerRadius="60"
+                        Background="{Binding IsRecording, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#EF4444|#374151'}"
+                        Margin="0,20,0,0">
+                    <Button Command="{Binding ToggleRecordingCommand}"
+                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                            Background="Transparent" BorderThickness="0" CornerRadius="60">
+                        <StackPanel>
+                            <TextBlock Text="{Binding IsRecording, Converter={StaticResource BoolToColorConverter}, ConverterParameter='⏹|⏺'}"
+                                       FontSize="32" HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding Status}" Classes="Caption" HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </Border>
+
+                <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding ElapsedTime}" FontSize="24" FontWeight="Bold" />
+                    <TextBlock Text="{Binding ActionsCountText}" VerticalAlignment="Center" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Footer -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                <Button Content="Cancel" Classes="Secondary" Click="OnCancelClick" />
+                <Button Content="Save Macro" Classes="Primary" Click="OnSaveClick"
+                        IsEnabled="{Binding !IsRecording}" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

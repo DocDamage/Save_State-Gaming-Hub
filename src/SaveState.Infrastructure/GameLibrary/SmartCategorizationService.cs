@@ -189,7 +189,7 @@ Return as a JSON array of strings.
 Example: [""Action"", ""Adventure"", ""Fantasy"", ""Single-player"", ""Atmospheric""]";
     }
 
-    private static GameTags? ParseAiResponse(string aiResponse)
+    private GameTags? ParseAiResponse(string aiResponse)
     {
         try
         {
@@ -237,13 +237,14 @@ Example: [""Action"", ""Adventure"", ""Fantasy"", ""Single-player"", ""Atmospher
                 SuggestedRating: suggestedRating,
                 Confidence: confidence);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Failed to parse AI categorization response. Response length: {Length}", aiResponse?.Length ?? 0);
             return null;
         }
     }
 
-    private static IReadOnlyList<string> ParseTagSuggestions(string aiResponse)
+    private IReadOnlyList<string> ParseTagSuggestions(string aiResponse)
     {
         try
         {
@@ -263,8 +264,9 @@ Example: [""Action"", ""Adventure"", ""Fantasy"", ""Single-player"", ""Atmospher
                 .ToList()
                 .AsReadOnly();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Failed to parse AI tag suggestions response. Response length: {Length}", aiResponse?.Length ?? 0);
             return Array.Empty<string>();
         }
     }

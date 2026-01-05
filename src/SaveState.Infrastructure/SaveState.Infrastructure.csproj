@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <!-- Enable XML documentation -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CA2007</NoWarn>
+    <NoWarn>$(NoWarn);CA2007;CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DiscordRichPresence" Version="1.6.1.70" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.1">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

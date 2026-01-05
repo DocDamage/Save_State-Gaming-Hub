@@ -47,7 +47,7 @@
                     </Border>
 
                     <!-- Error Message -->
-                    <Border IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                    <Border IsVisible="{Binding !!ErrorMessage}"
                             Background="#cc3333"
                             CornerRadius="8"
                             Padding="15">
@@ -164,7 +164,7 @@
                                                             <TextBlock Text="{Binding Details}"
                                                                       Classes="Caption"
                                                                       Foreground="{StaticResource TextSecondaryBrush}"
-                                                                      IsVisible="{Binding Details, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                                      IsVisible="{Binding !!Details}" />
                                                         </StackPanel>
                                                     </StackPanel>
                                                 </Grid>

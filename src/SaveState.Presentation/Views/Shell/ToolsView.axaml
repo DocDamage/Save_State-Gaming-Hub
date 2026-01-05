@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             xmlns:views="using:SaveState.Presentation.Views.Shell"
              x:Class="SaveState.Presentation.Views.Shell.ToolsView"
              x:DataType="vm:ToolsViewModel">
 
@@ -143,6 +144,10 @@
                     </StackPanel>
                 </Border>
 
+                <!-- Game Memory Section -->
+                <views:GameMemoryView DataContext="{Binding GameMemoryViewModel}"
+                                     IsVisible="{Binding SelectedCategory.Id, Converter={StaticResource EqualToConverter}, ConverterParameter='Memory'}" />
+
                 <!-- Emulators Section -->
                 <Border Classes="GlassContainer" Padding="20"
                        IsVisible="{Binding SelectedCategory.Id, Converter={StaticResource EqualToConverter}, ConverterParameter='Emulators'}">
@@ -196,6 +201,410 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Voice Tools Section -->
+                <Border Classes="GlassContainer" Padding="20"
+                       IsVisible="{Binding SelectedCategory.Id, Converter={StaticResource EqualToConverter}, ConverterParameter='Voice'}">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="🎤 VOICE TOOLS" Classes="Subtitle" FontWeight="Bold"/>
+
+                        <!-- Voice Command Status -->
+                        <TextBlock Text="VOICE COMMAND STATUS" Classes="Caption" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <Border Classes="GlassContainer" Padding="15">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <StackPanel Spacing="5">
+                                    <TextBlock Text="Voice Commands" Classes="Body" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding VoiceCommandStatus}"
+                                              Classes="Caption"
+                                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                                    <Button Content="Enable"
+                                           Command="{Binding EnableVoiceCommandsCommand}"
+                                           IsVisible="{Binding !VoiceCommandsEnabled}"/>
+                                    <Button Content="Disable"
+                                           Command="{Binding DisableVoiceCommandsCommand}"
+                                           IsVisible="{Binding VoiceCommandsEnabled}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Microphone Setup -->
+                        <TextBlock Text="MICROPHONE SETUP" Classes="Caption" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <Border Classes="GlassContainer" Padding="15">
+                            <StackPanel Spacing="10">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="Input Device" Classes="Body"/>
+                                    <ComboBox Grid.Column="1"
+                                             Width="200"
+                                             ItemsSource="{Binding AvailableMicrophones}"
+                                             SelectedItem="{Binding SelectedMicrophone}"
+                                             PlaceholderText="Select microphone..."/>
+                                </Grid>
+
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="Sensitivity" Classes="Body"/>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                                        <Slider Width="150"
+                                               Minimum="0"
+                                               Maximum="100"
+                                               Value="{Binding MicrophoneSensitivity}"/>
+                                        <TextBlock Text="{Binding MicrophoneSensitivity, StringFormat='{}{0:F0}%'}"
+                                                  Classes="Caption"
+                                                  VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Button Content="Test Microphone"
+                                       Command="{Binding TestMicrophoneCommand}"
+                                       HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Voice Commands List -->
+                        <TextBlock Text="AVAILABLE COMMANDS" Classes="Caption" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <ScrollViewer MaxHeight="300">
+                            <ItemsControl ItemsSource="{Binding VoiceCommands}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Classes="GlassContainer" Padding="12" Margin="0,0,0,8">
+                                            <Grid ColumnDefinitions="Auto, *, Auto">
+                                                <TextBlock Grid.Column="0"
+                                                          Text="🎤"
+                                                          FontSize="20"
+                                                          VerticalAlignment="Center"
+                                                          Margin="0,0,12,0"/>
+                                                <StackPanel Grid.Column="1" Spacing="3">
+                                                    <TextBlock Text="{Binding Command}"
+                                                              Classes="Body"
+                                                              FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Description}"
+                                                              Classes="Caption"
+                                                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                </StackPanel>
+                                                <CheckBox Grid.Column="2"
+                                                         IsChecked="{Binding IsEnabled}"
+                                                         VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+
+                        <!-- Text-to-Speech Settings -->
+                        <TextBlock Text="TEXT-TO-SPEECH" Classes="Caption" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <Border Classes="GlassContainer" Padding="15">
+                            <StackPanel Spacing="10">
+                                <CheckBox Content="Enable Text-to-Speech" IsChecked="{Binding TtsEnabled}"/>
+
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="Voice" Classes="Body"/>
+                                    <ComboBox Grid.Column="1"
+                                             Width="200"
+                                             ItemsSource="{Binding AvailableVoices}"
+                                             SelectedItem="{Binding SelectedVoice}"
+                                             PlaceholderText="Select voice..."/>
+                                </Grid>
+
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="Speed" Classes="Body"/>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                                        <Slider Width="150"
+                                               Minimum="50"
+                                               Maximum="200"
+                                               Value="{Binding TtsSpeed}"/>
+                                        <TextBlock Text="{Binding TtsSpeed, StringFormat='{}{0:F0}%'}"
+                                                  Classes="Caption"
+                                                  VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Button Content="Test Voice"
+                                       Command="{Binding TestTtsCommand}"
+                                       HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Automation Tools Section -->
+                <Border Classes="GlassContainer" Padding="20"
+                       IsVisible="{Binding SelectedCategory.Id, Converter={StaticResource EqualToConverter}, ConverterParameter='Automation'}">
+                    <StackPanel Spacing="15">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Text="🤖 AUTOMATION" Classes="Subtitle" FontWeight="Bold"/>
+                            <Button Grid.Column="1"
+                                   Content="+ Create Macro"
+                                   Command="{Binding CreateMacroCommand}"/>
+                        </Grid>
+
+                        <!-- Macros List -->
+                        <TextBlock Text="YOUR MACROS" Classes="Caption" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <ScrollViewer MaxHeight="400">
+                            <ItemsControl ItemsSource="{Binding Macros}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Classes="GlassContainer" Padding="15" Margin="0,0,0,10">
+                                            <Grid ColumnDefinitions="Auto, *, Auto, Auto">
+                                                <TextBlock Grid.Column="0"
+                                                          Text="⚡"
+                                                          FontSize="24"
+                                                          VerticalAlignment="Center"
+                                                          Margin="0,0,15,0"/>
+
+                                                <StackPanel Grid.Column="1" Spacing="5">
+                                                    <TextBlock Text="{Binding Name}"
+                                                              Classes="Body"
+                                                              FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Description}"
+                                                              Classes="Caption"
+                                                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                                        <TextBlock Text="{Binding StepCount, StringFormat='{}Steps: {0}'}"
+                                                                  Classes="Caption"/>
+                                                        <TextBlock Text="{Binding Hotkey, StringFormat='{}Hotkey: {0}'}"
+                                                                  Classes="Caption"
+                                                                  Foreground="{StaticResource AccentBrush}"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" Margin="10,0">
+                                                    <Button Content="▶ Run"
+                                                           Command="{Binding RunCommand}"
+                                                           Classes="Secondary"/>
+                                                    <Button Content="✏️ Edit"
+                                                           Command="{Binding EditCommand}"
+                                                           Classes="Secondary"/>
+                                                </StackPanel>
+
+                                                <Button Grid.Column="3"
+                                                       Content="🗑️"
+                                                       Command="{Binding DeleteCommand}"
+                                                       Classes="Danger"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+
+                        <!-- Scheduled Tasks -->
+                        <TextBlock Text="SCHEDULED TASKS" Classes="Caption" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <Border Classes="GlassContainer" Padding="15">
+                            <StackPanel Spacing="10">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="Active Tasks" Classes="Body" FontWeight="Bold"/>
+                                    <Button Grid.Column="1"
+                                           Content="+ Add Task"
+                                           Command="{Binding AddScheduledTaskCommand}"/>
+                                </Grid>
+
+                                <ItemsControl ItemsSource="{Binding ScheduledTasks}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#1a1a1a"
+                                                   CornerRadius="6"
+                                                   Padding="12"
+                                                   Margin="0,5,0,0">
+                                                <Grid ColumnDefinitions="Auto, *, Auto">
+                                                    <CheckBox Grid.Column="0"
+                                                             IsChecked="{Binding IsEnabled}"
+                                                             VerticalAlignment="Center"
+                                                             Margin="0,0,10,0"/>
+                                                    <StackPanel Grid.Column="1" Spacing="3">
+                                                        <TextBlock Text="{Binding Name}"
+                                                                  Classes="Body"
+                                                                  FontWeight="Bold"/>
+                                                        <TextBlock Text="{Binding Schedule}"
+                                                                  Classes="Caption"
+                                                                  Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                    </StackPanel>
+                                                    <Button Grid.Column="2"
+                                                           Content="⚙️"
+                                                           Command="{Binding ConfigureCommand}"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Workflow Builder -->
+                        <TextBlock Text="WORKFLOWS" Classes="Caption" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <Border Classes="GlassContainer" Padding="15">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="Build complex automation workflows by chaining multiple actions together."
+                                          Classes="Caption"
+                                          Foreground="{StaticResource TextSecondaryBrush}"
+                                          TextWrapping="Wrap"/>
+
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button Content="🔧 Workflow Builder"
+                                           Command="{Binding OpenWorkflowBuilderCommand}"/>
+                                    <Button Content="📋 Templates"
+                                           Command="{Binding ViewWorkflowTemplatesCommand}"
+                                           Classes="Secondary"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Cloud Tools Section -->
+                <Border Classes="GlassContainer" Padding="20"
+                       IsVisible="{Binding SelectedCategory.Id, Converter={StaticResource EqualToConverter}, ConverterParameter='Cloud'}">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="☁️ CLOUD SYNC" Classes="Subtitle" FontWeight="Bold"/>
+
+                        <!-- Sync Status -->
+                        <TextBlock Text="SYNC STATUS" Classes="Caption" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <Border Classes="GlassContainer" Padding="15">
+                            <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="*, Auto">
+                                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="3">
+                                    <TextBlock Text="Cloud Storage" Classes="Body" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding CloudProvider}"
+                                              Classes="Caption"
+                                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <TextBlock Grid.Row="0" Grid.Column="1"
+                                          Text="{Binding CloudStatus}"
+                                          Classes="Body"
+                                          VerticalAlignment="Center"
+                                          Foreground="{Binding CloudStatusColor}"/>
+
+                                <StackPanel Grid.Row="1" Grid.Column="0" Spacing="3" Margin="0,10,0,0">
+                                    <TextBlock Text="Last Sync" Classes="Body"/>
+                                    <TextBlock Text="{Binding LastSyncTime}"
+                                              Classes="Caption"
+                                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <Button Grid.Row="1" Grid.Column="1"
+                                       Content="🔄 Sync Now"
+                                       Command="{Binding SyncNowCommand}"
+                                       VerticalAlignment="Center"
+                                       IsEnabled="{Binding !IsSyncing}"/>
+
+                                <ProgressBar Grid.Row="2" Grid.ColumnSpan="2"
+                                            Value="{Binding SyncProgress}"
+                                            Maximum="100"
+                                            Height="8"
+                                            Margin="0,10,0,0"
+                                            IsVisible="{Binding IsSyncing}"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Storage Usage -->
+                        <TextBlock Text="STORAGE USAGE" Classes="Caption" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <Border Classes="GlassContainer" Padding="15">
+                            <StackPanel Spacing="10">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="Used Space" Classes="Body"/>
+                                    <TextBlock Grid.Column="1"
+                                              Text="{Binding UsedSpace}"
+                                              Classes="Body"
+                                              FontWeight="Bold"/>
+                                </Grid>
+
+                                <ProgressBar Value="{Binding StorageUsagePercent}"
+                                            Maximum="100"
+                                            Height="12"/>
+
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="Available" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="1"
+                                              Text="{Binding AvailableSpace}"
+                                              Classes="Caption"
+                                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Sync Settings -->
+                        <TextBlock Text="SYNC SETTINGS" Classes="Caption" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <Border Classes="GlassContainer" Padding="15">
+                            <StackPanel Spacing="10">
+                                <CheckBox Content="Auto-sync on startup" IsChecked="{Binding AutoSyncOnStartup}"/>
+                                <CheckBox Content="Sync save states" IsChecked="{Binding SyncSaveStates}"/>
+                                <CheckBox Content="Sync screenshots" IsChecked="{Binding SyncScreenshots}"/>
+                                <CheckBox Content="Sync game settings" IsChecked="{Binding SyncGameSettings}"/>
+                                <CheckBox Content="Sync achievements" IsChecked="{Binding SyncAchievements}"/>
+
+                                <Separator Margin="0,10"/>
+
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="Sync Interval" Classes="Body"/>
+                                    <ComboBox Grid.Column="1"
+                                             Width="150"
+                                             ItemsSource="{Binding SyncIntervals}"
+                                             SelectedItem="{Binding SelectedSyncInterval}"
+                                             PlaceholderText="Select..."/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Sync History -->
+                        <TextBlock Text="RECENT SYNC ACTIVITY" Classes="Caption" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <ScrollViewer MaxHeight="250">
+                            <ItemsControl ItemsSource="{Binding SyncHistory}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#1a1a1a"
+                                               CornerRadius="6"
+                                               Padding="12"
+                                               Margin="0,0,0,8">
+                                            <Grid ColumnDefinitions="Auto, *, Auto">
+                                                <TextBlock Grid.Column="0"
+                                                          Text="{Binding StatusIcon}"
+                                                          FontSize="20"
+                                                          VerticalAlignment="Center"
+                                                          Margin="0,0,12,0"/>
+                                                <StackPanel Grid.Column="1" Spacing="3">
+                                                    <TextBlock Text="{Binding Action}"
+                                                              Classes="Body"
+                                                              FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Details}"
+                                                              Classes="Caption"
+                                                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="2"
+                                                          Text="{Binding TimeAgo}"
+                                                          Classes="Caption"
+                                                          Foreground="{StaticResource TextSecondaryBrush}"
+                                                          VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+
+                        <!-- Cloud Provider Settings -->
+                        <TextBlock Text="CLOUD PROVIDER" Classes="Caption" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <Border Classes="GlassContainer" Padding="15">
+                            <StackPanel Spacing="10">
+                                <ComboBox ItemsSource="{Binding AvailableProviders}"
+                                         SelectedItem="{Binding SelectedProvider}"
+                                         PlaceholderText="Select cloud provider..."
+                                         HorizontalAlignment="Stretch"/>
+
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button Content="🔗 Connect"
+                                           Command="{Binding ConnectCloudCommand}"
+                                           IsVisible="{Binding !IsCloudConnected}"/>
+                                    <Button Content="🔓 Disconnect"
+                                           Command="{Binding DisconnectCloudCommand}"
+                                           IsVisible="{Binding IsCloudConnected}"
+                                           Classes="Danger"/>
+                                    <Button Content="⚙️ Configure"
+                                           Command="{Binding ConfigureCloudCommand}"
+                                           Classes="Secondary"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Border>
 

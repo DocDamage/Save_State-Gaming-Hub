@@ -1,6 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
+using SaveState.Core.Ai.Services;
 using SaveState.Presentation.Services;
+using System.Collections.ObjectModel;
 
 namespace SaveState.Presentation.ViewModels.Shell;
 
@@ -10,53 +13,71 @@ namespace SaveState.Presentation.ViewModels.Shell;
 public partial class AiAssistantViewModel : ObservableObject
 {
     private readonly IOverlayService _overlayService;
+    private readonly IAiOrchestrator _aiOrchestrator;
+    private readonly ILogger<AiAssistantViewModel> _logger;
+
+    [ObservableProperty]
     private string _inputText = string.Empty;
 
-    public AiAssistantViewModel(IOverlayService overlayService)
+    [ObservableProperty]
+    private bool _isProcessing;
+
+    [ObservableProperty]
+    private ObservableCollection<MessageViewModel> _messages = new();
+
+    public AiAssistantViewModel(
+        IOverlayService overlayService,
+        IAiOrchestrator aiOrchestrator,
+        ILogger<AiAssistantViewModel> logger)
     {
         _overlayService = overlayService;
+        _aiOrchestrator = aiOrchestrator;
+        _logger = logger;
 
-        // Initialize with example conversation
-        Messages = new[]
-        {
-            new MessageViewModel("AI", "Hello! I'm your gaming assistant. How can I help you today?", MessageType.Assistant),
-            new MessageViewModel("You", "How do I beat the Margit boss in Elden Ring?", MessageType.User),
-            new MessageViewModel("AI", "Margit is a challenging early-game boss. Here are some tips:\n\n1. Level up to at least 25\n2. Use Spirit Ashes for distraction\n3. Roll through his delayed attacks\n4. Watch for his grab attack\n\nGood luck!", MessageType.Assistant)
-        };
+        // Welcome message
+        Messages.Add(new MessageViewModel("AI", "Hello! I'm your gaming assistant. Ask me anything about your games, strategies, or for recommendations!", MessageType.Assistant));
     }
 
     /// <summary>
-    /// Gets or sets the input text.
-    /// </summary>
-    public string InputText
-    {
-        get => _inputText;
-        set => SetProperty(ref _inputText, value);
-    }
-
-    /// <summary>
-    /// Gets the conversation messages.
-    /// </summary>
-    public MessageViewModel[] Messages { get; }
-
-    /// <summary>
-    /// Command to send a message.
+    /// Command to send a message to the AI.
     /// </summary>
     [RelayCommand]
-    private async Task SendMessage()
+    private async Task SendMessageAsync()
     {
-        if (string.IsNullOrWhiteSpace(InputText))
+        if (string.IsNullOrWhiteSpace(InputText) || IsProcessing)
             return;
 
-        var userMessage = InputText;
+        var userMessage = InputText.Trim();
         InputText = string.Empty;
 
-        // TODO: Send message to AI service and get response
-        // For now, just simulate a response
-        await Task.Delay(1000); // Simulate API call
+        // Add user message
+        Messages.Add(new MessageViewModel("You", userMessage, MessageType.User));
 
-        // Add user message to conversation
-        // Note: In real implementation, this would update the Messages collection
+        try
+        {
+            IsProcessing = true;
+
+            // Send to AI Orchestrator
+            var response = await _aiOrchestrator.GenerateTextAsync(userMessage);
+
+            if (response.IsSuccess && response.Value != null)
+            {
+                Messages.Add(new MessageViewModel("AI", response.Value, MessageType.Assistant));
+            }
+            else
+            {
+                Messages.Add(new MessageViewModel("AI", "I'm having trouble processing that request. Please try again.", MessageType.Assistant));
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to process AI message");
+            Messages.Add(new MessageViewModel("AI", "An error occurred. Please try again later.", MessageType.Assistant));
+        }
+        finally
+        {
+            IsProcessing = false;
+        }
     }
 
     /// <summary>
@@ -65,7 +86,18 @@ public partial class AiAssistantViewModel : ObservableObject
     [RelayCommand]
     private void StartVoiceInput()
     {
-        // TODO: Implement voice input
+        // Voice input requires additional setup
+        _logger.LogInformation("Voice input requested");
+    }
+
+    /// <summary>
+    /// Command to clear the conversation.
+    /// </summary>
+    [RelayCommand]
+    private void ClearConversation()
+    {
+        Messages.Clear();
+        Messages.Add(new MessageViewModel("AI", "Conversation cleared. How can I help you?", MessageType.Assistant));
     }
 
     /// <summary>

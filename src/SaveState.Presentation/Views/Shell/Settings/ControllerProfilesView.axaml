@@ -1,0 +1,273 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Settings"
+             x:Class="SaveState.Presentation.Views.Shell.Settings.ControllerProfilesView"
+             x:DataType="vm:ControllerProfilesViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="20,20,20,10">
+            <StackPanel>
+                <TextBlock Text="🎮 CONTROLLER PROFILES" Classes="Subtitle" FontWeight="Bold"/>
+                <TextBlock Text="Manage controller mappings and profiles for your games"
+                          Classes="Caption"
+                          Foreground="{StaticResource TextSecondaryBrush}"
+                          Margin="0,5,0,0"/>
+            </StackPanel>
+
+            <Button Grid.Column="1"
+                   Content="+ Create Profile"
+                   Command="{Binding ShowCreateDialogCommand}"
+                   VerticalAlignment="Center"/>
+        </Grid>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="220, *" Margin="20,0,20,20">
+            <!-- Left Sidebar: Filters -->
+            <Border Classes="GlassContainer" Padding="15" Margin="0,0,10,0">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="FILTERS" Classes="Caption" FontWeight="Bold"/>
+
+                    <!-- Search -->
+                    <TextBox Text="{Binding SearchText}"
+                            Watermark="Search profiles..."
+                            Classes="Modern"/>
+
+                    <!-- Controller Type Filter -->
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="Controller Type" Classes="Caption"/>
+                        <ComboBox ItemsSource="{Binding AvailableTypes}"
+                                 SelectedItem="{Binding FilterType}"
+                                 PlaceholderText="All Types"
+                                 HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+
+                    <!-- Scope Filter -->
+                    <CheckBox Content="Global profiles only"
+                             IsChecked="{Binding ShowGlobalProfilesOnly}"/>
+
+                    <Separator Margin="0,10"/>
+
+                    <!-- Quick Stats -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="QUICK STATS" Classes="Caption" FontWeight="Bold"/>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Text="Total Profiles" Classes="Caption"/>
+                            <TextBlock Grid.Column="1"
+                                      Text="{Binding Profiles.Count}"
+                                      Classes="Caption"
+                                      FontWeight="Bold"
+                                      Foreground="{StaticResource AccentBrush}"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <Button Content="🔄 Refresh"
+                           Command="{Binding RefreshCommand}"
+                           HorizontalAlignment="Stretch"
+                           Classes="Secondary"
+                           Margin="0,10,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Right Panel: Profiles List -->
+            <Border Grid.Column="1" Classes="GlassContainer" Padding="20">
+                <Grid RowDefinitions="Auto, *">
+                    <!-- Loading Indicator -->
+                    <ProgressBar Grid.Row="0"
+                                IsIndeterminate="True"
+                                IsVisible="{Binding IsLoading}"
+                                Margin="0,0,0,15"/>
+
+                    <!-- Profiles List -->
+                    <ScrollViewer Grid.Row="1">
+                        <ItemsControl ItemsSource="{Binding Profiles}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="GlassContainer"
+                                           Padding="20"
+                                           Margin="0,0,0,15">
+                                        <Grid ColumnDefinitions="Auto, *, Auto">
+                                            <!-- Controller Icon -->
+                                            <Border Grid.Column="0"
+                                                   Background="{StaticResource SurfaceBackgroundBrush}"
+                                                   CornerRadius="8"
+                                                   Width="60"
+                                                   Height="60"
+                                                   Margin="0,0,20,0">
+                                                <TextBlock Text="{Binding TypeIcon}"
+                                                          FontSize="32"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"/>
+                                            </Border>
+
+                                            <!-- Profile Info -->
+                                            <StackPanel Grid.Column="1" Spacing="6">
+                                                <Grid ColumnDefinitions="*, Auto">
+                                                    <TextBlock Text="{Binding Name}"
+                                                              FontSize="18"
+                                                              FontWeight="Bold"/>
+                                                    <Border Grid.Column="1"
+                                                           Background="{StaticResource AccentBrush}"
+                                                           CornerRadius="4"
+                                                           Padding="8,4"
+                                                           IsVisible="{Binding IsDefault}"
+                                                           VerticalAlignment="Center">
+                                                        <TextBlock Text="DEFAULT"
+                                                                  FontSize="10"
+                                                                  FontWeight="Bold"
+                                                                  Foreground="White"/>
+                                                    </Border>
+                                                </Grid>
+
+                                                <Grid ColumnDefinitions="Auto, Auto, Auto">
+                                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="5" Margin="0,0,15,0">
+                                                        <TextBlock Text="📱"
+                                                                  FontSize="12"
+                                                                  VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding Type}"
+                                                                  Classes="Caption"
+                                                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                                                  VerticalAlignment="Center"/>
+                                                    </StackPanel>
+
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" Margin="0,0,15,0">
+                                                        <TextBlock Text="🎯"
+                                                                  FontSize="12"
+                                                                  VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding Scope}"
+                                                                  Classes="Caption"
+                                                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                                                  VerticalAlignment="Center"/>
+                                                    </StackPanel>
+
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5">
+                                                        <TextBlock Text="🕐"
+                                                                  FontSize="12"
+                                                                  VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding LastUsedText}"
+                                                                  Classes="Caption"
+                                                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                                                  VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </StackPanel>
+
+                                            <!-- Actions -->
+                                            <StackPanel Grid.Column="2"
+                                                       Orientation="Horizontal"
+                                                       Spacing="10"
+                                                       VerticalAlignment="Center">
+                                                <Button Content="▶ Apply"
+                                                       Command="{Binding $parent[UserControl].DataContext.ApplyProfileCommand}"
+                                                       CommandParameter="{Binding}"
+                                                       Classes="Primary"/>
+                                                <Button Content="✏️"
+                                                       Classes="Secondary"
+                                                       ToolTip.Tip="Edit Profile"/>
+                                                <Button Content="🗑️"
+                                                       Classes="Danger"
+                                                       ToolTip.Tip="Delete Profile"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Empty State -->
+                    <StackPanel Grid.Row="1"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Spacing="15"
+                               IsVisible="{Binding !Profiles.Count}">
+                        <TextBlock Text="🎮"
+                                  FontSize="64"
+                                  HorizontalAlignment="Center"
+                                  Opacity="0.3"/>
+                        <TextBlock Text="No controller profiles found"
+                                  Classes="Subtitle"
+                                  HorizontalAlignment="Center"
+                                  Opacity="0.6"/>
+                        <TextBlock Text="Create your first profile to get started"
+                                  Classes="Caption"
+                                  HorizontalAlignment="Center"
+                                  Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <Button Content="+ Create Profile"
+                               Command="{Binding ShowCreateDialogCommand}"
+                               HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Create Profile Dialog Overlay -->
+        <Border Grid.RowSpan="2"
+               Background="#CC000000"
+               IsVisible="{Binding IsCreateDialogVisible}"
+               ZIndex="1000">
+            <Border Classes="GlassContainer"
+                   Width="500"
+                   Padding="30"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center">
+                <StackPanel Spacing="20">
+                    <TextBlock Text="Create Controller Profile"
+                              Classes="Subtitle"
+                              FontWeight="Bold"/>
+
+                    <!-- Profile Name -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Profile Name"
+                                  Classes="Caption"
+                                  FontWeight="Bold"/>
+                        <TextBox Text="{Binding NewProfileName}"
+                                Watermark="e.g., My Xbox Setup"
+                                Classes="Modern"/>
+                    </StackPanel>
+
+                    <!-- Controller Type -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Controller Type"
+                                  Classes="Caption"
+                                  FontWeight="Bold"/>
+                        <ComboBox ItemsSource="{Binding AvailableTypes}"
+                                 SelectedItem="{Binding NewProfileType}"
+                                 HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+
+                    <!-- Scope Info -->
+                    <Border Background="{StaticResource SurfaceBackgroundBrush}"
+                           CornerRadius="8"
+                           Padding="15">
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="ℹ️ Profile Scope"
+                                      Classes="Caption"
+                                      FontWeight="Bold"/>
+                            <TextBlock Text="This profile will be created as a global profile. You can later make it game-specific."
+                                      Classes="Caption"
+                                      TextWrapping="Wrap"
+                                      Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Actions -->
+                    <Grid ColumnDefinitions="*, *">
+                        <Button Grid.Column="0"
+                               Content="Cancel"
+                               Command="{Binding CancelCreateDialogCommand}"
+                               Classes="Secondary"
+                               HorizontalAlignment="Stretch"
+                               Margin="0,0,5,0"/>
+                        <Button Grid.Column="1"
+                               Content="Create"
+                               Command="{Binding CreateProfileCommand}"
+                               Classes="Primary"
+                               HorizontalAlignment="Stretch"
+                               Margin="5,0,0,0"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

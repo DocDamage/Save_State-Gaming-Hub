@@ -5,7 +5,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <NoWarn>$(NoWarn);CA1822;CA2007</NoWarn>
+    <NoWarn>$(NoWarn);CA1822;CA2007;CS1591</NoWarn>
     <!-- Enable XML documentation -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- Native AOT Configuration - Disabled for development/run to support EF Core reflection -->
@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SaveState.Application\SaveState.Application.csproj" />
     <ProjectReference Include="..\SaveState.Infrastructure\SaveState.Infrastructure.csproj" />
+    <ProjectReference Include="..\SaveState.CLI\SaveState.CLI.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,6 +39,8 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.0" />
+    <PackageReference Include="Spectre.Console" Version="0.49.1" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
   </ItemGroup>
 
 </Project>

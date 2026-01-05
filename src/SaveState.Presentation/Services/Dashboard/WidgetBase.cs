@@ -119,4 +119,15 @@ public abstract partial class WidgetBase : ObservableObject, IWidget
     {
         return Task.CompletedTask;
     }
+
+    /// <inheritdoc />
+    public virtual System.Windows.Input.ICommand? MinimizeCommand => new CommunityToolkit.Mvvm.Input.RelayCommand(ToggleMinimize);
+
+    /// <inheritdoc />
+    public virtual System.Windows.Input.ICommand? RemoveCommand => null; // Handled by dashboard or assigned externally
+
+    private void ToggleMinimize()
+    {
+        IsMinimized = !IsMinimized;
+    }
 }

@@ -1,3 +1,4 @@
+using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
 
@@ -14,6 +15,14 @@ public class OverlayService : ObservableObject, IOverlayService
     private bool _showQuickSearch;
     private bool _showAiAssistant;
     private bool _showPerformanceHud;
+    private bool _showNotifications;
+    private bool _showUserProfile;
+    private bool _showNetworkDiagnostics;
+    private bool _showSyncStatus;
+    private bool _showConflictsResolution;
+    private bool _showProviderConfiguration;
+    private bool _showDashboardCustomization;
+    private bool _showCreateCollection;
     private bool _isVoiceActive;
 
     public OverlayService(ILogger<OverlayService> logger)
@@ -57,7 +66,65 @@ public class OverlayService : ObservableObject, IOverlayService
     }
 
     /// <inheritdoc />
-    public bool ShowDim => ShowCommandPalette || ShowQuickSearch || ShowAiAssistant;
+    public bool ShowNotifications
+    {
+        get => _showNotifications;
+        private set => SetProperty(ref _showNotifications, value);
+    }
+
+    /// <inheritdoc />
+    public bool ShowUserProfile
+    {
+        get => _showUserProfile;
+        private set => SetProperty(ref _showUserProfile, value);
+    }
+
+    /// <inheritdoc />
+    public bool ShowNetworkDiagnostics
+    {
+        get => _showNetworkDiagnostics;
+        private set => SetProperty(ref _showNetworkDiagnostics, value);
+    }
+
+    /// <inheritdoc />
+    public bool ShowSyncStatus
+    {
+        get => _showSyncStatus;
+        private set => SetProperty(ref _showSyncStatus, value);
+    }
+
+    /// <inheritdoc />
+    public bool ShowConflictsResolution
+    {
+        get => _showConflictsResolution;
+        private set => SetProperty(ref _showConflictsResolution, value);
+    }
+
+    /// <inheritdoc />
+    public bool ShowProviderConfiguration
+    {
+        get => _showProviderConfiguration;
+        private set => SetProperty(ref _showProviderConfiguration, value);
+    }
+
+    /// <inheritdoc />
+    public bool ShowDashboardCustomization
+    {
+        get => _showDashboardCustomization;
+        private set => SetProperty(ref _showDashboardCustomization, value);
+    }
+
+    /// <inheritdoc />
+    public bool ShowCreateCollection
+    {
+        get => _showCreateCollection;
+        private set => SetProperty(ref _showCreateCollection, value);
+    }
+
+    /// <inheritdoc />
+    public bool ShowDim => ShowCommandPalette || ShowQuickSearch || ShowAiAssistant || ShowNotifications || ShowUserProfile ||
+                           ShowNetworkDiagnostics || ShowSyncStatus || ShowConflictsResolution ||
+                           ShowProviderConfiguration || ShowDashboardCustomization || ShowCreateCollection;
 
     /// <inheritdoc />
     public void ShowCommandPaletteOverlay()
@@ -168,14 +235,213 @@ public class OverlayService : ObservableObject, IOverlayService
     }
 
     /// <inheritdoc />
+    public void ShowSessionDetailsOverlay(Guid gameId)
+    {
+        _logger.LogInformation("Showing session details overlay for game {GameId}", gameId);
+        // TODO: Create and show overlay window
+        // For now, just log - actual implementation would create the overlay window
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("SessionDetails", true));
+    }
+
+    /// <inheritdoc />
+    public void ShowAchievementDetailsOverlay(Guid achievementId)
+    {
+        _logger.LogInformation("Showing achievement details overlay for achievement {AchievementId}", achievementId);
+        // TODO: Create and show overlay window
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("AchievementDetails", true));
+    }
+
+    /// <inheritdoc />
+    public void ShowModDetailsOverlay(Guid modId)
+    {
+        _logger.LogInformation("Showing mod details overlay for mod {ModId}", modId);
+        // TODO: Create and show overlay window
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("ModDetails", true));
+    }
+
+    /// <inheritdoc />
+    public void ShowNotificationsOverlay()
+    {
+        ShowNotifications = true;
+        _logger.LogInformation("Showing notifications overlay");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("Notifications", true));
+    }
+
+    /// <inheritdoc />
+    public void HideNotificationsOverlay()
+    {
+        ShowNotifications = false;
+        _logger.LogInformation("Hiding notifications overlay");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("Notifications", false));
+    }
+
+    /// <inheritdoc />
+    public void ToggleNotificationsOverlay()
+    {
+        if (ShowNotifications)
+            HideNotificationsOverlay();
+        else
+            ShowNotificationsOverlay();
+    }
+
+    /// <inheritdoc />
+    public void ShowUserProfileOverlay()
+    {
+        ShowUserProfile = true;
+        _logger.LogInformation("Showing user profile overlay");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("UserProfile", true));
+    }
+
+    /// <inheritdoc />
+    public void HideUserProfileOverlay()
+    {
+        ShowUserProfile = false;
+        _logger.LogInformation("Hiding user profile overlay");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("UserProfile", false));
+    }
+
+    /// <inheritdoc />
+    public void ToggleUserProfileOverlay()
+    {
+        if (ShowUserProfile)
+            HideUserProfileOverlay();
+        else
+            ShowUserProfileOverlay();
+    }
+
+    /// <inheritdoc />
+    public void ShowNetworkDiagnosticsOverlay()
+    {
+        ShowNetworkDiagnostics = true;
+        _logger.LogInformation("Showing network diagnostics overlay");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("NetworkDiagnostics", true));
+    }
+
+    /// <inheritdoc />
+    public void HideNetworkDiagnosticsOverlay()
+    {
+        ShowNetworkDiagnostics = false;
+        _logger.LogInformation("Hiding network diagnostics overlay");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("NetworkDiagnostics", false));
+    }
+
+    /// <inheritdoc />
+    public void ToggleNetworkDiagnosticsOverlay()
+    {
+        if (ShowNetworkDiagnostics)
+            HideNetworkDiagnosticsOverlay();
+        else
+            ShowNetworkDiagnosticsOverlay();
+    }
+
+    /// <inheritdoc />
+    public void ShowSyncStatusOverlay()
+    {
+        ShowSyncStatus = true;
+        _logger.LogInformation("Showing sync status overlay");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("SyncStatus", true));
+    }
+
+    /// <inheritdoc />
+    public void HideSyncStatusOverlay()
+    {
+        ShowSyncStatus = false;
+        _logger.LogInformation("Hiding sync status overlay");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("SyncStatus", false));
+    }
+
+    /// <inheritdoc />
+    public void ToggleSyncStatusOverlay()
+    {
+        if (ShowSyncStatus)
+            HideSyncStatusOverlay();
+        else
+            ShowSyncStatusOverlay();
+    }
+
+    /// <inheritdoc />
+    public void ShowConflictsResolutionOverlay()
+    {
+        ShowConflictsResolution = true;
+        _logger.LogInformation("Showing conflicts resolution overlay");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("ConflictsResolution", true));
+    }
+
+    /// <inheritdoc />
+    public void HideConflictsResolutionOverlay()
+    {
+        ShowConflictsResolution = false;
+        _logger.LogInformation("Hiding conflicts resolution overlay");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("ConflictsResolution", false));
+    }
+
+    /// <inheritdoc />
+    public void ShowProviderConfigurationDialog()
+    {
+        ShowProviderConfiguration = true;
+        _logger.LogInformation("Showing provider configuration dialog");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("ProviderConfiguration", true));
+    }
+
+    /// <inheritdoc />
+    public void HideProviderConfigurationDialog()
+    {
+        ShowProviderConfiguration = false;
+        _logger.LogInformation("Hiding provider configuration dialog");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("ProviderConfiguration", false));
+    }
+
+    /// <inheritdoc />
+    public void ShowDashboardCustomizationDialog()
+    {
+        ShowDashboardCustomization = true;
+        _logger.LogInformation("Showing dashboard customization dialog");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("DashboardCustomization", true));
+    }
+
+    /// <inheritdoc />
+    public void HideDashboardCustomizationDialog()
+    {
+        ShowDashboardCustomization = false;
+        _logger.LogInformation("Hiding dashboard customization dialog");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("DashboardCustomization", false));
+    }
+
+    /// <inheritdoc />
+    public void ShowCreateCollectionDialog()
+    {
+        ShowCreateCollection = true;
+        _logger.LogInformation("Showing create collection dialog");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("CreateCollection", true));
+    }
+
+    /// <inheritdoc />
+    public void HideCreateCollectionDialog()
+    {
+        ShowCreateCollection = false;
+        _logger.LogInformation("Hiding create collection dialog");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("CreateCollection", false));
+    }
+
+    /// <inheritdoc />
     public void HideAllOverlays()
     {
-        var hadOverlays = ShowCommandPalette || ShowQuickSearch || ShowAiAssistant || ShowPerformanceHud;
+        var hadOverlays = ShowCommandPalette || ShowQuickSearch || ShowAiAssistant || ShowPerformanceHud ||
+                          ShowNotifications || ShowUserProfile || ShowNetworkDiagnostics || ShowSyncStatus ||
+                          ShowConflictsResolution || ShowProviderConfiguration || ShowDashboardCustomization || ShowCreateCollection;
 
         ShowCommandPalette = false;
         ShowQuickSearch = false;
         ShowAiAssistant = false;
         ShowPerformanceHud = false;
+        ShowNotifications = false;
+        ShowUserProfile = false;
+        ShowNetworkDiagnostics = false;
+        ShowSyncStatus = false;
+        ShowConflictsResolution = false;
+        ShowProviderConfiguration = false;
+        ShowDashboardCustomization = false;
+        ShowCreateCollection = false;
         IsVoiceActive = false;
 
         if (hadOverlays)

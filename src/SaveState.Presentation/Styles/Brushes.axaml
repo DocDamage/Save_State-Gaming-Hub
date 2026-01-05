@@ -1,62 +1,82 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!-- Deep Space Theme Brushes -->
-    <SolidColorBrush x:Key="BackgroundBrush" Color="#0B0E14" />
-    <SolidColorBrush x:Key="SurfaceBrush" Color="#161B22" />
-    <SolidColorBrush x:Key="PrimaryBrush" Color="#58A6FF" />
-    <SolidColorBrush x:Key="AccentBrush" Color="#F78166" />
-    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F0F6FC" />
-    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#C9D1D9" />
-    <SolidColorBrush x:Key="BorderBrush" Color="#30363D" />
-    <SolidColorBrush x:Key="GlassBrush" Color="#80FFFFFF" Opacity="0.05" />
-    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#21262D" />
-    <SolidColorBrush x:Key="CardHoverBrush" Color="#30363D" />
-    <SolidColorBrush x:Key="HoverBrush" Color="#30363D" />
 
-    <!-- Title Bar Brushes -->
-    <SolidColorBrush x:Key="TitleBarForegroundBrush" Color="#C9D1D9" />
-    <SolidColorBrush x:Key="TitleBarSecondaryBrush" Color="#8B949E" />
-    <SolidColorBrush x:Key="TitleBarHoverBrush" Color="#30363D" />
+    <!-- WeMod-Inspired "Midnight" Theme -->
+    <!-- Authentic Deep Slate Aesthetic -->
 
-    <!-- Header Bar Brushes -->
-    <SolidColorBrush x:Key="HeaderForegroundBrush" Color="#C9D1D9" />
-    <SolidColorBrush x:Key="HeaderHoverBrush" Color="#21262D" />
-    <SolidColorBrush x:Key="HeaderActiveBrush" Color="#161B22" />
-    <SolidColorBrush x:Key="SearchBackgroundBrush" Color="#21262D" />
-    <SolidColorBrush x:Key="SearchBorderBrush" Color="#30363D" />
+    <!-- Base Colors -->
+    <!-- Main Window Background (Deepest) -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="#121212" />
 
-    <!-- Status Bar Brushes -->
-    <SolidColorBrush x:Key="StatusBarBackgroundBrush" Color="#161B22" />
-    <SolidColorBrush x:Key="StatusBarForegroundBrush" Color="#8B949E" />
-    <SolidColorBrush x:Key="StatusOnlineBrush" Color="#3FB950" />
-    <SolidColorBrush x:Key="StatusOfflineBrush" Color="#8B949E" />
+    <!-- Sidebar / Header Surface (Slightly Lighter) -->
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#1A1B1E" />
 
-    <!-- Overlay Brushes -->
-    <SolidColorBrush x:Key="OverlayBackgroundBrush" Color="#21262D" />
-    <SolidColorBrush x:Key="OverlayBorderBrush" Color="#30363D" />
-    <SolidColorBrush x:Key="ToastBackgroundBrush" Color="#21262D" />
-    <SolidColorBrush x:Key="VoiceIndicatorBackgroundBrush" Color="#21262D" />
-    <SolidColorBrush x:Key="LoadingBackgroundBrush" Color="#0B0E14" Opacity="0.8" />
+    <!-- Card / Element Background (Elevated) -->
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#25262B" />
+    <SolidColorBrush x:Key="CardHoverBrush" Color="#2C2E33" />
 
+    <!-- Hover States -->
+    <SolidColorBrush x:Key="HoverBrush" Color="#1AFFFFFF" />
+    <SolidColorBrush x:Key="HeaderHoverBrush" Color="#2A2C30" />
+    <SolidColorBrush x:Key="TitleBarHoverBrush" Color="#1AFFFFFF" />
+    <SolidColorBrush x:Key="TitleBarForegroundBrush" Color="#FFFFFF" />
 
-    <!-- Fighting Game Theme Brushes (SF / MVC2) -->
-    <SolidColorBrush x:Key="FightingRedBrush" Color="#EE1C24" />
-    <SolidColorBrush x:Key="FightingYellowBrush" Color="#FFF200" />
-    <SolidColorBrush x:Key="FightingOrangeBrush" Color="#FF7F27" />
+    <!-- Input / Overlay Background -->
+    <SolidColorBrush x:Key="InputBackgroundBrush" Color="#2C2E33" />
+
+    <!-- Primary Brand Colors -->
+    <!-- WeMod uses clean white and specific accent greens/blues -->
+    <SolidColorBrush x:Key="PrimaryBrush" Color="#FFFFFF" />
+
+    <!-- "Pro" Green Accent -->
+    <SolidColorBrush x:Key="AccentBrush" Color="#10B981" />
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#059669" />
+
+    <!-- Secondary Blue Accent -->
+    <SolidColorBrush x:Key="SecondaryAccentBrush" Color="#3B82F6" />
+    <SolidColorBrush x:Key="SecondaryAccentHoverBrush" Color="#2563EB" />
+
+    <!-- Text Colors -->
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#A1A1AA" /> <!-- Zinc-400 -->
+    <SolidColorBrush x:Key="TextTertiaryBrush" Color="#71717A" />  <!-- Zinc-500 -->
+    <SolidColorBrush x:Key="TextMutedBrush" Color="#52525B" />     <!-- Zinc-600 -->
+
+    <!-- Borders & Dividers -->
+    <SolidColorBrush x:Key="BorderBrush" Color="#2C2E33" />
+    <SolidColorBrush x:Key="DividerBrush" Color="#2C2E33" />
+
+    <!-- Focus / Selection -->
+    <SolidColorBrush x:Key="FocusBorderBrush" Color="#10B981" />
+
+    <!-- Status Colors -->
+    <SolidColorBrush x:Key="SuccessBrush" Color="#10B981" />
+    <SolidColorBrush x:Key="WarningBrush" Color="#F59E0B" />
+    <SolidColorBrush x:Key="ErrorBrush" Color="#EF4444" />
+    <SolidColorBrush x:Key="InfoBrush" Color="#3B82F6" />
+
+    <!-- Gradients -->
+    <!-- Subtle overlay gradient for premium feel -->
+    <LinearGradientBrush x:Key="SurfaceGradientBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+        <GradientStop Offset="0" Color="#1A1B1E" />
+        <GradientStop Offset="1" Color="#141517" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="PrimaryActionGradient" StartPoint="0%,0%" EndPoint="100%,0%">
+        <GradientStop Offset="0" Color="#10B981" />
+        <GradientStop Offset="1" Color="#059669" />
+    </LinearGradientBrush>
+
+    <!-- Fighting Game Specifics (Keeping for legacy support) -->
+    <SolidColorBrush x:Key="FightingRedBrush" Color="#EF4444" />
+    <SolidColorBrush x:Key="FightingYellowBrush" Color="#FBBF24" />
 
     <LinearGradientBrush x:Key="SFFireGradientBrush" StartPoint="0%,0%" EndPoint="100%,0%">
-        <GradientStop Offset="0" Color="#EE1C24" />
-        <GradientStop Offset="0.5" Color="#FF7F27" />
-        <GradientStop Offset="1" Color="#FFF200" />
+        <GradientStop Offset="0" Color="#EF4444" />
+        <GradientStop Offset="0.5" Color="#F97316" />
+        <GradientStop Offset="1" Color="#FBBF24" />
     </LinearGradientBrush>
 
-    <LinearGradientBrush x:Key="MVC2GradientBrush" StartPoint="0%,0%" EndPoint="0%,100%">
-        <GradientStop Offset="0" Color="#3F51B5" />
-        <GradientStop Offset="1" Color="#00BCD4" />
-    </LinearGradientBrush>
-
-    <LinearGradientBrush x:Key="PremiumGradientBrush" StartPoint="0%,0%" EndPoint="100%,100%">
-        <GradientStop Offset="0" Color="#58A6FF" />
-        <GradientStop Offset="1" Color="#F78166" />
-    </LinearGradientBrush>
+    <!-- Utility -->
+    <SolidColorBrush x:Key="GlassBrush" Color="#1A1B1E" Opacity="0.95" />
 </ResourceDictionary>
