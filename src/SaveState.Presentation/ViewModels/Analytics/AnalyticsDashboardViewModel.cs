@@ -247,6 +247,38 @@ public partial class AnalyticsDashboardViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
+    private async Task ExportToJsonAsync()
+    {
+        try
+        {
+            _logger.LogInformation("Exporting analytics to JSON...");
+
+            var exportData = BuildExportData();
+            var fileName = $"analytics_export_{DateTime.Now:yyyyMMdd_HHmmss}.json";
+            var filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "SaveState", fileName);
+
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+
+            var result = await _exportService.ExportToJsonAsync(exportData, filePath);
+
+            if (result.IsSuccess)
+            {
+                _notificationService.ShowSuccess($"Analytics exported to: {result.Value}", "Export Complete");
+                _logger.LogInformation("Analytics exported to JSON: {FilePath}", result.Value);
+            }
+            else
+            {
+                _notificationService.ShowError(result.Error, "Export Failed");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to export analytics to JSON");
+            _notificationService.ShowError("Failed to export analytics data", "Error");
+        }
+    }
+
+    [RelayCommand]
     private async Task GenerateReportAsync()
     {
         try
@@ -292,7 +324,7 @@ public partial class AnalyticsDashboardViewModel : ObservableObject, IDisposable
 
         var genres = GenreData.Select(g => new GenreExportData(g.Genre, g.Hours, g.Percentage)).ToList();
         var streaks = PlayStreaks.Select(s => new StreakExportData(s.StartDate, s.EndDate, s.DaysCount, s.TotalSessions)).ToList();
-        var predictions = Predictions.Select(p => new PredictionExportData(p.GameName, TimeRemaining = FormatDuration(p.EstimatedTimeRemaining), p.ConfidenceScore)).ToList();
+        var predictions = Predictions.Select(p => new PredictionExportData(p.GameName, FormatDuration(p.EstimatedTimeRemaining), p.ConfidenceScore)).ToList();
 
         return new AnalyticsExportData(
             DateTime.Now,
