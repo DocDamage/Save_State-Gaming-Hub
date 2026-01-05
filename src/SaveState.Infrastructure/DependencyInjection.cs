@@ -193,6 +193,7 @@ public static class DependencyInjection
 
         // Recommendation Services
         services.AddScoped<SaveState.Core.Recommendations.Services.IRecommendationService, Recommendations.RecommendationService>();
+        services.AddScoped<SaveState.Core.Recommendations.Services.IGameRecommendationService, Recommendations.GameRecommendationService>();
 
         // Assistant Services
         services.AddScoped<SaveState.Core.Assistant.Services.IGameAssistantService, Assistant.GameAssistantService>();
