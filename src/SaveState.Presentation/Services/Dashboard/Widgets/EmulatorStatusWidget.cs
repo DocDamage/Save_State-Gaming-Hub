@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
 using SaveState.Application.RomManagement.Services;
+using SaveState.Core.RomManagement;
 using System.Collections.ObjectModel;
 
 namespace SaveState.Presentation.Services.Dashboard.Widgets;
@@ -11,13 +12,16 @@ namespace SaveState.Presentation.Services.Dashboard.Widgets;
 public partial class EmulatorStatusWidget : WidgetBase
 {
     private readonly IEmulatorService _emulatorService;
+    private readonly IEmulatorRepository _emulatorRepository;
 
     public EmulatorStatusWidget(
         IEmulatorService emulatorService,
+        IEmulatorRepository emulatorRepository,
         ILogger<EmulatorStatusWidget> logger)
         : base(logger)
     {
         _emulatorService = emulatorService;
+        _emulatorRepository = emulatorRepository;
         Emulators = new ObservableCollection<EmulatorStatusItem>();
     }
 
@@ -44,36 +48,45 @@ public partial class EmulatorStatusWidget : WidgetBase
     /// <inheritdoc />
     protected override async Task LoadDataAsync()
     {
-        // Try to get available emulators for some common platforms to populate the list
-        // In a real app, this might query all configured emulators
         try
         {
-            // For demo/dashboard purpose, we just get all emulators if possible,
-            // but IEmulatorService doesn't have an 'GetAll' method.
-            // However, we can use the repository if we inject it,
-            // but let's stick to the service if it has what we need.
-
-            // Let's assume we want to show a few key ones or we need to add a method to the service.
-            // For now, let's just create some mock data if we can't get it,
-            // or better yet, let's see if we can get platforms first.
-
-            // Wait, I saw IEmulatorRepository has GetAllAsync. Let's use that if we can.
-            // But usually we should go through the service.
-
-            // Let's just use some sample data for now and I'll add the real data fetching later
-            // after I verify the build.
-
             Emulators.Clear();
-            Emulators.Add(new EmulatorStatusItem("RetroArch", "Global", true));
-            Emulators.Add(new EmulatorStatusItem("PCSX2", "PS2", true));
-            Emulators.Add(new EmulatorStatusItem("Dolphin", "GC/Wii", true));
-            Emulators.Add(new EmulatorStatusItem("RPCS3", "PS3", false));
-            Emulators.Add(new EmulatorStatusItem("DuckStation", "PS1", true));
+
+            // Get all configured emulators from the repository
+            var emulators = await _emulatorRepository.GetAllAsync();
+
+            foreach (var emulator in emulators.OrderBy(e => e.Name))
+            {
+                // Check if emulator executable exists
+                var isAvailable = emulator.IsAvailable;
+
+                Emulators.Add(new EmulatorStatusItem(
+                    emulator.Name,
+                    emulator.Platform?.Name.Value ?? "Unknown",
+                    isAvailable));
+            }
+
+            // If no emulators are configured, show a helpful message
+            if (Emulators.Count == 0)
+            {
+                Emulators.Add(new EmulatorStatusItem(
+                    "No emulators configured",
+                    "Add emulators in Settings",
+                    false));
+            }
+
+            Logger.LogInformation("Loaded {Count} emulator status items", Emulators.Count);
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to load emulator status");
-            throw;
+
+            // Fallback data
+            Emulators.Clear();
+            Emulators.Add(new EmulatorStatusItem(
+                "Error loading emulators",
+                "Check logs",
+                false));
         }
     }
 }

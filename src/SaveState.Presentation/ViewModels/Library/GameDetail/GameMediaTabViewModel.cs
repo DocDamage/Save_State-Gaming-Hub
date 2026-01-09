@@ -5,12 +5,16 @@ using Microsoft.Extensions.Logging;
 using SaveState.Application.GameLibrary.Queries;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary.Entities;
+using SaveState.Core.GameLibrary.Services;
 using SaveState.Core.UserManagement.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.IO;
 using SaveState.Presentation.Services;
+using SaveState.Core.Sync;
 
 namespace SaveState.Presentation.ViewModels.Library.GameDetail;
 
@@ -22,7 +26,11 @@ public partial class GameMediaTabViewModel : ObservableObject
     private readonly IMediator _mediator;
     private readonly IUserContextService _userContextService;
     private readonly IDialogService _dialogService;
+    private readonly IGameMediaService _gameMediaService;
+    private readonly INotificationService _notificationService;
+    private readonly IClipboardService _clipboardService;
     private readonly ILogger<GameMediaTabViewModel> _logger;
+    private GameId? _currentGameId;
 
     [ObservableProperty]
     private string _mediaCountText = "0 media files";
@@ -75,15 +83,25 @@ public partial class GameMediaTabViewModel : ObservableObject
     [ObservableProperty]
     private string _storageAvailableText = "0 GB available";
 
+    private readonly ISyncService _syncService;
+
     public GameMediaTabViewModel(
         IMediator mediator,
         IUserContextService userContextService,
         IDialogService dialogService,
+        IGameMediaService gameMediaService,
+        INotificationService notificationService,
+        ISyncService syncService,
+        IClipboardService clipboardService,
         ILogger<GameMediaTabViewModel> logger)
     {
         _mediator = mediator;
         _userContextService = userContextService;
         _dialogService = dialogService;
+        _gameMediaService = gameMediaService;
+        _notificationService = notificationService;
+        _syncService = syncService;
+        _clipboardService = clipboardService;
         _logger = logger;
     }
 
@@ -91,6 +109,8 @@ public partial class GameMediaTabViewModel : ObservableObject
     {
         try
         {
+            _currentGameId = gameId;
+
             var userId = _userContextService.GetCurrentUserId();
             if (!userId.HasValue)
             {
@@ -117,7 +137,21 @@ public partial class GameMediaTabViewModel : ObservableObject
             var mostRecent = mediaItems.OrderByDescending(m => m.CreatedAt).FirstOrDefault();
             LastCaptureText = mostRecent != null ? FormatDateTime(mostRecent.CreatedAt) : "Never";
 
-            // TODO: Calculate actual storage usage percentage against available disk space
+            // Calculate storage usage percentage
+            try
+            {
+                var driveInfo = new System.IO.DriveInfo(System.IO.Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)) ?? "C:\\");
+                var usedBytes = totalBytes;
+                var totalDriveBytes = driveInfo.TotalSize;
+                StorageUsagePercentage = totalDriveBytes > 0 ? (double)usedBytes / totalDriveBytes * 100 : 0;
+                StorageAvailableText = $"{FormatFileSize(driveInfo.AvailableFreeSpace)} available";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to calculate storage usage");
+                StorageUsagePercentage = 0;
+                StorageAvailableText = "Unknown";
+            }
             StorageUsagePercentage = 0.0;
             StorageAvailableText = "0 GB available";
 
@@ -127,13 +161,17 @@ public partial class GameMediaTabViewModel : ObservableObject
             {
                 MediaItems.Add(new GameMediaItemViewModel
                 {
+                    MediaId = media.Id,
                     FileName = System.IO.Path.GetFileName(media.FilePath),
                     DateText = FormatDateTime(media.CreatedAt),
                     SizeText = FormatFileSize(media.FileSizeBytes),
                     PreviewUrl = media.ThumbnailPath ?? media.FilePath,
+                    FilePath = media.FilePath,
                     IsVideo = media.MediaType == MediaType.Video,
                     IsFavorite = media.IsFavorite,
-                    Opacity = "1.0"
+                    Opacity = "1.0",
+                    DeleteAction = OnDeleteMediaItemAsync,
+                    CopyAction = OnCopyMediaItemAsync
                 });
             }
 
@@ -190,71 +228,198 @@ public partial class GameMediaTabViewModel : ObservableObject
     [RelayCommand]
     private async Task TakeScreenshot()
     {
-        await _dialogService.ShowInformationAsync("Screenshot", "Screenshot capture via overlay coming soon.");
+        if (_currentGameId == null) return;
+
+        try
+        {
+            var command = new SaveState.Application.GameLibrary.Commands.CaptureScreenshotCommand(_currentGameId.Value);
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+            {
+                _notificationService.ShowSuccess("Screenshot captured!", "Media");
+                await LoadDataAsync(_currentGameId);
+            }
+            else
+            {
+                await _dialogService.ShowErrorAsync("Error", $"Failed to capture: {result.Error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to take screenshot");
+            await _dialogService.ShowErrorAsync("Error", "Screenshot capture failed.");
+        }
     }
 
     [RelayCommand]
     private async Task RecordVideo()
     {
-        await _dialogService.ShowInformationAsync("Record Video", "Video recording coming soon.");
+        if (_currentGameId == null) return;
+
+        try
+        {
+            // For a complete implementation, we'd maybe ask for duration or just start/stop
+            // Here we trigger a conceptual 30s recording command
+             var command = new SaveState.Application.GameLibrary.Commands.RecordVideoCommand(_currentGameId.Value, TimeSpan.FromSeconds(30));
+             var result = await _mediator.Send(command);
+
+             if (result.IsSuccess)
+             {
+                 _notificationService.ShowSuccess("Video recorded (30s)!", "Media");
+                 await LoadDataAsync(_currentGameId);
+             }
+             else
+             {
+                 await _dialogService.ShowErrorAsync("Error", $"Failed to record: {result.Error}");
+             }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to record video");
+            await _dialogService.ShowErrorAsync("Error", "Video recording failed.");
+        }
     }
 
     [RelayCommand]
-    private async Task OpenMediaFolder()
+    private async Task OpenFolder()
     {
-        await _dialogService.ShowInformationAsync("Info", "Opening file explorer...");
-        // TODO: Implement actual folder opening
+        try
+        {
+            // Open the media folder in file explorer
+            var mediaPath = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "SaveStateReborn",
+                "Media");
+
+            if (System.IO.Directory.Exists(mediaPath))
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = mediaPath,
+                    UseShellExecute = true,
+                    Verb = "open"
+                };
+                System.Diagnostics.Process.Start(psi);
+            }
+            else
+            {
+                await _dialogService.ShowInformationAsync("Folder Not Found", "The media folder does not exist yet. Capture some screenshots or videos first!");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to open media folder");
+            await _dialogService.ShowErrorAsync("Error", "Failed to open the media folder.");
+        }
+    }
+
+    [RelayCommand]
+    private async Task UploadSelected()
+    {
+         var selectedCount = MediaItems.Count(x => x.IsSelected);
+         if (selectedCount == 0) {
+             _notificationService.ShowWarning("No items selected", "Upload");
+             return;
+         }
+
+         if (_syncService.Status == SyncStatus.NotConfigured)
+         {
+             await _dialogService.ShowErrorAsync("Cloud Not Configured", "Please configure a cloud provider in settings first.");
+             return;
+         }
+
+         try
+         {
+             _notificationService.ShowInfo($"Starting sync for {selectedCount} items...", "Cloud Upload");
+
+             // Trigger sync push to upload changes
+             var result = await _syncService.PushAsync();
+
+             if (result.Success)
+             {
+                 _notificationService.ShowSuccess($"Uploaded pending changes to {_syncService.ActiveProviderName}", "Upload Complete");
+             }
+             else
+             {
+                 _notificationService.ShowError("Upload failed: " + string.Join(", ", result.Errors), "Upload Error");
+             }
+         }
+         catch (Exception ex)
+         {
+             _logger.LogError(ex, "Failed to upload media");
+             _notificationService.ShowError("Failed to upload media items", "Error");
+         }
     }
 
     [RelayCommand]
     private async Task ExportSelected()
     {
-         var selectedCount = MediaItems.Count(x => x.IsSelected);
-         if (selectedCount == 0) {
+         var selectedItems = MediaItems.Where(x => x.IsSelected).ToList();
+         if (!selectedItems.Any()) {
              await _dialogService.ShowInformationAsync("Export", "No items selected.");
              return;
          }
-         await _dialogService.ShowInformationAsync("Export", $"Exporting {selectedCount} items coming soon.");
-    }
 
-    [RelayCommand]
-    private async Task FavoriteSelected()
-    {
-         var selectedCount = MediaItems.Count(x => x.IsSelected);
-         if (selectedCount == 0) return;
+         var folder = await _dialogService.ShowFolderPickerAsync("Select Export Folder");
+         if (string.IsNullOrEmpty(folder)) return;
 
-         foreach(var item in MediaItems.Where(x => x.IsSelected))
+         try
          {
-             item.IsFavorite = !item.IsFavorite;
-             // TODO: Persist to backend
-         }
-         await Task.CompletedTask;
-    }
-
-    [RelayCommand]
-    private async Task DeleteSelected()
-    {
-         var selectedCount = MediaItems.Count(x => x.IsSelected);
-         if (selectedCount == 0) return;
-
-         if (await _dialogService.ShowConfirmationAsync("Delete Media", $"Are you sure you want to delete {selectedCount} items?"))
-         {
-             // TODO: Delete items from backend
-             var itemsToRemove = MediaItems.Where(x => x.IsSelected).ToList();
-             foreach(var item in itemsToRemove)
+             int count = 0;
+             foreach (var item in selectedItems)
              {
-                 MediaItems.Remove(item);
+                 if (File.Exists(item.FilePath))
+                 {
+                     var dest = Path.Combine(folder, item.FileName);
+                     File.Copy(item.FilePath, dest, true);
+                     count++;
+                 }
              }
-             _logger.LogInformation("Deleted {Count} media items", selectedCount);
+             _notificationService.ShowSuccess($"Exported {count} files successfully.", "Export Complete");
+         }
+         catch (Exception ex)
+         {
+             _logger.LogError(ex, "Failed to export media");
+             _notificationService.ShowError("Failed to export some files.");
          }
     }
 
-    [RelayCommand]
-    private async Task CleanOldMedia()
+    private async Task OnDeleteMediaItemAsync(GameMediaItemViewModel item)
     {
-        if (await _dialogService.ShowConfirmationAsync("Clean Old Media", "Are you sure you want to delete media older than 30 days?"))
+        var confirmed = await _dialogService.ShowConfirmationAsync(
+            "Delete Media",
+            $"Are you sure you want to delete '{item.FileName}'?");
+
+        if (confirmed)
         {
-             await _dialogService.ShowInformationAsync("Clean Up", "Old media clean up initiated.");
+            try
+            {
+                var result = await _mediator.Send(new SaveState.Application.GameLibrary.Commands.DeleteGameMediaCommand(item.MediaId));
+                if (result.IsSuccess)
+                {
+                    MediaItems.Remove(item);
+                    _notificationService.ShowSuccess($"Deleted {item.FileName}", "Media Deleted");
+                }
+                else
+                {
+                    _notificationService.ShowError("Failed to delete media item");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete media {MediaId}", item.MediaId);
+                _notificationService.ShowError("An error occurred while deleting the media");
+            }
+        }
+    }
+
+    private async Task OnCopyMediaItemAsync(GameMediaItemViewModel item)
+    {
+        if (!string.IsNullOrEmpty(item.FilePath))
+        {
+            await _clipboardService.SetTextAsync(item.FilePath);
+            _notificationService.ShowSuccess($"Copied path to clipboard", "Copied");
         }
     }
 }
@@ -264,6 +429,12 @@ public partial class GameMediaTabViewModel : ObservableObject
 /// </summary>
 public partial class GameMediaItemViewModel : ObservableObject
 {
+    public Func<GameMediaItemViewModel, Task>? DeleteAction { get; set; }
+    public Func<GameMediaItemViewModel, Task>? CopyAction { get; set; }
+
+    [ObservableProperty]
+    private Guid _mediaId;
+
     [ObservableProperty]
     private string _fileName = string.Empty;
 
@@ -290,22 +461,41 @@ public partial class GameMediaItemViewModel : ObservableObject
 
     public string VideoIndicator => IsVideo ? "Visible" : "Collapsed";
 
+    public string FilePath { get; set; }
+    public bool IsImage => !IsVideo;
+
     [RelayCommand]
-    private void View()
+    private async Task View()
     {
-        // TODO: Open media viewer
+        try
+        {
+            if (!string.IsNullOrEmpty(FilePath) && System.IO.File.Exists(FilePath))
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = FilePath,
+                    UseShellExecute = true
+                };
+                System.Diagnostics.Process.Start(psi);
+            }
+        }
+        catch (Exception)
+        {
+            // Ignore for now
+        }
+        await Task.CompletedTask;
     }
 
     [RelayCommand]
-    private void Copy()
+    private async Task Copy()
     {
-        // TODO: Copy to clipboard
+        if (CopyAction != null) await CopyAction.Invoke(this);
     }
 
     [RelayCommand]
-    private void Delete()
+    private async Task Delete()
     {
-        // TODO: Delete this media
+        if (DeleteAction != null) await DeleteAction.Invoke(this);
     }
 }
 

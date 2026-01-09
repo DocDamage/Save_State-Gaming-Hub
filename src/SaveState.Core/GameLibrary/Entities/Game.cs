@@ -26,6 +26,9 @@ public class Game : EntityBase, ISoftDelete
     public TimeSpan TotalPlayTime { get; private set; }
     public DateOnly? ReleaseDate { get; private set; }
     public double? UserRating { get; private set; }
+    public string? LaunchArguments { get; private set; }
+    public bool IsCompleted { get; private set; }
+    public DateTime? CompletedAt { get; private set; }
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
 
@@ -111,6 +114,26 @@ public class Game : EntityBase, ISoftDelete
 
         IsDeleted = true;
         DeletedAt = DateTime.UtcNow;
+    }
+
+    public void UpdateLaunchConfiguration(string? launchArguments)
+    {
+        LaunchArguments = launchArguments;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void MarkAsCompleted()
+    {
+        IsCompleted = true;
+        CompletedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void MarkAsIncomplete()
+    {
+        IsCompleted = false;
+        CompletedAt = null;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public void UpdateTags(IEnumerable<string> tags)

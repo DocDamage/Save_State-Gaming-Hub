@@ -57,12 +57,12 @@ public class CoverArtService : ICoverArtService
                 return igdbResult;
             }
 
-            return Result<CoverArtResult>.Failure("No cover art found from any source", ErrorType.NotFound);
+            return Result.Failure<CoverArtResult>("No cover art found from any source", ErrorType.NotFound);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to fetch cover art for game {GameId}", gameId);
-            return Result<CoverArtResult>.Failure($"Cover art fetch failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<CoverArtResult>($"Cover art fetch failed: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -101,12 +101,12 @@ public class CoverArtService : ICoverArtService
 
             // Could add IGDB search here if needed
 
-            return Result<IReadOnlyList<CoverArtOption>>.Success(options);
+            return Result.Success<IReadOnlyList<CoverArtOption>>(options);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to search cover art for '{Query}'", query);
-            return Result<IReadOnlyList<CoverArtOption>>.Failure($"Cover art search failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<CoverArtOption>>($"Cover art search failed: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -193,7 +193,7 @@ public class CoverArtService : ICoverArtService
         // We need game title to search SteamGridDB
         // This is a simplified implementation - in reality we'd need to get the game title from the database
         // For now, return failure to fall back to IGDB
-        return Task.FromResult(Result<CoverArtResult>.Failure("SteamGridDB fetch not implemented for game ID lookup", ErrorType.NotImplemented));
+        return Task.FromResult(Result.Failure<CoverArtResult>("SteamGridDB fetch not implemented for game ID lookup", ErrorType.NotImplemented));
     }
 
     private static Task<Result<CoverArtResult>> TryFetchFromIgdbAsync(Guid gameId, CancellationToken ct)
@@ -201,7 +201,7 @@ public class CoverArtService : ICoverArtService
         // We need game title to search IGDB
         // This is a simplified implementation - in reality we'd need to get the game title from the database
         // For now, return failure
-        return Task.FromResult(Result<CoverArtResult>.Failure("IGDB fetch not implemented for game ID lookup", ErrorType.NotImplemented));
+        return Task.FromResult(Result.Failure<CoverArtResult>("IGDB fetch not implemented for game ID lookup", ErrorType.NotImplemented));
     }
 
     private async Task<Result<ImageResizeResult>> DownloadAndProcessImageAsync(string imageUrl, CancellationToken ct)
@@ -213,7 +213,7 @@ public class CoverArtService : ICoverArtService
 
         if (!downloadResult.IsSuccess)
         {
-            return Result<ImageResizeResult>.Failure(downloadResult.Error!, downloadResult.ErrorType);
+            return Result.Failure<ImageResizeResult>(downloadResult.Error!, downloadResult.ErrorType);
         }
 
         // Resize to reasonable dimensions for cover art
@@ -237,11 +237,11 @@ public class CoverArtService : ICoverArtService
         var optimizeResult = await _imageResizer.OptimizeImageAsync(resizeResult.Value.Data, optimizeOptions, ct);
         if (!optimizeResult.IsSuccess)
         {
-            return Result<ImageResizeResult>.Failure(optimizeResult.Error!, optimizeResult.ErrorType);
+            return Result.Failure<ImageResizeResult>(optimizeResult.Error!, optimizeResult.ErrorType);
         }
 
         // Return the final processed image
-        return Result<ImageResizeResult>.Success(new ImageResizeResult(
+        return Result.Success<ImageResizeResult>(new ImageResizeResult(
             optimizeResult.Value,
             resizeResult.Value.OriginalWidth,
             resizeResult.Value.OriginalHeight,
@@ -259,3 +259,4 @@ public class CoverArtService : ICoverArtService
         _ => CoverArtType.Background
     };
 }
+

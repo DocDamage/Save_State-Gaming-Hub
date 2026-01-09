@@ -35,10 +35,10 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
 
             if (matchHistory == null)
             {
-                return Result<MugenMatchHistory>.Failure($"Match history with ID {id} not found", ErrorType.NotFound);
+                return Result.Failure<MugenMatchHistory>($"Match history with ID {id} not found", ErrorType.NotFound);
             }
 
-            return Result<MugenMatchHistory>.Success(matchHistory);
+            return Result.Success<MugenMatchHistory>(matchHistory);
         }
         catch (Exception ex)
         {
@@ -182,14 +182,14 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
             var duration = DateTime.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.GetMatchupStatsAsync", duration);
 
-            return Result<MugenMatchupStats>.Success(matchupStats);
+            return Result.Success<MugenMatchupStats>(matchupStats);
         }
         catch (Exception ex)
         {
             var duration = DateTime.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.GetMatchupStatsAsync", duration);
             _metrics.RecordDatabaseError("MugenMatchHistoryRepository.GetMatchupStatsAsync", ex.GetType().Name);
-            return Result<MugenMatchupStats>.Failure($"Failed to get matchup stats: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<MugenMatchupStats>($"Failed to get matchup stats: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -217,14 +217,14 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
             var duration = DateTime.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.RecordMatchAsync", duration);
 
-            return Result<MugenMatchHistory>.Success(match);
+            return Result.Success<MugenMatchHistory>(match);
         }
         catch (Exception ex)
         {
             var duration = DateTime.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.RecordMatchAsync", duration);
             _metrics.RecordDatabaseError("MugenMatchHistoryRepository.RecordMatchAsync", ex.GetType().Name);
-            return Result<MugenMatchHistory>.Failure($"Failed to record match: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<MugenMatchHistory>($"Failed to record match: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -321,3 +321,4 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
         }
     }
 }
+

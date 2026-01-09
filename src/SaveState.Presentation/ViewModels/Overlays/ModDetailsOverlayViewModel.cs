@@ -49,8 +49,11 @@ public partial class ModDetailsOverlayViewModel : ObservableObject
     [ObservableProperty]
     private bool _canConfigure;
 
-    public ModDetailsOverlayViewModel()
+    private readonly SaveState.Presentation.Services.IOverlayService _overlayService;
+
+    public ModDetailsOverlayViewModel(SaveState.Presentation.Services.IOverlayService overlayService)
     {
+        _overlayService = overlayService;
         // Design-time data
         LoadDesignTimeData();
     }
@@ -116,10 +119,16 @@ public partial class ModDetailsOverlayViewModel : ObservableObject
         // Uninstall mod
     }
 
+    public void Initialize(Guid modId)
+    {
+        ModName = $"Mod {modId}";
+        // Load actual mod data
+    }
+
     [RelayCommand]
     private void Close()
     {
-        // Close overlay
+        _overlayService.HideModDetailsOverlay();
     }
 }
 

@@ -40,59 +40,201 @@
         </Border>
 
         <!-- Main Content -->
-        <Grid Grid.Row="1" ColumnDefinitions="2*, 1*" >
-            <!-- Patterns List -->
-            <Border Grid.Column="0" Classes="GlassContainer" Padding="0" Margin="0,0,10,0">
-                <Grid RowDefinitions="Auto, *">
-                    <TextBlock Grid.Row="0" Text="DETECTED PATTERNS" Classes="Caption" FontWeight="Bold" Margin="15,15,0,10"/>
+        <Grid Grid.Row="1" ColumnDefinitions="Auto, *">
+            <!-- Sidebar Navigation -->
+            <Border Grid.Column="0" Classes="GlassContainer" Margin="0,0,10,20" Padding="0,10" Width="200">
+                <StackPanel Spacing="5">
+                    <Button Classes="Ghost"
+                            Command="{Binding SetPropertyCommand}"
+                            CommandParameter="SelectedTabIndex:0"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Padding="15,10">
+                            <!-- Note: Using simple binding for selection state visualization via styles would be ideal,
+                                 but for now relying on standard button or manual VM logic.
+                                 Actually, let's use standard IsVisible on the content. -->
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="📊" />
+                                <TextBlock Text="Monitor" />
+                            </StackPanel>
+                    </Button>
+                    <Button Classes="Ghost"
+                            Command="{Binding SetPropertyCommand}"
+                            CommandParameter="SelectedTabIndex:1"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Padding="15,10">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="🐞" />
+                                <TextBlock Text="Debugger" />
+                            </StackPanel>
+                    </Button>
+                    <Button Classes="Ghost"
+                            Command="{Binding SetPropertyCommand}"
+                            CommandParameter="SelectedTabIndex:2"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Padding="15,10">
+                           <StackPanel Orientation="Horizontal" Spacing="10">
+                               <TextBlock Text="⚡" />
+                               <TextBlock Text="Cheats" />
+                           </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
 
-                    <Grid Grid.Row="1" RowDefinitions="Auto, *">
-                        <!-- Header -->
-                        <Border Grid.Row="0" Background="#1AFFFFFF" Padding="10,5">
-                            <Grid ColumnDefinitions="*, 120, 120">
-                                <TextBlock Text="Pattern Name" FontWeight="Bold" Classes="Caption"/>
-                                <TextBlock Grid.Column="1" Text="Value" FontWeight="Bold" Classes="Caption"/>
-                                <TextBlock Grid.Column="2" Text="Address" FontWeight="Bold" Classes="Caption"/>
+            <!-- Content Area -->
+            <Grid Grid.Column="1" Margin="0,0,0,20">
+
+                <!-- Tab 0: Monitor (Existing) -->
+                <Grid IsVisible="{Binding SelectedTabIndex, Converter={StaticResource EqualityConverter}, ConverterParameter=0}">
+                    <Grid ColumnDefinitions="2*, 1*">
+                        <!-- Patterns List -->
+                        <Border Grid.Column="0" Classes="GlassContainer" Padding="0" Margin="0,0,10,0">
+                            <Grid RowDefinitions="Auto, *">
+                                <TextBlock Grid.Row="0" Text="DETECTED PATTERNS" Classes="Caption" FontWeight="Bold" Margin="15,15,0,10"/>
+
+                                <Grid Grid.Row="1" RowDefinitions="Auto, *">
+                                    <Border Grid.Row="0" Background="#1AFFFFFF" Padding="10,5">
+                                        <Grid ColumnDefinitions="*, 120, 120">
+                                            <TextBlock Text="Pattern Name" FontWeight="Bold" Classes="Caption"/>
+                                            <TextBlock Grid.Column="1" Text="Value" FontWeight="Bold" Classes="Caption"/>
+                                            <TextBlock Grid.Column="2" Text="Address" FontWeight="Bold" Classes="Caption"/>
+                                        </Grid>
+                                    </Border>
+                                    <ScrollViewer Grid.Row="1">
+                                        <ItemsControl ItemsSource="{Binding DetectedPatterns}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border BorderBrush="#11FFFFFF" BorderThickness="0,0,0,1" Padding="10,8">
+                                                        <Grid ColumnDefinitions="*, 120, 120">
+                                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                                            <TextBlock Grid.Column="1" Text="{Binding Value}" FontFamily="Courier New" VerticalAlignment="Center"/>
+                                                            <TextBlock Grid.Column="2" Text="{Binding Address}" FontFamily="Courier New" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Grid>
                             </Grid>
                         </Border>
 
-                        <!-- List -->
-                        <ScrollViewer Grid.Row="1">
-                            <ItemsControl ItemsSource="{Binding DetectedPatterns}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border BorderBrush="#11FFFFFF" BorderThickness="0,0,0,1" Padding="10,8">
-                                            <Grid ColumnDefinitions="*, 120, 120">
-                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding Value}" FontFamily="Courier New" VerticalAlignment="Center"/>
-                                                <TextBlock Grid.Column="2" Text="{Binding Address}" FontFamily="Courier New" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
+                        <!-- Event Log -->
+                        <Border Grid.Column="1" Classes="GlassContainer" Padding="15" Margin="5,0,0,0">
+                            <Grid RowDefinitions="Auto, *">
+                                <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,10">
+                                    <TextBlock Text="ACTIVITY LOG" Classes="Caption" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Content="Clear" Command="{Binding ClearLogCommand}" Classes="Small"/>
+                                </Grid>
+                                <ListBox Grid.Row="1" ItemsSource="{Binding ScanLog}" Background="Transparent">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" FontSize="12" TextWrapping="Wrap" Margin="0,2"/>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Grid>
+                        </Border>
                     </Grid>
                 </Grid>
-            </Border>
 
-            <!-- Event Log -->
-            <Border Grid.Column="1" Classes="GlassContainer" Padding="15" Margin="5,0,0,0">
-                <Grid RowDefinitions="Auto, *">
-                    <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,10">
-                        <TextBlock Text="ACTIVITY LOG" Classes="Caption" FontWeight="Bold" VerticalAlignment="Center"/>
-                        <Button Grid.Column="1" Content="Clear" Command="{Binding ClearLogCommand}" Classes="Small"/>
-                    </Grid>
+                <!-- Tab 1: Debugger (Hex View) -->
+                <Grid IsVisible="{Binding SelectedTabIndex, Converter={StaticResource EqualityConverter}, ConverterParameter=1}">
+                    <Border Classes="GlassContainer" Padding="0">
+                        <Grid RowDefinitions="Auto, Auto, *">
+                             <Border Grid.Row="0" Padding="15" BorderBrush="#1AFFFFFF" BorderThickness="0,0,0,1">
+                                <Grid ColumnDefinitions="Auto, *, Auto">
+                                    <TextBlock Text="HEX EDITOR" Classes="SectionHeader" VerticalAlignment="Center"/>
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                                        <TextBox Text="{Binding CurrentHexAddress}" Width="120" Watermark="Address (0x...)" FontFamily="Courier New"/>
+                                        <Button Content="Go" Command="{Binding RefreshHexViewCommand}" />
+                                        <Button Content="🔄" Command="{Binding RefreshHexViewCommand}" ToolTip.Tip="Refresh"/>
+                                    </StackPanel>
+                                </Grid>
+                             </Border>
 
-                    <ListBox Grid.Row="1" ItemsSource="{Binding ScanLog}" Background="Transparent">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding}" FontSize="12" TextWrapping="Wrap" Margin="0,2"/>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                             <!-- Hex Header -->
+                             <Border Grid.Row="1" Background="#1A000000" Padding="15,5">
+                                 <Grid ColumnDefinitions="100, *, 150">
+                                     <TextBlock Text="Offset" FontFamily="Courier New" FontWeight="Bold" Foreground="#888"/>
+                                     <TextBlock Grid.Column="1" Text="00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F" FontFamily="Courier New" FontWeight="Bold" Foreground="#888" Margin="10,0"/>
+                                     <TextBlock Grid.Column="2" Text="ASCII" FontFamily="Courier New" FontWeight="Bold" Foreground="#888"/>
+                                 </Grid>
+                             </Border>
+
+                             <!-- Hex Grid -->
+                             <ScrollViewer Grid.Row="2" Padding="15">
+                                 <ItemsControl ItemsSource="{Binding HexViewRows}">
+                                     <ItemsControl.ItemTemplate>
+                                         <DataTemplate>
+                                             <Grid ColumnDefinitions="100, *, 150" Margin="0,2">
+                                                 <TextBlock Text="{Binding AddressOffset}" FontFamily="Courier New" Foreground="#AAA"/>
+                                                 <TextBlock Grid.Column="1" Text="{Binding HexBytes}" FontFamily="Courier New" Margin="10,0"/>
+                                                 <TextBlock Grid.Column="2" Text="{Binding Ascii}" FontFamily="Courier New" Foreground="#CCC"/>
+                                             </Grid>
+                                         </DataTemplate>
+                                     </ItemsControl.ItemTemplate>
+                                 </ItemsControl>
+                             </ScrollViewer>
+                        </Grid>
+                    </Border>
                 </Grid>
-            </Border>
+
+                <!-- Tab 2: Cheats (Address List) -->
+                <Grid IsVisible="{Binding SelectedTabIndex, Converter={StaticResource EqualityConverter}, ConverterParameter=2}">
+                    <Border Classes="GlassContainer" Padding="0">
+                        <Grid RowDefinitions="Auto, Auto, *">
+                             <Border Grid.Row="0" Padding="15" BorderBrush="#1AFFFFFF" BorderThickness="0,0,0,1">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="CHEAT ENGINE" Classes="SectionHeader" VerticalAlignment="Center"/>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                                        <Button Content="➕ Add Address" Classes="Primary" Command="{Binding AddAddressCommand}"/>
+                                    </StackPanel>
+                                </Grid>
+                             </Border>
+
+                             <!-- Header -->
+                             <Border Grid.Row="1" Background="#1AFFFFFF" Padding="15,8">
+                                 <Grid ColumnDefinitions="40, 150, *, 120, 100, 50">
+                                     <TextBlock Text="❄️" ToolTip.Tip="Freeze" HorizontalAlignment="Center"/>
+                                     <TextBlock Grid.Column="1" Text="Address" FontWeight="Bold"/>
+                                     <TextBlock Grid.Column="2" Text="Description" FontWeight="Bold"/>
+                                     <TextBlock Grid.Column="3" Text="Type" FontWeight="Bold"/>
+                                     <TextBlock Grid.Column="4" Text="Value" FontWeight="Bold"/>
+                                     <TextBlock Grid.Column="5" Text="" />
+                                 </Grid>
+                             </Border>
+
+                             <!-- Address List -->
+                             <ScrollViewer Grid.Row="2">
+                                 <ItemsControl ItemsSource="{Binding WatchedAddresses}">
+                                     <ItemsControl.ItemTemplate>
+                                         <DataTemplate>
+                                             <Border BorderBrush="#11FFFFFF" BorderThickness="0,0,0,1" Padding="15,10">
+                                                 <Grid ColumnDefinitions="40, 150, *, 120, 100, 50">
+                                                     <CheckBox IsChecked="{Binding IsFrozen}" HorizontalAlignment="Center"/>
+                                                     <TextBlock Grid.Column="1" Text="{Binding Address}" FontFamily="Courier New" VerticalAlignment="Center"/>
+                                                     <TextBox Grid.Column="2" Text="{Binding Label}" VerticalAlignment="Center" Classes="Ghost" Margin="0,0,10,0"/>
+                                                     <TextBlock Grid.Column="3" Text="{Binding Type}" VerticalAlignment="Center" Foreground="#888"/>
+                                                     <TextBox Grid.Column="4" Text="{Binding Value}" FontFamily="Courier New" VerticalAlignment="Center" Classes="Ghost"/>
+
+                                                     <Button Grid.Column="5" Content="🗑️"
+                                                             Classes="Ghost Small"
+                                                             Command="{Binding $parent[ItemsControl].((vm:GameMemoryViewModel)DataContext).RemoveAddressCommand}"
+                                                             CommandParameter="{Binding}"/>
+                                                 </Grid>
+                                             </Border>
+                                         </DataTemplate>
+                                     </ItemsControl.ItemTemplate>
+                                 </ItemsControl>
+                             </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+            </Grid>
         </Grid>
     </Grid>
 </UserControl>

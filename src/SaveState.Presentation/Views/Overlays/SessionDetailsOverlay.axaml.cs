@@ -15,6 +15,9 @@ public partial class SessionDetailsOverlay : UserControl
 
     private void OnCloseClick(object? sender, RoutedEventArgs e)
     {
-        IsVisible = false;
+        if (DataContext is ViewModels.Overlays.SessionDetailsOverlayViewModel viewModel)
+        {
+            viewModel.CloseCommand.Execute(null);
+        }
     }
 }

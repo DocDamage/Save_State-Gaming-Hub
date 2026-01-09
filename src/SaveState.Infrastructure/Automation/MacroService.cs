@@ -78,7 +78,7 @@ public class MacroService : IMacroService
             {
                 if (_currentRecording != null)
                 {
-                    return Task.FromResult(Result<MacroRecording>.Failure("Recording already in progress"));
+                    return Task.FromResult(Result.Failure<MacroRecording>("Recording already in progress"));
                 }
 
                 var recording = new MacroRecording(
@@ -93,13 +93,13 @@ public class MacroService : IMacroService
 
                 _currentRecording = recording;
                 _logger.LogInformation("Started recording macro: {Name}", macroName);
-                return Task.FromResult(Result<MacroRecording>.Success(recording));
+                return Task.FromResult(Result.Success<MacroRecording>(recording));
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to start macro recording");
-            return Task.FromResult(Result<MacroRecording>.Failure($"Failed to start recording: {ex.Message}"));
+            return Task.FromResult(Result.Failure<MacroRecording>($"Failed to start recording: {ex.Message}"));
         }
     }
 
@@ -120,7 +120,7 @@ public class MacroService : IMacroService
 
                 if (recording == null)
                 {
-                    return Task.FromResult(Result<Macro>.Failure("No recording in progress"));
+                    return Task.FromResult(Result.Failure<Macro>("No recording in progress"));
                 }
             }
 
@@ -141,12 +141,12 @@ public class MacroService : IMacroService
 
             _macros[macro.Id] = macro;
             _logger.LogInformation("Stopped recording macro: {Name}", macro.Name);
-            return Task.FromResult(Result<Macro>.Success(macro));
+            return Task.FromResult(Result.Success<Macro>(macro));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to stop macro recording");
-            return Task.FromResult(Result<Macro>.Failure($"Failed to stop recording: {ex.Message}"));
+            return Task.FromResult(Result.Failure<Macro>($"Failed to stop recording: {ex.Message}"));
         }
     }
 
@@ -184,7 +184,7 @@ public class MacroService : IMacroService
         {
             if (!_macros.TryGetValue(macroId, out var macro))
             {
-                return Task.FromResult(Result<MacroExecutionResult>.Failure($"Macro not found: {macroId}"));
+                return Task.FromResult(Result.Failure<MacroExecutionResult>($"Macro not found: {macroId}"));
             }
 
             var result = new MacroExecutionResult(
@@ -198,12 +198,12 @@ public class MacroService : IMacroService
                 Duration: TimeSpan.FromSeconds(1));
 
             _logger.LogInformation("Played macro: {Name}", macro.Name);
-            return Task.FromResult(Result<MacroExecutionResult>.Success(result));
+            return Task.FromResult(Result.Success<MacroExecutionResult>(result));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to play macro: {Id}", macroId);
-            return Task.FromResult(Result<MacroExecutionResult>.Failure($"Failed to play macro: {ex.Message}"));
+            return Task.FromResult(Result.Failure<MacroExecutionResult>($"Failed to play macro: {ex.Message}"));
         }
     }
 
@@ -214,7 +214,7 @@ public class MacroService : IMacroService
     /// <returns>A result containing the list of macros.</returns>
     public Task<Result<IReadOnlyList<Macro>>> GetMacrosAsync(CancellationToken ct = default)
     {
-        return Task.FromResult(Result<IReadOnlyList<Macro>>.Success((IReadOnlyList<Macro>)_macros.Values.ToArray()));
+        return Task.FromResult(Result.Success<IReadOnlyList<Macro>>((IReadOnlyList<Macro>)_macros.Values.ToArray()));
     }
 
     /// <summary>
@@ -226,8 +226,8 @@ public class MacroService : IMacroService
     public Task<Result<Macro>> GetMacroAsync(Guid macroId, CancellationToken ct = default)
     {
         return Task.FromResult(_macros.TryGetValue(macroId, out var macro)
-            ? Result<Macro>.Success(macro)
-            : Result<Macro>.Failure($"Macro not found: {macroId}"));
+            ? Result.Success<Macro>(macro)
+            : Result.Failure<Macro>($"Macro not found: {macroId}"));
     }
 
     /// <summary>
@@ -275,12 +275,12 @@ public class MacroService : IMacroService
     {
         if (!_macros.TryGetValue(macroId, out var macro))
         {
-            return Result<string>.Failure($"Macro not found: {macroId}");
+            return Result.Failure<string>($"Macro not found: {macroId}");
         }
 
         var json = System.Text.Json.JsonSerializer.Serialize(macro);
         await File.WriteAllTextAsync(filePath, json, ct);
-        return Result<string>.Success(filePath);
+        return Result.Success<string>(filePath);
     }
 
     /// <summary>
@@ -293,7 +293,7 @@ public class MacroService : IMacroService
     {
         if (!File.Exists(filePath))
         {
-            return Result<Macro>.Failure($"File not found: {filePath}");
+            return Result.Failure<Macro>($"File not found: {filePath}");
         }
 
         var json = await File.ReadAllTextAsync(filePath, ct);
@@ -301,11 +301,12 @@ public class MacroService : IMacroService
 
         if (macro == null)
         {
-            return Result<Macro>.Failure("Invalid macro file");
+            return Result.Failure<Macro>("Invalid macro file");
         }
 
         var imported = macro with { Id = Guid.NewGuid() };
         _macros[imported.Id] = imported;
-        return Result<Macro>.Success(imported);
+        return Result.Success<Macro>(imported);
     }
 }
+

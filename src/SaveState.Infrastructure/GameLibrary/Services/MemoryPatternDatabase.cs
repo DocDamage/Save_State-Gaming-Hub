@@ -19,7 +19,7 @@ public class MemoryPatternDatabase
     {
         if (_gameSignatures.TryGetValue(gameTitle, out var signatures))
         {
-            return Result<IReadOnlyList<GameMemorySignature>>.Success(signatures);
+            return Result.Success<IReadOnlyList<GameMemorySignature>>(signatures);
         }
 
         // Try fuzzy matching
@@ -35,11 +35,11 @@ public class MemoryPatternDatabase
             {
                 _logger.LogInformation("Found signatures for similar game '{Similar}' when searching for '{Game}'",
                     bestMatch, gameTitle);
-                return Result<IReadOnlyList<GameMemorySignature>>.Success(signatures);
+                return Result.Success<IReadOnlyList<GameMemorySignature>>(signatures);
             }
         }
 
-        return Result<IReadOnlyList<GameMemorySignature>>.Success(Array.Empty<GameMemorySignature>());
+        return Result.Success<IReadOnlyList<GameMemorySignature>>(Array.Empty<GameMemorySignature>());
     }
 
     public Result AddSignature(string gameTitle, GameMemorySignature signature)
@@ -55,7 +55,7 @@ public class MemoryPatternDatabase
 
     public Result<IReadOnlyList<string>> GetSupportedGames()
     {
-        return Result<IReadOnlyList<string>>.Success(_gameSignatures.Keys.ToList());
+        return Result.Success<IReadOnlyList<string>>(_gameSignatures.Keys.ToList());
     }
 
     private void InitializeKnownPatterns()

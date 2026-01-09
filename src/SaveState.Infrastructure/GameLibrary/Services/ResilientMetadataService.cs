@@ -92,7 +92,7 @@ public class ResilientMetadataService : IMetadataService
         if (string.IsNullOrWhiteSpace(title))
         {
             _logger.LogWarning("Empty title provided to GetCoverImageAsync");
-            return Result<byte[]>.Failure("Title is required", ErrorType.Validation);
+            return Result.Failure<byte[]>("Title is required", ErrorType.Validation);
         }
 
         try
@@ -119,8 +119,8 @@ public class ResilientMetadataService : IMetadataService
                     return innerResult;
                 }
                 return innerResult.Value != null
-                    ? Result<byte[]>.Success(innerResult.Value)
-                    : Result<byte[]>.Failure("No cover image available", ErrorType.NotFound);
+                    ? Result.Success<byte[]>(innerResult.Value)
+                    : Result.Failure<byte[]>("No cover image available", ErrorType.NotFound);
             }).ConfigureAwait(false);
 
             if (result.IsSuccess)
@@ -137,7 +137,7 @@ public class ResilientMetadataService : IMetadataService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to download cover image for '{Title}'", title);
-            return Result<byte[]>.Failure($"Image download failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<byte[]>($"Image download failed: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -153,3 +153,4 @@ public class ResilientMetadataService : IMetadataService
     // Circuit breaker state for monitoring
     public CircuitState CircuitBreakerState => _circuitBreakerPolicy.CircuitState;
 }
+

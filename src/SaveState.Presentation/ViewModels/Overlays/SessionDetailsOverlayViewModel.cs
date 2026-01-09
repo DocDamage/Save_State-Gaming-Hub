@@ -37,8 +37,11 @@ public partial class SessionDetailsOverlayViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<SessionItemViewModel> _recentSessions = new();
 
-    public SessionDetailsOverlayViewModel()
+    private readonly SaveState.Presentation.Services.IOverlayService _overlayService;
+
+    public SessionDetailsOverlayViewModel(SaveState.Presentation.Services.IOverlayService overlayService)
     {
+        _overlayService = overlayService;
         // Design-time data
         LoadDesignTimeData();
     }
@@ -84,10 +87,16 @@ public partial class SessionDetailsOverlayViewModel : ObservableObject
         });
     }
 
+    public void Initialize(Guid gameId)
+    {
+        SessionSummary = $"Viewing sessions for game {gameId}";
+        // In a real app, this would trigger a repository load
+    }
+
     [RelayCommand]
     private void Close()
     {
-        // Close overlay
+        _overlayService.HideSessionDetailsOverlay();
     }
 }
 

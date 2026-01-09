@@ -39,7 +39,7 @@ public class MugenCoachService : IMugenCoachService
 
             if (yourCharResult.IsFailure || opponentResult.IsFailure)
             {
-                return Result<MatchupAdvice>.Failure("Characters not found");
+                return Result.Failure<MatchupAdvice>("Characters not found");
             }
 
             var yourChar = yourCharResult.Value!;
@@ -75,11 +75,11 @@ public class MugenCoachService : IMugenCoachService
                 aiAdvice.MovesToAvoid,
                 aiAdvice.KeyMoves);
 
-            return Result<MatchupAdvice>.Success(advice);
+            return Result.Success<MatchupAdvice>(advice);
         }
         catch (Exception ex)
         {
-            return Result<MatchupAdvice>.Failure($"Failed to get matchup advice: {ex.Message}");
+            return Result.Failure<MatchupAdvice>($"Failed to get matchup advice: {ex.Message}");
         }
     }
 
@@ -115,11 +115,11 @@ public class MugenCoachService : IMugenCoachService
                 .Select(x => x.CharacterId)
                 .ToList();
 
-            return Result<IReadOnlyList<Guid>>.Success(topCounters);
+            return Result.Success<IReadOnlyList<Guid>>(topCounters);
         }
         catch (Exception ex)
         {
-            return Result<IReadOnlyList<Guid>>.Failure($"Failed to get counter picks: {ex.Message}");
+            return Result.Failure<IReadOnlyList<Guid>>($"Failed to get counter picks: {ex.Message}");
         }
     }
 
@@ -131,18 +131,18 @@ public class MugenCoachService : IMugenCoachService
         {
             var characterResult = await _characterRepository.GetByIdAsync(characterId, ct);
             if (characterResult.IsFailure)
-                return Result<CharacterGuide>.Failure("Character not found");
+                return Result.Failure<CharacterGuide>("Character not found");
 
             var character = characterResult.Value!;
 
             // Generate AI-powered character guide
             var guide = await GenerateAiCharacterGuideAsync(character, ct);
 
-            return Result<CharacterGuide>.Success(guide);
+            return Result.Success<CharacterGuide>(guide);
         }
         catch (Exception ex)
         {
-            return Result<CharacterGuide>.Failure($"Failed to get character guide: {ex.Message}");
+            return Result.Failure<CharacterGuide>($"Failed to get character guide: {ex.Message}");
         }
     }
 
@@ -164,11 +164,11 @@ public class MugenCoachService : IMugenCoachService
                 "Good use of projectiles to control the screen"
             };
 
-            return Task.FromResult(Result<IReadOnlyList<string>>.Success(analysis));
+            return Task.FromResult(Result.Success<IReadOnlyList<string>>(analysis));
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Result<IReadOnlyList<string>>.Failure($"Failed to analyze replay: {ex.Message}"));
+            return Task.FromResult(Result.Failure<IReadOnlyList<string>>($"Failed to analyze replay: {ex.Message}"));
         }
     }
 
@@ -359,3 +359,4 @@ Use standard fighting game notation (e.g., 5LP, 2MK, 214HK for special moves).";
         IReadOnlyList<string> MovesToAvoid,
         IReadOnlyList<string> KeyMoves);
 }
+

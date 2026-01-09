@@ -76,7 +76,7 @@ public sealed class WhisperVoiceProcessor : IVoiceProcessor
                 var errorBody = await response.Content.ReadAsStringAsync(ct);
                 _logger.LogError("Whisper API error: {StatusCode} - {Body}",
                     response.StatusCode, errorBody);
-                return Result<VoiceTranscription>.Failure(
+                return Result.Failure<VoiceTranscription>(
                     $"Transcription failed: {response.StatusCode}");
             }
 
@@ -85,9 +85,9 @@ public sealed class WhisperVoiceProcessor : IVoiceProcessor
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
             if (result == null)
-                return Result<VoiceTranscription>.Failure("Failed to parse response");
+                return Result.Failure<VoiceTranscription>("Failed to parse response");
 
-            return Result<VoiceTranscription>.Success(new VoiceTranscription(
+            return Result.Success<VoiceTranscription>(new VoiceTranscription(
                 result.Text ?? "",
                 result.Language ?? "unknown",
                 result.Duration,
@@ -96,7 +96,7 @@ public sealed class WhisperVoiceProcessor : IVoiceProcessor
         catch (Exception ex)
         {
             _logger.LogError(ex, "Voice transcription failed");
-            return Result<VoiceTranscription>.Failure(ex.Message);
+            return Result.Failure<VoiceTranscription>(ex.Message);
         }
     }
 
@@ -105,3 +105,4 @@ public sealed class WhisperVoiceProcessor : IVoiceProcessor
         string? Language,
         float Duration);
 }
+

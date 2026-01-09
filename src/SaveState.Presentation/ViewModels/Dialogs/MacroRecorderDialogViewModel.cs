@@ -1,5 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
+using SaveState.Core.Automation.Services;
 using SaveState.Presentation.ViewModels.Automation;
 using System;
 using System.Diagnostics;
@@ -9,6 +11,9 @@ namespace SaveState.Presentation.ViewModels.Dialogs;
 
 public partial class MacroRecorderDialogViewModel : ObservableObject
 {
+    private readonly IMacroService _macroService;
+    private readonly ILogger<MacroRecorderDialogViewModel>? _logger;
+
     [ObservableProperty]
     private string _status = "Ready to record";
 
@@ -29,21 +34,62 @@ public partial class MacroRecorderDialogViewModel : ObservableObject
 
     public MacroViewModel? Result { get; private set; }
 
+    public MacroRecorderDialogViewModel(
+        IMacroService macroService,
+        ILogger<MacroRecorderDialogViewModel>? logger = null)
+    {
+        _macroService = macroService;
+        _logger = logger;
+    }
+
     [RelayCommand]
-    private void ToggleRecording()
+    private async Task ToggleRecording()
     {
         IsRecording = !IsRecording;
         if (IsRecording)
         {
             Status = "Recording...";
             _stopwatch.Start();
-            // TODO: Start actual recording service
+
+            // Start actual recording service
+            var result = await _macroService.StartRecordingAsync(
+                MacroName,
+                $"Recorded at {DateTime.Now:t}");
+
+            if (result.IsFailure)
+            {
+                _logger?.LogError("Failed to start macro recording: {Error}", result.Error);
+                Status = $"Error: {result.Error}";
+                IsRecording = false;
+                _stopwatch.Stop();
+            }
+            else
+            {
+                _logger?.LogInformation("Started recording macro: {Name}", MacroName);
+                _actionsCount = 0;
+                ActionsCountText = "0 actions recorded";
+            }
         }
         else
         {
-            Status = "Paused";
+            Status = "Saving...";
             _stopwatch.Stop();
-            // TODO: Stop actual recording service
+
+            // Stop actual recording service
+            var result = await _macroService.StopRecordingAsync();
+
+            if (result.IsSuccess)
+            {
+                _logger?.LogInformation("Stopped recording macro: {Name}", result.Value.Name);
+                _actionsCount = result.Value.Actions.Count;
+                ActionsCountText = $"{_actionsCount} actions recorded";
+                Status = "Recording saved";
+            }
+            else
+            {
+                _logger?.LogError("Failed to stop macro recording: {Error}", result.Error);
+                Status = $"Error: {result.Error}";
+            }
         }
     }
 

@@ -54,12 +54,12 @@ public class MacroRecorder : IMacroRecorder, IDisposable
             _logger.LogInformation("Started macro recording session {SessionId} for game {GameId}",
                 sessionId, config.GameId);
 
-            return Task.FromResult(Result<MacroRecordingSession>.Success(session));
+            return Task.FromResult(Result.Success<MacroRecordingSession>(session));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to start macro recording");
-            return Task.FromResult(Result<MacroRecordingSession>.Failure($"Failed to start recording: {ex.Message}"));
+            return Task.FromResult(Result.Failure<MacroRecordingSession>($"Failed to start recording: {ex.Message}"));
         }
     }
 
@@ -71,7 +71,7 @@ public class MacroRecorder : IMacroRecorder, IDisposable
         {
             if (!_activeSessions.TryGetValue(sessionId, out var session))
             {
-                return Task.FromResult(Result<Macro>.Failure("Recording session not found"));
+                return Task.FromResult(Result.Failure<Macro>("Recording session not found"));
             }
 
             var actions = _recordedActions[sessionId];
@@ -100,12 +100,12 @@ public class MacroRecorder : IMacroRecorder, IDisposable
             _logger.LogInformation("Stopped macro recording session {SessionId}, created macro {MacroId}",
                 sessionId, macro.Id);
 
-            return Task.FromResult(Result<Macro>.Success(macro));
+            return Task.FromResult(Result.Success<Macro>(macro));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to stop macro recording session {SessionId}", sessionId);
-            return Task.FromResult(Result<Macro>.Failure($"Failed to stop recording: {ex.Message}"));
+            return Task.FromResult(Result.Failure<Macro>($"Failed to stop recording: {ex.Message}"));
         }
     }
 
@@ -235,18 +235,18 @@ public class MacroRecorder : IMacroRecorder, IDisposable
         {
             if (!_activeSessions.TryGetValue(sessionId, out var session))
             {
-                return Task.FromResult(Result<RecordingStatus>.Failure("Recording session not found"));
+                return Task.FromResult(Result.Failure<RecordingStatus>("Recording session not found"));
             }
 
             var currentDuration = DateTime.UtcNow - session.StartedAt;
             var updatedStatus = session.Status with { Duration = currentDuration };
 
-            return Task.FromResult(Result<RecordingStatus>.Success(updatedStatus));
+            return Task.FromResult(Result.Success<RecordingStatus>(updatedStatus));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get recording status for session {SessionId}", sessionId);
-            return Task.FromResult(Result<RecordingStatus>.Failure($"Failed to get status: {ex.Message}"));
+            return Task.FromResult(Result.Failure<RecordingStatus>($"Failed to get status: {ex.Message}"));
         }
     }
 
@@ -256,12 +256,12 @@ public class MacroRecorder : IMacroRecorder, IDisposable
         try
         {
             var sessions = (IReadOnlyList<MacroRecordingSession>)_activeSessions.Values.ToArray();
-            return Task.FromResult(Result<IReadOnlyList<MacroRecordingSession>>.Success(sessions));
+            return Task.FromResult(Result.Success<IReadOnlyList<MacroRecordingSession>>(sessions));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get active recording sessions");
-            return Task.FromResult(Result<IReadOnlyList<MacroRecordingSession>>.Failure(
+            return Task.FromResult(Result.Failure<IReadOnlyList<MacroRecordingSession>>(
                 $"Failed to get sessions: {ex.Message}"));
         }
     }
@@ -315,3 +315,4 @@ public class MacroRecorder : IMacroRecorder, IDisposable
         }
     }
 }
+

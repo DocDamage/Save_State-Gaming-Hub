@@ -61,15 +61,16 @@ public class MetadataEnrichmentService : IMetadataEnrichmentService
         var platformNameResult = _extensionRegistry.DetectPlatformName(gamePath);
         if (platformNameResult.IsFailure)
         {
-            return Result<Platform>.Failure(platformNameResult.Error, platformNameResult.ErrorType);
+            return Result.Failure<Platform>(platformNameResult.Error, platformNameResult.ErrorType);
         }
 
         var platform = await _platformRepository.GetByNameAsync(platformNameResult.Value, ct).ConfigureAwait(false);
         if (platform is null)
         {
-            return Result<Platform>.Failure($"Platform '{platformNameResult.Value}' not found in repository", ErrorType.NotFound);
+            return Result.Failure<Platform>($"Platform '{platformNameResult.Value}' not found in repository", ErrorType.NotFound);
         }
 
-        return Result<Platform>.Success(platform);
+        return Result.Success<Platform>(platform);
     }
 }
+

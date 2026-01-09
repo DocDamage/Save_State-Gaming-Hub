@@ -58,4 +58,11 @@ public interface IMugenCollectionService
     /// <param name="ct">Cancellation token.</param>
     /// <returns>List of favorite characters.</returns>
     Task<Result<IReadOnlyList<MugenCharacter>>> GetFavoritesAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets the full roster of characters.
+    /// </summary>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>List of all characters.</returns>
+    Task<Result<IReadOnlyList<MugenCharacter>>> GetRosterAsync(CancellationToken ct = default);
 }

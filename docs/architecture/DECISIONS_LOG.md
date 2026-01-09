@@ -1,7 +1,7 @@
 # Decisions Log - Why We Made These Choices
 
 **Purpose**: Documents architectural decisions so AI/developers don't accidentally undo them.
-**Last Updated**: January 2, 2026
+**Last Updated**: January 8, 2026 (ADR-010: Dialog System Implementation)
 
 ---
 
@@ -327,6 +327,75 @@ public interface IPlugin
 
 ---
 
+### ADR-010: Complete Dialog Implementations Over Placeholders
+
+**Date**: January 2026
+**Status**: ✅ Active
+
+**Context**: Placeholder dialog implementations were accumulating technical debt, causing build errors and poor user experience.
+
+**Decision**: Eliminate all placeholder implementations by creating complete dialog systems with proper ViewModels, Views, and code-behinds.
+
+**Pattern**:
+
+```csharp
+// ❌ BEFORE: Placeholder
+public async Task<string?> ShowInputDialogAsync(string title, string message)
+{
+    _logger.LogWarning("Using placeholder implementation");
+    var result = await ShowNoteEditorAsync(null, message); // Hacky workaround
+    return result?.Content;
+}
+
+// ✅ AFTER: Complete Implementation
+public async Task<string?> ShowInputDialogAsync(string title, string message, string? placeholder = null)
+{
+    var vm = new TextInputDialogViewModel
+    {
+        Title = title,
+        Message = message,
+        Placeholder = placeholder ?? "Enter text..."
+    };
+
+    var dialog = new TextInputDialog { DataContext = vm };
+    var mainWindow = GetMainWindow();
+    return await dialog.ShowDialog<string?>(mainWindow);
+}
+```
+
+**Implementation (January 8, 2026)**:
+
+- Created `TextInputDialog` (ViewModel + View + Code-behind)
+- Created `BranchCreationDialog` with proper constructor signatures
+- Created `BranchMergeDialog` for save state operations
+- Fixed `SaveStateSettingsDialog` to use record constructors correctly
+- Resolved 15 build errors related to incomplete implementations
+
+**Consequences**:
+
+- ✅ Zero placeholder implementations remaining
+- ✅ Build errors reduced from 15 → 0
+- ✅ Warnings reduced from 995 → 117 (88% reduction)
+- ✅ Type-safe dialog interactions
+- ✅ Proper Avalonia patterns (`ExperimentalAcrylicBorder.Material`)
+- ⚠️ More upfront development time (30 min vs 5 min placeholder)
+
+**Key Learnings**:
+
+1. **Type Safety**: `GameId` is a value object, use `!` operator not `.Value`
+2. **Constructor Signatures**: Records use positional parameters, not property initializers
+3. **Avalonia Patterns**: Fully qualify `Avalonia.Application.Current` to avoid ambiguity
+4. **Dependency Injection**: Track dependencies through entire call chain
+
+**Do NOT**:
+
+- Create placeholder implementations with TODO comments
+- Use hacky workarounds (e.g., repurposing `ShowNoteEditorAsync` for generic input)
+- Skip proper ViewModel/View/Code-behind structure
+- Ignore constructor signature mismatches
+
+---
+
 ## Technology Decisions
 
 ### TDR-001: .NET 9.0 with Native AOT
@@ -367,7 +436,9 @@ public interface IPlugin
 | Direct service injection in VMs | 10+ dependencies | Use MediatR |
 | Primitive types for IDs | Wrong ID passed | Use value objects |
 | Throwing exceptions for expected cases | Control flow abuse | Use Result pattern |
+| **Placeholder implementations** | **Technical debt compounds** | **Complete implementation** |
 
 ---
 
 **This log is authoritative. If code contradicts these decisions, the code is wrong (or these decisions need updating).**
+**Last Updated**: January 8, 2026 (ADR-010: Dialog System Implementation)

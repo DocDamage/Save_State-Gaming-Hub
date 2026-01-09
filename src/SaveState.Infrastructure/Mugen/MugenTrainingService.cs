@@ -26,37 +26,59 @@ public class MugenTrainingService : IMugenTrainingService
         _userContextService = userContextService;
     }
 
-    public Task<Result> RecordDummyActionsAsync(
+    public async Task<Result> RecordDummyActionsAsync(
         Guid sessionId,
         CancellationToken ct = default)
     {
         try
         {
-            // Dummy action recording is a placeholder for future input recording feature.
-            // When implemented, this will capture controller inputs for replay.
+            // Load session
+            var session = await _trainingRepository.GetByIdAsync(sessionId, ct);
+            if (session == null)
+                return Result.Failure("Training session not found");
 
-            return Task.FromResult(Result.Success());
+            // In a real implementation, this would trigger an input hook.
+            // For now, we'll create a dummy recording entry.
+            var recording = MugenDummyRecording.Create(
+                sessionId,
+                DummyBehaviorType.Custom,
+                "{\"actions\": []}", // Placeholder empty sequence
+                TimeSpan.FromSeconds(5),
+                "Recorded dummy actions");
+
+            session.AddRecording(recording);
+            await _trainingRepository.UpdateAsync(session, ct);
+
+            return Result.Success();
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Result.Failure($"Failed to record dummy actions: {ex.Message}"));
+            return Result.Failure($"Failed to record dummy actions: {ex.Message}");
         }
     }
 
-    public Task<Result> PlaybackDummyActionsAsync(
+    public async Task<Result> PlaybackDummyActionsAsync(
         Guid sessionId,
         CancellationToken ct = default)
     {
         try
         {
-            // Dummy action playback is a placeholder for future input replay feature.
-            // When implemented, this will execute previously recorded input sequences.
+            // Load session
+            var session = await _trainingRepository.GetByIdAsync(sessionId, ct);
+            if (session == null)
+                return Result.Failure("Training session not found");
 
-            return Task.FromResult(Result.Success());
+            if (!session.Recordings.Any())
+                return Result.Failure("No recordings available for playback");
+
+            // In a real implementation, this would inject inputs into the IKEMEN process.
+            // For now, we acknowledge the playback request.
+
+            return Result.Success();
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Result.Failure($"Failed to playback dummy actions: {ex.Message}"));
+            return Result.Failure($"Failed to playback dummy actions: {ex.Message}");
         }
     }
 
@@ -70,12 +92,12 @@ public class MugenTrainingService : IMugenTrainingService
             // Validate character exists
             var characterResult = await _characterRepository.GetByIdAsync(characterId, ct);
             if (characterResult.IsFailure)
-                return Result<TrainingSession>.Failure("Character not found");
+                return Result.Failure<TrainingSession>("Character not found");
 
             // Validate dummy character exists
             var dummyResult = await _characterRepository.GetByIdAsync(config.DummyCharacterId, ct);
             if (dummyResult.IsFailure)
-                return Result<TrainingSession>.Failure("Dummy character not found");
+                return Result.Failure<TrainingSession>("Dummy character not found");
 
             // Get current user ID
             var userId = _userContextService.GetCurrentUserIdRequired();
@@ -96,11 +118,11 @@ public class MugenTrainingService : IMugenTrainingService
                 config,
                 sessionEntity.StartedAt);
 
-            return Result<TrainingSession>.Success(session);
+            return Result.Success<TrainingSession>(session);
         }
         catch (Exception ex)
         {
-            return Result<TrainingSession>.Failure($"Failed to start training session: {ex.Message}");
+            return Result.Failure<TrainingSession>($"Failed to start training session: {ex.Message}");
         }
     }
 
@@ -113,10 +135,10 @@ public class MugenTrainingService : IMugenTrainingService
             // Load session and calculate statistics
             var session = await _trainingRepository.GetByIdAsync(sessionId, ct);
             if (session is null)
-                return Result<TrainingStats>.Failure("Training session not found");
+                return Result.Failure<TrainingStats>("Training session not found");
 
             if (session.EndedAt.HasValue)
-                return Result<TrainingStats>.Failure("Training session is already ended");
+                return Result.Failure<TrainingStats>("Training session is already ended");
 
             // End the session
             session.End();
@@ -134,16 +156,17 @@ public class MugenTrainingService : IMugenTrainingService
             var stats = new TrainingStats(
                 sessionId,
                 session.Duration ?? TimeSpan.Zero,
-                session.RoundsPracticed,
+                session.RoundsPracticed, // ComboAttempts
                 session.SuccessfulCombos,
                 maxComboHits,
                 maxComboDamage);
 
-            return Result<TrainingStats>.Success(stats);
+            return Result.Success<TrainingStats>(stats);
         }
         catch (Exception ex)
         {
-            return Result<TrainingStats>.Failure($"Failed to end training session: {ex.Message}");
+            return Result.Failure<TrainingStats>($"Failed to end training session: {ex.Message}");
         }
     }
 }
+

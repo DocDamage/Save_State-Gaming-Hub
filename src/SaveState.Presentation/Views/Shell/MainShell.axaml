@@ -4,6 +4,7 @@
         xmlns:views="using:SaveState.Presentation.Views.Shell"
         x:Class="SaveState.Presentation.Views.Shell.MainShell"
         x:DataType="vm:MainShellViewModel"
+        Icon="/Assets/Branding/save_state_logo_branding.jpg"
         Title="{Binding Title}"
         Width="1400"
         Height="900"

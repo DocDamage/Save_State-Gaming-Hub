@@ -57,12 +57,12 @@ public class CloudGamingManager : ICloudGamingManager
             };
 
             _logger.LogInformation("Retrieved {Count} available cloud gaming providers", providers.Length);
-            return Result<IReadOnlyList<CloudGamingProvider>>.Success(providers);
+            return Result.Success<IReadOnlyList<CloudGamingProvider>>(providers);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get available cloud gaming providers");
-            return Result<IReadOnlyList<CloudGamingProvider>>.Failure(
+            return Result.Failure<IReadOnlyList<CloudGamingProvider>>(
                 $"Failed to get providers: {ex.Message}");
         }
     }
@@ -87,7 +87,7 @@ public class CloudGamingManager : ICloudGamingManager
 
             if (game == null)
             {
-                return Result<CloudSession>.Failure($"Game with ID {gameId} not found");
+                return Result.Failure<CloudSession>($"Game with ID {gameId} not found");
             }
 
             // Check if game is available on the provider
@@ -96,7 +96,7 @@ public class CloudGamingManager : ICloudGamingManager
 
             if (!availabilityResult.IsSuccess || !availabilityResult.Value)
             {
-                return Result<CloudSession>.Failure(
+                return Result.Failure<CloudSession>(
                     $"Game '{game.Title}' is not available on {provider}");
             }
 
@@ -106,7 +106,7 @@ public class CloudGamingManager : ICloudGamingManager
 
             if (!networkQuality.IsSuccess)
             {
-                return Result<CloudSession>.Failure(
+                return Result.Failure<CloudSession>(
                     $"Failed to assess network quality: {networkQuality.Error}");
             }
 
@@ -130,13 +130,13 @@ public class CloudGamingManager : ICloudGamingManager
             _logger.LogInformation("Started cloud gaming session {SessionId} for game {GameId} ({GameTitle}) on {Provider}",
                 session.Id, gameId, game.Title, provider);
 
-            return Result<CloudSession>.Success(session);
+            return Result.Success<CloudSession>(session);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to start cloud gaming session for game {GameId} on {Provider}",
                 gameId, provider);
-            return Result<CloudSession>.Failure($"Failed to start session: {ex.Message}");
+            return Result.Failure<CloudSession>($"Failed to start session: {ex.Message}");
         }
     }
 
@@ -196,12 +196,12 @@ public class CloudGamingManager : ICloudGamingManager
         try
         {
             var sessions = _activeSessions.Values.ToArray();
-            return Task.FromResult(Result<IReadOnlyList<CloudSession>>.Success(sessions));
+            return Task.FromResult(Result.Success<IReadOnlyList<CloudSession>>(sessions));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get active cloud gaming sessions");
-            return Task.FromResult(Result<IReadOnlyList<CloudSession>>.Failure(
+            return Task.FromResult(Result.Failure<IReadOnlyList<CloudSession>>(
                 $"Failed to get active sessions: {ex.Message}"));
         }
     }
@@ -266,7 +266,7 @@ public class CloudGamingManager : ICloudGamingManager
 
             if (game == null)
             {
-                return Result<bool>.Failure($"Game with ID {gameId} not found");
+                return Result.Failure<bool>($"Game with ID {gameId} not found");
             }
 
             // Placeholder logic - in a real implementation, this would query the provider's API
@@ -276,13 +276,13 @@ public class CloudGamingManager : ICloudGamingManager
             _logger.LogDebug("Game '{Title}' availability on {Provider}: {Available}",
                 game.Title, provider, isAvailable);
 
-            return Result<bool>.Success(isAvailable);
+            return Result.Success<bool>(isAvailable);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to check game availability for game {GameId} on {Provider}",
                 gameId, provider);
-            return Result<bool>.Failure($"Failed to check availability: {ex.Message}");
+            return Result.Failure<bool>($"Failed to check availability: {ex.Message}");
         }
     }
 
@@ -304,7 +304,7 @@ public class CloudGamingManager : ICloudGamingManager
 
             if (!qualityResult.IsSuccess)
             {
-                return Result<IReadOnlyList<string>>.Failure(
+                return Result.Failure<IReadOnlyList<string>>(
                     $"Failed to get network quality: {qualityResult.Error}");
             }
 
@@ -351,12 +351,12 @@ public class CloudGamingManager : ICloudGamingManager
                 recommendations.Add("Your network quality is good for cloud gaming");
             }
 
-            return Result<IReadOnlyList<string>>.Success(recommendations);
+            return Result.Success<IReadOnlyList<string>>(recommendations);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get network recommendations for {Provider}", provider);
-            return Result<IReadOnlyList<string>>.Failure(
+            return Result.Failure<IReadOnlyList<string>>(
                 $"Failed to get recommendations: {ex.Message}");
         }
     }
@@ -408,3 +408,4 @@ public class CloudGamingManager : ICloudGamingManager
         return isPopularGame;
     }
 }
+

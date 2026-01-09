@@ -49,7 +49,7 @@ public class GameBriefingService : IGameBriefingService
 
             if (game == null)
             {
-                return Result<GameBriefing>.Failure($"Game with ID {gameId} not found");
+                return Result.Failure<GameBriefing>($"Game with ID {gameId} not found");
             }
 
             // Generate all briefing components in parallel
@@ -86,12 +86,12 @@ public class GameBriefingService : IGameBriefingService
             _logger.LogInformation("Generated briefing for game {GameId} ({GameTitle})",
                 gameId, game.Title);
 
-            return Result<GameBriefing>.Success(briefing);
+            return Result.Success<GameBriefing>(briefing);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to generate briefing for game {GameId}", gameId);
-            return Result<GameBriefing>.Failure($"Failed to generate briefing: {ex.Message}");
+            return Result.Failure<GameBriefing>($"Failed to generate briefing: {ex.Message}");
         }
     }
 
@@ -109,14 +109,14 @@ public class GameBriefingService : IGameBriefingService
 
             if (!statsResult.IsSuccess || statsResult.Value == null)
             {
-                return Result<string>.Success("No session data available yet.");
+                return Result.Success<string>("No session data available yet.");
             }
 
             var stats = statsResult.Value;
 
             if (stats.LastPlayedAt == null)
             {
-                return Result<string>.Success("Game has not been played yet.");
+                return Result.Success<string>("Game has not been played yet.");
             }
 
             var game = await _gameRepository.GetByIdAsync(GameId.From(gameId), ct)
@@ -124,7 +124,7 @@ public class GameBriefingService : IGameBriefingService
 
             if (game == null)
             {
-                return Result<string>.Failure("Game not found");
+                return Result.Failure<string>("Game not found");
             }
 
             // Use AI to generate a natural language summary
@@ -144,12 +144,12 @@ public class GameBriefingService : IGameBriefingService
                 : $"You've played {game.Title} for {stats.TotalPlaytime.TotalHours:F1} hours total, " +
                   $"with {stats.SessionsThisWeek} sessions this week.";
 
-            return Result<string>.Success(summary);
+            return Result.Success<string>(summary);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to generate last session summary for game {GameId}", gameId);
-            return Result<string>.Success("Session summary unavailable.");
+            return Result.Success<string>("Session summary unavailable.");
         }
     }
 
@@ -167,7 +167,7 @@ public class GameBriefingService : IGameBriefingService
 
             if (game == null)
             {
-                return Result<IReadOnlyList<string>>.Failure("Game not found");
+                return Result.Failure<IReadOnlyList<string>>("Game not found");
             }
 
             var statsResult = await _sessionTrackingService.GetStatisticsAsync(gameId, ct)
@@ -197,7 +197,7 @@ public class GameBriefingService : IGameBriefingService
                     "Focus on improving your skills and combat techniques.",
                     "Work towards completing main story objectives."
                 };
-                return Result<IReadOnlyList<string>>.Success(fallbackObjectives);
+                return Result.Success<IReadOnlyList<string>>(fallbackObjectives);
             }
 
             // Parse AI response into objectives
@@ -208,12 +208,12 @@ public class GameBriefingService : IGameBriefingService
                 .Take(3)
                 .ToArray();
 
-            return Result<IReadOnlyList<string>>.Success(objectives);
+            return Result.Success<IReadOnlyList<string>>(objectives);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to get current objectives for game {GameId}", gameId);
-            return Result<IReadOnlyList<string>>.Success(Array.Empty<string>());
+            return Result.Success<IReadOnlyList<string>>(Array.Empty<string>());
         }
     }
 
@@ -231,7 +231,7 @@ public class GameBriefingService : IGameBriefingService
 
             if (game == null)
             {
-                return Result<IReadOnlyList<string>>.Failure("Game not found");
+                return Result.Failure<IReadOnlyList<string>>("Game not found");
             }
 
             // Use AI to generate helpful tips
@@ -251,7 +251,7 @@ public class GameBriefingService : IGameBriefingService
                     "Experiment with different playstyles to discover what works best.",
                     "Pay attention to the game's mechanics and learn from each session."
                 };
-                return Result<IReadOnlyList<string>>.Success(fallbackTips);
+                return Result.Success<IReadOnlyList<string>>(fallbackTips);
             }
 
             // Parse AI response into tips
@@ -262,12 +262,12 @@ public class GameBriefingService : IGameBriefingService
                 .Take(3)
                 .ToArray();
 
-            return Result<IReadOnlyList<string>>.Success(tips);
+            return Result.Success<IReadOnlyList<string>>(tips);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to get game tips for game {GameId}", gameId);
-            return Result<IReadOnlyList<string>>.Success(Array.Empty<string>());
+            return Result.Success<IReadOnlyList<string>>(Array.Empty<string>());
         }
     }
 
@@ -286,7 +286,7 @@ public class GameBriefingService : IGameBriefingService
 
             if (game == null)
             {
-                return Result<GameBriefing>.Failure($"Game with ID {gameId} not found");
+                return Result.Failure<GameBriefing>($"Game with ID {gameId} not found");
             }
 
             // Simplified briefing for mobile/Big Picture mode
@@ -307,12 +307,12 @@ public class GameBriefingService : IGameBriefingService
                 Tips: tips,
                 TimeSinceLastPlayed: timeSinceLastPlayed);
 
-            return Result<GameBriefing>.Success(briefing);
+            return Result.Success<GameBriefing>(briefing);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to generate quick briefing for game {GameId}", gameId);
-            return Result<GameBriefing>.Failure($"Failed to generate quick briefing: {ex.Message}");
+            return Result.Failure<GameBriefing>($"Failed to generate quick briefing: {ex.Message}");
         }
     }
 
@@ -323,3 +323,4 @@ public class GameBriefingService : IGameBriefingService
             : TimeSpan.MaxValue; // Indicate never played
     }
 }
+

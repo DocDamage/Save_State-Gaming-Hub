@@ -48,7 +48,7 @@ public class ScanRomFolderCommandHandler : MediatR.IRequestHandler<ScanRomFolder
             // Validate platform exists
             var platform = await _platformRepository.GetByNameAsync(request.PlatformName, ct).ConfigureAwait(false);
             if (platform is null)
-                return Result<ScanResult>.Failure($"Platform '{request.PlatformName}' not found");
+                return Result.Failure<ScanResult>($"Platform '{request.PlatformName}' not found");
 
             // Scan the folder
             var progress = new Progress<ScanProgress>();
@@ -101,12 +101,13 @@ public class ScanRomFolderCommandHandler : MediatR.IRequestHandler<ScanRomFolder
             _logger.LogInformation("ROM scan completed: {ValidRoms} valid ROMs found, {Errors} errors",
                 savedCount, errors.Count);
 
-            return Result<ScanResult>.Success(scanResult);
+            return Result.Success<ScanResult>(scanResult);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error scanning ROM folder {FolderPath}", request.FolderPath);
-            return Result<ScanResult>.Failure($"Failed to scan ROM folder: {ex.Message}");
+            return Result.Failure<ScanResult>($"Failed to scan ROM folder: {ex.Message}");
         }
     }
 }
+

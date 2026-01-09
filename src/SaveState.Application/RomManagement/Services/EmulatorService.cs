@@ -140,9 +140,9 @@ public class EmulatorService : IEmulatorService
     {
         var emulator = await _emulatorRepository.GetByPlatformIdAsync(platformId, ct).ConfigureAwait(false);
         if (emulator == null)
-            return Result<EmulatorInfo>.Failure("No default emulator configured for this platform", ErrorType.NotFound);
+            return Result.Failure<EmulatorInfo>("No default emulator configured for this platform", ErrorType.NotFound);
 
-        return Result<EmulatorInfo>.Success(new EmulatorInfo(
+        return Result.Success<EmulatorInfo>(new EmulatorInfo(
             emulator.Id,
             emulator.Name,
             emulator.ExecutablePath.Value,
@@ -161,7 +161,7 @@ public class EmulatorService : IEmulatorService
     {
         if (!_runningProcesses.TryGetValue(romFileId, out var processInfo))
         {
-            return Task.FromResult(Result<ProcessInfo>.Failure("No emulator process running for this ROM", ErrorType.NotFound));
+            return Task.FromResult(Result.Failure<ProcessInfo>("No emulator process running for this ROM", ErrorType.NotFound));
         }
 
         try
@@ -169,7 +169,7 @@ public class EmulatorService : IEmulatorService
             var process = System.Diagnostics.Process.GetProcessById(processInfo.ProcessId);
             if (!process.HasExited)
             {
-                return Task.FromResult(Result<ProcessInfo>.Success(new ProcessInfo(
+                return Task.FromResult(Result.Success<ProcessInfo>(new ProcessInfo(
                     process.Id,
                     process.ProcessName,
                     processInfo.StartTime,
@@ -179,14 +179,14 @@ public class EmulatorService : IEmulatorService
             {
                 // Process has exited, clean up tracking
                 _runningProcesses.Remove(romFileId);
-                return Task.FromResult(Result<ProcessInfo>.Failure("Emulator process has exited", ErrorType.NotFound));
+                return Task.FromResult(Result.Failure<ProcessInfo>("Emulator process has exited", ErrorType.NotFound));
             }
         }
         catch (ArgumentException)
         {
             // Process doesn't exist anymore
             _runningProcesses.Remove(romFileId);
-            return Task.FromResult(Result<ProcessInfo>.Failure("Emulator process no longer exists", ErrorType.NotFound));
+            return Task.FromResult(Result.Failure<ProcessInfo>("Emulator process no longer exists", ErrorType.NotFound));
         }
     }
 
@@ -233,3 +233,4 @@ public class EmulatorService : IEmulatorService
         return args;
     }
 }
+

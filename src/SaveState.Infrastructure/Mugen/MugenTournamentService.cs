@@ -37,13 +37,13 @@ public class MugenTournamentService : IMugenTournamentService
             {
                 var characterResult = await _characterRepository.GetByIdAsync(participantId, ct);
                 if (characterResult.IsFailure)
-                    return Result<MugenTournament>.Failure($"Participant {participantId} not found");
+                    return Result.Failure<MugenTournament>($"Participant {participantId} not found");
 
                 participants.Add(characterResult.Value!);
             }
 
             if (participants.Count < 2)
-                return Result<MugenTournament>.Failure("Tournament must have at least 2 participants");
+                return Result.Failure<MugenTournament>("Tournament must have at least 2 participants");
 
             // Create tournament
             var tournament = MugenTournament.Create(request.Name, request.Format);
@@ -51,11 +51,11 @@ public class MugenTournamentService : IMugenTournamentService
             // Persist tournament to database
             await _tournamentRepository.AddAsync(tournament, ct);
 
-            return Result<MugenTournament>.Success(tournament);
+            return Result.Success<MugenTournament>(tournament);
         }
         catch (Exception ex)
         {
-            return Result<MugenTournament>.Failure($"Failed to create tournament: {ex.Message}");
+            return Result.Failure<MugenTournament>($"Failed to create tournament: {ex.Message}");
         }
     }
 
@@ -90,8 +90,11 @@ public class MugenTournamentService : IMugenTournamentService
             // Save changes
             await _tournamentRepository.UpdateAsync(tournament, ct);
 
-            // Winner advancement to next round would be implemented in a TournamentBracketManager.
-            // Different formats (Single/Double Elimination, Round Robin) require distinct bracket logic.
+            // Winner advancement to next round
+            TournamentBracketManager.AdvanceWinner(tournament, match);
+
+            // Save again after advancement
+            await _tournamentRepository.UpdateAsync(tournament, ct);
 
             return Result.Success();
         }
@@ -110,7 +113,7 @@ public class MugenTournamentService : IMugenTournamentService
             // Load tournament from database
             var tournamentResult = await _tournamentRepository.GetByIdAsync(tournamentId, ct);
             if (tournamentResult.IsFailure)
-                return Result<TournamentBracket>.Failure("Tournament not found");
+                return Result.Failure<TournamentBracket>("Tournament not found");
             var tournament = tournamentResult.Value!;
 
             // Group matches by round and build bracket
@@ -133,11 +136,11 @@ public class MugenTournamentService : IMugenTournamentService
                 .ToList();
 
             var bracket = new TournamentBracket(tournamentId, rounds);
-            return Result<TournamentBracket>.Success(bracket);
+            return Result.Success<TournamentBracket>(bracket);
         }
         catch (Exception ex)
         {
-            return Result<TournamentBracket>.Failure($"Failed to get bracket: {ex.Message}");
+            return Result.Failure<TournamentBracket>($"Failed to get bracket: {ex.Message}");
         }
     }
 
@@ -222,7 +225,7 @@ public class MugenTournamentService : IMugenTournamentService
             // Load tournament with participants and matches
             var tournamentResult = await _tournamentRepository.GetByIdAsync(tournamentId, ct);
             if (tournamentResult.IsFailure)
-                return Result<IReadOnlyList<TournamentStanding>>.Failure("Tournament not found");
+                return Result.Failure<IReadOnlyList<TournamentStanding>>("Tournament not found");
             var tournament = tournamentResult.Value!;
 
             // Calculate standings based on tournament progress
@@ -262,11 +265,11 @@ public class MugenTournamentService : IMugenTournamentService
                 .ThenBy(s => s.Losses)
                 .ToList();
 
-            return Result<IReadOnlyList<TournamentStanding>>.Success(standings);
+            return Result.Success<IReadOnlyList<TournamentStanding>>(standings);
         }
         catch (Exception ex)
         {
-            return Result<IReadOnlyList<TournamentStanding>>.Failure($"Failed to get standings: {ex.Message}");
+            return Result.Failure<IReadOnlyList<TournamentStanding>>($"Failed to get standings: {ex.Message}");
         }
     }
 
@@ -293,4 +296,47 @@ public class MugenTournamentService : IMugenTournamentService
         // If no completed matches, they're in round 1
         return 1;
     }
+
+    public async Task<Result> StartTournamentAsync(Guid tournamentId, CancellationToken ct = default)
+    {
+        try
+        {
+            var tournamentResult = await _tournamentRepository.GetByIdAsync(tournamentId, ct);
+            if (tournamentResult.IsFailure)
+                return Result.Failure("Tournament not found");
+
+            var tournament = tournamentResult.Value!;
+            if (tournament.Status != TournamentStatus.Setup)
+                return Result.Failure("Tournament is already started or completed.");
+
+            if (tournament.Participants.Count < 2)
+                return Result.Failure("Tournament must have at least 2 participants to start.");
+
+            // Generate initial matches
+            List<TournamentMatchEntity> matches;
+            if (tournament.Format == TournamentFormat.SingleElimination)
+            {
+                matches = TournamentBracketManager.GenerateSingleEliminationMatches(tournamentId, tournament.Participants.ToList());
+            }
+            else
+            {
+                return Result.Failure($"Tournament format {tournament.Format} is not yet supported for auto-generation.");
+            }
+
+            foreach (var match in matches)
+            {
+                tournament.Matches.Add(match);
+            }
+
+            tournament.Start();
+            await _tournamentRepository.UpdateAsync(tournament, ct);
+
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure($"Failed to start tournament: {ex.Message}");
+        }
+    }
 }
+

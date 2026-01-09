@@ -65,12 +65,13 @@ public class GetControllerProfilesQueryHandler : IRequestHandler<GetControllerPr
             )).ToList();
 
             _logger.LogInformation("Retrieved {Count} controller profiles", dtos.Count);
-            return Result<IReadOnlyList<ControllerProfileDto>>.Success(dtos);
+            return Result.Success<IReadOnlyList<ControllerProfileDto>>(dtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to retrieve controller profiles");
-            return Result<IReadOnlyList<ControllerProfileDto>>.Failure($"Failed to retrieve controller profiles: {ex.Message}");
+            return Result.Failure<IReadOnlyList<ControllerProfileDto>>($"Failed to retrieve controller profiles: {ex.Message}");
         }
     }
 }
+

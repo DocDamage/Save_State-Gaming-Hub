@@ -44,7 +44,7 @@ public class GetPlayPatternsQueryHandler : IRequestHandler<GetPlayPatternsQuery,
 
             if (!sessions.Any() && !games.Any())
             {
-                return Result<PlayPatternAnalytics>.Success(new PlayPatternAnalytics(
+                return Result.Success<PlayPatternAnalytics>(new PlayPatternAnalytics(
                     new Dictionary<DayOfWeek, double>(),
                     new Dictionary<int, double>(),
                     new Dictionary<string, int>(),
@@ -172,12 +172,12 @@ public class GetPlayPatternsQueryHandler : IRequestHandler<GetPlayPatternsQuery,
                 completionRates);
 
             _logger.LogInformation("Play pattern analysis complete. Sessions: {SessionCount}, Games: {GameCount}", sessions.Count, games.Count);
-            return Result<PlayPatternAnalytics>.Success(analytics);
+            return Result.Success<PlayPatternAnalytics>(analytics);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to analyze play patterns");
-            return Result<PlayPatternAnalytics>.Failure($"Failed to analyze play patterns: {ex.Message}");
+            return Result.Failure<PlayPatternAnalytics>($"Failed to analyze play patterns: {ex.Message}");
         }
     }
 
@@ -248,3 +248,4 @@ public class GetPlayPatternsQueryHandler : IRequestHandler<GetPlayPatternsQuery,
         return streaks.OrderByDescending(s => s.DaysCount).Take(10).ToList();
     }
 }
+

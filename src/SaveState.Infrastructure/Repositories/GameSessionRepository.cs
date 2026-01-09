@@ -134,4 +134,14 @@ public class GameSessionRepository : IGameSessionRepository
             .ToListAsync(ct)
             .ConfigureAwait(false);
     }
+
+    public async Task<IReadOnlyList<GameSession>> GetRecentSessionsAsync(int limit, CancellationToken ct = default)
+    {
+        return await _context.GameSessions
+            .Include(s => s.Game)
+            .OrderByDescending(s => s.StartedAt)
+            .Take(limit)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+    }
 }

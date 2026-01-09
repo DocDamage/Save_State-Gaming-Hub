@@ -35,7 +35,7 @@ public class SmartCategorizationService : ISmartCategorizationService
         {
             var game = await _gameRepository.GetByIdAsync(GameId.From(gameId), ct);
             if (game == null)
-                return Result<GameTags>.Failure("Game not found", ErrorType.NotFound);
+                return Result.Failure<GameTags>("Game not found", ErrorType.NotFound);
 
             var prompt = BuildAnalysisPrompt(game);
             var sessionId = $"game-analysis-{gameId}";
@@ -48,25 +48,25 @@ public class SmartCategorizationService : ISmartCategorizationService
             if (!response.IsSuccessful)
             {
                 _logger.LogWarning("AI analysis failed for game {GameId}: {Error}", gameId, response.Error);
-                return Result<GameTags>.Failure($"AI analysis failed: {response.Error}", ErrorType.Internal);
+                return Result.Failure<GameTags>($"AI analysis failed: {response.Error}", ErrorType.Internal);
             }
 
             var tags = ParseAiResponse(response.Content);
             if (tags == null)
             {
                 _logger.LogWarning("Failed to parse AI response for game {GameId}", gameId);
-                return Result<GameTags>.Failure("Failed to parse AI response", ErrorType.Internal);
+                return Result.Failure<GameTags>("Failed to parse AI response", ErrorType.Internal);
             }
 
             _logger.LogInformation("Successfully analyzed game '{Title}' with confidence {Confidence}",
                 game.Title, tags.Confidence);
 
-            return Result<GameTags>.Success(tags);
+            return Result.Success<GameTags>(tags);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to analyze game {GameId}", gameId);
-            return Result<GameTags>.Failure($"Analysis failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<GameTags>($"Analysis failed: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -129,16 +129,16 @@ public class SmartCategorizationService : ISmartCategorizationService
             if (!response.IsSuccessful)
             {
                 _logger.LogWarning("AI tag suggestion failed for '{Title}': {Error}", gameTitle, response.Error);
-                return Result<IReadOnlyList<string>>.Failure($"AI suggestion failed: {response.Error}", ErrorType.Internal);
+                return Result.Failure<IReadOnlyList<string>>($"AI suggestion failed: {response.Error}", ErrorType.Internal);
             }
 
             var suggestions = ParseTagSuggestions(response.Content);
-            return Result<IReadOnlyList<string>>.Success(suggestions);
+            return Result.Success<IReadOnlyList<string>>(suggestions);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to suggest tags for '{Title}'", gameTitle);
-            return Result<IReadOnlyList<string>>.Failure($"Suggestion failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<string>>($"Suggestion failed: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -278,3 +278,4 @@ Example: [""Action"", ""Adventure"", ""Fantasy"", ""Single-player"", ""Atmospher
         return false;
     }
 }
+

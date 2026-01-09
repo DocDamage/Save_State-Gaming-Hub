@@ -43,12 +43,12 @@ public class WorkflowAutomationService : IWorkflowAutomationService
             _executionHistory[workflow.Id] = new List<WorkflowExecutionResult>();
 
             _logger.LogInformation("Created workflow: {Name} ({Id})", workflow.Name, workflow.Id);
-            return Task.FromResult(Result<Workflow>.Success(workflow));
+            return Task.FromResult(Result.Success<Workflow>(workflow));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create workflow");
-            return Task.FromResult(Result<Workflow>.Failure($"Failed to create workflow: {ex.Message}"));
+            return Task.FromResult(Result.Failure<Workflow>($"Failed to create workflow: {ex.Message}"));
         }
     }
 
@@ -61,7 +61,7 @@ public class WorkflowAutomationService : IWorkflowAutomationService
         {
             if (!_workflows.TryGetValue(workflowId, out var workflow))
             {
-                return Task.FromResult(Result<WorkflowExecutionResult>.Failure($"Workflow not found: {workflowId}"));
+                return Task.FromResult(Result.Failure<WorkflowExecutionResult>($"Workflow not found: {workflowId}"));
             }
 
             var executionId = Guid.NewGuid();
@@ -89,25 +89,25 @@ public class WorkflowAutomationService : IWorkflowAutomationService
             _executionHistory[workflowId].Add(result);
 
             _logger.LogInformation("Executed workflow: {Name} ({Id})", workflow.Name, workflowId);
-            return Task.FromResult(Result<WorkflowExecutionResult>.Success(result));
+            return Task.FromResult(Result.Success<WorkflowExecutionResult>(result));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to execute workflow: {Id}", workflowId);
-            return Task.FromResult(Result<WorkflowExecutionResult>.Failure($"Failed to execute workflow: {ex.Message}"));
+            return Task.FromResult(Result.Failure<WorkflowExecutionResult>($"Failed to execute workflow: {ex.Message}"));
         }
     }
 
     public Task<Result<Workflow>> GetWorkflowAsync(Guid workflowId, CancellationToken ct = default)
     {
         return Task.FromResult(_workflows.TryGetValue(workflowId, out var workflow)
-            ? Result<Workflow>.Success(workflow)
-            : Result<Workflow>.Failure($"Workflow not found: {workflowId}"));
+            ? Result.Success<Workflow>(workflow)
+            : Result.Failure<Workflow>($"Workflow not found: {workflowId}"));
     }
 
     public Task<Result<IReadOnlyList<Workflow>>> GetAllWorkflowsAsync(CancellationToken ct = default)
     {
-        return Task.FromResult(Result<IReadOnlyList<Workflow>>.Success((IReadOnlyList<Workflow>)_workflows.Values.ToArray()));
+        return Task.FromResult(Result.Success<IReadOnlyList<Workflow>>((IReadOnlyList<Workflow>)_workflows.Values.ToArray()));
     }
 
     public Task<Result> UpdateWorkflowAsync(Guid workflowId, WorkflowConfig config, CancellationToken ct = default)
@@ -142,13 +142,13 @@ public class WorkflowAutomationService : IWorkflowAutomationService
     {
         if (!_executionHistory.TryGetValue(workflowId, out var history))
         {
-            return Task.FromResult(Result<IReadOnlyList<WorkflowExecutionResult>>.Success((IReadOnlyList<WorkflowExecutionResult>)Array.Empty<WorkflowExecutionResult>()));
+            return Task.FromResult(Result.Success<IReadOnlyList<WorkflowExecutionResult>>((IReadOnlyList<WorkflowExecutionResult>)Array.Empty<WorkflowExecutionResult>()));
         }
 
         var filtered = since.HasValue
             ? history.Where(h => h.StartedAt >= since.Value).ToArray()
             : history.ToArray();
-        return Task.FromResult(Result<IReadOnlyList<WorkflowExecutionResult>>.Success((IReadOnlyList<WorkflowExecutionResult>)filtered));
+        return Task.FromResult(Result.Success<IReadOnlyList<WorkflowExecutionResult>>((IReadOnlyList<WorkflowExecutionResult>)filtered));
     }
 
     public async Task<Result<Workflow>> CreateWorkflowFromMacroAsync(
@@ -174,19 +174,19 @@ public class WorkflowAutomationService : IWorkflowAutomationService
     {
         if (!_workflows.TryGetValue(workflowId, out var workflow))
         {
-            return Result<string>.Failure($"Workflow not found: {workflowId}");
+            return Result.Failure<string>($"Workflow not found: {workflowId}");
         }
 
         var json = System.Text.Json.JsonSerializer.Serialize(workflow);
         await File.WriteAllTextAsync(filePath, json, ct);
-        return Result<string>.Success(filePath);
+        return Result.Success<string>(filePath);
     }
 
     public async Task<Result<Workflow>> ImportWorkflowAsync(string filePath, CancellationToken ct = default)
     {
         if (!File.Exists(filePath))
         {
-            return Result<Workflow>.Failure($"File not found: {filePath}");
+            return Result.Failure<Workflow>($"File not found: {filePath}");
         }
 
         var json = await File.ReadAllTextAsync(filePath, ct);
@@ -194,11 +194,12 @@ public class WorkflowAutomationService : IWorkflowAutomationService
 
         if (workflow == null)
         {
-            return Result<Workflow>.Failure("Invalid workflow file");
+            return Result.Failure<Workflow>("Invalid workflow file");
         }
 
         var imported = workflow with { Id = Guid.NewGuid() };
         _workflows[imported.Id] = imported;
-        return Result<Workflow>.Success(imported);
+        return Result.Success<Workflow>(imported);
     }
 }
+

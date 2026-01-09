@@ -46,12 +46,13 @@ public class CreateControllerProfileCommandHandler : IRequestHandler<CreateContr
             await _repository.AddAsync(profile, cancellationToken);
 
             _logger.LogInformation("Controller profile created successfully: {ProfileId}", profile.Id);
-            return Result<Guid>.Success(profile.Id);
+            return Result.Success<Guid>(profile.Id);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create controller profile: {Name}", request.Name);
-            return Result<Guid>.Failure($"Failed to create controller profile: {ex.Message}");
+            return Result.Failure<Guid>($"Failed to create controller profile: {ex.Message}");
         }
     }
 }
+

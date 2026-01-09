@@ -83,7 +83,7 @@ public class ItchGameProviderPlugin : IPlugin, IGameProvider
             var response = await _httpClient.GetAsync(url, ct);
             if (!response.IsSuccessStatusCode)
             {
-                return Result<IReadOnlyList<Game>>.Failure($"Failed to fetch games from Itch.io: {response.StatusCode}");
+                return Result.Failure<IReadOnlyList<Game>>($"Failed to fetch games from Itch.io: {response.StatusCode}");
             }
 
             // For demo purposes, we'll create some sample games
@@ -97,12 +97,12 @@ public class ItchGameProviderPlugin : IPlugin, IGameProvider
                 Game.Create("Spiritfarer", source: "Itch.io", sourceId: "spiritfarer")
             };
 
-            return Result<IReadOnlyList<Game>>.Success(games);
+            return Result.Success<IReadOnlyList<Game>>(games);
         }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Error discovering games from Itch.io");
-            return Result<IReadOnlyList<Game>>.Failure($"Failed to discover games: {ex.Message}");
+            return Result.Failure<IReadOnlyList<Game>>($"Failed to discover games: {ex.Message}");
         }
     }
 
@@ -120,12 +120,12 @@ public class ItchGameProviderPlugin : IPlugin, IGameProvider
                 source: "Itch.io",
                 sourceId: externalId);
 
-            return Result<Game>.Success(game);
+            return Result.Success<Game>(game);
         }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Error getting game details for {ExternalId}", externalId);
-            return Result<Game>.Failure($"Failed to get game details: {ex.Message}");
+            return Result.Failure<Game>($"Failed to get game details: {ex.Message}");
         }
     }
 
@@ -151,12 +151,12 @@ public class ItchGameProviderPlugin : IPlugin, IGameProvider
             await File.WriteAllTextAsync(exePath, $"# Dummy executable for {externalId}\necho 'This would launch the real game'", ct);
 
             _logger?.LogInformation("Successfully 'installed' game {ExternalId}", externalId);
-            return Result<bool>.Success(true);
+            return Result.Success<bool>(true);
         }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Error installing game {ExternalId}", externalId);
-            return Result<bool>.Failure($"Failed to install game: {ex.Message}");
+            return Result.Failure<bool>($"Failed to install game: {ex.Message}");
         }
     }
 

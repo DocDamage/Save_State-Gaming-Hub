@@ -25,7 +25,7 @@ public class GetMemoryPatternsQueryHandler : IRequestHandler<GetMemoryPatternsQu
             var attachResult = await _memoryReader.AttachToProcessAsync(request.ProcessId, cancellationToken);
             if (!attachResult.IsSuccess)
             {
-                return Result<IReadOnlyList<MemoryPattern>>.Failure(attachResult.Error ?? "Unknown error");
+                return Result.Failure<IReadOnlyList<MemoryPattern>>(attachResult.Error ?? "Unknown error");
             }
         }
 

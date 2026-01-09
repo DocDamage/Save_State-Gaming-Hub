@@ -73,14 +73,14 @@ public class AuthenticationService : IAuthenticationService
             var user = await _apiKeyRepository.GetUserByApiKeyAsync(apiKey, ct);
             if (user == null)
             {
-                return Result<User>.Failure("Invalid API key", ErrorType.Validation);
+                return Result.Failure<User>("Invalid API key", ErrorType.Validation);
             }
-            return Result<User>.Success(user);
+            return Result.Success<User>(user);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "API Key validation failed");
-            return Result<User>.Failure("API key validation failed", ErrorType.Validation);
+            return Result.Failure<User>("API key validation failed", ErrorType.Validation);
         }
     }
 
@@ -129,3 +129,4 @@ public class AuthenticationService : IAuthenticationService
         }
     }
 }
+

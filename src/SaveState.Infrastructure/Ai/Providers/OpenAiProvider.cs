@@ -80,7 +80,7 @@ public class OpenAiProvider : ILlmProvider
                     result.Choices[0].FinishReason,
                     new TokenUsage(result.Usage.PromptTokens, result.Usage.CompletionTokens, result.Usage.TotalTokens),
                     result.Model);
-                return Result<CompletionResult>.Success(completionResult);
+                return Result.Success<CompletionResult>(completionResult);
             }, ct).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
@@ -90,7 +90,7 @@ public class OpenAiProvider : ILlmProvider
         catch (Exception ex)
         {
             _logger.LogError(ex, "OpenAI API request failed");
-            return Result<CompletionResult>.Failure($"OpenAI API request failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<CompletionResult>($"OpenAI API request failed: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -123,7 +123,7 @@ public class OpenAiProvider : ILlmProvider
                     result.Choices[0].FinishReason,
                     new TokenUsage(result.Usage.PromptTokens, result.Usage.CompletionTokens, result.Usage.TotalTokens),
                     result.Model);
-                return Result<ChatResult>.Success(chatResult);
+                return Result.Success<ChatResult>(chatResult);
             }, ct).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
@@ -133,12 +133,12 @@ public class OpenAiProvider : ILlmProvider
         catch (Exception ex)
         {
             _logger.LogError(ex, "OpenAI chat request failed");
-            return Result<ChatResult>.Failure($"OpenAI API request failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<ChatResult>($"OpenAI API request failed: {ex.Message}", ErrorType.Internal);
         }
     }
 
     public Task<Result<EmbeddingResult>> GenerateEmbeddingsAsync(EmbeddingRequest request, CancellationToken ct)
-        => Task.FromResult(Result<EmbeddingResult>.Failure("Embeddings not yet implemented", ErrorType.Internal));
+        => Task.FromResult(Result.Failure<EmbeddingResult>("Embeddings not yet implemented", ErrorType.Internal));
 }
 
 // Response DTOs
@@ -168,3 +168,4 @@ internal record OpenAiUsage(
     [property: JsonPropertyName("prompt_tokens")] int PromptTokens,
     [property: JsonPropertyName("completion_tokens")] int CompletionTokens,
     [property: JsonPropertyName("total_tokens")] int TotalTokens);
+

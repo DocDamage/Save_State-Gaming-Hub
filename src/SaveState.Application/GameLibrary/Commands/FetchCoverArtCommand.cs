@@ -22,7 +22,7 @@ public sealed class FetchCoverArtCommandHandler : IRequestHandler<FetchCoverArtC
     {
         var result = await _coverArtService.FetchCoverArtAsync(request.GameId, ct);
         return result.IsSuccess
-            ? Result<string>.Success(result.Value!.LocalPath)
-            : Result<string>.Failure(result.Error!, result.ErrorType);
+            ? Result.Success<string>(result.Value!.LocalPath)
+            : Result.Failure<string>(result.Error!, result.ErrorType);
     }
 }

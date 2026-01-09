@@ -12,6 +12,10 @@
                 <TextBlock Text="{Binding Title}" Classes="Header" VerticalAlignment="Center" />
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                    <Button Content="💾 Export"
+                            Classes="Secondary"
+                            Command="{Binding ExportCommand}"
+                            IsEnabled="{Binding !IsLoading}" />
                     <Button Content="🔄 Refresh"
                             Classes="Primary"
                             Command="{Binding RefreshCommand}"
@@ -148,11 +152,23 @@
                             </StackPanel>
                         </Grid>
 
-                        <TextBlock Text="Heatmap visualization would appear here (requires custom control)"
-                                  Classes="Caption"
-                                  Foreground="{StaticResource TextSecondaryBrush}"
-                                  HorizontalAlignment="Center"
-                                  Margin="0,20" />
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding HeatmapActivities}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Vertical" Height="105" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Width="11" Height="11" Margin="2"
+                                                CornerRadius="2"
+                                                Background="{Binding LevelColor}"
+                                                ToolTip.Tip="{Binding Tooltip}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
                     </StackPanel>
                 </Border>
 

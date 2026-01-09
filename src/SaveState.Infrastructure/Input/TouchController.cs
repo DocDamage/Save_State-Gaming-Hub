@@ -29,11 +29,11 @@ public class TouchController : ITouchController
 
             _profiles[profile.Id] = profile;
 
-            return Task.FromResult(Result<TouchProfile>.Success(profile));
+            return Task.FromResult(Result.Success<TouchProfile>(profile));
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Result<TouchProfile>.Failure($"Failed to create touch profile: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<TouchProfile>($"Failed to create touch profile: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -78,7 +78,7 @@ public class TouchController : ITouchController
     public Task<Result<TouchProfile?>> GetCurrentProfileAsync(Guid gameId, CancellationToken ct = default)
     {
         var profile = _profiles.Values.FirstOrDefault(p => p.GameId == gameId);
-        return Task.FromResult(Result<TouchProfile?>.Success(profile));
+        return Task.FromResult(Result.Success<TouchProfile?>(profile));
     }
 
     public Task<Result<IReadOnlyList<TouchProfile>>> GetProfilesForGameAsync(Guid gameId, CancellationToken ct = default)
@@ -86,11 +86,11 @@ public class TouchController : ITouchController
         try
         {
             var profiles = _profiles.Values.Where(p => p.GameId == gameId).ToList();
-            return Task.FromResult(Result<IReadOnlyList<TouchProfile>>.Success((IReadOnlyList<TouchProfile>)profiles));
+            return Task.FromResult(Result.Success<IReadOnlyList<TouchProfile>>((IReadOnlyList<TouchProfile>)profiles));
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Result<IReadOnlyList<TouchProfile>>.Failure($"Failed to get touch profiles: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<IReadOnlyList<TouchProfile>>($"Failed to get touch profiles: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -256,3 +256,5 @@ public class TouchController : ITouchController
         MultiTouch
     }
 }
+
+

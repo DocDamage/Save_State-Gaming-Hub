@@ -24,4 +24,13 @@ public interface IUserPreferencesService
 
     Task<string> GetAiApiKeyAsync(string provider, CancellationToken ct = default);
     Task SetAiApiKeyAsync(string provider, string apiKey, CancellationToken ct = default);
+
+    Task<string> GetPreferredCloudProviderAsync(CancellationToken ct = default);
+    Task SetPreferredCloudProviderAsync(string provider, CancellationToken ct = default);
+
+    Task<bool> GetAutoSyncOnExitAsync(CancellationToken ct = default);
+    Task SetAutoSyncOnExitAsync(bool enabled, CancellationToken ct = default);
+
+    Task<string> GetCloudClientIdAsync(string provider, CancellationToken ct = default);
+    Task SetCloudClientIdAsync(string provider, string clientId, CancellationToken ct = default);
 }

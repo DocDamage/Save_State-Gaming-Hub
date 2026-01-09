@@ -1,7 +1,7 @@
 # 🎓 Lessons Learned from Building SaveStateReborn V2.0
 
 **Status**: ✅ Active
-**Last Updated**: January 1, 2026 (Feature Surfacing Plan Added)
+**Last Updated**: January 8, 2026 (Dialog Completion & Build Error Resolution)
 **Maintained By**: Development Team
 **Next Review**: February 15, 2026
 **Related Documents**: [AI_MASTER_CONTEXT.md](../AI_MASTER_CONTEXT.md), [ENGINEERING_RULES.md](../ENGINEERING_RULES.md), [FEATURE_SURFACING_PLAN.md](FEATURE_SURFACING_PLAN.md)
@@ -1287,7 +1287,126 @@ Timeline: 1 week
 
 ---
 
-## 📚 Resources
+## � Implementation Lessons
+
+### 20. Eliminate Placeholders Systematically
+
+**The technical debt that accumulates:**
+
+```csharp
+// ❌ PLACEHOLDER IMPLEMENTATIONS - "We'll fix this later"
+public async Task<string?> ShowInputDialogAsync(string title, string message)
+{
+    _logger.LogWarning("ShowInputDialogAsync is using a placeholder implementation.");
+    // TODO: Create proper TextInputDialog
+    var result = await ShowNoteEditorAsync(null, message);
+    return result?.Content; // Hacky workaround
+}
+```
+
+**What we learned during dialog completion (January 8, 2026):**
+
+Starting with **15 build errors** from incomplete implementations:
+
+- Missing dialog ViewModels (`TextInputDialogViewModel`, `BranchCreationDialogViewModel`)
+- Incorrect constructor signatures
+- Type mismatches (`Guid` vs `GameId`)
+- Missing service dependencies (`IBacklogService`, `IClipboardService`)
+- Ambiguous type references (`Application.Current` vs `Avalonia.Application.Current`)
+
+**The systematic approach that worked:**
+
+```csharp
+// 1. Create complete implementations, not stubs
+public partial class TextInputDialogViewModel : ObservableObject
+{
+    private Action<string?>? _closeAction;
+
+    [ObservableProperty] private string _title = "Input";
+    [ObservableProperty] private string _message = string.Empty;
+    [ObservableProperty] private string _inputText = string.Empty;
+
+    public void SetCloseAction(Action<string?> closeAction) => _closeAction = closeAction;
+
+    [RelayCommand] private void Confirm() => _closeAction?.Invoke(InputText);
+    [RelayCommand] private void Cancel() => _closeAction?.Invoke(null);
+}
+
+// 2. Match constructor signatures exactly
+var vm = new SaveStateSettingsDialogViewModel(
+    saveStateId,        // Guid
+    description ?? "",  // string
+    branchName ?? "main", // string
+    isCurrent,          // bool
+    notes ?? "");       // string
+// NOT: new SaveStateSettingsDialogViewModel(logger) + Initialize(...)
+
+// 3. Use proper type conversions
+var command = new CreateGameNoteCommand(
+    _currentGameId!,    // GameId (nullable reference)
+    userId.Value,       // Guid
+    result.Title,
+    result.Content,
+    result.Category,
+    new List<string>(),
+    result.IsPinned);
+// NOT: _currentGameId.Value (GameId doesn't have .Value property)
+
+// 4. Fix record constructors properly
+var config = new AutoSaveConfig(
+    result.AutoSaveEnabled,           // bool
+    TimeSpan.FromMinutes(interval),   // TimeSpan
+    result.MaxAutoSaves,              // int
+    triggers);                        // IReadOnlyList<SaveTrigger>
+// NOT: new AutoSaveConfig { Enabled = ..., IntervalMinutes = ... }
+```
+
+**Build error resolution progression:**
+
+| Iteration | Errors | Key Fixes |
+|:----------|:------:|:----------|
+| Initial | 15 | Identified missing dialogs, type mismatches |
+| After ClipboardService | 6 | Fixed `Application` ambiguity |
+| After GameNotesTabViewModel | 4 | Fixed `GameId` conversions |
+| After DialogService | 2 | Fixed ViewModel constructors |
+| After TextInputDialog XAML | 1 | Fixed `ExperimentalAcrylicBorder` structure |
+| **Final** | **0** | ✅ **Build successful** |
+
+**Key patterns discovered:**
+
+1. **Type Safety Matters**
+   - `GameId` is a value object, not a wrapper with `.Value`
+   - Use `!` (null-forgiving) for nullable value objects, not `.Value`
+   - Explicit casts prevent ambiguous type resolution
+
+2. **Constructor Signatures Must Match**
+   - Records use positional parameters, not property initializers
+   - ViewModels should accept all required data in constructor
+   - Avoid separate `Initialize()` methods when constructor works
+
+3. **Avalonia-Specific Patterns**
+   - `Avalonia.Application.Current` (fully qualified) vs `Application` (ambiguous)
+   - `ExperimentalAcrylicBorder.Material` property, not direct child content
+   - `Window.ShowDialog<T>()` requires proper DataContext wiring
+
+4. **Dependency Injection Completeness**
+   - Missing services (`IBacklogService`, `IClipboardService`) cascade through constructors
+   - Update DI registration AND all consuming constructors
+   - Track dependencies through the call chain
+
+**Time investment vs. technical debt:**
+
+| Approach | Time | Quality | Future Cost |
+|:---------|:----:|:-------:|:-----------:|
+| Placeholder + TODO | 5 min | Low | High (compounds) |
+| Complete implementation | 30 min | High | Zero |
+| **ROI** | **6x upfront** | **∞** | **Eliminated** |
+
+**Takeaway:** *Placeholders are technical debt that compounds with interest. The "quick fix" takes 5 minutes but costs hours later when you forget context. Complete implementations take 30 minutes but eliminate future debugging, build errors, and context switching. Always finish what you start.*
+
+---
+
+## �📚 Resources
 
 **Books that influenced this architecture:**
 
@@ -1309,5 +1428,6 @@ Timeline: 1 week
 
 *Lessons Learned document created December 29, 2025*
 *Updated January 1, 2026 with UI/UX lessons from Feature Surfacing Plan*
+*Updated January 8, 2026 with Dialog Completion & Build Error Resolution lessons*
 *Based on the complete development cycle of SaveStateReborn*
-*Health Score: 100/100 | Tests: 290+ passing | UI Views Planned: 118*
+*Health Score: 98/100 | Build Status: 0 errors, 117 warnings | Tests: 300+ passing*

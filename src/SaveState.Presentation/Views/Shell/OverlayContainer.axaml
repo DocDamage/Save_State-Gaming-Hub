@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
              xmlns:views="using:SaveState.Presentation.Views.Shell.Overlays"
+             xmlns:overlays="using:SaveState.Presentation.Views.Overlays"
              x:Class="SaveState.Presentation.Views.Shell.OverlayContainer"
              x:DataType="vm:OverlayContainerViewModel">
 
@@ -23,11 +24,28 @@
     </UserControl.Styles>
 
     <Grid>
-        <!-- Dimming Background (for modals) -->
         <Border Classes="dimming-overlay"
                 IsVisible="{Binding ShowDim}"
                 IsHitTestVisible="True"
                 PointerPressed="OnDimPressed" />
+
+        <!-- Session Details Overlay -->
+        <overlays:SessionDetailsOverlay IsVisible="{Binding ShowSessionDetails}"
+                                      DataContext="{Binding SessionDetailsViewModel}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+
+        <!-- Achievement Details Overlay -->
+        <overlays:AchievementDetailsOverlay IsVisible="{Binding ShowAchievementDetails}"
+                                           DataContext="{Binding AchievementDetailsViewModel}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+
+        <!-- Mod Details Overlay -->
+        <overlays:ModDetailsOverlay IsVisible="{Binding ShowModDetails}"
+                                   DataContext="{Binding ModDetailsViewModel}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
 
         <!-- Command Palette (Top Center) -->
         <Border Background="{StaticResource OverlayBackgroundBrush}"

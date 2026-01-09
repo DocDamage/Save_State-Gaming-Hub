@@ -33,6 +33,14 @@
                             Classes.Secondary="{Binding SelectedTab, Converter={StaticResource InequalityConverter}, ConverterParameter=Statistics}"
                             Padding="15,8"
                             FontWeight="{Binding SelectedTab, Converter={StaticResource EqualityToFontWeightConverter}, ConverterParameter=Statistics}" />
+
+                    <!-- Settings Tab -->
+                    <Button Content="⚙️ Settings"
+                            Command="{Binding ShowSettingsCommand}"
+                            Classes.Primary="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Settings}"
+                            Classes.Secondary="{Binding SelectedTab, Converter={StaticResource InequalityConverter}, ConverterParameter=Settings}"
+                            Padding="15,8"
+                            FontWeight="{Binding SelectedTab, Converter={StaticResource EqualityToFontWeightConverter}, ConverterParameter=Settings}" />
                 </StackPanel>
 
                 <Button Grid.Column="2"
@@ -197,8 +205,11 @@
             <!-- CHARACTERS TAB -->
             <Grid IsVisible="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Characters}">
                 <Border Classes="GlassContainer" Margin="20,0,20,20" Padding="20">
-                    <Grid RowDefinitions="Auto, Auto, *">
-                        <TextBlock Text="🥊 Characters" Classes="SectionHeader" />
+                     <Grid RowDefinitions="Auto, Auto, *">
+                        <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
+                            <TextBlock Text="🥊 Characters" Classes="SectionHeader" VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="1" Width="200" Text="{Binding SearchText}" Watermark="🔎 Search..." Classes="Rounded"/>
+                        </Grid>
 
                         <!-- Statistics -->
                         <Grid Grid.Row="1" ColumnDefinitions="*, *" Margin="0,15,0,15">
@@ -214,7 +225,7 @@
                         </Grid>
 
                         <!-- Characters Grid -->
-                        <ItemsControl Grid.Row="2" ItemsSource="{Binding Characters}">
+                        <ItemsControl Grid.Row="2" ItemsSource="{Binding FilteredCharacters}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <WrapPanel />
@@ -253,7 +264,7 @@
                             </ItemsControl>
 
                             <!-- Empty State -->
-                            <Border IsVisible="{Binding Characters.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}"
+                            <Border IsVisible="{Binding FilteredCharacters.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}"
                                     Padding="40">
                                 <StackPanel Spacing="15" HorizontalAlignment="Center">
                                     <TextBlock Text="🥊" FontSize="48" HorizontalAlignment="Center" />
@@ -309,6 +320,31 @@
                                 </StackPanel>
                             </Border>
                     </Grid>
+                </Border>
+            </Grid>
+
+            <!-- SETTINGS TAB -->
+            <Grid IsVisible="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Settings}">
+                <Border Classes="GlassContainer" Margin="20,0,20,20" Padding="20">
+                    <StackPanel Spacing="20">
+                        <TextBlock Text="⚙️ Fight Settings" Classes="SectionHeader" />
+
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Rounds to Win" Classes="Label"/>
+                            <NumericUpDown Value="{Binding RoundsToWin}" Minimum="1" Maximum="5" Width="150" HorizontalAlignment="Left" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Time Limit (Seconds)" Classes="Label"/>
+                            <NumericUpDown Value="{Binding TimeLimit}" Minimum="30" Maximum="999" Width="150" HorizontalAlignment="Left" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="AI Difficulty (1-8)" Classes="Label"/>
+                            <Slider Value="{Binding AiDifficulty}" Minimum="1" Maximum="8" Width="300" HorizontalAlignment="Left" TickPlacement="BottomRight" TickFrequency="1" IsSnapToTickEnabled="True"/>
+                            <TextBlock Text="{Binding AiDifficulty}" FontWeight="Bold"/>
+                        </StackPanel>
+                    </StackPanel>
                 </Border>
             </Grid>
             </StackPanel>

@@ -94,12 +94,12 @@ public class InputService : IInputService
             await Task.CompletedTask;
 
             var mappings = new Dictionary<string, string>(_activeMappings);
-            return Result<IReadOnlyDictionary<string, string>>.Success(mappings);
+            return Result.Success<IReadOnlyDictionary<string, string>>(mappings);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get current mappings");
-            return Result<IReadOnlyDictionary<string, string>>.Failure(
+            return Result.Failure<IReadOnlyDictionary<string, string>>(
                 $"Failed to get mappings: {ex.Message}",
                 ErrorType.Internal);
         }
@@ -135,14 +135,15 @@ public class InputService : IInputService
             await Task.CompletedTask;
 
             _logger.LogInformation("Detected {Count} input devices", detectedDevices.Count);
-            return Result<IReadOnlyList<DetectedInputDevice>>.Success(detectedDevices);
+            return Result.Success<IReadOnlyList<DetectedInputDevice>>(detectedDevices);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to detect input devices");
-            return Result<IReadOnlyList<DetectedInputDevice>>.Failure(
+            return Result.Failure<IReadOnlyList<DetectedInputDevice>>(
                 $"Device detection failed: {ex.Message}",
                 ErrorType.Internal);
         }
     }
 }
+

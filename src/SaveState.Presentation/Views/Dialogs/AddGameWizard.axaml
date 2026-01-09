@@ -1,0 +1,160 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
+        x:Class="SaveState.Presentation.Views.Dialogs.AddGameWizard"
+        x:DataType="vm:AddGameWizardViewModel"
+        Title="Add Game Wizard"
+        Width="600" Height="500"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        SystemDecorations="None"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent">
+
+  <Panel>
+    <ExperimentalAcrylicBorder IsHitTestVisible="False">
+      <ExperimentalAcrylicBorder.Material>
+        <ExperimentalAcrylicMaterial
+            BackgroundSource="Digger"
+            TintColor="{DynamicResource SystemChromeMediumColor}"
+            TintOpacity="1"
+            MaterialOpacity="0.65" />
+      </ExperimentalAcrylicBorder.Material>
+    </ExperimentalAcrylicBorder>
+
+    <Border Background="{DynamicResource SolidBackgroundFillColorBase}"
+            BorderBrush="{DynamicResource SurfaceStrokeColorDefault}"
+            BorderThickness="1"
+            CornerRadius="8"
+            ClipToBounds="True">
+
+      <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <!-- Header -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource SurfaceStrokeColorDefault}"
+                Padding="20,15"
+                IsHitTestVisible="False">
+          <TextBlock Text="Add Game Wizard"
+                     Theme="{DynamicResource SubtitleTextBlockTheme}"
+                     FontWeight="SemiBold"/>
+        </Border>
+
+        <!-- Stepper -->
+        <Border Grid.Row="1" Padding="20,10">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+                 <Border Background="{Binding Step1Visible, Converter={x:Static ObjectConverters.IsNull}}"
+                         Classes.active="{Binding Step, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=1}"
+                         Width="30" Height="30" CornerRadius="15">
+                    <TextBlock Text="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+                 </Border>
+                 <TextBlock Text="Platform" VerticalAlignment="Center"/>
+                 <Separator Width="50"/>
+
+                 <Border Classes.active="{Binding Step, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=2}"
+                         Width="30" Height="30" CornerRadius="15">
+                    <TextBlock Text="2" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+                 </Border>
+                 <TextBlock Text="File" VerticalAlignment="Center"/>
+                 <Separator Width="50"/>
+
+                 <Border Classes.active="{Binding Step, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=3}"
+                         Width="30" Height="30" CornerRadius="15">
+                    <TextBlock Text="3" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+                 </Border>
+                 <TextBlock Text="Details" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Content -->
+        <Panel Grid.Row="2" Margin="40">
+
+            <!-- Step 1: Platform Selection -->
+            <StackPanel IsVisible="{Binding Step1Visible}" Spacing="20">
+                <TextBlock Text="Select Platform" Classes="TitleTextBlockStyle"/>
+                <TextBlock Text="What kind of game are you adding?" Classes="CaptionTextBlockStyle"/>
+
+                <ListBox ItemsSource="{Binding Platforms}" SelectedItem="{Binding SelectedPlatform}" Background="Transparent">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="20" CornerRadius="4" BorderThickness="1" BorderBrush="{DynamicResource SurfaceStrokeColorDefault}" Margin="5">
+                                <TextBlock Text="{Binding}" FontWeight="SemiBold"/>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <TextBlock Text="Currently Selected:" Classes="CaptionTextBlockStyle"/>
+                <TextBlock Text="{Binding SelectedPlatform}" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}"/>
+
+            </StackPanel>
+
+            <!-- Step 2: File Selection -->
+            <StackPanel IsVisible="{Binding Step2Visible}" Spacing="20">
+                <TextBlock Text="Select Game File" Classes="TitleTextBlockStyle"/>
+                <TextBlock Text="Choose the executable (.exe) or ROM file." Classes="CaptionTextBlockStyle"/>
+
+                <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto">
+                    <TextBox Text="{Binding Path}" Watermark="C:\Games\MyGame\game.exe" Grid.Column="0"/>
+                    <Button Content="..." Command="{Binding BrowseFileCommand}" Grid.Column="1" Margin="10,0,0,0"/>
+                </Grid>
+
+                <TextBlock Text="If it's a PC game, select the main executable. If it's a ROM, select the rom file."
+                           TextWrapping="Wrap" Opacity="0.7"/>
+            </StackPanel>
+
+            <!-- Step 3: Details -->
+            <StackPanel IsVisible="{Binding Step3Visible}" Spacing="20">
+                <TextBlock Text="Verify Details" Classes="TitleTextBlockStyle"/>
+
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Game Title"/>
+                    <TextBox Text="{Binding Title}"/>
+                </StackPanel>
+
+                <CheckBox Content="Scan for metadata automatically" IsChecked="{Binding ScanAutomatically}"/>
+            </StackPanel>
+
+        </Panel>
+
+        <!-- Footer -->
+        <Border Grid.Row="3"
+                Padding="20"
+                Background="{DynamicResource SurfaceStrokeColorDefault}">
+          <Grid ColumnDefinitions="Auto,*,Auto">
+             <Button Grid.Column="0" Content="Cancel" Command="{Binding CancelCommand}"/>
+
+             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                <Button Content="Back" Command="{Binding BackCommand}" IsVisible="{Binding Step, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter=1}"/>
+                <Button Content="{Binding NextButtonText}"
+                        Classes="Accent"
+                        Command="{Binding NextCommand}"
+                        IsEnabled="{Binding CanGoNext}"/>
+             </StackPanel>
+          </Grid>
+        </Border>
+      </Grid>
+    </Border>
+  </Panel>
+
+  <Window.Styles>
+      <Style Selector="Border.active">
+          <Setter Property="Background" Value="{DynamicResource SystemAccentColor}"/>
+          <Setter Property="TextBlock.Foreground" Value="White"/>
+      </Style>
+      <Style Selector="Border:not(.active)">
+          <Setter Property="Background" Value="{DynamicResource SurfaceStrokeColorDefault}"/>
+          <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextFillColorPrimary}"/>
+      </Style>
+  </Window.Styles>
+</Window>

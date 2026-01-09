@@ -59,19 +59,19 @@ public class ExamplePlugin : IPlugin, IGameProvider, IMetadataScraper
             new Game("Example Game 2", Platform.Create("PC", "Personal Computer"))
         };
 
-        return Task.FromResult(Result<IReadOnlyList<Game>>.Success(games));
+        return Task.FromResult(Result.Success<IReadOnlyList<Game>>(games));
     }
 
     public Task<Result<Game>> GetGameDetailsAsync(string externalId, CancellationToken ct = default)
     {
         var game = new Game($"Example Game {externalId}", Platform.Create("PC", "Personal Computer"));
-        return Task.FromResult(Result<Game>.Success(game));
+        return Task.FromResult(Result.Success<Game>(game));
     }
 
     public Task<Result<bool>> InstallGameAsync(string externalId, string installPath, CancellationToken ct = default)
     {
         _logger?.LogInformation("Installing example game {Id} to {Path}", externalId, installPath);
-        return Task.FromResult(Result<bool>.Success(true));
+        return Task.FromResult(Result.Success<bool>(true));
     }
 
     // IMetadataScraper implementation
@@ -82,7 +82,7 @@ public class ExamplePlugin : IPlugin, IGameProvider, IMetadataScraper
             new MetadataSearchResult("example-1", "Example Game", "A sample game", 2024, "https://example.com/cover.jpg")
         };
 
-        return Task.FromResult(Result<IReadOnlyList<MetadataSearchResult>>.Success(results));
+        return Task.FromResult(Result.Success<IReadOnlyList<MetadataSearchResult>>(results));
     }
 
     public Task<Result<GameMetadata>> GetGameMetadataAsync(string externalId, CancellationToken ct = default)
@@ -102,7 +102,7 @@ public class ExamplePlugin : IPlugin, IGameProvider, IMetadataScraper
             Screenshots: new[] { "https://example.com/screenshot1.jpg" },
             UserScore: 8.5f);
 
-        return Task.FromResult(Result<GameMetadata>.Success(metadata));
+        return Task.FromResult(Result.Success<GameMetadata>(metadata));
     }
 
     private async Task SayHelloAsync()

@@ -246,6 +246,6 @@ Slow:    ━━━━━━━━━━━━━━━━━━━━ 300ms  (Pa
 
 ---
 
-**Quick Reference Version**: 1.0
+**Quick Reference Version**: 1.1
 **For**: SaveStateReborn Design System
-**Updated**: January 4, 2026
+**Updated**: January 8, 2026 (Dialog System Complete)

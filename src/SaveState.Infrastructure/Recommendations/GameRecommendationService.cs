@@ -44,7 +44,7 @@ public class GameRecommendationService : IGameRecommendationService
 
             if (!games.Any())
             {
-                return Result<IReadOnlyList<SmartGameRecommendation>>.Success(
+                return Result.Success<IReadOnlyList<SmartGameRecommendation>>(
                     Array.Empty<SmartGameRecommendation>());
             }
 
@@ -70,12 +70,12 @@ public class GameRecommendationService : IGameRecommendationService
                 .ToList();
 
             _logger.LogInformation("Generated {Count} recommendations", recommendations.Count);
-            return Result<IReadOnlyList<SmartGameRecommendation>>.Success(recommendations);
+            return Result.Success<IReadOnlyList<SmartGameRecommendation>>(recommendations);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to generate recommendations");
-            return Result<IReadOnlyList<SmartGameRecommendation>>.Failure(
+            return Result.Failure<IReadOnlyList<SmartGameRecommendation>>(
                 "Failed to generate recommendations", ErrorType.Internal);
         }
     }
@@ -93,7 +93,7 @@ public class GameRecommendationService : IGameRecommendationService
 
             if (sourceGame == null)
             {
-                return Result<IReadOnlyList<SmartSimilarGame>>.Failure(
+                return Result.Failure<IReadOnlyList<SmartSimilarGame>>(
                     "Game not found", ErrorType.NotFound);
             }
 
@@ -136,12 +136,12 @@ public class GameRecommendationService : IGameRecommendationService
                     x.SharedTags))
                 .ToList();
 
-            return Result<IReadOnlyList<SmartSimilarGame>>.Success(similarGames);
+            return Result.Success<IReadOnlyList<SmartSimilarGame>>(similarGames);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get similar games");
-            return Result<IReadOnlyList<SmartSimilarGame>>.Failure(
+            return Result.Failure<IReadOnlyList<SmartSimilarGame>>(
                 "Failed to get similar games", ErrorType.Internal);
         }
     }
@@ -167,12 +167,12 @@ public class GameRecommendationService : IGameRecommendationService
                 game.UserRating.HasValue ? (float)game.UserRating.Value : null
             )).ToList();
 
-            return Result<IReadOnlyList<SmartTrendingGame>>.Success(trending);
+            return Result.Success<IReadOnlyList<SmartTrendingGame>>(trending);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get trending games");
-            return Result<IReadOnlyList<SmartTrendingGame>>.Failure(
+            return Result.Failure<IReadOnlyList<SmartTrendingGame>>(
                 "Failed to get trending games", ErrorType.Internal);
         }
     }
@@ -207,12 +207,12 @@ public class GameRecommendationService : IGameRecommendationService
                 );
             }).ToList();
 
-            return Result<IReadOnlyList<SmartBacklogRecommendation>>.Success(recommendations);
+            return Result.Success<IReadOnlyList<SmartBacklogRecommendation>>(recommendations);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get backlog recommendations");
-            return Result<IReadOnlyList<SmartBacklogRecommendation>>.Failure(
+            return Result.Failure<IReadOnlyList<SmartBacklogRecommendation>>(
                 "Failed to get backlog recommendations", ErrorType.Internal);
         }
     }
@@ -319,3 +319,4 @@ public class GameRecommendationService : IGameRecommendationService
 
     #endregion
 }
+

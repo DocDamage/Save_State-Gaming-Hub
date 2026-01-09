@@ -18,6 +18,7 @@ public class StopVoiceListeningCommandHandler : IRequestHandler<StopVoiceListeni
     /// <returns>A result indicating success or failure.</returns>
     public Task<Result<bool>> Handle(StopVoiceListeningCommand request, CancellationToken ct)
     {
-        return Task.FromResult(Result<bool>.Success(true));
+        return Task.FromResult(Result.Success<bool>(true));
     }
 }
+

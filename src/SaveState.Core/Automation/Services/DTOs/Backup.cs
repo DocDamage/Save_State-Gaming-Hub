@@ -13,7 +13,7 @@ public sealed record BackupScheduleConfig(
     IReadOnlyList<DayOfWeek>? DaysOfWeek = null,
     DateTime? StartDate = null,
     DateTime? EndDate = null,
-    BackupOptions Options = default,
+    BackupOptions Options = default!,
     bool IsEnabled = true,
     bool Compress = true,
     RetentionPolicy? Retention = null);
@@ -26,7 +26,8 @@ public enum BackupFrequency
     Daily,
     Weekly,
     Monthly,
-    Manual
+    Manual,
+    AfterGameExit
 }
 
 /// <summary>

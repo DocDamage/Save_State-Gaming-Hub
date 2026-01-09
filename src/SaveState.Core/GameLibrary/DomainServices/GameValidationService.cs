@@ -83,11 +83,11 @@ public class GameValidationService : IGameValidationService
         {
             var result = await FindPcExecutableAsync(game.InstallPath!, ct).ConfigureAwait(false);
             return result.IsSuccess
-                ? Result<string>.Success(result.Value!)
-                : Result<string>.Failure($"No executable found for PC game '{game.Title}'", ErrorType.NotFound);
+                ? Result.Success<string>(result.Value!)
+                : Result.Failure<string>($"No executable found for PC game '{game.Title}'", ErrorType.NotFound);
         }
 
-        return Result<string>.Failure($"Platform type '{platformType}' is not supported for executable detection", ErrorType.Validation);
+        return Result.Failure<string>($"Platform type '{platformType}' is not supported for executable detection", ErrorType.Validation);
     }
 
     private async Task<Result<string>> FindPcExecutableAsync(string installPath, CancellationToken ct)
@@ -99,9 +99,10 @@ public class GameValidationService : IGameValidationService
         {
             var files = await _fileSystem.GetFilesAsync(installPath, pattern, SearchOption.TopDirectoryOnly, ct).ConfigureAwait(false);
             if (files.Any())
-                return Result<string>.Success(files.First());
+                return Result.Success<string>(files.First());
         }
 
-        return Result<string>.Failure($"No executable files found in '{installPath}'", ErrorType.NotFound);
+        return Result.Failure<string>($"No executable files found in '{installPath}'", ErrorType.NotFound);
     }
 }
+

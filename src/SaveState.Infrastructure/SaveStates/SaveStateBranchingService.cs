@@ -38,14 +38,14 @@ public class SaveStateBranchingService : ISaveStateBranchingService
             var rootState = await _saveStateRepository.GetByIdAsync(request.RootStateId, ct);
             if (rootState == null)
             {
-                return Result<SaveStateBranch>.Failure($"Root save state {request.RootStateId} not found", ErrorType.NotFound);
+                return Result.Failure<SaveStateBranch>($"Root save state {request.RootStateId} not found", ErrorType.NotFound);
             }
 
             // Check for duplicate branch names
             var existingBranches = await _branchRepository.GetByRootStateIdAsync(request.RootStateId, ct);
             if (existingBranches.Any(b => b.BranchName.Equals(request.BranchName, StringComparison.OrdinalIgnoreCase)))
             {
-                return Result<SaveStateBranch>.Failure($"Branch '{request.BranchName}' already exists for this root state", ErrorType.Conflict);
+                return Result.Failure<SaveStateBranch>($"Branch '{request.BranchName}' already exists for this root state", ErrorType.Conflict);
             }
 
             var branch = SaveStateBranch.Create(
@@ -56,11 +56,11 @@ public class SaveStateBranchingService : ISaveStateBranchingService
 
             await _branchRepository.AddAsync(branch, ct);
 
-            return Result<SaveStateBranch>.Success(branch);
+            return Result.Success<SaveStateBranch>(branch);
         }
         catch (Exception ex)
         {
-            return Result<SaveStateBranch>.Failure($"Failed to create branch: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<SaveStateBranch>($"Failed to create branch: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -80,7 +80,7 @@ public class SaveStateBranchingService : ISaveStateBranchingService
 
             if (state1 == null || state2 == null)
             {
-                return Result<SaveStateDiff>.Failure("One or both save states not found", ErrorType.NotFound);
+                return Result.Failure<SaveStateDiff>("One or both save states not found", ErrorType.NotFound);
             }
 
             // Basic file-based comparison (can be enhanced with actual file analysis)
@@ -92,7 +92,7 @@ public class SaveStateBranchingService : ISaveStateBranchingService
             // In a real implementation, you'd compare file contents
             if (!File.Exists(state1.FilePath) || !File.Exists(state2.FilePath))
             {
-                return Result<SaveStateDiff>.Failure("Save state files not found on disk", ErrorType.NotFound);
+                return Result.Failure<SaveStateDiff>("Save state files not found on disk", ErrorType.NotFound);
             }
 
             var fileInfo1 = new FileInfo(state1.FilePath);
@@ -119,11 +119,11 @@ public class SaveStateBranchingService : ISaveStateBranchingService
             }
 
             var diff = new SaveStateDiff(fileChanges, sizeDiff, playtimeDiff, notableChanges);
-            return Result<SaveStateDiff>.Success(diff);
+            return Result.Success<SaveStateDiff>(diff);
         }
         catch (Exception ex)
         {
-            return Result<SaveStateDiff>.Failure($"Failed to compare states: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<SaveStateDiff>($"Failed to compare states: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -173,11 +173,11 @@ public class SaveStateBranchingService : ISaveStateBranchingService
         try
         {
             var branches = await _branchRepository.GetByGameIdAsync(gameId, ct);
-            return Result<IReadOnlyList<SaveStateBranch>>.Success(branches);
+            return Result.Success<IReadOnlyList<SaveStateBranch>>(branches);
         }
         catch (Exception ex)
         {
-            return Result<IReadOnlyList<SaveStateBranch>>.Failure($"Failed to get branches: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<SaveStateBranch>>($"Failed to get branches: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -238,11 +238,11 @@ public class SaveStateBranchingService : ISaveStateBranchingService
             }
 
             var tree = new BranchTree(gameId, nodes.OrderBy(n => n.CreatedAt).ToList());
-            return Result<BranchTree>.Success(tree);
+            return Result.Success<BranchTree>(tree);
         }
         catch (Exception ex)
         {
-            return Result<BranchTree>.Failure($"Failed to get branch tree: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<BranchTree>($"Failed to get branch tree: {ex.Message}", ErrorType.Internal);
         }
     }
 }

@@ -30,7 +30,7 @@ public class MugenStatsService : IMugenStatsService
         {
             var characterResult = await _characterRepository.GetByIdAsync(characterId, ct);
             if (characterResult.IsFailure)
-                return Result<CharacterStats>.Failure("Character not found");
+                return Result.Failure<CharacterStats>("Character not found");
             var character = characterResult.Value!;
 
             // Load actual match history from database
@@ -43,7 +43,7 @@ public class MugenStatsService : IMugenStatsService
                     characterId,
                     character.Name,
                     0, 0, 0, 0f, TimeSpan.Zero, Guid.Empty, Guid.Empty);
-                return Result<CharacterStats>.Success(emptyStats);
+                return Result.Success<CharacterStats>(emptyStats);
             }
 
             // Calculate statistics
@@ -91,11 +91,11 @@ public class MugenStatsService : IMugenStatsService
                 bestMatchup,
                 worstMatchup);
 
-            return Result<CharacterStats>.Success(stats);
+            return Result.Success<CharacterStats>(stats);
         }
         catch (Exception ex)
         {
-            return Result<CharacterStats>.Failure($"Failed to get character stats: {ex.Message}");
+            return Result.Failure<CharacterStats>($"Failed to get character stats: {ex.Message}");
         }
     }
 
@@ -110,7 +110,7 @@ public class MugenStatsService : IMugenStatsService
 
             if (!matches.Any())
             {
-                return Result<IReadOnlyList<MatchupStats>>.Success(new List<MatchupStats>());
+                return Result.Success<IReadOnlyList<MatchupStats>>(new List<MatchupStats>());
             }
 
             // Group by opponent and calculate stats
@@ -144,11 +144,11 @@ public class MugenStatsService : IMugenStatsService
                 .ThenByDescending(m => m.WinRate)
                 .ToList();
 
-            return Result<IReadOnlyList<MatchupStats>>.Success(sortedStats);
+            return Result.Success<IReadOnlyList<MatchupStats>>(sortedStats);
         }
         catch (Exception ex)
         {
-            return Result<IReadOnlyList<MatchupStats>>.Failure($"Failed to get matchup stats: {ex.Message}");
+            return Result.Failure<IReadOnlyList<MatchupStats>>($"Failed to get matchup stats: {ex.Message}");
         }
     }
 
@@ -164,11 +164,11 @@ public class MugenStatsService : IMugenStatsService
                 pageSize: count,
                 ct: ct);
 
-            return Result<IReadOnlyList<MugenMatchHistory>>.Success(pagedResult.Items);
+            return Result.Success<IReadOnlyList<MugenMatchHistory>>(pagedResult.Items);
         }
         catch (Exception ex)
         {
-            return Result<IReadOnlyList<MugenMatchHistory>>.Failure($"Failed to get recent matches: {ex.Message}");
+            return Result.Failure<IReadOnlyList<MugenMatchHistory>>($"Failed to get recent matches: {ex.Message}");
         }
     }
 
@@ -191,3 +191,4 @@ public class MugenStatsService : IMugenStatsService
         }
     }
 }
+

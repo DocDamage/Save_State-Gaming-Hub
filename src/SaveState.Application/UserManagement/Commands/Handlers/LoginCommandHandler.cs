@@ -35,7 +35,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<LoginRes
                 _logger.LogWarning("Login failed for user: {UsernameOrEmail}. Reason: {Error}",
                     request.UsernameOrEmail, authResult.ErrorMessage);
 
-                return Result<LoginResponse>.Failure(authResult.ErrorMessage ?? "Login failed");
+                return Result.Failure<LoginResponse>(authResult.ErrorMessage ?? "Login failed");
             }
 
             var user = authResult.User;
@@ -56,12 +56,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<LoginRes
             _logger.LogInformation("Login successful for user: {Username} ({UserId})",
                 user.Username, user.Id);
 
-            return Result<LoginResponse>.Success(response);
+            return Result.Success<LoginResponse>(response);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during login for user: {UsernameOrEmail}", request.UsernameOrEmail);
-            return Result<LoginResponse>.Failure("An error occurred during login");
+            return Result.Failure<LoginResponse>("An error occurred during login");
         }
     }
 }
+

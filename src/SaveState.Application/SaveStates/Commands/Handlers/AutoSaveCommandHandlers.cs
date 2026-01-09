@@ -145,7 +145,8 @@ public class GetAutoSaveStatusCommandHandler : IRequestHandler<GetAutoSaveStatus
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get auto-save status for game {GameId}", request.GameId);
-            return Result<AutoSaveStatus>.Failure($"Failed to get auto-save status: {ex.Message}");
+            return Result.Failure<AutoSaveStatus>($"Failed to get auto-save status: {ex.Message}");
         }
     }
 }
+

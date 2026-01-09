@@ -47,7 +47,7 @@ public class StartMacroRecordingCommandHandler :
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to start macro recording for game {GameId}", request.GameId);
-            return Result<MacroRecordingSession>.Failure($"Failed to start recording: {ex.Message}");
+            return Result.Failure<MacroRecordingSession>($"Failed to start recording: {ex.Message}");
         }
     }
 }
@@ -78,7 +78,7 @@ public class StopMacroRecordingCommandHandler :
             var stopResult = await _macroRecorder.StopRecordingAsync(request.SessionId, ct);
             if (!stopResult.IsSuccess)
             {
-                return Result<Macro>.Failure(stopResult.Error!);
+                return Result.Failure<Macro>(stopResult.Error!);
             }
 
             // The StopRecordingAsync already creates and returns the macro
@@ -86,12 +86,12 @@ public class StopMacroRecordingCommandHandler :
             _logger.LogInformation("Stopped macro recording session {SessionId}, created macro {MacroId}",
                 request.SessionId, macro.Id);
 
-            return Result<Macro>.Success(macro);
+            return Result.Success<Macro>(macro);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to stop macro recording session {SessionId}", request.SessionId);
-            return Result<Macro>.Failure($"Failed to stop recording: {ex.Message}");
+            return Result.Failure<Macro>($"Failed to stop recording: {ex.Message}");
         }
     }
 }
@@ -165,7 +165,7 @@ public class StartMacroPlaybackCommandHandler :
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to start macro playback for macro {MacroId}", request.MacroId);
-            return Result<MacroPlaybackSession>.Failure($"Failed to start playback: {ex.Message}");
+            return Result.Failure<MacroPlaybackSession>($"Failed to start playback: {ex.Message}");
         }
     }
 }
@@ -239,7 +239,7 @@ public class GetMacroCommandHandler :
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get macro {MacroId}", request.MacroId);
-            return Result<Macro>.Failure($"Failed to get macro: {ex.Message}");
+            return Result.Failure<Macro>($"Failed to get macro: {ex.Message}");
         }
     }
 }
@@ -277,7 +277,7 @@ public class GetMacrosForGameCommandHandler :
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get macros for game {GameId}", request.GameId);
-            return Result<IReadOnlyList<Macro>>.Failure($"Failed to get macros: {ex.Message}");
+            return Result.Failure<IReadOnlyList<Macro>>($"Failed to get macros: {ex.Message}");
         }
     }
 }
@@ -344,7 +344,7 @@ public class GetMacroStatisticsCommandHandler :
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get macro statistics");
-            return Result<MacroStatistics>.Failure($"Failed to get macro statistics: {ex.Message}");
+            return Result.Failure<MacroStatistics>($"Failed to get macro statistics: {ex.Message}");
         }
     }
 }
@@ -374,7 +374,7 @@ public class GetMacroCategoriesCommandHandler :
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get macro categories");
-            return Result<MacroCategories>.Failure($"Failed to get macro categories: {ex.Message}");
+            return Result.Failure<MacroCategories>($"Failed to get macro categories: {ex.Message}");
         }
     }
 }
@@ -404,7 +404,8 @@ public class SearchMacrosCommandHandler :
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to search macros with query '{Query}'", request.Query);
-            return Result<IReadOnlyList<Macro>>.Failure($"Failed to search macros: {ex.Message}");
+            return Result.Failure<IReadOnlyList<Macro>>($"Failed to search macros: {ex.Message}");
         }
     }
 }
+

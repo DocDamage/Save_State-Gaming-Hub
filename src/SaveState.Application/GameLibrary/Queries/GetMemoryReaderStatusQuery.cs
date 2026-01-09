@@ -25,7 +25,7 @@ public class GetMemoryReaderStatusQueryHandler : IRequestHandler<GetMemoryReader
             Platform = Environment.OSVersion.Platform.ToString()
         };
 
-        return Task.FromResult(Result<MemoryReaderStatus>.Success(status));
+        return Task.FromResult(Result.Success<MemoryReaderStatus>(status));
     }
 }
 
@@ -36,3 +36,4 @@ public class MemoryReaderStatus
     public string Platform { get; init; } = string.Empty;
     public string? AttachedProcessName { get; init; }
 }
+

@@ -45,12 +45,12 @@ public class MacroManager : IMacroManager
             _logger.LogInformation("Created macro {MacroId} from recording session {SessionId}",
                 macro.Id, recordingSessionId);
 
-            return Task.FromResult(Result<Macro>.Success(macro));
+            return Task.FromResult(Result.Success<Macro>(macro));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create macro from recording session {SessionId}", recordingSessionId);
-            return Task.FromResult(Result<Macro>.Failure($"Failed to create macro: {ex.Message}"));
+            return Task.FromResult(Result.Failure<Macro>($"Failed to create macro: {ex.Message}"));
         }
     }
 
@@ -62,15 +62,15 @@ public class MacroManager : IMacroManager
         {
             if (_macros.TryGetValue(macroId, out var macro))
             {
-                return Task.FromResult(Result<Macro>.Success(macro));
+                return Task.FromResult(Result.Success<Macro>(macro));
             }
 
-            return Task.FromResult(Result<Macro>.Failure("Macro not found"));
+            return Task.FromResult(Result.Failure<Macro>("Macro not found"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get macro {MacroId}", macroId);
-            return Task.FromResult(Result<Macro>.Failure($"Failed to get macro: {ex.Message}"));
+            return Task.FromResult(Result.Failure<Macro>($"Failed to get macro: {ex.Message}"));
         }
     }
 
@@ -84,12 +84,12 @@ public class MacroManager : IMacroManager
                 .Where(m => m.GameId == gameId)
                 .ToArray();
 
-            return Task.FromResult(Result<IReadOnlyList<Macro>>.Success(macros));
+            return Task.FromResult(Result.Success<IReadOnlyList<Macro>>(macros));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get macros for game {GameId}", gameId);
-            return Task.FromResult(Result<IReadOnlyList<Macro>>.Failure($"Failed to get macros: {ex.Message}"));
+            return Task.FromResult(Result.Failure<IReadOnlyList<Macro>>($"Failed to get macros: {ex.Message}"));
         }
     }
 
@@ -103,12 +103,12 @@ public class MacroManager : IMacroManager
                 .Where(m => m.UserId == userId)
                 .ToArray();
 
-            return Task.FromResult(Result<IReadOnlyList<Macro>>.Success(macros));
+            return Task.FromResult(Result.Success<IReadOnlyList<Macro>>(macros));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get macros for user {UserId}", userId);
-            return Task.FromResult(Result<IReadOnlyList<Macro>>.Failure($"Failed to get macros: {ex.Message}"));
+            return Task.FromResult(Result.Failure<IReadOnlyList<Macro>>($"Failed to get macros: {ex.Message}"));
         }
     }
 
@@ -192,12 +192,12 @@ public class MacroManager : IMacroManager
             _macros[macro.Id] = macro;
 
             _logger.LogInformation("Imported macro {MacroId} from {Format}", macro.Id, format);
-            return Result<Macro>.Success(macro);
+            return Result.Success<Macro>(macro);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to import macro from {Format}", format);
-            return Result<Macro>.Failure($"Failed to import macro: {ex.Message}");
+            return Result.Failure<Macro>($"Failed to import macro: {ex.Message}");
         }
     }
 
@@ -210,7 +210,7 @@ public class MacroManager : IMacroManager
         {
             if (!_macros.TryGetValue(macroId, out var macro))
             {
-                return Result<Stream>.Failure("Macro not found");
+                return Result.Failure<Stream>("Macro not found");
             }
 
             // Placeholder implementation - would serialize macro based on format
@@ -222,12 +222,12 @@ public class MacroManager : IMacroManager
             stream.Position = 0;
 
             _logger.LogInformation("Exported macro {MacroId} to {Format}", macroId, format);
-            return Result<Stream>.Success(stream);
+            return Result.Success<Stream>(stream);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to export macro {MacroId} to {Format}", macroId, format);
-            return Result<Stream>.Failure($"Failed to export macro: {ex.Message}");
+            return Result.Failure<Stream>($"Failed to export macro: {ex.Message}");
         }
     }
 
@@ -252,12 +252,12 @@ public class MacroManager : IMacroManager
                 PopularTags: tags,
                 TagUsageCounts: tagUsage);
 
-            return Task.FromResult(Result<MacroCategories>.Success(result));
+            return Task.FromResult(Result.Success<MacroCategories>(result));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get macro categories");
-            return Task.FromResult(Result<MacroCategories>.Failure($"Failed to get categories: {ex.Message}"));
+            return Task.FromResult(Result.Failure<MacroCategories>($"Failed to get categories: {ex.Message}"));
         }
     }
 
@@ -310,12 +310,12 @@ public class MacroManager : IMacroManager
                     m.Metadata.Tags.Any(t => t.Contains(query, StringComparison.OrdinalIgnoreCase)));
             }
 
-            return Task.FromResult(Result<IReadOnlyList<Macro>>.Success(results.ToArray()));
+            return Task.FromResult(Result.Success<IReadOnlyList<Macro>>(results.ToArray()));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to search macros with query '{Query}'", query);
-            return Task.FromResult(Result<IReadOnlyList<Macro>>.Failure($"Failed to search macros: {ex.Message}"));
+            return Task.FromResult(Result.Failure<IReadOnlyList<Macro>>($"Failed to search macros: {ex.Message}"));
         }
     }
 
@@ -340,12 +340,13 @@ public class MacroManager : IMacroManager
                 SuccessCount: _macros.Values.Sum(m => m.Metadata.Statistics?.SuccessCount ?? 0),
                 FailureCount: _macros.Values.Sum(m => m.Metadata.Statistics?.FailureCount ?? 0));
 
-            return Task.FromResult(Result<MacroStatistics>.Success(statistics));
+            return Task.FromResult(Result.Success<MacroStatistics>(statistics));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get macro statistics");
-            return Task.FromResult(Result<MacroStatistics>.Failure($"Failed to get statistics: {ex.Message}"));
+            return Task.FromResult(Result.Failure<MacroStatistics>($"Failed to get statistics: {ex.Message}"));
         }
     }
 }
+

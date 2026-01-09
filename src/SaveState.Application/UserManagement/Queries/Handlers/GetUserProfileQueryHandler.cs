@@ -33,6 +33,7 @@ public class GetUserProfileQueryHandler : IRequestHandler<GetUserProfileQuery, R
             IsActive = true
         };
 
-        return Task.FromResult(Result<UserProfileDto>.Success(mockUser));
+        return Task.FromResult(Result.Success<UserProfileDto>(mockUser));
     }
 }
+

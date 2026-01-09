@@ -24,7 +24,7 @@ public class GetPluginsQueryHandler : IRequestHandler<GetPluginsQuery, Result<IR
     public Task<Result<IReadOnlyList<PluginInfo>>> Handle(GetPluginsQuery request, CancellationToken ct)
     {
         var plugins = _pluginManager.GetLoadedPlugins();
-        return Task.FromResult(Result<IReadOnlyList<PluginInfo>>.Success(plugins));
+        return Task.FromResult(Result.Success<IReadOnlyList<PluginInfo>>(plugins));
     }
 }
 
@@ -50,3 +50,4 @@ public class DiscoverPluginsQueryHandler : IRequestHandler<DiscoverPluginsQuery,
         return await _pluginManager.DiscoverPluginsAsync(ct);
     }
 }
+

@@ -2,6 +2,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using SaveState.Presentation.Services;
+using SaveState.Core.GameLibrary;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace SaveState.Presentation.Services.Dashboard.Widgets;
 
@@ -12,15 +15,21 @@ public partial class QuickActionsWidget : WidgetBase
 {
     private readonly INavigationService _navigationService;
     private readonly IOverlayService _overlayService;
+    private readonly IGameRepository _gameRepository;
+    private readonly IGameSessionRepository _gameSessionRepository;
 
     public QuickActionsWidget(
         INavigationService navigationService,
         IOverlayService overlayService,
+        IGameRepository gameRepository,
+        IGameSessionRepository gameSessionRepository,
         ILogger<QuickActionsWidget> logger)
         : base(logger)
     {
         _navigationService = navigationService;
         _overlayService = overlayService;
+        _gameRepository = gameRepository;
+        _gameSessionRepository = gameSessionRepository;
     }
 
     /// <inheritdoc />
@@ -53,8 +62,27 @@ public partial class QuickActionsWidget : WidgetBase
     [RelayCommand]
     private async Task ContinuePlaying()
     {
-        // TODO: Navigate to the currently playing game
-        await _navigationService.NavigateTo("Library");
+        try
+        {
+            var sessions = await _gameSessionRepository.GetRecentSessionsAsync(1);
+            var lastSession = sessions.OrderByDescending(s => s.EndedAt ?? s.StartedAt).FirstOrDefault();
+
+            if (lastSession != null)
+            {
+                 var gameId = SaveState.Core.Common.ValueObjects.GameId.From(lastSession.GameId);
+                 await _navigationService.NavigateTo("Library", gameId);
+            }
+            else
+            {
+                 // No recent games, just go to library
+                 await _navigationService.NavigateTo("Library");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to navigate to last played game");
+            await _navigationService.NavigateTo("Library");
+        }
     }
 
     /// <summary>
@@ -63,7 +91,7 @@ public partial class QuickActionsWidget : WidgetBase
     [RelayCommand]
     private void ScanForGames()
     {
-        // TODO: Trigger game scanning
+        // Open Command Palette with Scan preset
         _overlayService.ShowCommandPaletteOverlay();
     }
 
@@ -73,8 +101,25 @@ public partial class QuickActionsWidget : WidgetBase
     [RelayCommand]
     private async Task RandomGame()
     {
-        // TODO: Navigate to random game
-        await _navigationService.NavigateTo("Library");
+        try
+        {
+            var allGames = await _gameRepository.GetAllAsync();
+            if (allGames.Any())
+            {
+                var random = new Random();
+                var game = allGames[random.Next(allGames.Count)];
+                await _navigationService.NavigateTo("Library", SaveState.Core.Common.ValueObjects.GameId.From(game.Id));
+            }
+            else
+            {
+                await _navigationService.NavigateTo("Library");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to pick random game");
+            await _navigationService.NavigateTo("Library");
+        }
     }
 
     /// <summary>
@@ -83,7 +128,6 @@ public partial class QuickActionsWidget : WidgetBase
     [RelayCommand]
     private void AiRecommend()
     {
-        // TODO: Show AI recommendations
         _overlayService.ShowAiAssistantOverlay();
     }
 }

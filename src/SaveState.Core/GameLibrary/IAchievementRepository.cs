@@ -100,4 +100,12 @@ public interface IAchievementRepository
     /// <param name="userAchievement">The user achievement to update.</param>
     /// <param name="ct">Cancellation token.</param>
     Task UpdateUserAchievementAsync(UserAchievement userAchievement, CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves recent unlocked achievements.
+    /// </summary>
+    /// <param name="limit">The maximum number of achievements to retrieve.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>A collection of recently unlocked milestones.</returns>
+    Task<IReadOnlyList<UserAchievement>> GetRecentUnlockedAsync(int limit, CancellationToken ct = default);
 }

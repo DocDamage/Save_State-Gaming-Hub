@@ -104,12 +104,12 @@ public class MugenManagerPlugin : IPlugin, IGameProvider, IMetadataScraper
                 game.SetMetadata("Genre", "Fighting");
             }
 
-            return Result<IReadOnlyList<Game>>.Success(games);
+            return Result.Success<IReadOnlyList<Game>>(games);
         }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Error discovering MUGEN games");
-            return Result<IReadOnlyList<Game>>.Failure($"Failed to discover games: {ex.Message}");
+            return Result.Failure<IReadOnlyList<Game>>($"Failed to discover games: {ex.Message}");
         }
     }
 
@@ -126,12 +126,12 @@ public class MugenManagerPlugin : IPlugin, IGameProvider, IMetadataScraper
             game.SetMetadata("Genre", "Fighting");
             game.SetMetadata("Developer", "MUGEN Community");
 
-            return Result<Game>.Success(game);
+            return Result.Success<Game>(game);
         }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Error getting game details for {ExternalId}", externalId);
-            return Result<Game>.Failure($"Failed to get game details: {ex.Message}");
+            return Result.Failure<Game>($"Failed to get game details: {ex.Message}");
         }
     }
 
@@ -157,12 +157,12 @@ public class MugenManagerPlugin : IPlugin, IGameProvider, IMetadataScraper
             await File.WriteAllTextAsync(charFile, $"; Dummy MUGEN character: {externalId}\n[Info]\nname = \"{externalId}\"\n", ct);
 
             _logger?.LogInformation("Successfully installed MUGEN pack {ExternalId}", externalId);
-            return Result<bool>.Success(true);
+            return Result.Success<bool>(true);
         }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Error installing MUGEN pack {ExternalId}", externalId);
-            return Result<bool>.Failure($"Failed to install pack: {ex.Message}");
+            return Result.Failure<bool>($"Failed to install pack: {ex.Message}");
         }
     }
 
@@ -181,12 +181,12 @@ public class MugenManagerPlugin : IPlugin, IGameProvider, IMetadataScraper
                 new MetadataSearchResult("guile", "Guile", "American soldier from Street Fighter", 1991, "https://mugenarchive.com/guile.jpg")
             };
 
-            return Result<IReadOnlyList<MetadataSearchResult>>.Success(results);
+            return Result.Success<IReadOnlyList<MetadataSearchResult>>(results);
         }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Error searching MUGEN content for '{Title}'", title);
-            return Result<IReadOnlyList<MetadataSearchResult>>.Failure($"Search failed: {ex.Message}");
+            return Result.Failure<IReadOnlyList<MetadataSearchResult>>($"Search failed: {ex.Message}");
         }
     }
 
@@ -215,12 +215,12 @@ public class MugenManagerPlugin : IPlugin, IGameProvider, IMetadataScraper
                 },
                 UserScore: 8.5f);
 
-            return Result<GameMetadata>.Success(metadata);
+            return Result.Success<GameMetadata>(metadata);
         }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Error getting MUGEN metadata for {ExternalId}", externalId);
-            return Result<GameMetadata>.Failure($"Failed to get metadata: {ex.Message}");
+            return Result.Failure<GameMetadata>($"Failed to get metadata: {ex.Message}");
         }
     }
 

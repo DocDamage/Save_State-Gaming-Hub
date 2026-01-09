@@ -139,7 +139,7 @@ public class MugenCharacterParser : IMugenCharacterParser
 
         if (spriteDir == null && soundDir == null && palDir == null)
         {
-            return Result<CharacterDirectories>.Failure("No directory paths specified in files section", ErrorType.Validation);
+            return Result.Failure<CharacterDirectories>("No directory paths specified in files section", ErrorType.Validation);
         }
 
         var spriteResult = ResolvePath(spriteDir, characterDirectory);
@@ -148,10 +148,10 @@ public class MugenCharacterParser : IMugenCharacterParser
 
         if (spriteResult.IsFailure && soundResult.IsFailure && palResult.IsFailure)
         {
-            return Result<CharacterDirectories>.Failure("Failed to resolve any directory paths", ErrorType.Validation);
+            return Result.Failure<CharacterDirectories>("Failed to resolve any directory paths", ErrorType.Validation);
         }
 
-        return Result<CharacterDirectories>.Success(new CharacterDirectories(
+        return Result.Success<CharacterDirectories>(new CharacterDirectories(
             SpriteDirectory: spriteResult.IsSuccess ? spriteResult.Value : null,
             SoundDirectory: soundResult.IsSuccess ? soundResult.Value : null,
             PaletteDirectory: palResult.IsSuccess ? palResult.Value : null
@@ -164,16 +164,16 @@ public class MugenCharacterParser : IMugenCharacterParser
 
         if (palFile == null)
         {
-            return Result<PaletteInfo>.Failure("No palette file specified", ErrorType.Validation);
+            return Result.Failure<PaletteInfo>("No palette file specified", ErrorType.Validation);
         }
 
         try
         {
-            return Result<PaletteInfo>.Success(new PaletteInfo(1, palFile));
+            return Result.Success<PaletteInfo>(new PaletteInfo(1, palFile));
         }
         catch (Exception ex)
         {
-            return Result<PaletteInfo>.Failure($"Failed to create palette info: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<PaletteInfo>($"Failed to create palette info: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -184,19 +184,19 @@ public class MugenCharacterParser : IMugenCharacterParser
 
         if (introStoryboard == null && endingStoryboard == null)
         {
-            return Result<ArcadeInfo>.Failure("No storyboard information specified", ErrorType.Validation);
+            return Result.Failure<ArcadeInfo>("No storyboard information specified", ErrorType.Validation);
         }
 
         try
         {
-            return Result<ArcadeInfo>.Success(new ArcadeInfo(
+            return Result.Success<ArcadeInfo>(new ArcadeInfo(
                 IntroStoryboard: int.TryParse(introStoryboard, out var intro) ? intro : 0,
                 EndingStoryboard: int.TryParse(endingStoryboard, out var ending) ? ending : 0
             ));
         }
         catch (Exception ex)
         {
-            return Result<ArcadeInfo>.Failure($"Failed to parse arcade info: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<ArcadeInfo>($"Failed to parse arcade info: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -204,23 +204,24 @@ public class MugenCharacterParser : IMugenCharacterParser
     {
         if (string.IsNullOrEmpty(relativePath))
         {
-            return Result<string>.Failure("Relative path is null or empty", ErrorType.Validation);
+            return Result.Failure<string>("Relative path is null or empty", ErrorType.Validation);
         }
 
         // If it's an absolute path, return as-is
         if (Path.IsPathRooted(relativePath))
         {
-            return Result<string>.Success(relativePath);
+            return Result.Success<string>(relativePath);
         }
 
         // Otherwise, resolve relative to character directory
         try
         {
-            return Result<string>.Success(Path.Combine(baseDirectory, relativePath));
+            return Result.Success<string>(Path.Combine(baseDirectory, relativePath));
         }
         catch (Exception ex)
         {
-            return Result<string>.Failure($"Failed to resolve path '{relativePath}': {ex.Message}", ErrorType.Internal);
+            return Result.Failure<string>($"Failed to resolve path '{relativePath}': {ex.Message}", ErrorType.Internal);
         }
     }
 }
+

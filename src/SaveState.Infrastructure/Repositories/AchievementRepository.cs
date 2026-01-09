@@ -199,4 +199,14 @@ public class AchievementRepository : IAchievementRepository
         _context.UserAchievements.Update(userAchievement);
         await _context.SaveChangesAsync(ct);
     }
+
+    public async Task<IReadOnlyList<UserAchievement>> GetRecentUnlockedAsync(int limit, CancellationToken ct = default)
+    {
+        return await _context.UserAchievements
+            .Include(ua => ua.Achievement)
+            .Where(ua => ua.UnlockedAt != null)
+            .OrderByDescending(ua => ua.UnlockedAt)
+            .Take(limit)
+            .ToListAsync(ct);
+    }
 }

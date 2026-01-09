@@ -67,12 +67,12 @@ public class AnalyticsExportService : IAnalyticsExportService
 
             await File.WriteAllTextAsync(filePath, csv.ToString(), ct);
             _logger.LogInformation("Analytics exported to CSV: {FilePath}", filePath);
-            return Result<string>.Success(filePath);
+            return Result.Success<string>(filePath);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to export analytics to CSV");
-            return Result<string>.Failure($"Export failed: {ex.Message}");
+            return Result.Failure<string>($"Export failed: {ex.Message}");
         }
     }
 
@@ -89,12 +89,12 @@ public class AnalyticsExportService : IAnalyticsExportService
             var json = JsonSerializer.Serialize(data, options);
             await File.WriteAllTextAsync(filePath, json, ct);
             _logger.LogInformation("Analytics exported to JSON: {FilePath}", filePath);
-            return Result<string>.Success(filePath);
+            return Result.Success<string>(filePath);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to export analytics to JSON");
-            return Result<string>.Failure($"Export failed: {ex.Message}");
+            return Result.Failure<string>($"Export failed: {ex.Message}");
         }
     }
 
@@ -183,12 +183,13 @@ public class AnalyticsExportService : IAnalyticsExportService
 
             await File.WriteAllTextAsync(filePath, html.ToString(), ct);
             _logger.LogInformation("HTML report generated: {FilePath}", filePath);
-            return Result<string>.Success(filePath);
+            return Result.Success<string>(filePath);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to generate HTML report");
-            return Result<string>.Failure($"Report generation failed: {ex.Message}");
+            return Result.Failure<string>($"Report generation failed: {ex.Message}");
         }
     }
 }
+

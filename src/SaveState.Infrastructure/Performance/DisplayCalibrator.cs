@@ -42,12 +42,12 @@ public class DisplayCalibrator : IDisplayCalibrator
                 FullscreenOptimizations: true,
                 BitDepth: 32);
 
-            return Task.FromResult(Result<DisplaySettings>.Success(defaultSettings));
+            return Task.FromResult(Result.Success<DisplaySettings>(defaultSettings));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get display settings");
-            return Task.FromResult(Result<DisplaySettings>.Failure($"Failed to get display settings: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<DisplaySettings>($"Failed to get display settings: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -64,12 +64,12 @@ public class DisplayCalibrator : IDisplayCalibrator
 
             _logger.LogInformation("Created display profile {ProfileId} for game {GameId}", profile.Id, gameId);
 
-            return Task.FromResult(Result<DisplayProfile>.Success(profile));
+            return Task.FromResult(Result.Success<DisplayProfile>(profile));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create display profile for game {GameId}", gameId);
-            return Task.FromResult(Result<DisplayProfile>.Failure($"Failed to create profile: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<DisplayProfile>($"Failed to create profile: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -79,11 +79,11 @@ public class DisplayCalibrator : IDisplayCalibrator
         {
             if (_profiles.TryGetValue(profileId, out var profile))
             {
-                return Task.FromResult(Result<DisplayProfile>.Success(profile));
+                return Task.FromResult(Result.Success<DisplayProfile>(profile));
             }
         }
 
-        return Task.FromResult(Result<DisplayProfile>.Failure($"Profile {profileId} not found", ErrorType.NotFound));
+        return Task.FromResult(Result.Failure<DisplayProfile>($"Profile {profileId} not found", ErrorType.NotFound));
     }
 
     public Task<Result<IReadOnlyList<DisplayProfile>>> GetProfilesForGameAsync(Guid gameId, CancellationToken ct = default)
@@ -94,7 +94,7 @@ public class DisplayCalibrator : IDisplayCalibrator
                 .Where(p => p.GameId == gameId)
                 .ToList();
 
-            return Task.FromResult(Result<IReadOnlyList<DisplayProfile>>.Success((IReadOnlyList<DisplayProfile>)profiles));
+            return Task.FromResult(Result.Success<IReadOnlyList<DisplayProfile>>((IReadOnlyList<DisplayProfile>)profiles));
         }
     }
 
@@ -172,17 +172,17 @@ public class DisplayCalibrator : IDisplayCalibrator
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var rates = GetWindowsRefreshRates();
-                return Task.FromResult(Result<IReadOnlyList<int>>.Success(rates));
+                return Task.FromResult(Result.Success<IReadOnlyList<int>>(rates));
             }
 
             // Common refresh rates as fallback
             var defaultRates = new List<int> { 60, 75, 120, 144, 165, 240 };
-            return Task.FromResult(Result<IReadOnlyList<int>>.Success((IReadOnlyList<int>)defaultRates));
+            return Task.FromResult(Result.Success<IReadOnlyList<int>>((IReadOnlyList<int>)defaultRates));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get available refresh rates");
-            return Task.FromResult(Result<IReadOnlyList<int>>.Failure($"Failed to get refresh rates: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<IReadOnlyList<int>>($"Failed to get refresh rates: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -193,7 +193,7 @@ public class DisplayCalibrator : IDisplayCalibrator
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var resolutions = GetWindowsResolutions();
-                return Task.FromResult(Result<IReadOnlyList<DisplayResolution>>.Success(resolutions));
+                return Task.FromResult(Result.Success<IReadOnlyList<DisplayResolution>>(resolutions));
             }
 
             // Common resolutions as fallback
@@ -207,12 +207,12 @@ public class DisplayCalibrator : IDisplayCalibrator
                 new(3440, 1440, "21:9")
             };
 
-            return Task.FromResult(Result<IReadOnlyList<DisplayResolution>>.Success((IReadOnlyList<DisplayResolution>)defaultResolutions));
+            return Task.FromResult(Result.Success<IReadOnlyList<DisplayResolution>>((IReadOnlyList<DisplayResolution>)defaultResolutions));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get available resolutions");
-            return Task.FromResult(Result<IReadOnlyList<DisplayResolution>>.Failure($"Failed to get resolutions: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<IReadOnlyList<DisplayResolution>>($"Failed to get resolutions: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -237,14 +237,14 @@ public class DisplayCalibrator : IDisplayCalibrator
                     FullscreenOptimizations: true,
                     BitDepth: devMode.dmBitsPerPel);
 
-                return Task.FromResult(Result<DisplaySettings>.Success(settings));
+                return Task.FromResult(Result.Success<DisplaySettings>(settings));
             }
 
-            return Task.FromResult(Result<DisplaySettings>.Failure("Failed to enumerate display settings", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<DisplaySettings>("Failed to enumerate display settings", ErrorType.Internal));
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Result<DisplaySettings>.Failure($"Windows API error: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<DisplaySettings>($"Windows API error: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -433,3 +433,4 @@ public class DisplayCalibrator : IDisplayCalibrator
 
     #endregion
 }
+

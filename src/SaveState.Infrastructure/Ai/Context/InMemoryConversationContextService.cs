@@ -36,7 +36,7 @@ public sealed class InMemoryConversationContextService : IConversationContextSer
     public Task<Result<ConversationContext>> GetOrCreateContextAsync(string sessionId, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(sessionId))
-            return Task.FromResult(Result<ConversationContext>.Failure("Session ID cannot be empty"));
+            return Task.FromResult(Result.Failure<ConversationContext>("Session ID cannot be empty"));
 
         var cacheKey = $"{CacheKeyPrefix}{sessionId}";
 
@@ -54,7 +54,7 @@ public sealed class InMemoryConversationContextService : IConversationContextSer
             return new ConversationContext(sessionId);
         });
 
-        return Task.FromResult(Result<ConversationContext>.Success(context!));
+        return Task.FromResult(Result.Success<ConversationContext>(context!));
     }
 
     public async Task<Result> AddMessageAsync(string sessionId, ChatMessage message, CancellationToken ct = default)
@@ -72,9 +72,9 @@ public sealed class InMemoryConversationContextService : IConversationContextSer
     {
         var contextResult = await GetOrCreateContextAsync(sessionId, ct);
         if (contextResult.IsFailure)
-            return Result<IReadOnlyList<ChatMessage>>.Failure(contextResult.Error!);
+            return Result.Failure<IReadOnlyList<ChatMessage>>(contextResult.Error!);
 
-        return Result<IReadOnlyList<ChatMessage>>.Success(contextResult.Value!.Messages);
+        return Result.Success<IReadOnlyList<ChatMessage>>(contextResult.Value!.Messages);
     }
 
     public Task<Result> ClearSessionAsync(string sessionId, CancellationToken ct = default)
@@ -88,3 +88,4 @@ public sealed class InMemoryConversationContextService : IConversationContextSer
 
     public int GetActiveSessionCount() => _activeSessions.Count;
 }
+

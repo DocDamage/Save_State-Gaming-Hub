@@ -44,12 +44,12 @@ public class IgdbMetadataService : IMetadataService
     {
         var metadata = await GetGameMetadataAsync(title, ct).ConfigureAwait(false);
         if (string.IsNullOrEmpty(metadata.CoverImageUrl))
-            return Result<byte[]>.Failure("No cover image URL available", ErrorType.NotFound);
+            return Result.Failure<byte[]>("No cover image URL available", ErrorType.NotFound);
 
         var imageResult = await _apiClient.DownloadImageAsync(metadata.CoverImageUrl, ct).ConfigureAwait(false);
         return imageResult.IsSuccess
-            ? Result<byte[]>.Success(imageResult.Value)
-            : Result<byte[]>.Failure(imageResult.Error!, imageResult.ErrorType);
+            ? Result.Success<byte[]>(imageResult.Value)
+            : Result.Failure<byte[]>(imageResult.Error!, imageResult.ErrorType);
     }
 
     private async Task<Result<GameMetadata?>> FetchMetadataFromApiAsync(string title, CancellationToken ct)
@@ -64,7 +64,7 @@ public class IgdbMetadataService : IMetadataService
             if (bestMatch is null)
             {
                 _logger.LogInformation("No suitable match found for game title '{Title}'", title);
-                return Result<GameMetadata?>.Success(null);
+                return Result.Success<GameMetadata?>(null);
             }
 
             var metadata = new GameMetadata
@@ -78,12 +78,12 @@ public class IgdbMetadataService : IMetadataService
                 Publisher = null  // IGDB doesn't provide this in search results
             };
 
-            return Result<GameMetadata?>.Success(metadata);
+            return Result.Success<GameMetadata?>(metadata);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to fetch metadata for game '{Title}' from IGDB", title);
-            return Result<GameMetadata?>.Failure($"Failed to fetch metadata: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<GameMetadata?>($"Failed to fetch metadata: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -106,3 +106,5 @@ public class IgdbMetadataService : IMetadataService
         return union > 0 ? (double)intersection / union : 0;
     }
 }
+
+

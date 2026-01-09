@@ -37,12 +37,12 @@ public class AudioOptimizer : IAudioOptimizer
                 LatencyMode: AudioLatencyMode.Default,
                 PreferredDeviceId: null);
 
-            return Task.FromResult(Result<AudioSettings>.Success(settings));
+            return Task.FromResult(Result.Success<AudioSettings>(settings));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get audio settings");
-            return Task.FromResult(Result<AudioSettings>.Failure($"Failed to get audio settings: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<AudioSettings>($"Failed to get audio settings: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -59,12 +59,12 @@ public class AudioOptimizer : IAudioOptimizer
 
             _logger.LogInformation("Created audio profile {ProfileId} for game {GameId}", profile.Id, gameId);
 
-            return Task.FromResult(Result<AudioProfile>.Success(profile));
+            return Task.FromResult(Result.Success<AudioProfile>(profile));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create audio profile for game {GameId}", gameId);
-            return Task.FromResult(Result<AudioProfile>.Failure($"Failed to create profile: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<AudioProfile>($"Failed to create profile: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -74,11 +74,11 @@ public class AudioOptimizer : IAudioOptimizer
         {
             if (_profiles.TryGetValue(profileId, out var profile))
             {
-                return Task.FromResult(Result<AudioProfile>.Success(profile));
+                return Task.FromResult(Result.Success<AudioProfile>(profile));
             }
         }
 
-        return Task.FromResult(Result<AudioProfile>.Failure($"Profile {profileId} not found", ErrorType.NotFound));
+        return Task.FromResult(Result.Failure<AudioProfile>($"Profile {profileId} not found", ErrorType.NotFound));
     }
 
     public Task<Result<IReadOnlyList<AudioProfile>>> GetProfilesForGameAsync(Guid gameId, CancellationToken ct = default)
@@ -89,7 +89,7 @@ public class AudioOptimizer : IAudioOptimizer
                 .Where(p => p.GameId == gameId)
                 .ToList();
 
-            return Task.FromResult(Result<IReadOnlyList<AudioProfile>>.Success((IReadOnlyList<AudioProfile>)profiles));
+            return Task.FromResult(Result.Success<IReadOnlyList<AudioProfile>>((IReadOnlyList<AudioProfile>)profiles));
         }
     }
 
@@ -182,12 +182,12 @@ public class AudioOptimizer : IAudioOptimizer
                     IsEnabled: true));
             }
 
-            return Task.FromResult(Result<IReadOnlyList<AudioDevice>>.Success((IReadOnlyList<AudioDevice>)devices));
+            return Task.FromResult(Result.Success<IReadOnlyList<AudioDevice>>((IReadOnlyList<AudioDevice>)devices));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get available audio devices");
-            return Task.FromResult(Result<IReadOnlyList<AudioDevice>>.Failure($"Failed to get audio devices: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<IReadOnlyList<AudioDevice>>($"Failed to get audio devices: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -330,3 +330,4 @@ public class AudioOptimizer : IAudioOptimizer
             LatencyMode: AudioLatencyMode.Default);
     }
 }
+

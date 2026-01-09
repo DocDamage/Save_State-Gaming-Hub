@@ -1,0 +1,45 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Dialogs"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="400"
+        x:Class="SaveState.Presentation.Views.Dialogs.BranchCreationDialog"
+        x:DataType="vm:BranchCreationDialogViewModel"
+        Title="Create Branch" Width="500" Height="400"
+        WindowStartupLocation="CenterOwner"
+        TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent"
+        ExtendClientAreaToDecorationsHint="True">
+
+    <Border Background="#1E1E1E"
+            CornerRadius="8"
+            BorderBrush="#333333"
+            BorderThickness="1"
+            Padding="24">
+        <DockPanel>
+            <TextBlock DockPanel.Dock="Top"
+                       Text="Create New Branch"
+                       FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" Margin="0,0,0,20"/>
+
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12" Margin="0,20,0,0">
+                <Button Content="Cancel" Command="{Binding CancelCommand}" Width="100" Height="36" Background="#2D2D2D" Foreground="#FFFFFF"/>
+                <Button Content="Create" Command="{Binding ConfirmCommand}" Width="100" Height="36" Background="#4CAF50" Foreground="#FFFFFF"/>
+            </StackPanel>
+
+            <StackPanel Spacing="16">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Branch Name" Foreground="#AAAAAA" FontSize="12"/>
+                    <TextBox Text="{Binding BranchName}" Watermark="e.g. boss-fight-prep" Background="#252525" Foreground="#FFFFFF" BorderBrush="#333333"/>
+                </StackPanel>
+
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Description (Optional)" Foreground="#AAAAAA" FontSize="12"/>
+                    <TextBox Text="{Binding Description}" Watermark="What is this branch for?" Height="80" TextWrapping="Wrap" AcceptsReturn="True" Background="#252525" Foreground="#FFFFFF" BorderBrush="#333333"/>
+                </StackPanel>
+
+                <CheckBox IsChecked="{Binding CheckoutImmediately}" Content="Switch to this branch immediately" Foreground="#FFFFFF"/>
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</Window>

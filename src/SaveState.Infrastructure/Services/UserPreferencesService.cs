@@ -121,6 +121,64 @@ public class UserPreferencesService : SaveState.Core.Common.Services.IUserPrefer
         await SavePreferencesAsync(prefs, ct);
     }
 
+    public async Task<string> GetPreferredCloudProviderAsync(CancellationToken ct = default)
+    {
+        var prefs = await LoadPreferencesAsync(ct);
+        return prefs.PreferredCloudProvider;
+    }
+
+    public async Task SetPreferredCloudProviderAsync(string provider, CancellationToken ct = default)
+    {
+        var prefs = await LoadPreferencesAsync(ct);
+        prefs.PreferredCloudProvider = provider;
+        await SavePreferencesAsync(prefs, ct);
+    }
+
+    public async Task<bool> GetAutoSyncOnExitAsync(CancellationToken ct = default)
+    {
+        var prefs = await LoadPreferencesAsync(ct);
+        return prefs.AutoSyncOnExit;
+    }
+
+    public async Task SetAutoSyncOnExitAsync(bool enabled, CancellationToken ct = default)
+    {
+        var prefs = await LoadPreferencesAsync(ct);
+        prefs.AutoSyncOnExit = enabled;
+        await SavePreferencesAsync(prefs, ct);
+    }
+
+    public async Task<string> GetCloudClientIdAsync(string provider, CancellationToken ct = default)
+    {
+        var prefs = await LoadPreferencesAsync(ct);
+        var encrypted = provider.ToLower() switch
+        {
+            "onedrive" => prefs.EncryptedOneDriveClientId,
+            "googledrive" => prefs.EncryptedGoogleDriveClientId,
+            _ => null
+        };
+
+        if (string.IsNullOrEmpty(encrypted)) return string.Empty;
+        try { return Decrypt(encrypted); } catch { return string.Empty; }
+    }
+
+    public async Task SetCloudClientIdAsync(string provider, string clientId, CancellationToken ct = default)
+    {
+        var prefs = await LoadPreferencesAsync(ct);
+        var encrypted = string.IsNullOrEmpty(clientId) ? string.Empty : Encrypt(clientId);
+
+        switch (provider.ToLower().Replace(" ", ""))
+        {
+            case "onedrive":
+                prefs.EncryptedOneDriveClientId = encrypted;
+                break;
+            case "googledrive":
+                prefs.EncryptedGoogleDriveClientId = encrypted;
+                break;
+        }
+
+        await SavePreferencesAsync(prefs, ct);
+    }
+
     private string Encrypt(string clearText)
     {
         if (string.IsNullOrEmpty(clearText)) return string.Empty;
@@ -172,5 +230,9 @@ public class UserPreferencesService : SaveState.Core.Common.Services.IUserPrefer
         public string PreferredAiModel { get; set; } = "gpt-4";
         public string? EncryptedOpenAiApiKey { get; set; }
         public string? EncryptedGroqApiKey { get; set; }
+        public string PreferredCloudProvider { get; set; } = string.Empty;
+        public bool AutoSyncOnExit { get; set; } = true;
+        public string? EncryptedOneDriveClientId { get; set; }
+        public string? EncryptedGoogleDriveClientId { get; set; }
     }
 }

@@ -59,6 +59,7 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
     public DbSet<UserManagementPermission> Permissions { get; set; }
     public DbSet<UserManagementRolePermission> RolePermissions { get; set; }
     public DbSet<UserManagementApiKey> ApiKeys { get; set; }
+    public DbSet<SaveState.Core.Api.Entities.ApiKey> ExternalApiKeys { get; set; }
     public DbSet<Achievement> Achievements { get; set; }
     public DbSet<UserAchievement> UserAchievements { get; set; }
 
@@ -83,6 +84,8 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
     public DbSet<SaveStateEntity> SaveStates { get; set; }
     public DbSet<SaveStateBranchEntity> SaveStateBranches { get; set; }
     public DbSet<ControllerProfile> ControllerProfiles { get; set; }
+    public DbSet<SaveState.Core.Social.Entities.Challenge> Challenges { get; set; }
+    public DbSet<SaveState.Core.Social.Entities.Leaderboard> Leaderboards { get; set; }
     public DbSet<Core.Social.Entities.GameReview> GameReviews { get; set; }
     public DbSet<Core.Social.Entities.SharedCollection> SharedCollections { get; set; }
     public DbSet<Core.Social.Entities.SharedCollectionItem> SharedCollectionItems { get; set; }

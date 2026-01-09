@@ -39,6 +39,7 @@ public class CreateGameNoteCommandHandler : IRequestHandler<CreateGameNoteComman
 
         await _noteRepository.AddAsync(note, cancellationToken).ConfigureAwait(false);
 
-        return Result<Guid>.Success(note.Id);
+        return Result.Success<Guid>(note.Id);
     }
 }
+

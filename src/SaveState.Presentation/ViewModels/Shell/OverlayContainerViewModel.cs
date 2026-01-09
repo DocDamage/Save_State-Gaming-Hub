@@ -37,6 +37,11 @@ public partial class OverlayContainerViewModel : ObservableObject
         PerformanceHudViewModel = new PerformanceHudViewModel(_overlayService, performanceMonitor);
         VoiceIndicatorViewModel = new VoiceIndicatorViewModel();
 
+        // New Detail Overlays
+        SessionDetailsViewModel = new Overlays.SessionDetailsOverlayViewModel(_overlayService);
+        AchievementDetailsViewModel = new Overlays.AchievementDetailsOverlayViewModel(_overlayService);
+        ModDetailsViewModel = new Overlays.ModDetailsOverlayViewModel(_overlayService);
+
         // Initialize toasts collection
         Toasts = new ObservableCollection<ToastViewModel>();
     }
@@ -62,6 +67,21 @@ public partial class OverlayContainerViewModel : ObservableObject
     public bool ShowPerformanceHud => _overlayService.ShowPerformanceHud;
 
     /// <summary>
+    /// Gets whether the session details overlay is visible.
+    /// </summary>
+    public bool ShowSessionDetails => _overlayService.ShowSessionDetails;
+
+    /// <summary>
+    /// Gets whether the achievement details overlay is visible.
+    /// </summary>
+    public bool ShowAchievementDetails => _overlayService.ShowAchievementDetails;
+
+    /// <summary>
+    /// Gets whether the mod details overlay is visible.
+    /// </summary>
+    public bool ShowModDetails => _overlayService.ShowModDetails;
+
+    /// <summary>
     /// Gets whether the voice indicator is active.
     /// </summary>
     public bool IsVoiceActive => _overlayService.IsVoiceActive;
@@ -70,6 +90,21 @@ public partial class OverlayContainerViewModel : ObservableObject
     /// Gets whether the dimming overlay should be shown.
     /// </summary>
     public bool ShowDim => _overlayService.ShowDim;
+
+    /// <summary>
+    /// Gets the session details view model.
+    /// </summary>
+    public Overlays.SessionDetailsOverlayViewModel SessionDetailsViewModel { get; }
+
+    /// <summary>
+    /// Gets the achievement details view model.
+    /// </summary>
+    public Overlays.AchievementDetailsOverlayViewModel AchievementDetailsViewModel { get; }
+
+    /// <summary>
+    /// Gets the mod details view model.
+    /// </summary>
+    public Overlays.ModDetailsOverlayViewModel ModDetailsViewModel { get; }
 
     /// <summary>
     /// Gets whether there are any toasts to display.
@@ -172,6 +207,9 @@ public partial class OverlayContainerViewModel : ObservableObject
     {
         _overlayService.HideCommandPaletteOverlay();
         _overlayService.HideQuickSearchOverlay();
+        _overlayService.HideSessionDetailsOverlay();
+        _overlayService.HideAchievementDetailsOverlay();
+        _overlayService.HideModDetailsOverlay();
         // Note: AI Assistant is not modal, so it stays open
     }
 
@@ -196,6 +234,30 @@ public partial class OverlayContainerViewModel : ObservableObject
                 break;
             case "VoiceIndicator":
                 OnPropertyChanged(nameof(IsVoiceActive));
+                break;
+            case "SessionDetails":
+                if (e.IsVisible && _overlayService.CurrentSessionGameId.HasValue)
+                {
+                    SessionDetailsViewModel.Initialize(_overlayService.CurrentSessionGameId.Value);
+                }
+                OnPropertyChanged(nameof(ShowSessionDetails));
+                OnPropertyChanged(nameof(ShowDim));
+                break;
+            case "AchievementDetails":
+                if (e.IsVisible && _overlayService.CurrentAchievementId.HasValue)
+                {
+                    AchievementDetailsViewModel.Initialize(_overlayService.CurrentAchievementId.Value);
+                }
+                OnPropertyChanged(nameof(ShowAchievementDetails));
+                OnPropertyChanged(nameof(ShowDim));
+                break;
+            case "ModDetails":
+                if (e.IsVisible && _overlayService.CurrentModId.HasValue)
+                {
+                    ModDetailsViewModel.Initialize(_overlayService.CurrentModId.Value);
+                }
+                OnPropertyChanged(nameof(ShowModDetails));
+                OnPropertyChanged(nameof(ShowDim));
                 break;
         }
     }

@@ -1,0 +1,104 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+        x:Class="SaveState.Presentation.Views.Dialogs.PriceAlertDialog"
+        x:DataType="vm:PriceAlertDialogViewModel"
+        Title="Set Price Alert"
+        Width="400" Height="450"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        SystemDecorations="None"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent">
+
+  <Panel>
+    <ExperimentalAcrylicBorder IsHitTestVisible="False">
+      <ExperimentalAcrylicBorder.Material>
+        <ExperimentalAcrylicMaterial
+            BackgroundSource="Digger"
+            TintColor="{DynamicResource SystemChromeMediumColor}"
+            TintOpacity="1"
+            MaterialOpacity="0.65" />
+      </ExperimentalAcrylicBorder.Material>
+    </ExperimentalAcrylicBorder>
+
+    <Border Background="{DynamicResource SolidBackgroundFillColorBase}"
+            BorderBrush="{DynamicResource SurfaceStrokeColorDefault}"
+            BorderThickness="1"
+            CornerRadius="8"
+            ClipToBounds="True">
+
+      <Grid RowDefinitions="Auto,*,Auto">
+        <!-- Header -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource SurfaceStrokeColorDefault}"
+                Padding="20,15"
+                IsHitTestVisible="False">
+          <StackPanel>
+            <TextBlock Text="Set Price Alert"
+                       Theme="{DynamicResource SubtitleTextBlockTheme}"
+                       FontWeight="SemiBold"/>
+            <TextBlock Text="{Binding GameTitle}"
+                       Opacity="0.7"
+                       FontSize="13"/>
+          </StackPanel>
+        </Border>
+
+        <!-- Content -->
+        <Border Grid.Row="1" Padding="20">
+          <StackPanel Spacing="20">
+
+          <Grid ColumnDefinitions="*,*">
+             <StackPanel Grid.Column="0">
+               <TextBlock Text="Current Price" Classes="CaptionTextBlockStyle" Opacity="0.7"/>
+               <TextBlock Text="{Binding CurrentPrice, StringFormat='{}{0:C}'}"
+                          FontSize="24"
+                          FontWeight="Bold"/>
+             </StackPanel>
+          </Grid>
+
+          <StackPanel Spacing="10">
+            <TextBlock Text="Notify me when price drops below" FontWeight="SemiBold"/>
+            <NumericUpDown Value="{Binding TargetPrice}"
+                           FormatString="C"
+                           Increment="1.00"
+                           Minimum="0"/>
+
+            <TextBlock Text="Store" Classes="CaptionTextBlockStyle" Opacity="0.7" Margin="0,10,0,0"/>
+            <ComboBox ItemsSource="{Binding Stores}"
+                      SelectedItem="{Binding SelectedStore}"
+                      HorizontalAlignment="Stretch"/>
+          </StackPanel>
+
+          <StackPanel Spacing="10">
+            <TextBlock Text="Notification Method" FontWeight="SemiBold"/>
+            <CheckBox Content="Email Notification"
+                      IsChecked="{Binding EmailNotification}"/>
+            <CheckBox Content="In-App Notification"
+                      IsChecked="{Binding InAppNotification}"/>
+          </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Footer -->
+        <Border Grid.Row="2"
+                Padding="20"
+                Background="{DynamicResource SurfaceStrokeColorDefault}">
+          <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+            <Button Content="Cancel" Command="{Binding CancelCommand}"/>
+            <Button Content="Create Alert"
+                    Classes="Accent"
+                    Command="{Binding SaveCommand}"
+                    IsEnabled="{Binding CanSave}"/>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </Border>
+  </Panel>
+</Window>

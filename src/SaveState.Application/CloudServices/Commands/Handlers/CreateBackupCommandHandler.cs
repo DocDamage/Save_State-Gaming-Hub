@@ -38,12 +38,13 @@ public class CreateBackupCommandHandler : IRequestHandler<CreateBackupCommand, R
             _logger.LogInformation("Backup created successfully: {BackupId}, {Size} bytes, {Games} games",
                 result.BackupId, result.TotalSize, result.GamesBackedUp);
 
-            return Result<BackupId>.Success(result.BackupId);
+            return Result.Success<BackupId>(result.BackupId);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create backup of type {Type}", request.Type);
-            return Result<BackupId>.Failure($"Backup creation failed: {ex.Message}");
+            return Result.Failure<BackupId>($"Backup creation failed: {ex.Message}");
         }
     }
 }
+

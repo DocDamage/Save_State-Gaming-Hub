@@ -60,7 +60,7 @@ public class RetroAchievementsClient : IRetroAchievementsClient
     public async Task<Result<RAUserProfile>> GetUserProfileAsync(CancellationToken ct = default)
     {
         if (!IsAuthenticated)
-            return Result<RAUserProfile>.Failure("Not authenticated", ErrorType.Unauthorized);
+            return Result.Failure<RAUserProfile>("Not authenticated", ErrorType.Unauthorized);
 
         try
         {
@@ -71,7 +71,7 @@ public class RetroAchievementsClient : IRetroAchievementsClient
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("Failed to get user profile: {StatusCode}", response.StatusCode);
-                return Result<RAUserProfile>.Failure($"Upstream API error: {response.StatusCode}", ErrorType.ExternalService);
+                return Result.Failure<RAUserProfile>($"Upstream API error: {response.StatusCode}", ErrorType.ExternalService);
             }
 
             var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct).ConfigureAwait(false);
@@ -85,19 +85,19 @@ public class RetroAchievementsClient : IRetroAchievementsClient
                 AvatarUrl: json.TryGetProperty("UserPic", out var av) ? av.GetString() : null
             );
 
-            return Result<RAUserProfile>.Success(profile);
+            return Result.Success<RAUserProfile>(profile);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching user profile");
-            return Result<RAUserProfile>.Failure($"Exception fetching user profile: {ex.Message}", ErrorType.ExternalService);
+            return Result.Failure<RAUserProfile>($"Exception fetching user profile: {ex.Message}", ErrorType.ExternalService);
         }
     }
 
     public async Task<Result<RAGameInfo>> GetGameByHashAsync(string romHash, CancellationToken ct = default)
     {
         if (!IsAuthenticated)
-            return Result<RAGameInfo>.Failure("Not authenticated", ErrorType.Unauthorized);
+            return Result.Failure<RAGameInfo>("Not authenticated", ErrorType.Unauthorized);
 
         try
         {
@@ -107,33 +107,33 @@ public class RetroAchievementsClient : IRetroAchievementsClient
 
             if (!response.IsSuccessStatusCode)
             {
-                return Result<RAGameInfo>.Failure($"Upstream API error: {response.StatusCode}", ErrorType.ExternalService);
+                return Result.Failure<RAGameInfo>($"Upstream API error: {response.StatusCode}", ErrorType.ExternalService);
             }
 
             var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct).ConfigureAwait(false);
 
             if (!json.TryGetProperty("ID", out var idProp) || idProp.ValueKind == JsonValueKind.Null)
             {
-                return Result<RAGameInfo>.Failure("Game not found for hash", ErrorType.NotFound);
+                return Result.Failure<RAGameInfo>("Game not found for hash", ErrorType.NotFound);
             }
 
             var gameInfo = ParseGameInfo(json);
             if (gameInfo == null)
-                return Result<RAGameInfo>.Failure("Failed to parse game info", ErrorType.Internal);
+                return Result.Failure<RAGameInfo>("Failed to parse game info", ErrorType.Internal);
 
-            return Result<RAGameInfo>.Success(gameInfo);
+            return Result.Success<RAGameInfo>(gameInfo);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error looking up game by hash {Hash}", romHash);
-            return Result<RAGameInfo>.Failure($"Exception looking up game: {ex.Message}", ErrorType.ExternalService);
+            return Result.Failure<RAGameInfo>($"Exception looking up game: {ex.Message}", ErrorType.ExternalService);
         }
     }
 
     public async Task<Result<RAGameInfo>> GetGameInfoAsync(int gameId, CancellationToken ct = default)
     {
         if (!IsAuthenticated)
-            return Result<RAGameInfo>.Failure("Not authenticated", ErrorType.Unauthorized);
+            return Result.Failure<RAGameInfo>("Not authenticated", ErrorType.Unauthorized);
 
         try
         {
@@ -143,28 +143,28 @@ public class RetroAchievementsClient : IRetroAchievementsClient
 
             if (!response.IsSuccessStatusCode)
             {
-                return Result<RAGameInfo>.Failure($"Upstream API error: {response.StatusCode}", ErrorType.ExternalService);
+                return Result.Failure<RAGameInfo>($"Upstream API error: {response.StatusCode}", ErrorType.ExternalService);
             }
 
             var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct).ConfigureAwait(false);
             var gameInfo = ParseGameInfo(json);
 
             if (gameInfo == null)
-                return Result<RAGameInfo>.Failure("Failed to parse game info", ErrorType.Internal);
+                return Result.Failure<RAGameInfo>("Failed to parse game info", ErrorType.Internal);
 
-            return Result<RAGameInfo>.Success(gameInfo);
+            return Result.Success<RAGameInfo>(gameInfo);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching game info for ID {GameId}", gameId);
-            return Result<RAGameInfo>.Failure($"Exception fetching game info: {ex.Message}", ErrorType.ExternalService);
+            return Result.Failure<RAGameInfo>($"Exception fetching game info: {ex.Message}", ErrorType.ExternalService);
         }
     }
 
     public async Task<Result<IReadOnlyList<RAAchievement>>> GetGameAchievementsAsync(int gameId, CancellationToken ct = default)
     {
         if (!IsAuthenticated)
-            return Result<IReadOnlyList<RAAchievement>>.Failure("Not authenticated", ErrorType.Unauthorized);
+            return Result.Failure<IReadOnlyList<RAAchievement>>("Not authenticated", ErrorType.Unauthorized);
 
         try
         {
@@ -174,14 +174,14 @@ public class RetroAchievementsClient : IRetroAchievementsClient
 
             if (!response.IsSuccessStatusCode)
             {
-                return Result<IReadOnlyList<RAAchievement>>.Failure($"Upstream API error: {response.StatusCode}", ErrorType.ExternalService);
+                return Result.Failure<IReadOnlyList<RAAchievement>>($"Upstream API error: {response.StatusCode}", ErrorType.ExternalService);
             }
 
             var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct).ConfigureAwait(false);
 
             if (!json.TryGetProperty("Achievements", out var achievementsJson))
             {
-                return Result<IReadOnlyList<RAAchievement>>.Success(Array.Empty<RAAchievement>());
+                return Result.Success<IReadOnlyList<RAAchievement>>(Array.Empty<RAAchievement>());
             }
 
             var achievements = new List<RAAchievement>();
@@ -205,19 +205,19 @@ public class RetroAchievementsClient : IRetroAchievementsClient
                 ));
             }
 
-            return Result<IReadOnlyList<RAAchievement>>.Success(achievements);
+            return Result.Success<IReadOnlyList<RAAchievement>>(achievements);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching achievements for game {GameId}", gameId);
-            return Result<IReadOnlyList<RAAchievement>>.Failure($"Exception fetching achievements: {ex.Message}", ErrorType.ExternalService);
+            return Result.Failure<IReadOnlyList<RAAchievement>>($"Exception fetching achievements: {ex.Message}", ErrorType.ExternalService);
         }
     }
 
     public async Task<Result<RAGameProgress>> GetUserGameProgressAsync(int gameId, CancellationToken ct = default)
     {
         if (!IsAuthenticated)
-            return Result<RAGameProgress>.Failure("Not authenticated", ErrorType.Unauthorized);
+            return Result.Failure<RAGameProgress>("Not authenticated", ErrorType.Unauthorized);
 
         try
         {
@@ -227,7 +227,7 @@ public class RetroAchievementsClient : IRetroAchievementsClient
 
             if (!response.IsSuccessStatusCode)
             {
-                return Result<RAGameProgress>.Failure($"Upstream API error: {response.StatusCode}", ErrorType.ExternalService);
+                return Result.Failure<RAGameProgress>($"Upstream API error: {response.StatusCode}", ErrorType.ExternalService);
             }
 
             var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct).ConfigureAwait(false);
@@ -259,19 +259,19 @@ public class RetroAchievementsClient : IRetroAchievementsClient
                 EarnedAchievementIds: earnedIds
             );
 
-            return Result<RAGameProgress>.Success(progress);
+            return Result.Success<RAGameProgress>(progress);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching user progress for game {GameId}", gameId);
-            return Result<RAGameProgress>.Failure($"Exception fetching user progress: {ex.Message}", ErrorType.ExternalService);
+            return Result.Failure<RAGameProgress>($"Exception fetching user progress: {ex.Message}", ErrorType.ExternalService);
         }
     }
 
     public async Task<Result<IReadOnlyList<RAEarnedAchievement>>> GetRecentAchievementsAsync(int count = 50, CancellationToken ct = default)
     {
         if (!IsAuthenticated)
-            return Result<IReadOnlyList<RAEarnedAchievement>>.Failure("Not authenticated", ErrorType.Unauthorized);
+            return Result.Failure<IReadOnlyList<RAEarnedAchievement>>("Not authenticated", ErrorType.Unauthorized);
 
         try
         {
@@ -281,14 +281,14 @@ public class RetroAchievementsClient : IRetroAchievementsClient
 
             if (!response.IsSuccessStatusCode)
             {
-                return Result<IReadOnlyList<RAEarnedAchievement>>.Failure($"Upstream API error: {response.StatusCode}", ErrorType.ExternalService);
+                return Result.Failure<IReadOnlyList<RAEarnedAchievement>>($"Upstream API error: {response.StatusCode}", ErrorType.ExternalService);
             }
 
             var json = await response.Content.ReadFromJsonAsync<JsonElement>(ct).ConfigureAwait(false);
 
             if (json.ValueKind != JsonValueKind.Array)
             {
-                return Result<IReadOnlyList<RAEarnedAchievement>>.Success(Array.Empty<RAEarnedAchievement>());
+                return Result.Success<IReadOnlyList<RAEarnedAchievement>>(Array.Empty<RAEarnedAchievement>());
             }
 
             var achievements = new List<RAEarnedAchievement>();
@@ -305,12 +305,12 @@ public class RetroAchievementsClient : IRetroAchievementsClient
                 ));
             }
 
-            return Result<IReadOnlyList<RAEarnedAchievement>>.Success(achievements);
+            return Result.Success<IReadOnlyList<RAEarnedAchievement>>(achievements);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching recent achievements");
-            return Result<IReadOnlyList<RAEarnedAchievement>>.Failure($"Exception fetching recent achievements: {ex.Message}", ErrorType.ExternalService);
+            return Result.Failure<IReadOnlyList<RAEarnedAchievement>>($"Exception fetching recent achievements: {ex.Message}", ErrorType.ExternalService);
         }
     }
 
@@ -336,3 +336,4 @@ public class RetroAchievementsClient : IRetroAchievementsClient
         }
     }
 }
+

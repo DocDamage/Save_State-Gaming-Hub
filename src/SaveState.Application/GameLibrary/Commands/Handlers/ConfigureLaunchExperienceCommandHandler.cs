@@ -137,7 +137,7 @@ public class GenerateLaunchSequenceCommandHandler :
 
             if (game == null)
             {
-                return Result<Core.GameLibrary.Services.DTOs.LaunchSequence>.Failure(
+                return Result.Failure<Core.GameLibrary.Services.DTOs.LaunchSequence>(
                     $"Game with ID {request.GameId} not found");
             }
 
@@ -155,7 +155,7 @@ public class GenerateLaunchSequenceCommandHandler :
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to generate launch sequence for game {GameId}", request.GameId);
-            return Result<LaunchSequence>.Failure(
+            return Result.Failure<LaunchSequence>(
                 $"Failed to generate launch sequence: {ex.Message}");
         }
     }

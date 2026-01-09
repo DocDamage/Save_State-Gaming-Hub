@@ -1,7 +1,7 @@
 # 🎨 SaveStateReborn Design System
 
-**Version**: 2.0 - WeMod-Inspired Premium Theme
-**Updated**: January 4, 2026
+**Version**: 2.1 - WeMod-Inspired Premium Theme
+**Updated**: January 8, 2026 (Dialog System Complete)
 
 ---
 
@@ -418,6 +418,6 @@ XL:  16px  (Large cards)
 
 ---
 
-**Design System Version**: 2.0
-**Last Updated**: January 4, 2026
+**Design System Version**: 2.1
+**Last Updated**: January 8, 2026 (Dialog System Complete)
 **Maintained By**: SaveStateReborn Team

@@ -51,12 +51,12 @@ public class GoalService : IGoalService
             _logger.LogInformation("Created goal '{Title}' of type {Type} with target {Target}",
                 goal.Title, goal.Type, goal.TargetValue);
 
-            return Result<GamingGoal>.Success(goal);
+            return Result.Success<GamingGoal>(goal);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create goal '{Title}'", request.Title);
-            return Result<GamingGoal>.Failure($"Failed to create goal: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<GamingGoal>($"Failed to create goal: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -65,12 +65,12 @@ public class GoalService : IGoalService
         try
         {
             var goals = await _goalRepository.GetActiveGoalsAsync(ct);
-            return Result<IReadOnlyList<GamingGoal>>.Success(goals);
+            return Result.Success<IReadOnlyList<GamingGoal>>(goals);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get active goals");
-            return Result<IReadOnlyList<GamingGoal>>.Failure($"Failed to get active goals: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<GamingGoal>>($"Failed to get active goals: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -107,12 +107,12 @@ public class GoalService : IGoalService
         try
         {
             var goals = await _goalRepository.GetCompletedGoalsAsync(year, ct);
-            return Result<IReadOnlyList<GamingGoal>>.Success(goals);
+            return Result.Success<IReadOnlyList<GamingGoal>>(goals);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get completed goals for year {Year}", year);
-            return Result<IReadOnlyList<GamingGoal>>.Failure($"Failed to get completed goals: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<GamingGoal>>($"Failed to get completed goals: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -142,12 +142,12 @@ public class GoalService : IGoalService
         try
         {
             var goal = await _goalRepository.GetByIdAsync(goalId, ct);
-            return Result<GamingGoal?>.Success(goal);
+            return Result.Success<GamingGoal?>(goal);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get goal {GoalId}", goalId);
-            return Result<GamingGoal?>.Failure($"Failed to get goal: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<GamingGoal?>($"Failed to get goal: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -156,12 +156,12 @@ public class GoalService : IGoalService
         try
         {
             var goals = await _goalRepository.GetGoalsByTypeAsync(type, ct);
-            return Result<IReadOnlyList<GamingGoal>>.Success(goals);
+            return Result.Success<IReadOnlyList<GamingGoal>>(goals);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get goals by type {Type}", type);
-            return Result<IReadOnlyList<GamingGoal>>.Failure($"Failed to get goals by type: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<GamingGoal>>($"Failed to get goals by type: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -235,3 +235,6 @@ public class GoalService : IGoalService
         return Task.FromResult(0);
     }
 }
+
+
+

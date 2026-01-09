@@ -19,6 +19,6 @@ public class GetRegisteredVoiceCommandsCommandHandler : IRequestHandler<GetRegis
             new VoiceCommandInfo("exit game", "Exit current game", "ExitGame")
         };
 
-        return Task.FromResult(Result<IReadOnlyList<VoiceCommandInfo>>.Success(commands));
+        return Task.FromResult(Result.Success<IReadOnlyList<VoiceCommandInfo>>(commands));
     }
 }

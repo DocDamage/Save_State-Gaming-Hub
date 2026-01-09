@@ -84,12 +84,12 @@ public class JwtTokenService : IJwtTokenService
             };
 
             var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
-            return Task.FromResult(Result<ClaimsPrincipal>.Success(principal));
+            return Task.FromResult(Result.Success<ClaimsPrincipal>(principal));
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Token validation failed");
-            return Task.FromResult(Result<ClaimsPrincipal>.Failure("Token validation failed", ErrorType.Validation));
+            return Task.FromResult(Result.Failure<ClaimsPrincipal>("Token validation failed", ErrorType.Validation));
         }
     }
 
@@ -97,7 +97,7 @@ public class JwtTokenService : IJwtTokenService
     {
         var principalResult = await ValidateTokenAsync(token, ct);
         if (principalResult.IsFailure)
-            return Result<Guid>.Failure(principalResult.Error ?? "Token validation failed", principalResult.ErrorType);
+            return Result.Failure<Guid>(principalResult.Error ?? "Token validation failed", principalResult.ErrorType);
 
         var principal = principalResult.Value;
         var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier) ??
@@ -105,10 +105,10 @@ public class JwtTokenService : IJwtTokenService
 
         if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
         {
-            return Result<Guid>.Success(userId);
+            return Result.Success<Guid>(userId);
         }
 
-        return Result<Guid>.Failure("User ID claim not found in token", ErrorType.Validation);
+        return Result.Failure<Guid>("User ID claim not found in token", ErrorType.Validation);
     }
 
     public async Task<bool> IsTokenExpiredAsync(string token, CancellationToken ct = default)
@@ -154,3 +154,4 @@ public class JwtTokenService : IJwtTokenService
         return Task.FromResult((IEnumerable<Claim>)claims);
     }
 }
+

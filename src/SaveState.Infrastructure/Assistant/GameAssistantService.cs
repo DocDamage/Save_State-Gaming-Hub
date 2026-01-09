@@ -44,7 +44,7 @@ public class GameAssistantService : IGameAssistantService
         {
             var game = await _gameRepository.GetByIdAsync(GameId.From(gameId), ct);
             if (game == null)
-                return Result<AssistantResponse>.Failure("Game not found", ErrorType.NotFound);
+                return Result.Failure<AssistantResponse>("Game not found", ErrorType.NotFound);
 
             var sessionId = $"game-assistant-{gameId}";
             var contextPrompt = await BuildContextPromptAsync(game, ct);
@@ -59,16 +59,16 @@ public class GameAssistantService : IGameAssistantService
             if (!response.IsSuccessful)
             {
                 _logger.LogWarning("AI assistant failed for game {GameId}: {Error}", gameId, response.Error);
-                return Result<AssistantResponse>.Failure($"AI assistant failed: {response.Error}", ErrorType.Internal);
+                return Result.Failure<AssistantResponse>($"AI assistant failed: {response.Error}", ErrorType.Internal);
             }
 
             var assistantResponse = ParseAssistantResponse(response.Content, question);
-            return Result<AssistantResponse>.Success(assistantResponse);
+            return Result.Success<AssistantResponse>(assistantResponse);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get assistant response for game {GameId}", gameId);
-            return Result<AssistantResponse>.Failure($"Assistant query failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<AssistantResponse>($"Assistant query failed: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -80,7 +80,7 @@ public class GameAssistantService : IGameAssistantService
         {
             var game = await _gameRepository.GetByIdAsync(GameId.From(gameId), ct);
             if (game == null)
-                return Result<IReadOnlyList<string>>.Failure("Game not found", ErrorType.NotFound);
+                return Result.Failure<IReadOnlyList<string>>("Game not found", ErrorType.NotFound);
 
             var sessionId = $"game-assistant-{gameId}";
             var contextPrompt = await BuildContextPromptAsync(game, ct);
@@ -95,16 +95,16 @@ public class GameAssistantService : IGameAssistantService
             if (!response.IsSuccessful)
             {
                 _logger.LogWarning("AI tips generation failed for game {GameId}", gameId);
-                return Result<IReadOnlyList<string>>.Failure("Could not generate tips", ErrorType.Internal);
+                return Result.Failure<IReadOnlyList<string>>("Could not generate tips", ErrorType.Internal);
             }
 
             var tips = ParseTipsResponse(response.Content);
-            return Result<IReadOnlyList<string>>.Success(tips);
+            return Result.Success<IReadOnlyList<string>>(tips);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get quick tips for game {GameId}", gameId);
-            return Result<IReadOnlyList<string>>.Failure($"Tips generation failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<string>>($"Tips generation failed: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -118,7 +118,7 @@ public class GameAssistantService : IGameAssistantService
         {
             var game = await _gameRepository.GetByIdAsync(GameId.From(gameId), ct);
             if (game == null)
-                return Result<string>.Failure("Game not found", ErrorType.NotFound);
+                return Result.Failure<string>("Game not found", ErrorType.NotFound);
 
             var sessionId = $"game-assistant-{gameId}";
             var contextPrompt = await BuildContextPromptAsync(game, ct);
@@ -137,15 +137,15 @@ public class GameAssistantService : IGameAssistantService
             if (!response.IsSuccessful)
             {
                 _logger.LogWarning("AI walkthrough hint failed for game {GameId}", gameId);
-                return Result<string>.Failure("Could not generate hint", ErrorType.Internal);
+                return Result.Failure<string>("Could not generate hint", ErrorType.Internal);
             }
 
-            return Result<string>.Success(response.Content.Trim());
+            return Result.Success<string>(response.Content.Trim());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get walkthrough hint for game {GameId}", gameId);
-            return Result<string>.Failure($"Hint generation failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<string>($"Hint generation failed: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -273,3 +273,4 @@ Instructions:
         }
     }
 }
+

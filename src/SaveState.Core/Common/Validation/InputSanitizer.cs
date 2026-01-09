@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Text.RegularExpressions;
 
 namespace SaveState.Core.Common.Validation;
@@ -9,7 +10,7 @@ namespace SaveState.Core.Common.Validation;
 public static class InputSanitizer
 {
     // Characters that are potentially dangerous in file paths
-    private static readonly char[] DangerousPathChars = ['<', '>', '|', '"', '*', '?'];
+    private static readonly SearchValues<char> DangerousPathChars = SearchValues.Create(['<', '>', '|', '"', '*', '?']);
 
     // SQL injection patterns
     private static readonly string[] SqlInjectionPatterns =
@@ -105,11 +106,11 @@ public static class InputSanitizer
             return true;
 
         // Check for dangerous characters
-        if (path.IndexOfAny(DangerousPathChars) >= 0)
+        if (path.AsSpan().IndexOfAny(DangerousPathChars) >= 0)
             return false;
 
         // Check for path traversal patterns
-        if (path.Contains("..") || path.Contains("~") || path.Contains(":"))
+        if (path.Contains("..") || path.Contains('~') || path.Contains(':'))
         {
             // Normalize the path and check if it goes outside allowed directories
             try
@@ -258,3 +259,4 @@ public static class InputSanitizer
         return normalizedTags.Distinct();
     }
 }
+

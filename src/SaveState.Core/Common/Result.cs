@@ -42,12 +42,28 @@ public class Result
     public static Result Success() => new(true);
 
     /// <summary>
+    /// Creates a successful result with the specified value.
+    /// </summary>
+    /// <typeparam name="T">The type of value.</typeparam>
+    /// <param name="value">The success value.</param>
+    public static Result<T> Success<T>(T value) => new(true, value);
+
+    /// <summary>
     /// Creates a failed result with the specified error message.
     /// </summary>
     /// <param name="error">The error message.</param>
     /// <param name="errorType">The type of error (defaults to Validation).</param>
     public static Result Failure(string error, ErrorType errorType = ErrorType.Validation) =>
         new(false, error, errorType);
+
+    /// <summary>
+    /// Creates a failed result with the specified error message for a generic result.
+    /// </summary>
+    /// <typeparam name="T">The type of value.</typeparam>
+    /// <param name="error">The error message.</param>
+    /// <param name="errorType">The type of error (defaults to Validation).</param>
+    public static Result<T> Failure<T>(string error, ErrorType errorType = ErrorType.Validation) =>
+        new(false, default, error, errorType);
 }
 
 /// <summary>
@@ -62,25 +78,11 @@ public class Result<T> : Result
     /// </summary>
     public T? Value { get; }
 
-    private Result(bool isSuccess, T? value = default, string? error = null, ErrorType errorType = ErrorType.None)
+    internal Result(bool isSuccess, T? value = default, string? error = null, ErrorType errorType = ErrorType.None)
         : base(isSuccess, error, errorType)
     {
         Value = value;
     }
-
-    /// <summary>
-    /// Creates a successful result with the specified value.
-    /// </summary>
-    /// <param name="value">The success value.</param>
-    public static Result<T> Success(T value) => new(true, value);
-
-    /// <summary>
-    /// Creates a failed result with the specified error message.
-    /// </summary>
-    /// <param name="error">The error message.</param>
-    /// <param name="errorType">The type of error (defaults to Validation).</param>
-    public new static Result<T> Failure(string error, ErrorType errorType = ErrorType.Validation) =>
-        new(false, default, error, errorType);
 }
 
 /// <summary>

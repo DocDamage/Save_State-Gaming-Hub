@@ -20,4 +20,5 @@ public interface IGameSessionRepository
     Task<GameSession?> GetFirstSessionAsync(Guid gameId, CancellationToken ct = default);
     Task<IReadOnlyList<GameSession>> GetAllAsync(CancellationToken ct = default);
     Task<IReadOnlyList<GameSession>> GetByDateRangeAsync(DateTime start, DateTime end, CancellationToken ct = default);
+    Task<IReadOnlyList<GameSession>> GetRecentSessionsAsync(int limit, CancellationToken ct = default);
 }

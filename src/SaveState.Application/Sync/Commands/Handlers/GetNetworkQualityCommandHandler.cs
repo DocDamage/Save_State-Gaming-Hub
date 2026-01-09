@@ -25,6 +25,7 @@ public class GetNetworkQualityCommandHandler : IRequestHandler<GetNetworkQuality
             BandwidthMbps: 100,
             QualityLevel: "Excellent");
 
-        return Task.FromResult(Result<NetworkQualityInfo>.Success(quality));
+        return Task.FromResult(Result.Success<NetworkQualityInfo>(quality));
     }
 }
+

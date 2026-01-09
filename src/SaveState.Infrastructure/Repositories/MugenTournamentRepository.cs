@@ -37,10 +37,10 @@ public class MugenTournamentRepository : IMugenTournamentRepository
 
             if (tournament == null)
             {
-                return Result<MugenTournament>.Failure($"Tournament with ID {id} not found", ErrorType.NotFound);
+                return Result.Failure<MugenTournament>($"Tournament with ID {id} not found", ErrorType.NotFound);
             }
 
-            return Result<MugenTournament>.Success(tournament);
+            return Result.Success<MugenTournament>(tournament);
         }
         catch (Exception ex)
         {
@@ -241,3 +241,4 @@ public class MugenTournamentRepository : IMugenTournamentRepository
         }
     }
 }
+

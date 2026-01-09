@@ -39,7 +39,7 @@ public class SaveStateManager : ISaveStateManager
         {
             var game = await _gameRepository.GetByIdAsync(GameId.From(gameId), ct);
             if (game == null)
-                return Result<SaveStateEntity>.Failure("Game not found", ErrorType.NotFound);
+                return Result.Failure<SaveStateEntity>("Game not found", ErrorType.NotFound);
 
             // Get current playtime
             var playtimeStats = await _sessionTrackingService.GetStatisticsAsync(gameId, ct);
@@ -75,12 +75,12 @@ public class SaveStateManager : ISaveStateManager
             await _saveStateRepository.AddAsync(saveState, ct);
 
             _logger.LogInformation("Created save state for game {GameId}: {SaveStateId}", gameId, saveState.Id);
-            return Result<SaveStateEntity>.Success(saveState);
+            return Result.Success<SaveStateEntity>(saveState);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create save state for game {GameId}", gameId);
-            return Result<SaveStateEntity>.Failure($"Failed to create save state: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<SaveStateEntity>($"Failed to create save state: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -116,12 +116,12 @@ public class SaveStateManager : ISaveStateManager
         try
         {
             var saveStates = await _saveStateRepository.GetByGameIdAsync(gameId, ct);
-            return Result<IReadOnlyList<SaveStateEntity>>.Success(saveStates);
+            return Result.Success<IReadOnlyList<SaveStateEntity>>(saveStates);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get save states for game {GameId}", gameId);
-            return Result<IReadOnlyList<SaveStateEntity>>.Failure($"Failed to get save states: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<SaveStateEntity>>($"Failed to get save states: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -202,11 +202,11 @@ public class SaveStateManager : ISaveStateManager
         try
         {
             if (!File.Exists(importPath))
-                return Result<SaveStateEntity>.Failure("Import file not found", ErrorType.NotFound);
+                return Result.Failure<SaveStateEntity>("Import file not found", ErrorType.NotFound);
 
             var game = await _gameRepository.GetByIdAsync(GameId.From(gameId), ct);
             if (game == null)
-                return Result<SaveStateEntity>.Failure("Game not found", ErrorType.NotFound);
+                return Result.Failure<SaveStateEntity>("Game not found", ErrorType.NotFound);
 
             // Get current playtime
             var playtimeStats = await _sessionTrackingService.GetStatisticsAsync(gameId, ct);
@@ -235,12 +235,12 @@ public class SaveStateManager : ISaveStateManager
             await _saveStateRepository.AddAsync(saveState, ct);
 
             _logger.LogInformation("Imported save state for game {GameId}: {SaveStateId}", gameId, saveState.Id);
-            return Result<SaveStateEntity>.Success(saveState);
+            return Result.Success<SaveStateEntity>(saveState);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to import save state for game {GameId}", gameId);
-            return Result<SaveStateEntity>.Failure($"Failed to import save state: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<SaveStateEntity>($"Failed to import save state: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -250,18 +250,18 @@ public class SaveStateManager : ISaveStateManager
         {
             var saveState = await _saveStateRepository.GetByIdAsync(saveStateId, ct);
             if (saveState == null)
-                return Result<byte[]?>.Failure("Save state not found", ErrorType.NotFound);
+                return Result.Failure<byte[]?>("Save state not found", ErrorType.NotFound);
 
             if (string.IsNullOrEmpty(saveState.ThumbnailPath) || !File.Exists(saveState.ThumbnailPath))
-                return Result<byte[]?>.Success(null);
+                return Result.Success<byte[]?>(null);
 
             var thumbnailBytes = await File.ReadAllBytesAsync(saveState.ThumbnailPath, ct);
-            return Result<byte[]?>.Success(thumbnailBytes);
+            return Result.Success<byte[]?>(thumbnailBytes);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get thumbnail for save state {SaveStateId}", saveStateId);
-            return Result<byte[]?>.Failure($"Failed to get thumbnail: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<byte[]?>($"Failed to get thumbnail: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -284,12 +284,12 @@ public class SaveStateManager : ISaveStateManager
                 Nodes: nodes,
                 TotalCount: nodes.Count);
 
-            return Result<SaveStateTimeline>.Success(timelineResult);
+            return Result.Success<SaveStateTimeline>(timelineResult);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get timeline for game {GameId}", gameId);
-            return Result<SaveStateTimeline>.Failure($"Failed to get timeline: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<SaveStateTimeline>($"Failed to get timeline: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -321,11 +321,11 @@ public class SaveStateManager : ISaveStateManager
             File.WriteAllText(saveState.FilePath, dummyData);
 
             var fileInfo = new FileInfo(saveState.FilePath);
-            return Task.FromResult(Result<long>.Success(fileInfo.Length));
+            return Task.FromResult(Result.Success<long>(fileInfo.Length));
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Result<long>.Failure($"Failed to create save state file: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<long>($"Failed to create save state file: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -358,11 +358,12 @@ public class SaveStateManager : ISaveStateManager
             var dummyImageBytes = new byte[1024]; // Small dummy image
             File.WriteAllBytes(thumbnailPath, dummyImageBytes);
 
-            return Task.FromResult(Result<string>.Success(thumbnailPath));
+            return Task.FromResult(Result.Success<string>(thumbnailPath));
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Result<string>.Failure($"Failed to capture screenshot: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<string>($"Failed to capture screenshot: {ex.Message}", ErrorType.Internal));
         }
     }
 }
+

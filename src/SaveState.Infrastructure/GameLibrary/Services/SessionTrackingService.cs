@@ -21,6 +21,9 @@ public class SessionTrackingService : ISessionTrackingService
     private readonly ILogger<SessionTrackingService> _logger;
     private readonly IRealTimeNotificationService _notificationService;
 
+    public event EventHandler<GameSessionEventArgs>? SessionStarted;
+    public event EventHandler<GameSessionEventArgs>? SessionEnded;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="SessionTrackingService"/> class.
     /// </summary>
@@ -61,7 +64,7 @@ public class SessionTrackingService : ISessionTrackingService
 
             if (game == null)
             {
-                return Result<GameSession>.Failure($"Game with ID {gameId} not found");
+                return Result.Failure<GameSession>($"Game with ID {gameId} not found");
             }
 
             // Check for existing active session
@@ -72,7 +75,7 @@ public class SessionTrackingService : ISessionTrackingService
             {
                 _logger.LogWarning("Game {GameId} already has an active session {SessionId}",
                     gameId, existingSession.Id);
-                return Result<GameSession>.Success(existingSession);
+                return Result.Success<GameSession>(existingSession);
             }
 
             // Create new session
@@ -88,12 +91,18 @@ public class SessionTrackingService : ISessionTrackingService
 
             await _notificationService.NotifyAnalyticsUpdatedAsync("SessionStarted", ct);
 
-            return Result<GameSession>.Success(session);
+            SessionStarted?.Invoke(this, new GameSessionEventArgs
+            {
+                GameId = gameId,
+                SessionId = session.Id
+            });
+
+            return Result.Success<GameSession>(session);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to start session for game {GameId}", gameId);
-            return Result<GameSession>.Failure($"Failed to start session: {ex.Message}");
+            return Result.Failure<GameSession>($"Failed to start session: {ex.Message}");
         }
     }
 
@@ -144,6 +153,13 @@ public class SessionTrackingService : ISessionTrackingService
                 sessionId, session.Duration, reason);
 
             await _notificationService.NotifyAnalyticsUpdatedAsync("SessionEnded", ct);
+
+            SessionEnded?.Invoke(this, new GameSessionEventArgs
+            {
+                GameId = session.GameId,
+                SessionId = session.Id,
+                EndReason = reason
+            });
 
             return Result.Success();
         }
@@ -205,12 +221,12 @@ public class SessionTrackingService : ISessionTrackingService
         try
         {
             var session = await _sessionRepository.GetActiveSessionAsync(gameId, ct).ConfigureAwait(false);
-            return Result<GameSession?>.Success(session);
+            return Result.Success<GameSession?>(session);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get active session for game {GameId}", gameId);
-            return Result<GameSession?>.Failure($"Failed to get active session: {ex.Message}");
+            return Result.Failure<GameSession?>($"Failed to get active session: {ex.Message}");
         }
     }
 
@@ -229,12 +245,12 @@ public class SessionTrackingService : ISessionTrackingService
         try
         {
             var sessions = await _sessionRepository.GetAllActiveSessionsAsync(ct).ConfigureAwait(false);
-            return Result<IReadOnlyList<GameSession>>.Success(sessions);
+            return Result.Success<IReadOnlyList<GameSession>>(sessions);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get all active sessions");
-            return Result<IReadOnlyList<GameSession>>.Failure($"Failed to get active sessions: {ex.Message}");
+            return Result.Failure<IReadOnlyList<GameSession>>($"Failed to get active sessions: {ex.Message}");
         }
     }
 
@@ -256,12 +272,12 @@ public class SessionTrackingService : ISessionTrackingService
         try
         {
             var sessions = await _sessionRepository.GetByGameIdAsync(gameId, limit, ct).ConfigureAwait(false);
-            return Result<IReadOnlyList<GameSession>>.Success(sessions);
+            return Result.Success<IReadOnlyList<GameSession>>(sessions);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get session history for game {GameId}", gameId);
-            return Result<IReadOnlyList<GameSession>>.Failure($"Failed to get session history: {ex.Message}");
+            return Result.Failure<IReadOnlyList<GameSession>>($"Failed to get session history: {ex.Message}");
         }
     }
 
@@ -314,12 +330,14 @@ public class SessionTrackingService : ISessionTrackingService
                 SessionsThisMonth: sessionsThisMonth
             );
 
-            return Result<PlaytimeStatistics>.Success(stats);
+            return Result.Success<PlaytimeStatistics>(stats);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get statistics for game {GameId}", gameId);
-            return Result<PlaytimeStatistics>.Failure($"Failed to get statistics: {ex.Message}");
+            return Result.Failure<PlaytimeStatistics>($"Failed to get statistics: {ex.Message}");
         }
     }
 }
+
+

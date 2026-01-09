@@ -35,7 +35,7 @@ public class GenerateGameBriefingCommandHandler :
 
             if (game == null)
             {
-                return Result<GameBriefing>.Failure($"Game with ID {request.GameId} not found");
+                return Result.Failure<GameBriefing>($"Game with ID {request.GameId} not found");
             }
 
             var result = await _gameBriefingService.GenerateBriefingAsync(
@@ -52,7 +52,7 @@ public class GenerateGameBriefingCommandHandler :
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to generate briefing for game {GameId}", request.GameId);
-            return Result<GameBriefing>.Failure($"Failed to generate briefing: {ex.Message}");
+            return Result.Failure<GameBriefing>($"Failed to generate briefing: {ex.Message}");
         }
     }
 }
@@ -84,7 +84,7 @@ public class GenerateLastSessionSummaryCommandHandler :
 
             if (game == null)
             {
-                return Result<string>.Failure($"Game with ID {request.GameId} not found");
+                return Result.Failure<string>($"Game with ID {request.GameId} not found");
             }
 
             var result = await _gameBriefingService.GenerateLastSessionSummaryAsync(
@@ -101,7 +101,7 @@ public class GenerateLastSessionSummaryCommandHandler :
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to generate last session summary for game {GameId}", request.GameId);
-            return Result<string>.Failure($"Failed to generate last session summary: {ex.Message}");
+            return Result.Failure<string>($"Failed to generate last session summary: {ex.Message}");
         }
     }
 }
@@ -133,7 +133,7 @@ public class GetCurrentObjectivesCommandHandler :
 
             if (game == null)
             {
-                return Result<IReadOnlyList<string>>.Failure($"Game with ID {request.GameId} not found");
+                return Result.Failure<IReadOnlyList<string>>($"Game with ID {request.GameId} not found");
             }
 
             var result = await _gameBriefingService.GetCurrentObjectivesAsync(
@@ -150,7 +150,7 @@ public class GetCurrentObjectivesCommandHandler :
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get current objectives for game {GameId}", request.GameId);
-            return Result<IReadOnlyList<string>>.Failure($"Failed to get current objectives: {ex.Message}");
+            return Result.Failure<IReadOnlyList<string>>($"Failed to get current objectives: {ex.Message}");
         }
     }
 }
@@ -182,7 +182,7 @@ public class GetGameTipsCommandHandler :
 
             if (game == null)
             {
-                return Result<IReadOnlyList<string>>.Failure($"Game with ID {request.GameId} not found");
+                return Result.Failure<IReadOnlyList<string>>($"Game with ID {request.GameId} not found");
             }
 
             var result = await _gameBriefingService.GetGameTipsAsync(
@@ -199,7 +199,7 @@ public class GetGameTipsCommandHandler :
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get game tips for game {GameId}", request.GameId);
-            return Result<IReadOnlyList<string>>.Failure($"Failed to get game tips: {ex.Message}");
+            return Result.Failure<IReadOnlyList<string>>($"Failed to get game tips: {ex.Message}");
         }
     }
 }
@@ -231,7 +231,7 @@ public class GenerateQuickBriefingCommandHandler :
 
             if (game == null)
             {
-                return Result<GameBriefing>.Failure($"Game with ID {request.GameId} not found");
+                return Result.Failure<GameBriefing>($"Game with ID {request.GameId} not found");
             }
 
             var result = await _gameBriefingService.GenerateQuickBriefingAsync(
@@ -248,7 +248,7 @@ public class GenerateQuickBriefingCommandHandler :
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to generate quick briefing for game {GameId}", request.GameId);
-            return Result<GameBriefing>.Failure($"Failed to generate quick briefing: {ex.Message}");
+            return Result.Failure<GameBriefing>($"Failed to generate quick briefing: {ex.Message}");
         }
     }
 }

@@ -100,6 +100,7 @@ public static class DependencyInjection
 
         services.AddScoped<IAchievementService, AchievementService>();
         services.AddScoped<IModManagementService, ModManagementService>();
+        services.AddScoped<IGameMediaService, GameMediaService>();
 
         // Plugin system
         services.AddSingleton<SaveState.Core.Plugins.Services.IPluginManager, Plugins.PluginManager>();
@@ -140,6 +141,15 @@ public static class DependencyInjection
         {
             client.BaseAddress = new Uri("https://api.epicgames.dev/");
         });
+
+        services.AddHttpClient<OneDriveStorageProvider>(client =>
+        {
+            client.BaseAddress = new Uri("https://graph.microsoft.com/");
+        });
+
+        services.AddHttpClient<GoogleDriveStorageProvider>();
+
+        services.AddHttpClient<ICloudAuthenticationService, CloudAuthenticationService>();
 
         // RetroAchievements.org API Client
         services.AddHttpClient<SaveState.Core.Achievements.IRetroAchievementsClient, RetroAchievementsClient>(client =>
@@ -243,6 +253,7 @@ public static class DependencyInjection
         services.AddScoped<SaveState.Core.Automation.Services.IMacroManager, Automation.MacroManager>();
         services.AddScoped<SaveState.Core.Automation.Services.IMacroService, Automation.MacroService>();
         services.AddScoped<SaveState.Core.Automation.Services.IBackupScheduler, Automation.BackupScheduler>();
+        services.AddHostedService<Automation.AutomationWorker>();
         services.AddScoped<SaveState.Core.Automation.Services.IWorkflowAutomationService, Automation.WorkflowAutomationService>();
 
         // Phase 9: MUGEN Tournament Features
@@ -476,6 +487,11 @@ public static class DependencyInjection
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        services.AddOptions<CloudSyncOptions>()
+            .Bind(configuration.GetSection(CloudSyncOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
         // AI Services
         services.AddScoped<IKnowledgeStore, SqliteVectorStore>();
         services.AddScoped<SemanticKnowledgeClient>();
@@ -487,13 +503,20 @@ public static class DependencyInjection
         services.AddScoped<IVoiceProcessor, WhisperVoiceProcessor>();
 
         // Register cloud sync services
-        services.AddSingleton<ICloudStorageProvider>(sp =>
+        services.AddSingleton<ICloudAuthenticationService, CloudAuthenticationService>();
+        services.AddSingleton<ISyncService, SyncService>();
+
+        services.AddSingleton<LocalFileStorageProvider>(sp =>
         {
             var logger = sp.GetRequiredService<ILogger<LocalFileStorageProvider>>();
-            // Use a temporary directory for local testing - in production this would be configured
-            var tempDir = Path.Combine(Path.GetTempPath(), "savestate-sync");
+            var tempDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "SaveState", "SyncServerMock");
             return new LocalFileStorageProvider(tempDir, logger);
         });
+
+        services.AddSingleton<ICloudStorageProvider>(sp => sp.GetRequiredService<LocalFileStorageProvider>());
+        services.AddSingleton<ICloudStorageProvider, OneDriveStorageProvider>();
+        services.AddSingleton<ICloudStorageProvider, GoogleDriveStorageProvider>();
         services.AddScoped<IAiResiliencePolicy, AiResiliencePolicy>();
         services.AddScoped<IFeedbackLoop, LocalLearningService>();
         services.AddScoped<IChaosTester, ChaosTester>();

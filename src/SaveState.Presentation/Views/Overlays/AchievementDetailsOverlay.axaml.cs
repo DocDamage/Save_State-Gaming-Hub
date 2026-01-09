@@ -15,6 +15,9 @@ public partial class AchievementDetailsOverlay : UserControl
 
     private void OnCloseClick(object? sender, RoutedEventArgs e)
     {
-        IsVisible = false;
+        if (DataContext is ViewModels.Overlays.AchievementDetailsOverlayViewModel viewModel)
+        {
+            viewModel.CloseCommand.Execute(null);
+        }
     }
 }

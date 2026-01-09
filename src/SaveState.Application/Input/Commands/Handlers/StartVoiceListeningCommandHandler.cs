@@ -17,6 +17,7 @@ public class StartVoiceListeningCommandHandler : IRequestHandler<StartVoiceListe
     /// <returns>A result indicating success or failure.</returns>
     public Task<Result<bool>> Handle(StartVoiceListeningCommand request, CancellationToken ct)
     {
-        return Task.FromResult(Result<bool>.Success(true));
+        return Task.FromResult(Result.Success<bool>(true));
     }
 }
+

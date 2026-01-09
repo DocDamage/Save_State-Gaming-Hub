@@ -42,14 +42,14 @@ public class BacklogService : IBacklogService
     var game = await _gameRepository.GetByIdAsync(gameIdValue, ct).ConfigureAwait(false);
     if (game == null)
     {
-        return Result<BacklogEntry>.Failure($"Game with ID {gameId} not found", ErrorType.NotFound);
+        return Result.Failure<BacklogEntry>($"Game with ID {gameId} not found", ErrorType.NotFound);
     }
 
             // Check if already in backlog
             var existingEntry = await _backlogRepository.GetByGameIdAsync(gameId, ct).ConfigureAwait(false);
             if (existingEntry != null)
             {
-                return Result<BacklogEntry>.Failure($"Game '{game.Title}' is already in the backlog", ErrorType.Conflict);
+                return Result.Failure<BacklogEntry>($"Game '{game.Title}' is already in the backlog", ErrorType.Conflict);
             }
 
             var entry = BacklogEntry.Create(gameId, priority);
@@ -58,12 +58,12 @@ public class BacklogService : IBacklogService
             _logger.LogInformation("Added game '{Title}' (ID: {GameId}) to backlog with priority {Priority}",
                 game.Title, gameId, priority);
 
-            return Result<BacklogEntry>.Success(entry);
+            return Result.Success<BacklogEntry>(entry);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to add game {GameId} to backlog", gameId);
-            return Result<BacklogEntry>.Failure($"Failed to add game to backlog: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<BacklogEntry>($"Failed to add game to backlog: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -234,12 +234,12 @@ public class BacklogService : IBacklogService
         try
         {
             var entry = await _backlogRepository.GetByGameIdAsync(gameId, ct).ConfigureAwait(false);
-            return Result<BacklogEntry?>.Success(entry);
+            return Result.Success<BacklogEntry?>(entry);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get backlog entry for game {GameId}", gameId);
-            return Result<BacklogEntry?>.Failure($"Failed to get backlog entry: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<BacklogEntry?>($"Failed to get backlog entry: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -252,13 +252,13 @@ public class BacklogService : IBacklogService
         try
         {
             var result = await _backlogRepository.GetBacklogAsync(pageNumber, pageSize, status, ct).ConfigureAwait(false);
-            return Result<PagedResult<BacklogEntry>>.Success(result);
+            return Result.Success<PagedResult<BacklogEntry>>(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get backlog (page {PageNumber}, size {PageSize}, status {Status})",
                 pageNumber, pageSize, status);
-            return Result<PagedResult<BacklogEntry>>.Failure($"Failed to get backlog: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<PagedResult<BacklogEntry>>($"Failed to get backlog: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -267,12 +267,13 @@ public class BacklogService : IBacklogService
         try
         {
             var stats = await _backlogRepository.GetStatisticsAsync(ct).ConfigureAwait(false);
-            return Result<BacklogStatistics>.Success(stats);
+            return Result.Success<BacklogStatistics>(stats);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get backlog statistics");
-            return Result<BacklogStatistics>.Failure($"Failed to get backlog statistics: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<BacklogStatistics>($"Failed to get backlog statistics: {ex.Message}", ErrorType.Internal);
         }
     }
 }
+

@@ -17,6 +17,8 @@ namespace SaveState.Presentation.ViewModels.Shell;
 public partial class AnalyticsViewModel : ObservableObject
 {
     private readonly IAnalyticsService _analyticsService;
+    private readonly IAnalyticsExportService _exportService;
+    private readonly SaveState.Presentation.Services.IDialogService _dialogService;
     private readonly ILogger<AnalyticsViewModel> _logger;
 
     [ObservableProperty]
@@ -80,9 +82,13 @@ public partial class AnalyticsViewModel : ObservableObject
 
     public AnalyticsViewModel(
         IAnalyticsService analyticsService,
+        IAnalyticsExportService exportService,
+        SaveState.Presentation.Services.IDialogService dialogService,
         ILogger<AnalyticsViewModel> logger)
     {
         _analyticsService = analyticsService;
+        _exportService = exportService;
+        _dialogService = dialogService;
         _logger = logger;
 
         // Load data when ViewModel is created (fire-and-forget)
@@ -93,6 +99,50 @@ public partial class AnalyticsViewModel : ObservableObject
     /// Gets the display title for the analytics tab.
     /// </summary>
     public string Title => "📊 Analytics Dashboard";
+
+    /// <summary>
+    /// Exports analytics to a file.
+    /// </summary>
+    [RelayCommand]
+    private async Task ExportAsync()
+    {
+        try
+        {
+            var folder = await _dialogService.ShowFolderPickerAsync("Select Export Location");
+            if (string.IsNullOrEmpty(folder)) return;
+
+            IsLoading = true;
+            var dataResult = await _analyticsService.GetExportDataAsync();
+            if (dataResult.IsFailure)
+            {
+                ErrorMessage = "Failed to prepare export data.";
+                IsLoading = false;
+                return;
+            }
+
+            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var path = System.IO.Path.Combine(folder, $"SaveState_Analytics_{timestamp}.html");
+            var result = await _exportService.GenerateHtmlReportAsync(dataResult.Value, path);
+
+            if (result.IsSuccess)
+            {
+                await _dialogService.ShowInformationAsync("Export Successful", $"Analytics report exported to:\n{path}");
+            }
+            else
+            {
+                 ErrorMessage = "Failed to save export file.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Export failed");
+            ErrorMessage = "Export failed due to an unexpected error.";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
 
     /// <summary>
     /// Loads all analytics data.

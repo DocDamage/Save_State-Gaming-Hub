@@ -41,7 +41,7 @@ public class PluginManager : IPluginManager
             if (!Directory.Exists(_pluginsDirectory))
             {
                 Directory.CreateDirectory(_pluginsDirectory);
-                return Result<IReadOnlyList<PluginInfo>>.Success(Array.Empty<PluginInfo>());
+                return Result.Success<IReadOnlyList<PluginInfo>>(Array.Empty<PluginInfo>());
             }
 
             var pluginFiles = Directory.GetFiles(_pluginsDirectory, "*.dll", SearchOption.AllDirectories);
@@ -99,12 +99,12 @@ public class PluginManager : IPluginManager
                 }
             }
 
-            return Result<IReadOnlyList<PluginInfo>>.Success(discoveredPlugins);
+            return Result.Success<IReadOnlyList<PluginInfo>>(discoveredPlugins);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to discover plugins");
-            return Result<IReadOnlyList<PluginInfo>>.Failure("Failed to discover plugins", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<PluginInfo>>("Failed to discover plugins", ErrorType.Internal);
         }
     }
 
@@ -114,7 +114,7 @@ public class PluginManager : IPluginManager
         {
             if (!File.Exists(pluginPath))
             {
-                return Result<bool>.Failure("Plugin file not found", ErrorType.NotFound);
+                return Result.Failure<bool>("Plugin file not found", ErrorType.NotFound);
             }
 
             var assembly = Assembly.LoadFrom(pluginPath);
@@ -124,7 +124,7 @@ public class PluginManager : IPluginManager
 
             if (!pluginTypes.Any())
             {
-                return Result<bool>.Failure("No plugin types found in assembly", ErrorType.Validation);
+                return Result.Failure<bool>("No plugin types found in assembly", ErrorType.Validation);
             }
 
             foreach (var pluginType in pluginTypes)
@@ -162,16 +162,16 @@ public class PluginManager : IPluginManager
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to initialize plugin type {Type}", pluginType.FullName);
-                    return Result<bool>.Failure($"Failed to initialize plugin: {ex.Message}", ErrorType.Internal);
+                    return Result.Failure<bool>($"Failed to initialize plugin: {ex.Message}", ErrorType.Internal);
                 }
             }
 
-            return Result<bool>.Success(true);
+            return Result.Success<bool>(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to load plugin from {Path}", pluginPath);
-            return Result<bool>.Failure($"Failed to load plugin: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<bool>($"Failed to load plugin: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -181,7 +181,7 @@ public class PluginManager : IPluginManager
         {
             if (!_loadedPlugins.TryRemove(pluginId, out var loadedPlugin))
             {
-                return Result<bool>.Failure("Plugin not found", ErrorType.NotFound);
+                return Result.Failure<bool>("Plugin not found", ErrorType.NotFound);
             }
 
             // Shutdown the plugin
@@ -202,12 +202,12 @@ public class PluginManager : IPluginManager
 
             _logger.LogInformation("Unloaded plugin {Name}", loadedPlugin.Plugin.Name);
 
-            return Result<bool>.Success(true);
+            return Result.Success<bool>(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to unload plugin {Id}", pluginId);
-            return Result<bool>.Failure($"Failed to unload plugin: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<bool>($"Failed to unload plugin: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -218,10 +218,10 @@ public class PluginManager : IPluginManager
             loadedPlugin.IsEnabled = true;
             RegisterPluginCapabilities(loadedPlugin.Plugin, loadedPlugin.Context);
             _logger.LogInformation("Enabled plugin {Name}", loadedPlugin.Plugin.Name);
-            return Task.FromResult(Result<bool>.Success(true));
+            return Task.FromResult(Result.Success<bool>(true));
         }
 
-        return Task.FromResult(Result<bool>.Failure("Plugin not found", ErrorType.NotFound));
+        return Task.FromResult(Result.Failure<bool>("Plugin not found", ErrorType.NotFound));
     }
 
     public Task<Result<bool>> DisablePluginAsync(string pluginId, CancellationToken ct = default)
@@ -231,10 +231,10 @@ public class PluginManager : IPluginManager
             loadedPlugin.IsEnabled = false;
             UnregisterPluginCapabilities(loadedPlugin.Plugin);
             _logger.LogInformation("Disabled plugin {Name}", loadedPlugin.Plugin.Name);
-            return Task.FromResult(Result<bool>.Success(true));
+            return Task.FromResult(Result.Success<bool>(true));
         }
 
-        return Task.FromResult(Result<bool>.Failure("Plugin not found", ErrorType.NotFound));
+        return Task.FromResult(Result.Failure<bool>("Plugin not found", ErrorType.NotFound));
     }
 
     public IReadOnlyList<PluginInfo> GetLoadedPlugins()
@@ -260,12 +260,12 @@ public class PluginManager : IPluginManager
 
             _logger.LogInformation("Installed plugin package to {Path}", targetPath);
 
-            return Task.FromResult(Result<bool>.Success(true));
+            return Task.FromResult(Result.Success<bool>(true));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to install plugin package");
-            return Task.FromResult(Result<bool>.Failure($"Failed to install plugin: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<bool>($"Failed to install plugin: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -279,7 +279,7 @@ public class PluginManager : IPluginManager
                 var unloadResult = await UnloadPluginAsync(pluginId, ct);
                 if (!unloadResult.IsSuccess)
                 {
-                    return Result<bool>.Failure(unloadResult.Error!, unloadResult.ErrorType);
+                    return Result.Failure<bool>(unloadResult.Error!, unloadResult.ErrorType);
                 }
 
                 // Delete the plugin file
@@ -290,16 +290,16 @@ public class PluginManager : IPluginManager
 
                 _logger.LogInformation("Uninstalled plugin {Name}", loadedPlugin.Plugin.Name);
 
-                return Result<bool>.Success(true);
+                return Result.Success<bool>(true);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to uninstall plugin {Id}", pluginId);
-                return Result<bool>.Failure($"Failed to uninstall plugin: {ex.Message}", ErrorType.Internal);
+                return Result.Failure<bool>($"Failed to uninstall plugin: {ex.Message}", ErrorType.Internal);
             }
         }
 
-        return Result<bool>.Failure("Plugin not found", ErrorType.NotFound);
+        return Result.Failure<bool>("Plugin not found", ErrorType.NotFound);
     }
 
     public async Task<Result<bool>> ReloadPluginsAsync(CancellationToken ct = default)
@@ -318,7 +318,7 @@ public class PluginManager : IPluginManager
             var discoveredPlugins = await DiscoverPluginsAsync(ct);
             if (!discoveredPlugins.IsSuccess)
             {
-                return Result<bool>.Failure(discoveredPlugins.Error!, discoveredPlugins.ErrorType);
+                return Result.Failure<bool>(discoveredPlugins.Error!, discoveredPlugins.ErrorType);
             }
 
             foreach (var pluginInfo in discoveredPlugins.Value)
@@ -331,12 +331,12 @@ public class PluginManager : IPluginManager
 
             _logger.LogInformation("Reloaded all plugins");
 
-            return Result<bool>.Success(true);
+            return Result.Success<bool>(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to reload plugins");
-            return Result<bool>.Failure($"Failed to reload plugins: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<bool>($"Failed to reload plugins: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -439,3 +439,4 @@ public class PluginManager : IPluginManager
         }
     }
 }
+

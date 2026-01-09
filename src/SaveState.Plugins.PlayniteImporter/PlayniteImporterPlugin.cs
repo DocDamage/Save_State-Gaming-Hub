@@ -69,7 +69,7 @@ public class PlayniteImporterPlugin : IPlugin, IImporter
 
             if (!File.Exists(filePath))
             {
-                return Result<ImportAnalysis>.Failure("Import file does not exist");
+                return Result.Failure<ImportAnalysis>("Import file does not exist");
             }
 
             var extension = Path.GetExtension(filePath).ToLowerInvariant();
@@ -78,13 +78,13 @@ public class PlayniteImporterPlugin : IPlugin, IImporter
             {
                 ".xml" => await AnalyzeXmlFileAsync(filePath, ct),
                 ".json" => await AnalyzeJsonFileAsync(filePath, ct),
-                _ => Result<ImportAnalysis>.Failure("Unsupported file format. Expected .xml or .json")
+                _ => Result.Failure<ImportAnalysis>("Unsupported file format. Expected .xml or .json")
             };
         }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Error analyzing import file {FilePath}", filePath);
-            return Result<ImportAnalysis>.Failure($"Analysis failed: {ex.Message}");
+            return Result.Failure<ImportAnalysis>($"Analysis failed: {ex.Message}");
         }
     }
 
@@ -98,7 +98,7 @@ public class PlayniteImporterPlugin : IPlugin, IImporter
             var analysisResult = await AnalyzeImportAsync(filePath, ct);
             if (!analysisResult.IsSuccess)
             {
-                return Result<ImportResult>.Failure(analysisResult.Error!);
+                return Result.Failure<ImportResult>(analysisResult.Error!);
             }
 
             var analysis = analysisResult.Value;
@@ -155,12 +155,12 @@ public class PlayniteImporterPlugin : IPlugin, IImporter
             _logger?.LogInformation("Import completed: {Games} games, {Collections} collections, {Playtime} playtime records",
                 gamesImported, collectionsImported, playtimeRecordsImported);
 
-            return Result<ImportResult>.Success(result);
+            return Result.Success<ImportResult>(result);
         }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Error during import from {FilePath}", filePath);
-            return Result<ImportResult>.Failure($"Import failed: {ex.Message}");
+            return Result.Failure<ImportResult>($"Import failed: {ex.Message}");
         }
     }
 
@@ -187,7 +187,7 @@ public class PlayniteImporterPlugin : IPlugin, IImporter
                 warnings.Add("No games found in the XML file");
             }
 
-            return Result<ImportAnalysis>.Success(new ImportAnalysis(
+            return Result.Success<ImportAnalysis>(new ImportAnalysis(
                 gamesCount,
                 collectionsCount,
                 playtimeRecordsCount,
@@ -195,7 +195,7 @@ public class PlayniteImporterPlugin : IPlugin, IImporter
         }
         catch (Exception ex)
         {
-            return Result<ImportAnalysis>.Failure($"Failed to analyze XML file: {ex.Message}");
+            return Result.Failure<ImportAnalysis>($"Failed to analyze XML file: {ex.Message}");
         }
     }
 
@@ -226,7 +226,7 @@ public class PlayniteImporterPlugin : IPlugin, IImporter
                 warnings.Add("No games found in the JSON file");
             }
 
-            return Result<ImportAnalysis>.Success(new ImportAnalysis(
+            return Result.Success<ImportAnalysis>(new ImportAnalysis(
                 gamesCount,
                 collectionsCount,
                 gamesCount, // Assume playtime data exists
@@ -234,7 +234,7 @@ public class PlayniteImporterPlugin : IPlugin, IImporter
         }
         catch (Exception ex)
         {
-            return Result<ImportAnalysis>.Failure($"Failed to analyze JSON file: {ex.Message}");
+            return Result.Failure<ImportAnalysis>($"Failed to analyze JSON file: {ex.Message}");
         }
     }
 
@@ -249,7 +249,7 @@ public class PlayniteImporterPlugin : IPlugin, IImporter
 
         _logger?.LogInformation("Imported {Count} games from {FilePath}", gamesImported, filePath);
 
-        return Result<int>.Success(gamesImported);
+        return Result.Success<int>(gamesImported);
     }
 
     private async Task<Result<int>> ImportCollectionsAsync(string filePath, ImportOptions options, CancellationToken ct)
@@ -261,7 +261,7 @@ public class PlayniteImporterPlugin : IPlugin, IImporter
 
         _logger?.LogInformation("Imported {Count} collections from {FilePath}", collectionsImported, filePath);
 
-        return Result<int>.Success(collectionsImported);
+        return Result.Success<int>(collectionsImported);
     }
 
     private async Task<Result<int>> ImportPlaytimeAsync(string filePath, ImportOptions options, CancellationToken ct)
@@ -273,7 +273,7 @@ public class PlayniteImporterPlugin : IPlugin, IImporter
 
         _logger?.LogInformation("Imported {Count} playtime records from {FilePath}", playtimeRecordsImported, filePath);
 
-        return Result<int>.Success(playtimeRecordsImported);
+        return Result.Success<int>(playtimeRecordsImported);
     }
 
     private async Task ShowImportDialogAsync()

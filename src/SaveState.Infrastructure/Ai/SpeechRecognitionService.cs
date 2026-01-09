@@ -53,14 +53,14 @@ public class SpeechRecognitionService : ISpeechRecognitionService
                 IsFinal: true);
 
             OnSpeechRecognized(result);
-            return Result<SpeechRecognitionResult>.Success(result);
+            return Result.Success<SpeechRecognitionResult>(result);
         }
         catch (Exception ex)
         {
             var error = $"Speech recognition failed: {ex.Message}";
             _logger.LogError(ex, error);
             OnSpeechRecognitionError(error, ex);
-            return Result<SpeechRecognitionResult>.Failure(error);
+            return Result.Failure<SpeechRecognitionResult>(error);
         }
     }
 
@@ -135,12 +135,12 @@ public class SpeechRecognitionService : ISpeechRecognitionService
                 new LanguageInfo("zh-CN", "Chinese (Simplified)", "中文 (简体)")
             };
 
-            return Task.FromResult(Result<IReadOnlyList<LanguageInfo>>.Success(languages));
+            return Task.FromResult(Result.Success<IReadOnlyList<LanguageInfo>>(languages));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get available languages");
-            return Task.FromResult(Result<IReadOnlyList<LanguageInfo>>.Failure(
+            return Task.FromResult(Result.Failure<IReadOnlyList<LanguageInfo>>(
                 $"Failed to get languages: {ex.Message}"));
         }
     }
@@ -196,7 +196,7 @@ public class SpeechRecognitionService : ISpeechRecognitionService
             _logger.LogInformation("Microphone calibration completed - Optimal sensitivity: {Sensitivity}",
                 result.OptimalSensitivity);
 
-            return Result<MicrophoneCalibrationResult>.Success(result);
+            return Result.Success<MicrophoneCalibrationResult>(result);
         }
         catch (Exception ex)
         {
@@ -206,7 +206,7 @@ public class SpeechRecognitionService : ISpeechRecognitionService
                 OptimalSensitivity: 0.5f,
                 ErrorMessage: ex.Message);
 
-            return Result<MicrophoneCalibrationResult>.Success(errorResult);
+            return Result.Success<MicrophoneCalibrationResult>(errorResult);
         }
     }
 
@@ -222,12 +222,12 @@ public class SpeechRecognitionService : ISpeechRecognitionService
                 SampleRate: 44100,
                 DeviceName: "Default Microphone");
 
-            return Task.FromResult(Result<MicrophoneStatus>.Success(status));
+            return Task.FromResult(Result.Success<MicrophoneStatus>(status));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get microphone status");
-            return Task.FromResult(Result<MicrophoneStatus>.Failure($"Failed to get microphone status: {ex.Message}"));
+            return Task.FromResult(Result.Failure<MicrophoneStatus>($"Failed to get microphone status: {ex.Message}"));
         }
     }
 
@@ -314,3 +314,4 @@ public class SpeechRecognitionService : ISpeechRecognitionService
         }
     }
 }
+

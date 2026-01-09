@@ -44,27 +44,27 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, R
             // Validate passwords match
             if (request.Password != request.ConfirmPassword)
             {
-                return Result<RegisterUserResponse>.Failure("Passwords do not match");
+                return Result.Failure<RegisterUserResponse>("Passwords do not match");
             }
 
             // Validate password strength
             var passwordValidation = _passwordHasher.ValidatePasswordStrength(request.Password);
             if (!passwordValidation.IsValid)
             {
-                return Result<RegisterUserResponse>.Failure(
+                return Result.Failure<RegisterUserResponse>(
                     $"Password does not meet requirements: {string.Join(", ", passwordValidation.Errors)}");
             }
 
             // Check if username exists
             if (await _userRepository.UsernameExistsAsync(request.Username, ct))
             {
-                return Result<RegisterUserResponse>.Failure("Username is already taken");
+                return Result.Failure<RegisterUserResponse>("Username is already taken");
             }
 
             // Check if email exists
             if (await _userRepository.EmailExistsAsync(request.Email, ct))
             {
-                return Result<RegisterUserResponse>.Failure("Email is already registered");
+                return Result.Failure<RegisterUserResponse>("Email is already registered");
             }
 
             // Hash password
@@ -95,12 +95,13 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, R
                 RequiresEmailVerification = true // Could be configurable
             };
 
-            return Result<RegisterUserResponse>.Success(response);
+            return Result.Success<RegisterUserResponse>(response);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during user registration for: {Username}", request.Username);
-            return Result<RegisterUserResponse>.Failure("An error occurred during registration");
+            return Result.Failure<RegisterUserResponse>("An error occurred during registration");
         }
     }
 }
+

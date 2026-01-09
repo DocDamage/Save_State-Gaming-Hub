@@ -55,7 +55,7 @@ public class RecommendationService : IRecommendationService
             if (!profile.IsSuccess)
             {
                 _logger.LogWarning("Failed to build user profile for recommendations");
-                return Result<IReadOnlyList<GameRecommendation>>.Failure("Could not analyze gaming profile", ErrorType.Internal);
+                return Result.Failure<IReadOnlyList<GameRecommendation>>("Could not analyze gaming profile", ErrorType.Internal);
             }
 
             // Generate AI-powered recommendations
@@ -66,12 +66,12 @@ public class RecommendationService : IRecommendationService
                 return await GetFallbackRecommendationsAsync(count, ct);
             }
 
-            return Result<IReadOnlyList<GameRecommendation>>.Success(aiRecommendations.Value);
+            return Result.Success<IReadOnlyList<GameRecommendation>>(aiRecommendations.Value);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get recommendations");
-            return Result<IReadOnlyList<GameRecommendation>>.Failure($"Recommendation generation failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<GameRecommendation>>($"Recommendation generation failed: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -87,7 +87,7 @@ public class RecommendationService : IRecommendationService
         {
             var game = await _gameRepository.GetByIdAsync(GameId.From(gameId), ct);
             if (game == null)
-                return Result<IReadOnlyList<GameRecommendation>>.Failure("Game not found", ErrorType.NotFound);
+                return Result.Failure<IReadOnlyList<GameRecommendation>>("Game not found", ErrorType.NotFound);
 
             // Get game tags for similarity matching
             var gameTags = await _categorizationService.AnalyzeGameAsync(gameId, ct);
@@ -121,12 +121,12 @@ public class RecommendationService : IRecommendationService
                     IsInLibrary: true))
                 .ToList();
 
-            return Result<IReadOnlyList<GameRecommendation>>.Success(similarGames.AsReadOnly());
+            return Result.Success<IReadOnlyList<GameRecommendation>>(similarGames.AsReadOnly());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get similar games for {GameId}", gameId);
-            return Result<IReadOnlyList<GameRecommendation>>.Failure($"Similar games lookup failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<GameRecommendation>>($"Similar games lookup failed: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -163,7 +163,7 @@ public class RecommendationService : IRecommendationService
 
             if (!topGames.IsSuccess)
             {
-                return Result<UserGamingProfile>.Failure("Could not retrieve gaming statistics", ErrorType.Internal);
+                return Result.Failure<UserGamingProfile>("Could not retrieve gaming statistics", ErrorType.Internal);
             }
 
             // Fetch full game entities to get real genres and platforms
@@ -192,12 +192,12 @@ public class RecommendationService : IRecommendationService
                 PreferredPlatforms: preferredPlatforms.Distinct().ToList()
             );
 
-            return Result<UserGamingProfile>.Success(profile);
+            return Result.Success<UserGamingProfile>(profile);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to build user gaming profile");
-            return Result<UserGamingProfile>.Failure($"Profile building failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<UserGamingProfile>($"Profile building failed: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -217,15 +217,15 @@ public class RecommendationService : IRecommendationService
                 ct);
 
             if (!response.IsSuccessful)
-                return Result<IReadOnlyList<GameRecommendation>>.Failure($"AI recommendation failed: {response.Error}", ErrorType.Internal);
+                return Result.Failure<IReadOnlyList<GameRecommendation>>($"AI recommendation failed: {response.Error}", ErrorType.Internal);
 
             var recommendations = ParseAiRecommendations(response.Content, profile);
-            return Result<IReadOnlyList<GameRecommendation>>.Success(recommendations);
+            return Result.Success<IReadOnlyList<GameRecommendation>>(recommendations);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "AI recommendation generation failed");
-            return Result<IReadOnlyList<GameRecommendation>>.Failure($"AI recommendations failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<GameRecommendation>>($"AI recommendations failed: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -253,12 +253,12 @@ public class RecommendationService : IRecommendationService
                     IsInLibrary: false))
                 .ToList();
 
-            return Result<IReadOnlyList<GameRecommendation>>.Success(recommendations.AsReadOnly());
+            return Result.Success<IReadOnlyList<GameRecommendation>>(recommendations.AsReadOnly());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fallback recommendation generation failed");
-            return Result<IReadOnlyList<GameRecommendation>>.Failure($"Fallback recommendations failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<GameRecommendation>>($"Fallback recommendations failed: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -285,12 +285,12 @@ public class RecommendationService : IRecommendationService
                     IsInLibrary: true))
                 .ToList();
 
-            return Result<IReadOnlyList<GameRecommendation>>.Success(similarGames.AsReadOnly());
+            return Result.Success<IReadOnlyList<GameRecommendation>>(similarGames.AsReadOnly());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fallback similar games lookup failed");
-            return Result<IReadOnlyList<GameRecommendation>>.Failure($"Fallback lookup failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<GameRecommendation>>($"Fallback lookup failed: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -438,3 +438,4 @@ internal sealed record UserGamingProfile(
     IReadOnlyList<string> FavoriteGenres,
     IReadOnlyList<string> TopGames,
     IReadOnlyList<string> PreferredPlatforms);
+

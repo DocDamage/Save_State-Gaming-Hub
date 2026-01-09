@@ -1,5 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Analytics;
+using SaveState.Core.Analytics.Services;
 using System.Collections.ObjectModel;
 
 namespace SaveState.Presentation.Services.Dashboard.Widgets;
@@ -9,9 +11,17 @@ namespace SaveState.Presentation.Services.Dashboard.Widgets;
 /// </summary>
 public partial class GoalsProgressWidget : WidgetBase
 {
-    public GoalsProgressWidget(ILogger<GoalsProgressWidget> logger)
+    private readonly IGamingGoalRepository _goalRepository;
+    private readonly IGoalService _goalService;
+
+    public GoalsProgressWidget(
+        IGamingGoalRepository goalRepository,
+        IGoalService goalService,
+        ILogger<GoalsProgressWidget> logger)
         : base(logger)
     {
+        _goalRepository = goalRepository;
+        _goalService = goalService;
         Goals = new ObservableCollection<GoalItem>();
     }
 
@@ -41,15 +51,62 @@ public partial class GoalsProgressWidget : WidgetBase
     /// <inheritdoc />
     protected override async Task LoadDataAsync()
     {
-        Goals.Clear();
+        try
+        {
+            Goals.Clear();
 
-        // TODO: Get real goals from goals service
-        // For now, simulate some goals
-        Goals.Add(new GoalItem("Complete 5 games this month", 3, 5, GoalType.Completion));
-        Goals.Add(new GoalItem("Play for 50 hours", 32, 50, GoalType.Playtime));
-        Goals.Add(new GoalItem("Unlock 20 achievements", 15, 20, GoalType.Achievements));
+            // Get active goals from the repository
+            var activeGoals = await _goalRepository.GetActiveGoalsAsync();
 
-        await Task.CompletedTask; // Simulate async operation
+            foreach (var goal in activeGoals.OrderBy(g => g.EndDate).Take(5))
+            {
+                var goalType = DetermineGoalType(goal);
+                var current = goal.CurrentValue;
+                var target = goal.TargetValue;
+
+                Goals.Add(new GoalItem(
+                    goal.Title,
+                    (int)current,
+                    (int)target,
+                    goalType));
+            }
+
+            // If no goals exist, show a prompt
+            if (Goals.Count == 0)
+            {
+                Goals.Add(new GoalItem(
+                    "No active goals - create one to start tracking!",
+                    0,
+                    1,
+                    GoalType.Custom));
+            }
+
+            Logger.LogInformation("Loaded {Count} active goals", Goals.Count);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load goals data");
+
+            // Fallback data
+            Goals.Clear();
+            Goals.Add(new GoalItem("Error loading goals", 0, 1, GoalType.Custom));
+        }
+    }
+
+    private static GoalType DetermineGoalType(SaveState.Core.Analytics.Entities.GamingGoal goal)
+    {
+        if (goal.Title.Contains("complete", StringComparison.OrdinalIgnoreCase) ||
+            goal.Title.Contains("finish", StringComparison.OrdinalIgnoreCase))
+            return GoalType.Completion;
+
+        if (goal.Title.Contains("hour", StringComparison.OrdinalIgnoreCase) ||
+            goal.Title.Contains("playtime", StringComparison.OrdinalIgnoreCase))
+            return GoalType.Playtime;
+
+        if (goal.Title.Contains("achievement", StringComparison.OrdinalIgnoreCase))
+            return GoalType.Achievements;
+
+        return GoalType.Custom;
     }
 }
 

@@ -183,7 +183,7 @@ public class GoogleDriveSyncPlugin : IPlugin, ICloudStorageProvider
         {
             if (!IsAuthenticated || _driveService == null)
             {
-                return Result<IReadOnlyList<string>>.Failure("Not authenticated with Google Drive");
+                return Result.Failure<IReadOnlyList<string>>("Not authenticated with Google Drive");
             }
 
             _logger?.LogInformation("Listing files in Google Drive path: {RemotePath}", remotePath);
@@ -196,12 +196,12 @@ public class GoogleDriveSyncPlugin : IPlugin, ICloudStorageProvider
                 "collections_backup.json"
             };
 
-            return Result<IReadOnlyList<string>>.Success(files);
+            return Result.Success<IReadOnlyList<string>>(files);
         }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Error listing files from Google Drive");
-            return Result<IReadOnlyList<string>>.Failure($"List files failed: {ex.Message}");
+            return Result.Failure<IReadOnlyList<string>>($"List files failed: {ex.Message}");
         }
     }
 
@@ -235,18 +235,18 @@ public class GoogleDriveSyncPlugin : IPlugin, ICloudStorageProvider
         {
             if (!IsAuthenticated)
             {
-                return Result<CloudSyncStatus>.Success(CloudSyncStatus.NotAuthenticated);
+                return Result.Success<CloudSyncStatus>(CloudSyncStatus.NotAuthenticated);
             }
 
             // In a real implementation, check sync status
             var status = CloudSyncStatus.UpToDate;
 
-            return Result<CloudSyncStatus>.Success(status);
+            return Result.Success<CloudSyncStatus>(status);
         }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Error getting sync status");
-            return Result<CloudSyncStatus>.Failure($"Status check failed: {ex.Message}");
+            return Result.Failure<CloudSyncStatus>($"Status check failed: {ex.Message}");
         }
     }
 
@@ -417,3 +417,4 @@ public enum CloudSyncStatus
     /// </summary>
     Error
 }
+

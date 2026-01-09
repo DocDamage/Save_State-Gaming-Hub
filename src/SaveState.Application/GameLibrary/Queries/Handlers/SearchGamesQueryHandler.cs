@@ -63,7 +63,8 @@ public class SearchGamesQueryHandler : IRequestHandler<SearchGamesQuery, Result<
 
         var result = new SaveState.Application.Common.DTOs.PagedResult<GameSummaryDto>(dtos, pagedResult.TotalCount, request.Page, request.PageSize);
 
-        return Result<SaveState.Application.Common.DTOs.PagedResult<GameSummaryDto>>.Success(result);
+        return Result.Success<SaveState.Application.Common.DTOs.PagedResult<GameSummaryDto>>(result);
     }
 
 }
+

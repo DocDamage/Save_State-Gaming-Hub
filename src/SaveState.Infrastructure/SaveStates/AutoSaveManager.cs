@@ -182,11 +182,11 @@ public class AutoSaveManager : IAutoSaveManager
                 autoSaves.Count,
                 timeUntilNextSave ?? TimeSpan.Zero);
 
-            return Result<AutoSaveStatus>.Success(status);
+            return Result.Success<AutoSaveStatus>(status);
         }
         catch (Exception ex)
         {
-            return Result<AutoSaveStatus>.Failure($"Failed to get auto-save status: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<AutoSaveStatus>($"Failed to get auto-save status: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -224,3 +224,4 @@ public class AutoSaveManager : IAutoSaveManager
         };
     }
 }
+

@@ -40,7 +40,7 @@ public class MacroPlayer : IMacroPlayer, IDisposable
             var macroResult = await _macroManager.GetMacroAsync(macroId, ct);
             if (!macroResult.IsSuccess)
             {
-                return Result<MacroPlaybackSession>.Failure(macroResult.Error!);
+                return Result.Failure<MacroPlaybackSession>(macroResult.Error!);
             }
 
             var macro = macroResult.Value!;
@@ -74,12 +74,12 @@ public class MacroPlayer : IMacroPlayer, IDisposable
             _logger.LogInformation("Started macro playback session {SessionId} for macro {MacroId}",
                 sessionId, macroId);
 
-            return Result<MacroPlaybackSession>.Success(session);
+            return Result.Success<MacroPlaybackSession>(session);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to start macro playback for macro {MacroId}", macroId);
-            return Result<MacroPlaybackSession>.Failure($"Failed to start playback: {ex.Message}");
+            return Result.Failure<MacroPlaybackSession>($"Failed to start playback: {ex.Message}");
         }
     }
 
@@ -170,18 +170,18 @@ public class MacroPlayer : IMacroPlayer, IDisposable
         {
             if (!_activeSessions.TryGetValue(sessionId, out var session))
             {
-                return Task.FromResult(Result<PlaybackStatus>.Failure("Playback session not found"));
+                return Task.FromResult(Result.Failure<PlaybackStatus>("Playback session not found"));
             }
 
             var currentDuration = DateTime.UtcNow - session.StartedAt;
             var updatedStatus = session.Status with { Duration = currentDuration };
 
-            return Task.FromResult(Result<PlaybackStatus>.Success(updatedStatus));
+            return Task.FromResult(Result.Success<PlaybackStatus>(updatedStatus));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get playback status for session {SessionId}", sessionId);
-            return Task.FromResult(Result<PlaybackStatus>.Failure($"Failed to get status: {ex.Message}"));
+            return Task.FromResult(Result.Failure<PlaybackStatus>($"Failed to get status: {ex.Message}"));
         }
     }
 
@@ -191,12 +191,12 @@ public class MacroPlayer : IMacroPlayer, IDisposable
         try
         {
             var sessions = (IReadOnlyList<MacroPlaybackSession>)_activeSessions.Values.ToArray();
-            return Task.FromResult(Result<IReadOnlyList<MacroPlaybackSession>>.Success(sessions));
+            return Task.FromResult(Result.Success<IReadOnlyList<MacroPlaybackSession>>(sessions));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get active playback sessions");
-            return Task.FromResult(Result<IReadOnlyList<MacroPlaybackSession>>.Failure(
+            return Task.FromResult(Result.Failure<IReadOnlyList<MacroPlaybackSession>>(
                 $"Failed to get sessions: {ex.Message}"));
         }
     }
@@ -210,7 +210,7 @@ public class MacroPlayer : IMacroPlayer, IDisposable
             var macroResult = await _macroManager.GetMacroAsync(macroId, ct);
             if (!macroResult.IsSuccess)
             {
-                return Result<MacroValidationResult>.Failure(macroResult.Error!);
+                return Result.Failure<MacroValidationResult>(macroResult.Error!);
             }
 
             var macro = macroResult.Value!;
@@ -241,12 +241,12 @@ public class MacroPlayer : IMacroPlayer, IDisposable
                 Warnings: warnings,
                 EstimatedDuration: estimatedDuration);
 
-            return Result<MacroValidationResult>.Success(result);
+            return Result.Success<MacroValidationResult>(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to validate macro {MacroId}", macroId);
-            return Result<MacroValidationResult>.Failure($"Failed to validate macro: {ex.Message}");
+            return Result.Failure<MacroValidationResult>($"Failed to validate macro: {ex.Message}");
         }
     }
 
@@ -431,3 +431,4 @@ public class MacroPlayer : IMacroPlayer, IDisposable
         }
     }
 }
+

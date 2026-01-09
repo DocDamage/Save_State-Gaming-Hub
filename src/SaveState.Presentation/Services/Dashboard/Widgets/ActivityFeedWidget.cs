@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.GameLibrary;
 using System.Collections.ObjectModel;
 
 namespace SaveState.Presentation.Services.Dashboard.Widgets;
@@ -9,9 +10,20 @@ namespace SaveState.Presentation.Services.Dashboard.Widgets;
 /// </summary>
 public partial class ActivityFeedWidget : WidgetBase
 {
-    public ActivityFeedWidget(ILogger<ActivityFeedWidget> logger)
+    private readonly IGameSessionRepository _sessionRepository;
+    private readonly IAchievementRepository _achievementRepository;
+    private readonly IGameRepository _gameRepository;
+
+    public ActivityFeedWidget(
+        IGameSessionRepository sessionRepository,
+        IAchievementRepository achievementRepository,
+        IGameRepository gameRepository,
+        ILogger<ActivityFeedWidget> logger)
         : base(logger)
     {
+        _sessionRepository = sessionRepository;
+        _achievementRepository = achievementRepository;
+        _gameRepository = gameRepository;
         Activities = new ObservableCollection<ActivityItem>();
     }
 
@@ -41,31 +53,62 @@ public partial class ActivityFeedWidget : WidgetBase
     /// <inheritdoc />
     protected override async Task LoadDataAsync()
     {
-        Activities.Clear();
+        try
+        {
+            Activities.Clear();
 
-        // TODO: Get real activity data from services
-        // For now, simulate some activities
-        Activities.Add(new ActivityItem(
-            "🎮 You played Elden Ring for 2 hours",
-            DateTime.Now.AddMinutes(-30),
-            ActivityType.GameSession));
+            // Get recent game sessions (last 7 days)
+            var recentDate = DateTime.UtcNow.AddDays(-7);
+            var sessions = await _sessionRepository.GetRecentSessionsAsync(10);
 
-        Activities.Add(new ActivityItem(
-            "🏆 Achievement Unlocked: Dragon Slayer",
-            DateTime.Now.AddHours(-2),
-            ActivityType.Achievement));
+            foreach (var session in sessions.OrderByDescending(s => s.EndedAt ?? s.StartedAt).Take(5))
+            {
+                var game = await _gameRepository.GetByIdAsync(SaveState.Core.Common.ValueObjects.GameId.From(session.GameId));
+                var gameName = game?.Title ?? "Unknown Game";
+                var duration = session.Duration;
 
-        Activities.Add(new ActivityItem(
-            "👥 Friend @GamerX started playing Cyberpunk 2077",
-            DateTime.Now.AddHours(-3),
-            ActivityType.Social));
+                var durationText = duration.TotalHours >= 1
+                    ? $"{duration.TotalHours:F1} hours"
+                    : $"{duration.TotalMinutes:F0} minutes";
 
-        Activities.Add(new ActivityItem(
-            "💰 Sale Alert: Hollow Knight -75% ($3.74)",
-            DateTime.Now.AddHours(-5),
-            ActivityType.Deal));
+                Activities.Add(new ActivityItem(
+                    $"🎮 Played {gameName} for {durationText}",
+                    session.EndedAt ?? session.StartedAt,
+                    ActivityType.GameSession));
+            }
 
-        await Task.CompletedTask; // Simulate async operation
+            // Get recent achievements
+            var achievements = await _achievementRepository.GetRecentUnlockedAsync(5);
+            foreach (var achievement in achievements)
+            {
+                var achievementName = achievement.Achievement?.Name ?? "Unknown Achievement";
+                Activities.Add(new ActivityItem(
+                    $"🏆 Achievement Unlocked: {achievementName}",
+                    achievement.UnlockedAt ?? DateTime.UtcNow,
+                    ActivityType.Achievement));
+            }
+
+            // Sort all activities by timestamp
+            var sortedActivities = Activities.OrderByDescending(a => a.Timestamp).ToList();
+            Activities.Clear();
+            foreach (var activity in sortedActivities.Take(10))
+            {
+                Activities.Add(activity);
+            }
+
+            Logger.LogInformation("Loaded {Count} activity items", Activities.Count);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load activity feed data");
+
+            // Fallback to empty or minimal data
+            Activities.Clear();
+            Activities.Add(new ActivityItem(
+                "📊 No recent activity found",
+                DateTime.UtcNow,
+                ActivityType.Update));
+        }
     }
 }
 

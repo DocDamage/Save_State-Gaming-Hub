@@ -57,6 +57,7 @@ public class GetCheatPatternsQueryHandler : IRequestHandler<GetCheatPatternsQuer
             patterns = patterns.Where(p => p.Type == request.Type.Value).ToList();
         }
 
-        return Task.FromResult(Result<IReadOnlyList<CheatPatternDto>>.Success((IReadOnlyList<CheatPatternDto>)patterns));
+        return Task.FromResult(Result.Success<IReadOnlyList<CheatPatternDto>>((IReadOnlyList<CheatPatternDto>)patterns));
     }
 }
+

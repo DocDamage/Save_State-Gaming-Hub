@@ -38,6 +38,36 @@ public interface IOverlayService
     bool ShowDim { get; }
 
     /// <summary>
+    /// Gets whether the session details overlay is visible.
+    /// </summary>
+    bool ShowSessionDetails { get; }
+
+    /// <summary>
+    /// Gets whether the achievement details overlay is visible.
+    /// </summary>
+    bool ShowAchievementDetails { get; }
+
+    /// <summary>
+    /// Gets whether the mod details overlay is visible.
+    /// </summary>
+    bool ShowModDetails { get; }
+
+    /// <summary>
+    /// Gets the game ID for the current session details overlay.
+    /// </summary>
+    Guid? CurrentSessionGameId { get; }
+
+    /// <summary>
+    /// Gets the achievement ID for the current achievement details overlay.
+    /// </summary>
+    Guid? CurrentAchievementId { get; }
+
+    /// <summary>
+    /// Gets the mod ID for the current mod details overlay.
+    /// </summary>
+    Guid? CurrentModId { get; }
+
+    /// <summary>
     /// Shows the command palette overlay.
     /// </summary>
     void ShowCommandPaletteOverlay();
@@ -110,16 +140,31 @@ public interface IOverlayService
     void ShowSessionDetailsOverlay(Guid gameId);
 
     /// <summary>
+    /// Hides the session details overlay.
+    /// </summary>
+    void HideSessionDetailsOverlay();
+
+    /// <summary>
     /// Shows the achievement details overlay for a specific achievement.
     /// </summary>
     /// <param name="achievementId">The achievement ID to show details for.</param>
     void ShowAchievementDetailsOverlay(Guid achievementId);
 
     /// <summary>
+    /// Hides the achievement details overlay.
+    /// </summary>
+    void HideAchievementDetailsOverlay();
+
+    /// <summary>
     /// Shows the mod details overlay for a specific mod.
     /// </summary>
     /// <param name="modId">The mod ID to show details for.</param>
     void ShowModDetailsOverlay(Guid modId);
+
+    /// <summary>
+    /// Hides the mod details overlay.
+    /// </summary>
+    void HideModDetailsOverlay();
 
     /// <summary>
     /// Shows the notifications panel overlay.

@@ -25,6 +25,7 @@ public class PerformNetworkQualityTestCommandHandler : IRequestHandler<PerformNe
             PacketLoss: 0,
             OverallQuality: "Excellent");
 
-        return Task.FromResult(Result<NetworkTestResult>.Success(result));
+        return Task.FromResult(Result.Success<NetworkTestResult>(result));
     }
 }
+

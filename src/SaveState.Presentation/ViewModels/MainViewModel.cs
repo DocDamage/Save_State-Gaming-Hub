@@ -155,6 +155,8 @@ public partial class MainViewModel : ObservableObject
         var userContextService = Locator.Current.GetService<Core.UserManagement.Services.IUserContextService>()!;
         var modService = Locator.Current.GetService<Core.GameLibrary.Services.IModManagementService>()!;
         var dialogService = Locator.Current.GetService<IDialogService>()!;
+        var backlogService = Locator.Current.GetService<Core.GameLibrary.Services.IBacklogService>()!;
+        var clipboardService = Locator.Current.GetService<IClipboardService>()!;
         var loggerFactory = Locator.Current.GetService<ILoggerFactory>()!;
 
         CurrentViewModel = new GameDetailViewModel(
@@ -166,6 +168,8 @@ public partial class MainViewModel : ObservableObject
             userContextService,
             modService,
             dialogService,
+            backlogService,
+            clipboardService,
             gameId,
             loggerFactory);
     }

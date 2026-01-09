@@ -53,12 +53,12 @@ public class SharedCollectionService : ISharedCollectionService
 
             _logger.LogInformation("Created shared collection '{Title}' with code {Code}", title, collection.ShareCode);
 
-            return Result<SharedCollection>.Success(collection);
+            return Result.Success<SharedCollection>(collection);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create shared collection '{Title}'", title);
-            return Result<SharedCollection>.Failure("Failed to create collection", ErrorType.Internal);
+            return Result.Failure<SharedCollection>("Failed to create collection", ErrorType.Internal);
         }
     }
 
@@ -83,7 +83,7 @@ public class SharedCollectionService : ISharedCollectionService
             var collection = await _repository.GetByIdAsync(collectionId, ct);
             if (collection is null)
             {
-                return Result<SharedCollection>.Failure("Collection not found", ErrorType.NotFound);
+                return Result.Failure<SharedCollection>("Collection not found", ErrorType.NotFound);
             }
 
             collection.Update(title, description, isPublic);
@@ -91,12 +91,12 @@ public class SharedCollectionService : ISharedCollectionService
 
             _logger.LogInformation("Updated shared collection {Id}", collectionId);
 
-            return Result<SharedCollection>.Success(collection);
+            return Result.Success<SharedCollection>(collection);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update shared collection {Id}", collectionId);
-            return Result<SharedCollection>.Failure("Failed to update collection", ErrorType.Internal);
+            return Result.Failure<SharedCollection>("Failed to update collection", ErrorType.Internal);
         }
     }
 
@@ -113,15 +113,15 @@ public class SharedCollectionService : ISharedCollectionService
             var collection = await _repository.GetByIdAsync(collectionId, ct);
             if (collection is null)
             {
-                return Result<SharedCollection>.Failure("Collection not found", ErrorType.NotFound);
+                return Result.Failure<SharedCollection>("Collection not found", ErrorType.NotFound);
             }
 
-            return Result<SharedCollection>.Success(collection);
+            return Result.Success<SharedCollection>(collection);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get shared collection {Id}", collectionId);
-            return Result<SharedCollection>.Failure("Failed to get collection", ErrorType.Internal);
+            return Result.Failure<SharedCollection>("Failed to get collection", ErrorType.Internal);
         }
     }
 
@@ -138,19 +138,19 @@ public class SharedCollectionService : ISharedCollectionService
             var collection = await _repository.GetByShareCodeAsync(shareCode, ct);
             if (collection is null)
             {
-                return Result<SharedCollection>.Failure("Collection not found", ErrorType.NotFound);
+                return Result.Failure<SharedCollection>("Collection not found", ErrorType.NotFound);
             }
 
             // Increment download count
             collection.IncrementDownloadCount();
             await _repository.UpdateAsync(collection, ct);
 
-            return Result<SharedCollection>.Success(collection);
+            return Result.Success<SharedCollection>(collection);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get shared collection by code {Code}", shareCode);
-            return Result<SharedCollection>.Failure("Failed to get collection", ErrorType.Internal);
+            return Result.Failure<SharedCollection>("Failed to get collection", ErrorType.Internal);
         }
     }
 
@@ -173,12 +173,12 @@ public class SharedCollectionService : ISharedCollectionService
         try
         {
             var result = await _repository.GetCollectionsAsync(pageNumber, pageSize, isPublic, searchTerm, ct);
-            return Result<PagedResult<SharedCollection>>.Success(result);
+            return Result.Success<PagedResult<SharedCollection>>(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get shared collections");
-            return Result<PagedResult<SharedCollection>>.Failure("Failed to get collections", ErrorType.Internal);
+            return Result.Failure<PagedResult<SharedCollection>>("Failed to get collections", ErrorType.Internal);
         }
     }
 
@@ -197,12 +197,12 @@ public class SharedCollectionService : ISharedCollectionService
         try
         {
             var result = await _repository.GetUserCollectionsAsync(pageNumber, pageSize, ct);
-            return Result<PagedResult<SharedCollection>>.Success(result);
+            return Result.Success<PagedResult<SharedCollection>>(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get user collections");
-            return Result<PagedResult<SharedCollection>>.Failure("Failed to get user collections", ErrorType.Internal);
+            return Result.Failure<PagedResult<SharedCollection>>("Failed to get user collections", ErrorType.Internal);
         }
     }
 
@@ -336,17 +336,17 @@ public class SharedCollectionService : ISharedCollectionService
             var collection = await _repository.GetByIdAsync(collectionId, ct);
             if (collection is null)
             {
-                return Result<string>.Failure("Collection not found", ErrorType.NotFound);
+                return Result.Failure<string>("Collection not found", ErrorType.NotFound);
             }
 
             // For now, just return the share code
             // In a real implementation, this might involve uploading to cloud storage
-            return Result<string>.Success(collection.ShareCode);
+            return Result.Success<string>(collection.ShareCode);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to export collection {Id}", collectionId);
-            return Result<string>.Failure("Failed to export collection", ErrorType.Internal);
+            return Result.Failure<string>("Failed to export collection", ErrorType.Internal);
         }
     }
 
@@ -360,12 +360,13 @@ public class SharedCollectionService : ISharedCollectionService
         try
         {
             var statistics = await _repository.GetStatisticsAsync(ct);
-            return Result<SharedCollectionStatistics>.Success(statistics);
+            return Result.Success<SharedCollectionStatistics>(statistics);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get shared collection statistics");
-            return Result<SharedCollectionStatistics>.Failure("Failed to get statistics", ErrorType.Internal);
+            return Result.Failure<SharedCollectionStatistics>("Failed to get statistics", ErrorType.Internal);
         }
     }
 }
+

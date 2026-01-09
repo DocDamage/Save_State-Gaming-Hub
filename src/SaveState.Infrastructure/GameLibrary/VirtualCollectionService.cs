@@ -42,12 +42,12 @@ public class VirtualCollectionService : IVirtualCollectionService
             await _collectionRepository.AddAsync(collection, ct);
 
             _logger.LogInformation("Created manual collection '{Name}' with ID {Id}", name, collection.Id);
-            return Result<VirtualCollection>.Success(collection);
+            return Result.Success<VirtualCollection>(collection);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create manual collection '{Name}'", name);
-            return Result<VirtualCollection>.Failure($"Failed to create collection: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<VirtualCollection>($"Failed to create collection: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -67,12 +67,12 @@ public class VirtualCollectionService : IVirtualCollectionService
             await _collectionRepository.AddAsync(collection, ct);
 
             _logger.LogInformation("Created smart collection '{Name}' with filter", name);
-            return Result<VirtualCollection>.Success(collection);
+            return Result.Success<VirtualCollection>(collection);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create smart collection '{Name}'", name);
-            return Result<VirtualCollection>.Failure($"Failed to create smart collection: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<VirtualCollection>($"Failed to create smart collection: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -177,7 +177,7 @@ public class VirtualCollectionService : IVirtualCollectionService
         {
             var collection = await _collectionRepository.GetByIdAsync(collectionId, ct);
             if (collection == null)
-                return Result<IReadOnlyList<Game>>.Failure("Collection not found", ErrorType.NotFound);
+                return Result.Failure<IReadOnlyList<Game>>("Collection not found", ErrorType.NotFound);
 
             IReadOnlyList<Game> games;
 
@@ -186,7 +186,7 @@ public class VirtualCollectionService : IVirtualCollectionService
                 var filterResult = await ExecuteSmartFilterAsync(filter, ct);
                 if (!filterResult.IsSuccess)
                 {
-                    return Result<IReadOnlyList<Game>>.Failure(filterResult.Error!, filterResult.ErrorType);
+                    return Result.Failure<IReadOnlyList<Game>>(filterResult.Error!, filterResult.ErrorType);
                 }
                 games = filterResult.Value!;
             }
@@ -195,12 +195,12 @@ public class VirtualCollectionService : IVirtualCollectionService
                 games = await _collectionRepository.GetGamesInCollectionAsync(collectionId, ct);
             }
 
-            return Result<IReadOnlyList<Game>>.Success(games);
+            return Result.Success<IReadOnlyList<Game>>(games);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get games in collection {CollectionId}", collectionId);
-            return Result<IReadOnlyList<Game>>.Failure($"Failed to get games: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<Game>>($"Failed to get games: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -215,12 +215,12 @@ public class VirtualCollectionService : IVirtualCollectionService
         try
         {
             var collections = await _collectionRepository.GetAllAsync(includeSystem, ct);
-            return Result<IReadOnlyList<VirtualCollection>>.Success(collections);
+            return Result.Success<IReadOnlyList<VirtualCollection>>(collections);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get all collections");
-            return Result<IReadOnlyList<VirtualCollection>>.Failure($"Failed to get collections: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<VirtualCollection>>($"Failed to get collections: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -238,12 +238,12 @@ public class VirtualCollectionService : IVirtualCollectionService
 
             // Apply filters
             var filteredGames = await ApplyCollectionFilterAsync(query, filter, ct);
-            return Result<IReadOnlyList<Game>>.Success(filteredGames);
+            return Result.Success<IReadOnlyList<Game>>(filteredGames);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to execute smart filter");
-            return Result<IReadOnlyList<Game>>.Failure($"Failed to execute filter: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<Game>>($"Failed to execute filter: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -347,3 +347,4 @@ public class VirtualCollectionService : IVirtualCollectionService
         return filtered.ToList();
     }
 }
+

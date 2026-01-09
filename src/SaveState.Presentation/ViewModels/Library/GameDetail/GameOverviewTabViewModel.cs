@@ -25,6 +25,7 @@ public partial class GameOverviewTabViewModel : ObservableObject
     private readonly IAiOrchestrator _aiOrchestrator;
     private readonly IDialogService _dialogService;
     private readonly ILogger<GameOverviewTabViewModel> _logger;
+    private readonly INavigationService _navigationService;
     private GameId? _currentGameId;
 
     [ObservableProperty]
@@ -89,12 +90,14 @@ public partial class GameOverviewTabViewModel : ObservableObject
         IUserContextService userContextService,
         IAiOrchestrator aiOrchestrator,
         IDialogService dialogService,
+        INavigationService navigationService,
         ILogger<GameOverviewTabViewModel> logger)
     {
         _mediator = mediator;
         _userContextService = userContextService;
         _aiOrchestrator = aiOrchestrator;
         _dialogService = dialogService;
+        _navigationService = navigationService;
         _logger = logger;
     }
 
@@ -238,24 +241,22 @@ public partial class GameOverviewTabViewModel : ObservableObject
         }
     }
     [RelayCommand]
-    private void ReadMore()
+    private async Task ReadMore()
     {
-        // TODO: Show full description in dialog or expand view
-        _logger.LogInformation("Read more requested");
+        if (string.IsNullOrEmpty(GameDescription)) return;
+
+        await _dialogService.ShowInformationAsync($"{GameTitle} - Description", GameDescription);
     }
 
-    [RelayCommand]
-    private void AddGoal()
-    {
-        // TODO: Open add goal dialog
-        _logger.LogInformation("Add goal requested");
-    }
+
 
     [RelayCommand]
     private void ViewAnalytics()
     {
-        // TODO: Navigate to analytics view
-        _logger.LogInformation("View analytics requested");
+        if (_currentGameId != null)
+        {
+             _navigationService.NavigateTo("Analytics", new { gameId = _currentGameId });
+        }
     }
 
     [RelayCommand]
@@ -351,17 +352,28 @@ public partial class GameOverviewTabViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void SetPriceAlert()
+    private async Task AddGoal()
     {
-        // TODO: Set price alert
-        _logger.LogInformation("Set price alert requested");
+        await CreateGoal();
     }
 
     [RelayCommand]
-    private void AddTag()
+    private async Task SetPriceAlert()
     {
-        // TODO: Add tag dialog
-        _logger.LogInformation("Add tag requested");
+        try
+        {
+            var result = await _dialogService.ShowPriceAlertDialogAsync(GameTitle, 59.99); // Hardcoded price for now until service is real
+
+            if (result != null)
+            {
+                 // In real app, save alert to database
+                 _logger.LogInformation("Price alert set for {Game}: {TargetPrice} at {Store}", GameTitle, result.TargetPrice, result.Store);
+            }
+        }
+        catch (Exception ex)
+        {
+             _logger.LogError(ex, "Failed to set price alert");
+        }
     }
 
     [RelayCommand]

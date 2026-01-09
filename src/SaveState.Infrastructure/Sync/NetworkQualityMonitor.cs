@@ -61,7 +61,7 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
 
             if (!currentQuality.IsSuccess)
             {
-                return Result<NetworkQualityTestResult>.Failure(
+                return Result.Failure<NetworkQualityTestResult>(
                     $"Failed to get current quality: {currentQuality.Error}");
             }
 
@@ -77,12 +77,12 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
             _logger.LogInformation("Network quality test completed - Latency: {Latency}ms, Quality: {Quality}",
                 currentQuality.Value.LatencyMs, currentQuality.Value.Level);
 
-            return Result<NetworkQualityTestResult>.Success(result);
+            return Result.Success<NetworkQualityTestResult>(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to perform network quality test");
-            return Result<NetworkQualityTestResult>.Failure(
+            return Result.Failure<NetworkQualityTestResult>(
                 $"Network quality test failed: {ex.Message}");
         }
     }
@@ -138,12 +138,12 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
 
             _lastQuality = quality;
 
-            return Result<NetworkQuality>.Success(quality);
+            return Result.Success<NetworkQuality>(quality);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get current network quality");
-            return Result<NetworkQuality>.Failure($"Failed to measure network quality: {ex.Message}");
+            return Result.Failure<NetworkQuality>($"Failed to measure network quality: {ex.Message}");
         }
     }
 
@@ -246,16 +246,16 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
 
             if (!currentQuality.IsSuccess)
             {
-                return Result<IReadOnlyList<NetworkQuality>>.Failure(currentQuality.Error);
+                return Result.Failure<IReadOnlyList<NetworkQuality>>(currentQuality.Error);
             }
 
-            var history = new[] { currentQuality.Value };
-            return Result<IReadOnlyList<NetworkQuality>>.Success(history);
+            var history = new List<NetworkQuality> { currentQuality.Value! };
+            return Result.Success<IReadOnlyList<NetworkQuality>>(history);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get network quality history");
-            return Result<IReadOnlyList<NetworkQuality>>.Failure(
+            return Result.Failure<IReadOnlyList<NetworkQuality>>(
                 $"Failed to get quality history: {ex.Message}");
         }
     }
@@ -275,7 +275,7 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
             var qualityResult = await GetCurrentQualityAsync(ct).ConfigureAwait(false);
             if (!qualityResult.IsSuccess)
             {
-                return Result<bool>.Failure(qualityResult.Error);
+                return Result.Failure<bool>(qualityResult.Error);
             }
 
             var quality = qualityResult.Value;
@@ -284,12 +284,12 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
             _logger.LogDebug("Network quality sufficiency for {Provider}: {Sufficient} (Latency: {Latency}ms)",
                 provider, isSufficient, quality.LatencyMs);
 
-            return Result<bool>.Success(isSufficient);
+            return Result.Success<bool>(isSufficient);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to check network quality sufficiency for {Provider}", provider);
-            return Result<bool>.Failure($"Failed to check quality sufficiency: {ex.Message}");
+            return Result.Failure<bool>($"Failed to check quality sufficiency: {ex.Message}");
         }
     }
 
@@ -312,7 +312,7 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
 
             // Check for VPN (simplified)
             var isVpnActive = IsVpnActive();
-            var vpnProviderResult = isVpnActive ? DetectVpnProvider() : Result<string>.Failure("VPN not active", ErrorType.None);
+            var vpnProviderResult = isVpnActive ? DetectVpnProvider() : Result.Failure<string>("VPN not active", ErrorType.None);
 
             // Basic port check (simplified)
             var openPorts = await CheckCommonPortsAsync(ct).ConfigureAwait(false);
@@ -328,12 +328,12 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
                 VpnProvider: vpnProviderResult.IsSuccess ? vpnProviderResult.Value : null,
                 OpenPorts: openPorts);
 
-            return Result<NetworkDiagnostics>.Success(diagnostics);
+            return Result.Success<NetworkDiagnostics>(diagnostics);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get network diagnostics");
-            return Result<NetworkDiagnostics>.Failure($"Failed to get diagnostics: {ex.Message}");
+            return Result.Failure<NetworkDiagnostics>($"Failed to get diagnostics: {ex.Message}");
         }
     }
 
@@ -639,12 +639,12 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
             var response = await _httpClient.GetStringAsync("https://api.ipify.org", ct).ConfigureAwait(false);
             var ip = response.Trim();
             return !string.IsNullOrEmpty(ip)
-                ? Result<string>.Success(ip)
-                : Result<string>.Failure("Empty response from IP service", ErrorType.ExternalService);
+                ? Result.Success<string>(ip)
+                : Result.Failure<string>("Empty response from IP service", ErrorType.ExternalService);
         }
         catch (Exception ex)
         {
-            return Result<string>.Failure($"Failed to resolve public IP: {ex.Message}", ErrorType.ExternalService);
+            return Result.Failure<string>($"Failed to resolve public IP: {ex.Message}", ErrorType.ExternalService);
         }
     }
 
@@ -657,14 +657,14 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
             {
                 if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                 {
-                    return Result<string>.Success(ip.ToString());
+                    return Result.Success<string>(ip.ToString());
                 }
             }
-            return Result<string>.Failure("No IPv4 address found", ErrorType.NotFound);
+            return Result.Failure<string>("No IPv4 address found", ErrorType.NotFound);
         }
         catch (Exception ex)
         {
-            return Result<string>.Failure($"Failed to get local IP: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<string>($"Failed to get local IP: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -695,12 +695,12 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
                 .FirstOrDefault();
 
             return !string.IsNullOrEmpty(gateway)
-                ? Result<string>.Success(gateway)
-                : Result<string>.Failure("No default gateway found", ErrorType.NotFound);
+                ? Result.Success<string>(gateway)
+                : Result.Failure<string>("No default gateway found", ErrorType.NotFound);
         }
         catch (Exception ex)
         {
-            return Result<string>.Failure($"Failed to get default gateway: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<string>($"Failed to get default gateway: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -713,12 +713,12 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
                                     ni.NetworkInterfaceType != NetworkInterfaceType.Loopback);
 
             return adapter != null
-                ? Result<string>.Success(adapter.Name)
-                : Result<string>.Failure("No active network adapter found", ErrorType.NotFound);
+                ? Result.Success<string>(adapter.Name)
+                : Result.Failure<string>("No active network adapter found", ErrorType.NotFound);
         }
         catch (Exception ex)
         {
-            return Result<string>.Failure($"Failed to get active adapter: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<string>($"Failed to get active adapter: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -751,19 +751,19 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
             {
                 // Try to identify provider from description
                 var description = vpnAdapter.Description.ToLowerInvariant();
-                if (description.Contains("openvpn")) return Result<string>.Success("OpenVPN");
-                if (description.Contains("nord")) return Result<string>.Success("NordVPN");
-                if (description.Contains("express")) return Result<string>.Success("ExpressVPN");
-                if (description.Contains("proton")) return Result<string>.Success("ProtonVPN");
-                if (description.Contains("mullvad")) return Result<string>.Success("Mullvad VPN");
+                if (description.Contains("openvpn")) return Result.Success<string>("OpenVPN");
+                if (description.Contains("nord")) return Result.Success<string>("NordVPN");
+                if (description.Contains("express")) return Result.Success<string>("ExpressVPN");
+                if (description.Contains("proton")) return Result.Success<string>("ProtonVPN");
+                if (description.Contains("mullvad")) return Result.Success<string>("Mullvad VPN");
 
-                return Result<string>.Success("Unknown VPN");
+                return Result.Success<string>("Unknown VPN");
             }
-            return Result<string>.Failure("VPN adapter found but could not identify provider", ErrorType.NotFound);
+            return Result.Failure<string>("VPN adapter found but could not identify provider", ErrorType.NotFound);
         }
         catch (Exception ex)
         {
-             return Result<string>.Failure($"Failed to detect VPN provider: {ex.Message}", ErrorType.Internal);
+             return Result.Failure<string>($"Failed to detect VPN provider: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -823,3 +823,4 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
         _httpClient?.Dispose();
     }
 }
+

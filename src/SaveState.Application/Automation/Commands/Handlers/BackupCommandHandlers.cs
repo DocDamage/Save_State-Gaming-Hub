@@ -39,7 +39,7 @@ public class ScheduleBackupCommandHandler : IRequestHandler<ScheduleBackupComman
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to schedule backup");
-            return Result<BackupSchedule>.Failure($"Failed to schedule backup: {ex.Message}");
+            return Result.Failure<BackupSchedule>($"Failed to schedule backup: {ex.Message}");
         }
     }
 }
@@ -143,7 +143,7 @@ public class GetBackupSchedulesCommandHandler : IRequestHandler<GetBackupSchedul
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get backup schedules");
-            return Result<IReadOnlyList<BackupSchedule>>.Failure($"Failed to get schedules: {ex.Message}");
+            return Result.Failure<IReadOnlyList<BackupSchedule>>($"Failed to get schedules: {ex.Message}");
         }
     }
 }
@@ -178,7 +178,7 @@ public class GetBackupScheduleCommandHandler : IRequestHandler<GetBackupSchedule
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get backup schedule: {Id}", request.ScheduleId);
-            return Result<BackupSchedule>.Failure($"Failed to get schedule: {ex.Message}");
+            return Result.Failure<BackupSchedule>($"Failed to get schedule: {ex.Message}");
         }
     }
 }
@@ -215,7 +215,7 @@ public class ExecuteBackupCommandHandler : IRequestHandler<ExecuteBackupCommand,
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to execute backup: {Id}", request.ScheduleId);
-            return Result<BackupResult>.Failure($"Failed to execute backup: {ex.Message}");
+            return Result.Failure<BackupResult>($"Failed to execute backup: {ex.Message}");
         }
     }
 }
@@ -250,7 +250,7 @@ public class GetBackupHistoryCommandHandler : IRequestHandler<GetBackupHistoryCo
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get backup history: {Id}", request.ScheduleId);
-            return Result<IReadOnlyList<BackupResult>>.Failure($"Failed to get history: {ex.Message}");
+            return Result.Failure<IReadOnlyList<BackupResult>>($"Failed to get history: {ex.Message}");
         }
     }
 }
@@ -323,7 +323,7 @@ public class GetNextBackupExecutionTimeCommandHandler : IRequestHandler<GetNextB
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get next backup execution time: {Id}", request.ScheduleId);
-            return Result<DateTime?>.Failure($"Failed to get next execution time: {ex.Message}");
+            return Result.Failure<DateTime?>($"Failed to get next execution time: {ex.Message}");
         }
     }
 }
@@ -362,3 +362,5 @@ public class ValidateBackupScheduleCommandHandler : IRequestHandler<ValidateBack
         }
     }
 }
+
+

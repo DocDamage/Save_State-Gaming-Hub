@@ -35,10 +35,10 @@ public class MugenCharacterRepository : IMugenCharacterRepository
 
             if (character == null)
             {
-                return Result<MugenCharacter>.Failure($"Character with ID {id} not found", ErrorType.NotFound);
+                return Result.Failure<MugenCharacter>($"Character with ID {id} not found", ErrorType.NotFound);
             }
 
-            return Result<MugenCharacter>.Success(character);
+            return Result.Success<MugenCharacter>(character);
         }
         catch (Exception ex)
         {
@@ -177,10 +177,10 @@ public class MugenCharacterRepository : IMugenCharacterRepository
 
             if (character == null)
             {
-                return Result<MugenCharacter>.Failure($"Character with name '{name}' not found", ErrorType.NotFound);
+                return Result.Failure<MugenCharacter>($"Character with name '{name}' not found", ErrorType.NotFound);
             }
 
-            return Result<MugenCharacter>.Success(character);
+            return Result.Success<MugenCharacter>(character);
         }
         catch (Exception ex)
         {
@@ -280,3 +280,4 @@ public class MugenCharacterRepository : IMugenCharacterRepository
         }
     }
 }
+

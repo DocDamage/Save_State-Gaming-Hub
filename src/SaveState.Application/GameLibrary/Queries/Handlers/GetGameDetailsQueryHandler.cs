@@ -31,7 +31,7 @@ public class GetGameDetailsQueryHandler : IRequestHandler<GetGameDetailsQuery, R
         var game = await _gameRepository.GetByIdAsync(request.GameId, ct).ConfigureAwait(false);
 
         if (game is null)
-            return Result<GameDetail>.Failure("Game not found");
+            return Result.Failure<GameDetail>("Game not found");
 
         var detail = new GameDetail
         {
@@ -55,6 +55,7 @@ public class GetGameDetailsQueryHandler : IRequestHandler<GetGameDetailsQuery, R
             }).ToArray()
         };
 
-        return Result<GameDetail>.Success(detail);
+        return Result.Success<GameDetail>(detail);
     }
 }
+

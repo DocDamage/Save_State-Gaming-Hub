@@ -4,6 +4,9 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Infrastructure.GameLibrary.Services;
+using SaveState.Presentation.Services;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SaveState.Presentation.ViewModels.Shell;
 
@@ -35,23 +38,135 @@ public partial class GameMemoryViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private ObservableCollection<string> _scanLog = new();
 
+    private readonly IDialogService _dialogService;
+    private readonly IOverlayService _overlayService;
+
+    [ObservableProperty]
+    private int _selectedTabIndex;
+
+    // Cheat Engine / Address Tracking
+    [ObservableProperty]
+    private ObservableCollection<WatchedAddressViewModel> _watchedAddresses = new();
+
+    // Debugger / Hex View
+    [ObservableProperty]
+    private string _currentHexAddress = "0x00000000";
+
+    [ObservableProperty]
+    private ObservableCollection<HexRowViewModel> _hexViewRows = new();
+
     public GameMemoryViewModel(
         IGameMemoryReader memoryReader,
         MemoryPatternDatabase patternDatabase,
+        IDialogService dialogService,
+        IOverlayService overlayService,
         ILogger<GameMemoryViewModel> logger)
     {
         _memoryReader = memoryReader;
         _patternDatabase = patternDatabase;
+        _dialogService = dialogService;
+        _overlayService = overlayService;
         _logger = logger;
 
         _memoryReader.StateChanged += OnGameStateChanged;
 
-        // Start a UI refresh timer to poll status if needed,
-        // though better to rely on events.
-        // For visual updates like "time since last update", a timer is useful.
         _refreshTimer = new System.Timers.Timer(1000);
-        _refreshTimer.Elapsed += (s, e) => CheckStatus();
+        _refreshTimer.Elapsed += (s, e) => {
+            CheckStatus();
+            UpdateWatchedAddresses();
+        };
         _refreshTimer.Start();
+
+        // Initialize some dummy hex data for UI visualization
+        RefreshHexView();
+    }
+
+    private void UpdateWatchedAddresses()
+    {
+        // Simulate value updates
+        foreach (var address in WatchedAddresses)
+        {
+            if (address.IsFrozen)
+            {
+                // In real implementation: Write memory
+            }
+            else
+            {
+                // In real implementation: Read memory
+                // address.Value = _memoryReader.Read(address.Address);
+            }
+        }
+    }
+
+    [RelayCommand]
+    private async Task AddAddressAsync()
+    {
+        // Simple dialog to add address
+        // In a real app, use a dedicated dialog viewModel
+        var result = await _dialogService.ShowInputDialogAsync("Add Address", "Enter memory address (hex):", "0x");
+        if (!string.IsNullOrWhiteSpace(result))
+        {
+             WatchedAddresses.Add(new WatchedAddressViewModel
+             {
+                 Address = result,
+                 Label = "New Address",
+                 Type = "Bytes",
+                 Value = "00"
+             });
+             AddToLog($"Added watch for {result}");
+        }
+    }
+
+    [RelayCommand]
+    private void RemoveAddress(WatchedAddressViewModel address)
+    {
+        if (address != null && WatchedAddresses.Contains(address))
+        {
+            WatchedAddresses.Remove(address);
+            AddToLog($"Removed watch for {address.Address}");
+        }
+    }
+
+    [RelayCommand]
+    private void RefreshHexView()
+    {
+        // Mock data for the debugger view
+        HexViewRows.Clear();
+        var startAddr = 0x00400000; // Example base
+        var random = new Random();
+
+        for (int i = 0; i < 16; i++)
+        {
+            var rowAddr = startAddr + (i * 16);
+            var bytes = new byte[16];
+            random.NextBytes(bytes);
+
+            var hexString = BitConverter.ToString(bytes).Replace("-", " ");
+            var ascii = new string(bytes.Select(b => b >= 32 && b <= 126 ? (char)b : '.').ToArray());
+
+            HexViewRows.Add(new HexRowViewModel
+            {
+                AddressOffset = $"0x{rowAddr:X8}",
+                HexBytes = hexString,
+                Ascii = ascii
+            });
+        }
+    }
+
+    public partial class WatchedAddressViewModel : ObservableObject
+    {
+        [ObservableProperty] private string _address = "";
+        [ObservableProperty] private string _label = "";
+        [ObservableProperty] private string _type = "";
+        [ObservableProperty] private string _value = "";
+        [ObservableProperty] private bool _isFrozen;
+    }
+
+    public class HexRowViewModel
+    {
+        public string AddressOffset { get; set; } = "";
+        public string HexBytes { get; set; } = "";
+        public string Ascii { get; set; } = "";
     }
 
     private void CheckStatus()

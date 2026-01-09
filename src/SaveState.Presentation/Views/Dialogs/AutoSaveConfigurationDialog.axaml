@@ -1,0 +1,175 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        x:Class="SaveState.Presentation.Views.Dialogs.AutoSaveConfigurationDialog"
+        x:DataType="vm:AutoSaveConfigurationDialogViewModel"
+        Title="Auto-Save Configuration"
+        Width="600"
+        Height="550"
+        MinWidth="500"
+        MinHeight="450"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True"
+        Background="{StaticResource DialogBackgroundBrush}">
+
+    <Window.Styles>
+        <Style Selector="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+            <Setter Property="Margin" Value="0,8" />
+        </Style>
+
+        <Style Selector="TextBox, ComboBox">
+            <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="12,8" />
+        </Style>
+
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="24,10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style Selector="Button.secondary">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="24,10" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,20">
+            <TextBlock Text="Auto-Save Configuration"
+                      FontSize="24"
+                      FontWeight="Bold"
+                      Foreground="{StaticResource ForegroundBrush}" />
+            <TextBlock Text="Configure automatic save state creation"
+                      FontSize="14"
+                      Opacity="0.7"
+                      Foreground="{StaticResource ForegroundBrush}" />
+        </StackPanel>
+
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="20">
+                <!-- Enable/Disable -->
+                <Border Background="{StaticResource CardBackgroundBrush}"
+                       BorderBrush="{StaticResource CardBorderBrush}"
+                       BorderThickness="1"
+                       CornerRadius="8"
+                       Padding="16">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Basic Settings"
+                                  FontWeight="SemiBold"
+                                  FontSize="15"
+                                  Foreground="{StaticResource ForegroundBrush}" />
+
+                        <CheckBox IsChecked="{Binding AutoSaveEnabled}"
+                                 Content="Enable automatic save states" />
+
+                        <!-- Interval Selection -->
+                        <StackPanel Spacing="6"
+                                   IsEnabled="{Binding AutoSaveEnabled}">
+                            <TextBlock Text="Auto-Save Interval"
+                                      FontWeight="SemiBold"
+                                      FontSize="13"
+                                      Foreground="{StaticResource ForegroundBrush}" />
+                            <ComboBox SelectedItem="{Binding SelectedInterval}"
+                                     ItemsSource="{Binding AvailableIntervals}"
+                                     HorizontalAlignment="Stretch" />
+                        </StackPanel>
+
+                        <!-- Max Auto-Saves -->
+                        <StackPanel Spacing="6"
+                                   IsEnabled="{Binding AutoSaveEnabled}">
+                            <TextBlock Text="Maximum Auto-Saves to Keep"
+                                      FontWeight="SemiBold"
+                                      FontSize="13"
+                                      Foreground="{StaticResource ForegroundBrush}" />
+                            <ComboBox SelectedItem="{Binding MaxAutoSaves}"
+                                     ItemsSource="{Binding MaxAutoSavesOptions}"
+                                     HorizontalAlignment="Stretch" />
+                            <TextBlock Text="Older auto-saves will be automatically deleted"
+                                      FontSize="11"
+                                      Opacity="0.6"
+                                      Foreground="{StaticResource ForegroundBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Trigger Options -->
+                <Border Background="{StaticResource CardBackgroundBrush}"
+                       BorderBrush="{StaticResource CardBorderBrush}"
+                       BorderThickness="1"
+                       CornerRadius="8"
+                       Padding="16"
+                       IsEnabled="{Binding AutoSaveEnabled}">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Auto-Save Triggers"
+                                  FontWeight="SemiBold"
+                                  FontSize="15"
+                                  Foreground="{StaticResource ForegroundBrush}" />
+
+                        <CheckBox IsChecked="{Binding CreateAutoSaveOnGameStart}"
+                                 Content="Create auto-save when game starts" />
+
+                        <CheckBox IsChecked="{Binding CreateAutoSaveOnBossEncounter}"
+                                 Content="Create auto-save before boss encounters (AI-detected)" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Additional Options -->
+                <Border Background="{StaticResource CardBackgroundBrush}"
+                       BorderBrush="{StaticResource CardBorderBrush}"
+                       BorderThickness="1"
+                       CornerRadius="8"
+                       Padding="16"
+                       IsEnabled="{Binding AutoSaveEnabled}">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Additional Options"
+                                  FontWeight="SemiBold"
+                                  FontSize="15"
+                                  Foreground="{StaticResource ForegroundBrush}" />
+
+                        <CheckBox IsChecked="{Binding NotifyOnAutoSave}"
+                                 Content="Show notification when auto-save is created" />
+
+                        <CheckBox IsChecked="{Binding CompressAutoSaves}"
+                                 Content="Compress auto-saves to save disk space" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Footer -->
+        <Grid Grid.Row="2"
+              ColumnDefinitions="Auto,*,Auto,Auto"
+              Margin="0,20,0,0">
+            <Button Grid.Column="0"
+                   Classes="secondary"
+                   Content="Reset to Defaults"
+                   Command="{Binding ResetToDefaultsCommand}" />
+
+            <Button Grid.Column="2"
+                   Classes="secondary"
+                   Content="Cancel"
+                   Command="{Binding CancelCommand}"
+                   Margin="0,0,12,0" />
+
+            <Button Grid.Column="3"
+                   Classes="primary"
+                   Content="Save Settings"
+                   Command="{Binding SaveCommand}" />
+        </Grid>
+    </Grid>
+</Window>

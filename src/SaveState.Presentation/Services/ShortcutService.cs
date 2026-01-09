@@ -89,17 +89,106 @@ public class ShortcutService : IShortcutService
     /// <inheritdoc />
     public async Task LoadUserCustomizations()
     {
-        // TODO: Load user customizations from storage
-        // For now, this is a placeholder
-        await Task.CompletedTask;
+        try
+        {
+            var settingsPath = GetShortcutsFilePath();
+
+            if (!File.Exists(settingsPath))
+            {
+                _logger.LogInformation("No user shortcut customizations found, using defaults");
+                return;
+            }
+
+            var json = await File.ReadAllTextAsync(settingsPath);
+            var customizations = System.Text.Json.JsonSerializer.Deserialize<ShortcutCustomizations>(json);
+
+            if (customizations == null)
+            {
+                _logger.LogWarning("Failed to deserialize shortcut customizations");
+                return;
+            }
+
+            // Apply customizations
+            foreach (var custom in customizations.GlobalShortcuts)
+            {
+                var gesture = ParseKeyGesture(custom.KeyGesture);
+                if (gesture != null && _globalShortcuts.ContainsKey(gesture))
+                {
+                    // Update existing binding with custom gesture
+                    var existing = _globalShortcuts[gesture];
+                    _globalShortcuts.Remove(gesture);
+
+                    var newGesture = ParseKeyGesture(custom.CustomKeyGesture ?? custom.KeyGesture);
+                    if (newGesture != null)
+                    {
+                        _globalShortcuts[newGesture] = existing with { Gesture = newGesture };
+                    }
+                }
+            }
+
+            _logger.LogInformation("Loaded {Count} shortcut customizations", customizations.GlobalShortcuts.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load user shortcut customizations");
+        }
     }
 
     /// <inheritdoc />
     public async Task SaveUserCustomizations()
     {
-        // TODO: Save user customizations to storage
-        // For now, this is a placeholder
-        await Task.CompletedTask;
+        try
+        {
+            var customizations = new ShortcutCustomizations
+            {
+                GlobalShortcuts = _globalShortcuts.Select(kvp => new ShortcutCustomization
+                {
+                    KeyGesture = kvp.Key.ToString() ?? string.Empty,
+                    Description = kvp.Value.Description,
+                    Context = kvp.Value.Context,
+                    CustomKeyGesture = kvp.Key.ToString() // Store current gesture
+                }).ToList(),
+                LastModified = DateTime.UtcNow
+            };
+
+            var json = System.Text.Json.JsonSerializer.Serialize(customizations, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+
+            var settingsPath = GetShortcutsFilePath();
+            var directory = Path.GetDirectoryName(settingsPath);
+
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            await File.WriteAllTextAsync(settingsPath, json);
+            _logger.LogInformation("Saved {Count} shortcut customizations", customizations.GlobalShortcuts.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save user shortcut customizations");
+        }
+    }
+
+    private static string GetShortcutsFilePath()
+    {
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return Path.Combine(appData, "SaveStateReborn", "shortcuts.json");
+    }
+
+    private static KeyGesture? ParseKeyGesture(string gestureString)
+    {
+        try
+        {
+            return KeyGesture.Parse(gestureString);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     /// <inheritdoc />
@@ -149,4 +238,24 @@ public class ShortcutService : IShortcutService
 
         return false;
     }
+}
+
+/// <summary>
+/// Container for shortcut customizations.
+/// </summary>
+internal class ShortcutCustomizations
+{
+    public List<ShortcutCustomization> GlobalShortcuts { get; set; } = new();
+    public DateTime LastModified { get; set; }
+}
+
+/// <summary>
+/// Individual shortcut customization.
+/// </summary>
+internal class ShortcutCustomization
+{
+    public string KeyGesture { get; set; } = string.Empty;
+    public string? CustomKeyGesture { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public string Context { get; set; } = string.Empty;
 }

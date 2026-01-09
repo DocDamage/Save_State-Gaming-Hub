@@ -40,7 +40,7 @@ public class GetCloudProvidersQueryHandler :
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get available cloud gaming providers");
-            return Result<IReadOnlyList<CloudGamingProvider>>.Failure(
+            return Result.Failure<IReadOnlyList<CloudGamingProvider>>(
                 $"Failed to get providers: {ex.Message}");
         }
     }
@@ -80,7 +80,7 @@ public class GetActiveCloudSessionsQueryHandler :
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get active cloud gaming sessions");
-            return Result<IReadOnlyList<CloudSession>>.Failure(
+            return Result.Failure<IReadOnlyList<CloudSession>>(
                 $"Failed to get active sessions: {ex.Message}");
         }
     }

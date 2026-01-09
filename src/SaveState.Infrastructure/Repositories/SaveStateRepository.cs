@@ -89,4 +89,10 @@ public class SaveStateRepository : ISaveStateRepository
             .ToListAsync(ct)
             .ConfigureAwait(false);
     }
+
+    public async Task AddBranchAsync(SaveStateBranch branch, CancellationToken ct = default)
+    {
+        await _context.SaveStateBranches.AddAsync(branch, ct).ConfigureAwait(false);
+        await _context.SaveChangesAsync(ct).ConfigureAwait(false);
+    }
 }

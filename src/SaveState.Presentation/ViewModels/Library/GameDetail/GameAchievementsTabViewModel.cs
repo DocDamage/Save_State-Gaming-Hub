@@ -10,6 +10,8 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.IO;
 using SaveState.Presentation.Services;
 
 namespace SaveState.Presentation.ViewModels.Library.GameDetail;
@@ -94,6 +96,41 @@ public partial class GameAchievementsTabViewModel : ObservableObject
     [ObservableProperty]
     private bool _sortByRarity;
 
+    [ObservableProperty]
+    private string _searchText = string.Empty;
+
+    private List<GameAchievementViewModel> _allAchievements = new();
+
+    partial void OnSelectedFilterChanged(string value) => ApplyFilters();
+    partial void OnSearchTextChanged(string value) => ApplyFilters();
+    partial void OnShowHiddenAchievementsChanged(bool value) => ApplyFilters();
+
+    private void ApplyFilters()
+    {
+        var filtered = _allAchievements.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            filtered = filtered.Where(a =>
+                a.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                a.Description.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+        }
+
+        filtered = SelectedFilter switch
+        {
+            "Unlocked" => filtered.Where(a => a.IsUnlocked),
+            "Locked" => filtered.Where(a => !a.IsUnlocked),
+            "Recent" => filtered.Where(a => RecentUnlocks.Contains(a)),
+            _ => filtered
+        };
+
+        Achievements.Clear();
+        foreach (var item in filtered)
+        {
+            Achievements.Add(item);
+        }
+    }
+
     public GameAchievementsTabViewModel(
         IMediator mediator,
         IUserContextService userContextService,
@@ -153,7 +190,10 @@ public partial class GameAchievementsTabViewModel : ObservableObject
             }
 
             // Populate achievements collection
+            _allAchievements.Clear();
             Achievements.Clear();
+            RecentUnlocks.Clear();
+
             foreach (var achievement in achievements)
             {
                 var (rarityText, rarityColor) = GetRarityInfo(achievement.AchievementType);
@@ -178,7 +218,7 @@ public partial class GameAchievementsTabViewModel : ObservableObject
                     ShowProgress = achievement.CurrentProgress > 0 && achievement.TargetProgress > achievement.CurrentProgress
                 };
 
-                Achievements.Add(vm);
+                _allAchievements.Add(vm);
 
                 // Add to recent unlocks if unlocked in last 7 days
                 if (achievement.IsUnlocked && achievement.UnlockedAt.HasValue &&
@@ -187,6 +227,8 @@ public partial class GameAchievementsTabViewModel : ObservableObject
                     RecentUnlocks.Add(vm);
                 }
             }
+
+            ApplyFilters();
 
             _logger.LogInformation("Loaded {Count} achievements for game {GameId}", achievements.Count, gameId);
         }
@@ -251,15 +293,28 @@ public partial class GameAchievementsTabViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task ToggleSearch()
+    private void ToggleSearch()
     {
-        await _dialogService.ShowInformationAsync("Search", "Advanced achievement search is coming soon.");
+        // Search is handled by SearchText property binding
+        _logger.LogInformation("Search toggled (SearchText: {SearchText})", SearchText);
     }
 
     [RelayCommand]
     private async Task ViewStats()
     {
-        await _dialogService.ShowInformationAsync("Statistics", "Detailed achievement statistics (rarity breakdown, progress velocity) coming soon.");
+        var stats = $"Achievement Statistics:\n\n" +
+                   $"Total: {TotalAchievements}\n" +
+                   $"Unlocked: {UnlockedCount}\n" +
+                   $"Locked: {LockedCount}\n" +
+                   $"Completion: {CompletionPercentage:F1}%\n\n" +
+                   $"Rarity Breakdown:\n" +
+                   $"• Legendary: {LegendaryCount}\n" +
+                   $"• Epic: {EpicCount}\n" +
+                   $"• Rare: {RareCount}\n" +
+                   $"• Uncommon: {UncommonCount}\n" +
+                   $"• Common: {CommonCount}";
+
+        await _dialogService.ShowInformationAsync("Achievement Stats", stats);
     }
 }
 

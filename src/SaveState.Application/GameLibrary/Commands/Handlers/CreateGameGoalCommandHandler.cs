@@ -35,6 +35,7 @@ public class CreateGameGoalCommandHandler : IRequestHandler<CreateGameGoalComman
 
         await _goalRepository.AddAsync(goal, cancellationToken).ConfigureAwait(false);
 
-        return Result<Guid>.Success(goal.Id);
+        return Result.Success<Guid>(goal.Id);
     }
 }
+

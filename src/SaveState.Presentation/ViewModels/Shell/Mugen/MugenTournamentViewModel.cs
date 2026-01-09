@@ -29,4 +29,11 @@ public partial class MugenTournamentViewModel : MugenSectionViewModelBase
     {
         IsTournamentActive = true;
     }
+
+    [RelayCommand]
+    private void RefreshTournament()
+    {
+        // Placeholder refresh logic
+        // In a real implementation, this would reload bracket data from the service
+    }
 }

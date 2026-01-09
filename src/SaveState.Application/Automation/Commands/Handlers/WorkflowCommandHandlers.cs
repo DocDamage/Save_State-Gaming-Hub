@@ -39,7 +39,7 @@ public class CreateWorkflowCommandHandler : IRequestHandler<CreateWorkflowComman
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create workflow");
-            return Result<Workflow>.Failure($"Failed to create workflow: {ex.Message}");
+            return Result.Failure<Workflow>($"Failed to create workflow: {ex.Message}");
         }
     }
 }
@@ -143,7 +143,7 @@ public class GetWorkflowsCommandHandler : IRequestHandler<GetWorkflowsCommand, R
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get workflows");
-            return Result<IReadOnlyList<Workflow>>.Failure($"Failed to get workflows: {ex.Message}");
+            return Result.Failure<IReadOnlyList<Workflow>>($"Failed to get workflows: {ex.Message}");
         }
     }
 }
@@ -178,7 +178,7 @@ public class GetWorkflowCommandHandler : IRequestHandler<GetWorkflowCommand, Res
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get workflow: {Id}", request.WorkflowId);
-            return Result<Workflow>.Failure($"Failed to get workflow: {ex.Message}");
+            return Result.Failure<Workflow>($"Failed to get workflow: {ex.Message}");
         }
     }
 }
@@ -215,7 +215,7 @@ public class ExecuteWorkflowCommandHandler : IRequestHandler<ExecuteWorkflowComm
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to execute workflow: {Id}", request.WorkflowId);
-            return Result<WorkflowExecutionResult>.Failure($"Failed to execute workflow: {ex.Message}");
+            return Result.Failure<WorkflowExecutionResult>($"Failed to execute workflow: {ex.Message}");
         }
     }
 }
@@ -285,7 +285,7 @@ public class GetWorkflowExecutionHistoryCommandHandler : IRequestHandler<GetWork
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get workflow execution history: {Id}", request.WorkflowId);
-            return Result<IReadOnlyList<WorkflowExecutionResult>>.Failure($"Failed to get history: {ex.Message}");
+            return Result.Failure<IReadOnlyList<WorkflowExecutionResult>>($"Failed to get history: {ex.Message}");
         }
     }
 }
@@ -356,7 +356,7 @@ public class CreateWorkflowFromMacroCommandHandler : IRequestHandler<CreateWorkf
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create workflow from macro: {MacroId}", request.MacroId);
-            return Result<Workflow>.Failure($"Failed to create workflow from macro: {ex.Message}");
+            return Result.Failure<Workflow>($"Failed to create workflow from macro: {ex.Message}");
         }
     }
 }
@@ -391,7 +391,7 @@ public class ExportWorkflowCommandHandler : IRequestHandler<ExportWorkflowComman
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to export workflow: {Id}", request.WorkflowId);
-            return Result<string>.Failure($"Failed to export workflow: {ex.Message}");
+            return Result.Failure<string>($"Failed to export workflow: {ex.Message}");
         }
     }
 }
@@ -426,7 +426,8 @@ public class ImportWorkflowCommandHandler : IRequestHandler<ImportWorkflowComman
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to import workflow from {Path}", request.FilePath);
-            return Result<Workflow>.Failure($"Failed to import workflow: {ex.Message}");
+            return Result.Failure<Workflow>($"Failed to import workflow: {ex.Message}");
         }
     }
 }
+

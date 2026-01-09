@@ -111,6 +111,19 @@ public partial class LibraryToolbarViewModel : ObservableObject
         TableViewButtonClass = activeView == "table" ? "Primary" : "Secondary";
     }
 
+    [ObservableProperty]
+    private bool _isSelectionMode;
+
+    [RelayCommand]
+    private void ToggleSelectionMode()
+    {
+        IsSelectionMode = !IsSelectionMode;
+        SelectionModeToggled?.Invoke(this, IsSelectionMode);
+        _logger.LogInformation("Selection mode toggled: {IsSelectionMode}", IsSelectionMode);
+    }
+
+    public event EventHandler<bool>? SelectionModeToggled;
+
     [RelayCommand]
     private void ToggleFilterPanel()
     {

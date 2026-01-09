@@ -31,7 +31,7 @@ public class GetRomDetailsQueryHandler : IRequestHandler<GetRomDetailsQuery, Res
         var rom = await _romRepository.GetByIdAsync(request.RomFileId.Value, ct).ConfigureAwait(false);
 
         if (rom is null)
-            return Result<RomDetailsDto>.Failure("ROM file not found");
+            return Result.Failure<RomDetailsDto>("ROM file not found");
 
         var dto = new RomDetailsDto
         {
@@ -49,6 +49,7 @@ public class GetRomDetailsQueryHandler : IRequestHandler<GetRomDetailsQuery, Res
             VerifiedAt = rom.VerifiedAt
         };
 
-        return Result<RomDetailsDto>.Success(dto);
+        return Result.Success<RomDetailsDto>(dto);
     }
 }
+

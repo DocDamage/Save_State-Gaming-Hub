@@ -27,7 +27,7 @@ public class LocalEmbeddedProvider : ILlmProvider
     {
         await Task.Delay(150, ct);
         var content = $"[Local {request.Model}] Simulated response for: {request.Prompt}";
-        return Result<CompletionResult>.Success(new CompletionResult(content, "stop", new TokenUsage(10, 20, 30), request.Model));
+        return Result.Success<CompletionResult>(new CompletionResult(content, "stop", new TokenUsage(10, 20, 30), request.Model));
     }
 
     public async Task<Result<ChatResult>> ChatAsync(ChatRequest request, CancellationToken ct = default)
@@ -48,7 +48,7 @@ public class LocalEmbeddedProvider : ILlmProvider
             content = $"[Local {request.Model}] Hello! I am your local AI. I am currently running without specific RAG context for this query, but I'm ready to help. (Hint: Try asking about your MUGEN library or recent game sessions).";
         }
 
-        return Result<ChatResult>.Success(new ChatResult(content, "stop", new TokenUsage(100, 150, 250), request.Model));
+        return Result.Success<ChatResult>(new ChatResult(content, "stop", new TokenUsage(100, 150, 250), request.Model));
     }
 
     public Task<Result<EmbeddingResult>> GenerateEmbeddingsAsync(EmbeddingRequest request, CancellationToken ct = default)
@@ -62,6 +62,7 @@ public class LocalEmbeddedProvider : ILlmProvider
             mockEmbedding[i] = (float)rnd.NextDouble();
         }
 
-        return Task.FromResult(Result<EmbeddingResult>.Success(new EmbeddingResult(mockEmbedding, "local-embed-v1")));
+        return Task.FromResult(Result.Success<EmbeddingResult>(new EmbeddingResult(mockEmbedding, "local-embed-v1")));
     }
 }
+

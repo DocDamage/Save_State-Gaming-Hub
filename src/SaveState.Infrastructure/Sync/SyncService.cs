@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Sync;
+using SaveState.Core.Common.Services;
+using System.Linq;
 
 namespace SaveState.Infrastructure.Sync;
 
@@ -9,8 +11,14 @@ namespace SaveState.Infrastructure.Sync;
 public class SyncService : ISyncService
 {
     private readonly ILogger<SyncService> _logger;
+    private readonly IUserPreferencesService _preferencesService;
+    private readonly IEnumerable<ICloudStorageProvider> _providers;
     private ICloudStorageProvider? _provider;
     private SyncStatus _status = SyncStatus.NotConfigured;
+    private readonly List<SyncConflictEventArgs> _conflicts = new();
+    private DateTime _syncStartTime;
+    private long _totalBytes;
+    private long _processedBytes;
 
     /// <summary>
     /// Gets the current synchronization status.
@@ -35,11 +43,47 @@ public class SyncService : ISyncService
     /// <summary>
     /// Initializes a new instance of the <see cref="SyncService"/> class.
     /// </summary>
+    /// <param name="providers">Available cloud storage providers.</param>
+    /// <param name="preferencesService">User preferences service.</param>
     /// <param name="logger">Logger for diagnostic information.</param>
-    public SyncService(ILogger<SyncService> logger)
+    public SyncService(
+        IEnumerable<ICloudStorageProvider> providers,
+        IUserPreferencesService preferencesService,
+        ILogger<SyncService> logger)
     {
         _logger = logger;
+        _preferencesService = preferencesService;
+        _providers = providers;
     }
+
+    private async Task<bool> EnsureProviderAsync()
+    {
+        var preferred = await _preferencesService.GetPreferredCloudProviderAsync();
+
+        // If provider already set and matches preference, we're good
+        if (_provider != null && _provider.ProviderName == preferred)
+        {
+            return true;
+        }
+
+        _provider = _providers.FirstOrDefault(p => p.ProviderName == preferred);
+
+        if (_provider == null)
+        {
+             _provider = _providers.FirstOrDefault(p => p.ProviderName != "Local");
+        }
+
+        if (_provider != null)
+        {
+            _status = SyncStatus.Idle;
+            return true;
+        }
+
+        _status = SyncStatus.NotConfigured;
+        return false;
+    }
+
+
 
     /// <summary>
     /// Configures the cloud storage provider for synchronization.
@@ -51,6 +95,7 @@ public class SyncService : ISyncService
     {
         _provider = provider;
         _status = SyncStatus.Idle;
+        _conflicts.Clear();
         _logger.LogInformation("Sync service configured with provider: {Provider}", provider.ProviderName);
         return Task.CompletedTask;
     }
@@ -101,9 +146,18 @@ public class SyncService : ISyncService
     /// <returns>A result containing upload statistics and any errors.</returns>
     public async Task<SyncResult> PushAsync(CancellationToken ct = default)
     {
-        if (_provider == null)
+        if (!await EnsureProviderAsync().ConfigureAwait(false))
         {
             return new SyncResult(false, 0, 0, 0, new[] { "No provider configured" });
+        }
+
+        if (!_provider.IsAuthenticated)
+        {
+            _logger.LogInformation("Provider {Provider} is not authenticated. Attempting authentication...", _provider.ProviderName);
+            if (!await _provider.AuthenticateAsync(ct).ConfigureAwait(false))
+            {
+                return new SyncResult(false, 0, 0, 0, new[] { "Authentication failed" });
+            }
         }
 
         _status = SyncStatus.Syncing;
@@ -115,30 +169,56 @@ public class SyncService : ISyncService
             // Get local sync manifest
             var localManifest = await GetLocalManifestAsync(ct).ConfigureAwait(false);
 
-            foreach (var (path, modifiedAt) in localManifest)
+            // Calculate total bytes for progress
+            _totalBytes = localManifest.Keys.Select(k => new FileInfo(GetLocalPath(k)).Length).Sum();
+            _processedBytes = 0;
+            _syncStartTime = DateTime.UtcNow;
+
+            foreach (var (remotePath, modifiedAt) in localManifest)
             {
                 if (ct.IsCancellationRequested) break;
 
-                var remoteInfo = await _provider.GetFileInfoAsync(path, ct).ConfigureAwait(false);
+                var localPath = GetLocalPath(remotePath);
+                var status = await GetFileSyncStatusAsync(localPath, ct).ConfigureAwait(false);
 
-                // Upload if remote doesn't exist or local is newer
-                if (remoteInfo == null || modifiedAt > remoteInfo.ModifiedAt)
+                if (status == FileSyncStatus.LocalNewer)
                 {
-                    var localPath = GetLocalPath(path);
-                    if (await _provider.UploadFileAsync(localPath, path, ct).ConfigureAwait(false))
+                    var fileSize = new FileInfo(localPath).Length;
+                    if (await _provider.UploadFileAsync(localPath, remotePath, ct).ConfigureAwait(false))
                     {
                         filesUploaded++;
-                        ReportProgress(localManifest.Count, filesUploaded, path);
+                        _processedBytes += fileSize;
+                        ReportProgress(localManifest.Count, filesUploaded, remotePath);
                     }
                     else
                     {
-                        errors.Add($"Failed to upload: {path}");
+                        errors.Add($"Failed to upload: {remotePath}");
                     }
+                }
+                else if (status == FileSyncStatus.Conflict)
+                {
+                    var remoteInfo = await _provider.GetFileInfoAsync(remotePath, ct).ConfigureAwait(false);
+                    var conflict = new SyncConflictEventArgs
+                    {
+                        LocalPath = localPath,
+                        RemotePath = remotePath,
+                        LocalModified = modifiedAt,
+                        RemoteModified = remoteInfo?.ModifiedAt ?? DateTime.MinValue,
+                        RemoteSize = remoteInfo?.SizeBytes ?? 0
+                    };
+                    _conflicts.Add(conflict);
+                    ConflictDetected?.Invoke(this, conflict);
                 }
             }
 
             _status = SyncStatus.Idle;
             _logger.LogInformation("Push completed: {Count} files uploaded", filesUploaded);
+
+            // Update sync history for uploaded files
+            if (filesUploaded > 0)
+            {
+                await UpdateSyncHistoryAsync(localManifest.Keys, ct).ConfigureAwait(false);
+            }
 
             return new SyncResult(errors.Count == 0, filesUploaded, 0, 0, errors);
         }
@@ -157,9 +237,18 @@ public class SyncService : ISyncService
     /// <returns>A result containing download statistics and any conflicts or errors.</returns>
     public async Task<SyncResult> PullAsync(CancellationToken ct = default)
     {
-        if (_provider == null)
+        if (!await EnsureProviderAsync().ConfigureAwait(false))
         {
             return new SyncResult(false, 0, 0, 0, new[] { "No provider configured" });
+        }
+
+        if (!_provider.IsAuthenticated)
+        {
+            _logger.LogInformation("Provider {Provider} is not authenticated. Attempting authentication...", _provider.ProviderName);
+            if (!await _provider.AuthenticateAsync(ct).ConfigureAwait(false))
+            {
+                return new SyncResult(false, 0, 0, 0, new[] { "Authentication failed" });
+            }
         }
 
         _status = SyncStatus.Syncing;
@@ -171,6 +260,9 @@ public class SyncService : ISyncService
         {
             var remoteFiles = await _provider.ListFilesAsync("/", ct).ConfigureAwait(false);
             var totalFiles = remoteFiles.Count;
+            _totalBytes = remoteFiles.Where(f => !f.IsDirectory).Select(f => f.SizeBytes).Sum();
+            _processedBytes = 0;
+            _syncStartTime = DateTime.UtcNow;
 
             foreach (var remoteFile in remoteFiles.Where(f => !f.IsDirectory))
             {
@@ -184,6 +276,7 @@ public class SyncService : ISyncService
                     if (await _provider.DownloadFileAsync(remoteFile.Path, localPath, ct).ConfigureAwait(false))
                     {
                         filesDownloaded++;
+                        _processedBytes += remoteFile.SizeBytes;
                         ReportProgress(totalFiles, filesDownloaded, remoteFile.Path);
                     }
                     else
@@ -194,19 +287,28 @@ public class SyncService : ISyncService
                 else if (localStatus == FileSyncStatus.Conflict)
                 {
                     conflicts++;
-                    ConflictDetected?.Invoke(this, new SyncConflictEventArgs
+                    var conflict = new SyncConflictEventArgs
                     {
                         LocalPath = localPath,
                         RemotePath = remoteFile.Path,
                         RemoteModified = remoteFile.ModifiedAt,
-                        LocalModified = File.GetLastWriteTimeUtc(localPath)
-                    });
+                        LocalModified = File.Exists(localPath) ? File.GetLastWriteTimeUtc(localPath) : DateTime.MinValue,
+                        RemoteSize = remoteFile.SizeBytes
+                    };
+                    _conflicts.Add(conflict);
+                    ConflictDetected?.Invoke(this, conflict);
                 }
             }
 
             _status = SyncStatus.Idle;
             _logger.LogInformation("Pull completed: {Downloaded} files downloaded, {Conflicts} conflicts",
                 filesDownloaded, conflicts);
+
+            // Update last sync time for successfully downloaded files
+            if (filesDownloaded > 0)
+            {
+                await UpdateSyncHistoryAsync(remoteFiles.Where(f => !f.IsDirectory).Select(f => f.Path), ct).ConfigureAwait(false);
+            }
 
             return new SyncResult(errors.Count == 0, 0, filesDownloaded, conflicts, errors);
         }
@@ -231,63 +333,184 @@ public class SyncService : ISyncService
             return FileSyncStatus.NotTracked;
         }
 
+        var remotePath = GetRemotePath(localPath);
         if (!File.Exists(localPath))
         {
-            var remotePath = GetRemotePath(localPath);
             var exists = await _provider.FileExistsAsync(remotePath, ct).ConfigureAwait(false);
             return exists ? FileSyncStatus.RemoteNewer : FileSyncStatus.NotTracked;
         }
 
         var localModified = File.GetLastWriteTimeUtc(localPath);
-        var remoteInfo = await _provider.GetFileInfoAsync(GetRemotePath(localPath), ct).ConfigureAwait(false);
+        var remoteInfo = await _provider.GetFileInfoAsync(remotePath, ct).ConfigureAwait(false);
 
         if (remoteInfo == null)
         {
             return FileSyncStatus.LocalNewer;
         }
 
-        var timeDiff = Math.Abs((localModified - remoteInfo.ModifiedAt).TotalSeconds);
+        // Get last known synced state
+        var lastSyncedAt = await GetLastSyncTimeAsync(remotePath, ct).ConfigureAwait(false);
 
-        if (timeDiff < 5) // Within 5 seconds considered synced
+        var localChanged = localModified > lastSyncedAt.AddSeconds(1);
+        var remoteChanged = remoteInfo.ModifiedAt > lastSyncedAt.AddSeconds(1);
+
+        if (localChanged && remoteChanged)
         {
-            return FileSyncStatus.Synced;
+            // Both changed since last sync - check if they are actually different
+            // For now, assume different if timestamps differ significantly
+            var timeDiff = Math.Abs((localModified - remoteInfo.ModifiedAt).TotalSeconds);
+            if (timeDiff < 2) return FileSyncStatus.Synced;
+
+            return FileSyncStatus.Conflict;
         }
 
-        if (localModified > remoteInfo.ModifiedAt)
-        {
-            return FileSyncStatus.LocalNewer;
-        }
+        if (localChanged) return FileSyncStatus.LocalNewer;
+        if (remoteChanged) return FileSyncStatus.RemoteNewer;
 
-        return FileSyncStatus.RemoteNewer;
+        return FileSyncStatus.Synced;
     }
 
-    private static Task<Dictionary<string, DateTime>> GetLocalManifestAsync(CancellationToken ct)
+    /// <summary>
+    /// Gets the list of current sync conflicts.
+    /// </summary>
+    public Task<IReadOnlyList<SyncConflictEventArgs>> GetConflictsAsync(CancellationToken ct = default)
     {
-        // Placeholder: would scan local sync directory
-        return Task.FromResult(new Dictionary<string, DateTime>());
+        return Task.FromResult<IReadOnlyList<SyncConflictEventArgs>>(_conflicts.AsReadOnly());
+    }
+
+    /// <summary>
+    /// Resolves a sync conflict using the specified strategy.
+    /// </summary>
+    public async Task<bool> ResolveConflictAsync(string localPath, string strategy, CancellationToken ct = default)
+    {
+        if (_provider == null) return false;
+
+        var remotePath = GetRemotePath(localPath);
+        _logger.LogInformation("Resolving conflict for {Path} using strategy {Strategy}", localPath, strategy);
+
+        try
+        {
+            switch (strategy)
+            {
+                case "Keep Local":
+                    // Upload local version to override remote
+                    return await _provider.UploadFileAsync(localPath, remotePath, ct).ConfigureAwait(false);
+
+                case "Keep Cloud":
+                    // Download cloud version to override local
+                    return await _provider.DownloadFileAsync(remotePath, localPath, ct).ConfigureAwait(false);
+
+                case "Keep Both":
+                    // Rename local and download cloud
+                    var extension = Path.GetExtension(localPath);
+                    var newLocalPath = localPath.Replace(extension, $".local{extension}");
+                    if (File.Exists(localPath))
+                    {
+                        File.Move(localPath, newLocalPath);
+                    }
+                    return await _provider.DownloadFileAsync(remotePath, localPath, ct).ConfigureAwait(false);
+
+                case "Skip":
+                default:
+                    return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to resolve conflict for {Path}", localPath);
+            return false;
+        }
+    }
+
+    private async Task<DateTime> GetLastSyncTimeAsync(string path, CancellationToken ct)
+    {
+        var history = await GetSyncHistoryAsync(ct).ConfigureAwait(false);
+        return history.TryGetValue(path, out var lastSync) ? lastSync : DateTime.MinValue;
+    }
+
+    private Task<Dictionary<string, DateTime>> GetSyncHistoryAsync(CancellationToken ct)
+    {
+        var historyPath = Path.Combine(GetSyncBaseDir(), ".sync_history");
+        if (!File.Exists(historyPath)) return Task.FromResult(new Dictionary<string, DateTime>());
+
+        try
+        {
+            var content = File.ReadAllText(historyPath);
+            var history = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, DateTime>>(content);
+            return Task.FromResult(history ?? new Dictionary<string, DateTime>());
+        }
+        catch
+        {
+            return Task.FromResult(new Dictionary<string, DateTime>());
+        }
+    }
+
+    private async Task UpdateSyncHistoryAsync(IEnumerable<string> paths, CancellationToken ct)
+    {
+        var history = await GetSyncHistoryAsync(ct).ConfigureAwait(false);
+        var now = DateTime.UtcNow;
+        foreach (var path in paths)
+        {
+            history[path] = now;
+        }
+
+        var historyPath = Path.Combine(GetSyncBaseDir(), ".sync_history");
+        var content = System.Text.Json.JsonSerializer.Serialize(history);
+        await File.WriteAllTextAsync(historyPath, content, ct).ConfigureAwait(false);
+    }
+
+    private Task<Dictionary<string, DateTime>> GetLocalManifestAsync(CancellationToken ct)
+    {
+        var syncDir = GetSyncBaseDir();
+        if (!Directory.Exists(syncDir)) return Task.FromResult(new Dictionary<string, DateTime>());
+
+        var manifest = Directory.GetFiles(syncDir, "*", SearchOption.AllDirectories)
+            .Where(f => Path.GetFileName(f) != ".sync_history")
+            .ToDictionary(
+                f => GetRemotePath(f),
+                f => File.GetLastWriteTimeUtc(f)
+            );
+
+        return Task.FromResult(manifest);
+    }
+
+    private static string GetSyncBaseDir()
+    {
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "SaveState", "Sync");
     }
 
     private static string GetLocalPath(string remotePath)
     {
-        var syncDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "SaveState", "Sync");
-        return Path.Combine(syncDir, remotePath.TrimStart('/', '\\'));
+        return Path.Combine(GetSyncBaseDir(), remotePath.TrimStart('/', '\\'));
     }
 
     private static string GetRemotePath(string localPath)
     {
-        var syncDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "SaveState", "Sync");
-        return Path.GetRelativePath(syncDir, localPath);
+        return Path.GetRelativePath(GetSyncBaseDir(), localPath).Replace('\\', '/');
     }
 
     private void ReportProgress(int total, int processed, string currentFile)
     {
+        var elapsed = DateTime.UtcNow - _syncStartTime;
+        var throughput = elapsed.TotalSeconds > 0 ? _processedBytes / elapsed.TotalSeconds : 0;
+
+        TimeSpan? remainingTime = null;
+        if (throughput > 0)
+        {
+            var remainingBytes = _totalBytes - _processedBytes;
+            remainingTime = TimeSpan.FromSeconds(remainingBytes / throughput);
+        }
+
         ProgressChanged?.Invoke(this, new SyncProgressEventArgs
         {
             TotalFiles = total,
             ProcessedFiles = processed,
-            CurrentFile = currentFile
+            CurrentFile = currentFile,
+            TotalBytes = _totalBytes,
+            ProcessedBytes = _processedBytes,
+            ThroughputBytesPerSecond = throughput,
+            EstimatedRemainingTime = remainingTime
         });
     }
 }

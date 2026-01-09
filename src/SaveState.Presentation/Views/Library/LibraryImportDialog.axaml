@@ -1,0 +1,262 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Library"
+        xmlns:converters="using:SaveState.Presentation.Converters"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="600"
+        x:Class="SaveState.Presentation.Views.Library.LibraryImportDialog"
+        x:DataType="vm:LibraryImportDialogViewModel"
+        Title="Import Game Libraries"
+        Width="700" Height="600"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Icon="/Assets/icon.ico">
+
+    <Window.Resources>
+        <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
+    </Window.Resources>
+
+    <Window.Styles>
+        <Style Selector="Border.provider-card">
+            <Setter Property="Background" Value="{DynamicResource CardBackground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+
+        <Style Selector="Border.provider-card:pointerover">
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundPointerOver}" />
+        </Style>
+
+        <Style Selector="TextBlock.provider-name">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style Selector="TextBlock.provider-status">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        </Style>
+
+        <Style Selector="ProgressBar.import-progress">
+            <Setter Property="Height" Value="4" />
+            <Setter Property="Foreground" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{DynamicResource CardBackground}" Padding="24,16">
+            <StackPanel Spacing="8">
+                <TextBlock Text="Import Game Libraries"
+                          FontSize="20"
+                          FontWeight="SemiBold" />
+                <TextBlock Text="Scan your installed game platforms and import games to your library"
+                          FontSize="13"
+                          Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+        </Border>
+
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1" Padding="24,16">
+            <StackPanel Spacing="16">
+                <!-- Provider Selection -->
+                <StackPanel Spacing="12" IsVisible="{Binding !IsImporting}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0"
+                                  Text="Select Platforms"
+                                  FontSize="16"
+                                  FontWeight="SemiBold" />
+                        <Button Grid.Column="1"
+                               Content="Toggle All"
+                               Command="{Binding ToggleAllProvidersCommand}"
+                               Classes="secondary" />
+                    </Grid>
+
+                    <ItemsControl ItemsSource="{Binding Providers}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Classes="provider-card">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <CheckBox Grid.Column="0"
+                                                 IsChecked="{Binding IsEnabled}"
+                                                 VerticalAlignment="Center"
+                                                 Margin="0,0,12,0" />
+
+                                        <StackPanel Grid.Column="1" Spacing="4">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="{Binding Icon}" FontSize="16" />
+                                                <TextBlock Text="{Binding DisplayName}" Classes="provider-name" />
+                                            </StackPanel>
+
+                                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                                <TextBlock Text="Discovery" FontSize="11" IsVisible="{Binding SupportsDiscovery}" />
+                                                <TextBlock Text="Metadata" FontSize="11" IsVisible="{Binding SupportsMetadata}" />
+                                                <TextBlock Text="Launch" FontSize="11" IsVisible="{Binding SupportsLaunch}" />
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <Button Grid.Column="2"
+                                               Content="Only"
+                                               Command="{Binding $parent[ItemsControl].((vm:LibraryImportDialogViewModel)DataContext).SelectOnlyProviderCommand}"
+                                               CommandParameter="{Binding}"
+                                               Classes="secondary"
+                                               Padding="8,4"
+                                               FontSize="11" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <!-- Import Options -->
+                <StackPanel Spacing="8" IsVisible="{Binding !IsImporting}">
+                    <TextBlock Text="Import Options"
+                              FontSize="16"
+                              FontWeight="SemiBold" />
+
+                    <CheckBox Content="Skip metadata enrichment (faster import)"
+                             IsChecked="{Binding SkipMetadata}" />
+                    <CheckBox Content="Overwrite existing games"
+                             IsChecked="{Binding OverwriteExisting}" />
+                </StackPanel>
+
+                <!-- Import Progress -->
+                <StackPanel Spacing="12" IsVisible="{Binding IsImporting}">
+                    <TextBlock Text="Importing..."
+                              FontSize="16"
+                              FontWeight="SemiBold" />
+
+                    <StackPanel Spacing="8">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="{Binding CurrentMessage}" />
+                            <TextBlock Grid.Column="1" Text="{Binding ProgressText}" />
+                        </Grid>
+
+                        <ProgressBar Classes="import-progress"
+                                    Value="{Binding OverallProgress}"
+                                    Maximum="100"
+                                    IsIndeterminate="{Binding !OverallProgress}" />
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding CurrentStage, StringFormat='Stage: {0}'}"
+                              FontSize="12"
+                              Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+
+                    <!-- Provider Status During Import -->
+                    <ItemsControl ItemsSource="{Binding Providers}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Classes="provider-card" IsVisible="{Binding IsEnabled}">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <TextBlock Grid.Column="0" Text="{Binding Icon}" FontSize="16" Margin="0,0,12,0" />
+                                        <StackPanel Grid.Column="1" Spacing="2">
+                                            <TextBlock Text="{Binding DisplayName}" Classes="provider-name" />
+                                            <TextBlock Text="{Binding Status}" Classes="provider-status" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="2"
+                                                  Text="{Binding GamesFound, StringFormat='{}{0} games'}"
+                                                  FontSize="12"
+                                                  IsVisible="{Binding GamesFound}"
+                                                  Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <!-- Import Results -->
+                <StackPanel Spacing="12" IsVisible="{Binding IsComplete}">
+                    <TextBlock Text="Import Complete"
+                              FontSize="16"
+                              FontWeight="SemiBold" />
+
+                    <Border Background="{DynamicResource CardBackground}"
+                           BorderBrush="{DynamicResource CardBorderBrush}"
+                           BorderThickness="1"
+                           CornerRadius="8"
+                           Padding="16">
+                        <TextBlock Text="{Binding ResultSummary}"
+                                  TextWrapping="Wrap"
+                                  FontFamily="Consolas,Courier New" />
+                    </Border>
+
+                    <!-- Provider Results -->
+                    <ItemsControl ItemsSource="{Binding Providers}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Classes="provider-card" IsVisible="{Binding IsEnabled}">
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                        <TextBlock Grid.Column="0" Text="{Binding Icon}" FontSize="16" Margin="0,0,12,0" />
+                                        <StackPanel Grid.Column="1" Spacing="2">
+                                            <TextBlock Text="{Binding DisplayName}" Classes="provider-name" />
+                                            <TextBlock Text="{Binding ErrorMessage}"
+                                                      Classes="provider-status"
+                                                      Foreground="#D13438"
+                                                      IsVisible="{Binding !IsHealthy}" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="2"
+                                                  Text="{Binding GamesFound, StringFormat='{}{0} games'}"
+                                                  FontSize="12"
+                                                  Margin="0,0,12,0"
+                                                  Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                        <TextBlock Grid.Column="3"
+                                                  Text="{Binding Status}"
+                                                  FontSize="12">
+                                            <TextBlock.Foreground>
+                                                <SolidColorBrush Color="{Binding IsHealthy, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#107C10|#D13438'}" />
+                                            </TextBlock.Foreground>
+                                        </TextBlock>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Footer Buttons -->
+        <Border Grid.Row="2"
+               Background="{DynamicResource CardBackground}"
+               BorderBrush="{DynamicResource CardBorderBrush}"
+               BorderThickness="0,1,0,0"
+               Padding="24,16">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsImporting}">
+                    <TextBlock Text="⚠️" FontSize="14" VerticalAlignment="Center" />
+                    <TextBlock Text="Import in progress... Please wait"
+                              FontSize="12"
+                              VerticalAlignment="Center"
+                              Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                       Content="Cancel"
+                       Command="{Binding CancelImportCommand}"
+                       IsVisible="{Binding IsImporting}"
+                       Margin="0,0,8,0"
+                       Classes="secondary" />
+
+                <Button Grid.Column="1"
+                       Content="Close"
+                       Click="OnCloseClick"
+                       IsVisible="{Binding !IsImporting}"
+                       Margin="0,0,8,0"
+                       Classes="secondary" />
+
+                <Button Grid.Column="2"
+                       Content="Start Import"
+                       Command="{Binding StartImportCommand}"
+                       IsVisible="{Binding !IsImporting}"
+                       IsEnabled="{Binding !IsImporting}"
+                       Classes="accent" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

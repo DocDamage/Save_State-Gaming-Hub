@@ -149,14 +149,14 @@ public class IgdbApiClient : IIgdbApiClient
             if (response.IsSuccessStatusCode)
             {
                 var imageBytes = await response.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false);
-                return Result<byte[]>.Success(imageBytes);
+                return Result.Success<byte[]>(imageBytes);
             }
-            return Result<byte[]>.Failure($"HTTP {response.StatusCode}: {response.ReasonPhrase}", ErrorType.Internal);
+            return Result.Failure<byte[]>($"HTTP {response.StatusCode}: {response.ReasonPhrase}", ErrorType.Internal);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to download image from {ImageUrl}", imageUrl);
-            return Result<byte[]>.Failure($"Image download failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<byte[]>($"Image download failed: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -169,3 +169,4 @@ public class IgdbApiClient : IIgdbApiClient
         public int ExpiresIn { get; set; }
     }
 }
+

@@ -176,17 +176,17 @@ public class AiOrchestrator : IAiOrchestrator
 
             if (response.IsSuccessful)
             {
-                return Result<string>.Success(response.Content);
+                return Result.Success<string>(response.Content);
             }
             else
             {
-                return Result<string>.Failure(response.Error ?? "AI generation failed");
+                return Result.Failure<string>(response.Error ?? "AI generation failed");
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to generate text for prompt: {Prompt}", prompt);
-            return Result<string>.Failure($"Text generation failed: {ex.Message}");
+            return Result.Failure<string>($"Text generation failed: {ex.Message}");
         }
     }
 
@@ -207,17 +207,17 @@ public class AiOrchestrator : IAiOrchestrator
 
             if (response.IsSuccessful)
             {
-                return Result<AiResponse>.Success(response);
+                return Result.Success<AiResponse>(response);
             }
             else
             {
-                return Result<AiResponse>.Failure(response.Error ?? "AI execution failed");
+                return Result.Failure<AiResponse>(response.Error ?? "AI execution failed");
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to execute prompt for session {SessionId}: {Prompt}", sessionId, prompt);
-            return Result<AiResponse>.Failure($"Prompt execution failed: {ex.Message}");
+            return Result.Failure<AiResponse>($"Prompt execution failed: {ex.Message}");
         }
     }
 
@@ -390,3 +390,4 @@ public class AiOrchestrator : IAiOrchestrator
     private static string GenerateCacheKey(AiRequest request)
         => $"ai:{request.Type}:{request.Model}:{request.Prompt?.GetHashCode() ?? request.Messages?.GetHashCode() ?? 0}";
 }
+

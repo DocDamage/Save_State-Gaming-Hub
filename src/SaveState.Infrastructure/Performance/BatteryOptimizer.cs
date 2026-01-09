@@ -27,11 +27,11 @@ public class BatteryOptimizer : IBatteryOptimizer
         try
         {
             var status = GetCurrentBatteryStatusAsync(ct);
-            return Task.FromResult(Result<BatteryStatus>.Success(status));
+            return Task.FromResult(Result.Success<BatteryStatus>(status));
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Result<BatteryStatus>.Failure($"Failed to get battery status: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<BatteryStatus>($"Failed to get battery status: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -47,11 +47,11 @@ public class BatteryOptimizer : IBatteryOptimizer
                 CreatedAt: DateTime.UtcNow,
                 IsActive: false);
 
-            return Task.FromResult(Result<BatteryProfile>.Success(profile));
+            return Task.FromResult(Result.Success<BatteryProfile>(profile));
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Result<BatteryProfile>.Failure($"Failed to create battery profile: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<BatteryProfile>($"Failed to create battery profile: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -122,7 +122,7 @@ public class BatteryOptimizer : IBatteryOptimizer
 
     public Task<Result<BatteryProfile?>> GetCurrentProfileAsync(CancellationToken ct = default)
     {
-        return Task.FromResult(Result<BatteryProfile?>.Success(_activeProfile));
+        return Task.FromResult(Result.Success<BatteryProfile?>(_activeProfile));
     }
 
     public Task<Result<IReadOnlyList<BatteryProfile>>> GetAllProfilesAsync(CancellationToken ct = default)
@@ -181,11 +181,11 @@ public class BatteryOptimizer : IBatteryOptimizer
                     IsActive: _activeProfile?.Mode == PowerMode.PowerSaver)
             };
 
-            return Task.FromResult(Result<IReadOnlyList<BatteryProfile>>.Success((IReadOnlyList<BatteryProfile>)profiles));
+            return Task.FromResult(Result.Success<IReadOnlyList<BatteryProfile>>((IReadOnlyList<BatteryProfile>)profiles));
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Result<IReadOnlyList<BatteryProfile>>.Failure($"Failed to get battery profiles: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<IReadOnlyList<BatteryProfile>>($"Failed to get battery profiles: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -458,3 +458,5 @@ public class BatteryOptimizer : IBatteryOptimizer
         _batteryMonitorTimer?.Dispose();
     }
 }
+
+

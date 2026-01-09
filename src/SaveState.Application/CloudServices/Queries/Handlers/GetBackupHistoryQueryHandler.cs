@@ -21,12 +21,13 @@ public class GetBackupHistoryQueryHandler : IRequestHandler<GetBackupHistoryQuer
         try
         {
             var history = await _backupService.GetBackupHistoryAsync(ct);
-            return Result<IReadOnlyList<BackupMetadata>>.Success(history);
+            return Result.Success<IReadOnlyList<BackupMetadata>>(history);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get backup history");
-            return Result<IReadOnlyList<BackupMetadata>>.Failure($"Failed to get backup history: {ex.Message}");
+            return Result.Failure<IReadOnlyList<BackupMetadata>>($"Failed to get backup history: {ex.Message}");
         }
     }
 }
+

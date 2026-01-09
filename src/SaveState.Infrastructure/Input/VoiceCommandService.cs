@@ -160,7 +160,7 @@ public class VoiceCommandService : IVoiceCommandService
                     ErrorMessage: "Command not recognized");
 
                 OnVoiceCommandRecognized(commandResult);
-                return Result<VoiceCommandResult>.Success(commandResult);
+                return Result.Success<VoiceCommandResult>(commandResult);
             }
 
             // Extract parameters if needed
@@ -178,7 +178,7 @@ public class VoiceCommandService : IVoiceCommandService
                     ResultData: null);
 
                 OnVoiceCommandRecognized(failureResult);
-                return Result<VoiceCommandResult>.Success(failureResult);
+                return Result.Success<VoiceCommandResult>(failureResult);
             }
 
             // Execute the command
@@ -194,12 +194,12 @@ public class VoiceCommandService : IVoiceCommandService
                 ResultData: executionResult.IsSuccess ? executionResult.Value : null);
 
             OnVoiceCommandRecognized(result);
-            return Result<VoiceCommandResult>.Success(result);
+            return Result.Success<VoiceCommandResult>(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to process voice command: {Text}", spokenText);
-            return Result<VoiceCommandResult>.Failure($"Failed to process command: {ex.Message}");
+            return Result.Failure<VoiceCommandResult>($"Failed to process command: {ex.Message}");
         }
     }
 
@@ -276,12 +276,12 @@ public class VoiceCommandService : IVoiceCommandService
         try
         {
             var commands = (IReadOnlyList<VoiceCommandDefinition>)_registeredCommands.Values.ToArray();
-            return Task.FromResult(Result<IReadOnlyList<VoiceCommandDefinition>>.Success(commands));
+            return Task.FromResult(Result.Success<IReadOnlyList<VoiceCommandDefinition>>(commands));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get registered commands");
-            return Task.FromResult(Result<IReadOnlyList<VoiceCommandDefinition>>.Failure(
+            return Task.FromResult(Result.Failure<IReadOnlyList<VoiceCommandDefinition>>(
                 $"Failed to get commands: {ex.Message}"));
         }
     }
@@ -351,25 +351,25 @@ public class VoiceCommandService : IVoiceCommandService
         {
             case VoiceCommandAction.LaunchGame:
                 var gameResult = await ExtractGameParameterAsync(spokenText, ct).ConfigureAwait(false);
-                return gameResult.IsSuccess ? Result<object?>.Success(gameResult.Value) : Result<object?>.Failure(gameResult.Error, gameResult.ErrorType);
+                return gameResult.IsSuccess ? Result.Success<object?>(gameResult.Value) : Result.Failure<object?>(gameResult.Error, gameResult.ErrorType);
 
             case VoiceCommandAction.LoadSaveState:
                 var saveStateResult = await ExtractSaveStateParameterAsync(spokenText, ct).ConfigureAwait(false);
-                return saveStateResult.IsSuccess ? Result<object?>.Success(saveStateResult.Value) : Result<object?>.Failure(saveStateResult.Error, saveStateResult.ErrorType);
+                return saveStateResult.IsSuccess ? Result.Success<object?>(saveStateResult.Value) : Result.Failure<object?>(saveStateResult.Error, saveStateResult.ErrorType);
 
             case VoiceCommandAction.StartCloudSession:
                 var cloudResult = await ExtractCloudSessionParametersAsync(spokenText, ct).ConfigureAwait(false);
-                return cloudResult.IsSuccess ? Result<object?>.Success(cloudResult.Value) : Result<object?>.Failure(cloudResult.Error, cloudResult.ErrorType);
+                return cloudResult.IsSuccess ? Result.Success<object?>(cloudResult.Value) : Result.Failure<object?>(cloudResult.Error, cloudResult.ErrorType);
 
             case VoiceCommandAction.AdjustVolume:
                 var volumeResult = ExtractVolumeParameter(spokenText);
-                return volumeResult.IsSuccess ? Result<object?>.Success(volumeResult.Value) : Result<object?>.Failure(volumeResult.Error, volumeResult.ErrorType);
+                return volumeResult.IsSuccess ? Result.Success<object?>(volumeResult.Value) : Result.Failure<object?>(volumeResult.Error, volumeResult.ErrorType);
 
             case VoiceCommandAction.AskAssistant:
-                return Result<object?>.Success(new AskAssistantParameters(spokenText.Replace("ask assistant", "").Trim()));
+                return Result.Success<object?>(new AskAssistantParameters(spokenText.Replace("ask assistant", "").Trim()));
 
             default:
-                return Result<object?>.Success(command.Parameters);
+                return Result.Success<object?>(command.Parameters);
         }
     }
 
@@ -392,41 +392,41 @@ public class VoiceCommandService : IVoiceCommandService
                             await _launchExperienceManager.ExecuteLaunchSequenceAsync(
                                 sequenceResult.Value!, ct).ConfigureAwait(false);
                         }
-                        return Result<object?>.Success(null);
+                        return Result.Success<object?>(null);
                     }
                     break;
 
                 case VoiceCommandAction.SaveGame:
                     // Would integrate with save state creation
-                    return Result<object?>.Success("Game saved");
+                    return Result.Success<object?>("Game saved");
 
                 case VoiceCommandAction.StopListening:
                     await StopListeningAsync(ct).ConfigureAwait(false);
-                    return Result<object?>.Success("Stopped listening");
+                    return Result.Success<object?>("Stopped listening");
 
                 case VoiceCommandAction.StartListening:
                     await StartListeningAsync(ct).ConfigureAwait(false);
-                    return Result<object?>.Success("Started listening");
+                    return Result.Success<object?>("Started listening");
 
                 case VoiceCommandAction.ShowCommands:
                     var commands = await GetRegisteredCommandsAsync(ct).ConfigureAwait(false);
-                    return Result<object?>.Success(commands.Value);
+                    return Result.Success<object?>(commands.Value);
 
                 case VoiceCommandAction.CheckNetworkQuality:
                     var qualityResult = await _cloudGamingManager.GetNetworkQualityAsync(ct)
                         .ConfigureAwait(false);
-                    return Result<object?>.Success(qualityResult.Value);
+                    return Result.Success<object?>(qualityResult.Value);
 
                 default:
-                    return Result<object?>.Success($"Executed: {command.Description}");
+                    return Result.Success<object?>($"Executed: {command.Description}");
             }
 
-            return Result<object?>.Failure("Invalid command parameters");
+            return Result.Failure<object?>("Invalid command parameters");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to execute voice command: {Action}", command.Action);
-            return Result<object?>.Failure($"Command execution failed: {ex.Message}");
+            return Result.Failure<object?>($"Command execution failed: {ex.Message}");
         }
     }
 
@@ -445,7 +445,7 @@ public class VoiceCommandService : IVoiceCommandService
 
         if (string.IsNullOrWhiteSpace(gameName))
         {
-            return Result<LaunchGameParameters>.Failure("No game name specified", ErrorType.Validation);
+            return Result.Failure<LaunchGameParameters>("No game name specified", ErrorType.Validation);
         }
 
         // Find game by name (simplified)
@@ -455,31 +455,31 @@ public class VoiceCommandService : IVoiceCommandService
             g.Title.Contains(gameName, StringComparison.OrdinalIgnoreCase));
 
         return game != null
-            ? Result<LaunchGameParameters>.Success(new LaunchGameParameters(game.Id))
-            : Result<LaunchGameParameters>.Failure($"Game '{gameName}' not found", ErrorType.NotFound);
+            ? Result.Success<LaunchGameParameters>(new LaunchGameParameters(game.Id))
+            : Result.Failure<LaunchGameParameters>($"Game '{gameName}' not found", ErrorType.NotFound);
     }
 
     private Task<Result<LoadSaveStateParameters>> ExtractSaveStateParameterAsync(string spokenText, CancellationToken ct)
     {
         // Placeholder - would need save state enumeration and matching
-        return Task.FromResult(Result<LoadSaveStateParameters>.Failure("Save state selection not implemented", ErrorType.NotImplemented));
+        return Task.FromResult(Result.Failure<LoadSaveStateParameters>("Save state selection not implemented", ErrorType.NotImplemented));
     }
 
     private Task<Result<StartCloudSessionParameters>> ExtractCloudSessionParametersAsync(string spokenText, CancellationToken ct)
     {
         // Placeholder - would extract game and provider from speech
-        return Task.FromResult(Result<StartCloudSessionParameters>.Failure("Cloud session parameters not implemented", ErrorType.NotImplemented));
+        return Task.FromResult(Result.Failure<StartCloudSessionParameters>("Cloud session parameters not implemented", ErrorType.NotImplemented));
     }
 
     private Result<AdjustVolumeParameters> ExtractVolumeParameter(string spokenText)
     {
         // Simple volume extraction
         if (spokenText.Contains("mute") || spokenText.Contains("zero"))
-            return Result<AdjustVolumeParameters>.Success(new AdjustVolumeParameters(0));
+            return Result.Success<AdjustVolumeParameters>(new AdjustVolumeParameters(0));
         if (spokenText.Contains("max") || spokenText.Contains("full"))
-            return Result<AdjustVolumeParameters>.Success(new AdjustVolumeParameters(100));
+            return Result.Success<AdjustVolumeParameters>(new AdjustVolumeParameters(100));
         if (spokenText.Contains("half"))
-            return Result<AdjustVolumeParameters>.Success(new AdjustVolumeParameters(50));
+            return Result.Success<AdjustVolumeParameters>(new AdjustVolumeParameters(50));
 
         // Try to extract number
         var words = spokenText.Split(' ');
@@ -487,11 +487,11 @@ public class VoiceCommandService : IVoiceCommandService
         {
             if (int.TryParse(word, out var volume))
             {
-                return Result<AdjustVolumeParameters>.Success(new AdjustVolumeParameters(Math.Clamp(volume, 0, 100)));
+                return Result.Success<AdjustVolumeParameters>(new AdjustVolumeParameters(Math.Clamp(volume, 0, 100)));
             }
         }
 
-        return Result<AdjustVolumeParameters>.Failure("Could not understand volume level", ErrorType.Validation);
+        return Result.Failure<AdjustVolumeParameters>("Could not understand volume level", ErrorType.Validation);
     }
 
     private void RegisterDefaultCommands()
@@ -584,3 +584,5 @@ public class VoiceCommandService : IVoiceCommandService
         });
     }
 }
+
+

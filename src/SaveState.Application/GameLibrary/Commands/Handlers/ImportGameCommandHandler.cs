@@ -55,7 +55,7 @@ public class ImportGameCommandHandler : IRequestHandler<ImportGameCommand, Resul
             // Get or create platform
             var platformResult = await GetOrCreatePlatformAsync(request.PlatformName, ct).ConfigureAwait(false);
             if (platformResult.IsFailure)
-                return Result<GameId>.Failure(platformResult.Error!);
+                return Result.Failure<GameId>(platformResult.Error!);
 
             // Check for existing game
             var existingGame = await _gameRepository.GetByTitleAndPlatformAsync(
@@ -65,7 +65,7 @@ public class ImportGameCommandHandler : IRequestHandler<ImportGameCommand, Resul
             {
                 _logger.LogWarning("Game {Title} already exists for platform {Platform}",
                     request.Title, request.PlatformName);
-                return Result<GameId>.Failure($"Game '{request.Title}' already exists");
+                return Result.Failure<GameId>($"Game '{request.Title}' already exists");
             }
 
             // Check for existing game by source and sourceId
@@ -78,7 +78,7 @@ public class ImportGameCommandHandler : IRequestHandler<ImportGameCommand, Resul
                 {
                     _logger.LogWarning("Game from source {Source} with ID {SourceId} already exists",
                         request.Source, request.SourceId);
-                    return Result<GameId>.Failure($"Game from source '{request.Source}' with ID '{request.SourceId}' already exists");
+                    return Result.Failure<GameId>($"Game from source '{request.Source}' with ID '{request.SourceId}' already exists");
                 }
             }
 
@@ -100,7 +100,7 @@ public class ImportGameCommandHandler : IRequestHandler<ImportGameCommand, Resul
             if (!await _validationService.IsValidGameAsync(game, ct).ConfigureAwait(false))
             {
                 var errors = await _validationService.GetValidationErrorsAsync(game, ct).ConfigureAwait(false);
-                return Result<GameId>.Failure($"Validation failed: {string.Join(", ", errors)}");
+                return Result.Failure<GameId>($"Validation failed: {string.Join(", ", errors)}");
             }
 
             await _gameRepository.AddAsync(game, ct).ConfigureAwait(false);
@@ -108,22 +108,22 @@ public class ImportGameCommandHandler : IRequestHandler<ImportGameCommand, Resul
             _logger.LogInformation("Successfully imported game {GameId}: {Title}",
                 game.Id, request.Title);
 
-            return Result<GameId>.Success(GameId.From(game.Id));
+            return Result.Success<GameId>(GameId.From(game.Id));
         }
         catch (ArgumentException ex)
         {
             _logger.LogWarning(ex, "Validation failed for game import: {Title}", request.Title);
-            return Result<GameId>.Failure($"Validation failed: {ex.Message}");
+            return Result.Failure<GameId>($"Validation failed: {ex.Message}");
         }
         catch (InvalidOperationException ex)
         {
             _logger.LogWarning(ex, "Domain logic failed for game import: {Title}", request.Title);
-            return Result<GameId>.Failure(ex.Message);
+            return Result.Failure<GameId>(ex.Message);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error importing game {Title}", request.Title);
-            return Result<GameId>.Failure($"An unexpected error occurred: {ex.Message}");
+            return Result.Failure<GameId>($"An unexpected error occurred: {ex.Message}");
         }
     }
 
@@ -131,7 +131,7 @@ public class ImportGameCommandHandler : IRequestHandler<ImportGameCommand, Resul
     {
         var platform = await _platformRepository.GetByNameAsync(platformName, ct).ConfigureAwait(false);
         if (platform is not null)
-            return Result<Platform>.Success(platform);
+            return Result.Success<Platform>(platform);
 
         // Create new platform - infer type from name
         var platformType = InferPlatformType(platformName);
@@ -143,12 +143,12 @@ public class ImportGameCommandHandler : IRequestHandler<ImportGameCommand, Resul
         try
         {
             await _platformRepository.AddAsync(platform, ct).ConfigureAwait(false);
-            return Result<Platform>.Success(platform);
+            return Result.Success<Platform>(platform);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create platform {PlatformName}", platformName);
-            return Result<Platform>.Failure($"Failed to create platform '{platformName}': {ex.Message}", ErrorType.Internal);
+            return Result.Failure<Platform>($"Failed to create platform '{platformName}': {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -170,3 +170,4 @@ public class ImportGameCommandHandler : IRequestHandler<ImportGameCommand, Resul
         return PlatformType.Console; // Default
     }
 }
+

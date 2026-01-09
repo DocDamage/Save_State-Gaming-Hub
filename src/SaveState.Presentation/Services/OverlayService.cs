@@ -24,6 +24,12 @@ public class OverlayService : ObservableObject, IOverlayService
     private bool _showDashboardCustomization;
     private bool _showCreateCollection;
     private bool _isVoiceActive;
+    private bool _showSessionDetails;
+    private bool _showAchievementDetails;
+    private bool _showModDetails;
+    private Guid? _currentSessionGameId;
+    private Guid? _currentAchievementId;
+    private Guid? _currentModId;
 
     public OverlayService(ILogger<OverlayService> logger)
     {
@@ -122,9 +128,40 @@ public class OverlayService : ObservableObject, IOverlayService
     }
 
     /// <inheritdoc />
+    public bool ShowSessionDetails
+    {
+        get => _showSessionDetails;
+        private set => SetProperty(ref _showSessionDetails, value);
+    }
+
+    /// <inheritdoc />
+    public bool ShowAchievementDetails
+    {
+        get => _showAchievementDetails;
+        private set => SetProperty(ref _showAchievementDetails, value);
+    }
+
+    /// <inheritdoc />
+    public bool ShowModDetails
+    {
+        get => _showModDetails;
+        private set => SetProperty(ref _showModDetails, value);
+    }
+
+    /// <inheritdoc />
+    public Guid? CurrentSessionGameId => _currentSessionGameId;
+
+    /// <inheritdoc />
+    public Guid? CurrentAchievementId => _currentAchievementId;
+
+    /// <inheritdoc />
+    public Guid? CurrentModId => _currentModId;
+
+    /// <inheritdoc />
     public bool ShowDim => ShowCommandPalette || ShowQuickSearch || ShowAiAssistant || ShowNotifications || ShowUserProfile ||
                            ShowNetworkDiagnostics || ShowSyncStatus || ShowConflictsResolution ||
-                           ShowProviderConfiguration || ShowDashboardCustomization || ShowCreateCollection;
+                           ShowProviderConfiguration || ShowDashboardCustomization || ShowCreateCollection ||
+                           ShowSessionDetails || ShowAchievementDetails || ShowModDetails;
 
     /// <inheritdoc />
     public void ShowCommandPaletteOverlay()
@@ -238,25 +275,51 @@ public class OverlayService : ObservableObject, IOverlayService
     public void ShowSessionDetailsOverlay(Guid gameId)
     {
         _logger.LogInformation("Showing session details overlay for game {GameId}", gameId);
-        // TODO: Create and show overlay window
-        // For now, just log - actual implementation would create the overlay window
+        _currentSessionGameId = gameId;
+        ShowSessionDetails = true;
         OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("SessionDetails", true));
+    }
+
+    /// <inheritdoc />
+    public void HideSessionDetailsOverlay()
+    {
+        ShowSessionDetails = false;
+        _currentSessionGameId = null;
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("SessionDetails", false));
     }
 
     /// <inheritdoc />
     public void ShowAchievementDetailsOverlay(Guid achievementId)
     {
         _logger.LogInformation("Showing achievement details overlay for achievement {AchievementId}", achievementId);
-        // TODO: Create and show overlay window
+        _currentAchievementId = achievementId;
+        ShowAchievementDetails = true;
         OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("AchievementDetails", true));
+    }
+
+    /// <inheritdoc />
+    public void HideAchievementDetailsOverlay()
+    {
+        ShowAchievementDetails = false;
+        _currentAchievementId = null;
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("AchievementDetails", false));
     }
 
     /// <inheritdoc />
     public void ShowModDetailsOverlay(Guid modId)
     {
         _logger.LogInformation("Showing mod details overlay for mod {ModId}", modId);
-        // TODO: Create and show overlay window
+        _currentModId = modId;
+        ShowModDetails = true;
         OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("ModDetails", true));
+    }
+
+    /// <inheritdoc />
+    public void HideModDetailsOverlay()
+    {
+        ShowModDetails = false;
+        _currentModId = null;
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("ModDetails", false));
     }
 
     /// <inheritdoc />
@@ -428,7 +491,8 @@ public class OverlayService : ObservableObject, IOverlayService
     {
         var hadOverlays = ShowCommandPalette || ShowQuickSearch || ShowAiAssistant || ShowPerformanceHud ||
                           ShowNotifications || ShowUserProfile || ShowNetworkDiagnostics || ShowSyncStatus ||
-                          ShowConflictsResolution || ShowProviderConfiguration || ShowDashboardCustomization || ShowCreateCollection;
+                          ShowConflictsResolution || ShowProviderConfiguration || ShowDashboardCustomization ||
+                          ShowCreateCollection || ShowSessionDetails || ShowAchievementDetails || ShowModDetails;
 
         ShowCommandPalette = false;
         ShowQuickSearch = false;
@@ -442,6 +506,9 @@ public class OverlayService : ObservableObject, IOverlayService
         ShowProviderConfiguration = false;
         ShowDashboardCustomization = false;
         ShowCreateCollection = false;
+        ShowSessionDetails = false;
+        ShowAchievementDetails = false;
+        ShowModDetails = false;
         IsVoiceActive = false;
 
         if (hadOverlays)

@@ -62,6 +62,7 @@ public static class Program
         builder.Services.AddSingleton<IOverlayService, OverlayService>();
         builder.Services.AddSingleton<INotificationService, NotificationService>();
         builder.Services.AddSingleton<IDialogService, DialogService>();
+        builder.Services.AddSingleton<IClipboardService, ClipboardService>();
 
         // Add terminal services
         builder.Services.AddSingleton<SaveState.Presentation.Services.Terminal.ICommandExecutor, SaveState.Presentation.Services.Terminal.CommandExecutor>();
@@ -162,6 +163,9 @@ public static class Program
 
             // Enable WAL Mode for performance
             dbContext.EnableWalMode();
+
+            // Run database initialization and seeding
+            await SaveState.Infrastructure.Persistence.DatabaseInitializer.InitializeAsync(host.Services);
         }
 
         Console.WriteLine("[DEBUG] Database initialization complete");
@@ -171,6 +175,9 @@ public static class Program
 
         // Setup the service locator for Avalonia
         Locator.Current.SetServices(host.Services);
+
+        Console.WriteLine("[DEBUG] Starting background services...");
+        await host.StartAsync();
 
         Console.WriteLine("[DEBUG] Locator configured, starting Avalonia...");
 
@@ -184,6 +191,9 @@ public static class Program
 
             Console.WriteLine("[DEBUG] Starting with ClassicDesktopLifetime...");
             appBuilder.StartWithClassicDesktopLifetime(args);
+
+            Console.WriteLine("[DEBUG] Stopping background services...");
+            await host.StopAsync();
 
             Console.WriteLine("[DEBUG] Application exited normally");
         }

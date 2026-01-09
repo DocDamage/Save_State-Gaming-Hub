@@ -45,12 +45,12 @@ public class BackupScheduler : IBackupScheduler, IDisposable
             _backupHistory[schedule.Id] = new List<BackupResult>();
 
             _logger.LogInformation("Created backup schedule: {Name} ({Id})", schedule.Name, schedule.Id);
-            return Task.FromResult(Result<BackupSchedule>.Success(schedule));
+            return Task.FromResult(Result.Success<BackupSchedule>(schedule));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create backup schedule");
-            return Task.FromResult(Result<BackupSchedule>.Failure($"Failed to create schedule: {ex.Message}"));
+            return Task.FromResult(Result.Failure<BackupSchedule>($"Failed to create schedule: {ex.Message}"));
         }
     }
 
@@ -86,7 +86,7 @@ public class BackupScheduler : IBackupScheduler, IDisposable
 
     public Task<Result<IReadOnlyList<BackupSchedule>>> GetAllSchedulesAsync(CancellationToken ct = default)
     {
-        return Task.FromResult(Result<IReadOnlyList<BackupSchedule>>.Success(_schedules.Values.ToArray()));
+        return Task.FromResult(Result.Success<IReadOnlyList<BackupSchedule>>(_schedules.Values.ToArray()));
     }
 
     public Task<Result<IReadOnlyList<BackupSchedule>>> GetSchedulesForGameAsync(
@@ -95,14 +95,14 @@ public class BackupScheduler : IBackupScheduler, IDisposable
         var gameSchedules = _schedules.Values
             .Where(s => s.Config.GameId == gameId)
             .ToArray();
-        return Task.FromResult(Result<IReadOnlyList<BackupSchedule>>.Success(gameSchedules));
+        return Task.FromResult(Result.Success<IReadOnlyList<BackupSchedule>>(gameSchedules));
     }
 
     public Task<Result<BackupSchedule>> GetScheduleAsync(Guid scheduleId, CancellationToken ct = default)
     {
         return Task.FromResult(_schedules.TryGetValue(scheduleId, out var schedule)
-            ? Result<BackupSchedule>.Success(schedule)
-            : Result<BackupSchedule>.Failure($"Schedule not found: {scheduleId}"));
+            ? Result.Success<BackupSchedule>(schedule)
+            : Result.Failure<BackupSchedule>($"Schedule not found: {scheduleId}"));
     }
 
     public async Task<Result<BackupResult>> TriggerBackupAsync(Guid scheduleId, CancellationToken ct = default)
@@ -111,7 +111,7 @@ public class BackupScheduler : IBackupScheduler, IDisposable
         {
             if (!_schedules.TryGetValue(scheduleId, out var schedule))
             {
-                return Result<BackupResult>.Failure($"Schedule not found: {scheduleId}");
+                return Result.Failure<BackupResult>($"Schedule not found: {scheduleId}");
             }
 
             OnBackupStarted(scheduleId);
@@ -139,12 +139,12 @@ public class BackupScheduler : IBackupScheduler, IDisposable
             OnBackupCompleted(result);
             _logger.LogInformation("Backup completed: {Id}", result.Id);
 
-            return Result<BackupResult>.Success(result);
+            return Result.Success<BackupResult>(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to trigger backup: {ScheduleId}", scheduleId);
-            return Result<BackupResult>.Failure($"Failed to trigger backup: {ex.Message}");
+            return Result.Failure<BackupResult>($"Failed to trigger backup: {ex.Message}");
         }
     }
 
@@ -153,14 +153,14 @@ public class BackupScheduler : IBackupScheduler, IDisposable
     {
         if (!_backupHistory.TryGetValue(scheduleId, out var history))
         {
-            return Task.FromResult(Result<IReadOnlyList<BackupResult>>.Success((IReadOnlyList<BackupResult>)Array.Empty<BackupResult>()));
+            return Task.FromResult(Result.Success<IReadOnlyList<BackupResult>>((IReadOnlyList<BackupResult>)Array.Empty<BackupResult>()));
         }
 
         var filtered = since.HasValue
             ? history.Where(h => h.StartedAt >= since.Value).ToArray()
             : history.ToArray();
 
-        return Task.FromResult(Result<IReadOnlyList<BackupResult>>.Success((IReadOnlyList<BackupResult>)filtered));
+        return Task.FromResult(Result.Success<IReadOnlyList<BackupResult>>((IReadOnlyList<BackupResult>)filtered));
     }
 
     public Task<Result> EnableScheduleAsync(Guid scheduleId, CancellationToken ct = default)
@@ -189,12 +189,12 @@ public class BackupScheduler : IBackupScheduler, IDisposable
     {
         if (!_schedules.TryGetValue(scheduleId, out var schedule))
         {
-            return Task.FromResult(Result<DateTime?>.Failure($"Schedule not found: {scheduleId}"));
+            return Task.FromResult(Result.Failure<DateTime?>($"Schedule not found: {scheduleId}"));
         }
 
         // Simplified - would calculate based on frequency
         var nextTime = DateTime.UtcNow.AddHours(1);
-        return Task.FromResult(Result<DateTime?>.Success(nextTime));
+        return Task.FromResult(Result.Success<DateTime?>(nextTime));
     }
 
     public Task<Result> ValidateScheduleAsync(
@@ -246,3 +246,5 @@ public class BackupScheduler : IBackupScheduler, IDisposable
         }
     }
 }
+
+

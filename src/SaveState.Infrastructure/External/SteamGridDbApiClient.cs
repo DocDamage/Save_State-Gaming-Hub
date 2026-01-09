@@ -120,16 +120,16 @@ public class SteamGridDbApiClient : ISteamGridDbApiClient
 
             if (!response.IsSuccessStatusCode)
             {
-                return Result<byte[]>.Failure($"Failed to download image: HTTP {response.StatusCode}", ErrorType.ExternalService);
+                return Result.Failure<byte[]>($"Failed to download image: HTTP {response.StatusCode}", ErrorType.ExternalService);
             }
 
             var imageData = await response.Content.ReadAsByteArrayAsync(ct);
-            return Result<byte[]>.Success(imageData);
+            return Result.Success<byte[]>(imageData);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to download image from {Url}", imageUrl);
-            return Result<byte[]>.Failure($"Failed to download image: {ex.Message}", ErrorType.ExternalService);
+            return Result.Failure<byte[]>($"Failed to download image: {ex.Message}", ErrorType.ExternalService);
         }
         finally
         {

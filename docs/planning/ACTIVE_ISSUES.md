@@ -1,7 +1,7 @@
 # Active Issues - What's Broken Right Now
 
-**Last Updated**: January 5, 2026
-**Next Review**: January 12, 2026
+**Last Updated**: January 8, 2026
+**Next Review**: January 15, 2026
 
 > [!NOTE]
 > All critical and high-priority code issues have been resolved.
@@ -26,7 +26,7 @@ Technical debt to address during code review.
 
 | Category | Count | Action |
 |----------|-------|--------|
-| `TODO` comments | 60+ | Address or remove during reviews |
+| `TODO` comments | ~22 | Address or remove during reviews |
 | Missing XML docs (CS1591) | ~1,200 | Adding progressively |
 | ~~`return null` statements~~ | ~~45+~~ | ✅ **Verified correct - using proper nullable patterns** |
 
@@ -36,6 +36,12 @@ Technical debt to address during code review.
 
 | Date | Issue | Resolution |
 |------|-------|------------|
+| Jan 8 | Mod update checking and rating TODOs | Implemented real API integration with CheckForAllUpdatesAsync, RateModAsync, and mod source browser |
+| Jan 8 | Save state branching TODOs | Implemented DuplicateSaveStateCommand, CreateBranchFromSaveCommand, and CopyToBranchCommand |
+| Jan 8 | LibraryViewModel selection mode TODO | Implemented `SelectionModeEnabled` property and `ToggleSelectionMode` command |
+| Jan 8 | LibraryViewModel installed games count TODO | Added `IGameRepository.CountByStatusAsync` and integrated in stats display |
+| Jan 8 | AiOrchestrator CS1061 errors | Fixed ICacheService, AiOptions, IConversationContextService usage |
+| Jan 8 | CA1502 cyclomatic complexity | Suppressed with justification for orchestration method |
 | Jan 5 | TwitchStreamingPlugin placeholders | Removed, added env var config |
 | Jan 5 | DiscordIntegrationPlugin placeholders | Removed, production-ready |
 | Jan 5 | Database Compaction TODO | Implemented with VACUUM/ANALYZE |
@@ -59,9 +65,10 @@ These are intentional or harmless:
 
 | Warning | Count | Why Ignore |
 |---------|-------|------------|
-| CS1591 | ~1,200 | XML docs being added progressively |
+| CA1848 | ~400 | LoggerMessage migration in progress |
+| CA1707 | ~300 | Test method naming convention |
+| CS1591 | ~200 | XML docs being added progressively |
 | XAML Designer | ~50 | Work at runtime, designer limitation |
-| Nullable reference | ~30 | Handled by Result pattern |
 
 ---
 

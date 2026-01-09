@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SaveState.Application.CloudServices.Commands;
+using SaveState.Application.CloudServices.Queries;
 using SaveState.Application.Sync.Commands;
 using SaveState.Application.Sync.Queries;
 using SaveState.Core.Common.Enums;
@@ -25,6 +26,7 @@ public partial class CloudSyncViewModel : ObservableObject
     private readonly ICloudGamingManager _cloudGamingManager;
     private readonly INetworkQualityMonitor _networkMonitor;
     private readonly INotificationService _notificationService;
+    private readonly IDialogService _dialogService;
     private readonly ILogger<CloudSyncViewModel> _logger;
 
     [ObservableProperty]
@@ -57,12 +59,19 @@ public partial class CloudSyncViewModel : ObservableObject
     [ObservableProperty]
     private string _networkQualityLevel = "Unknown";
 
+    [ObservableProperty]
+    private string _syncThroughput = "0 KB/s";
+
+    [ObservableProperty]
+    private string _syncTimeRemaining = string.Empty;
+
     public CloudSyncViewModel(
         IMediator mediator,
         ISyncService syncService,
         ICloudGamingManager cloudGamingManager,
         INetworkQualityMonitor networkMonitor,
         INotificationService notificationService,
+        IDialogService dialogService,
         ILogger<CloudSyncViewModel> logger)
     {
         _mediator = mediator;
@@ -70,6 +79,7 @@ public partial class CloudSyncViewModel : ObservableObject
         _cloudGamingManager = cloudGamingManager;
         _networkMonitor = networkMonitor;
         _notificationService = notificationService;
+        _dialogService = dialogService;
         _logger = logger;
 
         CloudProviders = new ObservableCollection<CloudGamingProvider>();
@@ -140,6 +150,9 @@ public partial class CloudSyncViewModel : ObservableObject
             }
 
             IsNetworkMonitoring = _networkMonitor.IsMonitoring;
+
+            // Load backup history
+            await RefreshBackupHistoryAsync();
 
             _logger.LogInformation("CloudSyncViewModel initialized successfully");
         }
@@ -383,34 +396,154 @@ public partial class CloudSyncViewModel : ObservableObject
     /// Command to configure cloud provider.
     /// </summary>
     [RelayCommand]
-    private void ConfigureProvider()
+    private async Task ConfigureProviderAsync()
     {
-        _logger.LogInformation("Opening provider configuration dialog");
-        _notificationService.ShowInfo("Provider Configuration", "Cloud provider configuration dialog");
-        // Future: Show actual configuration dialog with provider selection and credentials
+        try
+        {
+            _logger.LogInformation("Opening provider configuration dialog");
+
+            var result = await _dialogService.ShowCloudProviderConfigDialogAsync(CurrentProvider);
+            if (result != null)
+            {
+                // Update configuration via mediator
+                var updateResult = await _mediator.Send(new UpdateCloudSyncSettingsCommand(
+                    result.ProviderName,
+                    result.EnableAutoSync,
+                    result.ApiKey, // Map ApiKey to ClientID for now as per dialog model
+                    null           // Placeholder for Google Drive
+                ));
+
+                if (updateResult.IsSuccess)
+                {
+                    CurrentProvider = result.ProviderName;
+                    IsProviderConfigured = result.ProviderName != "Not configured";
+                    _notificationService.ShowSuccess($"Cloud provider configured: {result.ProviderName}");
+                    await InitializeAsync();
+                }
+                else
+                {
+                    _notificationService.ShowError("Failed to save cloud sync settings");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to configure cloud provider");
+            _notificationService.ShowError("Failed to configure cloud provider");
+        }
     }
 
     /// <summary>
     /// Command to view sync conflicts.
     /// </summary>
     [RelayCommand]
-    private void ViewConflicts()
+    private async Task ViewConflictsAsync()
     {
-        _logger.LogInformation("Opening conflicts resolution overlay");
-        _notificationService.ShowInfo("Sync Conflicts", "Conflict resolution interface");
-        // Future: Show actual conflicts list with resolution options
+        try
+        {
+            _logger.LogInformation("Opening conflicts resolution dialog");
+
+            var conflicts = await _syncService.GetConflictsAsync();
+            if (conflicts.Count == 0)
+            {
+                _notificationService.ShowInfo("No conflicts detected.");
+                return;
+            }
+
+            var viewModels = conflicts.Select(c => new Services.SyncConflictViewModel(
+                c.RemotePath,
+                c.LocalModified,
+                c.RemoteModified,
+                File.Exists(c.LocalPath) ? new FileInfo(c.LocalPath).Length : 0,
+                c.RemoteSize
+            )).ToArray();
+
+            var result = await _dialogService.ShowConflictResolutionDialogAsync(viewModels);
+            if (result != null)
+            {
+                var successCount = 0;
+                foreach (var resolution in result.Resolutions)
+                {
+                    // Map file path back to local path if needed
+                    var conflict = conflicts.FirstOrDefault(c => c.RemotePath == resolution.Key);
+                    if (conflict != null)
+                    {
+                        if (await _syncService.ResolveConflictAsync(conflict.LocalPath, resolution.Value))
+                        {
+                            successCount++;
+                        }
+                    }
+                }
+
+                _notificationService.ShowSuccess($"Successfully resolved {successCount} of {result.Resolutions.Count} conflicts");
+
+                // Refresh status
+                CurrentSyncStatus = _syncService.Status;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show conflict resolution dialog");
+            _notificationService.ShowError("Failed to show conflict resolution");
+        }
     }
 
     private async Task RefreshBackupHistoryAsync()
     {
-        // TODO: Implement backup history loading
-        await Task.CompletedTask;
+        try
+        {
+            var result = await _mediator.Send(new GetBackupHistoryQuery());
+            if (result.IsSuccess && result.Value != null)
+            {
+                BackupHistory.Clear();
+                foreach (var backup in result.Value)
+                {
+                    BackupHistory.Add(new BackupHistoryItem
+                    {
+                        Name = backup.Name,
+                        CreatedAt = backup.CreatedAt,
+                        SizeBytes = backup.TotalSize,
+                        BackupType = "Full", // Could be extended to include different types
+                        Status = "Complete"
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to refresh backup history");
+        }
     }
 
     private void OnSyncProgressChanged(object? sender, SyncProgressEventArgs e)
     {
         // Update status message with current file being synced
         SyncStatusMessage = e.CurrentFile ?? "Syncing...";
+
+        // Update throughput
+        if (e.ThroughputBytesPerSecond > 1024 * 1024)
+            SyncThroughput = $"{e.ThroughputBytesPerSecond / (1024 * 1024):F1} MB/s";
+        else
+            SyncThroughput = $"{e.ThroughputBytesPerSecond / 1024:F1} KB/s";
+
+        // Update time remaining
+        if (e.EstimatedRemainingTime.HasValue)
+        {
+            var remaining = e.EstimatedRemainingTime.Value;
+            if (remaining.TotalHours >= 1)
+                SyncTimeRemaining = $"{(int)remaining.TotalHours}h {remaining.Minutes}m {remaining.Seconds}s remaining";
+            else if (remaining.TotalMinutes >= 1)
+                SyncTimeRemaining = $"{remaining.Minutes}m {remaining.Seconds}s remaining";
+            else
+                SyncTimeRemaining = $"{remaining.Seconds}s remaining";
+        }
+        else
+        {
+            SyncTimeRemaining = "Calculating...";
+        }
+
+        // SyncProgress is already bound to 0-100 probably, but let's check PercentComplete
+        SyncProgress = (int)e.PercentComplete;
     }
 
     private void OnSyncConflictDetected(object? sender, SyncConflictEventArgs e)

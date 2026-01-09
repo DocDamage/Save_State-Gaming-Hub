@@ -7,6 +7,7 @@ using SaveState.Presentation.Services;
 using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using SaveState.Core.Analytics.Services;
+using SaveState.Core.UserManagement.Services;
 using System.Linq;
 
 namespace SaveState.Presentation.ViewModels.Analytics;
@@ -18,6 +19,7 @@ public partial class AnalyticsDashboardViewModel : ObservableObject, IDisposable
     private readonly INotificationService _notificationService;
     private readonly IRealTimeNotificationService _realTimeService;
     private readonly IAnalyticsExportService _exportService;
+    private readonly IUserContextService? _userContextService;
     private readonly DispatcherTimer _refreshTimer;
 
     [ObservableProperty]
@@ -66,23 +68,51 @@ public partial class AnalyticsDashboardViewModel : ObservableObject, IDisposable
     private ObservableCollection<CompletionPrediction> _predictions = new();
 
     [ObservableProperty]
-    private ObservableCollection<BacklogDataPoint> _backlogData = new();
+    private ObservableCollection<SaveState.Application.Analytics.Queries.BacklogDataPoint> _backlogData = new();
 
     [ObservableProperty]
-    private ObservableCollection<CompletionRateDataPoint> _completionRates = new();
+    private ObservableCollection<SaveState.Application.Analytics.Queries.CompletionRateDataPoint> _completionRates = new();
+
+    [ObservableProperty]
+    private string _currentUsername = "Guest";
+
+    [ObservableProperty]
+    private Guid? _currentUserId;
+
+    [ObservableProperty]
+    private ObservableCollection<TimeSeriesDataPoint> _playTimeTimeSeries = new();
+
+    [ObservableProperty]
+    private ObservableCollection<ComparisonData> _weeklyComparisons = new();
+
+    [ObservableProperty]
+    private ObservableCollection<HeatmapCell> _activityHeatmap = new();
+
+    [ObservableProperty]
+    private ObservableCollection<AdvancedChartDataPoint> _platformDistribution = new();
 
     public AnalyticsDashboardViewModel(
         IMediator mediator,
         ILogger<AnalyticsDashboardViewModel> logger,
         INotificationService notificationService,
         IRealTimeNotificationService realTimeService,
-        IAnalyticsExportService exportService)
+        IAnalyticsExportService exportService,
+        IUserContextService? userContextService = null)
     {
         _mediator = mediator;
         _logger = logger;
         _notificationService = notificationService;
         _realTimeService = realTimeService;
         _exportService = exportService;
+        _userContextService = userContextService;
+
+        // Load user context
+        if (_userContextService != null)
+        {
+            CurrentUserId = _userContextService.CurrentUserId;
+            CurrentUsername = _userContextService.CurrentUsername ?? "Guest";
+            _logger.LogInformation("Analytics loaded for user: {Username} ({UserId})", CurrentUsername, CurrentUserId);
+        }
 
         _realTimeService.OnAnalyticsUpdated += OnAnalyticsUpdated;
 
@@ -363,6 +393,43 @@ public partial class AnalyticsDashboardViewModel : ObservableObject, IDisposable
 public record ChartDataPoint(string Label, double Value);
 
 public record GenrePlaytimeData(string Genre, double Hours, double Percentage);
+
+/// <summary>
+/// Advanced chart data point with color and tooltip support.
+/// </summary>
+public record AdvancedChartDataPoint(
+    string Label,
+    double Value,
+    string Color,
+    string TooltipText,
+    string Category);
+
+/// <summary>
+/// Time series data point for trend analysis.
+/// </summary>
+public record TimeSeriesDataPoint(
+    DateTime Timestamp,
+    double Value,
+    string Series,
+    string Unit);
+
+/// <summary>
+/// Comparison data for showing side-by-side metrics.
+/// </summary>
+public record ComparisonData(
+    string Name,
+    double CurrentValue,
+    double PreviousValue,
+    double PercentageChange,
+    string Trend); // "Up", "Down", "Stable"
+
+/// <summary>
+/// Heatmap cell data for activity visualization.
+/// </summary>
+public record HeatmapCell(
+    DateTime Date,
+    int Intensity, // 0-10 scale
+    string TooltipText);
 
 public partial class PlayStreakViewModel : ObservableObject
 {

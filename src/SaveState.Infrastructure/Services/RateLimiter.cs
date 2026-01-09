@@ -126,17 +126,17 @@ public class RateLimiter : IRateLimiter
     {
         var rule = GetRuleForOperation(operation);
         if (rule == null)
-            return Task.FromResult(Result<DateTimeOffset>.Failure($"No rate limit rule found for operation: {operation}", ErrorType.Validation));
+            return Task.FromResult(Result.Failure<DateTimeOffset>($"No rate limit rule found for operation: {operation}", ErrorType.Validation));
 
         var cacheKey = $"{operation}:{key}";
         var rateLimitData = _cache.Get<RateLimitData>(cacheKey);
 
         if (rateLimitData == null || rateLimitData.Requests.Count == 0)
-            return Task.FromResult(Result<DateTimeOffset>.Failure("No rate limit data found for the specified key and operation", ErrorType.NotFound));
+            return Task.FromResult(Result.Failure<DateTimeOffset>("No rate limit data found for the specified key and operation", ErrorType.NotFound));
 
         // Reset time is when the oldest request in the current window expires
         var oldestRequest = rateLimitData.Requests.Min();
-        return Task.FromResult(Result<DateTimeOffset>.Success(oldestRequest + rule.WindowDuration));
+        return Task.FromResult(Result.Success<DateTimeOffset>(oldestRequest + rule.WindowDuration));
     }
 
     private RateLimitRule? GetRuleForOperation(string operation)
@@ -209,3 +209,4 @@ public class RateLimiter : IRateLimiter
         public TimeSpan WindowDuration { get; set; }
     }
 }
+

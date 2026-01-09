@@ -47,4 +47,24 @@ public interface ISessionTrackingService
     /// Gets playtime statistics for a game.
     /// </summary>
     Task<Result<PlaytimeStatistics>> GetStatisticsAsync(Guid gameId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Event raised when a game session starts.
+    /// </summary>
+    event EventHandler<GameSessionEventArgs>? SessionStarted;
+
+    /// <summary>
+    /// Event raised when a game session ends.
+    /// </summary>
+    event EventHandler<GameSessionEventArgs>? SessionEnded;
+}
+
+/// <summary>
+/// Event arguments for game session events.
+/// </summary>
+public sealed class GameSessionEventArgs : EventArgs
+{
+    public Guid GameId { get; init; }
+    public Guid SessionId { get; init; }
+    public SessionEndReason? EndReason { get; init; }
 }

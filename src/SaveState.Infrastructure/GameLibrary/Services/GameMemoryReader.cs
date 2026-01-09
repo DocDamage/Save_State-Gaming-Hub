@@ -117,7 +117,7 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
     {
         if (!_isAttached)
         {
-            return Result<IReadOnlyList<MemoryPattern>>.Failure("Not attached to any process");
+            return Result.Failure<IReadOnlyList<MemoryPattern>>("Not attached to any process");
         }
 
         try
@@ -164,12 +164,12 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
             }
 
             _logger.LogInformation("Detected {Count} memory patterns", patterns.Count);
-            return Result<IReadOnlyList<MemoryPattern>>.Success(patterns);
+            return Result.Success<IReadOnlyList<MemoryPattern>>(patterns);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error detecting memory patterns");
-            return Result<IReadOnlyList<MemoryPattern>>.Failure($"Failed to detect patterns: {ex.Message}");
+            return Result.Failure<IReadOnlyList<MemoryPattern>>($"Failed to detect patterns: {ex.Message}");
         }
     }
 
@@ -202,13 +202,13 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
 
                     if (newValue.HasValue && newValue != value)
                     {
-                        return Result<MemoryPattern>.Success(new MemoryPattern("Health", address, "int32", newValue.Value));
+                        return Result.Success<MemoryPattern>(new MemoryPattern("Health", address, "int32", newValue.Value));
                     }
                 }
             }
         }
 
-        return Result<MemoryPattern>.Failure("Health pattern not found", ErrorType.NotFound);
+        return Result.Failure<MemoryPattern>("Health pattern not found", ErrorType.NotFound);
     }
 
     private async Task<Result<MemoryPattern>> ScanForScoreValueAsync(CancellationToken ct)
@@ -233,12 +233,12 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
 
                 if (value.HasValue && value.Value > 0 && value.Value <= maxScore)
                 {
-                    return Result<MemoryPattern>.Success(new MemoryPattern("Score", address, "int32", value.Value));
+                    return Result.Success<MemoryPattern>(new MemoryPattern("Score", address, "int32", value.Value));
                 }
             }
         }
 
-        return Result<MemoryPattern>.Failure("Score pattern not found", ErrorType.NotFound);
+        return Result.Failure<MemoryPattern>("Score pattern not found", ErrorType.NotFound);
     }
 
     private void MonitorGameState(object? state)
@@ -362,14 +362,14 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
                 var patternBytes = HexStringToByteArray(signature.Pattern);
                 if (patternBytes == null || patternBytes.Length == 0)
                 {
-                    return Result<MemoryPattern>.Failure($"Invalid hex pattern: {signature.Pattern}", ErrorType.Validation);
+                    return Result.Failure<MemoryPattern>($"Invalid hex pattern: {signature.Pattern}", ErrorType.Validation);
                 }
 
                 // Scan memory for the pattern
                 var address = ScanForPattern(patternBytes, ct);
                 if (address == IntPtr.Zero)
                 {
-                    return Result<MemoryPattern>.Failure($"Signature '{signature.Name}' not found", ErrorType.NotFound);
+                    return Result.Failure<MemoryPattern>($"Signature '{signature.Name}' not found", ErrorType.NotFound);
                 }
 
                 // Apply offset and read value
@@ -378,15 +378,15 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
 
                 if (value != null)
                 {
-                    return Result<MemoryPattern>.Success(new MemoryPattern(signature.Name, valueAddress, signature.ValueType, value));
+                    return Result.Success<MemoryPattern>(new MemoryPattern(signature.Name, valueAddress, signature.ValueType, value));
                 }
 
-                return Result<MemoryPattern>.Failure($"Value at offset for signature '{signature.Name}' could not be read", ErrorType.Internal);
+                return Result.Failure<MemoryPattern>($"Value at offset for signature '{signature.Name}' could not be read", ErrorType.Internal);
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error scanning for signature '{Signature}'", signature.Name);
-                return Result<MemoryPattern>.Failure($"Error scanning for signature: {ex.Message}", ErrorType.Internal);
+                return Result.Failure<MemoryPattern>($"Error scanning for signature: {ex.Message}", ErrorType.Internal);
             }
         }, ct);
     }
@@ -497,3 +497,4 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
         }
     }
 }
+

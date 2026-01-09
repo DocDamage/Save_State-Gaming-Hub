@@ -55,11 +55,11 @@ public class GetGameSummariesQueryHandler : IRequestHandler<GetGameSummariesQuer
                 projections.PageNumber,
                 projections.PageSize);
 
-            return Result<PagedResult<GameSummary>>.Success(result);
+            return Result.Success<PagedResult<GameSummary>>(result);
         }
         catch (Exception ex)
         {
-            return Result<PagedResult<GameSummary>>.Failure($"Failed to retrieve game summaries: {ex.Message}");
+            return Result.Failure<PagedResult<GameSummary>>($"Failed to retrieve game summaries: {ex.Message}");
         }
     }
 
@@ -73,3 +73,4 @@ public class GetGameSummariesQueryHandler : IRequestHandler<GetGameSummariesQuer
         _ => GameSortBy.Title
     };
 }
+

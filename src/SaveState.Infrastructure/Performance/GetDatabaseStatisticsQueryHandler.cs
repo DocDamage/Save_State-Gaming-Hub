@@ -47,12 +47,12 @@ public sealed class GetDatabaseStatisticsQueryHandler : IRequestHandler<GetDatab
                 totalSessions,
                 lastCompacted);
 
-            return Result<DatabaseStatistics>.Success(stats);
+            return Result.Success<DatabaseStatistics>(stats);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get database statistics");
-            return Result<DatabaseStatistics>.Failure($"Failed to get database statistics: {ex.Message}");
+            return Result.Failure<DatabaseStatistics>($"Failed to get database statistics: {ex.Message}");
         }
     }
 
@@ -91,3 +91,4 @@ public sealed class GetDatabaseStatisticsQueryHandler : IRequestHandler<GetDatab
         return $"{size:F2} {units[unitIndex]}";
     }
 }
+

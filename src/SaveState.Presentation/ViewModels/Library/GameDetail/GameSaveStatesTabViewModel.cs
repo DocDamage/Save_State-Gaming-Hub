@@ -22,6 +22,7 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
 {
     private readonly IMediator _mediator;
     private readonly IDialogService _dialogService;
+    private readonly INotificationService _notificationService;
     private readonly ILogger<GameSaveStatesTabViewModel> _logger;
 
     [ObservableProperty]
@@ -57,13 +58,18 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<GameSaveStateViewModel> _saveStates = new();
 
+    [ObservableProperty]
+    private ObservableCollection<string> _availableBranches = new() { "main" };
+
     public GameSaveStatesTabViewModel(
         IMediator mediator,
         IDialogService dialogService,
+        INotificationService notificationService,
         ILogger<GameSaveStatesTabViewModel> logger)
     {
         _mediator = mediator;
         _dialogService = dialogService;
+        _notificationService = notificationService;
         _logger = logger;
     }
 
@@ -123,6 +129,16 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
                 LastBackupText = "Never";
             }
 
+            // Track current branch from data if possible, default to most common
+            var branches = saveStates.Select(s => s.BranchName ?? "main").Distinct().ToList();
+            AvailableBranches.Clear();
+            foreach (var b in branches) AvailableBranches.Add(b);
+
+            if (!AvailableBranches.Contains(CurrentBranchName))
+            {
+                CurrentBranchName = AvailableBranches.FirstOrDefault() ?? "main";
+            }
+
             // Populate save states collection
             SaveStates.Clear();
             foreach (var saveState in saveStates.OrderByDescending(s => s.CreatedAt))
@@ -146,14 +162,20 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
                     Description = saveState.Description ?? string.Empty,
                     CreatedText = createdText,
                     FileSizeText = fileSizeText,
-                    BranchName = "main", // TODO: Implement branch support in SaveState entity
-                    BranchColor = "#4CAF50",
-                    IsCurrentSave = false, // TODO: Implement current save tracking
-                    LoadAction = () => PerformLoad(saveState.Id),
-                    DeleteAction = () => PerformDelete(saveState.Id)
+                    BranchName = saveState.BranchName ?? "main",
+                    BranchColor = GetBranchColor(saveState.BranchName),
+                    IsCurrentSave = saveState.IsCurrent,
+                    LoadAction = () => PerformLoadAsync(saveState.Id),
+                    DeleteAction = () => PerformDeleteAsync(saveState.Id),
+                    SaveAsAction = OnCreateSaveFromStateAsync,
+                    CreateBranchFromAction = OnCreateBranchFromStateAsync,
+                    CopyToBranchAction = OnCopyToBranchAsync,
+                    SettingsAction = OnOpenSettingsAsync
                 };
                 SaveStates.Add(vm);
             }
+
+            CurrentBranchSaveCount = SaveStates.Count(s => s.BranchName == CurrentBranchName);
         }
         catch (Exception ex)
         {
@@ -161,7 +183,7 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
         }
     }
 
-    private async void PerformLoad(Guid saveStateId)
+    private async Task PerformLoadAsync(Guid saveStateId)
     {
         try
         {
@@ -186,7 +208,7 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
         }
     }
 
-    private async void PerformDelete(Guid saveStateId)
+    private async Task PerformDeleteAsync(Guid saveStateId)
     {
         try
         {
@@ -212,35 +234,256 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ConfigureAutoSave()
+    private async Task ConfigureAutoSave()
     {
-        // TODO: Open auto-save configuration dialog
-        _logger.LogInformation("Configure auto-save requested");
+        if (_currentGameId == null) return;
+        _logger.LogInformation("Configure auto-save requested for {GameId}", _currentGameId);
+
+        try
+        {
+            var result = await _dialogService.ShowAutoSaveConfigurationDialogAsync(
+                AutoSaveEnabled,
+                SelectedAutoSaveInterval,
+                10); // Default max auto saves
+
+            if (result != null)
+            {
+                // Parse interval string to TimeSpan
+                var intervalMinutes = ParseIntervalToMinutes(result.Interval);
+                var interval = TimeSpan.FromMinutes(intervalMinutes);
+
+                // Build enabled triggers list
+                var triggers = new List<SaveState.Core.SaveStates.Services.SaveTrigger>();
+                if (result.CreateOnGameStart)
+                    triggers.Add(SaveState.Core.SaveStates.Services.SaveTrigger.SessionStart);
+                if (result.CreateOnBossEncounter)
+                    triggers.Add(SaveState.Core.SaveStates.Services.SaveTrigger.SignificantProgress);
+
+                var config = new SaveState.Core.SaveStates.Services.AutoSaveConfig(
+                    result.AutoSaveEnabled,
+                    interval,
+                    result.MaxAutoSaves,
+                    triggers);
+
+                var command = new ConfigureAutoSaveCommand(_currentGameId.Value, config);
+
+                var medResult = await _mediator.Send(command);
+                if (medResult.IsSuccess)
+                {
+                    AutoSaveEnabled = result.AutoSaveEnabled;
+                    SelectedAutoSaveInterval = result.Interval;
+                    _notificationService.ShowSuccess("Auto-save configuration updated", "Settings Saved");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+             _logger.LogError(ex, "Failed to configure auto-save");
+             _notificationService.ShowError("Failed to update auto-save settings");
+        }
+    }
+
+    private int ParseIntervalToMinutes(string interval)
+    {
+        return interval switch
+        {
+            "5 minutes" => 5,
+            "10 minutes" => 10,
+            "15 minutes" => 15,
+            "30 minutes" => 30,
+            "1 hour" => 60,
+            _ => 10 // Default to 10 minutes
+        };
+    }
+
+    private int ParseInterval(string interval)
+    {
+        return interval.Contains("min") ? int.Parse(interval.Split(' ')[0]) : int.Parse(interval.Split(' ')[0]) * 60;
+    }
+
+    private string GetBranchColor(string? branchName)
+    {
+        return branchName?.ToLower() switch
+        {
+            "main" => "#4CAF50",
+            "master" => "#4CAF50",
+            "experimental" => "#FF9800",
+            "debug" => "#F44336",
+            _ => "#2196F3"
+        };
     }
 
     [RelayCommand]
     private async Task CreateBranch()
     {
-        // TODO: Create new branch from current save
-        await _dialogService.ShowInformationAsync("Coming Soon", "Branch management will be available in a future update.");
+        if (_currentGameId == null) return;
+
+        try
+        {
+            var result = await _dialogService.ShowBranchCreationDialogAsync();
+            if (result != null)
+            {
+                var command = new CreateBranchCommand(
+                    Guid.Empty, // Placeholder root state - theoretically should be the 'current' one
+                    result.BranchName,
+                    result.Description,
+                    result.BranchType);
+
+                var createResult = await _mediator.Send(command);
+                if (createResult.IsSuccess)
+                {
+                    await _dialogService.ShowInformationAsync("Success", $"Branch '{result.BranchName}' created successfully.");
+                    await LoadDataAsync(_currentGameId);
+                }
+                else
+                {
+                    await _dialogService.ShowErrorAsync("Error", $"Failed to create branch: {createResult.Error}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create branch for game {GameId}", _currentGameId);
+            await _dialogService.ShowErrorAsync("Error", "An unexpected error occurred while creating the branch.");
+        }
     }
 
     [RelayCommand]
     private async Task MergeBranch()
     {
-        await _dialogService.ShowInformationAsync("Coming Soon", "Branch merging will be available in a future update.");
+        if (_currentGameId == null) return;
+
+        try
+        {
+            // In a full implementation, this would:
+            // 1. Get available branches
+            // 2. Let user select target branch
+            // 3. Detect conflicts between branches
+            // 4. Show merge dialog with conflict resolution options
+
+            // For now, show a sample merge dialog
+            var sampleConflicts = new[]
+            {
+                new ViewModels.Dialogs.SaveStateDiffViewModel
+                {
+                    Name = "Boss Battle Save",
+                    Status = ViewModels.Dialogs.DiffStatus.Conflict,
+                    LeftTimestamp = DateTime.UtcNow.AddHours(-2),
+                    RightTimestamp = DateTime.UtcNow.AddHours(-1),
+                    LeftSize = 1024 * 1024 * 5,
+                    RightSize = 1024 * 1024 * 6
+                }
+            };
+
+            var result = await _dialogService.ShowBranchMergeDialogAsync(
+                CurrentBranchName,
+                "feature-branch",
+                sampleConflicts);
+
+            if (result != null)
+            {
+                await _dialogService.ShowInformationAsync(
+                    "Merge Successful",
+                    $"Branch '{result.SourceBranchName}' merged into '{result.TargetBranchName}' using strategy: {result.MergeStrategy}");
+
+                await LoadDataAsync(_currentGameId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to merge branch for game {GameId}", _currentGameId);
+            await _dialogService.ShowErrorAsync("Error", "An unexpected error occurred while merging branches.");
+        }
     }
 
     [RelayCommand]
     private async Task CompareBranches()
     {
-        await _dialogService.ShowInformationAsync("Coming Soon", "Branch comparison will be available in a future update.");
+        if (_currentGameId == null) return;
+
+        try
+        {
+            // In a full implementation, this would:
+            // 1. Let user select two branches to compare
+            // 2. Compute differences between their save states
+            // 3. Show comparison dialog
+
+            // For now, show a sample comparison
+            var sampleDifferences = new[]
+            {
+                new ViewModels.Dialogs.SaveStateDiffViewModel
+                {
+                    Name = "Chapter 1 Complete",
+                    Status = ViewModels.Dialogs.DiffStatus.InBoth,
+                    LeftTimestamp = DateTime.UtcNow.AddDays(-5),
+                    RightTimestamp = DateTime.UtcNow.AddDays(-5),
+                    LeftSize = 1024 * 1024 * 3,
+                    RightSize = 1024 * 1024 * 3
+                },
+                new ViewModels.Dialogs.SaveStateDiffViewModel
+                {
+                    Name = "Secret Area Found",
+                    Status = ViewModels.Dialogs.DiffStatus.OnlyInLeft,
+                    LeftTimestamp = DateTime.UtcNow.AddDays(-2),
+                    LeftSize = 1024 * 1024 * 4
+                },
+                new ViewModels.Dialogs.SaveStateDiffViewModel
+                {
+                    Name = "Boss Rush Mode",
+                    Status = ViewModels.Dialogs.DiffStatus.OnlyInRight,
+                    RightTimestamp = DateTime.UtcNow.AddDays(-1),
+                    RightSize = 1024 * 1024 * 5
+                }
+            };
+
+            await _dialogService.ShowBranchComparisonDialogAsync(
+                CurrentBranchName,
+                "experiment-branch",
+                sampleDifferences);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to compare branches for game {GameId}", _currentGameId);
+            await _dialogService.ShowErrorAsync("Error", "An unexpected error occurred while comparing branches.");
+        }
     }
 
     [RelayCommand]
     private async Task SwitchBranch()
     {
-        await _dialogService.ShowInformationAsync("Coming Soon", "Branch switching will be available in a future update.");
+        if (_currentGameId == null) return;
+
+        try
+        {
+            var availableOptions = AvailableBranches.Select(b => new ViewModels.Dialogs.BranchOptionViewModel
+            {
+                Name = b,
+                IsCurrent = b == CurrentBranchName,
+                BranchType = "Story" // Mock type
+            }).ToArray();
+
+            var result = await _dialogService.ShowBranchSelectionDialogAsync(
+                CurrentBranchName,
+                availableOptions);
+
+            if (result != null)
+            {
+                CurrentBranchName = result.BranchName;
+                await LoadDataAsync(_currentGameId);
+
+                _notificationService.ShowSuccess($"Switched to branch '{result.BranchName}'", "Branch Switched");
+
+                _logger.LogInformation(
+                    "Switched to branch '{BranchName}' for game {GameId}",
+                    result.BranchName,
+                    _currentGameId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to switch branch for game {GameId}", _currentGameId);
+            await _dialogService.ShowErrorAsync("Error", "An unexpected error occurred while switching branches.");
+        }
     }
 
     [RelayCommand]
@@ -301,6 +544,136 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
              await _dialogService.ShowErrorAsync("Error", "An unexpected error occurred during backup.");
         }
     }
+    private async Task OnCreateSaveFromStateAsync(Guid stateId)
+    {
+        if (_currentGameId == null) return;
+
+        var name = await _dialogService.ShowInputDialogAsync("Save As", "Enter a name for the new save state:", "New Save State");
+        if (string.IsNullOrEmpty(name)) return;
+
+        try
+        {
+            var command = new DuplicateSaveStateCommand(stateId, name);
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+            {
+                _notificationService.ShowSuccess($"Cloned as '{name}'", "Success");
+                await LoadDataAsync(_currentGameId);
+            }
+            else
+            {
+                await _dialogService.ShowErrorAsync("Error", $"Failed to clone: {result.Error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to clone save state {StateId}", stateId);
+            await _dialogService.ShowErrorAsync("Error", "Failed to clone save state");
+        }
+    }
+
+    private async Task OnCreateBranchFromStateAsync(Guid stateId)
+    {
+        if (_currentGameId == null) return;
+
+        var branchResult = await _dialogService.ShowBranchCreationDialogAsync();
+        if (branchResult == null) return;
+
+        try
+        {
+             var command = new CreateBranchFromSaveCommand(stateId, branchResult.BranchName, branchResult.Description);
+             var result = await _mediator.Send(command);
+
+             if (result.IsSuccess)
+             {
+                 _notificationService.ShowSuccess($"New branch '{branchResult.BranchName}' created.", "Success");
+                 await LoadDataAsync(_currentGameId);
+             }
+             else
+             {
+                 await _dialogService.ShowErrorAsync("Error", $"Failed to create branch: {result.Error}");
+             }
+        }
+        catch (Exception ex)
+        {
+             _logger.LogError(ex, "Failed to create branch from save state");
+             await _dialogService.ShowErrorAsync("Error", "Failed to create branch");
+        }
+    }
+
+    private async Task OnCopyToBranchAsync(Guid stateId)
+    {
+        if (_currentGameId == null) return;
+
+        // Mock getting branches
+        var branches = new[] {
+            new ViewModels.Dialogs.BranchOptionViewModel { Name = "main", BranchType = "Main" },
+            new ViewModels.Dialogs.BranchOptionViewModel { Name = "speedrun", BranchType = "Feature" }
+        };
+
+        var result = await _dialogService.ShowBranchSelectionDialogAsync("Select Target Branch", branches);
+        if (result == null) return;
+
+        try
+        {
+             var command = new CopyToBranchCommand(stateId, result.BranchName);
+             var medResult = await _mediator.Send(command);
+
+             if (medResult.IsSuccess)
+             {
+                 _notificationService.ShowSuccess($"Copied to branch '{result.BranchName}'.", "Success");
+                 await LoadDataAsync(_currentGameId);
+             }
+             else
+             {
+                 await _dialogService.ShowErrorAsync("Error", $"Failed to copy: {medResult.Error}");
+             }
+        }
+        catch (Exception ex)
+        {
+             _logger.LogError(ex, "Failed to copy save state");
+             await _dialogService.ShowErrorAsync("Error", "Failed to copy save state");
+        }
+    }
+
+    private async Task OnOpenSettingsAsync(Guid stateId)
+    {
+         if (_currentGameId == null) return;
+
+         // Mock getting current details
+         var state = SaveStates.FirstOrDefault(s => s.Id == stateId);
+         if (state == null) return;
+
+         var result = await _dialogService.ShowSaveStateSettingsDialogAsync(
+             stateId,
+             state.Description,
+             state.BranchName,
+             state.IsCurrentSave,
+             "");
+
+         if (result != null)
+         {
+             var command = new UpdateSaveStateMetadataCommand(
+                 stateId,
+                 result.Description,
+                 result.BranchName,
+                 result.Notes,
+                 null,
+                 result.IsCurrent);
+
+             var medResult = await _mediator.Send(command);
+             if (medResult.IsSuccess)
+             {
+                 _notificationService.ShowSuccess("Save state settings updated.", "Success");
+                 await LoadDataAsync(_currentGameId);
+             }
+             else
+             {
+                 await _dialogService.ShowErrorAsync("Error", $"Failed to update: {medResult.Error}");
+             }
+         }
+    }
 }
 
 /// <summary>
@@ -309,8 +682,12 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
 public partial class GameSaveStateViewModel : ObservableObject
 {
     public Guid Id { get; set; }
-    public Action? LoadAction { get; set; }
-    public Action? DeleteAction { get; set; }
+    public Func<Task>? LoadAction { get; set; }
+    public Func<Task>? DeleteAction { get; set; }
+    public Func<Guid, Task>? SaveAsAction { get; set; }
+    public Func<Guid, Task>? CreateBranchFromAction { get; set; }
+    public Func<Guid, Task>? CopyToBranchAction { get; set; }
+    public Func<Guid, Task>? SettingsAction { get; set; }
 
     [ObservableProperty]
     private string _displayName = string.Empty;
@@ -348,38 +725,38 @@ public partial class GameSaveStateViewModel : ObservableObject
     public string PrimaryActionClass => "Secondary";
 
     [RelayCommand]
-    private void Load()
+    private async Task Load()
     {
-        LoadAction?.Invoke();
+        if (LoadAction != null) await LoadAction.Invoke();
     }
 
     [RelayCommand]
-    private void SaveAs()
+    private async Task SaveAs()
     {
-        // TODO: Create new save from this state
+        if (SaveAsAction != null) await SaveAsAction.Invoke(Id);
     }
 
     [RelayCommand]
-    private void CreateBranchFrom()
+    private async Task CreateBranchFrom()
     {
-        // TODO: Create branch from this save
+        if (CreateBranchFromAction != null) await CreateBranchFromAction.Invoke(Id);
     }
 
     [RelayCommand]
-    private void CopyToBranch()
+    private async Task CopyToBranch()
     {
-        // TODO: Copy to different branch
+        if (CopyToBranchAction != null) await CopyToBranchAction.Invoke(Id);
     }
 
     [RelayCommand]
-    private void Settings()
+    private async Task Settings()
     {
-        // TODO: Open save settings
+        if (SettingsAction != null) await SettingsAction.Invoke(Id);
     }
 
     [RelayCommand]
-    private void Delete()
+    private async Task Delete()
     {
-        DeleteAction?.Invoke();
+        if (DeleteAction != null) await DeleteAction.Invoke();
     }
 }

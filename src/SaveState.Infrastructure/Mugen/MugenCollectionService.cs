@@ -40,11 +40,11 @@ public class MugenCollectionService : IMugenCollectionService
 
             await _collectionRepository.AddAsync(collection, ct);
 
-            return Result<MugenCharacterCollection>.Success(collection);
+            return Result.Success<MugenCharacterCollection>(collection);
         }
         catch (Exception ex)
         {
-            return Result<MugenCharacterCollection>.Failure($"Failed to create collection: {ex.Message}");
+            return Result.Failure<MugenCharacterCollection>($"Failed to create collection: {ex.Message}");
         }
     }
 
@@ -119,11 +119,11 @@ public class MugenCollectionService : IMugenCollectionService
             // Load collections from database
             var collections = await _collectionRepository.GetAllAsync(ct);
 
-            return Result<IReadOnlyList<MugenCharacterCollection>>.Success(collections);
+            return Result.Success<IReadOnlyList<MugenCharacterCollection>>(collections);
         }
         catch (Exception ex)
         {
-            return Result<IReadOnlyList<MugenCharacterCollection>>.Failure($"Failed to get collections: {ex.Message}");
+            return Result.Failure<IReadOnlyList<MugenCharacterCollection>>($"Failed to get collections: {ex.Message}");
         }
     }
 
@@ -164,11 +164,25 @@ public class MugenCollectionService : IMugenCollectionService
             var allCharacters = await _characterRepository.GetAllAsync(ct);
             var favorites = allCharacters.Where(c => c.IsFavorite).ToList();
 
-            return Result<IReadOnlyList<MugenCharacter>>.Success(favorites);
+            return Result.Success<IReadOnlyList<MugenCharacter>>(favorites);
         }
         catch (Exception ex)
         {
-            return Result<IReadOnlyList<MugenCharacter>>.Failure($"Failed to get favorites: {ex.Message}");
+            return Result.Failure<IReadOnlyList<MugenCharacter>>($"Failed to get favorites: {ex.Message}");
+        }
+    }
+
+    public async Task<Result<IReadOnlyList<MugenCharacter>>> GetRosterAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            var allCharacters = await _characterRepository.GetAllAsync(ct);
+            return Result.Success<IReadOnlyList<MugenCharacter>>(allCharacters);
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure<IReadOnlyList<MugenCharacter>>($"Failed to get roster: {ex.Message}");
         }
     }
 }
+

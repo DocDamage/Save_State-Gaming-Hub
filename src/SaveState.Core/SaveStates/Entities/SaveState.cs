@@ -15,6 +15,8 @@ public class SaveState : EntityBase
     public bool IsFavorite { get; private set; }
     public bool IsAutoSave { get; private set; }
     public long FileSizeBytes { get; private set; }
+    public string? BranchName { get; private set; }
+    public bool IsCurrent { get; private set; }
 
     private SaveState() { }
 
@@ -38,4 +40,6 @@ public class SaveState : EntityBase
     public void SetParent(Guid? parentId) => ParentStateId = parentId;
     public void ToggleFavorite() => IsFavorite = !IsFavorite;
     public void SetFileSize(long bytes) => FileSizeBytes = bytes;
+    public void SetBranch(string? branchName) => BranchName = branchName;
+    public void MarkAsCurrent(bool isCurrent = true) => IsCurrent = isCurrent;
 }

@@ -1,0 +1,10 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels"
+             xmlns:views="using:SaveState.Presentation.Views.Library"
+             x:Class="SaveState.Presentation.Views.GameLibraryView"
+             x:DataType="vm:GameLibraryViewModel">
+
+    <!-- Wrapper view that delegates to the actual LibraryView -->
+    <views:LibraryView DataContext="{Binding}" />
+</UserControl>

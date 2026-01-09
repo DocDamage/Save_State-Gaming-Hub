@@ -1,7 +1,10 @@
 namespace SaveState.Presentation.Services;
 
+using System;
+using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 /// <summary>
 /// Implementation of the notification service for displaying toast notifications.
@@ -45,7 +48,7 @@ public partial class NotificationService : ObservableObject, INotificationServic
 
     private void AddNotification(string message, string title, NotificationType type, int durationMs)
     {
-        var notification = new NotificationViewModel
+        var notification = new NotificationViewModel(RemoveNotification)
         {
             Message = message,
             Title = title,
@@ -61,8 +64,18 @@ public partial class NotificationService : ObservableObject, INotificationServic
         {
             Task.Delay(durationMs).ContinueWith(_ =>
             {
-                Notifications.Remove(notification);
-            }, TaskScheduler.FromCurrentSynchronizationContext());
+                // Ensure removal happens on UI thread if bound to UI, or just modify collection (which should be thread safe if using BindingOperations, but cleaner to dispatch)
+                // ObservableCollection is not thread safe.
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => RemoveNotification(notification));
+            });
+        }
+    }
+
+    private void RemoveNotification(NotificationViewModel notification)
+    {
+        if (Notifications.Contains(notification))
+        {
+            Notifications.Remove(notification);
         }
     }
 }
@@ -72,6 +85,18 @@ public partial class NotificationService : ObservableObject, INotificationServic
 /// </summary>
 public partial class NotificationViewModel : ObservableObject
 {
+    private readonly Action<NotificationViewModel> _closeAction;
+
+    public NotificationViewModel()
+    {
+        _closeAction = _ => { };
+    }
+
+    public NotificationViewModel(Action<NotificationViewModel> closeAction)
+    {
+        _closeAction = closeAction;
+    }
+
     [ObservableProperty]
     private string _message = string.Empty;
 
@@ -113,4 +138,10 @@ public partial class NotificationViewModel : ObservableObject
         NotificationType.Info => "#2563EB",
         _ => "#4B5563"
     };
+
+    [RelayCommand]
+    private void Close()
+    {
+        _closeAction(this);
+    }
 }

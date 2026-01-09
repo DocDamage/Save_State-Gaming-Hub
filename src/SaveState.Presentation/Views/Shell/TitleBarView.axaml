@@ -33,10 +33,11 @@
     <Grid ColumnDefinitions="Auto, *, Auto, Auto, Auto">
         <!-- Logo and App Info -->
         <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
-            <TextBlock Text="🎮"
-                      FontSize="16"
-                      VerticalAlignment="Center"
-                      Margin="0,0,8,0" />
+            <Image Source="avares://SaveState.Presentation/Assets/Branding/save_state_logo_branding.jpg"
+                   Height="24"
+                   VerticalAlignment="Center"
+                   Margin="0,0,8,0"
+                   RenderOptions.BitmapInterpolationMode="HighQuality" />
             <TextBlock Text="{Binding AppName}"
                       FontSize="13"
                       FontWeight="SemiBold"

@@ -1,0 +1,136 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="600"
+        x:Class="SaveState.Presentation.Views.Dialogs.LaunchConfigDialog"
+        x:DataType="vm:LaunchConfigDialogViewModel"
+        Title="Launch Configuration"
+        Width="500" Height="600"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        SystemDecorations="None"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent">
+
+  <Panel>
+    <ExperimentalAcrylicBorder IsHitTestVisible="False">
+      <ExperimentalAcrylicBorder.Material>
+        <ExperimentalAcrylicMaterial
+            BackgroundSource="Digger"
+            TintColor="{DynamicResource SystemChromeMediumColor}"
+            TintOpacity="1"
+            MaterialOpacity="0.65" />
+      </ExperimentalAcrylicBorder.Material>
+    </ExperimentalAcrylicBorder>
+
+    <Border Background="{DynamicResource SolidBackgroundFillColorBase}"
+            BorderBrush="{DynamicResource SurfaceStrokeColorDefault}"
+            BorderThickness="1"
+            CornerRadius="8"
+            ClipToBounds="True">
+
+      <Grid RowDefinitions="Auto,*,Auto">
+        <!-- Header -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource SurfaceStrokeColorDefault}"
+                Padding="20,15"
+                IsHitTestVisible="False">
+          <TextBlock Text="Launch Configuration"
+                     Theme="{DynamicResource SubtitleTextBlockTheme}"
+                     FontWeight="SemiBold"/>
+        </Border>
+
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1" Padding="20">
+          <StackPanel Spacing="20">
+
+            <!-- Resolution Settings -->
+            <StackPanel Spacing="10">
+              <TextBlock Text="Resolution" FontWeight="SemiBold"/>
+
+              <CheckBox Content="Start in Full Screen"
+                        IsChecked="{Binding StartInFullScreen}"/>
+
+              <CheckBox Content="Use Custom Resolution"
+                        IsChecked="{Binding UseCustomResolution}"/>
+
+              <StackPanel IsVisible="{Binding UseCustomResolution}" Spacing="10" Margin="20,0,0,0">
+                <ComboBox ItemsSource="{Binding CommonResolutions}"
+                          SelectedItem="{Binding SelectedResolution}"
+                          PlaceholderText="Select a preset..."
+                          HorizontalAlignment="Stretch"/>
+
+                <Grid ColumnDefinitions="*,10,*">
+                  <StackPanel Grid.Column="0" Spacing="5">
+                    <TextBlock Text="Width"/>
+                    <NumericUpDown Value="{Binding Width}" Minimum="320" Maximum="7680"/>
+                  </StackPanel>
+
+                  <StackPanel Grid.Column="2" Spacing="5">
+                    <TextBlock Text="Height"/>
+                    <NumericUpDown Value="{Binding Height}" Minimum="240" Maximum="4320"/>
+                  </StackPanel>
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+
+            <Separator/>
+
+            <!-- Graphics Settings -->
+            <StackPanel Spacing="10">
+              <TextBlock Text="Graphics" FontWeight="SemiBold"/>
+
+              <CheckBox Content="Enable V-Sync"
+                        IsChecked="{Binding EnableVsync}"
+                        ToolTip.Tip="Synchronize frame rate with refresh rate to prevent tearing"/>
+
+              <CheckBox Content="Skip Intro Videos"
+                        IsChecked="{Binding SkipIntro}"
+                        ToolTip.Tip="Attempt to skip startup movies"/>
+            </StackPanel>
+
+            <Separator/>
+
+            <!-- Advanced -->
+            <StackPanel Spacing="10">
+              <TextBlock Text="Advanced" FontWeight="SemiBold"/>
+
+              <TextBlock Text="Working Directory (Optional)" Classes="CaptionTextBlockStyle" Opacity="0.7"/>
+              <TextBox Text="{Binding WorkingDirectory}" Watermark="Default game directory"/>
+
+              <TextBlock Text="Custom Arguments" Classes="CaptionTextBlockStyle" Opacity="0.7"/>
+              <TextBox Text="{Binding LaunchArguments}"
+                       Watermark="-console -debug"
+                       Height="80"
+                       AcceptsReturn="True"
+                       TextWrapping="Wrap"/>
+            </StackPanel>
+
+            <Button Content="Reset to Defaults"
+                    Command="{Binding ResetToDefaultsCommand}"
+                    Theme="{DynamicResource HyperlinkButtonTheme}"
+                    HorizontalAlignment="Right"/>
+
+          </StackPanel>
+        </ScrollViewer>
+
+        <!-- Footer -->
+        <Border Grid.Row="2"
+                Padding="20"
+                Background="{DynamicResource SurfaceStrokeColorDefault}">
+          <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+            <Button Content="Cancel" Command="{Binding CancelCommand}"/>
+            <Button Content="Save Configuration"
+                    Classes="Accent"
+                    Command="{Binding SaveCommand}"/>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </Border>
+  </Panel>
+</Window>

@@ -71,7 +71,7 @@ public class SystemResourceManager : ISystemResourceManager
             var processes = await GetBackgroundProcessesAsync(ct);
             if (!processes.IsSuccess)
             {
-                return Result<SystemAnalysis>.Failure(processes.Error!, processes.ErrorType);
+                return Result.Failure<SystemAnalysis>(processes.Error!, processes.ErrorType);
             }
 
             var terminableProcesses = processes.Value!
@@ -104,12 +104,12 @@ public class SystemResourceManager : ISystemResourceManager
                 "System analysis complete: {AvailableRam}MB RAM available, {CpuHeadroom}% CPU headroom, {ProcessCount} terminable processes",
                 analysis.AvailableRamMb, analysis.CpuHeadroom, terminableProcesses.Count);
 
-            return Result<SystemAnalysis>.Success(analysis);
+            return Result.Success<SystemAnalysis>(analysis);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to analyze system");
-            return Result<SystemAnalysis>.Failure($"Failed to analyze system: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<SystemAnalysis>($"Failed to analyze system: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -295,13 +295,13 @@ public class SystemResourceManager : ISystemResourceManager
                 }
             }
 
-            return Task.FromResult(Result<IReadOnlyList<BackgroundProcess>>.Success(
+            return Task.FromResult(Result.Success<IReadOnlyList<BackgroundProcess>>(
                 (IReadOnlyList<BackgroundProcess>)processes.OrderByDescending(p => p.MemoryUsageMb).ToList()));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get background processes");
-            return Task.FromResult(Result<IReadOnlyList<BackgroundProcess>>.Failure(
+            return Task.FromResult(Result.Failure<IReadOnlyList<BackgroundProcess>>(
                 $"Failed to get processes: {ex.Message}", ErrorType.Internal));
         }
     }
@@ -582,3 +582,4 @@ public class SystemResourceManager : ISystemResourceManager
 
     private sealed record ProcessRestoreInfo(string Name, string? ExecutablePath);
 }
+

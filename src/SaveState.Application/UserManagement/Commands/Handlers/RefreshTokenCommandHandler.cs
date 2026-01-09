@@ -30,7 +30,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             if (!refreshResult.IsSuccessful)
             {
                 _logger.LogWarning("Token refresh failed. Reason: {Error}", refreshResult.ErrorMessage);
-                return Result<RefreshTokenResponse>.Failure(refreshResult.ErrorMessage ?? "Token refresh failed");
+                return Result.Failure<RefreshTokenResponse>(refreshResult.ErrorMessage ?? "Token refresh failed");
             }
 
             var response = new RefreshTokenResponse
@@ -41,12 +41,13 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
             _logger.LogInformation("Token refresh successful");
 
-            return Result<RefreshTokenResponse>.Success(response);
+            return Result.Success<RefreshTokenResponse>(response);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during token refresh");
-            return Result<RefreshTokenResponse>.Failure("An error occurred during token refresh");
+            return Result.Failure<RefreshTokenResponse>("An error occurred during token refresh");
         }
     }
 }
+

@@ -35,12 +35,12 @@ public class SocialService : ISocialService
         {
             var friends = _friends.Values.ToList();
             _logger.LogInformation("Retrieved {Count} friends", friends.Count);
-            return Task.FromResult(Result<IReadOnlyList<Friend>>.Success(friends));
+            return Task.FromResult(Result.Success<IReadOnlyList<Friend>>(friends));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving friends");
-            return Task.FromResult(Result<IReadOnlyList<Friend>>.Failure($"Failed to get friends: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<IReadOnlyList<Friend>>($"Failed to get friends: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -136,12 +136,12 @@ public class SocialService : ISocialService
 
             var entries = leaderboard.Take(limit).ToList();
             _logger.LogInformation("Retrieved {Count} leaderboard entries for type {Type}", entries.Count, type);
-            return Task.FromResult(Result<IReadOnlyList<LeaderboardEntry>>.Success(entries));
+            return Task.FromResult(Result.Success<IReadOnlyList<LeaderboardEntry>>(entries));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving leaderboard for type {Type}", type);
-            return Task.FromResult(Result<IReadOnlyList<LeaderboardEntry>>.Failure($"Failed to get leaderboard: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<IReadOnlyList<LeaderboardEntry>>($"Failed to get leaderboard: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -182,3 +182,4 @@ public class SocialService : ISocialService
         return entries.OrderByDescending(e => e.Score).ToList();
     }
 }
+

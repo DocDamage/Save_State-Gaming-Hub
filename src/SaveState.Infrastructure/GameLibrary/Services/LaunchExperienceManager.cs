@@ -75,7 +75,7 @@ public class LaunchExperienceManager : ILaunchExperienceManager
 
             if (game == null)
             {
-                return Result<LaunchSequence>.Failure($"Game with ID {gameId} not found");
+                return Result.Failure<LaunchSequence>($"Game with ID {gameId} not found");
             }
 
             // Get configuration (use defaults if not configured)
@@ -130,12 +130,12 @@ public class LaunchExperienceManager : ILaunchExperienceManager
             _logger.LogInformation("Generated launch sequence for game {GameId} with {StepCount} steps",
                 gameId, steps.Count);
 
-            return Result<LaunchSequence>.Success(sequence);
+            return Result.Success<LaunchSequence>(sequence);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to generate launch sequence for game {GameId}", gameId);
-            return Result<LaunchSequence>.Failure($"Failed to generate launch sequence: {ex.Message}");
+            return Result.Failure<LaunchSequence>($"Failed to generate launch sequence: {ex.Message}");
         }
     }
 
@@ -185,16 +185,16 @@ public class LaunchExperienceManager : ILaunchExperienceManager
 
             if (game == null)
             {
-                return Result<LaunchExperienceConfig?>.Failure($"Game with ID {gameId} not found");
+                return Result.Failure<LaunchExperienceConfig?>($"Game with ID {gameId} not found");
             }
 
             var config = _launchConfigs.GetValueOrDefault(gameId, null);
-            return Result<LaunchExperienceConfig?>.Success(config);
+            return Result.Success<LaunchExperienceConfig?>(config);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get launch experience config for game {GameId}", gameId);
-            return Result<LaunchExperienceConfig?>.Failure($"Failed to get config: {ex.Message}");
+            return Result.Failure<LaunchExperienceConfig?>($"Failed to get config: {ex.Message}");
         }
     }
 
@@ -282,3 +282,5 @@ public class LaunchExperienceManager : ILaunchExperienceManager
         }
     }
 }
+
+

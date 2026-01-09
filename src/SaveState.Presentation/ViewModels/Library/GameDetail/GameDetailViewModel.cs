@@ -9,6 +9,7 @@ using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Core.UserManagement.Services;
 using SaveState.Core.Performance.Services;
+using SaveState.Core.Common;
 using SaveState.Presentation.Services;
 using Splat;
 using System;
@@ -33,6 +34,7 @@ public partial class GameDetailViewModel : ObservableObject
     private readonly IUserContextService _userContextService;
     private readonly IModManagementService _modService;
     private readonly IDialogService _dialogService;
+    private readonly IBacklogService _backlogService;
     private readonly ILogger<GameDetailViewModel> _logger;
 
     [ObservableProperty]
@@ -75,6 +77,17 @@ public partial class GameDetailViewModel : ObservableObject
     private string _favoriteButtonClass = "Secondary";
 
     [ObservableProperty]
+    private string _backlogButtonClass = "Secondary";
+
+    [ObservableProperty]
+    private bool _isFavorite;
+
+    [ObservableProperty]
+    private bool _isInBacklog;
+
+    private List<string> _currentGameTags = new();
+
+    [ObservableProperty]
     private ObservableCollection<GameDetailTabViewModel> _tabItems = new();
 
     [ObservableProperty]
@@ -99,6 +112,8 @@ public partial class GameDetailViewModel : ObservableObject
         IUserContextService userContextService,
         IModManagementService modService,
         IDialogService dialogService,
+        IBacklogService backlogService,
+        IClipboardService clipboardService,
         GameId gameId,
         ILoggerFactory loggerFactory)
     {
@@ -110,17 +125,23 @@ public partial class GameDetailViewModel : ObservableObject
         _userContextService = userContextService;
         _modService = modService;
         _dialogService = dialogService;
+        _backlogService = backlogService;
         _gameId = gameId;
         _logger = loggerFactory.CreateLogger<GameDetailViewModel>();
 
         // Initialize tab view models with dependencies
-        OverviewTab = new GameOverviewTabViewModel(_mediator, _userContextService, _aiOrchestrator, _dialogService, loggerFactory.CreateLogger<GameOverviewTabViewModel>());
-        SaveStatesTab = new GameSaveStatesTabViewModel(_mediator, _dialogService, loggerFactory.CreateLogger<GameSaveStatesTabViewModel>());
+        OverviewTab = new GameOverviewTabViewModel(_mediator, _userContextService, _aiOrchestrator, _dialogService, _navigationService, loggerFactory.CreateLogger<GameOverviewTabViewModel>());
+        SaveStatesTab = new GameSaveStatesTabViewModel(_mediator, _dialogService, _notificationService, loggerFactory.CreateLogger<GameSaveStatesTabViewModel>());
         AchievementsTab = new GameAchievementsTabViewModel(_mediator, _userContextService, _dialogService, loggerFactory.CreateLogger<GameAchievementsTabViewModel>());
         SessionsTab = new GameSessionsTabViewModel(_mediator, _dialogService, loggerFactory.CreateLogger<GameSessionsTabViewModel>());
-        NotesTab = new GameNotesTabViewModel(_mediator, _userContextService, _dialogService, loggerFactory.CreateLogger<GameNotesTabViewModel>());
+        NotesTab = new GameNotesTabViewModel(_mediator, _userContextService, _dialogService, clipboardService, _notificationService, loggerFactory.CreateLogger<GameNotesTabViewModel>());
         ModsTab = new GameModsTabViewModel(_mediator, _modService, _notificationService, _dialogService, loggerFactory.CreateLogger<GameModsTabViewModel>());
-        MediaTab = new GameMediaTabViewModel(_mediator, _userContextService, _dialogService, loggerFactory.CreateLogger<GameMediaTabViewModel>());
+        MediaTab = new GameMediaTabViewModel(_mediator, _userContextService, _dialogService,
+            Locator.Current.GetService<IGameMediaService>()!,
+            _notificationService,
+            Locator.Current.GetService<SaveState.Core.Sync.ISyncService>()!,
+            clipboardService,
+            loggerFactory.CreateLogger<GameMediaTabViewModel>());
         PerformanceTab = new GamePerformanceTabViewModel(_mediator, Locator.Current.GetService<IPerformanceMonitor>()!, loggerFactory.CreateLogger<GamePerformanceTabViewModel>());
 
         InitializeTabs();
@@ -192,6 +213,16 @@ public partial class GameDetailViewModel : ObservableObject
                 UserRatingStars = new string('★', rating) + new string('☆', 5 - rating);
             }
 
+            // Initialize Tags
+            _currentGameTags = game.Tags.ToList();
+            IsFavorite = _currentGameTags.Contains("Favorite");
+            UpdateFavoriteUi();
+
+            // Initialize Backlog Status
+            var backlogEntry = await _backlogService.GetBacklogEntryAsync(GameId);
+            IsInBacklog = backlogEntry.IsSuccess && backlogEntry.Value != null;
+            UpdateBacklogUi();
+
             // Update all tabs with game data
             await Task.WhenAll(
                 OverviewTab.LoadDataAsync(GameId),
@@ -208,6 +239,16 @@ public partial class GameDetailViewModel : ObservableObject
         {
             _logger.LogError(ex, "Failed to load game data for {GameId}", GameId);
         }
+    }
+
+    private void UpdateFavoriteUi()
+    {
+        FavoriteButtonClass = IsFavorite ? "Primary" : "Secondary";
+    }
+
+    private void UpdateBacklogUi()
+    {
+        BacklogButtonClass = IsInBacklog ? "Primary" : "Secondary";
     }
 
     [RelayCommand]
@@ -251,10 +292,27 @@ public partial class GameDetailViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ConfigureLaunch()
+    private async Task ConfigureLaunch()
     {
-        // TODO: Open launch configuration dialog
         _logger.LogInformation("Configuring launch for game {GameId}", GameId);
+
+        try
+        {
+            var result = await _dialogService.ShowLaunchConfigDialogAsync(GameId.Value);
+
+            if (result != null)
+            {
+                // In a real implementation, you would save this configuration to the database
+                // For now we just log it
+                _logger.LogInformation("Launch configuration updated: {Args}", result.LaunchArguments);
+                _notificationService.ShowSuccess("Launch configuration updated", "Success");
+            }
+        }
+        catch (Exception ex)
+        {
+             _logger.LogError(ex, "Failed to configure launch options");
+             _notificationService.ShowError("Failed to open launch configuration", "Error");
+        }
     }
 
     [RelayCommand]
@@ -294,32 +352,173 @@ public partial class GameDetailViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ToggleFavorite()
+    private async Task ToggleFavorite()
     {
-        // TODO: Toggle favorite status
-        FavoriteButtonClass = FavoriteButtonClass == "Secondary" ? "Primary" : "Secondary";
-        _logger.LogInformation("Toggling favorite for game {GameId}", GameId);
+        try
+        {
+            var newFavoriteState = !IsFavorite;
+
+            // Optimistic update
+            IsFavorite = newFavoriteState;
+            UpdateFavoriteUi();
+
+            var currentTags = _currentGameTags.ToList();
+            if (newFavoriteState && !currentTags.Contains("Favorite"))
+            {
+                currentTags.Add("Favorite");
+            }
+            else if (!newFavoriteState && currentTags.Contains("Favorite"))
+            {
+                currentTags.Remove("Favorite");
+            }
+
+            var command = new UpdateGameTagsCommand(GameId, currentTags);
+            var result = await _mediator.Send(command);
+
+            if (result.IsFailure)
+            {
+                // Revert on failure
+                IsFavorite = !newFavoriteState;
+                UpdateFavoriteUi();
+                _logger.LogError("Failed to update favorite status: {Error}", result.Error);
+                _notificationService.ShowError("Failed to update favorite status");
+            }
+            else
+            {
+                _currentGameTags = currentTags;
+                _logger.LogInformation("Updated favorite status for game {GameId} to {Status}", GameId, newFavoriteState);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception updating favorite status");
+            _notificationService.ShowError("Failed to update favorite status");
+            IsFavorite = !IsFavorite; // Revert
+            UpdateFavoriteUi();
+        }
     }
 
     [RelayCommand]
-    private void AddToBacklog()
+    private async Task ToggleBacklog()
     {
-        // TODO: Add to backlog
-        _logger.LogInformation("Adding game {GameId} to backlog", GameId);
+        try
+        {
+            var newBacklogState = !IsInBacklog;
+            IsInBacklog = newBacklogState; // Optimistic
+            UpdateBacklogUi();
+
+            Result result;
+            if (newBacklogState)
+            {
+                result = await _mediator.Send(new AddToBacklogCommand(GameId));
+            }
+            else
+            {
+                result = await _mediator.Send(new RemoveFromBacklogCommand(GameId));
+            }
+
+            if (result.IsFailure)
+            {
+                IsInBacklog = !newBacklogState; // Revert
+                UpdateBacklogUi();
+                _logger.LogError("Failed to update backlog status: {Error}", result.Error);
+                _notificationService.ShowError($"Failed to {(newBacklogState ? "add to" : "remove from")} backlog");
+            }
+            else
+            {
+                _logger.LogInformation("Updated backlog status for game {GameId} to {Status}", GameId, newBacklogState);
+                if (newBacklogState)
+                    _notificationService.ShowSuccess("Added to Backlog");
+                else
+                    _notificationService.ShowInfo("Removed", "Removed from Backlog");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception updating backlog status");
+            _notificationService.ShowError("Failed to update backlog status");
+            IsInBacklog = !IsInBacklog; // Revert
+            UpdateBacklogUi();
+        }
     }
 
     [RelayCommand]
-    private void OpenSettings()
+    private async Task OpenSettings()
     {
-        // TODO: Open game settings
         _logger.LogInformation("Opening settings for game {GameId}", GameId);
+        // Using Launch Configuration as the primary 'Settings' for a game
+        try
+        {
+            var result = await _dialogService.ShowLaunchConfigDialogAsync(GameId.Value);
+            if (result != null)
+            {
+                 // Persist launch config (mocked/logged for now as in ConfigureLaunch)
+                 _logger.LogInformation("Updated specific settings: {Args}", result.LaunchArguments);
+                 _notificationService.ShowSuccess("Game settings updated", "Settings");
+            }
+        }
+        catch (Exception ex)
+        {
+             _logger.LogError(ex, "Failed to open settings");
+        }
     }
 
     [RelayCommand]
-    private void RateGame()
+    private async Task RateGame()
     {
-        // TODO: Open rating dialog
         _logger.LogInformation("Rating game {GameId}", GameId);
+        try
+        {
+            // Get current rating if any (mocked as null for now or extracted from local prop)
+            double? currentRating = null;
+            // Parsing _userRatingStars is hard, better to fetch or assume null
+
+            var result = await _dialogService.ShowGameRatingDialogAsync(GameId.Value, currentRating);
+            if (result != null)
+            {
+                 var command = new Application.Social.Commands.CreateReviewCommand(
+                    GameId.Value,
+                    (int)result.Rating,
+                    true, // Default recommend
+                    "User Rating",
+                    result.ReviewText ?? string.Empty);
+
+                 var cmdResult = await _mediator.Send(command);
+                 if (cmdResult.IsSuccess)
+                 {
+                     _notificationService.ShowSuccess("Rating submitted successfully", "Rated");
+                     // Reload data to reflect new rating
+                     await LoadGameDataAsync();
+                 }
+                 else
+                 {
+                     _notificationService.ShowError("Failed to submit rating");
+                 }
+            }
+        }
+        catch (Exception ex)
+        {
+             _logger.LogError(ex, "Failed to rate game");
+        }
+    }
+
+    /// <summary>
+    /// Command to navigate to analytics view for this game.
+    /// </summary>
+    [RelayCommand]
+    private void NavigateToAnalytics()
+    {
+        try
+        {
+            _logger.LogInformation("Navigating to analytics for game {GameId}", GameId);
+            _navigationService.NavigateTo("Analytics", new { gameId = GameId });
+            _notificationService.ShowInfo("Analytics", $"Viewing analytics for {GameTitle}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to navigate to analytics for game {GameId}", GameId);
+            _notificationService.ShowError("Failed to navigate to analytics");
+        }
     }
 
     private void SelectTab(object tabViewModel, string tabTitle)

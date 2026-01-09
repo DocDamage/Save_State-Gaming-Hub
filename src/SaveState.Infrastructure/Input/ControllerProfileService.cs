@@ -42,12 +42,12 @@ public class ControllerProfileService : IControllerProfileService
             _logger.LogInformation("Created controller profile '{Name}' of type {Type} for game {GameId}",
                 name, type, gameId);
 
-            return Result<ControllerProfile>.Success(profile);
+            return Result.Success<ControllerProfile>(profile);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create controller profile '{Name}'", name);
-            return Result<ControllerProfile>.Failure($"Failed to create profile: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<ControllerProfile>($"Failed to create profile: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -57,14 +57,14 @@ public class ControllerProfileService : IControllerProfileService
         {
             var profile = await _profileRepository.GetByIdAsync(profileId, ct);
             if (profile == null)
-                return Result<ControllerProfile>.Failure("Controller profile not found", ErrorType.NotFound);
+                return Result.Failure<ControllerProfile>("Controller profile not found", ErrorType.NotFound);
 
-            return Result<ControllerProfile>.Success(profile);
+            return Result.Success<ControllerProfile>(profile);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get controller profile {ProfileId}", profileId);
-            return Result<ControllerProfile>.Failure($"Failed to get profile: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<ControllerProfile>($"Failed to get profile: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -75,12 +75,12 @@ public class ControllerProfileService : IControllerProfileService
         try
         {
             var profiles = await _profileRepository.GetByGameIdAsync(gameId, ct);
-            return Result<IReadOnlyList<ControllerProfile>>.Success(profiles);
+            return Result.Success<IReadOnlyList<ControllerProfile>>(profiles);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get profiles for game {GameId}", gameId);
-            return Result<IReadOnlyList<ControllerProfile>>.Failure($"Failed to get profiles: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<ControllerProfile>>($"Failed to get profiles: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -90,12 +90,12 @@ public class ControllerProfileService : IControllerProfileService
         try
         {
             var profiles = await _profileRepository.GetAllAsync(ct);
-            return Result<IReadOnlyList<ControllerProfile>>.Success(profiles);
+            return Result.Success<IReadOnlyList<ControllerProfile>>(profiles);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get all controller profiles");
-            return Result<IReadOnlyList<ControllerProfile>>.Failure($"Failed to get profiles: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<ControllerProfile>>($"Failed to get profiles: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -154,12 +154,12 @@ public class ControllerProfileService : IControllerProfileService
         try
         {
             var profile = await _profileRepository.GetDefaultForGameAsync(gameId, ct);
-            return Result<ControllerProfile?>.Success(profile);
+            return Result.Success<ControllerProfile?>(profile);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get default profile for game {GameId}", gameId);
-            return Result<ControllerProfile?>.Failure($"Failed to get default profile: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<ControllerProfile?>($"Failed to get default profile: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -206,12 +206,12 @@ public class ControllerProfileService : IControllerProfileService
         try
         {
             var profiles = await _profileRepository.GetByTypeAsync(type, ct);
-            return Result<IReadOnlyList<ControllerProfile>>.Success(profiles);
+            return Result.Success<IReadOnlyList<ControllerProfile>>(profiles);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get profiles by type {Type}", type);
-            return Result<IReadOnlyList<ControllerProfile>>.Failure($"Failed to get profiles: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<ControllerProfile>>($"Failed to get profiles: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -318,3 +318,5 @@ public class ControllerProfileService : IControllerProfileService
         };
     }
 }
+
+

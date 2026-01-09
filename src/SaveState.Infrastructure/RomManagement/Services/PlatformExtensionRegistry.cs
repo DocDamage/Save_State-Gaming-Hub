@@ -83,20 +83,21 @@ public class PlatformExtensionRegistry : IPlatformExtensionRegistry
     public Result<string> DetectPlatformName(string filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath))
-            return Result<string>.Failure("File path cannot be null or empty", ErrorType.Validation);
+            return Result.Failure<string>("File path cannot be null or empty", ErrorType.Validation);
 
         var extension = Path.GetExtension(filePath).ToLowerInvariant();
         if (string.IsNullOrEmpty(extension))
-            return Result<string>.Failure("File path must have an extension", ErrorType.Validation);
+            return Result.Failure<string>("File path must have an extension", ErrorType.Validation);
 
         foreach (var entry in PlatformExtensions)
         {
             if (entry.Value.Contains(extension))
             {
-                return Result<string>.Success(entry.Key);
+                return Result.Success<string>(entry.Key);
             }
         }
 
-        return Result<string>.Failure($"No platform found for extension '{extension}'", ErrorType.NotFound);
+        return Result.Failure<string>($"No platform found for extension '{extension}'", ErrorType.NotFound);
     }
 }
+

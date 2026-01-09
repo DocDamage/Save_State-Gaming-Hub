@@ -90,6 +90,21 @@ public partial class MugenHubViewModel : ObservableObject
     public ObservableCollection<MugenMatchHistory> RecentMatches { get; }
     public ObservableCollection<string> TournamentFormats { get; }
 
+    [ObservableProperty]
+    private string _searchText = string.Empty;
+
+    public ObservableCollection<MugenCharacter> FilteredCharacters { get; } = new();
+
+    // Fight Settings
+    [ObservableProperty]
+    private int _roundsToWin = 2;
+
+    [ObservableProperty]
+    private int _timeLimit = 99;
+
+    [ObservableProperty]
+    private int _aiDifficulty = 3; // 1-8
+
     [RelayCommand]
     private void ShowTournaments()
     {
@@ -109,6 +124,33 @@ public partial class MugenHubViewModel : ObservableObject
     {
         SelectedTab = "Statistics";
         _logger.LogDebug("Switched to Statistics tab");
+    }
+
+    [RelayCommand]
+    private void ShowSettings()
+    {
+        SelectedTab = "Settings";
+        _logger.LogDebug("Switched to Settings tab");
+    }
+
+    partial void OnSearchTextChanged(string value)
+    {
+        FilterCharacters();
+    }
+
+    private void FilterCharacters()
+    {
+        if (FilteredCharacters == null) return;
+
+        FilteredCharacters.Clear();
+        foreach(var character in Characters)
+        {
+            if(string.IsNullOrWhiteSpace(SearchText) ||
+               character.DisplayName.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+            {
+                FilteredCharacters.Add(character);
+            }
+        }
     }
 
     [RelayCommand]
@@ -216,8 +258,18 @@ public partial class MugenHubViewModel : ObservableObject
         try
         {
             Characters.Clear();
-            TotalCharacters = 0;
-            FavoriteCharacters = 0;
+            var result = await _collectionService.GetRosterAsync(); // Assuming this method exists
+
+            if (result.IsSuccess && result.Value != null)
+            {
+               foreach(var c in result.Value) Characters.Add(c);
+            }
+
+            FilterCharacters(); // Initial population
+
+            TotalCharacters = Characters.Count;
+            FavoriteCharacters = Characters.Count(c => c.IsFavorite); // Assuming IsFavorite property
+
             _logger.LogInformation("Characters loaded");
             await Task.CompletedTask;
         }

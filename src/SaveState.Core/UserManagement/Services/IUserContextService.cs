@@ -6,6 +6,16 @@ namespace SaveState.Core.UserManagement.Services;
 public interface IUserContextService
 {
     /// <summary>
+    /// Gets the current user ID.
+    /// </summary>
+    Guid? CurrentUserId { get; }
+
+    /// <summary>
+    /// Gets the current username.
+    /// </summary>
+    string? CurrentUsername { get; }
+
+    /// <summary>
     /// Gets the current user's ID.
     /// </summary>
     /// <returns>The current user's ID, or null if no user is authenticated.</returns>

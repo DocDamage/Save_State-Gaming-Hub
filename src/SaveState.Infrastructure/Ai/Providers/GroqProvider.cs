@@ -80,12 +80,12 @@ public class GroqProvider : ILlmProvider
                     result.Choices[0].FinishReason,
                     new TokenUsage(result.Usage.PromptTokens, result.Usage.CompletionTokens, result.Usage.TotalTokens),
                     result.Model);
-                return Result<CompletionResult>.Success(completionResult);
+                return Result.Success<CompletionResult>(completionResult);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Groq completion request failed");
-                return Result<CompletionResult>.Failure($"Groq API request failed: {ex.Message}", ErrorType.Internal);
+                return Result.Failure<CompletionResult>($"Groq API request failed: {ex.Message}", ErrorType.Internal);
             }
         }).ConfigureAwait(false);
     }
@@ -119,18 +119,18 @@ public class GroqProvider : ILlmProvider
                     result.Choices[0].FinishReason,
                     new TokenUsage(result.Usage.PromptTokens, result.Usage.CompletionTokens, result.Usage.TotalTokens),
                     result.Model);
-                return Result<ChatResult>.Success(chatResult);
+                return Result.Success<ChatResult>(chatResult);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Groq chat request failed");
-                return Result<ChatResult>.Failure($"Groq API request failed: {ex.Message}", ErrorType.Internal);
+                return Result.Failure<ChatResult>($"Groq API request failed: {ex.Message}", ErrorType.Internal);
             }
         }).ConfigureAwait(false);
     }
 
     public Task<Result<EmbeddingResult>> GenerateEmbeddingsAsync(EmbeddingRequest request, CancellationToken ct)
-        => Task.FromResult(Result<EmbeddingResult>.Failure("Embeddings not supported by Groq provider", ErrorType.Internal));
+        => Task.FromResult(Result.Failure<EmbeddingResult>("Embeddings not supported by Groq provider", ErrorType.Internal));
 }
 
 // Response DTOs
@@ -140,3 +140,4 @@ internal record GroqChoice(string Text, string FinishReason);
 internal record GroqChatChoice(GroqMessage Message, string FinishReason);
 internal record GroqMessage(string Role, string Content);
 internal record GroqUsage(int PromptTokens, int CompletionTokens, int TotalTokens);
+

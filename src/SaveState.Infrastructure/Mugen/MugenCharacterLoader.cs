@@ -118,7 +118,7 @@ public class MugenCharacterLoader : IMugenCharacterLoader
     {
         if (!File.Exists(definitionFilePath))
         {
-            return Result<MugenCharacter>.Failure($"Character definition file not found: {definitionFilePath}", ErrorType.NotFound);
+            return Result.Failure<MugenCharacter>($"Character definition file not found: {definitionFilePath}", ErrorType.NotFound);
         }
 
         try
@@ -133,12 +133,12 @@ public class MugenCharacterLoader : IMugenCharacterLoader
             var character = MugenCharacter.Create(characterName, definitionFilePath, characterDirectory);
             character.UpdateMetadata(metadata);
 
-            return Result<MugenCharacter>.Success(character);
+            return Result.Success<MugenCharacter>(character);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to load MUGEN character from {DefinitionFilePath}", definitionFilePath);
-            return Result<MugenCharacter>.Failure($"Failed to load character: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<MugenCharacter>($"Failed to load character: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -181,3 +181,4 @@ public class MugenCharacterLoader : IMugenCharacterLoader
         return Path.GetFileNameWithoutExtension(defFilePath);
     }
 }
+

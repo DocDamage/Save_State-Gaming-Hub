@@ -60,14 +60,14 @@ public class MatchPredictionEngine : IMatchPredictionEngine
             // Combine statistical and AI predictions
             var combinedPrediction = CombinePredictions(factors, aiPrediction);
 
-            return Result<MatchPrediction>.Success(combinedPrediction);
+            return Result.Success<MatchPrediction>(combinedPrediction);
         }
         catch (Exception ex)
         {
             // Fallback to basic statistical prediction if AI fails
             var factors = CalculateBasicFactors(character1, character2);
             var fallbackPrediction = CreatePredictionFromFactors(factors, "Fallback statistical analysis");
-            return Result<MatchPrediction>.Success(fallbackPrediction);
+            return Result.Success<MatchPrediction>(fallbackPrediction);
         }
     }
 
@@ -276,3 +276,4 @@ Use this data to improve future predictions.";
 
     private sealed record AiPredictionResult(float Character1WinProbability, float Character2WinProbability, string Reasoning);
 }
+

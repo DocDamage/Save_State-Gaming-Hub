@@ -45,13 +45,15 @@ public interface IMugenTournamentService
     /// <returns>The result of the operation.</returns>
     Task<Result> RecordMatchResultAsync(Guid tournamentId, Guid matchId, MatchResult result, CancellationToken ct = default);
 
+    Task<Result<IReadOnlyList<TournamentStanding>>> GetStandingsAsync(Guid tournamentId, CancellationToken ct = default);
+
     /// <summary>
-    /// Gets the current standings for a tournament.
+    /// Starts the tournament by generating the bracket and initial matches.
     /// </summary>
     /// <param name="tournamentId">The tournament ID.</param>
     /// <param name="ct">Cancellation token.</param>
-    /// <returns>The tournament standings.</returns>
-    Task<Result<IReadOnlyList<TournamentStanding>>> GetStandingsAsync(Guid tournamentId, CancellationToken ct = default);
+    /// <returns>The result of the operation.</returns>
+    Task<Result> StartTournamentAsync(Guid tournamentId, CancellationToken ct = default);
 }
 
 /// <summary>

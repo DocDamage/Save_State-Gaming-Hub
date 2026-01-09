@@ -92,18 +92,18 @@ public class PerformanceProfiler : IPerformanceProfiler, IDisposable
     {
         if (!_isProfiling)
         {
-            return Result<PerformanceMetrics>.Failure("Performance profiling is not running");
+            return Result.Failure<PerformanceMetrics>("Performance profiling is not running");
         }
 
         try
         {
             var metrics = await _metricsCollector.CollectMetricsAsync(ct);
-            return Result<PerformanceMetrics>.Success(metrics);
+            return Result.Success<PerformanceMetrics>(metrics);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting current performance metrics");
-            return Result<PerformanceMetrics>.Failure($"Failed to get metrics: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<PerformanceMetrics>($"Failed to get metrics: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -111,7 +111,7 @@ public class PerformanceProfiler : IPerformanceProfiler, IDisposable
     {
         if (_metricsHistory.Count == 0)
         {
-            return Task.FromResult(Result<PerformanceReport>.Failure("No performance data available. Start profiling first."));
+            return Task.FromResult(Result.Failure<PerformanceReport>("No performance data available. Start profiling first."));
         }
 
         try
@@ -139,12 +139,12 @@ public class PerformanceProfiler : IPerformanceProfiler, IDisposable
             _logger.LogInformation("Generated performance report for {Duration} of profiling",
                 duration.ToString(@"hh\:mm\:ss"));
 
-            return Task.FromResult(Result<PerformanceReport>.Success(report));
+            return Task.FromResult(Result.Success<PerformanceReport>(report));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating performance report");
-            return Task.FromResult(Result<PerformanceReport>.Failure($"Failed to generate report: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<PerformanceReport>($"Failed to generate report: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -152,7 +152,7 @@ public class PerformanceProfiler : IPerformanceProfiler, IDisposable
     {
         if (_metricsHistory.Count == 0)
         {
-            return Task.FromResult(Result<IReadOnlyList<BottleneckAnalysis>>.Failure("No performance data available"));
+            return Task.FromResult(Result.Failure<IReadOnlyList<BottleneckAnalysis>>("No performance data available"));
         }
 
         try
@@ -179,12 +179,12 @@ public class PerformanceProfiler : IPerformanceProfiler, IDisposable
             if (fpsBottleneck != null)
                 bottlenecks.Add(fpsBottleneck);
 
-            return Task.FromResult(Result<IReadOnlyList<BottleneckAnalysis>>.Success(bottlenecks));
+            return Task.FromResult(Result.Success<IReadOnlyList<BottleneckAnalysis>>(bottlenecks));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error analyzing performance bottlenecks");
-            return Task.FromResult(Result<IReadOnlyList<BottleneckAnalysis>>.Failure($"Failed to analyze bottlenecks: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<IReadOnlyList<BottleneckAnalysis>>($"Failed to analyze bottlenecks: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -548,3 +548,4 @@ public class PerformanceProfiler : IPerformanceProfiler, IDisposable
         StopProfilingAsync().GetAwaiter().GetResult();
     }
 }
+

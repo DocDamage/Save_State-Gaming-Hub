@@ -57,12 +57,12 @@ public class AiCoachService : IAiCoachService
             await InitializeCoachingContextAsync(session, ct);
 
             _logger.LogInformation("AI coaching session {SessionId} started successfully", session.Id);
-            return Result<CoachingSession>.Success(session);
+            return Result.Success<CoachingSession>(session);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error starting coaching session for game {GameId}", gameId);
-            return Result<CoachingSession>.Failure($"Failed to start coaching session: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<CoachingSession>($"Failed to start coaching session: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -117,12 +117,12 @@ public class AiCoachService : IAiCoachService
         {
             if (!_activeSessions.TryGetValue(sessionId, out var session))
             {
-                return Result<CoachingFeedback>.Failure("Coaching session not found", ErrorType.NotFound);
+                return Result.Failure<CoachingFeedback>("Coaching session not found", ErrorType.NotFound);
             }
 
             if (!session.Preferences.EnableRealTimeFeedback)
             {
-                return Result<CoachingFeedback>.Success(new CoachingFeedback(
+                return Result.Success<CoachingFeedback>(new CoachingFeedback(
                     FeedbackType.Encouragement,
                     "Real-time feedback is disabled for this session.",
                     FeedbackPriority.Low,
@@ -140,12 +140,12 @@ public class AiCoachService : IAiCoachService
             // Analyze current game state and performance
             var feedback = await GenerateRealTimeFeedbackAsync(session, gameState, metricsResult.Value, ct);
 
-            return Result<CoachingFeedback>.Success(feedback);
+            return Result.Success<CoachingFeedback>(feedback);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating real-time feedback for session {SessionId}", sessionId);
-            return Result<CoachingFeedback>.Failure($"Failed to generate feedback: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<CoachingFeedback>($"Failed to generate feedback: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -162,21 +162,21 @@ public class AiCoachService : IAiCoachService
         {
             if (!_activeSessions.TryGetValue(sessionId, out var session))
             {
-                return Result<StrategyAnalysis>.Failure("Coaching session not found", ErrorType.NotFound);
+                return Result.Failure<StrategyAnalysis>("Coaching session not found", ErrorType.NotFound);
             }
 
             if (!session.Preferences.EnableStrategyAnalysis)
             {
-                return Result<StrategyAnalysis>.Failure("Strategy analysis is disabled for this session");
+                return Result.Failure<StrategyAnalysis>("Strategy analysis is disabled for this session");
             }
 
             var analysis = await PerformStrategyAnalysisAsync(session, recentActions, ct);
-            return Result<StrategyAnalysis>.Success(analysis);
+            return Result.Success<StrategyAnalysis>(analysis);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error analyzing player strategy for session {SessionId}", sessionId);
-            return Result<StrategyAnalysis>.Failure($"Failed to analyze strategy: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<StrategyAnalysis>($"Failed to analyze strategy: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -186,21 +186,21 @@ public class AiCoachService : IAiCoachService
         {
             if (!_activeSessions.TryGetValue(sessionId, out var session))
             {
-                return Result<OpponentAnalysis>.Failure("Coaching session not found", ErrorType.NotFound);
+                return Result.Failure<OpponentAnalysis>("Coaching session not found", ErrorType.NotFound);
             }
 
             if (!session.Preferences.EnableOpponentAnalysis)
             {
-                return Result<OpponentAnalysis>.Failure("Opponent analysis is disabled for this session");
+                return Result.Failure<OpponentAnalysis>("Opponent analysis is disabled for this session");
             }
 
             var analysis = await PerformOpponentAnalysisAsync(session, opponentActions, ct);
-            return Result<OpponentAnalysis>.Success(analysis);
+            return Result.Success<OpponentAnalysis>(analysis);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error analyzing opponent patterns for session {SessionId}", sessionId);
-            return Result<OpponentAnalysis>.Failure($"Failed to analyze opponent: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<OpponentAnalysis>($"Failed to analyze opponent: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -210,16 +210,16 @@ public class AiCoachService : IAiCoachService
         {
             if (!_activeSessions.TryGetValue(sessionId, out var session))
             {
-                return Result<SkillAssessment>.Failure("Coaching session not found", ErrorType.NotFound);
+                return Result.Failure<SkillAssessment>("Coaching session not found", ErrorType.NotFound);
             }
 
             var assessment = await PerformSkillAssessmentAsync(session, metrics, ct);
-            return Result<SkillAssessment>.Success(assessment);
+            return Result.Success<SkillAssessment>(assessment);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error assessing player skill for session {SessionId}", sessionId);
-            return Result<SkillAssessment>.Failure($"Failed to assess skill: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<SkillAssessment>($"Failed to assess skill: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -229,16 +229,16 @@ public class AiCoachService : IAiCoachService
         {
             if (!_activeSessions.TryGetValue(sessionId, out var session))
             {
-                return Result<ImprovementPlan>.Failure("Coaching session not found", ErrorType.NotFound);
+                return Result.Failure<ImprovementPlan>("Coaching session not found", ErrorType.NotFound);
             }
 
             var plan = await CreateImprovementPlanAsync(session, assessment, ct);
-            return Result<ImprovementPlan>.Success(plan);
+            return Result.Success<ImprovementPlan>(plan);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating improvement plan for session {SessionId}", sessionId);
-            return Result<ImprovementPlan>.Failure($"Failed to generate plan: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<ImprovementPlan>($"Failed to generate plan: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -248,16 +248,16 @@ public class AiCoachService : IAiCoachService
         {
             if (!_activeSessions.TryGetValue(sessionId, out var session))
             {
-                return Result<IReadOnlyList<CoachingTip>>.Failure("Coaching session not found", ErrorType.NotFound);
+                return Result.Failure<IReadOnlyList<CoachingTip>>("Coaching session not found", ErrorType.NotFound);
         }
 
             var tips = await GenerateContextualTipsAsync(session, context, ct);
-            return Result<IReadOnlyList<CoachingTip>>.Success(tips);
+            return Result.Success<IReadOnlyList<CoachingTip>>(tips);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting contextual tips for session {SessionId}", sessionId);
-            return Result<IReadOnlyList<CoachingTip>>.Failure($"Failed to get tips: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<CoachingTip>>($"Failed to get tips: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -267,16 +267,16 @@ public class AiCoachService : IAiCoachService
         {
             if (!_activeSessions.TryGetValue(sessionId, out var session))
             {
-                return Result<CoachingReport>.Failure("Coaching session not found", ErrorType.NotFound);
+                return Result.Failure<CoachingReport>("Coaching session not found", ErrorType.NotFound);
             }
 
             var report = await CompileSessionReportAsync(session, ct);
-            return Result<CoachingReport>.Success(report);
+            return Result.Success<CoachingReport>(report);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating session report for session {SessionId}", sessionId);
-            return Result<CoachingReport>.Failure($"Failed to generate report: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<CoachingReport>($"Failed to generate report: {ex.Message}", ErrorType.Internal);
         }
     }
 

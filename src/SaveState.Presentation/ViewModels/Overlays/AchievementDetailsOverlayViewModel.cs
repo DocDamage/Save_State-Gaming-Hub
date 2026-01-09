@@ -73,8 +73,11 @@ public partial class AchievementDetailsOverlayViewModel : ObservableObject
     [ObservableProperty]
     private string _rewardDescription = string.Empty;
 
-    public AchievementDetailsOverlayViewModel()
+    private readonly SaveState.Presentation.Services.IOverlayService _overlayService;
+
+    public AchievementDetailsOverlayViewModel(SaveState.Presentation.Services.IOverlayService overlayService)
     {
+        _overlayService = overlayService;
         // Design-time data
         LoadDesignTimeData();
     }
@@ -107,6 +110,12 @@ public partial class AchievementDetailsOverlayViewModel : ObservableObject
         GlobalUnlockRate = "12.5%";
     }
 
+    public void Initialize(Guid achievementId)
+    {
+        AchievementName = $"Achievement {achievementId}";
+        // Load actual achievement data
+    }
+
     public void LoadUnlockedAchievement()
     {
         IsUnlocked = true;
@@ -123,6 +132,6 @@ public partial class AchievementDetailsOverlayViewModel : ObservableObject
     [RelayCommand]
     private void Close()
     {
-        // Close overlay
+        _overlayService.HideAchievementDetailsOverlay();
     }
 }

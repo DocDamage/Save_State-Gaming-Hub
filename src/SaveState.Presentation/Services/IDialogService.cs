@@ -15,6 +15,11 @@ public interface IDialogService
     Task<NoteEditorResult?> ShowNoteEditorAsync(Guid? noteId = null, string? initialContent = null);
 
     /// <summary>
+    /// Shows a simple input dialog.
+    /// </summary>
+    Task<string?> ShowInputDialogAsync(string title, string message, string? placeholder = null);
+
+    /// <summary>
     /// Shows a tag editor dialog.
     /// </summary>
     Task<TagEditorResult?> ShowTagEditorAsync(string[] currentTags);
@@ -33,6 +38,11 @@ public interface IDialogService
     /// Shows a file picker dialog for selecting mod files.
     /// </summary>
     Task<string[]?> ShowModFilePickerAsync();
+
+    /// <summary>
+    /// Shows a generic file picker dialog.
+    /// </summary>
+    Task<string?> ShowFilePickerAsync(string title, string[] extensions);
 
     /// <summary>
     /// Shows a confirmation dialog.
@@ -78,7 +88,125 @@ public interface IDialogService
     /// Shows the emulator editor dialog.
     /// </summary>
     Task<EmulatorEditorResult?> ShowEmulatorEditorAsync(SaveState.Presentation.ViewModels.Shell.EmulatorViewModel? existingEmulator = null);
+
+    /// <summary>
+    /// Shows a folder picker dialog.
+    /// </summary>
+    Task<string?> ShowFolderPickerAsync(string? title = null, string? initialPath = null);
+
+    /// <summary>
+    /// Shows the branch creation dialog.
+    /// </summary>
+    Task<BranchCreationResult?> ShowBranchCreationDialogAsync();
+
+    /// <summary>
+    /// Shows the save state settings dialog.
+    /// </summary>
+    Task<SaveStateSettingsResult?> ShowSaveStateSettingsDialogAsync(
+        Guid saveStateId,
+        string? description = null,
+        string? branchName = null,
+        bool isCurrent = false,
+        string? notes = null);
+
+    /// <summary>
+    /// Shows the branch selection dialog for switching branches.
+    /// </summary>
+    Task<BranchSelectionResult?> ShowBranchSelectionDialogAsync(
+        string currentBranchName,
+        ViewModels.Dialogs.BranchOptionViewModel[] availableBranches);
+
+    /// <summary>
+    /// Shows the branch comparison dialog.
+    /// </summary>
+    Task ShowBranchComparisonDialogAsync(
+        string leftBranchName,
+        string rightBranchName,
+        ViewModels.Dialogs.SaveStateDiffViewModel[] differences);
+
+    /// <summary>
+    /// Shows the branch merge dialog.
+    /// </summary>
+    Task<BranchMergeResult?> ShowBranchMergeDialogAsync(
+        string sourceBranchName,
+        string targetBranchName,
+        ViewModels.Dialogs.SaveStateDiffViewModel[] conflicts);
+
+    /// <summary>
+    /// Shows the launch configuration dialog.
+    /// </summary>
+    Task<LaunchConfigResult?> ShowLaunchConfigDialogAsync(
+        Guid gameId,
+        string? currentArguments = null);
+
+    /// <summary>
+    /// Shows the game rating dialog.
+    /// </summary>
+    Task<GameRatingResult?> ShowGameRatingDialogAsync(
+        Guid gameId,
+        double? currentRating = null);
+
+    /// <summary>
+    /// Shows the cloud provider configuration dialog.
+    /// </summary>
+    Task<CloudProviderConfigResult?> ShowCloudProviderConfigDialogAsync(
+        string? currentProvider = null);
+
+    /// <summary>
+    /// Shows the sync conflict resolution dialog.
+    /// </summary>
+    Task<ConflictResolutionResult?> ShowConflictResolutionDialogAsync(
+        SyncConflictViewModel[] conflicts);
+
+    /// <summary>
+    /// Shows the workflow editor dialog for visual workflow building.
+    /// </summary>
+    Task<WorkflowEditorResult?> ShowWorkflowEditorDialogAsync(
+        Guid? workflowId = null);
+
+    /// <summary>
+    /// Shows the macro playback dialog with execution progress.
+    /// </summary>
+    Task ShowMacroPlaybackDialogAsync(
+        Guid macroId,
+        string macroName);
+
+    /// <summary>
+    /// Shows the auto-save configuration dialog.
+    /// </summary>
+    Task<AutoSaveConfigurationResult?> ShowAutoSaveConfigurationDialogAsync(
+        bool autoSaveEnabled = true,
+        string selectedInterval = "5 min",
+        int maxAutoSaves = 10);
+
+    /// <summary>
+    /// Shows the price alert dialog.
+    /// </summary>
+    Task<PriceAlertResult?> ShowPriceAlertDialogAsync(
+        string gameTitle,
+        double currentPrice);
 }
+
+/// <summary>
+/// Result from the auto-save configuration dialog.
+/// </summary>
+public record AutoSaveConfigurationResult(
+    bool AutoSaveEnabled,
+    string Interval,
+    int MaxAutoSaves,
+    bool CreateOnGameStart,
+    bool CreateOnBossEncounter,
+    bool NotifyOnAutoSave,
+    bool CompressAutoSaves);
+
+/// <summary>
+/// Result from the price alert dialog.
+/// </summary>
+public record PriceAlertResult(
+    double TargetPrice,
+    string Store,
+    bool EmailNotification,
+    bool InAppNotification);
 
 /// <summary>
 /// Result from the emulator editor dialog.
@@ -141,3 +269,98 @@ public record WorkflowCreationResult(
     string Description,
     string Icon);
 
+/// <summary>
+/// Result from the branch creation dialog.
+/// </summary>
+public record BranchCreationResult(
+    string BranchName,
+    string Description,
+    SaveState.Core.SaveStates.Entities.BranchType BranchType);
+
+/// <summary>
+/// Result from the save state settings dialog.
+/// </summary>
+public record SaveStateSettingsResult(
+    Guid SaveStateId,
+    string Description,
+    string BranchName,
+    bool IsCurrent,
+    string Notes,
+    string[] Tags);
+
+/// <summary>
+/// Result from the branch selection dialog.
+/// </summary>
+public record BranchSelectionResult(
+    string BranchName,
+    string BranchType);
+
+/// <summary>
+/// Result from the branch merge dialog.
+/// </summary>
+public record BranchMergeResult(
+    string SourceBranchName,
+    string TargetBranchName,
+    bool KeepBothOnConflict,
+    string MergeStrategy);
+
+/// <summary>
+/// Result from the launch configuration dialog.
+/// </summary>
+public record LaunchConfigResult(
+    string LaunchArguments,
+    bool UseCustomResolution,
+    int? Width,
+    int? Height,
+    bool StartInFullScreen);
+
+/// <summary>
+/// Result from the game rating dialog.
+/// </summary>
+public record GameRatingResult(
+    double Rating,
+    string? ReviewText);
+
+/// <summary>
+/// Result from the cloud provider configuration dialog.
+/// </summary>
+public record CloudProviderConfigResult(
+    string ProviderName,
+    string ApiKey,
+    string? BucketName,
+    bool EnableAutoSync);
+
+/// <summary>
+/// Result from the conflict resolution dialog.
+/// </summary>
+public record ConflictResolutionResult(
+    Dictionary<string, string> Resolutions); // filepath -> resolution strategy
+
+/// <summary>
+/// View model for a sync conflict.
+/// </summary>
+public record SyncConflictViewModel(
+    string FilePath,
+    DateTime LocalModified,
+    DateTime CloudModified,
+    long LocalSize,
+    long CloudSize);
+
+
+/// <summary>
+/// Result from the workflow editor dialog.
+/// </summary>
+public record WorkflowEditorResult(
+    Guid WorkflowId,
+    string Name,
+    string Description,
+    List<WorkflowStepViewModel> Steps);
+
+/// <summary>
+/// View model for a workflow step.
+/// </summary>
+public record WorkflowStepViewModel(
+    string StepType,
+    string Name,
+    Dictionary<string, string> Parameters,
+    int Order);

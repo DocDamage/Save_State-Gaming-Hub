@@ -39,7 +39,7 @@ public class StartCloudSessionCommandHandler :
 
             if (game == null)
             {
-                return Result<CloudSession>.Failure($"Game with ID {request.GameId} not found");
+                return Result.Failure<CloudSession>($"Game with ID {request.GameId} not found");
             }
 
             var result = await _cloudGamingManager.StartSessionAsync(
@@ -57,7 +57,7 @@ public class StartCloudSessionCommandHandler :
         {
             _logger.LogError(ex, "Failed to start cloud session for game {GameId} on {Provider}",
                 request.GameId, request.Provider);
-            return Result<CloudSession>.Failure($"Failed to start cloud session: {ex.Message}");
+            return Result.Failure<CloudSession>($"Failed to start cloud session: {ex.Message}");
         }
     }
 }
@@ -97,3 +97,4 @@ public class EndCloudSessionCommandHandler :
         }
     }
 }
+

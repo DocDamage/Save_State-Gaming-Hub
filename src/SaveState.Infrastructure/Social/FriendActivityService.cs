@@ -44,12 +44,12 @@ public class FriendActivityService : IFriendActivityService
         try
         {
             var result = await _friendRepository.GetActivitiesAsync(limit, ct: ct);
-            return Result<IReadOnlyList<FriendActivity>>.Success(result.Items);
+            return Result.Success<IReadOnlyList<FriendActivity>>(result.Items);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get activity feed");
-            return Result<IReadOnlyList<FriendActivity>>.Failure("Failed to get activity feed", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<FriendActivity>>("Failed to get activity feed", ErrorType.Internal);
         }
     }
 
@@ -63,12 +63,12 @@ public class FriendActivityService : IFriendActivityService
         try
         {
             var result = await _friendRepository.GetFriendsAsync(ct: ct);
-            return Result<IReadOnlyList<Friend>>.Success(result.Items);
+            return Result.Success<IReadOnlyList<Friend>>(result.Items);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get friends");
-            return Result<IReadOnlyList<Friend>>.Failure("Failed to get friends", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<Friend>>("Failed to get friends", ErrorType.Internal);
         }
     }
 
@@ -82,12 +82,12 @@ public class FriendActivityService : IFriendActivityService
         try
         {
             var result = await _friendRepository.GetFriendsAsync(isOnline: true, ct: ct);
-            return Result<IReadOnlyList<Friend>>.Success(result.Items);
+            return Result.Success<IReadOnlyList<Friend>>(result.Items);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get online friends");
-            return Result<IReadOnlyList<Friend>>.Failure("Failed to get online friends", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<Friend>>("Failed to get online friends", ErrorType.Internal);
         }
     }
 
@@ -216,12 +216,12 @@ public class FriendActivityService : IFriendActivityService
         try
         {
             var statistics = await _friendRepository.GetStatisticsAsync(ct);
-            return Result<FriendActivityStatistics>.Success(statistics);
+            return Result.Success<FriendActivityStatistics>(statistics);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get friend activity statistics");
-            return Result<FriendActivityStatistics>.Failure("Failed to get statistics", ErrorType.Internal);
+            return Result.Failure<FriendActivityStatistics>("Failed to get statistics", ErrorType.Internal);
         }
     }
 
@@ -255,3 +255,4 @@ public class FriendActivityService : IFriendActivityService
         }
     }
 }
+

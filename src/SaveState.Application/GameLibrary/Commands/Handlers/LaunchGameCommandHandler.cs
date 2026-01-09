@@ -44,11 +44,11 @@ public class LaunchGameCommandHandler : IRequestHandler<LaunchGameCommand, Resul
     {
         var game = await _gameRepository.GetByIdAsync(request.GameId, ct).ConfigureAwait(false);
         if (game is null)
-            return Result<ProcessInfo>.Failure("Game not found");
+            return Result.Failure<ProcessInfo>("Game not found");
 
         // Validate game can be launched
         if (!await _validationService.CanLaunchGameAsync(game, ct).ConfigureAwait(false))
-            return Result<ProcessInfo>.Failure("Game cannot be launched");
+            return Result.Failure<ProcessInfo>("Game cannot be launched");
 
         try
         {
@@ -64,12 +64,12 @@ public class LaunchGameCommandHandler : IRequestHandler<LaunchGameCommand, Resul
 
             _logger.LogInformation("Launched game {GameId}: {Title}", game.Id, game.Title);
 
-            return Result<ProcessInfo>.Success(processInfo);
+            return Result.Success<ProcessInfo>(processInfo);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to launch game {GameId}: {Title}", game.Id, game.Title);
-            return Result<ProcessInfo>.Failure($"Failed to launch game: {ex.Message}");
+            return Result.Failure<ProcessInfo>($"Failed to launch game: {ex.Message}");
         }
     }
 
@@ -110,3 +110,4 @@ public class LaunchGameCommandHandler : IRequestHandler<LaunchGameCommand, Resul
         throw new InvalidOperationException("No executable found for game");
     }
 }
+

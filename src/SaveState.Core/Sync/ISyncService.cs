@@ -49,6 +49,16 @@ public interface ISyncService
     /// Event raised when a sync conflict is detected.
     /// </summary>
     event EventHandler<SyncConflictEventArgs>? ConflictDetected;
+
+    /// <summary>
+    /// Gets the list of current sync conflicts.
+    /// </summary>
+    Task<IReadOnlyList<SyncConflictEventArgs>> GetConflictsAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Resolves a sync conflict using the specified strategy.
+    /// </summary>
+    Task<bool> ResolveConflictAsync(string localPath, string strategy, CancellationToken ct = default);
 }
 
 /// <summary>
@@ -92,6 +102,10 @@ public sealed class SyncProgressEventArgs : EventArgs
     public int TotalFiles { get; init; }
     public int ProcessedFiles { get; init; }
     public string CurrentFile { get; init; } = string.Empty;
+    public long TotalBytes { get; init; }
+    public long ProcessedBytes { get; init; }
+    public double ThroughputBytesPerSecond { get; init; }
+    public TimeSpan? EstimatedRemainingTime { get; init; }
     public double PercentComplete => TotalFiles > 0 ? (double)ProcessedFiles / TotalFiles * 100 : 0;
 }
 
@@ -104,4 +118,5 @@ public sealed class SyncConflictEventArgs : EventArgs
     public string RemotePath { get; init; } = string.Empty;
     public DateTime LocalModified { get; init; }
     public DateTime RemoteModified { get; init; }
+    public long RemoteSize { get; init; }
 }

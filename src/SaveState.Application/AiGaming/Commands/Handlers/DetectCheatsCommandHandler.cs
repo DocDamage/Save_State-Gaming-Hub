@@ -70,12 +70,12 @@ public class DetectCheatsCommandHandler : IRequestHandler<DetectCheatsCommand, R
                     request.ProcessId);
             }
 
-            return Result<CheatDetectionResult>.Success(result);
+            return Result.Success<CheatDetectionResult>(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to analyze memory for process {ProcessId}", request.ProcessId);
-            return Result<CheatDetectionResult>.Failure($"Cheat detection failed: {ex.Message}");
+            return Result.Failure<CheatDetectionResult>($"Cheat detection failed: {ex.Message}");
         }
     }
 
@@ -88,3 +88,4 @@ public class DetectCheatsCommandHandler : IRequestHandler<DetectCheatsCommand, R
         return data;
     }
 }
+

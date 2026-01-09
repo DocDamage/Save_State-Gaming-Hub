@@ -26,6 +26,8 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
     private readonly IUserContextService _userContextService;
     private readonly IModManagementService _modService;
     private readonly IDialogService _dialogService;
+    private readonly IBacklogService _backlogService;
+    private readonly IClipboardService _clipboardService;
     private readonly ILogger<GameLibraryViewModel> _logger;
     private readonly ILoggerFactory _loggerFactory;
 
@@ -46,6 +48,8 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
         IUserContextService userContextService,
         IModManagementService modService,
         IDialogService dialogService,
+        IBacklogService backlogService,
+        IClipboardService clipboardService,
         Library.LibraryViewModel libraryViewModel,
         ILogger<GameLibraryViewModel> logger,
         ILoggerFactory loggerFactory)
@@ -58,6 +62,8 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
         _userContextService = userContextService;
         _modService = modService;
         _dialogService = dialogService;
+        _backlogService = backlogService;
+        _clipboardService = clipboardService;
         _logger = logger;
         _loggerFactory = loggerFactory;
         LibraryViewModel = libraryViewModel;
@@ -108,7 +114,19 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
         IsShowingLibrary = false;
 
         // Create or reuse game detail view model
-        GameDetailViewModel = new Library.GameDetail.GameDetailViewModel(_mediator, _navigationService, _overlayService, _notificationService, _aiOrchestrator, _userContextService, _modService, _dialogService, gameId, _loggerFactory);
+        GameDetailViewModel = new Library.GameDetail.GameDetailViewModel(
+            _mediator,
+            _navigationService,
+            _overlayService,
+            _notificationService,
+            _aiOrchestrator,
+            _userContextService,
+            _modService,
+            _dialogService,
+            _backlogService,
+            _clipboardService,
+            gameId,
+            _loggerFactory);
         CurrentView = GameDetailViewModel;
 
         _logger.LogInformation("Navigated to game detail for {GameId}", gameId);

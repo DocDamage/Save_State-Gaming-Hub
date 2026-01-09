@@ -39,11 +39,11 @@ public class SteamDeckManager : ISteamDeckManager
 
             var isDetected = detectionConfidence >= 2; // Require at least 2 indicators
 
-            return Result<bool>.Success(isDetected);
+            return Result.Success<bool>(isDetected);
         }
         catch (Exception ex)
         {
-            return Result<bool>.Failure($"Failed to detect Steam Deck: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<bool>($"Failed to detect Steam Deck: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -146,7 +146,7 @@ public class SteamDeckManager : ISteamDeckManager
 
             if (controllerProfileResult.IsFailure)
             {
-                return Result<SteamDeckProfile>.Failure(controllerProfileResult.Error, ErrorType.Internal);
+                return Result.Failure<SteamDeckProfile>(controllerProfileResult.Error, ErrorType.Internal);
             }
 
             var profile = new SteamDeckProfile(
@@ -156,17 +156,17 @@ public class SteamDeckManager : ISteamDeckManager
                 CreatedAt: DateTime.UtcNow,
                 IsActive: false);
 
-            return Result<SteamDeckProfile>.Success(profile);
+            return Result.Success<SteamDeckProfile>(profile);
         }
         catch (Exception ex)
         {
-            return Result<SteamDeckProfile>.Failure($"Failed to create Steam Deck profile: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<SteamDeckProfile>($"Failed to create Steam Deck profile: {ex.Message}", ErrorType.Internal);
         }
     }
 
     public Task<Result<SteamDeckProfile?>> GetCurrentProfileAsync(CancellationToken ct = default)
     {
-        return Task.FromResult(Result<SteamDeckProfile?>.Success(_activeProfile));
+        return Task.FromResult(Result.Success<SteamDeckProfile?>(_activeProfile));
     }
 
     public Task<Result<IReadOnlyList<SteamDeckProfile>>> GetAllProfilesAsync(CancellationToken ct = default)
@@ -182,11 +182,11 @@ public class SteamDeckManager : ISteamDeckManager
                 profiles.Add(_activeProfile);
             }
 
-            return Task.FromResult(Result<IReadOnlyList<SteamDeckProfile>>.Success((IReadOnlyList<SteamDeckProfile>)profiles));
+            return Task.FromResult(Result.Success<IReadOnlyList<SteamDeckProfile>>((IReadOnlyList<SteamDeckProfile>)profiles));
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Result<IReadOnlyList<SteamDeckProfile>>.Failure($"Failed to get Steam Deck profiles: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<IReadOnlyList<SteamDeckProfile>>($"Failed to get Steam Deck profiles: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -300,3 +300,5 @@ public class SteamDeckManager : ISteamDeckManager
         return Task.CompletedTask; // Placeholder for actual implementation
     }
 }
+
+

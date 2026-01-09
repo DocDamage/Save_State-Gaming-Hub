@@ -151,7 +151,7 @@ public class SteamDeckOptimizationPlugin : IPlugin, IPerformanceMonitor
             PointOnePercentLow: 30.0f,
             Snapshots: new List<PerformanceSnapshot>());
 
-        return Result<PerformanceHistory>.Success(history);
+        return Result.Success<PerformanceHistory>(history);
     }
 
     private bool DetectSteamDeck()

@@ -1,0 +1,74 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        x:Class="SaveState.Presentation.Views.Dialogs.CloudProviderConfigDialog"
+        x:DataType="vm:CloudProviderConfigDialogViewModel"
+        Title="Configure Cloud Provider"
+        Width="500" Height="450"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BackgroundBrush}">
+
+    <Grid RowDefinitions="*, Auto" Margin="20">
+        <!-- Content -->
+        <StackPanel Grid.Row="0" Spacing="20">
+            <TextBlock Text="☁️ Cloud Provider Configuration"
+                       Classes="Header"
+                       Margin="0,0,0,10" />
+
+            <!-- Provider Selection -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Provider" Classes="Label" />
+                <ComboBox ItemsSource="{Binding AvailableProviders}"
+                          SelectedItem="{Binding SelectedProvider}"
+                          HorizontalAlignment="Stretch" />
+            </StackPanel>
+
+            <!-- API Key -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="API Key / Access Token" Classes="Label" />
+                <TextBox Text="{Binding ApiKey}"
+                         Watermark="Enter your API key"
+                         PasswordChar="•"
+                         HorizontalAlignment="Stretch" />
+                <TextBlock Text="Your credentials are stored securely and encrypted"
+                           Classes="Subtitle"
+                           FontSize="11" />
+            </StackPanel>
+
+            <!-- Bucket/Container Name -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Bucket/Container Name (Optional)" Classes="Label" />
+                <TextBox Text="{Binding BucketName}"
+                         Watermark="e.g., my-savestate-backups"
+                         HorizontalAlignment="Stretch" />
+            </StackPanel>
+
+            <!-- Auto Sync -->
+            <StackPanel Spacing="8">
+                <CheckBox IsChecked="{Binding EnableAutoSync}"
+                          Content="Enable automatic synchronization" />
+                <TextBlock Text="Automatically sync your save states and game data in the background"
+                           Classes="Subtitle"
+                           FontSize="11"
+                           Margin="28,0,0,0" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Action Buttons -->
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Spacing="10"
+                    Margin="0,20,0,0">
+            <Button Content="Cancel"
+                    Classes="Secondary"
+                    Width="100"
+                    Click="OnCancelClick" />
+            <Button Content="Save"
+                    Classes="Primary"
+                    Width="100"
+                    Click="OnSaveClick" />
+        </StackPanel>
+    </Grid>
+</Window>

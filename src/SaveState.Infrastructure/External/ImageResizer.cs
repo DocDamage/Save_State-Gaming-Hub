@@ -58,7 +58,7 @@ public class ImageResizer : IImageResizer
             if (newSize == originalSize)
             {
                 // No resizing needed
-                return Result<ImageResizeResult>.Success(new ImageResizeResult(
+                return Result.Success<ImageResizeResult>(new ImageResizeResult(
                     imageData,
                     originalSize.Width,
                     originalSize.Height,
@@ -79,7 +79,7 @@ public class ImageResizer : IImageResizer
 
             var resizedData = await ImageToBytesAsync(resizedImage, options.OutputFormat, ct);
 
-            return Result<ImageResizeResult>.Success(new ImageResizeResult(
+            return Result.Success<ImageResizeResult>(new ImageResizeResult(
                 resizedData,
                 originalSize.Width,
                 originalSize.Height,
@@ -90,7 +90,7 @@ public class ImageResizer : IImageResizer
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to resize image");
-            return Result<ImageResizeResult>.Failure($"Image resize failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<ImageResizeResult>($"Image resize failed: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -103,7 +103,7 @@ public class ImageResizer : IImageResizer
             // If already under size limit, return as-is
             if (imageData.Length <= options.MaxFileSizeBytes)
             {
-                return Result<byte[]>.Success(imageData);
+                return Result.Success<byte[]>(imageData);
             }
 
             // Try different quality levels until under size limit
@@ -116,7 +116,7 @@ public class ImageResizer : IImageResizer
 
                 if (optimizedData.Length <= options.MaxFileSizeBytes)
                 {
-                    return Result<byte[]>.Success(optimizedData);
+                    return Result.Success<byte[]>(optimizedData);
                 }
 
                 quality -= 10; // Reduce quality by 10%
@@ -124,12 +124,12 @@ public class ImageResizer : IImageResizer
 
             // If we still can't get under the limit, return the best we have
             var finalData = await ImageToBytesAsync(image, options.OutputFormat, minQuality, ct);
-            return Result<byte[]>.Success(finalData);
+            return Result.Success<byte[]>(finalData);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to optimize image");
-            return Result<byte[]>.Failure($"Image optimization failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<byte[]>($"Image optimization failed: {ex.Message}", ErrorType.Internal);
         }
     }
 

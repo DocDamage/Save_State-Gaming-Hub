@@ -1,0 +1,126 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        x:Class="SaveState.Presentation.Views.Dialogs.ProcessSelectorDialog"
+        x:DataType="vm:ProcessSelectorDialogViewModel"
+        Title="Attach to Process"
+        Width="500"
+        Height="600"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True"
+        Background="{StaticResource DialogBackgroundBrush}"
+        TransparencyLevelHint="Mica"
+        ExtendClientAreaToDecorationsHint="True">
+
+    <Window.Styles>
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="24,10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style Selector="Button.secondary">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="24,10" />
+        </Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="10" />
+            <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+        </Style>
+
+        <Style Selector="ListBoxItem">
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="8,12" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="32">
+        <!-- Header -->
+        <TextBlock Grid.Row="0"
+                   Text="Attach to Process"
+                   FontSize="24"
+                   FontWeight="Bold"
+                   Margin="0,0,0,24" />
+
+        <!-- Filter -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+            <TextBox Grid.Column="0"
+                     Text="{Binding FilterText}"
+                     Watermark="Search processes..." />
+            <Button Grid.Column="1"
+                    Content="↻"
+                    Command="{Binding LoadProcessesCommand}"
+                    Margin="8,0,0,0"
+                    ToolTip.Tip="Refresh List"/>
+        </Grid>
+
+        <!-- Process List -->
+        <Border Grid.Row="2"
+                BorderBrush="{StaticResource InputBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Background="{StaticResource InputBackgroundBrush}">
+            <Grid>
+                <ListBox ItemsSource="{Binding Processes}"
+                         SelectedItem="{Binding SelectedProcess}"
+                         Background="Transparent">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0" Spacing="4">
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding Title}" FontSize="12" Opacity="0.7"
+                                               IsVisible="{Binding Title, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                </StackPanel>
+                                <TextBlock Grid.Column="1" Text="{Binding Id}"
+                                           VerticalAlignment="Center"
+                                           Opacity="0.5"
+                                           FontSize="12"
+                                           Margin="8,0,0,0"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <ProgressBar IsIndeterminate="True"
+                             IsVisible="{Binding IsLoading}"
+                             VerticalAlignment="Top"
+                             Height="2"
+                             Background="Transparent"
+                             Foreground="{StaticResource AccentBrush}" />
+
+                <TextBlock Text="No processes found"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding !Processes.Count}"
+                           Opacity="0.5"/>
+            </Grid>
+        </Border>
+
+        <!-- Footer -->
+        <Grid Grid.Row="3" ColumnDefinitions="*,Auto,Auto" Margin="0,24,0,0">
+            <Button Grid.Column="1"
+                    Content="Cancel"
+                    Command="{Binding CancelCommand}"
+                    Classes="secondary"
+                    Margin="0,0,12,0" />
+
+            <Button Grid.Column="2"
+                    Content="Attach"
+                    Command="{Binding ConfirmCommand}"
+                    Classes="primary"
+                    IsEnabled="{Binding SelectedProcess, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        </Grid>
+    </Grid>
+</Window>

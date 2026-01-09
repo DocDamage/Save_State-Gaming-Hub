@@ -1,0 +1,130 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        x:Class="SaveState.Presentation.Views.Dialogs.ConflictResolutionDialog"
+        x:DataType="vm:ConflictResolutionDialogViewModel"
+        Title="Resolve Sync Conflicts"
+        Width="800" Height="600"
+        CanResize="True"
+        WindowStartupLocation="CenterOwner"
+        Background="Transparent"
+        TransparencyLevelHint="AcrylicBlur"
+        ExtendClientAreaToDecorationsHint="True">
+
+    <Panel>
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"
+                    TintColor="Black"
+                    TintOpacity="0.7"
+                    MaterialOpacity="0.65" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+
+        <Grid RowDefinitions="Auto, *, Auto" Margin="30">
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Spacing="10" Margin="0,10,0,30">
+                <TextBlock Text="Sync Conflicts"
+                           FontSize="28"
+                           FontWeight="Light"
+                           Foreground="White" />
+                <TextBlock Text="Multiple versions of the same file were found. Please select which version you want to keep for each item."
+                           Foreground="#AAAAAA"
+                           TextWrapping="Wrap" />
+            </StackPanel>
+
+            <!-- Conflicts List -->
+            <ScrollViewer Grid.Row="1">
+                <ItemsControl ItemsSource="{Binding Conflicts}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#1AFFFFFF"
+                                    BorderBrush="#33FFFFFF"
+                                    BorderThickness="1"
+                                    CornerRadius="12"
+                                    Padding="20"
+                                    Margin="0,0,10,15">
+                                <Grid RowDefinitions="Auto, Auto, Auto">
+                                    <!-- File Info -->
+                                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0,0,0,15">
+                                        <TextBlock Text="📄" FontSize="20" VerticalAlignment="Center" />
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding FilePath}"
+                                                       FontWeight="SemiBold"
+                                                       FontSize="15"
+                                                       Foreground="White" />
+                                            <TextBlock Text="Data Conflict"
+                                                       FontSize="12"
+                                                       Foreground="#FF5555" />
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- Comparisons -->
+                                    <Grid Grid.Row="1" ColumnDefinitions="*, *" Margin="0,0,0,20">
+                                        <!-- Local -->
+                                        <Border Grid.Column="0"
+                                                Background="#0DFFFFFF"
+                                                CornerRadius="8"
+                                                Padding="15"
+                                                Margin="0,0,10,0">
+                                            <StackPanel Spacing="5">
+                                                <TextBlock Text="LOCAL PC" FontWeight="Bold" Foreground="#3B82F6" FontSize="10" LetterSpacing="1" />
+                                                <TextBlock Text="{Binding LocalModified, StringFormat='Modified: {0:g}'}" FontSize="12" Foreground="#CCCCCC" />
+                                                <TextBlock Text="{Binding LocalSize, StringFormat='Size: {0:N0} bytes'}" FontSize="12" Foreground="#888888" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Cloud -->
+                                        <Border Grid.Column="1"
+                                                Background="#0DFFFFFF"
+                                                CornerRadius="8"
+                                                Padding="15">
+                                            <StackPanel Spacing="5">
+                                                <TextBlock Text="CLOUD STORAGE" FontWeight="Bold" Foreground="#10B981" FontSize="10" LetterSpacing="1" />
+                                                <TextBlock Text="{Binding CloudModified, StringFormat='Modified: {0:g}'}" FontSize="12" Foreground="#CCCCCC" />
+                                                <TextBlock Text="{Binding CloudSize, StringFormat='Size: {0:N0} bytes'}" FontSize="12" Foreground="#888888" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Action -->
+                                    <Grid Grid.Row="2" ColumnDefinitions="Auto, *">
+                                        <TextBlock Grid.Column="0" Text="Resolution:" VerticalAlignment="Center" Margin="0,0,15,0" Foreground="#AAAAAA" />
+                                        <ComboBox Grid.Column="1"
+                                                  ItemsSource="{Binding $parent[Window].((vm:ConflictResolutionDialogViewModel)DataContext).ResolutionStrategies}"
+                                                  SelectedItem="{Binding SelectedResolution}"
+                                                  HorizontalAlignment="Stretch"
+                                                  Padding="10,5">
+                                            <ComboBox.Resources>
+                                                <SolidColorBrush x:Key="ComboBoxBackground">#222222</SolidColorBrush>
+                                            </ComboBox.Resources>
+                                        </ComboBox>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Footer -->
+            <StackPanel Grid.Row="2"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="15"
+                        Margin="0,20,0,0">
+                <Button Content="Cancel"
+                        Classes="Secondary"
+                        Width="120"
+                        Height="40"
+                        Click="OnCancelClick" />
+                <Button Content="Apply All Changes"
+                        Classes="Primary"
+                        Width="180"
+                        Height="40"
+                        Click="OnResolveClick" />
+            </StackPanel>
+        </Grid>
+    </Panel>
+</Window>

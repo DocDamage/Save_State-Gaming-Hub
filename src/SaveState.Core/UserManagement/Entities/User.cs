@@ -38,6 +38,11 @@ public class User : EntityBase
         };
     }
 
+    public void UpdateUsername(string username)
+    {
+        Username = Guard.Against.NullOrWhiteSpace(username, nameof(username));
+    }
+
     public void UpdateLastLogin()
     {
         LastLoginAt = DateTimeOffset.UtcNow;

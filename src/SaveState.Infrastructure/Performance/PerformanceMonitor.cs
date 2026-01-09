@@ -114,20 +114,20 @@ public class PerformanceMonitor : IPerformanceMonitor
                 else
                 {
                     // In a real implementation, this would load historical data from storage
-                    return Result<PerformanceHistory>.Failure("Historical session data not implemented", ErrorType.NotImplemented);
+                    return Result.Failure<PerformanceHistory>("Historical session data not implemented", ErrorType.NotImplemented);
                 }
             }
 
             if (!sessionSnapshots.Any())
-                return Result<PerformanceHistory>.Failure("No snapshots available for session", ErrorType.NotFound);
+                return Result.Failure<PerformanceHistory>("No snapshots available for session", ErrorType.NotFound);
 
             var history = CalculatePerformanceHistory(sessionId, sessionSnapshots);
-            return Result<PerformanceHistory>.Success(history);
+            return Result.Success<PerformanceHistory>(history);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get session history for {SessionId}", sessionId);
-            return Result<PerformanceHistory>.Failure($"Failed to get history: {ex.Message}", ErrorType.Internal);
+            return Result.Failure<PerformanceHistory>($"Failed to get history: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -315,3 +315,4 @@ public class PerformanceMonitor : IPerformanceMonitor
         return Task.FromResult((float?)Random.Shared.Next(35, 70));
     }
 }
+

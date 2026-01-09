@@ -62,7 +62,7 @@ public class GetLibraryStatisticsQueryHandler : IRequestHandler<GetLibraryStatis
             LastGameAdded = gamesList.Any() ? gamesList.Max(g => g.CreatedAt) : null
         };
 
-        return Result<LibraryStatisticsDto>.Success(stats);
+        return Result.Success<LibraryStatisticsDto>(stats);
     }
 
     private static long CalculateTotalDiskSpace(IEnumerable<Game> games)
@@ -89,3 +89,4 @@ public class GetLibraryStatisticsQueryHandler : IRequestHandler<GetLibraryStatis
         return totalSize;
     }
 }
+

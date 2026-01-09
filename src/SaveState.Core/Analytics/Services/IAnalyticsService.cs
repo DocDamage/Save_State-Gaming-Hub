@@ -9,6 +9,7 @@ public interface IAnalyticsService
     Task<Result<IReadOnlyList<WeeklyTrend>>> GetWeeklyTrendsAsync(int weeks = 12, CancellationToken ct = default);
     Task<Result<TimeDistribution>> GetPlaytimeDistributionAsync(CancellationToken ct = default);
     Task<Result<IReadOnlyList<TopGame>>> GetTopGamesAsync(int count = 10, DateOnly? since = null, CancellationToken ct = default);
+    Task<Result<AnalyticsExportData>> GetExportDataAsync(CancellationToken ct = default);
 }
 
 public sealed record WeeklyTrend(int WeekNumber, TimeSpan TotalPlaytime, int SessionCount, float ChangePercent);

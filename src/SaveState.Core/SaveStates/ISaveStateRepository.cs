@@ -18,4 +18,5 @@ public interface ISaveStateRepository
     Task DeleteAsync(Guid id, CancellationToken ct = default);
     Task<int> CountByGameIdAsync(Guid gameId, CancellationToken ct = default);
     Task<IReadOnlyList<SaveStateEntity>> GetTimelineAsync(Guid gameId, CancellationToken ct = default);
+    Task AddBranchAsync(SaveStateBranch branch, CancellationToken ct = default);
 }

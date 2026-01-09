@@ -102,6 +102,22 @@ public class TournamentMatchEntity : EntityBase
     }
 
     /// <summary>
+    /// Sets the character for player 1.
+    /// </summary>
+    public void SetPlayer1(Guid characterId)
+    {
+        Player1CharacterId = characterId;
+    }
+
+    /// <summary>
+    /// Sets the character for player 2.
+    /// </summary>
+    public void SetPlayer2(Guid characterId)
+    {
+        Player2CharacterId = characterId;
+    }
+
+    /// <summary>
     /// Starts the match.
     /// </summary>
     public void Start()

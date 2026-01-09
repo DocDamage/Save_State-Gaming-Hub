@@ -22,7 +22,7 @@ public class CreateMugenTournamentCommandHandler : IRequestHandler<CreateMugenTo
         // Parse tournament format
         if (!Enum.TryParse<TournamentFormat>(request.Format, true, out var format))
         {
-            return Result<MugenTournament>.Failure($"Invalid tournament format: {request.Format}");
+            return Result.Failure<MugenTournament>($"Invalid tournament format: {request.Format}");
         }
 
         var createRequest = new CreateTournamentRequest(

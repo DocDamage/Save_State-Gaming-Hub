@@ -1,7 +1,7 @@
 # 🤖 SaveState Reborn — Project Knowledge Index
 
-**Status**: ✅ Production Release v1.0.0 + Active Development
-**Last Updated**: January 4, 2026 (Mod Management Integration Complete)
+**Status**: ✅ Production Release v2.3.9 + Active Development
+**Last Updated**: January 8, 2026 (Dialog System Complete - All Placeholders Eliminated)
 **Maintained By**: Development Team
 **Next Review**: January 15, 2026 (Bi-weekly review for ENGINEERING_RULES)
 **Related Documents**: [All docs in this directory](./)
@@ -15,12 +15,14 @@
 | [AI_QUICK_START.md](guides/AI_QUICK_START.md) | Jan 2 | Weekly | ✅ NEW |
 | [ACTIVE_ISSUES.md](planning/ACTIVE_ISSUES.md) | Jan 2 | Daily | ✅ NEW |
 | [PATTERNS_COOKBOOK.md](architecture/PATTERNS_COOKBOOK.md) | Jan 2 | Monthly | ✅ NEW |
-| [DECISIONS_LOG.md](architecture/DECISIONS_LOG.md) | Jan 2 | Monthly | ✅ NEW |
+| [DECISIONS_LOG.md](architecture/DECISIONS_LOG.md) | Jan 8 | Monthly | ✅ Updated |
 | [PROJECT_METRICS.md](reports/PROJECT_METRICS.md) | Jan 3 | Jan 10 | ✅ Current |
-| [AI_MASTER_CONTEXT.md](AI_MASTER_CONTEXT.md) | Jan 3 | Feb 1 | ✅ Current |
-| [ENGINEERING_RULES.md](architecture/ENGINEERING_RULES.md) | Jan 3 | Jan 15 | ⚠️ DUE SOON |
+| [AI_MASTER_CONTEXT.md](ai/AI_MASTER_CONTEXT.md) | Jan 8 | Feb 1 | ✅ Updated |
+| [ENGINEERING_RULES.md](architecture/ENGINEERING_RULES.md) | Jan 8 | Jan 15 | ✅ Updated |
 | [DEVELOPMENT_STATUS.md](status/DEVELOPMENT_STATUS.md) | Jan 3 | Jan 17 | ✅ Current |
 | [GLOSSARY.md](resources/GLOSSARY.md) | Jan 3 | Feb 3 | ✅ Updated |
+| [LESSONS_LEARNED.md](planning/LESSONS_LEARNED.md) | Jan 8 | Feb 8 | ✅ Updated |
+| [WHATS_LEFT_TO_CODE.md](planning/WHATS_LEFT_TO_CODE.md) | Jan 8 | Feb 8 | ✅ Updated |
 | [Character Development Integration Plan](planning/character_development_integration_plan.md) | Jan 3 | - | ✅ NEW |
 | [Ikemen Repository Analysis](planning/ikemen_repositories_analysis.md) | Jan 2 | - | ✅ Current |
 | [MUGEN Repository Evaluation](planning/mugen_repositories_evaluation.md) | Jan 3 | - | ✅ Current |
@@ -43,7 +45,7 @@
 ---
 
 > [!NOTE]
-> **January 4, 2026 Update**: Mod Management Integration completed. `GameModsTabViewModel` fully connected to backend services with notification feedback. Health Score improved to **98/100**. All GameDetail tabs now functional with real data. See [TECHNICAL_DEBT_SCAN_2026-01-04.md](reports/TECHNICAL_DEBT_SCAN_2026-01-04.md) for latest technical debt status.
+> **January 8, 2026 Update**: Dialog System Complete v2.3.9. Eliminated all placeholder implementations in `IDialogService`. Created `TextInputDialog`, `BranchCreationDialog`, `BranchMergeDialog`, `SaveStateSettingsDialog` with full ViewModels, Views, and code-behinds. Build errors reduced from 15 → **0**. Warnings reduced from 995 → **117** (88% reduction). Health Score: **98/100**.
 
 ---
 
@@ -191,7 +193,7 @@ This document defines how all project documentation is intended to be read, inte
 | **What's broken right now?** | [TECHNICAL_DEBT_AUDIT_2026-01-02.md](reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md) | Critical Issues |
 | **What are the core metrics?** | [PROJECT_METRICS.md](reports/PROJECT_METRICS.md) | Full Metrics |
 | **How do I build a new view?** | [FEATURE_SURFACING_PLAN.md](planning/FEATURE_SURFACING_PLAN.md) | Relevant tab section |
-| How do I write code? | [AI_MASTER_CONTEXT.md](AI_MASTER_CONTEXT.md) | "Coding Standards" |
+| How do I write code? | [ai/AI_MASTER_CONTEXT.md](ai/AI_MASTER_CONTEXT.md) | "Coding Standards" |
 | Why does that rule exist? | [planning/LESSONS_LEARNED.md](planning/LESSONS_LEARNED.md) | Use Ctrl+F |
 | What are the non-negotiables? | [ENGINEERING_RULES.md](architecture/ENGINEERING_RULES.md) | Top section |
 | What's being built next? | [planning/FEATURE_SURFACING_PLAN.md](planning/FEATURE_SURFACING_PLAN.md) | "Implementation Phases" |
@@ -209,7 +211,7 @@ This document defines how all project documentation is intended to be read, inte
 |:---------|:------|:--------|:------|
 | [PROJECT_METRICS.md](reports/PROJECT_METRICS.md) | Jan 2, 2026 | 100% | Single source of truth |
 | [TECHNICAL_DEBT_AUDIT_2026-01-02.md](reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md) | Jan 2, 2026 | 100% | ⭐ Latest scan |
-| [AI_MASTER_CONTEXT.md](AI_MASTER_CONTEXT.md) | Jan 3, 2026 | 100% | Character development integration added |
+| [AI_MASTER_CONTEXT.md](ai/AI_MASTER_CONTEXT.md) | Jan 3, 2026 | 100% | Character development integration added |
 | [AI_PROJECT_INDEX.md](AI_PROJECT_INDEX.md) | Jan 3, 2026 | 100% | Character development docs added |
 | [ENGINEERING_RULES.md](architecture/ENGINEERING_RULES.md) | Jan 3, 2026 | 100% | Updated for character development |
 | [GLOSSARY.md](resources/GLOSSARY.md) | Jan 3, 2026 | 100% | Character development terms added |
@@ -235,11 +237,11 @@ This document defines how all project documentation is intended to be read, inte
 
 | Situation | Primary Source | Secondary Check |
 |-----------|----------------|-----------------|
-| **What's currently broken** | TECHNICAL_DEBT_AUDIT_2026-01-02.md | AI_MASTER_CONTEXT.md |
-| **Writing new code** | AI_MASTER_CONTEXT.md | ENGINEERING_RULES.md |
-| **Architecture decisions** | ENGINEERING_RULES.md | AI_MASTER_CONTEXT.md |
-| **Understanding why** | LESSONS_LEARNED.md | Any other |
-| **Code review** | AI_MASTER_CONTEXT.md | ENGINEERING_RULES.md |
+| **What's currently broken** | reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md | ai/AI_MASTER_CONTEXT.md |
+| **Writing new code** | ai/AI_MASTER_CONTEXT.md | architecture/ENGINEERING_RULES.md |
+| **Architecture decisions** | architecture/ENGINEERING_RULES.md | ai/AI_MASTER_CONTEXT.md |
+| **Understanding why** | architecture/DECISIONS_LOG.md | Any other |
+| **Code review** | ai/AI_MASTER_CONTEXT.md | architecture/ENGINEERING_RULES.md |
 
 ---
 
@@ -247,43 +249,43 @@ This document defines how all project documentation is intended to be read, inte
 
 ### 🚨 **Fixing Technical Debt (START HERE)**
 
-1. **TECHNICAL_DEBT_AUDIT_2026-01-02.md** - Current issues
-2. **AI_MASTER_CONTEXT.md** - Understand patterns
+1. **reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md** - Current issues
+2. **ai/AI_MASTER_CONTEXT.md** - Understand patterns
 3. Verify fix with `dotnet build`
 
 ### 🚀 **Starting a New Feature**
 
-1. **TECHNICAL_DEBT_AUDIT_2026-01-02.md** - Check if build works first
-2. **AI_MASTER_CONTEXT.md** - Learn current patterns
-3. **ENGINEERING_RULES.md** - Understand constraints
+1. **reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md** - Check if build works first
+2. **ai/AI_MASTER_CONTEXT.md** - Learn current patterns
+3. **architecture/ENGINEERING_RULES.md** - Understand constraints
 4. **planning/LESSONS_LEARNED.md** - Understand why
 
 ### 🎨 **Building New UI Views**
 
-1. **FEATURE_SURFACING_PLAN.md** - Find the view specification
+1. **planning/FEATURE_SURFACING_PLAN.md** - Find the view specification
 2. **Relevant surfacing/*.md** - Get detailed wireframes & ViewModel
-3. **AI_MASTER_CONTEXT.md** - Review MVVM patterns
-4. **ENGINEERING_RULES.md** - Ensure architectural compliance
+3. **ai/AI_MASTER_CONTEXT.md** - Review MVVM patterns
+4. **architecture/ENGINEERING_RULES.md** - Ensure architectural compliance
 
 ### 🤖 **Working with AI System**
 
-1. **AI_MASTER_CONTEXT.md** - AI Architecture section
-2. **AiOrchestrator.cs** - Core coordination logic
-3. **WebSearchService.cs** - Internet fallback
-4. **MarkdownKnowledgeBaseService.cs** - Knowledge storage
+1. **ai/AI_MASTER_CONTEXT.md** - AI Architecture section
+2. **src/SaveState.Application/AI/Services/AiOrchestrator.cs** - Core coordination logic
+3. **src/SaveState.Infrastructure/AI/Services/WebSearchService.cs** - Internet fallback
+4. **src/SaveState.Infrastructure/AI/Services/MarkdownKnowledgeBaseService.cs** - Knowledge storage
 
 ### 🎮 **Character Development & Modification**
 
 1. **[Character Development Integration Plan](planning/character_development_integration_plan.md)** - Complete implementation roadmap
 2. **[Ikemen Repository Analysis](planning/ikemen_repositories_analysis.md)** - Repository evaluation and integration strategies
 3. **[MUGEN Repository Evaluation](planning/mugen_repositories_evaluation.md)** - Evaluation framework for character repositories
-4. **AI_MASTER_CONTEXT.md** - Character development tools section
+4. **ai/AI_MASTER_CONTEXT.md** - Character development tools section
 
 ### 📋 **Code Review**
 
-1. **AI_MASTER_CONTEXT.md** - Verify adherence to standards
-2. **ENGINEERING_RULES.md** - Check architectural compliance
-3. **TECHNICAL_DEBT_AUDIT_2026-01-02.md** - Ensure no new debt added
+1. **ai/AI_MASTER_CONTEXT.md** - Verify adherence to standards
+2. **architecture/ENGINEERING_RULES.md** - Check architectural compliance
+3. **reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md** - Ensure no new debt added
 
 ---
 
@@ -291,25 +293,25 @@ This document defines how all project documentation is intended to be read, inte
 
 ### Current Issues
 
-- **TECHNICAL_DEBT_AUDIT_2026-01-02.md**: Latest scan results
-- **AI_MASTER_CONTEXT.md**: Summary in "Current Technical Debt" section
+- **reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md**: Latest scan results
+- **ai/AI_MASTER_CONTEXT.md**: Summary in "Current Technical Debt" section
 
 ### Result Pattern
 
-- **AI_MASTER_CONTEXT.md**: Rule - "MANDATORY. Never return null"
-- **ENGINEERING_RULES.md**: Law - "Must return Result<T>"
-- **TECHNICAL_DEBT_AUDIT_2026-01-02.md**: 45+ violations listed
+- **ai/AI_MASTER_CONTEXT.md**: Rule - "MANDATORY. Never return null"
+- **architecture/ENGINEERING_RULES.md**: Law - "Must return Result<T>"
+- **reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md**: 45+ violations listed
 
 ### Async Safety
 
-- **AI_MASTER_CONTEXT.md**: Current violations count
-- **ENGINEERING_RULES.md**: Law - "Must Not use async void"
-- **TECHNICAL_DEBT_AUDIT_2026-01-02.md**: Specific instances
+- **ai/AI_MASTER_CONTEXT.md**: Current violations count
+- **architecture/ENGINEERING_RULES.md**: Law - "Must Not use async void"
+- **reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md**: Specific instances
 
 ### AI Knowledge Base
 
-- **AI_MASTER_CONTEXT.md**: AI Architecture section
-- **GLOSSARY.md**: RAG, BMAD definitions
+- **ai/AI_MASTER_CONTEXT.md**: AI Architecture section
+- **resources/GLOSSARY.md**: RAG, BMAD definitions
 
 ---
 
@@ -318,32 +320,32 @@ This document defines how all project documentation is intended to be read, inte
 ### 🤖 **For AI Models (Recommended Reading Sequence)**
 
 ```
-1. AI_QUICK_START.md - 30 seconds ⭐ START HERE
+1. **guides/AI_QUICK_START.md** - 30 seconds ⭐ START HERE
    → Build commands, current status, critical issues
 
-2. ACTIVE_ISSUES.md - 2 minutes
+2. **planning/ACTIVE_ISSUES.md** - 2 minutes
    → What's broken right now, fix templates
 
-3. PATTERNS_COOKBOOK.md - 5 minutes (reference)
+3. **architecture/PATTERNS_COOKBOOK.md** - 5 minutes (reference)
    → Copy-paste code patterns
 
-4. AI_MASTER_CONTEXT.md - 10 minutes
+4. **ai/AI_MASTER_CONTEXT.md** - 10 minutes
    → Architecture, full context
 
-5. DECISIONS_LOG.md - 5 minutes (as needed)
+5. **architecture/DECISIONS_LOG.md** - 5 minutes (as needed)
    → Why we made key choices
 
-6. ENGINEERING_RULES.md - 5 minutes
+6. **architecture/ENGINEERING_RULES.md** - 5 minutes
    → Non-negotiable constraints
 ```
 
 ### 👥 **For Human Contributors**
 
 ```
-1. AI_QUICK_START.md - 30 seconds
-2. ACTIVE_ISSUES.md - 2 minutes
-3. AI_MASTER_CONTEXT.md - 10 minutes
-4. ENGINEERING_RULES.md - 5 minutes
+1. **guides/AI_QUICK_START.md** - 30 seconds
+2. **planning/ACTIVE_ISSUES.md** - 2 minutes
+3. **ai/AI_MASTER_CONTEXT.md** - 10 minutes
+4. **architecture/ENGINEERING_RULES.md** - 5 minutes
 5. Begin development
 ```
 
@@ -353,18 +355,18 @@ This document defines how all project documentation is intended to be read, inte
 
 | Category | Value |
 |----------|-------|
-| **Build Status** | ✅ PASSING (0 errors) |
+| **Build Status** | ✅ **PASSING (0 errors, 117 warnings)** |
 | **Source Projects** | 25 (6 main + 19 plugins) |
 | **Test Projects** | 13 |
 | **Source Files** | 763+ C# files |
 | **Test Files** | 148 C# files |
 | **Source LOC** | 58,571+ lines |
 | **Test LOC** | 11,056 lines |
-| **Test Methods** | 529 |
-| **Warnings** | ~1,220 (CS1591 docs) |
-| **Health Score** | **98/100** ⬆️ |
+| **Test Methods** | 300+ |
+| **Warnings** | **117** (down from 4,746 - 98% reduction) |
+| **Health Score** | **98/100** ✅ |
 
-### Technical Debt Summary (Jan 4, 2026)
+### Technical Debt Summary (Jan 8, 2026)
 
 | Priority | Issue | Count |
 |----------|-------|-------|
@@ -375,7 +377,7 @@ This document defines how all project documentation is intended to be read, inte
 | 🟡 Medium | `return null` | 30+ |
 | 🟡 Medium | Manual HttpClient | 2 |
 | ✅ Resolved | Compilation errors | 0 |
-| ✅ Resolved | Build warnings | 0 |
+| ✅ Resolved | Dialog placeholders | 0 (v2.3.9) |
 | ✅ Resolved | CLI command groups | 12/12 (UI Integrated) |
 
 ---
@@ -400,5 +402,5 @@ This document defines how all project documentation is intended to be read, inte
 
 *This index ensures no document is read in isolation. Each document reinforces the others, creating a cohesive knowledge system that scales with the project's complexity.*
 
-**Last Audit**: January 3, 2026 - Phase 6 Completion
+**Last Audit**: January 8, 2026 - Build Error Hotfix v2.3.1
 **Next Review**: February 1, 2026
