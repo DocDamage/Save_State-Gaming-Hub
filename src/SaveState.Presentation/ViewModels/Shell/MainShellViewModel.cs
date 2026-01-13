@@ -42,7 +42,8 @@ public partial class MainShellViewModel : ObservableObject, IDisposable
         StatusBarViewModel = new StatusBarViewModel(navigationService, GetOverlayService(), gameRepository, analyticsService, performanceMonitor, statusBarLogger);
 
         Console.WriteLine("[DEBUG] Creating OverlayContainerViewModel...");
-        OverlayContainerViewModel = new OverlayContainerViewModel(GetOverlayService());
+        var gameContextService = Locator.Current.GetService<IUiGameContextService>()!;
+        OverlayContainerViewModel = new OverlayContainerViewModel(GetOverlayService(), gameContextService);
 
         // Note: We no longer call InitializeTabViewModels here.
         // The NavigationService will resolve them lazily as needed.

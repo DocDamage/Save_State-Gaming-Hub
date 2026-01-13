@@ -10,6 +10,14 @@ using SaveState.Core.Mugen.ValueObjects;
 public interface IMugenCoachService
 {
     /// <summary>
+    /// Gets a simple coaching advice string for a character.
+    /// </summary>
+    /// <param name="characterId">Character ID.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Personalized coaching advice.</returns>
+    Task<string?> GetCoachingAdviceAsync(Guid characterId, CancellationToken ct = default);
+
+    /// <summary>
     /// Gets matchup advice for two specific characters.
     /// </summary>
     /// <param name="characterId">Your character ID.</param>
@@ -41,4 +49,13 @@ public interface IMugenCoachService
     /// <param name="ct">Cancellation token.</param>
     /// <returns>List of analysis feedback.</returns>
     Task<Result<IReadOnlyList<string>>> AnalyzeReplayAsync(string replayPath, CancellationToken ct = default);
+
+    /// <summary>
+    /// Sends a chat message to the AI coach and gets a response.
+    /// </summary>
+    /// <param name="userMessage">The user's message/question.</param>
+    /// <param name="context">Optional context (character ID, recent match, etc.).</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The coach's response.</returns>
+    Task<Result<string>> SendChatMessageAsync(string userMessage, string? context = null, CancellationToken ct = default);
 }

@@ -15,7 +15,6 @@ public partial class StatusBarView : UserControl
 
     private void OnConnectionStatusPressed(object? sender, PointerPressedEventArgs e)
     {
-        // TODO: Show network diagnostics/details
         var viewModel = DataContext as ViewModels.Shell.StatusBarViewModel;
         viewModel?.ShowNetworkDetails();
     }

@@ -16,6 +16,7 @@ using SaveState.Presentation.ViewModels;
 using SaveState.Presentation.Views;
 using SaveState.Presentation.Services;
 using SaveState.Core.Mugen.Entities;
+using SaveState.Core.Mugen.Services;
 
 /// <summary>
 /// Entry point for the SaveState Avalonia application.
@@ -63,6 +64,7 @@ public static class Program
         builder.Services.AddSingleton<INotificationService, NotificationService>();
         builder.Services.AddSingleton<IDialogService, DialogService>();
         builder.Services.AddSingleton<IClipboardService, ClipboardService>();
+        builder.Services.AddSingleton<IUiGameContextService, UiGameContextService>();
 
         // Add terminal services
         builder.Services.AddSingleton<SaveState.Presentation.Services.Terminal.ICommandExecutor, SaveState.Presentation.Services.Terminal.CommandExecutor>();
@@ -109,10 +111,27 @@ public static class Program
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.TaskSchedulerViewModel>();
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Automation.AutomationDashboardViewModel>();
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.AutomationViewModel>();
-        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.VoiceControlViewModel>();
+        builder.Services.AddSingleton<SaveState.Presentation.ViewModels.Shell.VoiceControlViewModel>();
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.ToolsViewModel>();
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.TerminalViewModel>();
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.GameMemoryViewModel>();
+
+        // Register MUGEN ViewModels
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.Mugen.MoveCreationViewModel>();
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.Mugen.MachineLearningViewModel>();
+
+        // Register MUGEN Move Creation and Machine Learning services
+        builder.Services.AddTransient<IMoveCreationService, SaveState.Infrastructure.Mugen.MoveCreationService>();
+        builder.Services.AddTransient<IMugenTemplateRepository, SaveState.Infrastructure.Mugen.MugenTemplateRepository>();
+        builder.Services.AddTransient<IMugenValidationService, SaveState.Infrastructure.Mugen.MugenValidationService>();
+        builder.Services.AddTransient<IMugenBalancingService, SaveState.Infrastructure.Mugen.MugenBalancingService>();
+        builder.Services.AddTransient<IMugenExportService, SaveState.Infrastructure.Mugen.MugenExportService>();
+        builder.Services.AddTransient<IMugenPreviewService, SaveState.Infrastructure.Mugen.MugenPreviewService>();
+        builder.Services.AddTransient<IMugenTestService, SaveState.Infrastructure.Mugen.MugenTestService>();
+        builder.Services.AddTransient<IMachineLearningService, SaveState.Infrastructure.Mugen.SimpleMachineLearningService>();
+        builder.Services.AddTransient<IMatchDataRepository, SaveState.Infrastructure.Mugen.Repositories.MugenMatchDataRepository>();
+        builder.Services.AddTransient<ICharacterDataRepository, SaveState.Infrastructure.Mugen.Repositories.MugenCharacterDataRepository>();
+        builder.Services.AddTransient<IPlayerDataRepository, SaveState.Infrastructure.Mugen.Repositories.MugenPlayerDataRepository>();
 
         var host = builder.Build();
 

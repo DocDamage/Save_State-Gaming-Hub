@@ -73,18 +73,15 @@
                 BorderThickness="1"
                 CornerRadius="8"
                 BoxShadow="0 8 32 #40000000"
-                Width="500"
-                Height="60"
+                Width="520"
+                Height="320"
+                Padding="16"
                 VerticalAlignment="Top"
                 HorizontalAlignment="Center"
                 Margin="0,80,0,0"
                 IsVisible="{Binding ShowQuickSearch}"
                 IsHitTestVisible="True">
-            <TextBlock Text="Quick Search (Ctrl+K)"
-                     HorizontalAlignment="Center"
-                     VerticalAlignment="Center"
-                     Foreground="White"
-                     FontSize="16" />
+            <views:QuickSearchView DataContext="{Binding QuickSearchViewModel}" />
         </Border>
 
         <!-- AI Assistant Panel (Right Side) -->

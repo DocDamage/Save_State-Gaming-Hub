@@ -235,7 +235,7 @@ public class SpeechRecognitionService : ISpeechRecognitionService
     {
         try
         {
-            _logger.LogDebug("Continuous recognition loop started");
+            _logger.LogInformation("Continuous recognition loop started");
 
             while (!ct.IsCancellationRequested && _isContinuousRecognitionActive)
             {
@@ -273,7 +273,7 @@ public class SpeechRecognitionService : ISpeechRecognitionService
                 }
             }
 
-            _logger.LogDebug("Continuous recognition loop ended");
+            _logger.LogInformation("Continuous recognition loop ended");
         }
         catch (Exception ex)
         {

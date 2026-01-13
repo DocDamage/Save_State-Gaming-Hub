@@ -10,7 +10,7 @@ public class MugenTournament : EntityBase
     /// <summary>
     /// The name of the tournament.
     /// </summary>
-    public string Name { get; private set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// The tournament format (single elimination, double elimination, round robin).
@@ -101,8 +101,16 @@ public class MugenTournament : EntityBase
         Status = TournamentStatus.Cancelled;
     }
 
-    // EF Core constructor
-    private MugenTournament() { }
+    // EF Core and Mock constructor
+    public MugenTournament() { }
+
+    public MugenTournament(Guid id, string name)
+    {
+        Id = id;
+        Name = name;
+        Status = TournamentStatus.Setup;
+        CreatedAt = DateTime.UtcNow;
+    }
 }
 
 /// <summary>

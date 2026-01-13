@@ -21,4 +21,9 @@ public interface IClipboardService
     /// Clears the clipboard.
     /// </summary>
     Task ClearAsync();
+
+    /// <summary>
+    /// Sets an image to the clipboard from a file path.
+    /// </summary>
+    Task SetImageAsync(string imagePath);
 }

@@ -1,9 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Shell;assembly=SaveState.Presentation"
              xmlns:widgets="using:SaveState.Presentation.Views.Dashboard.Widgets"
              x:Class="SaveState.Presentation.Views.Shell.DashboardView"
-             x:DataType="vm:DashboardViewModel">
+             x:DataType="vm:DashboardViewModel"
+             x:Name="Root">
 
     <UserControl.Styles>
         <Style Selector="Border.widget-container">
@@ -147,7 +148,7 @@
                                                 IsVisible="{Binding Widget.CanMinimize}" />
                                         <Button Classes="widget-action"
                                                 Content="✕"
-                                                Command="{Binding $parent[UserControl].((vm:DashboardViewModel)DataContext).RemoveWidgetCommand}"
+                                                Command="{Binding #Root.((vm:DashboardViewModel)DataContext).RemoveWidgetCommand}"
                                                 CommandParameter="{Binding}"
                                                 IsVisible="{Binding Widget.CanRemove}" />
                                     </StackPanel>

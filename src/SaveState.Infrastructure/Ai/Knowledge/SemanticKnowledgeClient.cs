@@ -62,7 +62,6 @@ public class SemanticKnowledgeClient
 
             var context = string.Join("\n---\n", hits.Select(h => h.Content));
 
-            _logger.LogDebug("Retrieved {HitCount} relevant context chunks for query", hits.Count);
             return context;
         }
         catch (Exception ex)

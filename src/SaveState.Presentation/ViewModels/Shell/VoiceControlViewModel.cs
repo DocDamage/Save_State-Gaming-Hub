@@ -12,7 +12,7 @@ using SaveState.Presentation.Services;
 namespace SaveState.Presentation.ViewModels.Shell;
 
 /// <summary>
-/// ViewModel for Voice & AI Control panel.
+/// ViewModel for Voice &amp; AI Control panel.
 /// </summary>
 public partial class VoiceControlViewModel : ObservableObject
 {

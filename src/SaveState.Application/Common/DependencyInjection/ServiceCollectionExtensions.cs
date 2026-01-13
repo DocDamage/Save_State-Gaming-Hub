@@ -33,7 +33,10 @@ public static class ServiceCollectionExtensions
            services.AddScoped<SaveState.Application.GameLibrary.Services.IGameImportService, SaveState.Application.GameLibrary.Services.GameImportService>();
            services.AddScoped<SaveState.Application.RomManagement.Services.IRomScannerService, SaveState.Application.RomManagement.Services.RomScannerService>();
            services.AddScoped<SaveState.Application.RomManagement.Services.IEmulatorService, SaveState.Application.RomManagement.Services.EmulatorService>();
+           services.AddScoped<SaveState.Core.RomManagement.Services.IEmulatorInstallationService, SaveState.Application.RomManagement.Services.EmulatorInstallationService>();
            services.AddSingleton<SaveState.Application.RomManagement.Services.ILiveSyncService, SaveState.Application.RomManagement.Services.LiveSyncService>();
+
+           services.AddScoped(sp => new System.Net.Http.HttpClient());
 
            // Register domain services
         services.AddScoped<SaveState.Core.GameLibrary.DomainServices.IGameValidationService, SaveState.Core.GameLibrary.DomainServices.GameValidationService>();

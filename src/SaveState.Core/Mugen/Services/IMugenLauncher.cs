@@ -48,4 +48,11 @@ public interface IMugenLauncher
     /// </summary>
     /// <returns>The executable path, or null if not found.</returns>
     string? GetIkemenExecutablePath();
+
+    /// <summary>
+    /// Launches IKEMEN to play back a replay file.
+    /// </summary>
+    /// <param name="replayPath">Path to the replay file.</param>
+    /// <returns>The launched process.</returns>
+    Task<System.Diagnostics.Process> LaunchReplayAsync(string replayPath);
 }

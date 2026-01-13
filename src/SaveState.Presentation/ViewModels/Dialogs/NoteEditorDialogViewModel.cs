@@ -43,13 +43,27 @@ public partial class NoteEditorDialogViewModel : ObservableObject
 
     public bool CanSave => !string.IsNullOrWhiteSpace(Title) && !string.IsNullOrWhiteSpace(Content);
 
-    public NoteEditorDialogViewModel(Guid? noteId = null, string? initialContent = null)
+    public NoteEditorDialogViewModel(
+        Guid? noteId = null,
+        string? initialContent = null,
+        string? title = null,
+        string? category = null,
+        bool isPinned = false)
     {
         _noteId = noteId;
         if (!string.IsNullOrEmpty(initialContent))
         {
             Content = initialContent;
         }
+        if (!string.IsNullOrEmpty(title))
+        {
+            Title = title;
+        }
+        if (!string.IsNullOrEmpty(category))
+        {
+            Category = category;
+        }
+        IsPinned = isPinned;
     }
 
     partial void OnContentChanged(string value)

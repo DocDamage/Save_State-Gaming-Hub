@@ -4,10 +4,68 @@
              x:Class="SaveState.Presentation.Views.Shell.Overlays.QuickSearchView"
              x:DataType="vm:QuickSearchViewModel">
 
-    <TextBox Text="{Binding SearchText}"
-             Watermark="Quick search..."
-             FontSize="16"
-             Padding="16"
-             BorderThickness="0"
-             Background="Transparent" />
+    <UserControl.Styles>
+        <Style Selector="Button.quick-search-item">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="10,8" />
+        </Style>
+
+        <Style Selector="Button.quick-search-item:pointerover">
+            <Setter Property="Background" Value="{StaticResource HoverBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <StackPanel Spacing="12">
+        <TextBox Text="{Binding SearchText}"
+                 Watermark="Quick search..."
+                 FontSize="16"
+                 Padding="12"
+                 BorderThickness="0"
+                 Background="Transparent" />
+
+        <Border Background="{StaticResource CardBackgroundBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                IsVisible="{Binding HasResults}">
+            <ScrollViewer MaxHeight="220"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding SearchResults}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Classes="quick-search-item"
+                                    Command="{Binding DataContext.SelectResultCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="{Binding Title}"
+                                               FontSize="14" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Platform}"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               FontSize="12"
+                                               Margin="12,0,0,0"
+                                               VerticalAlignment="Center" />
+                                </Grid>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <Border Background="{StaticResource CardBackgroundBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="12"
+                IsVisible="{Binding ShowNoResults}">
+            <TextBlock Text="No games found. Try a different title or platform."
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       TextWrapping="Wrap" />
+        </Border>
+    </StackPanel>
 </UserControl>

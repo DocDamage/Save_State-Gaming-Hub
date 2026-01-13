@@ -1,35 +1,35 @@
 # SaveState Reborn 🎮
 
-> **Backend 100% Complete** | **UI Development Active** (Phase 1-2 & 4 Complete)
+> **Backend 100% Complete** | **UI Development Active** (Phases 1-6 Complete) | **v2.3.9 Build: ✅ 0 errors, 117 warnings** | **Dialog System Complete**
 
 ## 🏛️ Getting Started
 
-**🤖 AI/LLM Start Here**: [docs/AI_QUICK_START.md](docs/AI_QUICK_START.md) - 30-second briefing
+**🤖 AI/LLM Start Here**: [docs/guides/AI_QUICK_START.md](docs/guides/AI_QUICK_START.md) - 30-second briefing
 
 **Quick Links**:
 
 | Role | Start With |
 |------|------------|
-| 🤖 AI Coder | [AI_QUICK_START.md](docs/AI_QUICK_START.md) → [ACTIVE_ISSUES.md](docs/ACTIVE_ISSUES.md) |
-| 👨‍💻 Developer | [AI_QUICK_START.md](docs/AI_QUICK_START.md) → [PATTERNS_COOKBOOK.md](docs/PATTERNS_COOKBOOK.md) |
-| 🏗️ Architect | [DECISIONS_LOG.md](docs/DECISIONS_LOG.md) → [ENGINEERING_RULES.md](docs/ENGINEERING_RULES.md) |
-| 📊 Manager | [PROJECT_METRICS.md](docs/PROJECT_METRICS.md) |
+| 🤖 AI Coder | [AI_QUICK_START.md](docs/guides/AI_QUICK_START.md) → [ACTIVE_ISSUES.md](docs/planning/ACTIVE_ISSUES.md) |
+| 👨‍💻 Developer | [AI_QUICK_START.md](docs/guides/AI_QUICK_START.md) → [PATTERNS_COOKBOOK.md](docs/architecture/PATTERNS_COOKBOOK.md) |
+| 🏗️ Architect | [DECISIONS_LOG.md](docs/architecture/DECISIONS_LOG.md) → [ENGINEERING_RULES.md](docs/architecture/ENGINEERING_RULES.md) |
+| 📊 Manager | [PROJECT_METRICS.md](docs/reports/PROJECT_METRICS.md) |
 
 ---
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/yourusername/SaveStateReborn)
-[![Test Coverage](https://img.shields.io/badge/tests-494/494_passing_(100%25)-brightgreen)](https://github.com/yourusername/SaveStateReborn)
+[![Test Coverage](https://img.shields.io/badge/tests-300+/300+_passing_(100%25)-brightgreen)](https://github.com/yourusername/SaveStateReborn)
 [![.NET Version](https://img.shields.io/badge/.NET-9.0-blue)](https://dotnet.microsoft.com/)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue)](CHANGELOG.md)
-[![Health Score](https://img.shields.io/badge/health_score-91/100_UI_ACTIVE-gold)](PERFECT_SCORE_ACHIEVED.md)
-[![UI Progress](https://img.shields.io/badge/UI_progress-15%25_Phase_1%2B2_Complete-blue)](docs/planning/FEATURE_SURFACING_PLAN.md)
+[![Version](https://img.shields.io/badge/version-2.3.9-blue)](docs/status/CHANGELOG.md)
+[![Health Score](https://img.shields.io/badge/health_score-98/100-gold)](docs/reports/PROJECT_METRICS.md)
+[![UI Progress](https://img.shields.io/badge/UI_progress-70%25_Dialogs_Complete-blue)](docs/planning/FEATURE_SURFACING_PLAN.md)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ## 🎯 Overview
 
 > [!TIP]
 > **🤖 AI & Large Language Model Onboarding**
-> If you are an AI assisting with this project, please read [**docs/AI_MASTER_CONTEXT.md**](docs/AI_MASTER_CONTEXT.md) first. It contains high-density architectural details, coding standards, and current roadmap status to help you provide the most accurate assistance.
+> If you are an AI assisting with this project, please read [**docs/ai/AI_MASTER_CONTEXT.md**](docs/ai/AI_MASTER_CONTEXT.md) first. It contains high-density architectural details, coding standards, and current roadmap status to help you provide the most accurate assistance.
 
 **SaveState Reborn V2.0 + Advanced Features + UI Development** is the most comprehensive gaming management platform available, transforming your computer into an intelligent gaming companion. Now featuring 6 advanced gaming features and an emerging graphical user interface that brings all CLI functionality to a beautiful, modern desktop application. Includes voice control, cloud gaming integration, AI-powered launch experiences, and intelligent save state management.
 
@@ -210,6 +210,9 @@ Built with enterprise-grade .NET Clean Architecture, it provides a complete gami
 - **Character Management**: Automatic scanning and metadata extraction
 - **Training & Versus**: Practice and multiplayer modes
 - **Custom Characters**: Easy import and management system
+- **Character Development Tools**: Full character modification and creation support (see [Character Development Integration Plan](docs/planning/character_development_integration_plan.md))
+  - MugenHook, LuaSupernull, OpenMK, iguana, ikemenarmor integration planned
+  - Character templates, sprite editing, movelist extraction
 
 ### ☁️ **Cloud Sync & Multi-Device**
 
@@ -911,18 +914,18 @@ Complete documentation for the V2.0 gaming management platform:
 
 ### 🎮 **V2.0 Feature Documentation**
 
-- [**V2.0 Feature Roadmap**](docs/V2_FEATURE_ROADMAP.md) - Complete implementation status and feature details
-- [**Advanced Gaming Features Plan**](docs/ADVANCED_GAMING_FEATURES_IMPLEMENTATION_PLAN.md) - 9-phase advanced features roadmap
-- [**Implementation Progress Summary**](docs/IMPLEMENTATION_PROGRESS_SUMMARY.md) - Current development status and completed work
-- [**Big Picture Mode Guide**](docs/big-picture-mode.md) - 10-foot gaming interface documentation
-- [**Plugin Development Guide**](docs/plugin-development.md) - Creating custom plugins and extensions
-- [**AI Features Guide**](docs/ai-features.md) - Recommendations, strategy assistant, and voice commands
+- [**V2.0 Feature Roadmap**](docs/planning/V2_FEATURE_ROADMAP.md) - Complete implementation status and feature details
+- [**Advanced Gaming Features Plan**](docs/planning/ADVANCED_GAMING_FEATURES_IMPLEMENTATION_PLAN.md) - 9-phase advanced features roadmap
+- [**Development Status**](docs/status/DEVELOPMENT_STATUS.md) - Current development status and completed work
+- [**Big Picture Mode Guide**](docs/planning/surfacing/08_OVERLAYS_BIGPICTURE.md) - 10-foot gaming interface documentation
+- [**Plugin Development Guide**](docs/guides/PLUGIN_SDK.md) - Creating custom plugins and extensions
+- [**AI Features Guide**](docs/features/ai-assistant.md) - Recommendations, strategy assistant, and voice commands
 
 ### 🥊 **Fighting Game Features**
 
 - [**IKEMEN Complete Setup Guide**](README-IKEMEN.md) - Full bundle installation and configuration
-- [**Character Management API**](docs/character-api.md) - Programmatic character operations
-- [**Achievement System Guide**](docs/achievements.md) - Creating and tracking goals
+- [**Character Management API**](docs/features/character-api.md) - Programmatic character operations
+- [**Achievement System Guide**](docs/features/achievements.md) - Creating and tracking goals
 
 ### 🐳 **Deployment & Infrastructure**
 
@@ -941,8 +944,8 @@ Complete documentation for the V2.0 gaming management platform:
 
 ### 📋 **Development Documentation**
 
-- [V2.0 Development Status](docs/DEVELOPMENT_STATUS.md) - Current implementation status
-- [Technical Debt Assessment](docs/technical_debt_scan_report.md) - Code quality and maintenance status
+- [V2.0 Development Status](docs/status/DEVELOPMENT_STATUS.md) - Current implementation status
+- [Technical Debt Assessment](docs/reports/technical_debt_scan_report.md) - Code quality and maintenance status
 - [Phase Implementation Details](docs/rebuild/) - Detailed phase-by-phase development history
 
 ### 🛠️ **Technical Reference**
@@ -1030,9 +1033,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Project Link**: [https://github.com/yourusername/SaveStateReborn](https://github.com/yourusername/SaveStateReborn)
 - **Issues**: [https://github.com/yourusername/SaveStateReborn/issues](https://github.com/yourusername/SaveStateReborn/issues)
-- **V2.0 Roadmap**: [Complete Feature Status](docs/V2_FEATURE_ROADMAP.md)
-- **Advanced Features**: [Implementation Plan](docs/ADVANCED_GAMING_FEATURES_IMPLEMENTATION_PLAN.md) | [Progress Summary](docs/IMPLEMENTATION_PROGRESS_SUMMARY.md)
-- **Plugin Development**: [Creating Extensions](docs/plugin-development.md)
+- **V2.0 Roadmap**: [Complete Feature Status](docs/planning/V2_FEATURE_ROADMAP.md)
+- **Advanced Features**: [Implementation Plan](docs/planning/ADVANCED_GAMING_FEATURES_IMPLEMENTATION_PLAN.md) | [Development Status](docs/status/DEVELOPMENT_STATUS.md)
+- **Plugin Development**: [Creating Extensions](docs/guides/PLUGIN_SDK.md)
 - **Discord**: [SaveState Gaming Community](https://discord.gg/savestate) (planned)
 
 ## 🚀 Launch Your Gaming Hub

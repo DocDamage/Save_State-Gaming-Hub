@@ -217,6 +217,9 @@ public partial class GameNotesTabViewModel : ObservableObject
     [ObservableProperty]
     private string _searchText = string.Empty;
 
+    [ObservableProperty]
+    private bool _isSearchVisible;
+
     partial void OnSearchTextChanged(string value)
     {
         FilterNotes();
@@ -321,14 +324,15 @@ public partial class GameNotesTabViewModel : ObservableObject
     [RelayCommand]
     private void ToggleSearch()
     {
-        // For UI toggle, normally this would flip a Visibility property bound in XAML
-        // Since we don't have that property yet or don't want to change XAML now,
-        // we will just log/notify.
-        // But if filtering was real, we'd clear partial filters here.
-
-        SearchText = string.Empty; // Clear search on toggle
-        _notificationService.ShowInfo("Search toggled (UI pending)", "Search");
-        _logger.LogInformation("Toggle search requested");
+        IsSearchVisible = !IsSearchVisible;
+        if (!IsSearchVisible)
+        {
+            SearchText = string.Empty; // Clear search when hiding
+        }
+        else
+        {
+             _notificationService.ShowInfo("Search bar enabled", "Search");
+        }
     }
 
     [RelayCommand]
@@ -445,13 +449,23 @@ public partial class GameNotesTabViewModel : ObservableObject
                     bool isPinned = false;
                     if(element.TryGetProperty("IsPinned", out var pinProp)) isPinned = pinProp.GetBoolean();
 
+                    var tags = new List<string>();
+                    if(element.TryGetProperty("Tags", out var tagsProp) && tagsProp.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach(var tag in tagsProp.EnumerateArray())
+                        {
+                            var t = tag.GetString();
+                            if(!string.IsNullOrEmpty(t)) tags.Add(t);
+                        }
+                    }
+
                     var command = new CreateGameNoteCommand(
                         _currentGameId!,
                         userId.Value,
                         title,
                         content,
                         category,
-                        new List<string>(), // Tags ignored for simplicity/not in export
+                        tags,
                         isPinned);
 
                     await _mediator.Send(command);
@@ -546,9 +560,8 @@ public partial class GameNoteViewModel : ObservableObject
             return;
         }
 
-        // Note: NoteEditorDialog doesn't support loading existing note data yet
-        // This would need to be enhanced to pass initial data
-        var result = await _dialogService.ShowNoteEditorAsync(Id);
+        // Pass current data to editor
+        var result = await _dialogService.ShowNoteEditorAsync(Id, Content, Title, Category, IsPinned);
         if (result == null)
         {
             _logger.LogInformation("Note edit cancelled");

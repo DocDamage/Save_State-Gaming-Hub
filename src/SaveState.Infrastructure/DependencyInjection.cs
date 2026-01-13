@@ -17,6 +17,7 @@ using SaveState.Core.RomManagement;
 using SaveState.Core.Mugen.Services;
 using SaveState.Infrastructure.Repositories;
 using SaveState.Infrastructure.Mugen;
+using SaveState.Infrastructure.Mugen.Repositories;
 using SaveState.Core.Ai.Knowledge;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Ai.Memory;
@@ -37,6 +38,7 @@ using SaveState.Infrastructure.GameLibrary.Services;
 using SaveState.Infrastructure.Persistence;
 using SaveState.Infrastructure.RomManagement.Services;
 using SaveState.Infrastructure.Common;
+using SaveState.Infrastructure.Common.Services;
 using SaveState.Infrastructure.Health;
 
 namespace SaveState.Infrastructure;
@@ -68,6 +70,9 @@ public static class DependencyInjection
         services.AddScoped<IEmulatorRepository, EmulatorRepository>();
         services.AddScoped<IAchievementRepository, AchievementRepository>();
         services.AddScoped<IPlatformExtensionRegistry, PlatformExtensionRegistry>();
+
+        // ROM Management Services
+        services.AddScoped<SaveState.Core.RomManagement.Services.IRomVerificationService, SaveState.Core.RomManagement.Services.RomVerificationService>();
         services.AddScoped<IGameSessionRepository, GameSessionRepository>();
         services.AddScoped<IBacklogRepository, BacklogRepository>();
         services.AddScoped<SaveState.Core.Analytics.IGamingGoalRepository, Repositories.GamingGoalRepository>();
@@ -109,6 +114,7 @@ public static class DependencyInjection
         // User Services
         services.AddSingleton<SaveState.Core.Common.Services.IUserPreferencesService, SaveState.Infrastructure.Services.UserPreferencesService>();
         services.AddSingleton<ITaskRunner, TaskRunner>();
+        services.AddSingleton<IExtractionService, SharpCompressExtractionService>();
 
         // Culture and Localization Services
         services.AddSingleton<SaveState.Core.Common.Services.ICultureManager, CultureManager>();
@@ -120,6 +126,35 @@ public static class DependencyInjection
         services.AddScoped<SaveState.Core.Mugen.Services.IMugenCharacterParser, SaveState.Core.Mugen.Services.MugenCharacterParser>();
         services.AddScoped<IMugenCharacterLoader, MugenCharacterLoader>();
         services.AddScoped<IMugenLauncher, MugenLauncher>();
+        services.AddScoped<IMugenDeathMatchService, MugenDeathMatchService>();
+        services.AddScoped<IMugenRosterService, MugenRosterService>();
+
+        // OpenMK Integration
+        services.AddScoped<SaveState.Core.OpenMK.Repositories.IOpenMKCharacterRepository, OpenMK.OpenMKCharacterRepository>();
+        services.AddScoped<SaveState.Core.OpenMK.Repositories.IOpenMKProgressRepository, OpenMK.OpenMKProgressRepository>();
+        services.AddScoped<SaveState.Core.OpenMK.Services.IOpenMKService, OpenMK.OpenMKService>();
+        services.AddScoped<SaveState.Core.OpenMK.Services.IOpenMKMatchService, OpenMK.OpenMKMatchService>();
+        services.AddScoped<SaveState.Core.OpenMK.Services.IOpenMKProgressionService, OpenMK.OpenMKProgressionService>();
+        services.AddScoped<SaveState.Core.OpenMK.Services.IOpenMKStoryService, OpenMK.OpenMKStoryService>();
+        services.AddScoped<IMugenMoveListService, MugenMoveListService>();
+        services.AddScoped<IMugenNetplayService, MugenNetplayService>();
+        services.AddScoped<IMugenDiscoveryService, MugenDiscoveryService>();
+        services.AddScoped<IMugenAssetPreviewService, MugenAssetPreviewService>();
+        services.AddScoped<IMugenCompatibilityService, MugenCompatibilityService>();
+        services.AddScoped<IMugenEloService, MugenEloService>();
+
+        // Move Creation Engine
+        services.AddScoped<IMoveCreationService, MoveCreationService>();
+        services.AddScoped<IMugenTemplateRepository, MugenTemplateRepository>();
+        services.AddScoped<IMugenValidationService, MugenValidationService>();
+        services.AddScoped<IMugenExportService, MugenExportService>();
+        services.AddScoped<IMugenBalancingService, MugenBalancingService>();
+        services.AddScoped<IMugenPreviewService, MugenPreviewService>();
+        services.AddScoped<IMugenTestService, MugenTestService>();
+
+        // Machine Learning Services
+        services.AddScoped<IMachineLearningService, SimpleMachineLearningService>();
+        services.AddScoped<ICharacterDataRepository, MugenCharacterDataRepository>();
 
         // Game Providers
         services.AddScoped<IGameProvider, SteamProvider>();
@@ -172,6 +207,7 @@ public static class DependencyInjection
         services.AddScoped<SaveState.Core.UserManagement.Services.IJwtTokenService, JwtTokenService>();
         services.AddScoped<SaveState.Core.UserManagement.Services.IPasswordHasher, PasswordHasher>();
         services.AddScoped<SaveState.Core.UserManagement.Services.IUserContextService, UserManagement.UserContextService>();
+        services.AddScoped<SaveState.Core.UserManagement.Services.IApiKeyService, UserManagement.ApiKeyService>();
 
         // Repositories (User Management)
         services.AddScoped<SaveState.Core.UserManagement.Repositories.IUserRepository, UserManagement.UserRepository>();
@@ -228,6 +264,12 @@ public static class DependencyInjection
         services.AddSingleton<SaveState.Core.Performance.Services.IDisplayCalibrator, Performance.DisplayCalibrator>();
         services.AddSingleton<SaveState.Core.Performance.Services.IAudioOptimizer, Performance.AudioOptimizer>();
 
+        // Phase 8: Game Memory Intelligence Services
+        services.AddSingleton<SaveState.Core.Performance.Services.IMemoryReader, Performance.WindowsMemoryReader>();
+        services.AddScoped<SaveState.Core.Performance.Services.IMemoryWatchService, Performance.MemoryWatchService>();
+        services.AddScoped<SaveState.Core.Performance.Services.IMemoryScanner, Performance.WindowsMemoryScanner>();
+        services.AddScoped<SaveState.Core.Performance.Services.IPointerPathFinder, Performance.WindowsPointerPathFinder>();
+
         // Phase 4: Immersive Launch Experience Services
         services.AddScoped<SaveState.Core.GameLibrary.Services.ILaunchExperienceManager, GameLibrary.Services.LaunchExperienceManager>();
         services.AddScoped<SaveState.Core.GameLibrary.Services.IGameBriefingService, GameLibrary.Services.GameBriefingService>();
@@ -272,6 +314,12 @@ public static class DependencyInjection
         services.AddScoped<SaveState.Core.Mugen.Services.IMugenCoachService, Mugen.MugenCoachService>();
         services.AddScoped<SaveState.Core.Mugen.Services.IMugenCollectionService, Mugen.MugenCollectionService>();
         services.AddScoped<SaveState.Core.Mugen.Services.IMugenTrainingService, Mugen.MugenTrainingService>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenFusionService, Mugen.MugenFusionService>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenConfigService, Mugen.MugenConfigService>();
+
+        // Graphics & Audio Enhancement Services
+        services.AddScoped<IMugenGraphicsEngine, MugenGraphicsEngine>();
+        services.AddScoped<IMugenSoundDesignStudio, MugenSoundDesignStudio>();
 
         // Named HttpClient for Twitch authentication (used by IGDB)
         services.AddHttpClient("TwitchAuth");
@@ -500,6 +548,7 @@ public static class DependencyInjection
         services.AddScoped<IKnowledgeBaseService, MarkdownKnowledgeBaseService>();
         services.AddSingleton<IConversationContextService, InMemoryConversationContextService>();
         services.AddHttpClient<IWebSearchService, SaveState.Infrastructure.Ai.Services.WebSearchService>();
+        services.AddScoped<INaturalLanguageGameSearch, SaveState.Infrastructure.Ai.Services.NaturalLanguageGameSearch>();
         services.AddScoped<IVoiceProcessor, WhisperVoiceProcessor>();
 
         // Register cloud sync services

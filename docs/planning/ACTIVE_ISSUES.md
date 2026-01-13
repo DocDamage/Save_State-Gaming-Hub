@@ -1,7 +1,7 @@
 # Active Issues - What's Broken Right Now
 
-**Last Updated**: January 8, 2026
-**Next Review**: January 15, 2026
+**Last Updated**: January 13, 2026
+**Next Review**: January 20, 2026
 
 > [!NOTE]
 > All critical and high-priority code issues have been resolved.
@@ -27,7 +27,7 @@ Technical debt to address during code review.
 | Category | Count | Action |
 |----------|-------|--------|
 | `TODO` comments | ~22 | Address or remove during reviews |
-| Missing XML docs (CS1591) | ~1,200 | Adding progressively |
+| Missing XML docs (CS1591) | ~14,000 | Adding progressively |
 | ~~`return null` statements~~ | ~~45+~~ | ✅ **Verified correct - using proper nullable patterns** |
 
 ---
@@ -36,6 +36,7 @@ Technical debt to address during code review.
 
 | Date | Issue | Resolution |
 |------|-------|------------|
+| Jan 13 | MUGEN Core Build Restoration | Resolved 559 errors across Application layer; restored zero-error status |
 | Jan 8 | Mod update checking and rating TODOs | Implemented real API integration with CheckForAllUpdatesAsync, RateModAsync, and mod source browser |
 | Jan 8 | Save state branching TODOs | Implemented DuplicateSaveStateCommand, CreateBranchFromSaveCommand, and CopyToBranchCommand |
 | Jan 8 | LibraryViewModel selection mode TODO | Implemented `SelectionModeEnabled` property and `ToggleSelectionMode` command |

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary;
 using SaveState.Presentation.Services;
@@ -15,15 +16,18 @@ public partial class RecentlyAddedWidget : WidgetBase
 {
     private readonly INavigationService _navigationService;
     private readonly IGameRepository _gameRepository;
+    private readonly IUiGameContextService _gameContextService;
 
     public RecentlyAddedWidget(
         INavigationService navigationService,
         IGameRepository gameRepository,
+        IUiGameContextService gameContextService,
         ILogger<RecentlyAddedWidget> logger)
         : base(logger)
     {
         _navigationService = navigationService;
         _gameRepository = gameRepository;
+        _gameContextService = gameContextService;
         RecentlyAddedGames = new ObservableCollection<Game>();
     }
 
@@ -91,7 +95,11 @@ public partial class RecentlyAddedWidget : WidgetBase
     [RelayCommand]
     private async Task ViewGame(Game game)
     {
-        // TODO: Navigate to game detail view
-        await _navigationService.NavigateTo("Library");
+        if (game != null)
+        {
+            var gameId = GameId.From(game.Id);
+            _gameContextService.SetSelectedGame(gameId);
+            await _navigationService.NavigateTo("Library", gameId);
+        }
     }
 }

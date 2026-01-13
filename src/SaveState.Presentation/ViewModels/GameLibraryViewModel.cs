@@ -11,6 +11,7 @@ using SaveState.Presentation.Services;
 using SaveState.Presentation.ViewModels.Library;
 using SaveState.Presentation.ViewModels.Library.GameDetail;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.Messaging;
 
 /// <summary>
 /// View model for the game library, managing game collections, search, and filtering.
@@ -28,6 +29,8 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
     private readonly IDialogService _dialogService;
     private readonly IBacklogService _backlogService;
     private readonly IClipboardService _clipboardService;
+    private readonly IUiGameContextService _gameContextService;
+    private readonly INaturalLanguageGameSearch _searchService;
     private readonly ILogger<GameLibraryViewModel> _logger;
     private readonly ILoggerFactory _loggerFactory;
 
@@ -50,6 +53,8 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
         IDialogService dialogService,
         IBacklogService backlogService,
         IClipboardService clipboardService,
+        IUiGameContextService gameContextService,
+        INaturalLanguageGameSearch searchService,
         Library.LibraryViewModel libraryViewModel,
         ILogger<GameLibraryViewModel> logger,
         ILoggerFactory loggerFactory)
@@ -64,12 +69,43 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
         _dialogService = dialogService;
         _backlogService = backlogService;
         _clipboardService = clipboardService;
+        _gameContextService = gameContextService;
+        _searchService = searchService;
         _logger = logger;
         _loggerFactory = loggerFactory;
         LibraryViewModel = libraryViewModel;
 
+        // Subscribe to natural language search requests
+        WeakReferenceMessenger.Default.Register<SaveState.Presentation.Messages.NaturalLanguageSearchRequestedMessage>(this, (r, m) =>
+        {
+            _ = ExecuteNaturalLanguageSearch(m.Value);
+        });
+
         // Set default view
         CurrentView = LibraryViewModel;
+    }
+
+    public async Task ExecuteNaturalLanguageSearch(string query)
+    {
+         _logger.LogInformation("Executing natural language search: {Query}", query);
+         try
+         {
+             var filter = await _searchService.ParseQueryAsync(query);
+
+             // Update LibraryViewModel filter
+             LibraryViewModel.ActiveAdHocFilter = filter;
+
+             // Provide feedback
+             _notificationService.ShowInfo($"Filtered: {query}", "AI Search");
+
+             // Reload data
+             await LibraryViewModel.LoadLibraryDataCommand.ExecuteAsync(null);
+         }
+         catch (Exception ex)
+         {
+             _logger.LogError(ex, "Error executing natural language search");
+             _notificationService.ShowError("Failed to process search", "Error");
+         }
     }
 
     // INavigationAware implementation
@@ -125,6 +161,7 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
             _dialogService,
             _backlogService,
             _clipboardService,
+            _gameContextService,
             gameId,
             _loggerFactory);
         CurrentView = GameDetailViewModel;

@@ -212,7 +212,7 @@ public class MetadataEnrichmentServiceTests
 
         _extensionRegistryMock
             .Setup(r => r.DetectPlatformName(gamePath))
-            .Returns(Result<string>.Success(detectedPlatformName));
+            .Returns(Result.Success<string>(detectedPlatformName));
 
         _platformRepositoryMock
             .Setup(r => r.GetByNameAsync(detectedPlatformName, It.IsAny<CancellationToken>()))
@@ -235,7 +235,7 @@ public class MetadataEnrichmentServiceTests
 
         _extensionRegistryMock
             .Setup(r => r.DetectPlatformName(gamePath))
-            .Returns(Result<string>.Failure(errorMessage, ErrorType.Validation));
+            .Returns(Result.Failure<string>(errorMessage, ErrorType.Validation));
 
         // Act
         var result = await _service.DetectPlatformAsync(gamePath);
@@ -255,7 +255,7 @@ public class MetadataEnrichmentServiceTests
 
         _extensionRegistryMock
             .Setup(r => r.DetectPlatformName(gamePath))
-            .Returns(Result<string>.Success(detectedPlatformName));
+            .Returns(Result.Success<string>(detectedPlatformName));
 
         _platformRepositoryMock
             .Setup(r => r.GetByNameAsync(detectedPlatformName, It.IsAny<CancellationToken>()))
@@ -280,7 +280,7 @@ public class MetadataEnrichmentServiceTests
         var metadata = new GameMetadata { Title = "Test", Description = "Test game", CoverImageUrl = "test.jpg", Genres = new[] { "Action" } };
         _metadataServiceMock.Setup(s => s.GetGameMetadataAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(metadata);
 
-        _extensionRegistryMock.Setup(r => r.DetectPlatformName(It.IsAny<string>())).Returns(Result<string>.Success("PC"));
+        _extensionRegistryMock.Setup(r => r.DetectPlatformName(It.IsAny<string>())).Returns(Result.Success<string>("PC"));
         var platform = new Platform(PlatformName.From("PC"), PlatformShortName.From("PC"), PlatformType.Computer);
         _platformRepositoryMock.Setup(r => r.GetByNameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(platform);
 
@@ -298,3 +298,4 @@ public class MetadataEnrichmentServiceTests
         Assert.True(true);
     }
 }
+

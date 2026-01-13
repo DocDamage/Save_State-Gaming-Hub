@@ -6,6 +6,7 @@ using SaveState.Core.Common.Services;
 using SaveState.Core.Ai.Services;
 using SaveState.Presentation.Resources;
 using SaveState.Presentation.Services;
+using SaveState.Presentation.ViewModels.Shell;
 
 namespace SaveState.Presentation.ViewModels;
 
@@ -20,6 +21,7 @@ public partial class SettingsViewModel : ObservableObject
     private readonly IThemeService _themeService;
     private readonly IAiOrchestrator _aiOrchestrator;
     private readonly IUserPreferencesService _preferencesService;
+    private readonly IDialogService _dialogService;
 
     [ObservableProperty]
     private CultureInfo _selectedCulture;
@@ -57,18 +59,24 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private string _groqApiKey = string.Empty;
 
+    public VoiceControlViewModel VoiceSettings { get; }
+
     public SettingsViewModel(
         ICultureManager cultureManager,
         SaveState.Presentation.Resources.Resources resources,
         IThemeService themeService,
-        IAiOrchestrator aiOrchestrator, // Added
-        IUserPreferencesService preferencesService)
+        IAiOrchestrator aiOrchestrator,
+        IUserPreferencesService preferencesService,
+        IDialogService dialogService,
+        SaveState.Presentation.ViewModels.Shell.VoiceControlViewModel voiceSettings)
     {
         _cultureManager = cultureManager;
         _resources = resources;
         _themeService = themeService;
-        _aiOrchestrator = aiOrchestrator; // Added
+        _aiOrchestrator = aiOrchestrator;
         _preferencesService = preferencesService;
+        _dialogService = dialogService;
+        VoiceSettings = voiceSettings;
 
         SelectedCulture = _cultureManager.CurrentCulture;
         SelectedTheme = _themeService.CurrentTheme;
@@ -125,6 +133,12 @@ public partial class SettingsViewModel : ObservableObject
 
         _themeService.SetTheme(theme);
         // SelectedTheme will be updated via the ThemeChanged event
+    }
+
+    [RelayCommand]
+    private async Task OpenEmulatorSetupAsync()
+    {
+        await _dialogService.ShowEmulatorSetupWizardAsync();
     }
 
     private async Task LoadAiPreferencesAsync()

@@ -46,11 +46,11 @@ public sealed class InMemoryConversationContextService : IConversationContextSer
             entry.RegisterPostEvictionCallback((key, value, reason, state) =>
             {
                 _activeSessions.TryRemove(sessionId, out _);
-                _logger.LogDebug("Session {SessionId} evicted: {Reason}", sessionId, reason);
+                _logger.LogInformation("Session {SessionId} evicted: {Reason}", sessionId, reason);
             });
 
             _activeSessions.TryAdd(sessionId, 0);
-            _logger.LogDebug("Created new conversation context for session {SessionId}", sessionId);
+            _logger.LogInformation("Created new conversation context for session {SessionId}", sessionId);
             return new ConversationContext(sessionId);
         });
 
@@ -64,7 +64,7 @@ public sealed class InMemoryConversationContextService : IConversationContextSer
             return Result.Failure(contextResult.Error!);
 
         contextResult.Value!.AddMessage(message);
-        _logger.LogDebug("Added {Role} message to session {SessionId}", message.Role, sessionId);
+        _logger.LogInformation("Added {Role} message to session {SessionId}", message.Role, sessionId);
         return Result.Success();
     }
 

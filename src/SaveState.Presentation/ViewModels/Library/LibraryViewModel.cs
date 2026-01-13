@@ -1,21 +1,28 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Ai.Services;
+using SaveState.Core.GameLibrary;
+using SaveState.Core.GameLibrary.Entities;
+using SaveState.Core.Common.ValueObjects;
 using SaveState.Presentation.Services;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using SaveState.Core.Common.ValueObjects;
 
 namespace SaveState.Presentation.ViewModels.Library;
 
 /// <summary>
 /// Main view model for the Library tab.
 /// </summary>
-public partial class LibraryViewModel : ObservableObject
+public partial class LibraryViewModel : ObservableObject, IRecipient<SaveState.Presentation.Messages.NaturalLanguageSearchRequestedMessage>
 {
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
+    private readonly IGameRepository _gameRepository;
+    private readonly INaturalLanguageGameSearch _nlSearch;
     private readonly ILogger<LibraryViewModel> _logger;
 
     [ObservableProperty]
@@ -38,6 +45,12 @@ public partial class LibraryViewModel : ObservableObject
 
     [ObservableProperty]
     private string _libraryStats = "Loading...";
+
+    [ObservableProperty]
+    private int _totalGamesCount;
+
+    [ObservableProperty]
+    private int _installedGamesCount;
 
     [ObservableProperty]
     private bool _isGridView = true;
@@ -81,6 +94,9 @@ public partial class LibraryViewModel : ObservableObject
     [ObservableProperty]
     private int _selectedPageSize = 24;
 
+    [ObservableProperty]
+    private CollectionFilter? _activeAdHocFilter;
+
     private int _currentPage = 1;
 
     public LibraryViewModel(
@@ -92,6 +108,8 @@ public partial class LibraryViewModel : ObservableObject
         GameListViewModel tableViewModel,
         INavigationService navigationService,
         IDialogService dialogService,
+        IGameRepository gameRepository,
+        INaturalLanguageGameSearch nlSearch,
         ILogger<LibraryViewModel> logger)
     {
         _sidebarViewModel = sidebarViewModel;
@@ -102,6 +120,8 @@ public partial class LibraryViewModel : ObservableObject
         _tableViewModel = tableViewModel;
         _navigationService = navigationService;
         _dialogService = dialogService;
+        _gameRepository = gameRepository;
+        _nlSearch = nlSearch;
         _logger = logger;
 
         _sidebarViewModel.FilterChanged += OnSidebarFilterChanged;
@@ -110,7 +130,34 @@ public partial class LibraryViewModel : ObservableObject
         _toolbarViewModel.ViewModeChanged += OnViewModeChanged;
         _toolbarViewModel.FilterPanelToggled += OnFilterPanelToggled;
 
+        // Register for natural language search messages
+        WeakReferenceMessenger.Default.Register<SaveState.Presentation.Messages.NaturalLanguageSearchRequestedMessage>(this);
+
         InitializeView();
+    }
+
+    public async void Receive(SaveState.Presentation.Messages.NaturalLanguageSearchRequestedMessage message)
+    {
+        _logger.LogInformation("Processing natural language search: {Query}", message.Value);
+
+        try
+        {
+            var filter = await _nlSearch.ParseQueryAsync(message.Value);
+            ActiveAdHocFilter = filter;
+            _currentPage = 1;
+
+            // Reset sidebar selection to everything when searching via AI
+            // _sidebarViewModel.SelectedSmartFilter = _sidebarViewModel.SmartFilters.FirstOrDefault();
+
+            await LoadLibraryDataAsync();
+
+            _logger.LogInformation("Natural language search applied for query: {Query}", message.Value);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing natural language search");
+            await _dialogService.ShowErrorAsync("Search Error", "Failed to process natural language search.");
+        }
     }
 
     private void InitializeView()
@@ -157,10 +204,10 @@ public partial class LibraryViewModel : ObservableObject
 
         await Task.WhenAll(
             SidebarViewModel.LoadSidebarDataCommand.ExecuteAsync(null),
-            GridViewModel.LoadGamesAsync(_currentPage, SelectedPageSize, searchTerm, smartFilter, collectionId, platformId, sortOption, sortDescending),
-            ListViewModel.LoadGamesAsync(_currentPage, SelectedPageSize, searchTerm, smartFilter, collectionId, platformId, sortOption, sortDescending),
-            CompactViewModel.LoadGamesAsync(_currentPage, SelectedPageSize, searchTerm, smartFilter, collectionId, platformId, sortOption, sortDescending),
-            TableViewModel.LoadGamesAsync(_currentPage, SelectedPageSize, searchTerm, smartFilter, collectionId, platformId, sortOption, sortDescending)
+            GridViewModel.LoadGamesAsync(_currentPage, SelectedPageSize, searchTerm, smartFilter, collectionId, platformId, sortOption, sortDescending, ActiveAdHocFilter),
+            ListViewModel.LoadGamesAsync(_currentPage, SelectedPageSize, searchTerm, smartFilter, collectionId, platformId, sortOption, sortDescending, ActiveAdHocFilter),
+            CompactViewModel.LoadGamesAsync(_currentPage, SelectedPageSize, searchTerm, smartFilter, collectionId, platformId, sortOption, sortDescending, ActiveAdHocFilter),
+            TableViewModel.LoadGamesAsync(_currentPage, SelectedPageSize, searchTerm, smartFilter, collectionId, platformId, sortOption, sortDescending, ActiveAdHocFilter)
         );
 
         UpdateLibraryStats();
@@ -356,14 +403,34 @@ public partial class LibraryViewModel : ObservableObject
 
     private void UpdateLibraryStats()
     {
-        // Get pagination state from the current view model
-        var (_, _, totalCount, _, _, _) = GetCurrentViewModelPaginationState();
-        var installedGames = totalCount; // TODO: Calculate properly when status filtering is available
+        _ = UpdateLibraryStatsAsync();
+    }
 
-        LibraryStats = $"{totalCount} games • {installedGames} installed";
+    private async Task UpdateLibraryStatsAsync()
+    {
+        // Get pagination state from the current view model for the current filtered view
+        var (_, _, filteredCount, _, _, _) = GetCurrentViewModelPaginationState();
 
-        IsEmpty = totalCount == 0;
-        HasGames = totalCount > 0;
+        try
+        {
+            // Get global stats from repository
+            TotalGamesCount = await _gameRepository.CountAsync();
+            InstalledGamesCount = await _gameRepository.CountByStatusAsync(SaveState.Core.GameLibrary.Enums.GameStatus.Installed);
+
+            LibraryStats = $"{TotalGamesCount} games • {InstalledGamesCount} installed";
+
+            // If we are looking at a filtered view, maybe we want to show filtered count?
+            // "Showing X of Y games" is already in PaginationInfo.
+            // Stats usually show global library health.
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to update library stats from repository");
+            LibraryStats = $"{filteredCount} games found";
+        }
+
+        IsEmpty = filteredCount == 0;
+        HasGames = filteredCount > 0;
     }
 
     private void UpdatePagination()
@@ -420,6 +487,7 @@ public partial class LibraryViewModel : ObservableObject
 
     private void OnSidebarFilterChanged(object? sender, EventArgs e)
     {
+        ActiveAdHocFilter = null; // Clear ad-hoc filter when sidebar selection changes
         _currentPage = 1;
         _ = LoadLibraryDataAsync();
     }

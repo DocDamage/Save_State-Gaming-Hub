@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Enums;
 using SaveState.Presentation.Services;
@@ -15,6 +16,7 @@ public partial class QuickSearchViewModel : ObservableObject
     private readonly IOverlayService _overlayService;
     private readonly IGameRepository _gameRepository;
     private readonly INavigationService _navigationService;
+    private readonly IUiGameContextService _gameContextService;
 
     [ObservableProperty]
     private string _searchText = string.Empty;
@@ -25,14 +27,23 @@ public partial class QuickSearchViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<SearchResultViewModel> _searchResults = new();
 
+    public bool HasResults => SearchResults.Count > 0;
+
+    public bool ShowNoResults =>
+        !IsSearching && SearchResults.Count == 0 && !string.IsNullOrWhiteSpace(SearchText);
+
     public QuickSearchViewModel(
         IOverlayService overlayService,
         IGameRepository gameRepository,
-        INavigationService navigationService)
+        INavigationService navigationService,
+        IUiGameContextService gameContextService)
     {
         _overlayService = overlayService;
         _gameRepository = gameRepository;
         _navigationService = navigationService;
+        _gameContextService = gameContextService;
+
+        SearchResults.CollectionChanged += (_, __) => RefreshResultsState();
     }
 
     partial void OnSearchTextChanged(string value)
@@ -46,6 +57,22 @@ public partial class QuickSearchViewModel : ObservableObject
         {
             SearchResults.Clear();
         }
+
+        RefreshResultsState();
+    }
+
+    partial void OnIsSearchingChanged(bool value)
+    {
+        RefreshResultsState();
+    }
+
+    /// <summary>
+    /// Refreshes derived UI state for the current search results.
+    /// </summary>
+    private void RefreshResultsState()
+    {
+        OnPropertyChanged(nameof(HasResults));
+        OnPropertyChanged(nameof(ShowNoResults));
     }
 
     /// <summary>
@@ -87,12 +114,12 @@ public partial class QuickSearchViewModel : ObservableObject
     /// Command to execute the search and navigate to first result.
     /// </summary>
     [RelayCommand]
-    private void ExecuteSearch()
+    private async Task ExecuteSearch()
     {
         if (SearchResults.Count > 0)
         {
             // Navigate to first result
-            SelectResult(SearchResults[0]);
+            await SelectResult(SearchResults[0]);
         }
     }
 
@@ -102,9 +129,15 @@ public partial class QuickSearchViewModel : ObservableObject
     [RelayCommand]
     private async Task SelectResult(SearchResultViewModel result)
     {
+        if (result == null)
+        {
+            return;
+        }
+
         _overlayService.HideQuickSearchOverlay();
-        // Navigate to game detail
-        await _navigationService.NavigateTo("GameDetail");
+        var gameId = GameId.From(result.GameId);
+        _gameContextService.SetSelectedGame(gameId);
+        await _navigationService.NavigateTo("Library", gameId);
     }
 
     /// <summary>

@@ -47,7 +47,7 @@ public class EnhancedShortTermMemory : IShortTermMemory
         Interlocked.Add(ref _totalTokens, estimatedTokens);
         UpdateKeywordIndex(entry);
 
-        _logger.LogDebug("Stored memory {Id} ({Tokens} tokens)", entry.Id, estimatedTokens);
+        _logger.LogInformation("Stored memory {Id} ({Tokens} tokens)", entry.Id, estimatedTokens);
     }
 
     public Task<IReadOnlyList<MemoryEntry>> SearchAsync(string query, int maxResults, CancellationToken ct)
@@ -81,7 +81,7 @@ public class EnhancedShortTermMemory : IShortTermMemory
             var estimatedTokens = EstimateTokenCount(entry.Content);
             Interlocked.Add(ref _totalTokens, -estimatedTokens);
             RemoveFromKeywordIndex(entry);
-            _logger.LogDebug("Removed memory {Id}", id);
+            _logger.LogInformation("Removed memory {Id}", id);
             return Task.FromResult(true);
         }
         return Task.FromResult(false);

@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using SaveState.Application.RomManagement.Services;
 using SaveState.Core.RomManagement;
@@ -13,15 +14,18 @@ public partial class EmulatorStatusWidget : WidgetBase
 {
     private readonly IEmulatorService _emulatorService;
     private readonly IEmulatorRepository _emulatorRepository;
+    private readonly INavigationService _navigationService;
 
     public EmulatorStatusWidget(
         IEmulatorService emulatorService,
         IEmulatorRepository emulatorRepository,
+        INavigationService navigationService,
         ILogger<EmulatorStatusWidget> logger)
         : base(logger)
     {
         _emulatorService = emulatorService;
         _emulatorRepository = emulatorRepository;
+        _navigationService = navigationService;
         Emulators = new ObservableCollection<EmulatorStatusItem>();
     }
 
@@ -88,6 +92,12 @@ public partial class EmulatorStatusWidget : WidgetBase
                 "Check logs",
                 false));
         }
+    }
+
+    [RelayCommand]
+    private async Task NavigateToSettings()
+    {
+        await _navigationService.NavigateTo("Settings");
     }
 }
 

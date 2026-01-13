@@ -54,6 +54,10 @@ public record GetGamesQuery : IRequest<PagedResult<Game>>
     /// Whether to sort in descending order.
     /// </summary>
     public bool SortDescending { get; init; } = false;
+    /// <summary>
+    /// Optional ad-hoc filter for natural language search logic.
+    /// </summary>
+    public CollectionFilter? AdHocFilter { get; init; }
 }
 
 /// <summary>
@@ -80,6 +84,7 @@ public class GetGamesQueryHandler : IRequestHandler<GetGamesQuery, PagedResult<G
             platformFilter: request.PlatformFilter,
             sortBy: request.SortBy,
             sortDescending: request.SortDescending,
+            adHocFilter: request.AdHocFilter,
             ct: ct).ConfigureAwait(false);
     }
 }

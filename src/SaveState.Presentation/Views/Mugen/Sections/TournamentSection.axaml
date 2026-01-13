@@ -3,9 +3,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Shell.Mugen"
+             xmlns:conv="clr-namespace:SaveState.Presentation.Converters"
+             xmlns:views="clr-namespace:SaveState.Presentation.Views.Shell.Mugen"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="SaveState.Presentation.Views.Mugen.Sections.TournamentSection"
              x:DataType="vm:MugenTournamentViewModel">
+
+    <UserControl.Resources>
+        <conv:BoolToTextConverter x:Key="BoolToTextConverter" />
+    </UserControl.Resources>
 
     <UserControl.Styles>
         <Style Selector="Border.MatchBox">
@@ -31,47 +37,141 @@
             <Grid ColumnDefinitions="*, Auto">
                 <StackPanel>
                     <TextBlock Text="TOURNAMENT VISUALIZER" FontSize="26" FontWeight="Black" Foreground="White" />
-                    <TextBlock Text="TRACK YOUR PATH TO GLORY" FontSize="12" Foreground="{StaticResource FightingYellowBrush}" />
+                    <TextBlock Text="{Binding StatusMessage}" FontSize="14" Foreground="{StaticResource FightingYellowBrush}" />
                 </StackPanel>
-                <Button Grid.Column="1" Command="{Binding RefreshTournamentCommand}" Classes="Secondary" Content="REFRESH BRACKET" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Command="{Binding RefreshTournamentCommand}" Classes="Secondary" Content="REFRESH" VerticalAlignment="Center" IsVisible="{Binding IsTournamentActive}" />
             </Grid>
         </Border>
 
-        <!-- Bracket Area -->
-        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Margin="20,0,20,20">
-            <Grid RowDefinitions="Auto" ColumnDefinitions="250, 100, 250, 100, 250" Margin="40">
-                <!-- Quarter Finals -->
-                <StackPanel Grid.Column="0" Spacing="40" VerticalAlignment="Center">
-                    <TextBlock Text="QUARTER FINALS" FontWeight="Black" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,20"/>
-                    <Border Classes="MatchBox"><TextBlock Text="Ryu vs Ken"/></Border>
-                    <Border Classes="MatchBox"><TextBlock Text="Chun-Li vs Akuma"/></Border>
-                    <Border Classes="MatchBox"><TextBlock Text="Guile vs Bison"/></Border>
-                    <Border Classes="MatchBox"><TextBlock Text="Zangief vs Terry"/></Border>
-                </StackPanel>
+        <!-- Creation Mode -->
+        <Grid Grid.Row="1" IsVisible="{Binding !IsTournamentActive}" ColumnDefinitions="*, 350" Margin="20">
+            <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="20" Margin="0,0,20,0">
+                <Grid RowDefinitions="Auto, *, Auto">
+                    <StackPanel Spacing="10" Margin="0,0,0,20">
+                        <TextBlock Text="CREATE NEW TOURNAMENT" Classes="SectionHeader" />
+                        <TextBox Text="{Binding TournamentName}" Watermark="Tournament Name (e.g. Sunday Cup)" />
+                    </StackPanel>
 
-                <!-- Connectors QF to SF -->
-                <Canvas Grid.Column="1">
-                    <!-- Lines would go here, using shapes for simplicity -->
-                </Canvas>
+                    <Grid Grid.Row="1" RowDefinitions="Auto, *" Margin="0,0,0,20">
+                        <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,10">
+                            <TextBlock Text="PARTICIPANTS (Min 2)" FontWeight="Bold" VerticalAlignment="Center" />
+                            <Button Grid.Column="1" Command="{Binding AutoFillParticipantsCommand}" Content="Auto-Fill Random (8)" Classes="Secondary" Padding="10,5"/>
+                        </Grid>
 
-                <!-- Semi Finals -->
-                <StackPanel Grid.Column="2" Spacing="160" VerticalAlignment="Center">
-                    <TextBlock Text="SEMI FINALS" FontWeight="Black" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,20"/>
-                    <Border Classes="MatchBox" BorderBrush="{StaticResource FightingYellowBrush}" BorderThickness="2"><TextBlock Text="Ryu vs Chun-Li"/></Border>
-                    <Border Classes="MatchBox"><TextBlock Text="Bison vs Terry"/></Border>
-                </StackPanel>
+                        <ListBox Grid.Row="1" ItemsSource="{Binding Participants}" Background="#1E1E1E">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="*, Auto">
+                                        <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center"/>
+                                        <Button Grid.Column="1" Command="{Binding $parent[UserControl].((vm:MugenTournamentViewModel)DataContext).RemoveParticipantCommand}"
+                                                CommandParameter="{Binding}" Content="❌" Background="Transparent" Padding="5"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
 
-                <!-- Finals -->
-                <StackPanel Grid.Column="4" VerticalAlignment="Center">
-                    <TextBlock Text="GRAND FINALS" FontWeight="Black" Foreground="{StaticResource FightingYellowBrush}" HorizontalAlignment="Center" Margin="0,0,0,20"/>
-                    <Border Classes="MatchBox" Background="{StaticResource AccentBrush}" Height="80">
-                        <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="🏆 RYU" FontSize="20" FontWeight="Black" HorizontalAlignment="Center"/>
-                            <TextBlock Text="CHAMPION" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{StaticResource FightingYellowBrush}"/>
-                        </StackPanel>
+                    <StackPanel Grid.Row="2" Spacing="10">
+                        <Button Command="{Binding SimulateTournamentCommand}" Content="⚡ FAST SIMULATION (SALTYBET)"
+                                Classes="Secondary" HorizontalAlignment="Stretch" Height="40" IsEnabled="{Binding !IsSimulationActive}"/>
+                        <Button Command="{Binding CreateTournamentCommand}" Content="START TOURNAMENT"
+                                Classes="Accent" HorizontalAlignment="Stretch" Height="50" FontSize="18" FontWeight="Bold"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Betting Panel -->
+            <Border Grid.Column="1" Background="{StaticResource GlassBrush}" CornerRadius="12" Padding="20">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="💰 SALTYBET" Classes="SectionHeader" Foreground="{StaticResource FightingYellowBrush}" />
+
+                    <Border Background="#1A1A1A" Padding="15" CornerRadius="8">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Text="Your Credits" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="{Binding SpectatorCredits}" FontWeight="Black" FontSize="20" Foreground="{StaticResource FightingYellowBrush}" />
+                        </Grid>
                     </Border>
+
+                    <TextBlock Text="Place Your Bet" FontWeight="Bold" />
+                    <ComboBox ItemsSource="{Binding Participants}" SelectedItem="{Binding SelectedBetCharacter}" HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayName}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <NumericUpDown Value="{Binding BetAmount}" Minimum="10" Maximum="1000" Increment="10" />
+
+                    <Button Content="PLACE BET" Classes="Accent" HorizontalAlignment="Stretch" Padding="10" />
+
+                    <Border Background="#33FFFFFF" Height="1" Margin="0,10" />
+
+                    <TextBlock Text="BET HISTORY" FontWeight="Bold" />
+                    <ScrollViewer Height="150">
+                        <ItemsControl ItemsSource="{Binding BetHistory}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,5">
+                                        <TextBlock Text="{Binding CharacterName}" FontSize="12" VerticalAlignment="Center" />
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5">
+                                            <TextBlock Text="{Binding Amount, StringFormat='{}C{0}'}" FontSize="12" />
+                                            <TextBlock Text="{Binding ResultLabel}" FontSize="12" FontWeight="Bold"
+                                                       Foreground="{Binding Won, Converter={StaticResource BoolToTextConverter}, ConverterParameter='#4CAF50|#F44336'}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
                 </StackPanel>
-            </Grid>
-        </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- Active Mode / Simulation Results -->
+        <Grid Grid.Row="1" IsVisible="{Binding IsTournamentActive}" ColumnDefinitions="*, 400" Margin="20">
+            <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="20" Margin="0,0,20,0">
+                <StackPanel Spacing="20">
+                    <TextBlock Text="🏆 TOURNAMENT IN PROGRESS" FontSize="24" FontWeight="Black" Foreground="{StaticResource FightingYellowBrush}"
+                               HorizontalAlignment="Center"/>
+
+                    <!-- Bracket View -->
+                    <Border Background="#111" MinHeight="300" CornerRadius="8" BorderBrush="#333" BorderThickness="2" Padding="20">
+                        <views:TournamentBracketView DataContext="{Binding BracketViewModel}" IsVisible="{Binding BracketViewModel, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                    </Border>
+
+                    <Button Command="{Binding RefreshTournamentCommand}" Classes="Secondary" Content="UPDATE BRACKET" HorizontalAlignment="Center" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1" Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="20">
+                <Grid RowDefinitions="Auto, *">
+                    <TextBlock Text="SIMULATION RADIUS" Classes="SectionHeader" Margin="0,0,0,15" />
+                    <ScrollViewer Grid.Row="1">
+                        <ItemsControl ItemsSource="{Binding SimulationMatches}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="ListItem" Padding="10" Margin="0,0,0,8" BorderThickness="1,0,0,0" BorderBrush="{StaticResource FightingYellowBrush}">
+                                        <StackPanel Spacing="5">
+                                            <TextBlock Text="{Binding RoundName}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <Grid ColumnDefinitions="*, Auto, *">
+                                                <TextBlock Text="{Binding Player1Name}" TextAlignment="Right" />
+                                                <TextBlock Grid.Column="1" Text=" v " Foreground="{StaticResource TextSecondaryBrush}" Margin="5,0"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding Player2Name}" />
+                                            </Grid>
+                                            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                                                <TextBlock Text="Winner:" FontSize="11" />
+                                                <TextBlock Text="{Binding WinnerName}" FontWeight="Bold" Foreground="#4CAF50" FontSize="11" />
+                                                <TextBlock Text="{Binding Confidence, StringFormat='{}{0:P0}'}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

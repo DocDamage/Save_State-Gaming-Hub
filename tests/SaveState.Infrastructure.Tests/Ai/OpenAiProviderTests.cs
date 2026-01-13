@@ -21,6 +21,7 @@ public class OpenAiProviderTests
     private readonly Mock<HttpMessageHandler> _httpMessageHandler = new();
     private readonly Mock<IOptions<OpenAiOptions>> _optionsMock = new();
     private readonly Mock<IAiResiliencePolicy> _resiliencePolicyMock = new();
+    private readonly Mock<SaveState.Core.Common.Services.IUserPreferencesService> _preferencesMock = new();
     private readonly Mock<ILogger<OpenAiProvider>> _loggerMock = new();
     private OpenAiProvider _sut;
 
@@ -41,6 +42,7 @@ public class OpenAiProviderTests
             httpClient,
             _optionsMock.Object,
             _resiliencePolicyMock.Object,
+            _preferencesMock.Object,
             _loggerMock.Object);
     }
 
@@ -69,6 +71,7 @@ public class OpenAiProviderTests
             httpClient,
             _optionsMock.Object,
             _resiliencePolicyMock.Object,
+            _preferencesMock.Object,
             _loggerMock.Object);
 
         // Assert
@@ -159,7 +162,7 @@ public class OpenAiProviderTests
 
         // Re-create SUT with real retry policy
         var httpClient = new HttpClient(_httpMessageHandler.Object);
-        _sut = new OpenAiProvider(httpClient, _optionsMock.Object, _resiliencePolicyMock.Object, _loggerMock.Object);
+        _sut = new OpenAiProvider(httpClient, _optionsMock.Object, _resiliencePolicyMock.Object, _preferencesMock.Object, _loggerMock.Object);
 
         var responseContent = @"{
             ""model"": ""gpt-4"",

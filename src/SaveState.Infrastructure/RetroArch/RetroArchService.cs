@@ -1,3 +1,8 @@
+using Amazon.S3;
+using Amazon.S3.Model;
+using Amazon.S3.Transfer;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SaveState.Core.Achievements;
@@ -466,20 +471,166 @@ public partial class RetroArchService : IRetroArchService
 
     private async Task<Result> SyncToAzureBlobAsync(List<(string Path, string Hash, DateTime Modified)> files, CancellationToken ct)
     {
-        // Placeholder for Azure Blob Storage implementation
-        // In production, use Azure.Storage.Blobs NuGet package
-        LogCloudSyncPlaceholder(_logger, "Azure Blob Storage");
-        await Task.Delay(100, ct); // Simulate async operation
-        return Result.Success();
+        try
+        {
+            if (string.IsNullOrEmpty(_options.CloudSyncConnectionString))
+            {
+                return Result.Failure("Azure Blob Storage connection string not configured");
+            }
+
+            var blobServiceClient = new BlobServiceClient(_options.CloudSyncConnectionString);
+            var containerName = _options.CloudSyncContainerName ?? "retroach-saves";
+            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+
+            // Ensure container exists
+            await containerClient.CreateIfNotExistsAsync(PublicAccessType.None, cancellationToken: ct);
+
+            var uploadedCount = 0;
+            var skippedCount = 0;
+
+            foreach (var (filePath, hash, modified) in files)
+            {
+                try
+                {
+                    var blobName = GetRelativePath(filePath, _retroArchPath!);
+                    var blobClient = containerClient.GetBlobClient(blobName);
+
+                    // Check if blob exists and compare hashes
+                    var exists = await blobClient.ExistsAsync(ct);
+                    if (exists)
+                    {
+                        // Get blob properties to check hash
+                        var properties = await blobClient.GetPropertiesAsync(cancellationToken: ct);
+                        var cloudHash = properties.Value.Metadata.TryGetValue("filehash", out var hashValue) ? hashValue : null;
+
+                        if (cloudHash == hash)
+                        {
+                            // File is up to date
+                            skippedCount++;
+                            continue;
+                        }
+                    }
+
+                    // Upload the file
+                    using var fileStream = File.OpenRead(filePath);
+                    var uploadOptions = new BlobUploadOptions
+                    {
+                        Metadata = new Dictionary<string, string>
+                        {
+                            { "filehash", hash },
+                            { "modified", modified.ToString("O") },
+                            { "source", Environment.MachineName }
+                        },
+                        Conditions = exists ? new BlobRequestConditions { IfNoneMatch = new Azure.ETag("*") } : null
+                    };
+
+                    await blobClient.UploadAsync(fileStream, uploadOptions, ct);
+                    uploadedCount++;
+
+                    _logger.LogDebug("Uploaded save file to Azure Blob: {BlobName}", blobName);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to sync file to Azure Blob: {FilePath}", filePath);
+                }
+            }
+
+            _logger.LogInformation("Azure Blob sync completed: {Uploaded} uploaded, {Skipped} skipped", uploadedCount, skippedCount);
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error syncing to Azure Blob Storage");
+            return Result.Failure($"Azure Blob sync failed: {ex.Message}");
+        }
     }
 
     private async Task<Result> SyncToAwsS3Async(List<(string Path, string Hash, DateTime Modified)> files, CancellationToken ct)
     {
-        // Placeholder for AWS S3 implementation
-        // In production, use AWSSDK.S3 NuGet package
-        LogCloudSyncPlaceholder(_logger, "AWS S3");
-        await Task.Delay(100, ct); // Simulate async operation
-        return Result.Success();
+        try
+        {
+            if (string.IsNullOrEmpty(_options.CloudSyncConnectionString))
+            {
+                return Result.Failure("AWS S3 credentials not configured");
+            }
+
+            // Parse connection string format: "AccessKey=xxx;SecretKey=yyy;Region=zzz;Bucket=bbb"
+            var credentials = ParseAwsCredentials(_options.CloudSyncConnectionString);
+            if (credentials == null)
+            {
+                return Result.Failure("Invalid AWS S3 connection string format");
+            }
+
+            using var s3Client = new AmazonS3Client(credentials.Value.AccessKey, credentials.Value.SecretKey, Amazon.RegionEndpoint.GetBySystemName(credentials.Value.Region));
+
+            var uploadedCount = 0;
+            var skippedCount = 0;
+
+            foreach (var (filePath, hash, modified) in files)
+            {
+                try
+                {
+                    var key = GetRelativePath(filePath, _retroArchPath!);
+
+                    // Check if object exists and compare hashes
+                    var headRequest = new GetObjectMetadataRequest
+                    {
+                        BucketName = credentials.Value.Bucket,
+                        Key = key
+                    };
+
+                    string? cloudHash = null;
+                    try
+                    {
+                        var response = await s3Client.GetObjectMetadataAsync(headRequest, ct);
+                        try { cloudHash = response.Metadata["filehash"]; } catch { cloudHash = null; }
+                    }
+                    catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        // Object doesn't exist, will upload
+                    }
+
+                    if (cloudHash == hash)
+                    {
+                        // File is up to date
+                        skippedCount++;
+                        continue;
+                    }
+
+                    // Upload the file using TransferUtility for better performance
+                    using var transferUtility = new TransferUtility(s3Client);
+                    var uploadRequest = new TransferUtilityUploadRequest
+                    {
+                        BucketName = credentials.Value.Bucket,
+                        Key = key,
+                        FilePath = filePath,
+                        Metadata =
+                        {
+                            ["filehash"] = hash,
+                            ["modified"] = modified.ToString("O"),
+                            ["source"] = Environment.MachineName
+                        }
+                    };
+
+                    await transferUtility.UploadAsync(uploadRequest, ct);
+                    uploadedCount++;
+
+                    _logger.LogDebug("Uploaded save file to AWS S3: {Key}", key);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to sync file to AWS S3: {FilePath}", filePath);
+                }
+            }
+
+            _logger.LogInformation("AWS S3 sync completed: {Uploaded} uploaded, {Skipped} skipped", uploadedCount, skippedCount);
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error syncing to AWS S3");
+            return Result.Failure($"AWS S3 sync failed: {ex.Message}");
+        }
     }
 
     private async Task<Result> SyncToGoogleCloudAsync(List<(string Path, string Hash, DateTime Modified)> files, CancellationToken ct)
@@ -600,6 +751,39 @@ public partial class RetroArchService : IRetroArchService
             return parts[1].Trim().Trim('"');
         }
         return string.Empty;
+    }
+
+    private string GetRelativePath(string fullPath, string basePath)
+    {
+        var baseDir = Path.GetDirectoryName(basePath) ?? basePath;
+        var relativePath = Path.GetRelativePath(baseDir, fullPath);
+        // Replace backslashes with forward slashes for consistent blob names
+        return relativePath.Replace('\\', '/');
+    }
+
+    private (string AccessKey, string SecretKey, string Region, string Bucket)? ParseAwsCredentials(string connectionString)
+    {
+        var parts = connectionString.Split(';');
+        var dict = new Dictionary<string, string>();
+
+        foreach (var part in parts)
+        {
+            var kvp = part.Split('=', 2);
+            if (kvp.Length == 2)
+            {
+                dict[kvp[0].Trim()] = kvp[1].Trim();
+            }
+        }
+
+        if (dict.TryGetValue("AccessKey", out var accessKey) &&
+            dict.TryGetValue("SecretKey", out var secretKey) &&
+            dict.TryGetValue("Region", out var region) &&
+            dict.TryGetValue("Bucket", out var bucket))
+        {
+            return (accessKey, secretKey, region, bucket);
+        }
+
+        return null;
     }
 
     #region Logging

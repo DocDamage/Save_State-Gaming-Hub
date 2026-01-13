@@ -55,6 +55,7 @@ public class FakeMetadataService : IMetadataService
     public Task<Result<byte[]>> GetCoverImageAsync(string title, CancellationToken ct = default)
     {
         // Return failure for fake implementation (no actual image data)
-        return Task.FromResult(Result<byte[]>.Failure("No cover image available in fake implementation", ErrorType.NotFound));
+        return Task.FromResult(Result.Failure<byte[]>("No cover image available in fake implementation", ErrorType.NotFound));
     }
 }
+

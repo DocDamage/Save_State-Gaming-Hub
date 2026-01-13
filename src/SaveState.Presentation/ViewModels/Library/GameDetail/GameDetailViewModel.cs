@@ -35,6 +35,7 @@ public partial class GameDetailViewModel : ObservableObject
     private readonly IModManagementService _modService;
     private readonly IDialogService _dialogService;
     private readonly IBacklogService _backlogService;
+    private readonly IUiGameContextService _gameContextService;
     private readonly ILogger<GameDetailViewModel> _logger;
 
     [ObservableProperty]
@@ -114,6 +115,7 @@ public partial class GameDetailViewModel : ObservableObject
         IDialogService dialogService,
         IBacklogService backlogService,
         IClipboardService clipboardService,
+        IUiGameContextService gameContextService,
         GameId gameId,
         ILoggerFactory loggerFactory)
     {
@@ -126,11 +128,12 @@ public partial class GameDetailViewModel : ObservableObject
         _modService = modService;
         _dialogService = dialogService;
         _backlogService = backlogService;
+        _gameContextService = gameContextService;
         _gameId = gameId;
         _logger = loggerFactory.CreateLogger<GameDetailViewModel>();
 
         // Initialize tab view models with dependencies
-        OverviewTab = new GameOverviewTabViewModel(_mediator, _userContextService, _aiOrchestrator, _dialogService, _navigationService, loggerFactory.CreateLogger<GameOverviewTabViewModel>());
+        OverviewTab = new GameOverviewTabViewModel(_mediator, _userContextService, _aiOrchestrator, _dialogService, _navigationService, _gameContextService, loggerFactory.CreateLogger<GameOverviewTabViewModel>());
         SaveStatesTab = new GameSaveStatesTabViewModel(_mediator, _dialogService, _notificationService, loggerFactory.CreateLogger<GameSaveStatesTabViewModel>());
         AchievementsTab = new GameAchievementsTabViewModel(_mediator, _userContextService, _dialogService, loggerFactory.CreateLogger<GameAchievementsTabViewModel>());
         SessionsTab = new GameSessionsTabViewModel(_mediator, _dialogService, loggerFactory.CreateLogger<GameSessionsTabViewModel>());
@@ -145,6 +148,10 @@ public partial class GameDetailViewModel : ObservableObject
         PerformanceTab = new GamePerformanceTabViewModel(_mediator, Locator.Current.GetService<IPerformanceMonitor>()!, loggerFactory.CreateLogger<GamePerformanceTabViewModel>());
 
         InitializeTabs();
+
+        // Set context
+        _gameContextService.SetSelectedGame(gameId);
+
         LoadGameDataAsync();
     }
 
@@ -254,6 +261,7 @@ public partial class GameDetailViewModel : ObservableObject
     [RelayCommand]
     private async Task NavigateBack()
     {
+        _gameContextService.SetSelectedGame(null);
         await _navigationService.NavigateTo("Library");
     }
 
@@ -278,6 +286,9 @@ public partial class GameDetailViewModel : ObservableObject
             }
 
             _logger.LogInformation("Successfully launched game {GameId}: {Title}", GameId, GameTitle);
+
+            _gameContextService.SetRunningGame(GameId);
+
             _notificationService.ShowSuccess(
                 $"{GameTitle} has been launched successfully.",
                 "Game Launched");
@@ -323,14 +334,14 @@ public partial class GameDetailViewModel : ObservableObject
             if (string.IsNullOrWhiteSpace(InstallPath))
             {
                 _logger.LogWarning("Cannot browse files - no install path for game {GameId}", GameId);
-                // TODO: Show warning notification to user
+                _notificationService.ShowWarning("No installation path set for this game.", "Browse Files");
                 return;
             }
 
             if (!Directory.Exists(InstallPath))
             {
                 _logger.LogWarning("Cannot browse files - install path does not exist: {Path}", InstallPath);
-                // TODO: Show warning notification to user
+                _notificationService.ShowWarning("Installation path does not exist on disk.", "Browse Files");
                 return;
             }
 
@@ -347,7 +358,7 @@ public partial class GameDetailViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to open installation folder for game {GameId}", GameId);
-            // TODO: Show error notification to user
+            _notificationService.ShowError($"Failed to open folder: {ex.Message}", "System Error");
         }
     }
 

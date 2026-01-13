@@ -2,8 +2,12 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Ai.Services;
+using SaveState.Core.Common.ValueObjects;
+using SaveState.Core.GameLibrary;
+using SaveState.Core.GameLibrary.Entities;
 using SaveState.Presentation.Services;
 using System.Collections.ObjectModel;
+using System.Text;
 
 namespace SaveState.Presentation.ViewModels.Shell;
 
@@ -14,7 +18,12 @@ public partial class AiAssistantViewModel : ObservableObject
 {
     private readonly IOverlayService _overlayService;
     private readonly IAiOrchestrator _aiOrchestrator;
+    private readonly ISpeechRecognitionService _speechRecognitionService;
+    private readonly IUiGameContextService _gameContextService;
+    private readonly IGameRepository _gameRepository;
     private readonly ILogger<AiAssistantViewModel> _logger;
+    private GameId? _activeGameId;
+    private string _activeGameContext = string.Empty;
 
     [ObservableProperty]
     private string _inputText = string.Empty;
@@ -28,14 +37,23 @@ public partial class AiAssistantViewModel : ObservableObject
     public AiAssistantViewModel(
         IOverlayService overlayService,
         IAiOrchestrator aiOrchestrator,
+        ISpeechRecognitionService speechRecognitionService,
+        IUiGameContextService gameContextService,
+        IGameRepository gameRepository,
         ILogger<AiAssistantViewModel> logger)
     {
         _overlayService = overlayService;
         _aiOrchestrator = aiOrchestrator;
+        _speechRecognitionService = speechRecognitionService;
+        _gameContextService = gameContextService;
+        _gameRepository = gameRepository;
         _logger = logger;
 
         // Welcome message
         Messages.Add(new MessageViewModel("AI", "Hello! I'm your gaming assistant. Ask me anything about your games, strategies, or for recommendations!", MessageType.Assistant));
+
+        _gameContextService.ActiveGameChanged += OnGameContextChanged;
+        _ = RefreshActiveGameContextAsync();
     }
 
     /// <summary>
@@ -57,8 +75,11 @@ public partial class AiAssistantViewModel : ObservableObject
         {
             IsProcessing = true;
 
+            await RefreshActiveGameContextAsync();
+            var prompt = BuildPrompt(userMessage);
+
             // Send to AI Orchestrator
-            var response = await _aiOrchestrator.GenerateTextAsync(userMessage);
+            var response = await _aiOrchestrator.GenerateTextAsync(prompt);
 
             if (response.IsSuccess && response.Value != null)
             {
@@ -84,10 +105,36 @@ public partial class AiAssistantViewModel : ObservableObject
     /// Command to start voice input.
     /// </summary>
     [RelayCommand]
-    private void StartVoiceInput()
+    private async Task StartVoiceInput()
     {
-        // Voice input requires additional setup
-        _logger.LogInformation("Voice input requested");
+        if (_speechRecognitionService.IsContinuousRecognitionActive)
+        {
+            await _speechRecognitionService.StopContinuousRecognitionAsync();
+            _speechRecognitionService.SpeechRecognized -= OnSpeechRecognized;
+        }
+        else
+        {
+            _speechRecognitionService.SpeechRecognized += OnSpeechRecognized;
+            var result = await _speechRecognitionService.StartContinuousRecognitionAsync();
+            if (!result.IsSuccess)
+            {
+               _logger.LogError("Failed to start voice recognition: {Error}", result.Error);
+               Messages.Add(new MessageViewModel("System", "Could not start voice recognition.", MessageType.Assistant));
+               _speechRecognitionService.SpeechRecognized -= OnSpeechRecognized;
+            }
+        }
+    }
+
+    private void OnSpeechRecognized(object? sender, Core.Ai.Services.DTOs.SpeechRecognizedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(e.Result.RecognizedText))
+        {
+            // Append text to input
+            // Dispatch to UI thread if needed, though ObservableProperty usually handles binding updates
+            // But we are in an event handler, so ensure thread safety if needed.
+            // Avalonia ViewModels are usually okay if binding ensures dispatch, but let's be safe.
+            InputText = (InputText + " " + e.Result.RecognizedText).Trim();
+        }
     }
 
     /// <summary>
@@ -106,7 +153,78 @@ public partial class AiAssistantViewModel : ObservableObject
     [RelayCommand]
     private void Close()
     {
+        // Stop listening if active
+        if (_speechRecognitionService.IsContinuousRecognitionActive)
+        {
+             _speechRecognitionService.StopContinuousRecognitionAsync();
+             _speechRecognitionService.SpeechRecognized -= OnSpeechRecognized;
+        }
         _overlayService.HideAiAssistantOverlay();
+    }
+
+    private void OnGameContextChanged(object? sender, GameId? gameId)
+    {
+        _ = RefreshActiveGameContextAsync();
+    }
+
+    private async Task RefreshActiveGameContextAsync()
+    {
+        try
+        {
+            var activeGameId = _gameContextService.ActiveGameId;
+            if (activeGameId == _activeGameId)
+            {
+                return;
+            }
+
+            _activeGameId = activeGameId;
+            if (activeGameId == null)
+            {
+                _activeGameContext = string.Empty;
+                return;
+            }
+
+            var game = await _gameRepository.GetByIdAsync(activeGameId);
+            if (game == null)
+            {
+                _activeGameContext = string.Empty;
+                return;
+            }
+
+            _activeGameContext = BuildGameContext(game);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to refresh active game context");
+            _activeGameContext = string.Empty;
+        }
+    }
+
+    private static string BuildGameContext(Game game)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("Active game context:");
+        builder.AppendLine($"Title: {game.Title}");
+        builder.AppendLine($"Platform: {game.Platform?.Name.Value ?? "Unknown"}");
+        builder.AppendLine($"Status: {game.Status}");
+        builder.AppendLine($"Completed: {(game.IsCompleted ? "Yes" : "No")}");
+        builder.AppendLine($"Total playtime (hours): {game.TotalPlayTime.TotalHours:F1}");
+        if (game.LastPlayedAt.HasValue)
+        {
+            builder.AppendLine($"Last played: {game.LastPlayedAt.Value:yyyy-MM-dd}");
+        }
+
+        return builder.ToString().Trim();
+    }
+
+    private string BuildPrompt(string userMessage)
+    {
+        if (string.IsNullOrWhiteSpace(_activeGameContext))
+        {
+            return userMessage;
+        }
+
+        return $"{_activeGameContext}\n\nUser: {userMessage}";
     }
 }
 

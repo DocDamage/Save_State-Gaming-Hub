@@ -4,10 +4,14 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
-    <!-- Analyzers disabled during Phase 0 - will be enabled in Phase 1 -->
-    <AnalysisMode>None</AnalysisMode>
-    <!-- CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors -->
-    <NoWarn>CA1822</NoWarn>
+    <!-- AnalysisMode:Recommended enabled for systematic fixing -->
+    <AnalysisMode>Recommended</AnalysisMode>
+    <!--
+      CA1822: Member does not access instance data (many false positives in service stubs)
+      CA2007: ConfigureAwait - conflicts with xUnit best practices for test code
+      CS1573: Parameter has no matching param tag in XML comment
+    -->
+    <NoWarn>$(NoWarn);CA1822;CA2007;1712;1573</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

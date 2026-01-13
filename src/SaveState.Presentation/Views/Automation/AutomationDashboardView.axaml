@@ -43,281 +43,383 @@
         </Style>
     </UserControl.Styles>
 
-    <ScrollViewer>
-        <StackPanel Spacing="24" Margin="24">
-            <!-- Header -->
-            <Grid ColumnDefinitions="*,Auto">
-                <StackPanel Grid.Column="0" Spacing="8">
-                    <TextBlock Text="🤖 Automation Dashboard"
-                              FontSize="32"
-                              FontWeight="Bold"
-                              Foreground="{StaticResource TextBrush}" />
-                    <TextBlock Text="Automate your gaming workflows with macros, scheduled tasks, and custom workflows"
-                              FontSize="14"
-                              Opacity="0.7"
-                              Foreground="{StaticResource TextBrush}" />
-                </StackPanel>
-
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Top">
-                    <Button Classes="secondary"
-                           Content="⚙️ Settings"
-                           Command="{Binding OpenSettingsCommand}" />
-                    <Button Classes="primary"
-                           Content="➕ New Automation"
-                           Command="{Binding CreateAutomationCommand}" />
-                </StackPanel>
-            </Grid>
-
-            <!-- Quick Stats -->
-            <Grid ColumnDefinitions="*,16,*,16,*,16,*">
-                <!-- Active Tasks -->
-                <Border Grid.Column="0" Classes="section-card">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Active Tasks"
-                                  FontSize="12"
-                                  Opacity="0.6"
-                                  Foreground="{StaticResource TextBrush}" />
-                        <TextBlock Text="{Binding ActiveTasksCount}"
+    <Panel>
+        <!-- Dashboard Content -->
+        <ScrollViewer IsVisible="{Binding CurrentView, Converter={x:Static ObjectConverters.IsNull}}">
+             <StackPanel Spacing="24" Margin="24">
+                 <!-- Header -->
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Spacing="8">
+                        <TextBlock Text="🤖 Automation Dashboard"
                                   FontSize="32"
                                   FontWeight="Bold"
-                                  Foreground="#4A90FF" />
-                        <TextBlock Text="{Binding ActiveTasksText}"
-                                  FontSize="11"
-                                  Opacity="0.6"
+                                  Foreground="{StaticResource TextBrush}" />
+                        <TextBlock Text="Automate your gaming workflows with macros, scheduled tasks, and custom workflows"
+                                  FontSize="14"
+                                  Opacity="0.7"
                                   Foreground="{StaticResource TextBrush}" />
                     </StackPanel>
-                </Border>
 
-                <!-- Macros -->
-                <Border Grid.Column="2" Classes="section-card">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Macros"
-                                  FontSize="12"
-                                  Opacity="0.6"
-                                  Foreground="{StaticResource TextBrush}" />
-                        <TextBlock Text="{Binding MacrosCount}"
-                                  FontSize="32"
-                                  FontWeight="Bold"
-                                  Foreground="#10B981" />
-                        <TextBlock Text="{Binding MacrosText}"
-                                  FontSize="11"
-                                  Opacity="0.6"
-                                  Foreground="{StaticResource TextBrush}" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Top">
+                        <Button Classes="secondary"
+                               Content="🛒 Marketplace"
+                               Command="{Binding OpenMarketplaceCommand}" />
+                        <Button Classes="secondary"
+                               Content="⚙️ Settings"
+                               Command="{Binding OpenSettingsCommand}" />
+                        <Button Classes="primary"
+                               Content="➕ New Automation"
+                               Command="{Binding CreateAutomationCommand}" />
                     </StackPanel>
-                </Border>
+                </Grid>
 
-                <!-- Workflows -->
-                <Border Grid.Column="4" Classes="section-card">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Workflows"
-                                  FontSize="12"
-                                  Opacity="0.6"
-                                  Foreground="{StaticResource TextBrush}" />
-                        <TextBlock Text="{Binding WorkflowsCount}"
-                                  FontSize="32"
-                                  FontWeight="Bold"
-                                  Foreground="#F59E0B" />
-                        <TextBlock Text="{Binding WorkflowsText}"
-                                  FontSize="11"
-                                  Opacity="0.6"
-                                  Foreground="{StaticResource TextBrush}" />
-                    </StackPanel>
-                </Border>
+                <!-- Quick Stats -->
+                <Grid ColumnDefinitions="*,16,*,16,*,16,*">
+                    <!-- Active Tasks -->
+                    <Border Grid.Column="0" Classes="section-card">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Active Tasks"
+                                      FontSize="12"
+                                      Opacity="0.6"
+                                      Foreground="{StaticResource TextBrush}" />
+                            <TextBlock Text="{Binding ActiveTasksCount}"
+                                      FontSize="32"
+                                      FontWeight="Bold"
+                                      Foreground="#4A90FF" />
+                            <TextBlock Text="{Binding ActiveTasksText}"
+                                      FontSize="11"
+                                      Opacity="0.6"
+                                      Foreground="{StaticResource TextBrush}" />
+                        </StackPanel>
+                    </Border>
 
-                <!-- Executions Today -->
-                <Border Grid.Column="6" Classes="section-card">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Executions Today"
-                                  FontSize="12"
-                                  Opacity="0.6"
-                                  Foreground="{StaticResource TextBrush}" />
-                        <TextBlock Text="{Binding ExecutionsTodayCount}"
-                                  FontSize="32"
-                                  FontWeight="Bold"
-                                  Foreground="#8B5CF6" />
-                        <TextBlock Text="{Binding ExecutionsTodayText}"
-                                  FontSize="11"
-                                  Opacity="0.6"
-                                  Foreground="{StaticResource TextBrush}" />
-                    </StackPanel>
-                </Border>
-            </Grid>
-
-            <!-- Main Content Grid -->
-            <Grid ColumnDefinitions="2*,24,*">
-                <!-- Left Column: Scheduled Tasks & Workflows -->
-                <StackPanel Grid.Column="0" Spacing="24">
-                    <!-- Scheduled Tasks -->
-                    <Border Classes="section-card">
-                        <StackPanel Spacing="16">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Grid.Column="0"
-                                          Text="📅 Scheduled Tasks"
-                                          FontSize="18"
-                                          FontWeight="SemiBold"
-                                          Foreground="{StaticResource TextBrush}" />
-                                <Button Grid.Column="1"
-                                       Classes="secondary"
-                                       Content="+ New Task"
-                                       Command="{Binding CreateTaskCommand}"
-                                       Padding="12,6" />
-                            </Grid>
-
-                            <ItemsControl ItemsSource="{Binding ScheduledTasks}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="#10FFFFFF"
-                                               BorderBrush="#20FFFFFF"
-                                               BorderThickness="1"
-                                               CornerRadius="8"
-                                               Padding="16"
-                                               Margin="0,0,0,12">
-                                            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
-                                                <!-- Status Indicator -->
-                                                <Border Grid.Column="0"
-                                                       Width="8"
-                                                       Height="8"
-                                                       CornerRadius="4"
-                                                       Background="{Binding StatusColor}"
-                                                       VerticalAlignment="Center"
-                                                       Margin="0,0,12,0" />
-
-                                                <!-- Task Info -->
-                                                <StackPanel Grid.Column="1" Spacing="4">
-                                                    <TextBlock Text="{Binding Name}"
-                                                              FontSize="14"
-                                                              FontWeight="SemiBold"
-                                                              Foreground="{StaticResource TextBrush}" />
-                                                    <TextBlock Text="{Binding Schedule}"
-                                                              FontSize="12"
-                                                              Opacity="0.7"
-                                                              Foreground="{StaticResource TextBrush}" />
-                                                    <TextBlock Text="{Binding NextRun}"
-                                                              FontSize="11"
-                                                              Opacity="0.6"
-                                                              Foreground="{StaticResource TextBrush}" />
-                                                </StackPanel>
-
-                                                <!-- Toggle -->
-                                                <ToggleSwitch Grid.Column="2"
-                                                            IsChecked="{Binding IsEnabled}"
-                                                            Margin="16,0" />
-
-                                                <!-- Actions -->
-                                                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8">
-                                                    <Button Content="▶️"
-                                                           ToolTip.Tip="Run Now"
-                                                           Command="{Binding RunNowCommand}"
-                                                           Padding="8"
-                                                           Background="Transparent"
-                                                           BorderThickness="0" />
-                                                    <Button Content="✏️"
-                                                           ToolTip.Tip="Edit"
-                                                           Command="{Binding EditCommand}"
-                                                           Padding="8"
-                                                           Background="Transparent"
-                                                           BorderThickness="0" />
-                                                    <Button Content="🗑️"
-                                                           ToolTip.Tip="Delete"
-                                                           Command="{Binding DeleteCommand}"
-                                                           Padding="8"
-                                                           Background="Transparent"
-                                                           BorderThickness="0" />
-                                                </StackPanel>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-
-                            <!-- Empty State -->
-                            <StackPanel Spacing="12"
-                                       IsVisible="{Binding !HasScheduledTasks}"
-                                       HorizontalAlignment="Center"
-                                       Margin="0,20">
-                                <TextBlock Text="📅"
-                                          FontSize="48"
-                                          HorizontalAlignment="Center"
-                                          Opacity="0.3" />
-                                <TextBlock Text="No scheduled tasks yet"
-                                          FontSize="14"
-                                          Opacity="0.6"
-                                          Foreground="{StaticResource TextBrush}"
-                                          HorizontalAlignment="Center" />
-                                <Button Classes="primary"
-                                       Content="Create Your First Task"
-                                       Command="{Binding CreateTaskCommand}"
-                                       HorizontalAlignment="Center" />
-                            </StackPanel>
+                    <!-- Macros -->
+                    <Border Grid.Column="2" Classes="section-card">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Macros"
+                                      FontSize="12"
+                                      Opacity="0.6"
+                                      Foreground="{StaticResource TextBrush}" />
+                            <TextBlock Text="{Binding MacrosCount}"
+                                      FontSize="32"
+                                      FontWeight="Bold"
+                                      Foreground="#10B981" />
+                            <TextBlock Text="{Binding MacrosText}"
+                                      FontSize="11"
+                                      Opacity="0.6"
+                                      Foreground="{StaticResource TextBrush}" />
                         </StackPanel>
                     </Border>
 
                     <!-- Workflows -->
-                    <Border Classes="section-card">
+                    <Border Grid.Column="4" Classes="section-card">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Workflows"
+                                      FontSize="12"
+                                      Opacity="0.6"
+                                      Foreground="{StaticResource TextBrush}" />
+                            <TextBlock Text="{Binding WorkflowsCount}"
+                                      FontSize="32"
+                                      FontWeight="Bold"
+                                      Foreground="#F59E0B" />
+                            <TextBlock Text="{Binding WorkflowsText}"
+                                      FontSize="11"
+                                      Opacity="0.6"
+                                      Foreground="{StaticResource TextBrush}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Executions Today -->
+                    <Border Grid.Column="6" Classes="section-card">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Executions Today"
+                                      FontSize="12"
+                                      Opacity="0.6"
+                                      Foreground="{StaticResource TextBrush}" />
+                            <TextBlock Text="{Binding ExecutionsTodayCount}"
+                                      FontSize="32"
+                                      FontWeight="Bold"
+                                      Foreground="#8B5CF6" />
+                            <TextBlock Text="{Binding ExecutionsTodayText}"
+                                      FontSize="11"
+                                      Opacity="0.6"
+                                      Foreground="{StaticResource TextBrush}" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Main Content Grid -->
+                <Grid ColumnDefinitions="2*,24,*">
+                    <!-- Left Column: Scheduled Tasks & Workflows -->
+                    <StackPanel Grid.Column="0" Spacing="24">
+                        <!-- Scheduled Tasks -->
+                        <Border Classes="section-card">
+                            <StackPanel Spacing="16">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0"
+                                              Text="📅 Scheduled Tasks"
+                                              FontSize="18"
+                                              FontWeight="SemiBold"
+                                              Foreground="{StaticResource TextBrush}" />
+                                    <Button Grid.Column="1"
+                                           Classes="secondary"
+                                           Content="+ New Task"
+                                           Command="{Binding CreateTaskCommand}"
+                                           Padding="12,6" />
+                                </Grid>
+
+                                <ItemsControl ItemsSource="{Binding ScheduledTasks}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#10FFFFFF"
+                                                   BorderBrush="#20FFFFFF"
+                                                   BorderThickness="1"
+                                                   CornerRadius="8"
+                                                   Padding="16"
+                                                   Margin="0,0,0,12">
+                                                <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                                    <!-- Status Indicator -->
+                                                    <Border Grid.Column="0"
+                                                           Width="8"
+                                                           Height="8"
+                                                           CornerRadius="4"
+                                                           Background="{Binding StatusColor}"
+                                                           VerticalAlignment="Center"
+                                                           Margin="0,0,12,0" />
+
+                                                    <!-- Task Info -->
+                                                    <StackPanel Grid.Column="1" Spacing="4">
+                                                        <TextBlock Text="{Binding Name}"
+                                                                  FontSize="14"
+                                                                  FontWeight="SemiBold"
+                                                                  Foreground="{StaticResource TextBrush}" />
+                                                        <TextBlock Text="{Binding Schedule}"
+                                                                  FontSize="12"
+                                                                  Opacity="0.7"
+                                                                  Foreground="{StaticResource TextBrush}" />
+                                                        <TextBlock Text="{Binding NextRun}"
+                                                                  FontSize="11"
+                                                                  Opacity="0.6"
+                                                                  Foreground="{StaticResource TextBrush}" />
+                                                    </StackPanel>
+
+                                                    <!-- Toggle -->
+                                                    <ToggleSwitch Grid.Column="2"
+                                                                IsChecked="{Binding IsEnabled}"
+                                                                Margin="16,0" />
+
+                                                    <!-- Actions -->
+                                                    <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8">
+                                                        <Button Content="▶️"
+                                                               ToolTip.Tip="Run Now"
+                                                               Command="{Binding RunNowCommand}"
+                                                               Padding="8"
+                                                               Background="Transparent"
+                                                               BorderThickness="0" />
+                                                        <Button Content="✏️"
+                                                               ToolTip.Tip="Edit"
+                                                               Command="{Binding EditCommand}"
+                                                               Padding="8"
+                                                               Background="Transparent"
+                                                               BorderThickness="0" />
+                                                        <Button Content="🗑️"
+                                                               ToolTip.Tip="Delete"
+                                                               Command="{Binding DeleteCommand}"
+                                                               Padding="8"
+                                                               Background="Transparent"
+                                                               BorderThickness="0" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- Empty State -->
+                                <StackPanel Spacing="12"
+                                           IsVisible="{Binding !HasScheduledTasks}"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,20">
+                                    <TextBlock Text="📅"
+                                              FontSize="48"
+                                              HorizontalAlignment="Center"
+                                              Opacity="0.3" />
+                                    <TextBlock Text="No scheduled tasks yet"
+                                              FontSize="14"
+                                              Opacity="0.6"
+                                              Foreground="{StaticResource TextBrush}"
+                                              HorizontalAlignment="Center" />
+                                    <Button Classes="primary"
+                                           Content="Create Your First Task"
+                                           Command="{Binding CreateTaskCommand}"
+                                           HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Workflows -->
+                        <Border Classes="section-card">
+                            <StackPanel Spacing="16">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0"
+                                              Text="🔄 Workflows"
+                                              FontSize="18"
+                                              FontWeight="SemiBold"
+                                              Foreground="{StaticResource TextBrush}" />
+                                    <Button Grid.Column="1"
+                                           Classes="secondary"
+                                           Content="+ New Workflow"
+                                           Command="{Binding CreateWorkflowCommand}"
+                                           Padding="12,6" />
+                                </Grid>
+
+                                <ItemsControl ItemsSource="{Binding Workflows}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#10FFFFFF"
+                                                   BorderBrush="#20FFFFFF"
+                                                   BorderThickness="1"
+                                                   CornerRadius="8"
+                                                   Padding="16"
+                                                   Margin="0,0,0,12">
+                                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                                    <!-- Icon -->
+                                                    <TextBlock Grid.Column="0"
+                                                              Text="{Binding Icon}"
+                                                              FontSize="24"
+                                                              VerticalAlignment="Center"
+                                                              Margin="0,0,12,0" />
+
+                                                    <!-- Workflow Info -->
+                                                    <StackPanel Grid.Column="1" Spacing="4">
+                                                        <TextBlock Text="{Binding Name}"
+                                                                  FontSize="14"
+                                                                  FontWeight="SemiBold"
+                                                                  Foreground="{StaticResource TextBrush}" />
+                                                        <TextBlock Text="{Binding Description}"
+                                                                  FontSize="12"
+                                                                  Opacity="0.7"
+                                                                  Foreground="{StaticResource TextBrush}"
+                                                                  TextWrapping="Wrap" />
+                                                        <TextBlock Text="{Binding StepsText}"
+                                                                  FontSize="11"
+                                                                  Opacity="0.6"
+                                                                  Foreground="{StaticResource TextBrush}" />
+                                                    </StackPanel>
+
+                                                    <!-- Actions -->
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                                                        <Button Content="▶️"
+                                                               ToolTip.Tip="Run"
+                                                               Command="{Binding RunCommand}"
+                                                               Padding="8"
+                                                               Background="Transparent"
+                                                               BorderThickness="0" />
+                                                        <Button Content="✏️"
+                                                               ToolTip.Tip="Edit"
+                                                               Command="{Binding EditCommand}"
+                                                               Padding="8"
+                                                               Background="Transparent"
+                                                               BorderThickness="0" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- Empty State -->
+                                <StackPanel Spacing="12"
+                                           IsVisible="{Binding !HasWorkflows}"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,20">
+                                    <TextBlock Text="🔄"
+                                              FontSize="48"
+                                              HorizontalAlignment="Center"
+                                              Opacity="0.3" />
+                                    <TextBlock Text="No workflows yet"
+                                              FontSize="14"
+                                              Opacity="0.6"
+                                              Foreground="{StaticResource TextBrush}"
+                                              HorizontalAlignment="Center" />
+                                    <Button Classes="primary"
+                                           Content="Create Your First Workflow"
+                                           Command="{Binding CreateWorkflowCommand}"
+                                           HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Right Column: Macro Library -->
+                    <Border Grid.Column="2" Classes="section-card">
                         <StackPanel Spacing="16">
                             <Grid ColumnDefinitions="*,Auto">
                                 <TextBlock Grid.Column="0"
-                                          Text="🔄 Workflows"
+                                          Text="🎮 Macro Library"
                                           FontSize="18"
                                           FontWeight="SemiBold"
                                           Foreground="{StaticResource TextBrush}" />
                                 <Button Grid.Column="1"
                                        Classes="secondary"
-                                       Content="+ New Workflow"
-                                       Command="{Binding CreateWorkflowCommand}"
+                                       Content="+ Record"
+                                       Command="{Binding RecordMacroCommand}"
                                        Padding="12,6" />
                             </Grid>
 
-                            <ItemsControl ItemsSource="{Binding Workflows}">
+                            <ItemsControl ItemsSource="{Binding Macros}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border Background="#10FFFFFF"
                                                BorderBrush="#20FFFFFF"
                                                BorderThickness="1"
                                                CornerRadius="8"
-                                               Padding="16"
+                                               Padding="12"
                                                Margin="0,0,0,12">
-                                            <Grid ColumnDefinitions="Auto,*,Auto">
-                                                <!-- Icon -->
-                                                <TextBlock Grid.Column="0"
-                                                          Text="{Binding Icon}"
-                                                          FontSize="24"
-                                                          VerticalAlignment="Center"
-                                                          Margin="0,0,12,0" />
-
-                                                <!-- Workflow Info -->
-                                                <StackPanel Grid.Column="1" Spacing="4">
-                                                    <TextBlock Text="{Binding Name}"
-                                                              FontSize="14"
+                                            <StackPanel Spacing="8">
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <TextBlock Grid.Column="0"
+                                                              Text="{Binding Name}"
+                                                              FontSize="13"
                                                               FontWeight="SemiBold"
                                                               Foreground="{StaticResource TextBrush}" />
-                                                    <TextBlock Text="{Binding Description}"
-                                                              FontSize="12"
-                                                              Opacity="0.7"
-                                                              Foreground="{StaticResource TextBrush}"
-                                                              TextWrapping="Wrap" />
-                                                    <TextBlock Text="{Binding StepsText}"
+                                                    <TextBlock Grid.Column="1"
+                                                              Text="{Binding Duration}"
                                                               FontSize="11"
                                                               Opacity="0.6"
                                                               Foreground="{StaticResource TextBrush}" />
-                                                </StackPanel>
+                                                </Grid>
 
-                                                <!-- Actions -->
-                                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                                                    <Button Content="▶️"
-                                                           ToolTip.Tip="Run"
-                                                           Command="{Binding RunCommand}"
-                                                           Padding="8"
+                                                <TextBlock Text="{Binding Description}"
+                                                          FontSize="11"
+                                                          Opacity="0.7"
+                                                          Foreground="{StaticResource TextBrush}"
+                                                          TextWrapping="Wrap" />
+
+                                                <Grid ColumnDefinitions="*,Auto,Auto">
+                                                    <TextBlock Grid.Column="0"
+                                                              Text="{Binding ActionsText}"
+                                                              FontSize="10"
+                                                              Opacity="0.6"
+                                                              Foreground="{StaticResource TextBrush}"
+                                                              VerticalAlignment="Center" />
+                                                    <Button Grid.Column="1"
+                                                           Content="▶️"
+                                                           ToolTip.Tip="Play"
+                                                           Command="{Binding PlayCommand}"
+                                                           Padding="6"
                                                            Background="Transparent"
-                                                           BorderThickness="0" />
-                                                    <Button Content="✏️"
+                                                           BorderThickness="0"
+                                                           Margin="0,0,4,0" />
+                                                    <Button Grid.Column="2"
+                                                           Content="✏️"
                                                            ToolTip.Tip="Edit"
                                                            Command="{Binding EditCommand}"
-                                                           Padding="8"
+                                                           Padding="6"
                                                            Background="Transparent"
                                                            BorderThickness="0" />
-                                                </StackPanel>
-                                            </Grid>
+                                                </Grid>
+                                            </StackPanel>
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -325,44 +427,36 @@
 
                             <!-- Empty State -->
                             <StackPanel Spacing="12"
-                                       IsVisible="{Binding !HasWorkflows}"
+                                       IsVisible="{Binding !HasMacros}"
                                        HorizontalAlignment="Center"
                                        Margin="0,20">
-                                <TextBlock Text="🔄"
+                                <TextBlock Text="🎮"
                                           FontSize="48"
                                           HorizontalAlignment="Center"
                                           Opacity="0.3" />
-                                <TextBlock Text="No workflows yet"
+                                <TextBlock Text="No macros yet"
                                           FontSize="14"
                                           Opacity="0.6"
                                           Foreground="{StaticResource TextBrush}"
                                           HorizontalAlignment="Center" />
                                 <Button Classes="primary"
-                                       Content="Create Your First Workflow"
-                                       Command="{Binding CreateWorkflowCommand}"
+                                       Content="Record Your First Macro"
+                                       Command="{Binding RecordMacroCommand}"
                                        HorizontalAlignment="Center" />
                             </StackPanel>
                         </StackPanel>
                     </Border>
-                </StackPanel>
+                </Grid>
 
-                <!-- Right Column: Macro Library -->
-                <Border Grid.Column="2" Classes="section-card">
+                <!-- Recent Activity -->
+                <Border Classes="section-card">
                     <StackPanel Spacing="16">
-                        <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Grid.Column="0"
-                                      Text="🎮 Macro Library"
-                                      FontSize="18"
-                                      FontWeight="SemiBold"
-                                      Foreground="{StaticResource TextBrush}" />
-                            <Button Grid.Column="1"
-                                   Classes="secondary"
-                                   Content="+ Record"
-                                   Command="{Binding RecordMacroCommand}"
-                                   Padding="12,6" />
-                        </Grid>
+                        <TextBlock Text="📊 Recent Activity"
+                                  FontSize="18"
+                                  FontWeight="SemiBold"
+                                  Foreground="{StaticResource TextBrush}" />
 
-                        <ItemsControl ItemsSource="{Binding Macros}">
+                        <ItemsControl ItemsSource="{Binding RecentActivity}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Background="#10FFFFFF"
@@ -370,123 +464,47 @@
                                            BorderThickness="1"
                                            CornerRadius="8"
                                            Padding="12"
-                                           Margin="0,0,0,12">
-                                        <StackPanel Spacing="8">
-                                            <Grid ColumnDefinitions="*,Auto">
-                                                <TextBlock Grid.Column="0"
-                                                          Text="{Binding Name}"
+                                           Margin="0,0,0,8">
+                                        <Grid ColumnDefinitions="Auto,*,Auto">
+                                            <TextBlock Grid.Column="0"
+                                                      Text="{Binding Icon}"
+                                                      FontSize="16"
+                                                      VerticalAlignment="Center"
+                                                      Margin="0,0,12,0" />
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="{Binding Message}"
                                                           FontSize="13"
-                                                          FontWeight="SemiBold"
                                                           Foreground="{StaticResource TextBrush}" />
-                                                <TextBlock Grid.Column="1"
-                                                          Text="{Binding Duration}"
+                                                <TextBlock Text="{Binding Timestamp}"
                                                           FontSize="11"
                                                           Opacity="0.6"
                                                           Foreground="{StaticResource TextBrush}" />
-                                            </Grid>
-
-                                            <TextBlock Text="{Binding Description}"
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="2"
+                                                      Text="{Binding Status}"
                                                       FontSize="11"
-                                                      Opacity="0.7"
-                                                      Foreground="{StaticResource TextBrush}"
-                                                      TextWrapping="Wrap" />
-
-                                            <Grid ColumnDefinitions="*,Auto,Auto">
-                                                <TextBlock Grid.Column="0"
-                                                          Text="{Binding ActionsText}"
-                                                          FontSize="10"
-                                                          Opacity="0.6"
-                                                          Foreground="{StaticResource TextBrush}"
-                                                          VerticalAlignment="Center" />
-                                                <Button Grid.Column="1"
-                                                       Content="▶️"
-                                                       ToolTip.Tip="Play"
-                                                       Command="{Binding PlayCommand}"
-                                                       Padding="6"
-                                                       Background="Transparent"
-                                                       BorderThickness="0"
-                                                       Margin="0,0,4,0" />
-                                                <Button Grid.Column="2"
-                                                       Content="✏️"
-                                                       ToolTip.Tip="Edit"
-                                                       Command="{Binding EditCommand}"
-                                                       Padding="6"
-                                                       Background="Transparent"
-                                                       BorderThickness="0" />
-                                            </Grid>
-                                        </StackPanel>
+                                                      Foreground="{Binding StatusColor}"
+                                                      VerticalAlignment="Center" />
+                                        </Grid>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-
-                        <!-- Empty State -->
-                        <StackPanel Spacing="12"
-                                   IsVisible="{Binding !HasMacros}"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,20">
-                            <TextBlock Text="🎮"
-                                      FontSize="48"
-                                      HorizontalAlignment="Center"
-                                      Opacity="0.3" />
-                            <TextBlock Text="No macros yet"
-                                      FontSize="14"
-                                      Opacity="0.6"
-                                      Foreground="{StaticResource TextBrush}"
-                                      HorizontalAlignment="Center" />
-                            <Button Classes="primary"
-                                   Content="Record Your First Macro"
-                                   Command="{Binding RecordMacroCommand}"
-                                   HorizontalAlignment="Center" />
-                        </StackPanel>
                     </StackPanel>
                 </Border>
-            </Grid>
+            </StackPanel>
+        </ScrollViewer>
 
-            <!-- Recent Activity -->
-            <Border Classes="section-card">
-                <StackPanel Spacing="16">
-                    <TextBlock Text="📊 Recent Activity"
-                              FontSize="18"
-                              FontWeight="SemiBold"
-                              Foreground="{StaticResource TextBrush}" />
+        <!-- Subpage Content (Marketplace, etc.) -->
+        <ContentControl Content="{Binding CurrentView}"
+                        IsVisible="{Binding CurrentView, Converter={x:Static ObjectConverters.IsNotNull}}"/>
 
-                    <ItemsControl ItemsSource="{Binding RecentActivity}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Background="#10FFFFFF"
-                                       BorderBrush="#20FFFFFF"
-                                       BorderThickness="1"
-                                       CornerRadius="8"
-                                       Padding="12"
-                                       Margin="0,0,0,8">
-                                    <Grid ColumnDefinitions="Auto,*,Auto">
-                                        <TextBlock Grid.Column="0"
-                                                  Text="{Binding Icon}"
-                                                  FontSize="16"
-                                                  VerticalAlignment="Center"
-                                                  Margin="0,0,12,0" />
-                                        <StackPanel Grid.Column="1" Spacing="2">
-                                            <TextBlock Text="{Binding Message}"
-                                                      FontSize="13"
-                                                      Foreground="{StaticResource TextBrush}" />
-                                            <TextBlock Text="{Binding Timestamp}"
-                                                      FontSize="11"
-                                                      Opacity="0.6"
-                                                      Foreground="{StaticResource TextBrush}" />
-                                        </StackPanel>
-                                        <TextBlock Grid.Column="2"
-                                                  Text="{Binding Status}"
-                                                  FontSize="11"
-                                                  Foreground="{Binding StatusColor}"
-                                                  VerticalAlignment="Center" />
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Border>
-        </StackPanel>
-    </ScrollViewer>
+        <!-- Back Button Overlay when in subpage -->
+        <Button Command="{Binding ShowDashboardCommand}"
+                IsVisible="{Binding CurrentView, Converter={x:Static ObjectConverters.IsNotNull}}"
+                VerticalAlignment="Top" HorizontalAlignment="Left"
+                Margin="20"
+                Classes="secondary"
+                Content="← Back to Dashboard" />
+    </Panel>
 </UserControl>

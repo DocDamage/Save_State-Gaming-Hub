@@ -67,13 +67,19 @@ public partial class AddGameWizardViewModel : ObservableObject
     [RelayCommand]
     private async Task BrowseFile()
     {
-        // TODO: Use IDialogService to browse file
-        // For now we will assume the user types it or we mock it
-        // Ideally IDialogService needs a ShowFilePickerAsync method
+        var extensions = SelectedPlatform switch
+        {
+            "PC" => new[] { "exe", "lnk", "bat" },
+            "Emulator" => new[] { "iso", "bin", "cue", "zip", "nes", "sfc", "gba", "md" },
+            _ => new[] { "*" }
+        };
 
-        // Simulating file pick for now if service missing
-        // var file = await _dialogService.ShowFilePickerAsync("Select Game Executable/ROM");
-        // if (file != null) Path = file;
+        var result = await _dialogService.ShowFilePickerAsync($"Select {SelectedPlatform} Game", extensions);
+
+        if (!string.IsNullOrEmpty(result))
+        {
+            Path = result;
+        }
     }
 
     [RelayCommand]

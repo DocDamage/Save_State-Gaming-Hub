@@ -53,9 +53,9 @@ public class EmergingTechnologiesService : EmergingTechnologiesServiceIEmergingT
                 Capabilities = request.Capabilities,
                 CalibrationData = new EmergingTechnologiesServiceMotionCalibration
                 {
-                    AccelerometerBias = new EmergingTechnologiesServiceTechVector3 { X = 0, Y = 0, Z = 0 },
-                    GyroscopeBias = new EmergingTechnologiesServiceTechVector3 { X = 0, Y = 0, Z = 0 },
-                    MagnetometerBias = new EmergingTechnologiesServiceTechVector3 { X = 0, Y = 0, Z = 0 },
+                    AccelerometerBias = new Vector3(0, 0, 0),
+                    GyroscopeBias = new Vector3(0, 0, 0),
+                    MagnetometerBias = new Vector3(0, 0, 0),
                     CalibrationDate = DateTime.UtcNow
                 },
                 Sensitivity = new EmergingTechnologiesServiceMotionSensitivity
@@ -319,19 +319,19 @@ public class EmergingTechnologiesService : EmergingTechnologiesServiceIEmergingT
                 Timestamp = DateTime.UtcNow,
                 LeftEye = new EmergingTechnologiesServiceEyeData
                 {
-                    Position = new EmergingTechnologiesServiceEmergingTechVector2 { X = 0.5f, Y = 0.5f },
+                    Position = new Vector2(0.5, 0.5),
                     PupilSize = 3.2f,
                     IsBlinking = false,
-                    GazeDirection = new EmergingTechnologiesServiceTechVector3 { X = 0, Y = 0, Z = 1 }
+                    GazeDirection = new Vector3(0, 0, 1)
                 },
                 RightEye = new EmergingTechnologiesServiceEyeData
                 {
-                    Position = new EmergingTechnologiesServiceEmergingTechVector2 { X = 0.52f, Y = 0.48f },
+                    Position = new Vector2(0.52, 0.48),
                     PupilSize = 3.1f,
                     IsBlinking = false,
-                    GazeDirection = new EmergingTechnologiesServiceTechVector3 { X = 0.1f, Y = -0.05f, Z = 0.99f }
+                    GazeDirection = new Vector3(0.1, -0.05, 0.99)
                 },
-                CombinedGaze = new Vector3(0.05f, -0.025f, 1),
+                CombinedGaze = new Vector3(0.05, -0.025, 1),
                 FocusPoint = new Vector3(0, 0, 10),
                 AttentionLevel = 0.85f,
                 FatigueLevel = 0.15f
@@ -474,7 +474,7 @@ public class EmergingTechnologiesService : EmergingTechnologiesServiceIEmergingT
         // Generate adaptive layout based on user context
         return new EmergingTechnologiesServiceAdaptiveLayout
         {
-            Columns = context.ScreenSize.Width > 1920 ? 4 : 3,
+            Columns = context.ScreenSize.X > 1920 ? 4 : 3,
             RowHeight = 120,
             Margins = new[] { 20, 20 },
             Spacing = 15,
@@ -493,11 +493,11 @@ public class EmergingTechnologiesService : EmergingTechnologiesServiceIEmergingT
                 ControlId = Guid.NewGuid().ToString(),
                 Type = "button",
                 Size = context.MotorSkills == EmergingTechnologiesServiceMotorSkillLevel.Limited ? "large" : "medium",
-                Position = new EmergingTechnologiesServiceEmergingTechVector2 { X = 100, Y = 100 },
+                Position = new Vector2(100, 100),
                 Accessibility = new EmergingTechnologiesServiceAccessibilityFeatures
                 {
                     HighContrast = context.VisualImpairment,
-                    LargeText = context.ReadingDifficulty,
+                    LargeText = context.ReadingDifficulty != EmergingTechnologiesServiceReadingDifficultyLevel.None,
                     VoiceControl = context.MotorSkills == EmergingTechnologiesServiceMotorSkillLevel.Severe
                 }
             }
@@ -532,11 +532,11 @@ public class EmergingTechnologiesService : EmergingTechnologiesServiceIEmergingT
     private EmergingTechnologiesServiceVrAccessibilitySettings GenerateAccessibilitySettings(EmergingTechnologiesServiceUserContext context)
     {
         // Generate accessibility settings based on user context
-        return new AccessibilitySettings
+        return new EmergingTechnologiesServiceVrAccessibilitySettings
         {
             ScreenReader = context.VisualImpairment,
             HighContrast = context.ColorBlindness,
-            LargeText = context.VisualImpairment || context.ReadingDifficulty,
+            LargeText = context.VisualImpairment || context.ReadingDifficulty != EmergingTechnologiesServiceReadingDifficultyLevel.None,
             ReducedMotion = context.EmergingTechnologiesServiceAttentionSpan == EmergingTechnologiesServiceAttentionSpan.Short,
             VoiceControl = context.MotorSkills == EmergingTechnologiesServiceMotorSkillLevel.Severe,
             KeyboardNavigation = context.MotorSkills != EmergingTechnologiesServiceMotorSkillLevel.Normal,
@@ -566,18 +566,17 @@ public class EmergingTechnologiesServiceMotionTrackingEngine
         {
             ControllerId = controller.ControllerId,
             Timestamp = DateTime.UtcNow,
-            Acceleration = new Vector3
-            {
-                X = rawData.Accelerometer.X - controller.CalibrationData.AccelerometerBias.X,
-                Y = rawData.Accelerometer.Y - controller.CalibrationData.AccelerometerBias.Y,
-                Z = rawData.Accelerometer.Z - controller.CalibrationData.AccelerometerBias.Z
-            },
+            Acceleration = new Vector3(
+                rawData.Accelerometer.X - controller.CalibrationData.AccelerometerBias.X,
+                rawData.Accelerometer.Y - controller.CalibrationData.AccelerometerBias.Y,
+                rawData.Accelerometer.Z - controller.CalibrationData.AccelerometerBias.Z
+            ),
             Rotation = new EmergingTechnologiesServiceQuaternion
             {
-                W = rawData.Gyroscope.W,
-                X = rawData.Gyroscope.X - controller.CalibrationData.GyroscopeBias.X,
-                Y = rawData.Gyroscope.Y - controller.CalibrationData.GyroscopeBias.Y,
-                Z = rawData.Gyroscope.Z - controller.CalibrationData.GyroscopeBias.Z
+                W = 1.0f,
+                X = (float)(rawData.Gyroscope.X - controller.CalibrationData.GyroscopeBias.X),
+                Y = (float)(rawData.Gyroscope.Y - controller.CalibrationData.GyroscopeBias.Y),
+                Z = (float)(rawData.Gyroscope.Z - controller.CalibrationData.GyroscopeBias.Z)
             },
             Velocity = CalculateVelocity(rawData),
             Position = CalculatePosition(rawData),
@@ -594,9 +593,9 @@ public class EmergingTechnologiesServiceMotionTrackingEngine
             Success = true,
             NewCalibration = new EmergingTechnologiesServiceMotionCalibration
             {
-                AccelerometerBias = new Vector3 { X = 0.01f, Y = 0.02f, Z = 9.81f },
-                GyroscopeBias = new Vector3 { X = 0.001f, Y = -0.002f, Z = 0.003f },
-                MagnetometerBias = new Vector3 { X = 15.5f, Y = -22.3f, Z = 8.7f },
+                AccelerometerBias = new Vector3(0.01, 0.02, 9.81),
+                GyroscopeBias = new Vector3(0.001, -0.002, 0.003),
+                MagnetometerBias = new Vector3(15.5, -22.3, 8.7),
                 CalibrationDate = DateTime.UtcNow
             },
             OptimalSensitivity = new EmergingTechnologiesServiceMotionSensitivity
@@ -612,13 +611,13 @@ public class EmergingTechnologiesServiceMotionTrackingEngine
     private Vector3 CalculateVelocity(EmergingTechnologiesServiceRawMotionData data)
     {
         // Calculate velocity from accelerometer data (simplified)
-        return new Vector3 { X = data.Accelerometer.X * 0.1f, Y = data.Accelerometer.Y * 0.1f, Z = data.Accelerometer.Z * 0.1f };
+        return new Vector3(data.Accelerometer.X * 0.1, data.Accelerometer.Y * 0.1, data.Accelerometer.Z * 0.1);
     }
 
     private Vector3 CalculatePosition(EmergingTechnologiesServiceRawMotionData data)
     {
         // Calculate position from motion data (simplified)
-        return new Vector3 { X = 0, Y = 0, Z = 0 };
+        return new Vector3(0, 0, 0);
     }
 
     private async Task<List<EmergingTechnologiesServiceMotionGesture>> DetectMotionGesturesAsync(EmergingTechnologiesServiceRawMotionData data, CancellationToken ct)
@@ -629,7 +628,7 @@ public class EmergingTechnologiesServiceMotionTrackingEngine
             new EmergingTechnologiesServiceMotionGesture
             {
                 Type = EmergingTechnologiesServiceMotionGestureType.Swipe,
-                Direction = new Vector3 { X = 1, Y = 0, Z = 0 },
+                Direction = new Vector3(1, 0, 0),
                 Speed = 2.1f,
                 Confidence = 0.88f
             }
@@ -1070,7 +1069,7 @@ public class EmergingTechnologiesServiceGestureRecognition
 public class EmergingTechnologiesServiceBiometricInput
 {
     public EmergingTechnologiesServiceBiometricDataType DataType { get; set; } = default!;
-    public IReadOnlyDictionary<string , float> RawData { get; set; } = default!;
+    public IReadOnlyDictionary<string, float> RawData { get; set; } = default!;
     public DateTime Timestamp { get; set; } = default!;
 }
 
@@ -1081,7 +1080,7 @@ public class EmergingTechnologiesServiceBiometricData
 {
     public string UserId { get; set; } = default!;
     public DateTime Timestamp { get; set; } = default!;
-    public IReadOnlyDictionary<string , float> Metrics { get; set; } = default!;
+    public IReadOnlyDictionary<string, float> Metrics { get; set; } = default!;
     public EmergingTechnologiesServiceEmergingTechEmotionalState EmotionalState { get; set; } = default!;
     public float StressLevel { get; set; } = default!;
     public float FatigueLevel { get; set; } = default!;
@@ -1133,7 +1132,7 @@ public class EmergingTechnologiesServiceEyeData
 /// </summary>
 public class EmergingTechnologiesServiceBrainwaveInput
 {
-    public IReadOnlyDictionary<string , float> ChannelData { get; set; } = default!;
+    public IReadOnlyDictionary<string, float> ChannelData { get; set; } = default!;
     public DateTime Timestamp { get; set; } = default!;
 }
 
@@ -1144,8 +1143,8 @@ public class EmergingTechnologiesServiceBrainwaveData
 {
     public string UserId { get; set; } = default!;
     public DateTime Timestamp { get; set; } = default!;
-    public IReadOnlyDictionary<string , float> Channels { get; set; } = default!;
-    public IReadOnlyDictionary<EmergingTechnologiesServiceBrainwaveBand , float> FrequencyBands { get; set; } = default!;
+    public IReadOnlyDictionary<string, float> Channels { get; set; } = default!;
+    public IReadOnlyDictionary<EmergingTechnologiesServiceBrainwaveBand, float> FrequencyBands { get; set; } = default!;
     public EmergingTechnologiesServiceMentalState EmergingTechnologiesServiceMentalState { get; set; } = default!;
     public float StressLevel { get; set; } = default!;
     public float EngagementLevel { get; set; } = default!;

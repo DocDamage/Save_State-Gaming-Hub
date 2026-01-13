@@ -63,12 +63,38 @@
                     <Button Content="Upload to Cloud" Command="{Binding AddNodeCommand}" CommandParameter="Upload" HorizontalAlignment="Stretch"/>
                     <Button Content="Send Notification" Command="{Binding AddNodeCommand}" CommandParameter="Notify" HorizontalAlignment="Stretch"/>
                     <Button Content="Play Sound" Command="{Binding AddNodeCommand}" CommandParameter="Sound" HorizontalAlignment="Stretch"/>
+
+                    <Separator/>
+                    <Button Content="🔗 Connect Selected" Command="{Binding ConnectNodesCommand}" Classes="accent" HorizontalAlignment="Stretch"/>
+                    <Button Content="🗑 Clear All" Command="{Binding ClearCommand}" HorizontalAlignment="Stretch"/>
                 </StackPanel>
             </Border>
 
             <!-- Canvas (Simulated) -->
             <Canvas Grid.Column="1" Background="{DynamicResource LayerFillColorDefault}">
-                <!-- This is a very basic simulation of a node editor canvas -->
+                <!-- Connections Layer -->
+                <ItemsControl ItemsSource="{Binding Connections}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemContainerTheme>
+                        <ControlTheme TargetType="ContentPresenter">
+                             <Setter Property="Canvas.Left" Value="{Binding Source.X}"/>
+                             <Setter Property="Canvas.Top" Value="{Binding Source.Y}"/>
+                        </ControlTheme>
+                    </ItemsControl.ItemContainerTheme>
+                     <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="Transparent" Padding="5">
+                                <TextBlock Text="⬇" FontSize="20" Foreground="{DynamicResource SystemAccentColor}"/>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Nodes Layer -->
                 <ItemsControl ItemsSource="{Binding Nodes}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -106,7 +132,7 @@
                 Background="{DynamicResource SurfaceStrokeColorDefault}">
           <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
             <Button Content="Cancel" Command="{Binding CloseCommand}"/>
-            <Button Content="Save Workflow" Classes="Accent" Command="{Binding SaveCommand}"/>
+            <Button Content="Save Workflow" Classes="accent" Command="{Binding SaveCommand}"/>
           </StackPanel>
         </Border>
       </Grid>

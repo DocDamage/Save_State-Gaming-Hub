@@ -22,6 +22,56 @@ public class MugenStatsService : IMugenStatsService
         _matchHistoryRepository = matchHistoryRepository;
     }
 
+    public async Task<Result<GlobalStats>> GetGlobalStatsAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            var histories = await _matchHistoryRepository.GetMatchHistoriesAsync(pageNumber: 1, pageSize: 1000, ct: ct);
+            var matches = histories.Items;
+
+            if (!matches.Any())
+            {
+                return Result.Success(new GlobalStats(0, 0, 0, "None", 0f));
+            }
+
+            var totalMatches = matches.Count;
+            var wins = matches.Count(m => m.Result == MatchResult.Player1Win || m.Result == MatchResult.Player2Win); // Total wins is just total matches if no draws
+            var totalWins = matches.Count(m => m.Result == MatchResult.Player1Win); // Just a heuristic
+            var totalLosses = totalMatches - totalWins;
+
+            var charUsage = matches
+                .SelectMany(m => new[] { m.Player1CharacterId, m.Player2CharacterId })
+                .GroupBy(id => id)
+                .OrderByDescending(g => g.Count())
+                .FirstOrDefault();
+
+            string? mostPlayedName = "Unknown";
+            if (charUsage != null)
+            {
+                var charResult = await _characterRepository.GetByIdAsync(charUsage.Key, ct);
+                mostPlayedName = charResult.IsSuccess ? charResult.Value?.DisplayName : "Unknown";
+            }
+
+            float highestWinRate = 0f;
+            // Simplified high win rate check
+            var stats = matches
+                .SelectMany(m => new[] {
+                    (Id: m.Player1CharacterId, Win: m.Result == MatchResult.Player1Win),
+                    (Id: m.Player2CharacterId, Win: m.Result == MatchResult.Player2Win) })
+                .GroupBy(x => x.Id)
+                .Select(g => (float)g.Count(x => x.Win) / g.Count())
+                .ToList();
+
+            if (stats.Any()) highestWinRate = stats.Max();
+
+            return Result.Success(new GlobalStats(totalMatches, totalWins, totalLosses, mostPlayedName, highestWinRate));
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure<GlobalStats>($"Failed to calculate global stats: {ex.Message}");
+        }
+    }
+
     public async Task<Result<CharacterStats>> GetCharacterStatsAsync(
         Guid characterId,
         CancellationToken ct = default)

@@ -170,7 +170,7 @@ public class MetadataServiceTests : IDisposable
             });
 
         _mockApiClient.Setup(x => x.DownloadImageAsync(coverUrl, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<byte[]>.Success(expectedImageBytes));
+            .ReturnsAsync(Result.Success<byte[]>(expectedImageBytes));
 
         // Act
         var result = await _sut.GetCoverImageAsync(title, default);
@@ -207,3 +207,4 @@ public class MetadataServiceTests : IDisposable
         // This test ensures our similarity logic works as expected
     }
 }
+

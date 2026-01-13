@@ -2,6 +2,27 @@
   "name": "IKEMEN GO",
   "version": "0.99",
   "executable": "Ikemen_GO.exe",
+  "dataDirectory": "../../../data",
+  "configFile": "save/config.json",
+  "screenpack": {
+    "enabled": true,
+    "directory": "data",
+    "type": "Elecbyte"
+  },
+  "visualEffects": {
+    "roundTransitions": {
+      "enabled": true,
+      "zssFile": "roundtransition.zss",
+      "commonFX": "ik_roundtransition",
+      "transitionTime": 80
+    },
+    "shaders": {
+      "enabled": true,
+      "directory": "external/shaders",
+      "default": "ntsc",
+      "presets": ["ntsc", "kapuesu", "powervr2", "level", "border", "scale"]
+    }
+  },
   "arguments": {
     "versus": "-p1 {player1} -p2 {player2} -rounds 3",
     "training": "-p1 {player1} -p2 {dummy} -training",
@@ -19,14 +40,14 @@
   "musicDirectories": [
     "../../../data/music"
   ],
-  "dataDirectory": "../../../data",
-  "configFile": "save/config.json",
   "supportedFormats": ["def", "chr"],
   "features": {
     "luaScripting": true,
     "mugenCompatibility": true,
     "onlinePlay": false,
     "replayRecording": true,
-    "trainingMode": true
+    "trainingMode": true,
+    "visualEffects": true,
+    "shaderSupport": true
   }
 }

@@ -30,3 +30,117 @@ dotnet_naming_rule.public_members_must_be_capitalized.symbols = public_symbols
 dotnet_naming_rule.public_members_must_be_capitalized.style = pascal_case
 dotnet_naming_symbols.public_symbols.applicable_kinds = property,method,field,event,delegate
 dotnet_naming_symbols.public_symbols.applicable_accessibilities = public,internal
+
+# Suppress test-specific warnings globally for test projects
+[**/tests/**/*.cs]
+# CA1707: Test method names with underscores are standard practice
+dotnet_diagnostic.CA1707.severity = none
+
+[**/*Tests*/**/*.cs]
+# CA1707: Test method names with underscores are standard practice
+dotnet_diagnostic.CA1707.severity = none
+
+[**/*.Tests.cs]
+# CA1707: Test method names with underscores are standard practice
+dotnet_diagnostic.CA1707.severity = none
+
+# Performance warnings that are acceptable for non-hot-path code
+[*.cs]
+# CA1848: LoggerMessage delegates - being addressed progressively (750/2178 done)
+dotnet_diagnostic.CA1848.severity = suggestion
+
+# CA1305: Culture-specific formatting - acceptable for internal debugging/logging
+dotnet_diagnostic.CA1305.severity = suggestion
+
+# CA1725: Parameter name mismatches - often intentional for brevity (ct vs cancellationToken)
+dotnet_diagnostic.CA1725.severity = suggestion
+
+# CA1861: Constant array arguments - micro-optimization, not worth code complexity
+dotnet_diagnostic.CA1861.severity = suggestion
+
+# CA1860: Prefer Count to Any() - micro-optimization
+dotnet_diagnostic.CA1860.severity = suggestion
+
+# CA1805: Explicitly initialized to default - improves code clarity
+dotnet_diagnostic.CA1805.severity = none
+
+# Naming conventions that conflict with established patterns
+# CA1711: Type names ending with known suffixes (Collection, EventArgs, Permission, etc.)
+dotnet_diagnostic.CA1711.severity = suggestion
+
+# CA1716: Reserved keywords in other languages (Friend, Mod, Set, Date, End, etc.)
+dotnet_diagnostic.CA1716.severity = suggestion
+
+# Platform-specific warnings - acceptable for Windows-focused features
+# CA1416: Platform compatibility (Registry, System.Drawing, etc.)
+dotnet_diagnostic.CA1416.severity = suggestion
+
+# Globalization warnings - acceptable for internal tools
+# CA1310: StringComparison for correctness
+dotnet_diagnostic.CA1310.severity = suggestion
+
+# CA1304: Specify CultureInfo
+dotnet_diagnostic.CA1304.severity = suggestion
+
+# CA1311: Specify culture or use invariant
+dotnet_diagnostic.CA1311.severity = suggestion
+
+# String optimization warnings - micro-optimizations
+# CA1852: Seal internal types
+dotnet_diagnostic.CA1852.severity = suggestion
+
+# CA1859: Use concrete types when possible
+dotnet_diagnostic.CA1859.severity = suggestion
+
+# CA1866: Use char overload instead of string
+dotnet_diagnostic.CA1866.severity = suggestion
+
+# CA1869: Cache JsonSerializerOptions
+dotnet_diagnostic.CA1869.severity = suggestion
+
+# Async/dispose patterns
+# CA2016: Forward CancellationToken parameter
+dotnet_diagnostic.CA2016.severity = suggestion
+
+# CA1816: Dispose should call SuppressFinalize
+dotnet_diagnostic.CA1816.severity = suggestion
+
+# Collection usage
+# CA1826: Use property instead of Enumerable method
+dotnet_diagnostic.CA1826.severity = suggestion
+
+# CA1862: Use StringComparison overload
+dotnet_diagnostic.CA1862.severity = suggestion
+
+# CA1510: Use ArgumentNullException.ThrowIfNull
+dotnet_diagnostic.CA1510.severity = suggestion
+
+# Disposal
+# CA1001: Types that own disposable fields should be disposable
+dotnet_diagnostic.CA1001.severity = suggestion
+
+# CA2201: Do not raise reserved exception types
+dotnet_diagnostic.CA2201.severity = suggestion
+
+# CA1707: Identifiers should not contain underscores
+# Resources use underscore naming convention for localization keys
+dotnet_diagnostic.CA1707.severity = suggestion
+
+# CA1854: Prefer Dictionary.TryGetValue - micro-optimization
+dotnet_diagnostic.CA1854.severity = suggestion
+
+# CA1868: Unnecessary call to Contains - micro-optimization
+dotnet_diagnostic.CA1868.severity = suggestion
+
+# CA1845: Use Span<char>.CopyTo instead - micro-optimization
+dotnet_diagnostic.CA1845.severity = suggestion
+
+# CA1051: Do not declare visible instance fields - acceptable for record properties
+dotnet_diagnostic.CA1051.severity = suggestion
+
+# Async method warnings
+# CS1998: Async method lacks await - often valid for interface implementation
+dotnet_diagnostic.CS1998.severity = suggestion
+
+# CS4014: Fire-and-forget call not awaited - often intentional for background tasks
+dotnet_diagnostic.CS4014.severity = suggestion

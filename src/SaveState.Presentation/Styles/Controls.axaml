@@ -42,6 +42,18 @@
         <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}"/>
     </Style>
 
+    <Style Selector="TextBlock.Header">
+        <Setter Property="FontSize" Value="24"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+    </Style>
+
+    <Style Selector="TextBlock.Subtitle">
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+
     <!-- ========================================
          BUTTONS (Pill Shape & Ghost)
          ======================================== -->
@@ -72,6 +84,23 @@
     <Style Selector="Button.Primary:pressed">
         <Setter Property="RenderTransform" Value="scale(0.98)"/>
         <Setter Property="Opacity" Value="0.8"/>
+    </Style>
+
+    <Style Selector="Button.Secondary">
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Padding" Value="24,10"/>
+        <Setter Property="CornerRadius" Value="20"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+
+    <Style Selector="Button.Secondary:pointerover">
+        <Setter Property="Background" Value="{StaticResource CardHoverBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource TextSecondaryBrush}"/>
     </Style>
 
     <!-- Navigation Button (Sidebar) -->
@@ -138,6 +167,14 @@
         <Setter Property="CornerRadius" Value="12"/>
         <Setter Property="Padding" Value="24"/>
         <Setter Property="BoxShadow" Value="0 4 12 #20000000"/>
+    </Style>
+
+    <Style Selector="Border.GlassContainer">
+        <Setter Property="Background" Value="{StaticResource GlassBrush}"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="#10FFFFFF"/>
+        <Setter Property="BoxShadow" Value="0 8 32 #20000000"/>
     </Style>
 
     <Style Selector="Border.GameCard">

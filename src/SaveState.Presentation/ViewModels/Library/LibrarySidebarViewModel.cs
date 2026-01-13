@@ -97,6 +97,8 @@ public partial class LibrarySidebarViewModel : ObservableObject
         SmartFilters.Add(new SidebarItemViewModel("backlog", "Backlog", "📋", 0, () => SelectSmartFilter("backlog")));
         SmartFilters.Add(new SidebarItemViewModel("completed", "Completed", "✅", 0, () => SelectSmartFilter("completed")));
         SmartFilters.Add(new SidebarItemViewModel("playing", "Playing", "▶️", 0, () => SelectSmartFilter("playing")));
+        SmartFilters.Add(new SidebarItemViewModel("installed", "Installed", "💾", 0, () => SelectSmartFilter("installed")));
+        SmartFilters.Add(new SidebarItemViewModel("not_installed", "Uninstalled", "☁️", 0, () => SelectSmartFilter("not_installed")));
         SmartFilters.Add(new SidebarItemViewModel("hidden", "Hidden", "👁️", 0, () => SelectSmartFilter("hidden")));
 
         // Default selection

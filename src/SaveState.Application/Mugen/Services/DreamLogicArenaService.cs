@@ -597,7 +597,7 @@ public class DreamLogicArenaServiceGeometryEngine
         {
             // Apply specific transformation based on type
             Dimensions = request.TransformationType == DreamLogicArenaServiceGeometryType.NonEuclidean ?
-                new Vector3 { X = geometry.Dimensions.X * 1.5f, Y = geometry.Dimensions.Y, Z = geometry.Dimensions.Z * 0.7f } :
+                new Vector3(geometry.Dimensions.X * 1.5f, geometry.Dimensions.Y, geometry.Dimensions.Z * 0.7f) :
                 geometry.Dimensions
         };
     }
@@ -646,7 +646,7 @@ public class DreamLogicArenaServiceSurrealEngine
     public async Task<DreamLogicArenaServiceSurrealEvent> GenerateRandomEventAsync(DreamLogicArenaServiceDreamState arenaState, CancellationToken ct)
     {
         // Generate random surreal event
-        var eventType = (DreamLogicArenaServiceSurrealEventType)new Random().Next(Enum.GetValues(typeof(DreamLogicArenaServiceSurrealEventType)).Length);
+        var eventType = (DreamLogicArenaServiceSurrealEventType)new Random().Next(Enum.GetValues<DreamLogicArenaServiceSurrealEventType>().Length);
 
         return new DreamLogicArenaServiceSurrealEvent
         {
@@ -668,7 +668,7 @@ public class DreamLogicArenaServiceSurrealEngine
                 new DreamLogicArenaServiceSurrealEffect
                 {
                     EffectType = DreamLogicArenaServiceSurrealEffectType.GravityShift,
-                    Parameters = new Dictionary<string, object> { ["direction"] = new Vector3 { X = 0, Y = 1, Z = 0 } },
+                    Parameters = new Dictionary<string, object> { ["direction"] = new Vector3(0, 1, 0) },
                     Duration = TimeSpan.FromSeconds(5)
                 }
             },
@@ -776,7 +776,7 @@ public class DreamLogicArenaServiceSymbolicEngine
         {
             RoomId = Guid.NewGuid().ToString(),
             Memory = memory,
-            Position = new Vector3 { X = index * 10, Y = 0, Z = 0 },
+            Position = new Vector3(index * 10, 0, 0),
             AssociatedEmotion = "nostalgia",
             DreamLogicArenaServiceRoomType = DreamLogicArenaServiceRoomType.MemoryChamber
         }).ToList();
@@ -836,7 +836,7 @@ public class DreamLogicArenaServiceCollectiveEngine
         };
     }
 
-    private List<DreamLogicArenaServiceSymbolicElement> GenerateManifestedElements(EmotionalState sharedState)
+    private List<DreamLogicArenaServiceSymbolicElement> GenerateManifestedElements(DreamLogicArenaServiceDreamEmotionalState sharedState)
     {
         // Generate elements manifested from collective emotion
         return new List<DreamLogicArenaServiceSymbolicElement>
@@ -847,13 +847,13 @@ public class DreamLogicArenaServiceCollectiveEngine
                 DreamLogicArenaServiceSymbolType = DreamLogicArenaServiceSymbolType.Light,
                 RepresentedEmotion = sharedState.PrimaryEmotion.ToString().ToLower(),
                 Intensity = (float)sharedState.Intensity,
-                Position = new Vector3 { X = 0, Y = 10, Z = 0 },
+                Position = new Vector3(0, 10, 0),
                 ManifestedAt = DateTime.UtcNow
             }
         };
     }
 
-    private DreamLogicArenaServiceDreamTheme DetermineDreamTheme(EmotionalState sharedState)
+    private DreamLogicArenaServiceDreamTheme DetermineDreamTheme(DreamLogicArenaServiceDreamEmotionalState sharedState)
     {
         // Determine dream theme based on shared emotion
         return sharedState.PrimaryEmotion switch
@@ -906,7 +906,7 @@ public class DreamLogicArenaServiceDreamArena
 /// <summary>
 /// Arena geometry data.
 /// </summary>
-public class DreamLogicArenaServiceArenaGeometry
+public record DreamLogicArenaServiceArenaGeometry
 {
     public Vector3 Dimensions { get; set; } = default!;
     public Vector3 GravityDirection { get; set; } = default!;
@@ -1020,6 +1020,7 @@ public class DreamLogicArenaServiceSymbolicRequest
     public float Intensity { get; set; } = default!;
     public Vector3 Position { get; set; } = default!;
     public string TriggerCondition { get; set; } = default!;
+    public TimeSpan Duration { get; set; } = default!;
 }
 
 /// <summary>

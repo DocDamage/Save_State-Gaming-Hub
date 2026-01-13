@@ -41,6 +41,11 @@ public class RomFile : EntityBase, IAggregateRoot, ISoftDelete
         ScannedAt = DateTime.UtcNow;
     }
 
+    public void UpdateTitle(string title)
+    {
+        Title = Guard.Against.NullOrWhiteSpace(title, nameof(title));
+    }
+
     public void SetMetadata(string? description, string? region, string? version)
     {
         Description = description;

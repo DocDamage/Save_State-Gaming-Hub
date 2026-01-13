@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using SaveState.Presentation.ViewModels.Shell;
 
 namespace SaveState.Presentation.ViewModels.Shell.Mugen;
 

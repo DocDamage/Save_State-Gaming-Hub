@@ -64,6 +64,11 @@ public class Result
     /// <param name="errorType">The type of error (defaults to Validation).</param>
     public static Result<T> Failure<T>(string error, ErrorType errorType = ErrorType.Validation) =>
         new(false, default, error, errorType);
+    /// <summary>
+    /// Converts this non-generic result to a generic result of type <typeparamref name="T"/>.
+    /// Used for propagating failures.
+    /// </summary>
+    public Result<T> ToResult<T>() => new(IsSuccess, default, Error, ErrorType);
 }
 
 /// <summary>
@@ -104,6 +109,10 @@ public enum ErrorType
     Forbidden,
     /// <summary>Internal server/application error.</summary>
     Internal,
+    /// <summary>External service (API, OS) failed.</summary>
+    External,
+    /// <summary>Database operation failed.</summary>
+    Database,
     /// <summary>External service (API, database) failed.</summary>
     ExternalService,
     /// <summary>Feature is not yet implemented.</summary>

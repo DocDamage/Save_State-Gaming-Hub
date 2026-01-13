@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Analytics.Services;
@@ -11,11 +12,16 @@ namespace SaveState.Presentation.Services.Dashboard.Widgets;
 public partial class TodaysStatsWidget : WidgetBase
 {
     private readonly IAnalyticsService _analyticsService;
+    private readonly INavigationService _navigationService;
 
-    public TodaysStatsWidget(IAnalyticsService analyticsService, ILogger<TodaysStatsWidget> logger)
+    public TodaysStatsWidget(
+        IAnalyticsService analyticsService,
+        INavigationService navigationService,
+        ILogger<TodaysStatsWidget> logger)
         : base(logger)
     {
         _analyticsService = analyticsService;
+        _navigationService = navigationService;
     }
 
     /// <inheritdoc />
@@ -99,5 +105,11 @@ public partial class TodaysStatsWidget : WidgetBase
             Sessions = 0;
             Achievements = 0;
         }
+    }
+
+    [RelayCommand]
+    private async Task NavigateToAnalytics()
+    {
+        await _navigationService.NavigateTo("Analytics");
     }
 }

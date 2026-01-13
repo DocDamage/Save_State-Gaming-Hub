@@ -10,6 +10,8 @@ using SaveState.Core.Configuration;
 using SaveState.Core.Monitoring;
 using SaveState.Infrastructure.Ai;
 using SaveState.Infrastructure.Common;
+using SaveState.Core.Ai.Knowledge;
+using SaveState.Core.Ai.Memory;
 using Xunit;
 
 namespace SaveState.Infrastructure.Tests.Ai;
@@ -41,7 +43,10 @@ public class AiOrchestratorInfrastructureTest
         var exception = Record.Exception(() =>
         {
             var contextService = new Mock<IConversationContextService>().Object;
-            var orchestrator = new AiOrchestrator(providers, cacheService, options, logger, metrics, cacheMonitor, contextService);
+            var kbService = new Mock<IKnowledgeBaseService>().Object;
+            var memory = new Mock<IShortTermMemory>().Object;
+            var search = new Mock<IWebSearchService>().Object;
+            var orchestrator = new AiOrchestrator(providers, cacheService, options, logger, metrics, cacheMonitor, contextService, null!, memory, search, kbService);
         });
 
         exception.Should().BeNull();
@@ -58,6 +63,9 @@ public class AiOrchestratorTests
     private readonly Mock<ILlmProvider> _openAiProviderMock = new();
     private readonly Mock<ILlmProvider> _groqProviderMock = new();
     private readonly Mock<IConversationContextService> _contextServiceMock = new();
+    private readonly Mock<IKnowledgeBaseService> _kbServiceMock = new();
+    private readonly Mock<IShortTermMemory> _memoryMock = new();
+    private readonly Mock<IWebSearchService> _searchServiceMock = new();
     private readonly List<ILlmProvider> _providers;
     private readonly AiOrchestrator _sut;
 
@@ -86,7 +94,11 @@ public class AiOrchestratorTests
             _loggerMock.Object,
             _metricsMock.Object,
             _cacheMonitor,
-            _contextServiceMock.Object);
+            _contextServiceMock.Object,
+            null!, // SemanticKnowledgeClient
+            _memoryMock.Object,
+            _searchServiceMock.Object,
+            _kbServiceMock.Object);
     }
 
     [Fact]
@@ -109,7 +121,11 @@ public class AiOrchestratorTests
             _loggerMock.Object,
             _metricsMock.Object,
             _cacheMonitor,
-            _contextServiceMock.Object);
+            _contextServiceMock.Object,
+            null!, // SemanticKnowledgeClient
+            _memoryMock.Object,
+            _searchServiceMock.Object,
+            _kbServiceMock.Object);
 
         // Act
         var result = await orchestrator.ProcessRequestAsync(request);
@@ -124,7 +140,7 @@ public class AiOrchestratorTests
         // Arrange
         var request = new AiRequest(AiRequestType.Completion, Prompt: "Test prompt", AllowCache: false);
         _openAiProviderMock.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<CompletionResult>.Success(new CompletionResult("Response", "stop", new TokenUsage(10, 5, 15), "gpt-4")));
+            .ReturnsAsync(Result.Success<CompletionResult>(new CompletionResult("Response", "stop", new TokenUsage(10, 5, 15), "gpt-4")));
 
         // Act
         var result = await _sut.ProcessRequestAsync(request);
@@ -145,7 +161,11 @@ public class AiOrchestratorTests
             _loggerMock.Object,
             _metricsMock.Object,
             _cacheMonitor,
-            _contextServiceMock.Object);
+            _contextServiceMock.Object,
+            null!, // SemanticKnowledgeClient
+            _memoryMock.Object,
+            _searchServiceMock.Object,
+            _kbServiceMock.Object);
 
         var request = new AiRequest(AiRequestType.Completion, Prompt: "Test prompt", AllowCache: false);
 
@@ -163,7 +183,7 @@ public class AiOrchestratorTests
         // Arrange
         var request = new AiRequest(AiRequestType.Completion, Prompt: "Test prompt", PreferredProvider: "Groq", AllowCache: false);
         _groqProviderMock.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<CompletionResult>.Success(new CompletionResult("Groq response", "stop", new TokenUsage(8, 4, 12), "mixtral-8x7b")));
+            .ReturnsAsync(Result.Success<CompletionResult>(new CompletionResult("Groq response", "stop", new TokenUsage(8, 4, 12), "mixtral-8x7b")));
 
         // Act
         var result = await _sut.ProcessRequestAsync(request);
@@ -181,10 +201,10 @@ public class AiOrchestratorTests
         var request = new AiRequest(AiRequestType.Completion, Prompt: "Test prompt", AllowCache: false);
 
         _openAiProviderMock.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<CompletionResult>.Failure("Provider failed", ErrorType.Internal));
+            .ReturnsAsync(Result.Failure<CompletionResult>("Provider failed", ErrorType.Internal));
 
         _groqProviderMock.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<CompletionResult>.Success(new CompletionResult("Fallback response", "stop", new TokenUsage(8, 4, 12), "mixtral-8x7b")));
+            .ReturnsAsync(Result.Success<CompletionResult>(new CompletionResult("Fallback response", "stop", new TokenUsage(8, 4, 12), "mixtral-8x7b")));
 
         // Act
         var result = await _sut.ProcessRequestAsync(request);
@@ -262,7 +282,7 @@ public class AiOrchestratorTests
         var messages = new[] { new ChatMessage("user", "Hello") };
         var request = new AiRequest(AiRequestType.Chat, Messages: messages, AllowCache: false);
         _openAiProviderMock.Setup(p => p.ChatAsync(It.IsAny<ChatRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<ChatResult>.Success(new ChatResult("Chat response", "stop", new TokenUsage(10, 5, 15), "gpt-4")));
+            .ReturnsAsync(Result.Success<ChatResult>(new ChatResult("Chat response", "stop", new TokenUsage(10, 5, 15), "gpt-4")));
 
         // Act
         var result = await _sut.ProcessRequestAsync(request);
@@ -300,9 +320,9 @@ public class AiOrchestratorTests
         var request = new AiRequest(AiRequestType.Completion, Prompt: "Test prompt", AllowCache: false);
 
         _openAiProviderMock.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<CompletionResult>.Failure("OpenAI failed", ErrorType.Internal));
+            .ReturnsAsync(Result.Failure<CompletionResult>("OpenAI failed", ErrorType.Internal));
         _groqProviderMock.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<CompletionResult>.Failure("Groq failed", ErrorType.Internal));
+            .ReturnsAsync(Result.Failure<CompletionResult>("Groq failed", ErrorType.Internal));
 
         // Act
         var result = await _sut.ProcessRequestAsync(request);
@@ -318,7 +338,7 @@ public class AiOrchestratorTests
         // Arrange
         var request = new AiRequest(AiRequestType.Completion, Prompt: "Test prompt", Model: "custom-model", AllowCache: false);
         _openAiProviderMock.Setup(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<CompletionResult>.Success(new CompletionResult("Response", "stop", new TokenUsage(10, 5, 15), "custom-model")))
+            .ReturnsAsync(Result.Success<CompletionResult>(new CompletionResult("Response", "stop", new TokenUsage(10, 5, 15), "custom-model")))
             .Callback<CompletionRequest, CancellationToken>((req, ct) =>
             {
                 req.Model.Should().Be("custom-model");
@@ -331,3 +351,4 @@ public class AiOrchestratorTests
         _openAiProviderMock.Verify(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }
+

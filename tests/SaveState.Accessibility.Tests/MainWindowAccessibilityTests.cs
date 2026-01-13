@@ -132,7 +132,7 @@ public class MainWindowAccessibilityTests
     public void GameCard_ClassExists_ForAccessibilityTesting()
     {
         // Arrange & Act
-        var gameCardType = typeof(SaveState.Presentation.Views.GameCard);
+        var gameCardType = typeof(SaveState.Presentation.Views.Library.GameCard);
 
         // Assert - GameCard class should exist for accessibility testing
         gameCardType.Should().NotBeNull();

@@ -10,6 +10,13 @@ using SaveState.Core.Mugen.ValueObjects;
 public interface IMugenStatsService
 {
     /// <summary>
+    /// Gets global statistics across all MUGEN matches.
+    /// </summary>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The global statistics.</returns>
+    Task<Result<GlobalStats>> GetGlobalStatsAsync(CancellationToken ct = default);
+
+    /// <summary>
     /// Gets statistics for a specific character.
     /// </summary>
     /// <param name="characterId">The character ID.</param>

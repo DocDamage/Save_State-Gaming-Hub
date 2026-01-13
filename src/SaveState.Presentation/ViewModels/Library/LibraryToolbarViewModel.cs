@@ -6,6 +6,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace SaveState.Presentation.ViewModels.Library;
 
@@ -143,6 +144,17 @@ public partial class LibraryToolbarViewModel : ObservableObject
         {
             _logger.LogInformation("Game added via wizard: {Title}", result.Title);
             // Future: Execute command to actually add the game to repository
+        }
+    }
+
+    [RelayCommand]
+    private async Task SmartSearch()
+    {
+        var input = await _dialogService.ShowInputDialogAsync("Natural Language Search", "Enter your query (e.g. 'RPGs from the 90s'):", "Query");
+        if (!string.IsNullOrWhiteSpace(input))
+        {
+            CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default.Send(new SaveState.Presentation.Messages.NaturalLanguageSearchRequestedMessage(input));
+            _logger.LogInformation("Sent natural language search request for: {Query}", input);
         }
     }
 

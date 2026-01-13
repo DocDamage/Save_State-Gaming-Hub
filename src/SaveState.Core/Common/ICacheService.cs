@@ -27,6 +27,20 @@ public interface ICacheService
     void Set<T>(string key, T value, TimeSpan? expiration = null);
 
     /// <summary>
+    /// Asynchronous set for cache implementations that are I/O bound or want to expose async API.
+    /// </summary>
+    Task SetAsync<T>(string key, T value, TimeSpan? expiration = null, CancellationToken ct = default);
+
+    /// <summary>
+    /// Asynchronously attempts to get a value from the cache.
+    /// </summary>
+    /// <typeparam name="T">The type of the cached value.</typeparam>
+    /// <param name="key">The cache key.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The cached value if found, or default.</returns>
+    Task<T?> GetAsync<T>(string key, CancellationToken ct = default);
+
+    /// <summary>
     /// Removes a value from the cache.
     /// </summary>
     /// <param name="key">The cache key to remove.</param>

@@ -75,6 +75,23 @@ public class MugenCharacter : EntityBase, ISoftDelete
     /// </summary>
     public ArcadeInfo ArcadeInfo { get; private set; } = ArcadeInfo.Default;
 
+    // Basic combat attributes used by AI and analytics engines. These default to typical values
+    // and may be populated during character parsing or extended metadata processing in the future.
+    public int Health { get; private set; } = 1000;
+    public int Attack { get; private set; } = 100;
+    public int Defense { get; private set; } = 100;
+    public int Speed { get; private set; } = 10;
+
+    // Broad character archetypes detected from character scripts (e.g., projectile, rushdown, zoning)
+    public bool IsProjectileCharacter { get; private set; }
+    public bool IsRushdownCharacter { get; private set; }
+    public bool IsZoningCharacter { get; private set; }
+
+    // Misc mechanics presence flags
+    public bool HasSuperArts { get; private set; }
+    public bool HasThrows { get; private set; }
+    public bool HasCommandGrab { get; private set; }
+
     /// <summary>
     /// The character's filesize in bytes.
     /// </summary>
@@ -123,7 +140,21 @@ public class MugenCharacter : EntityBase, ISoftDelete
             IsValid = true,
             PaletteInfo = PaletteInfo.Default,
             ArcadeInfo = ArcadeInfo.Default,
-            Directories = CharacterDirectories.Empty
+            Directories = CharacterDirectories.Empty,
+
+            // Default combat attributes (can be updated later from parsed metadata)
+            Health = 1000,
+            Attack = 100,
+            Defense = 100,
+            Speed = 10,
+
+            // Defaults for archetype/mechanics flags
+            IsProjectileCharacter = false,
+            IsRushdownCharacter = false,
+            IsZoningCharacter = false,
+            HasSuperArts = false,
+            HasThrows = false,
+            HasCommandGrab = false
         };
 
         return character;

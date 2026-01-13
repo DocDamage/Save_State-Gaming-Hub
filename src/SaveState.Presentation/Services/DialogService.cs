@@ -2,12 +2,21 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using SaveState.Core.Automation.Services;
+using SaveState.Core.Automation.Services.DTOs;
 using SaveState.Presentation.Views.Dialogs;
 using SaveState.Presentation.ViewModels.Automation;
+using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using SaveState.Presentation.ViewModels.Library.GameDetail;
+using SaveState.Presentation.Views.Library.GameDetail;
+using SaveState.Presentation.ViewModels.Emulators;
+using SaveState.Core.RomManagement.Services;
+using SaveState.Presentation.Views.Dialogs;
 
 namespace SaveState.Presentation.Services;
 
@@ -16,18 +25,27 @@ namespace SaveState.Presentation.Services;
 /// </summary>
 public class DialogService : IDialogService
 {
+    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<DialogService> _logger;
     private readonly ILoggerFactory _loggerFactory;
+    private readonly IWorkflowAutomationService _workflowService;
     private readonly IMacroService _macroService;
+    private readonly IMacroRecorder _macroRecorder;
 
     public DialogService(
+        IServiceProvider serviceProvider,
         ILogger<DialogService> logger,
         ILoggerFactory loggerFactory,
-        IMacroService macroService)
+        IWorkflowAutomationService workflowService,
+        IMacroService macroService,
+        IMacroRecorder macroRecorder)
     {
+        _serviceProvider = serviceProvider;
         _logger = logger;
         _loggerFactory = loggerFactory;
+        _workflowService = workflowService;
         _macroService = macroService;
+        _macroRecorder = macroRecorder;
     }
 
     private Window? GetMainWindow()
@@ -39,13 +57,18 @@ public class DialogService : IDialogService
         return null;
     }
 
-    public async Task<NoteEditorResult?> ShowNoteEditorAsync(Guid? noteId = null, string? initialContent = null)
+    public async Task<NoteEditorResult?> ShowNoteEditorAsync(
+        Guid? noteId = null,
+        string? initialContent = null,
+        string? title = null,
+        string? category = null,
+        bool isPinned = false)
     {
         try
         {
             var dialog = new NoteEditorDialog
             {
-                DataContext = new ViewModels.Dialogs.NoteEditorDialogViewModel(noteId, initialContent)
+                DataContext = new ViewModels.Dialogs.NoteEditorDialogViewModel(noteId, initialContent, title, category, isPinned)
             };
 
             var mainWindow = GetMainWindow();
@@ -283,6 +306,49 @@ public class DialogService : IDialogService
             _logger.LogError(ex, "Failed to show error dialog");
         }
     }
+
+    public async Task ShowWarningAsync(string title, string message)
+    {
+        try
+        {
+            var dialog = new MessageDialog
+            {
+                DataContext = new ViewModels.Dialogs.MessageDialogViewModel(title, message, MessageDialogType.Warning)
+            };
+
+            var mainWindow = GetMainWindow();
+            if (mainWindow != null)
+            {
+                await dialog.ShowDialog(mainWindow);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show warning dialog");
+        }
+    }
+
+    public async Task ShowMessageDialogAsync(string title, string message, string? icon = null)
+    {
+        try
+        {
+            var dialog = new MessageDialog
+            {
+                DataContext = new ViewModels.Dialogs.MessageDialogViewModel(title, message, MessageDialogType.Information)
+            };
+
+            var mainWindow = GetMainWindow();
+            if (mainWindow != null)
+            {
+                await dialog.ShowDialog(mainWindow);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show message dialog");
+        }
+    }
+
     public async Task<TaskCreationResult?> ShowTaskCreationDialogAsync(ScheduledTaskViewModel? existingTask = null)
     {
         try
@@ -414,6 +480,139 @@ public class DialogService : IDialogService
         {
             _logger.LogError(ex, "Failed to show emulator editor dialog");
             return null;
+        }
+    }
+
+    public async Task ShowRomDetailsDialogAsync(SaveState.Core.RomManagement.Entities.RomFile romFile)
+    {
+        try
+        {
+            _logger.LogInformation("Showing ROM details dialog for: {RomTitle}", romFile.Title);
+
+            var romFileRepository = _serviceProvider.GetService(typeof(SaveState.Core.RomManagement.IRomFileRepository)) as SaveState.Core.RomManagement.IRomFileRepository;
+            var emulatorRepository = _serviceProvider.GetService(typeof(SaveState.Core.RomManagement.IEmulatorRepository)) as SaveState.Core.RomManagement.IEmulatorRepository;
+            var extensionRegistry = _serviceProvider.GetService(typeof(SaveState.Core.RomManagement.IPlatformExtensionRegistry)) as SaveState.Core.RomManagement.IPlatformExtensionRegistry;
+            var romVerificationService = _serviceProvider.GetService(typeof(SaveState.Core.RomManagement.Services.IRomVerificationService)) as SaveState.Core.RomManagement.Services.IRomVerificationService;
+            var mediator = _serviceProvider.GetService(typeof(MediatR.IMediator)) as MediatR.IMediator;
+
+            if (romFileRepository == null || emulatorRepository == null || extensionRegistry == null || romVerificationService == null || mediator == null)
+            {
+                await ShowErrorAsync("Service Error", "Required services are not available.");
+                return;
+            }
+
+            var logger = _loggerFactory.CreateLogger<SaveState.Presentation.ViewModels.Dialogs.RomDetailsDialogViewModel>();
+            var viewModel = new SaveState.Presentation.ViewModels.Dialogs.RomDetailsDialogViewModel(
+                romFile, romFileRepository, emulatorRepository, extensionRegistry, romVerificationService, mediator, this, logger);
+
+            var dialog = new RomDetailsDialog
+            {
+                DataContext = viewModel
+            };
+
+            viewModel.RequestClose = () => dialog.Close();
+
+            var mainWindow = GetMainWindow();
+            if (mainWindow != null)
+            {
+                await dialog.ShowDialog(mainWindow);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show ROM details dialog for: {RomTitle}", romFile.Title);
+            await ShowErrorAsync("Dialog Error", "Failed to open ROM details dialog.");
+        }
+    }
+
+    public async Task<IDialogService.EmulatorConfigResult?> ShowEmulatorConfigDialogAsync(SaveState.Core.RomManagement.Entities.Emulator? existingEmulator = null)
+    {
+        try
+        {
+            var emulatorName = existingEmulator?.Name ?? "New Emulator";
+            _logger.LogInformation("Showing emulator config dialog for: {EmulatorName}", emulatorName);
+
+            var mediator = _serviceProvider.GetService(typeof(MediatR.IMediator)) as MediatR.IMediator;
+            if (mediator == null)
+            {
+                await ShowErrorAsync("Service Error", "Required services are not available.");
+                return null;
+            }
+
+            var logger = _loggerFactory.CreateLogger<SaveState.Presentation.ViewModels.Dialogs.EmulatorConfigDialogViewModel>();
+            var viewModel = new SaveState.Presentation.ViewModels.Dialogs.EmulatorConfigDialogViewModel(
+                mediator, this, logger, existingEmulator);
+
+            var dialog = new EmulatorConfigDialog
+            {
+                DataContext = viewModel
+            };
+
+            viewModel.RequestClose = () => dialog.Close();
+
+            var mainWindow = GetMainWindow();
+            if (mainWindow != null)
+            {
+                await dialog.ShowDialog(mainWindow);
+            }
+
+            // Return null for now - the dialog handles saving internally
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show emulator config dialog");
+            await ShowErrorAsync("Dialog Error", "Failed to open emulator configuration dialog.");
+            return null;
+        }
+    }
+
+    public async Task ShowRomScanProgressDialogAsync(Func<CancellationToken, Task> scanAction)
+    {
+        try
+        {
+            _logger.LogInformation("Showing ROM scan progress dialog");
+
+            var logger = _loggerFactory.CreateLogger<SaveState.Presentation.ViewModels.Dialogs.RomScanProgressDialogViewModel>();
+            var viewModel = new SaveState.Presentation.ViewModels.Dialogs.RomScanProgressDialogViewModel(logger);
+
+            var dialog = new RomScanProgressDialog
+            {
+                DataContext = viewModel
+            };
+
+            viewModel.RequestClose = () => dialog.Close();
+
+            // Start the scan in the background
+            var cts = new CancellationTokenSource();
+
+            // Update elapsed time periodically
+            var timer = new System.Timers.Timer(1000); // Update every second
+            timer.Elapsed += (s, e) => viewModel.UpdateElapsedTime();
+            timer.Start();
+
+            try
+            {
+                var mainWindow = GetMainWindow();
+                if (mainWindow != null)
+                {
+                    // Run scan in background while showing dialog
+                    var scanTask = Task.Run(() => scanAction(cts.Token));
+                    await dialog.ShowDialog(mainWindow);
+                    await scanTask;
+                }
+            }
+            finally
+            {
+                timer.Stop();
+                timer.Dispose();
+                cts.Dispose();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show ROM scan progress dialog");
+            await ShowErrorAsync("Dialog Error", "Failed to open ROM scan progress dialog.");
         }
     }
 
@@ -603,7 +802,7 @@ public class DialogService : IDialogService
         try
         {
             var vm = new ViewModels.Dialogs.LaunchConfigDialogViewModel(
-                _logger as ILogger<ViewModels.Dialogs.LaunchConfigDialogViewModel>);
+                _loggerFactory.CreateLogger<ViewModels.Dialogs.LaunchConfigDialogViewModel>());
 
             vm.Initialize(gameId, currentArguments);
 
@@ -746,7 +945,7 @@ public class DialogService : IDialogService
         {
             _logger.LogInformation("Showing workflow editor for workflow {WorkflowId}", workflowId);
 
-            var vm = new ViewModels.Dialogs.WorkflowEditorDialogViewModel(this);
+            var vm = new ViewModels.Dialogs.WorkflowEditorDialogViewModel(this, _workflowService);
             var dialog = new WorkflowEditorDialog
             {
                 DataContext = vm
@@ -768,6 +967,10 @@ public class DialogService : IDialogService
             return null;
         }
     }
+
+
+
+
 
     public async Task ShowMacroPlaybackDialogAsync(
         Guid macroId,
@@ -842,6 +1045,104 @@ public class DialogService : IDialogService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to show price alert dialog");
+            return null;
+        }
+    }
+
+    public async Task ShowPriceHistoryChartAsync(string gameTitle)
+    {
+        try
+        {
+            _logger.LogInformation("Showing price history chart for {GameTitle}", gameTitle);
+
+            var vm = new PriceHistoryViewModel();
+            vm.Initialize(gameTitle);
+
+            var view = new PriceHistoryView
+            {
+                DataContext = vm
+            };
+
+            // We'll show this as a dialog for now, though it could be an overlay
+            var dialog = new Window
+            {
+                Content = view,
+                Title = $"Price History - {gameTitle}",
+                Width = 600,
+                Height = 450,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                CanResize = false,
+                Background = null,
+                TransparencyLevelHint = new[] { WindowTransparencyLevel.Mica, WindowTransparencyLevel.Blur },
+                SystemDecorations = SystemDecorations.None
+            };
+
+            // Wired up close command
+            vm.RequestClose = () => dialog.Close();
+
+            var mainWindow = GetMainWindow();
+            if (mainWindow != null)
+            {
+                await dialog.ShowDialog(mainWindow);
+            }
+            else
+            {
+                 dialog.Show();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show price history chart");
+        }
+    }
+
+    public async Task ShowEmulatorSetupWizardAsync()
+    {
+        try
+        {
+            var installationService = _serviceProvider.GetService(typeof(IEmulatorInstallationService)) as IEmulatorInstallationService;
+            if (installationService == null)
+            {
+                _logger.LogError("IEmulatorInstallationService not found in DI container");
+                return;
+            }
+
+            var vm = new EmulatorSetupWizardViewModel(installationService);
+            var dialog = new EmulatorSetupWizard
+            {
+                DataContext = vm
+            };
+
+            vm.RequestClose = () => dialog.Close();
+
+            var mainWindow = GetMainWindow();
+            if (mainWindow == null) return;
+
+            await dialog.ShowDialog(mainWindow);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show emulator setup wizard");
+        }
+    }
+
+    public async Task<RomMetadataResult?> ShowRomMetadataDialogAsync(string title, string? description, string? region, string? version)
+    {
+        try
+        {
+            _logger.LogInformation("Showing ROM metadata dialog");
+
+            // Show input dialogs for each field
+            var newTitle = await ShowInputDialogAsync("Edit ROM Title", "Enter the ROM title:", title) ?? title;
+            var newDescription = await ShowInputDialogAsync("Edit ROM Description", "Enter the ROM description:", description ?? "") ?? description;
+            var newRegion = await ShowInputDialogAsync("Edit ROM Region", "Enter the ROM region:", region ?? "") ?? region;
+            var newVersion = await ShowInputDialogAsync("Edit ROM Version", "Enter the ROM version:", version ?? "") ?? version;
+
+            return new RomMetadataResult(newTitle, newDescription, newRegion, newVersion);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show ROM metadata dialog");
             return null;
         }
     }

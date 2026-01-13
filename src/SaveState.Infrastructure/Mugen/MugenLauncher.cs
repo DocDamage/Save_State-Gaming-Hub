@@ -92,6 +92,23 @@ public class MugenLauncher : IMugenLauncher
         return File.Exists(exePath) ? exePath : null;
     }
 
+    /// <summary>
+    /// Launches IKEMEN to play back a replay file.
+    /// </summary>
+    /// <param name="replayPath">Path to the replay file.</param>
+    /// <returns>The launched process.</returns>
+    public async Task<Process> LaunchReplayAsync(string replayPath)
+    {
+        if (!File.Exists(replayPath))
+        {
+            throw new FileNotFoundException("Replay file not found", replayPath);
+        }
+
+        // IKEMEN typically uses -replay or -r flag for replay playback
+        var arguments = $"-replay \"{replayPath}\"";
+        return await LaunchIkemenAsync(arguments);
+    }
+
     private async Task<Process> LaunchIkemenAsync(string arguments)
     {
         var exePath = GetIkemenExecutablePath();

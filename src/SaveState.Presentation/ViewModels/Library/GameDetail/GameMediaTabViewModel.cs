@@ -418,8 +418,18 @@ public partial class GameMediaTabViewModel : ObservableObject
     {
         if (!string.IsNullOrEmpty(item.FilePath))
         {
-            await _clipboardService.SetTextAsync(item.FilePath);
-            _notificationService.ShowSuccess($"Copied path to clipboard", "Copied");
+            if (item.IsImage)
+            {
+                // Copy actual image content
+                await _clipboardService.SetImageAsync(item.FilePath);
+                _notificationService.ShowSuccess($"Copied image to clipboard", "Copied");
+            }
+            else
+            {
+                // Copy file path for videos or other types
+                await _clipboardService.SetTextAsync(item.FilePath);
+                _notificationService.ShowSuccess($"Copied path to clipboard", "Copied");
+            }
         }
     }
 }

@@ -100,11 +100,11 @@ public class User : EntityBase
         return _userRoles.Any(ur => roleNames.Contains(ur.Role.Name));
     }
 
-    public ApiKey CreateApiKey(string name, string description, DateTimeOffset? expiresAt = null)
+    public (ApiKey apiKey, string plainKey) CreateApiKey(string name, string description, DateTimeOffset? expiresAt = null)
     {
-        var apiKey = ApiKey.Create(this, name, description, expiresAt);
+        var (apiKey, plainKey) = ApiKey.Create(this, name, description, expiresAt);
         _apiKeys.Add(apiKey);
-        return apiKey;
+        return (apiKey, plainKey);
     }
 
     public void RevokeApiKey(Guid apiKeyId)

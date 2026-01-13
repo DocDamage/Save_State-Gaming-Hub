@@ -86,7 +86,11 @@ public sealed record CollectionFilter(
     GameStatus? Status = null,
     string? Tag = null,
     bool? HasAchievements = null,
-    int? MinRating = null);
+    int? MinRating = null,
+    int? MinReleaseYear = null,
+    int? MaxReleaseYear = null,
+    bool? IsCompleted = null,
+    bool? IsInBacklog = null);
 
 public class VirtualCollectionGame
 {

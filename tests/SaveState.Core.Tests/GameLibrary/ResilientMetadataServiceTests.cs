@@ -109,7 +109,7 @@ public class ResilientMetadataServiceTests
         var title = "Half-Life 2";
         var expectedImage = new byte[] { 1, 2, 3, 4, 5 };
         _mockInnerService.Setup(x => x.GetCoverImageAsync(title, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(SaveState.Core.Common.Result<byte[]>.Success(expectedImage));
+            .ReturnsAsync(SaveState.Core.Common.Result.Success<byte[]>(expectedImage));
 
         // Act
         var result = await _sut.GetCoverImageAsync(title, default);
@@ -202,3 +202,4 @@ public class ResilientMetadataServiceTests
         _sut.CircuitBreakerState.Should().Be(CircuitState.Closed);
     }
 }
+

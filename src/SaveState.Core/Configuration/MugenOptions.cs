@@ -18,6 +18,7 @@ public class MugenOptions
     [Required]
     public string ExecutablePath { get; set; } = "engines/ikemen/Ikemen_GO.exe";
 
+
     /// <summary>
     /// Delay in milliseconds before MUGEN process starts.
     /// </summary>
@@ -61,4 +62,39 @@ public class MugenOptions
     /// Save directory for MUGEN.
     /// </summary>
     public string SaveDirectory { get; set; } = "save";
+
+    /// <summary>
+    /// Optional override path for select.def.
+    /// </summary>
+    public string? SelectDefPath { get; set; }
+
+    /// <summary>
+    /// Path to the netplay lobbies catalog JSON.
+    /// </summary>
+    public string NetplayLobbiesPath { get; set; } = "data/mugen/netplay_lobbies.json";
+
+    /// <summary>
+    /// Path to the discovery catalog JSON.
+    /// </summary>
+    public string DiscoveryCatalogPath { get; set; } = "data/mugen/discovery_catalog.json";
+
+    /// <summary>
+    /// Directory for downloaded discovery packages.
+    /// </summary>
+    public string DiscoveryDownloadsDirectory { get; set; } = "data/mugen/downloads";
+
+    /// <summary>
+    /// Directory for replay files.
+    /// </summary>
+    public string ReplaysFolder { get; set; } = "data/mugen/replays";
+
+    /// <summary>
+    /// Directory for graphics enhancement presets.
+    /// </summary>
+    public string GraphicsPresetsPath { get; set; } = "data/mugen/graphics_presets";
+
+    /// <summary>
+    /// Directory for audio enhancement presets.
+    /// </summary>
+    public string AudioPresetsPath { get; set; } = "data/mugen/audio_presets";
 }

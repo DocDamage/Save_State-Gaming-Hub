@@ -72,6 +72,9 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
     public DbSet<MugenMatchupStatsEntity> MugenMatchupStats { get; set; }
     public DbSet<MugenCharacterCollectionEntity> MugenCharacterCollections { get; set; }
     public DbSet<MugenCollectionCharacterEntity> MugenCollectionCharacters { get; set; }
+
+    // OpenMK Integration
+    public DbSet<SaveState.Core.OpenMK.Entities.OpenMKCharacter> OpenMKCharacters { get; set; }
     public DbSet<MugenTrainingSessionEntity> MugenTrainingSessions { get; set; }
     public DbSet<MugenDummyRecordingEntity> MugenDummyRecordings { get; set; }
     public DbSet<Backup> Backups { get; set; }

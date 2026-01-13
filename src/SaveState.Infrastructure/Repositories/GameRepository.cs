@@ -126,12 +126,19 @@ public class GameRepository : IGameRepository
         string? platformFilter = null,
         GameSortBy sortBy = GameSortBy.Title,
         bool sortDescending = false,
+        CollectionFilter? adHocFilter = null,
         CancellationToken ct = default)
     {
         var startTime = DateTime.UtcNow;
         try
         {
             var query = _context.Games.AsQueryable();
+
+            // Apply ad-hoc filter if provided
+            if (adHocFilter != null)
+            {
+                query = ApplySmartCollectionFilters(query, adHocFilter);
+            }
 
             // Apply filters at database level
             if (collectionId.HasValue)
@@ -245,7 +252,7 @@ public class GameRepository : IGameRepository
         }
     }
 
-    private static IQueryable<Game> ApplySmartCollectionFilters(IQueryable<Game> query, CollectionFilter filter)
+    private IQueryable<Game> ApplySmartCollectionFilters(IQueryable<Game> query, CollectionFilter filter)
     {
         if (filter.MaxPlaytime.HasValue)
             query = query.Where(g => g.TotalPlayTime <= filter.MaxPlaytime.Value);
@@ -267,6 +274,9 @@ public class GameRepository : IGameRepository
         if (filter.Status.HasValue)
             query = query.Where(g => g.Status == filter.Status.Value);
 
+        if (filter.IsCompleted.HasValue)
+            query = query.Where(g => g.IsCompleted == filter.IsCompleted.Value);
+
         if (filter.MinRating.HasValue)
             query = query.Where(g => g.UserRating >= filter.MinRating.Value);
 
@@ -277,18 +287,30 @@ public class GameRepository : IGameRepository
 
         if (!string.IsNullOrEmpty(filter.Tag))
         {
-             // Tags are converted to JSON string in DB but exposed as List<string> in entity
-             // EF Core with Value Converter performs client-side evaluation for collection operations usually
-             // unless using PostgreSQL/Cosmos. For SQLite/SQLServer it might be tricky.
-             // We will attempt containment check. If it fails translation, we might need a raw SQL or LIKE approach.
-             // For now, assume client eval risk is acceptable or it translates.
-             // Actually, since we are doing value conversion, 'Contains' on the list property might cause issues.
-             // But let's try.
-             // query = query.Where(g => g.Tags.Contains(filter.Tag));
-             // Reverting to simpler check to avoid runtime errors if unsure:
-             // Let's assume for now we skip complex Tag filtering or rely on client eval.
-             // Given the complexity constraints, let's include it.
-             // NOTE: Requires LINQ evaluation.
+            var tagPattern = $"%\"{filter.Tag}\"%";
+            query = query.Where(g => EF.Functions.Like(EF.Property<string>(g, nameof(Game.Tags)), tagPattern));
+        }
+
+        if (filter.MinReleaseYear.HasValue)
+        {
+             query = query.Where(g => g.ReleaseDate.HasValue && g.ReleaseDate.Value.Year >= filter.MinReleaseYear.Value);
+        }
+
+        if (filter.MaxReleaseYear.HasValue)
+        {
+             query = query.Where(g => g.ReleaseDate.HasValue && g.ReleaseDate.Value.Year <= filter.MaxReleaseYear.Value);
+        }
+
+        if (filter.IsInBacklog.HasValue)
+        {
+            if (filter.IsInBacklog.Value)
+            {
+                query = query.Where(g => _context.BacklogEntries.Any(be => be.GameId == g.Id));
+            }
+            else
+            {
+                query = query.Where(g => !_context.BacklogEntries.Any(be => be.GameId == g.Id));
+            }
         }
 
         return query;
@@ -394,6 +416,9 @@ public class GameRepository : IGameRepository
     /// <returns>The total number of games.</returns>
     public async Task<int> CountAsync(CancellationToken ct = default)
         => await _context.Games.CountAsync(ct).ConfigureAwait(false);
+
+    public async Task<int> CountByStatusAsync(GameStatus status, CancellationToken ct = default)
+        => await _context.Games.CountAsync(g => g.Status == status, ct).ConfigureAwait(false);
 
     public async Task<IReadOnlyDictionary<string, int>> GetPlatformStatisticsAsync(CancellationToken ct = default)
     {

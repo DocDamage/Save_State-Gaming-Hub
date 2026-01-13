@@ -20,7 +20,13 @@
         <StackPanel Spacing="12">
           <TextBlock Text="{Binding GeneralSection}" Classes="Header" />
 
-          <TextBlock Text="General settings will be added here." Classes="Body" />
+          <StackPanel Spacing="12">
+            <TextBlock Text="Manage your emulators and retro gaming environment." Classes="Body" />
+            <Button Content="🚀 Launch Emulator Setup Wizard"
+                    Command="{Binding OpenEmulatorSetupCommand}"
+                    Classes="Primary"
+                    HorizontalAlignment="Left" />
+          </StackPanel>
         </StackPanel>
       </Border>
 
@@ -150,6 +156,79 @@
                         Classes="Caption" Foreground="{StaticResource AccentBrush}" />
             </StackPanel>
           </Grid>
+        </StackPanel>
+      </Border>
+
+      <!-- Voice & Speech Section -->
+      <Border Classes="Card" Padding="16">
+        <StackPanel Spacing="15">
+          <TextBlock Text="🎤 Voice &amp; Speech" Classes="Header" />
+          <TextBlock Text="Configure voice commands and speech recognition settings."
+                     Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
+
+          <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto, Auto">
+             <!-- Status & Controls -->
+             <StackPanel Grid.Row="0" Grid.Column="0" Spacing="10" Margin="0,0,10,10">
+                 <TextBlock Text="Voice Status" Classes="Label" />
+                 <StackPanel Orientation="Horizontal" Spacing="10">
+                     <Button Content="{Binding VoiceSettings.IsListening, Converter={StaticResource BoolToStringConverter}, ConverterParameter='🔴 Stop Listening|🎤 Start Listening'}"
+                             Command="{Binding VoiceSettings.ToggleListeningCommand}"
+                             Classes.Danger="{Binding VoiceSettings.IsListening}"
+                             Classes.Primary="{Binding !VoiceSettings.IsListening}" />
+
+                     <ToggleSwitch IsChecked="{Binding VoiceSettings.IsContinuousMode}"
+                                 Command="{Binding VoiceSettings.ToggleContinuousModeCommand}"
+                                 OnContent="Continuous Mode"
+                                 OffContent="Continuous Mode" />
+                 </StackPanel>
+             </StackPanel>
+
+             <!-- Language -->
+             <StackPanel Grid.Row="0" Grid.Column="1" Spacing="8" Margin="10,0,0,10">
+                <TextBlock Text="Speech Language" Classes="Label" />
+                <ComboBox ItemsSource="{Binding VoiceSettings.AvailableLanguages}"
+                          SelectedItem="{Binding VoiceSettings.CurrentLanguage}"
+                          HorizontalAlignment="Stretch" />
+             </StackPanel>
+
+             <!-- Calibration -->
+             <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Spacing="8" Margin="0,10,0,10">
+                 <TextBlock Text="Microphone Calibration" Classes="Label" />
+                 <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Button Content="{Binding VoiceSettings.IsCalibrating, Converter={StaticResource BoolToStringConverter}, ConverterParameter='⏳ Calibrating...|🎚️ Calibrate Microphone'}"
+                            Command="{Binding VoiceSettings.CalibrateMicrophoneCommand}"
+                            IsEnabled="{Binding !VoiceSettings.IsCalibrating}"
+                            Classes="Secondary" />
+                    <TextBlock Text="{Binding VoiceSettings.StatusMessage}"
+                               Classes="Caption"
+                               VerticalAlignment="Center" />
+                 </StackPanel>
+             </StackPanel>
+          </Grid>
+
+          <!-- Commands List -->
+          <Expander Header="Registered Voice Commands">
+                <ItemsControl ItemsSource="{Binding VoiceSettings.RegisteredCommands}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Classes="ListItem" Padding="10" Margin="0,0,0,5">
+                                 <Grid ColumnDefinitions="*, Auto">
+                                     <StackPanel>
+                                         <TextBlock Text="{Binding CommandPhrase}" FontWeight="SemiBold" />
+                                         <TextBlock Text="{Binding Description}" Classes="Caption" />
+                                     </StackPanel>
+                                     <Button Grid.Column="1"
+                                             Content="▶️"
+                                             Command="{Binding $parent[UserControl].((vm:SettingsViewModel)DataContext).VoiceSettings.TestCommandCommand}"
+                                             CommandParameter="{Binding}"
+                                             Classes="Ghost"
+                                             ToolTip.Tip="Test Command"/>
+                                 </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+          </Expander>
         </StackPanel>
       </Border>
 

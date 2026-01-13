@@ -16,9 +16,14 @@
       <converters:StringEqualsConverter x:Key="StringEqualsConverter" />
       <converters:ReferenceEqualsConverter x:Key="ReferenceEqualsConverter" />
       <converters:NetworkStatusConverter x:Key="NetworkStatusConverter" />
+      <converters:NullOrEmptyToBoolConverter x:Key="NullOrEmptyToBoolConverter" />
+      <converters:FilePathToBitmapConverter x:Key="FilePathToBitmapConverter" />
+      <converters:IntToBoolConverter x:Key="IntToBoolConverter" />
+      <converters:StringContainsConverter x:Key="StringContainsConverter" />
       <converters:ViewModeToClassConverter x:Key="ViewModeToClassConverter" />
       <converters:BoolToClassConverter x:Key="BoolToClassConverter" />
       <converters:BoolToBrushConverter x:Key="BoolToBrushConverter" />
+      <converters:BoolToStatusBrushConverter x:Key="BoolToStatusBrushConverter" />
       <converters:TabContentConverter x:Key="TabContentConverter" />
       <converters:GreaterThanConverter x:Key="GreaterThanConverter" />
       <converters:BoolToColorConverter x:Key="BoolToColorConverter" />

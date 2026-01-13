@@ -21,14 +21,14 @@ public class ApiKey : EntityBase
 
     private ApiKey() { }
 
-    public static ApiKey Create(User user, string name, string description, DateTimeOffset? expiresAt = null)
+    public static (ApiKey apiKey, string plainKey) Create(User user, string name, string description, DateTimeOffset? expiresAt = null)
     {
         Guard.Against.Null(user, nameof(user));
 
         var plainKey = GenerateSecureKey();
         var (keyHash, keyPrefix) = HashApiKey(plainKey);
 
-        return new ApiKey
+        var apiKey = new ApiKey
         {
             UserId = user.Id,
             User = user,
@@ -40,6 +40,8 @@ public class ApiKey : EntityBase
             ExpiresAt = expiresAt,
             IsActive = true
         };
+
+        return (apiKey, plainKey);
     }
 
     public bool IsExpired()

@@ -3,23 +3,37 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Shell.Mugen"
-             xmlns:root="clr-namespace:SaveState.Presentation.Views.Mugen"
+             xmlns:converters="clr-namespace:SaveState.Presentation.Converters"
              xmlns:dto="clr-namespace:SaveState.Application.Mugen.DTOs;assembly=SaveState.Application"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
              x:Class="SaveState.Presentation.Views.Mugen.Sections.RosterSection"
              x:DataType="vm:MugenRosterViewModel">
 
+    <UserControl.Resources>
+        <converters:BoolToTextConverter x:Key="BoolToTextConverter" />
+        <converters:NullOrEmptyToBoolConverter x:Key="NullOrEmptyToBoolConverter" />
+    </UserControl.Resources>
+
     <Grid RowDefinitions="Auto, *">
         <!-- Roster Header & Filter -->
-        <Border Grid.Row="0" Background="{StaticResource GlassBrush}" Margin="20" Padding="15" CornerRadius="8">
-            <Grid ColumnDefinitions="*, Auto, Auto">
-                <StackPanel Spacing="5">
-                    <TextBlock Text="CHARACTER ROSTER" FontSize="14" FontWeight="Bold" Foreground="{StaticResource FightingYellowBrush}" />
-                    <TextBox Text="{Binding SearchTerm}" Watermark="Search by name or author..." Width="300" HorizontalAlignment="Left" />
+        <Border Grid.Row="0" Background="{StaticResource GlassBrush}" Margin="20,20,20,10" Padding="15" CornerRadius="8">
+            <Grid ColumnDefinitions="*, Auto">
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <StackPanel Spacing="5" Width="300">
+                        <TextBlock Text="CHARACTER ROSTER" FontSize="14" FontWeight="Bold" Foreground="{StaticResource FightingYellowBrush}" />
+                        <TextBox Text="{Binding SearchTerm}" Watermark="Search by name or author..." IsVisible="{Binding !ShowEditor}" />
+                    </StackPanel>
+
+                    <Button Command="{Binding ToggleViewCommand}" Classes="Secondary" VerticalAlignment="Bottom">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="🔄" />
+                            <TextBlock Text="{Binding ShowEditor, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Switch to Cards|Switch to Editor'}" />
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Bottom">
-                    <Button Command="{Binding ScanCharactersCommand}" Classes="Accent">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Bottom">
+                    <Button Command="{Binding ScanCharactersCommand}" Classes="Accent" IsVisible="{Binding !ShowEditor}">
                         <StackPanel Orientation="Horizontal" Spacing="5">
                             <TextBlock Text="🔍" />
                             <TextBlock Text="SCAN DIRECTORY" />
@@ -29,48 +43,161 @@
             </Grid>
         </Border>
 
-        <!-- Characters Grid -->
-        <ScrollViewer Grid.Row="1" Padding="20,0,20,20">
-            <ItemsControl ItemsSource="{Binding FilteredCharacters}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel HorizontalAlignment="Center" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="dto:MugenCharacterSummaryDto">
-                        <Button Command="{Binding $parent[UserControl;1].DataContext.SelectPlayerCommand}"
-                                CommandParameter="{Binding}"
-                                Padding="0" Background="Transparent" BorderThickness="0"
-                                Margin="8">
-                            <Border Classes="CharacterCard" Width="160" Height="220" ClipToBounds="True">
-                                <Grid RowDefinitions="*, Auto">
-                                    <!-- Character Avatar Placeholder -->
-                                    <Panel Grid.Row="0" Background="#1A1A1A">
-                                        <TextBlock Text="IMAGE" VerticalAlignment="Center" HorizontalAlignment="Center"
-                                                   Foreground="#333333" FontSize="20" FontWeight="Black" />
+        <!-- Main Content Swapper -->
+        <Grid Grid.Row="1" Margin="20,0,20,20">
 
-                                        <!-- Selection Indicator -->
-                                        <Border Name="SelectionBorder" BorderBrush="{StaticResource FightingYellowBrush}" BorderThickness="4"
-                                                IsVisible="False" />
-                                    </Panel>
+            <!-- VIEW 1: Database Cards (Full Screen) -->
+            <ScrollViewer IsVisible="{Binding !ShowEditor}" Padding="0,0,10,0">
+                <ItemsControl ItemsSource="{Binding FilteredCharacters}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel HorizontalAlignment="Center" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="dto:MugenCharacterSummaryDto">
+                            <Button Command="{Binding $parent[UserControl;1].DataContext.SelectPlayerCommand}"
+                                    CommandParameter="{Binding}"
+                                    Padding="0" Background="Transparent" BorderThickness="0"
+                                    Margin="8">
+                                <Border Classes="CharacterCard" Width="160" Height="220" ClipToBounds="True">
+                                    <Grid RowDefinitions="*, Auto">
+                                        <!-- Character Avatar Placeholder -->
+                                        <Panel Grid.Row="0" Background="#1A1A1A">
+                                            <TextBlock Text="IMAGE" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                       Foreground="#333333" FontSize="20" FontWeight="Black" />
+                                        </Panel>
 
-                                    <!-- Info Bar -->
-                                    <Border Grid.Row="1" Background="#2D2D2D" Padding="10">
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding Name}" FontWeight="Black" FontSize="14"
-                                                       TextTrimming="CharacterEllipsis" Foreground="White" />
-                                            <TextBlock Text="{Binding Author}" FontSize="11"
-                                                       Foreground="{StaticResource TextSecondaryBrush}" />
-                                        </StackPanel>
-                                    </Border>
-                                </Grid>
-                            </Border>
-                        </Button>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+                                        <!-- Info Bar -->
+                                        <Border Grid.Row="1" Background="#2D2D2D" Padding="10">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontWeight="Black" FontSize="14"
+                                                           TextTrimming="CharacterEllipsis" Foreground="White" />
+                                                <TextBlock Text="{Binding Author}" FontSize="11"
+                                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- VIEW 2: Visual Roster Editor (3-Column) -->
+            <Grid IsVisible="{Binding ShowEditor}" ColumnDefinitions="300, *, 350">
+
+                <!-- Column 1: Scanned Database (Drawer) -->
+                <Border Grid.Column="0" Classes="GlassContainer" Margin="0,0,10,0" Padding="10">
+                    <Grid RowDefinitions="Auto, Auto, *">
+                        <TextBlock Text="SCANNED DB" Classes="Caption" FontWeight="Black" Margin="0,0,0,10" />
+                        <TextBox Grid.Row="1" Text="{Binding SearchTerm}" Watermark="Filter DB..." Margin="0,0,0,10" />
+                        <ScrollViewer Grid.Row="2">
+                            <ItemsControl ItemsSource="{Binding FilteredCharacters}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="dto:MugenCharacterSummaryDto">
+                                        <Border Classes="ListItem" Padding="8" Margin="0,0,0,5">
+                                            <Grid ColumnDefinitions="*, Auto">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="Bold" />
+                                                    <TextBlock Text="{Binding Author}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" />
+                                                </StackPanel>
+                                                <Button Grid.Column="1" Command="{Binding $parent[UserControl].((vm:MugenRosterViewModel)DataContext).AddToRosterCommand}"
+                                                        CommandParameter="{Binding}" Content="➕" Padding="5,2" Classes="Secondary" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+
+                <!-- Column 2: select.def content -->
+                <Border Grid.Column="1" Classes="GlassContainer" Margin="0,0,10,0" Padding="0">
+                    <Grid RowDefinitions="Auto, *">
+                        <Border Background="#1A1A1A" Padding="15" CornerRadius="8,8,0,0">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <TextBlock Text="select.def File Content" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding RosterFilePath}" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"
+                                           HorizontalAlignment="Right" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="200" />
+                            </Grid>
+                        </Border>
+
+                        <ListBox Grid.Row="1" ItemsSource="{Binding RosterEntries}" SelectedItem="{Binding SelectedRosterEntry}" Background="Transparent">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock Text="📁" IsVisible="{Binding IsCategory}" Foreground="{StaticResource FightingYellowBrush}" />
+                                        <TextBlock Text="👤" IsVisible="{Binding IsCharacter}" Foreground="#4CAF50" />
+                                        <TextBlock Text="💬" IsVisible="{Binding IsComment}" Foreground="{StaticResource TextSecondaryBrush}" />
+                                        <TextBlock Text="{Binding DisplayLabel}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Border>
+
+                <!-- Column 3: Details & Actions -->
+                <Border Grid.Column="2" Classes="GlassContainer" Padding="20">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="Entry Details" Classes="SectionHeader" />
+
+                        <!-- Selected Item Actions -->
+                        <StackPanel IsVisible="{Binding SelectedRosterEntry, Converter={StaticResource NullOrEmptyToBoolConverter}, ConverterParameter=Invert}">
+                             <TextBlock Text="Category Name" Classes="Label" IsVisible="{Binding SelectedRosterEntry.IsCategory}" />
+                             <TextBox Text="{Binding SelectedRosterEntry.Category}" IsVisible="{Binding SelectedRosterEntry.IsCategory}" Margin="0,0,0,10"/>
+
+                             <TextBlock Text="Character Path" Classes="Label" IsVisible="{Binding SelectedRosterEntry.IsCharacter}" />
+                             <TextBox Text="{Binding SelectedRosterEntry.CharacterPath}" IsVisible="{Binding SelectedRosterEntry.IsCharacter}" Margin="0,0,0,5"/>
+
+                             <TextBlock Text="Stage Override" Classes="Label" IsVisible="{Binding SelectedRosterEntry.IsCharacter}" />
+                             <TextBox Text="{Binding SelectedRosterEntry.StagePath}" IsVisible="{Binding SelectedRosterEntry.IsCharacter}" Margin="0,0,0,10"/>
+
+                             <TextBlock Text="Comment" Classes="Label" IsVisible="{Binding SelectedRosterEntry.IsComment}" />
+                             <TextBox Text="{Binding SelectedRosterEntry.RawLine}" IsVisible="{Binding SelectedRosterEntry.IsComment}" Margin="0,0,0,10"/>
+
+                             <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                                 <Button Content="⬆" Command="{Binding MoveRosterEntryUpCommand}" CommandParameter="{Binding SelectedRosterEntry}" ToolTip.Tip="Move Up" />
+                                 <Button Content="⬇" Command="{Binding MoveRosterEntryDownCommand}" CommandParameter="{Binding SelectedRosterEntry}" ToolTip.Tip="Move Down" />
+                                 <Button Content="🗑" Classes="Destructive" Command="{Binding RemoveRosterEntryCommand}" CommandParameter="{Binding SelectedRosterEntry}" ToolTip.Tip="Remove" />
+                             </StackPanel>
+                        </StackPanel>
+
+                        <Border Background="#33FFFFFF" Height="1" Margin="0,10" />
+
+                        <TextBlock Text="Direct Add" FontWeight="SemiBold" />
+
+                        <TabControl>
+                            <TabItem Header="Character">
+                                <StackPanel Spacing="8" Margin="0,10,0,0">
+                                    <TextBox Text="{Binding NewRosterCharacterPath}" Watermark="chars/kfm/kfm.def" />
+                                    <TextBox Text="{Binding NewRosterStagePath}" Watermark="stages/kfm.def (optional)" />
+                                    <Button Content="Add Character" Command="{Binding AddRosterCharacterCommand}" HorizontalAlignment="Stretch" />
+                                </StackPanel>
+                            </TabItem>
+                            <TabItem Header="Category">
+                                <StackPanel Spacing="8" Margin="0,10,0,0">
+                                    <TextBox Text="{Binding NewRosterCategoryName}" Watermark="Category Name" />
+                                    <Button Content="Add Category" Command="{Binding AddRosterCategoryCommand}" HorizontalAlignment="Stretch" />
+                                </StackPanel>
+                            </TabItem>
+                        </TabControl>
+
+                        <Border Background="#33FFFFFF" Height="1" Margin="0,10" />
+
+                        <Button Content="💾 Save Changes to select.def" Command="{Binding SaveRosterCommand}" Classes="Primary" HorizontalAlignment="Stretch" Padding="15" />
+
+                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding StatusMessage}" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                            <ProgressBar IsIndeterminate="True" Width="20" Height="20" IsVisible="{Binding IsRosterLoading}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
 
         <!-- Loading Overlay -->
         <Border Grid.RowSpan="2" Background="#80000000" IsVisible="{Binding IsLoading}">
@@ -98,3 +225,4 @@
         </Style>
     </UserControl.Styles>
 </UserControl>
+

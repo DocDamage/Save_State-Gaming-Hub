@@ -69,7 +69,7 @@ public class AiOrchestrator : IAiOrchestrator
             {
                 Interlocked.Increment(ref _cacheHits);
                 var hitRate = (double)_cacheHits / _cacheRequests * 100;
-                _logger.LogDebug("Cache hit for AI request (hit rate: {HitRate:F1}%)", hitRate);
+                _logger.LogInformation("Cache hit for AI request (hit rate: {HitRate:F1}%)", hitRate);
 
                 // Record cache hit metrics
                 _cacheMonitor.RecordCacheHit("AiOrchestrator");

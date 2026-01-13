@@ -60,7 +60,7 @@ public partial class ToolsViewModel : ObservableObject
             new ToolCategoryViewModel("🎨", "Themes", "Themes", false)
         };
 
-        Emulators = new ObservableCollection<EmulatorViewModel>();
+        Emulators = new ObservableCollection<ToolsEmulatorViewModel>();
         SelectedCategory = ToolCategories[0];
 
         // Start performance monitoring
@@ -82,7 +82,7 @@ public partial class ToolsViewModel : ObservableObject
 
     // Collections
     public ObservableCollection<ToolCategoryViewModel> ToolCategories { get; }
-    public ObservableCollection<EmulatorViewModel> Emulators { get; }
+    public ObservableCollection<ToolsEmulatorViewModel> Emulators { get; }
 
     // Selected category
     [ObservableProperty]
@@ -107,7 +107,7 @@ public partial class ToolsViewModel : ObservableObject
                 {
                     var path = emu.ExecutablePath?.Value ?? "";
                     var isAvailable = !string.IsNullOrEmpty(path) && System.IO.File.Exists(path);
-                    Emulators.Add(new EmulatorViewModel(
+                    Emulators.Add(new ToolsEmulatorViewModel(
                         emu.Id,
                         emu.Name,
                         emu.Platform?.Name ?? "Unknown",
@@ -592,12 +592,12 @@ public class ToolCategoryViewModel : ObservableObject
     }
 }
 
-public partial class EmulatorViewModel : ObservableObject
+public partial class ToolsEmulatorViewModel : ObservableObject
 {
     private readonly IDialogService _dialogService;
     private readonly ILogger _logger;
 
-    public EmulatorViewModel(Guid id, string name, string platform, string version, bool isInstalled, string executablePath, IDialogService dialogService, ILogger logger)
+    public ToolsEmulatorViewModel(Guid id, string name, string platform, string version, bool isInstalled, string executablePath, IDialogService dialogService, ILogger logger)
     {
         Id = id;
         Name = name;
@@ -624,7 +624,7 @@ public partial class EmulatorViewModel : ObservableObject
         try
         {
             _logger.LogInformation("Configuring emulator: {Id}", Id);
-            var result = await _dialogService.ShowEmulatorEditorAsync(this);
+            var result = await _dialogService.ShowEmulatorEditorAsync(null);
 
             if (result != null)
             {

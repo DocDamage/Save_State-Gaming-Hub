@@ -50,6 +50,7 @@ public interface IGameRepository
         string? platformFilter = null,
         GameSortBy sortBy = GameSortBy.Title,
         bool sortDescending = false,
+        CollectionFilter? adHocFilter = null,
         CancellationToken ct = default);
 
     /// <summary>
@@ -103,6 +104,14 @@ public interface IGameRepository
     /// <param name="ct">Cancellation token.</param>
     /// <returns>The total number of games.</returns>
     Task<int> CountAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets the count of games with a specific status.
+    /// </summary>
+    /// <param name="status">The status to filter by.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The number of games with the specified status.</returns>
+    Task<int> CountByStatusAsync(GameStatus status, CancellationToken ct = default);
 
     /// <summary>
     /// Gets platform statistics for efficient library statistics calculation.

@@ -76,12 +76,35 @@ public partial class MugenDeathBattleViewModel : MugenSectionViewModelBase
         try
         {
             IsSimulating = true;
-            SimulationReport = "Initiating battle...";
+            SimulationReport = "Launching live death match...";
 
-            // In a real app, this mediator command would call IMugenLauncher.LaunchVersusAsync
-            await _mediator.Send(new LaunchIkemenVersusCommand(Player1.Name, Player2.Name));
+            var result = await _mediator.Send(new RunDeathMatchEngineCommand(Player1.Id, Player2.Id, 3));
 
-            SimulationReport += "\nBattle started! Good luck, fighters.";
+            if (result.IsSuccess && result.Value != null)
+            {
+                var match = result.Value;
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine("DEATH MATCH RESULTS");
+                sb.AppendLine("===================");
+                sb.AppendLine($"{match.Character1Name} vs {match.Character2Name}");
+                sb.AppendLine($"Total Matches: {match.TotalMatches}");
+                sb.AppendLine($"P1 Wins: {match.Character1Wins}");
+                sb.AppendLine($"P2 Wins: {match.Character2Wins}");
+                sb.AppendLine($"Draws: {match.Draws}");
+                sb.AppendLine($"Duration: {match.TotalDuration:mm\\:ss}");
+                sb.AppendLine();
+
+                var winner = match.Character1Wins == match.Character2Wins
+                    ? "Draw"
+                    : match.Character1Wins > match.Character2Wins ? match.Character1Name : match.Character2Name;
+                sb.AppendLine($"FINAL WINNER: {winner}");
+
+                SimulationReport = sb.ToString();
+            }
+            else
+            {
+                SimulationReport = result.Error ?? "Death match failed to run.";
+            }
         }
         catch (Exception ex)
         {
@@ -93,4 +116,3 @@ public partial class MugenDeathBattleViewModel : MugenSectionViewModelBase
         }
     }
 }
-

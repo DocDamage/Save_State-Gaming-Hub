@@ -33,3 +33,29 @@ SaveState can launch IKEMEN with specific character selections for training, ver
 - IKEMEN GO v0.99 (latest stable)
 - Includes Lua scripting support
 - Full MUGEN compatibility mode
+
+## Visual Resources
+
+SaveState Reborn includes comprehensive visual resources for IKEMEN:
+
+### Elecbyte Screenpack
+- **Location**: `engines/ikemen/data/`
+- **Purpose**: Default UI, fonts, stages, and system resources
+- **Status**: ✅ Included and configured
+- **License**: Creative Commons 3.0 Non-commercial
+
+### Round Transition Effects
+- **Location**: `engines/ikemen/data/commonFX/` (FX files)
+- **ZSS Script**: Referenced in `save/config.json` CommonFiles
+- **Purpose**: Custom round start/end transition animations
+- **Status**: ✅ Included and configured
+- **Customization**: Transition time configurable (default: 80 frames)
+
+### Shader Collection
+- **Location**: `engines/ikemen/external/shaders/`
+- **Presets**: NTSC, Kapuesu, PowerVR2, Level, Border, Scale
+- **Purpose**: Visual shader effects for retro/arcade aesthetics
+- **Status**: ✅ Included and configured
+- **Default**: NTSC shader preset
+
+All visual resources are automatically configured during setup.

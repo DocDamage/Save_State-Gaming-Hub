@@ -28,6 +28,7 @@ public class MugenTournamentRepository : IMugenTournamentRepository
         {
             var tournament = await _context.MugenTournaments
                 .Include(t => t.Participants)
+                .ThenInclude(p => p.Character)
                 .Include(t => t.Matches)
                 .FirstOrDefaultAsync(t => t.Id == id, ct)
                 .ConfigureAwait(false);
@@ -59,6 +60,7 @@ public class MugenTournamentRepository : IMugenTournamentRepository
             var tournaments = await _context.MugenTournaments
                 .AsNoTracking()
                 .Include(t => t.Participants)
+                .ThenInclude(p => p.Character)
                 .Include(t => t.Matches)
                 .ToListAsync(ct)
                 .ConfigureAwait(false);
@@ -103,6 +105,7 @@ public class MugenTournamentRepository : IMugenTournamentRepository
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .Include(t => t.Participants)
+                .ThenInclude(p => p.Character)
                 .Include(t => t.Matches)
                 .AsNoTracking()
                 .ToListAsync(ct)
@@ -162,6 +165,7 @@ public class MugenTournamentRepository : IMugenTournamentRepository
             var tournaments = await _context.MugenTournaments
                 .Where(t => t.Status == status)
                 .Include(t => t.Participants)
+                .ThenInclude(p => p.Character)
                 .Include(t => t.Matches)
                 .AsNoTracking()
                 .ToListAsync(ct)

@@ -71,6 +71,23 @@ public class MemoryCacheService : ICacheService
         }
     }
 
+    public Task SetAsync<T>(string key, T value, TimeSpan? expiration = null, CancellationToken ct = default)
+    {
+        Set(key, value, expiration);
+        return Task.CompletedTask;
+    }
+
+    public Task<T?> GetAsync<T>(string key, CancellationToken ct = default)
+    {
+        Interlocked.Increment(ref _totalRequests);
+        if (_cache.TryGetValue(key, out T? value))
+        {
+            Interlocked.Increment(ref _cacheHits);
+            return Task.FromResult(value);
+        }
+        return Task.FromResult<T?>(default);
+    }
+
     /// <summary>
     /// PERFORMANCE OPTIMIZATION: Gets multiple values from the cache efficiently.
     /// </summary>

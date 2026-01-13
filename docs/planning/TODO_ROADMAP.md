@@ -1,37 +1,64 @@
 # TODO Implementation Roadmap
 
-**Last Updated**: January 7, 2026
+**Last Updated**: January 13, 2026 09:35 EST
 **Status**: 2/15 Complete (13.3%)
+**Build Status**: ✅ Infrastructure Layer (0 errors) | ⚠️ Implementation Updates Needed (66 errors)
 **Objective**: Systematically implement all remaining TODO placeholders with complete service implementations
+
+> **📋 NEW**: See `TECHNICAL_DEBT_TASKS_2026-01-13.md` for comprehensive technical debt breakdown (47 tasks)
+> **🎉 MILESTONE**: Phase 1 Build Stabilization COMPLETE - See `BUILD_FIX_SESSION_2026-01-13.md`
 
 ## Overview
 
 This document tracks the systematic implementation of the remaining 25 TODO items identified in the codebase. Following user feedback to "create the service, don't leave it as a placeholder", each TODO will be fully implemented with proper architecture, testing, and documentation.
 
+**Current Priority**: ✅ Phase 1 Complete - Continue with Phase 2 (implementation updates) to resolve 66 remaining errors.
+
 ## Completion Status
 
 - ✅ **Completed**: 2
-- 🔄 **In Progress**: 1
+- 🔄 **In Progress**: 1 (Build Stabilization - Phase 1 Complete, Phase 2 In Progress)
 - ⏳ **Pending**: 12
 - **Total**: 15
+
+## Recent Progress (January 13, 2026)
+
+### Phase 1: Build Stabilization ✅ COMPLETE
+
+- Fixed all 24 original build errors in Presentation layer
+- Created 5 missing service interfaces (Template, Validation, Balancing, Export, Test)
+- Created 8 new value objects (FrameData, MoveComparison, CharacterBalanceAnalysis, etc.)
+- Resolved 4 type ambiguities
+- Infrastructure layer builds successfully (0 errors)
+- **Time**: 24 minutes (2.7x faster than estimated)
+
+## Related Documents
+
+- `BUILD_FIX_SESSION_2026-01-13.md` - Detailed Phase 1 completion report
+- `TECHNICAL_DEBT_TASKS_2026-01-13.md` - Detailed task breakdown from technical debt report
+- `docs/reports/TECHNICAL_DEBT_REPORT_2026-01-13.md` - Full technical debt analysis
 
 ---
 
 ## High Priority - Infrastructure Services (8 items)
 
 ### 1. ✅ UserService Implementation
+
 **Status**: COMPLETED
 **Location**: `src/SaveState.Infrastructure/UserManagement/UserService.cs`
 **Files Created**:
+
 - `src/SaveState.Core/UserManagement/Services/IUserService.cs`
 - `src/SaveState.Infrastructure/UserManagement/UserService.cs`
 
 **Files Modified**:
+
 - `src/SaveState.Core/UserManagement/Entities/User.cs` - Added `UpdateUsername()` method
 - `src/SaveState.Infrastructure/DependencyInjection.cs` - Registered service
 - `src/SaveState.Application/Social/Commands/UpdateLeaderboardRankingCommandHandler.cs` - Integrated service
 
 **What Was Done**:
+
 - Created IUserService interface with 4 methods (GetUsernameAsync, GetCurrentUserId, GetCurrentUsernameAsync, UpdateUsernameAsync)
 - Implemented full service with EF Core database access
 - Added structured logging with LoggerMessage source generators
@@ -43,12 +70,14 @@ This document tracks the systematic implementation of the remaining 25 TODO item
 ---
 
 ### 2. 🔄 AchievementService.CheckForUnlockedAchievementsAsync
+
 **Status**: IN PROGRESS
 **Location**: `src/SaveState.Infrastructure/GameLibrary/Services/AchievementService.cs:20-28`
 **Priority**: HIGH
 **Complexity**: MEDIUM
 
 **Current Implementation**:
+
 ```csharp
 public Task<IReadOnlyList<Achievement>> CheckForUnlockedAchievementsAsync(Guid userId, CancellationToken ct = default)
 {
@@ -62,6 +91,7 @@ public Task<IReadOnlyList<Achievement>> CheckForUnlockedAchievementsAsync(Guid u
 ```
 
 **Implementation Plan**:
+
 1. ✅ Identify required dependencies:
    - `IGameSessionRepository` - Query user gaming sessions
    - `IAchievementRepository` - Fetch achievements and user progress
@@ -81,10 +111,12 @@ public Task<IReadOnlyList<Achievement>> CheckForUnlockedAchievementsAsync(Guid u
 6. ⏳ Add structured logging for unlock events
 
 **Dependencies Identified**:
+
 - `IGameSessionRepository` - Available at `src/SaveState.Core/GameLibrary/IGameSessionRepository.cs`
 - `IAchievementRepository` - Available at `src/SaveState.Core/GameLibrary/IAchievementRepository.cs`
 
 **Achievement Types**:
+
 - `GameCompletion` - Track game completion
 - `PlayTime` - Track hours played
 - `Collection` - Track library size
@@ -92,6 +124,7 @@ public Task<IReadOnlyList<Achievement>> CheckForUnlockedAchievementsAsync(Guid u
 - `Special` - Custom criteria
 
 **Files to Modify**:
+
 - `src/SaveState.Infrastructure/GameLibrary/Services/AchievementService.cs`
 
 **Estimated Effort**: 2-3 hours
@@ -99,12 +132,14 @@ public Task<IReadOnlyList<Achievement>> CheckForUnlockedAchievementsAsync(Guid u
 ---
 
 ### 3. ⏳ ApiAuthService - API Key Entity Creation
+
 **Status**: PENDING
 **Location**: `src/SaveState.Infrastructure/Api/ApiAuthService.cs:50-54`
 **Priority**: HIGH
 **Complexity**: MEDIUM
 
 **Current Implementation**:
+
 ```csharp
 public async Task<Result<ApiKeyDto>> CreateApiKeyAsync(Guid userId, string name, string description, DateTimeOffset? expiresAt, CancellationToken ct = default)
 {
@@ -114,6 +149,7 @@ public async Task<Result<ApiKeyDto>> CreateApiKeyAsync(Guid userId, string name,
 ```
 
 **Implementation Plan**:
+
 1. Create `ApiKey` entity in `src/SaveState.Core/UserManagement/Entities/ApiKey.cs`
    - Properties: Id, UserId, Name, Description, KeyHash, ExpiresAt, CreatedAt, RevokedAt, IsRevoked
    - Methods: Revoke(), IsExpired(), IsValid()
@@ -129,10 +165,12 @@ public async Task<Result<ApiKeyDto>> CreateApiKeyAsync(Guid userId, string name,
 6. Add structured logging
 
 **Files to Create**:
+
 - `src/SaveState.Core/UserManagement/Entities/ApiKey.cs`
 - `src/SaveState.Infrastructure/Persistence/Configurations/ApiKeyConfiguration.cs`
 
 **Files to Modify**:
+
 - `src/SaveState.Infrastructure/Persistence/SaveStateDbContext.cs`
 - `src/SaveState.Infrastructure/Api/ApiAuthService.cs`
 
@@ -141,12 +179,14 @@ public async Task<Result<ApiKeyDto>> CreateApiKeyAsync(Guid userId, string name,
 ---
 
 ### 4. ⏳ DataImportService - Achievement and Session Parsing
+
 **Status**: PENDING
 **Location**: `src/SaveState.Infrastructure/DataPortability/DataImportService.cs:51-60, 79-88`
 **Priority**: MEDIUM
 **Complexity**: MEDIUM
 
 **Current Implementation (Achievements)**:
+
 ```csharp
 public Task<Result> ImportAchievementsAsync(string filePath, CancellationToken ct = default)
 {
@@ -158,6 +198,7 @@ public Task<Result> ImportAchievementsAsync(string filePath, CancellationToken c
 ```
 
 **Current Implementation (Sessions)**:
+
 ```csharp
 public Task<Result> ImportSessionHistoryAsync(string filePath, CancellationToken ct = default)
 {
@@ -169,6 +210,7 @@ public Task<Result> ImportSessionHistoryAsync(string filePath, CancellationToken
 ```
 
 **Implementation Plan**:
+
 1. Design import JSON schema matching export format from DataExportService
 2. Create DTOs for deserialization
 3. Implement ImportAchievementsAsync:
@@ -188,6 +230,7 @@ public Task<Result> ImportSessionHistoryAsync(string filePath, CancellationToken
 5. Add structured logging for import progress
 
 **Files to Modify**:
+
 - `src/SaveState.Infrastructure/DataPortability/DataImportService.cs`
 
 **Estimated Effort**: 2-3 hours
@@ -195,12 +238,14 @@ public Task<Result> ImportSessionHistoryAsync(string filePath, CancellationToken
 ---
 
 ### 5. ⏳ ModManagementService - Installation and Deletion Pipeline
+
 **Status**: PENDING
 **Location**: `src/SaveState.Infrastructure/GameLibrary/Services/ModManagementService.cs:20-32, 34-46`
 **Priority**: MEDIUM
 **Complexity**: HIGH
 
 **Current Implementation (Install)**:
+
 ```csharp
 public Task<Result> InstallModAsync(Guid gameId, string modFilePath, CancellationToken ct = default)
 {
@@ -215,6 +260,7 @@ public Task<Result> InstallModAsync(Guid gameId, string modFilePath, Cancellatio
 ```
 
 **Current Implementation (Uninstall)**:
+
 ```csharp
 public Task<Result> UninstallModAsync(Guid modId, CancellationToken ct = default)
 {
@@ -229,6 +275,7 @@ public Task<Result> UninstallModAsync(Guid modId, CancellationToken ct = default
 ```
 
 **Implementation Plan**:
+
 1. Add NuGet package for archive extraction (SharpCompress)
 2. Implement InstallModAsync:
    - Validate mod file format (.zip, .7z, .rar)
@@ -248,6 +295,7 @@ public Task<Result> UninstallModAsync(Guid modId, CancellationToken ct = default
 5. Add structured logging and progress reporting
 
 **Files to Modify**:
+
 - `src/SaveState.Infrastructure/GameLibrary/Services/ModManagementService.cs`
 - `src/SaveState.Infrastructure/SaveState.Infrastructure.csproj` (add SharpCompress)
 
@@ -256,12 +304,14 @@ public Task<Result> UninstallModAsync(Guid modId, CancellationToken ct = default
 ---
 
 ### 6. ⏳ PluginMarketplaceService - Marketplace API Integration
+
 **Status**: PENDING
 **Location**: `src/SaveState.Infrastructure/Plugins/PluginMarketplaceService.cs:23-32, 34-42, 44-53`
 **Priority**: LOW
 **Complexity**: HIGH
 
 **Current Implementation (Browse)**:
+
 ```csharp
 public Task<Result<IEnumerable<PluginListingDto>>> BrowsePluginsAsync(CancellationToken ct = default)
 {
@@ -273,6 +323,7 @@ public Task<Result<IEnumerable<PluginListingDto>>> BrowsePluginsAsync(Cancellati
 ```
 
 **Implementation Plan**:
+
 1. Design plugin marketplace API specification (REST endpoints)
 2. Create marketplace DTOs (PluginListingDto, PluginManifest, etc.)
 3. Implement HTTP client with IHttpClientFactory
@@ -283,6 +334,7 @@ public Task<Result<IEnumerable<PluginListingDto>>> BrowsePluginsAsync(Cancellati
 8. Add structured logging
 
 **Files to Modify**:
+
 - `src/SaveState.Infrastructure/Plugins/PluginMarketplaceService.cs`
 
 **Estimated Effort**: 6-8 hours (requires marketplace API design)
@@ -290,12 +342,14 @@ public Task<Result<IEnumerable<PluginListingDto>>> BrowsePluginsAsync(Cancellati
 ---
 
 ### 7. ⏳ RetroArchService - Cloud Sync and RetroAchievements
+
 **Status**: PENDING
 **Location**: `src/SaveState.Infrastructure/RetroArch/RetroArchService.cs:34-42, 44-52`
 **Priority**: MEDIUM
 **Complexity**: HIGH
 
 **Current Implementation (Cloud Sync)**:
+
 ```csharp
 public Task<Result> SyncCloudSavesAsync(Guid gameId, CancellationToken ct = default)
 {
@@ -308,6 +362,7 @@ public Task<Result> SyncCloudSavesAsync(Guid gameId, CancellationToken ct = defa
 ```
 
 **Current Implementation (RetroAchievements)**:
+
 ```csharp
 public Task<Result<IEnumerable<Achievement>>> FetchRetroAchievementsAsync(string gameHash, CancellationToken ct = default)
 {
@@ -320,6 +375,7 @@ public Task<Result<IEnumerable<Achievement>>> FetchRetroAchievementsAsync(string
 ```
 
 **Implementation Plan**:
+
 1. Research RetroArch cloud save API (if available)
 2. Research RetroAchievements.org API documentation
 3. Create HTTP client with IHttpClientFactory
@@ -328,6 +384,7 @@ public Task<Result<IEnumerable<Achievement>>> FetchRetroAchievementsAsync(string
 6. Add structured logging
 
 **Files to Modify**:
+
 - `src/SaveState.Infrastructure/RetroArch/RetroArchService.cs`
 
 **Estimated Effort**: 6-8 hours
@@ -335,12 +392,14 @@ public Task<Result<IEnumerable<Achievement>>> FetchRetroAchievementsAsync(string
 ---
 
 ### 8. ⏳ ChallengeProgressService - Recalculation Process
+
 **Status**: PENDING
 **Location**: `src/SaveState.Infrastructure/Social/ChallengeProgressService.cs:24-37`
 **Priority**: MEDIUM
 **Complexity**: MEDIUM
 
 **Current Implementation**:
+
 ```csharp
 public Task<Result> RecalculateChallengeProgressAsync(Guid challengeId, Guid userId, CancellationToken ct = default)
 {
@@ -356,6 +415,7 @@ public Task<Result> RecalculateChallengeProgressAsync(Guid challengeId, Guid use
 ```
 
 **Implementation Plan**:
+
 1. Define challenge types and rules structure
 2. Implement data aggregation for each challenge type
 3. Calculate progress percentage
@@ -364,6 +424,7 @@ public Task<Result> RecalculateChallengeProgressAsync(Guid challengeId, Guid use
 6. Add structured logging
 
 **Files to Modify**:
+
 - `src/SaveState.Infrastructure/Social/ChallengeProgressService.cs`
 
 **Estimated Effort**: 3-4 hours
@@ -373,12 +434,14 @@ public Task<Result> RecalculateChallengeProgressAsync(Guid challengeId, Guid use
 ## Medium Priority - Enhanced Services (1 item)
 
 ### 9. ⏳ GameRecommendationService - ML-Based Engine Enhancement
+
 **Status**: PENDING
 **Location**: `src/SaveState.Infrastructure/Recommendations/RecommendationService.cs:58-66`
 **Priority**: LOW
 **Complexity**: HIGH
 
 **Current Implementation**:
+
 ```csharp
 private List<Game> ApplyMachineLearningRanking(List<Game> candidates)
 {
@@ -392,6 +455,7 @@ private List<Game> ApplyMachineLearningRanking(List<Game> candidates)
 ```
 
 **Implementation Plan**:
+
 1. Research ML.NET for .NET-based machine learning
 2. Design recommendation model (collaborative + content-based hybrid)
 3. Implement training pipeline using user play history
@@ -400,6 +464,7 @@ private List<Game> ApplyMachineLearningRanking(List<Game> candidates)
 6. Add structured logging
 
 **Files to Modify**:
+
 - `src/SaveState.Infrastructure/Recommendations/RecommendationService.cs`
 - `src/SaveState.Infrastructure/SaveState.Infrastructure.csproj` (add ML.NET)
 
@@ -410,12 +475,14 @@ private List<Game> ApplyMachineLearningRanking(List<Game> candidates)
 ## Low Priority - UI ViewModels (5 items)
 
 ### 10. ⏳ GameMediaTabViewModel - Storage and Media Operations
+
 **Status**: PENDING
 **Location**: `src/SaveState.Presentation/ViewModels/Library/GameDetail/GameMediaTabViewModel.cs:31-36`
 **Priority**: MEDIUM
 **Complexity**: MEDIUM
 
 **Current Implementation**:
+
 ```csharp
 partial void OnSelectedMediaChanged(GameMedia? value)
 {
@@ -427,6 +494,7 @@ partial void OnSelectedMediaChanged(GameMedia? value)
 ```
 
 **Implementation Plan**:
+
 1. Implement media loading from file system
 2. Add image viewer with zoom/pan controls
 3. Add video player integration
@@ -434,6 +502,7 @@ partial void OnSelectedMediaChanged(GameMedia? value)
 5. Add media upload/import functionality
 
 **Files to Modify**:
+
 - `src/SaveState.Presentation/ViewModels/Library/GameDetail/GameMediaTabViewModel.cs`
 - Create corresponding View if not exists
 
@@ -442,12 +511,14 @@ partial void OnSelectedMediaChanged(GameMedia? value)
 ---
 
 ### 11. ⏳ GameSaveStatesTabViewModel - Save State Operations
+
 **Status**: PENDING
 **Location**: `src/SaveState.Presentation/ViewModels/Library/GameDetail/GameSaveStatesTabViewModel.cs:66-71, 81-86`
 **Priority**: HIGH
 **Complexity**: MEDIUM
 
 **Current Implementation (Load)**:
+
 ```csharp
 [RelayCommand]
 private async Task LoadSaveStateAsync()
@@ -460,6 +531,7 @@ private async Task LoadSaveStateAsync()
 ```
 
 **Current Implementation (Delete)**:
+
 ```csharp
 [RelayCommand]
 private async Task DeleteSaveStateAsync()
@@ -473,6 +545,7 @@ private async Task DeleteSaveStateAsync()
 ```
 
 **Implementation Plan**:
+
 1. Implement LoadSaveStateAsync with file copy operation
 2. Add dialog service integration for confirmation
 3. Implement DeleteSaveStateAsync with file deletion
@@ -480,6 +553,7 @@ private async Task DeleteSaveStateAsync()
 5. Implement refresh logic
 
 **Files to Modify**:
+
 - `src/SaveState.Presentation/ViewModels/Library/GameDetail/GameSaveStatesTabViewModel.cs`
 
 **Estimated Effort**: 3-4 hours
@@ -487,12 +561,14 @@ private async Task DeleteSaveStateAsync()
 ---
 
 ### 12. ⏳ GameModsTabViewModel - Mod Management UI
+
 **Status**: PENDING
 **Location**: `src/SaveState.Presentation/ViewModels/Library/GameDetail/GameModsTabViewModel.cs:63-70, 79-85`
 **Priority**: MEDIUM
 **Complexity**: MEDIUM
 
 **Current Implementation (Install)**:
+
 ```csharp
 [RelayCommand]
 private async Task InstallModAsync()
@@ -506,6 +582,7 @@ private async Task InstallModAsync()
 ```
 
 **Current Implementation (Uninstall)**:
+
 ```csharp
 [RelayCommand]
 private async Task UninstallModAsync()
@@ -519,6 +596,7 @@ private async Task UninstallModAsync()
 ```
 
 **Implementation Plan**:
+
 1. Integrate file picker dialog for mod selection
 2. Implement InstallModAsync with progress tracking
 3. Add confirmation dialog for uninstall
@@ -526,6 +604,7 @@ private async Task UninstallModAsync()
 5. Add mod list refresh logic
 
 **Files to Modify**:
+
 - `src/SaveState.Presentation/ViewModels/Library/GameDetail/GameModsTabViewModel.cs`
 
 **Estimated Effort**: 3-4 hours
@@ -535,22 +614,26 @@ private async Task UninstallModAsync()
 ---
 
 ### 13. ⏳ Dashboard Widgets - Navigation and Integration
+
 **Status**: PENDING
 **Location**: `src/SaveState.Presentation/Services/Dashboard/Widgets/*.cs` (multiple files)
 **Priority**: MEDIUM
 **Complexity**: LOW
 
 **Affected Files**:
+
 - `EmulatorStatusWidget.cs:30-35` - Navigation to emulator settings
 - `TodaysStatsWidget.cs:35-40` - Navigation to analytics dashboard
 
 **Implementation Plan**:
+
 1. Integrate NavigationService into widgets
 2. Implement navigation commands
 3. Add parameter passing for navigation context
 4. Test navigation flow
 
 **Files to Modify**:
+
 - `src/SaveState.Presentation/Services/Dashboard/Widgets/EmulatorStatusWidget.cs`
 - `src/SaveState.Presentation/Services/Dashboard/Widgets/TodaysStatsWidget.cs`
 
@@ -559,12 +642,14 @@ private async Task UninstallModAsync()
 ---
 
 ### 14. ⏳ MacroRecorderViewModel - Recording Functionality
+
 **Status**: PENDING
 **Location**: `src/SaveState.Presentation/ViewModels/Dialogs/MacroRecorderDialogViewModel.cs:53-61, 70-75, 84-89`
 **Priority**: LOW
 **Complexity**: HIGH
 
 **Current Implementation (Record)**:
+
 ```csharp
 [RelayCommand(CanExecute = nameof(CanRecord))]
 private async Task RecordAsync()
@@ -578,6 +663,7 @@ private async Task RecordAsync()
 ```
 
 **Implementation Plan**:
+
 1. Implement low-level input capture (keyboard/mouse hooks)
 2. Record input events with timestamps
 3. Implement playback functionality
@@ -585,6 +671,7 @@ private async Task RecordAsync()
 5. Add UI state management for recording/playing
 
 **Files to Modify**:
+
 - `src/SaveState.Presentation/ViewModels/Dialogs/MacroRecorderDialogViewModel.cs`
 
 **Estimated Effort**: 6-8 hours (requires low-level input APIs)
@@ -594,16 +681,19 @@ private async Task RecordAsync()
 ## Deferred / Optional
 
 ### 15. ✅ DataExportService - Settings Integration
+
 **Status**: COMPLETED (DEFERRED)
 **Location**: `src/SaveState.Infrastructure/DataPortability/DataExportService.cs:154-155`
 **Decision**: Converted TODO to clarifying note - acceptable to use placeholder settings until ISettingsService is created
 
 **Original TODO**:
+
 ```csharp
 // TODO: Integrate with ISettingsService to export actual user preferences
 ```
 
 **Resolution**:
+
 ```csharp
 // Note: Settings service integration pending - using defaults for now
 // Future enhancement: Create ISettingsService to manage user preferences
@@ -613,7 +703,8 @@ private async Task RecordAsync()
 
 ## Implementation Guidelines
 
-### For Each TODO:
+### For Each TODO
+
 1. ✅ Read and understand the current placeholder implementation
 2. ✅ Identify all required dependencies (repositories, services)
 3. ✅ Create any missing entities or DTOs
@@ -625,7 +716,8 @@ private async Task RecordAsync()
 9. ✅ Write unit tests for the implementation
 10. ✅ Update this roadmap document with completion status
 
-### Architecture Principles:
+### Architecture Principles
+
 - **Clean Architecture**: Core → Application → Infrastructure → Presentation
 - **CQRS**: Commands and queries separated with MediatR
 - **Result Pattern**: All methods return `Result<T>` or `Result` (no null)
@@ -639,22 +731,26 @@ private async Task RecordAsync()
 ## Progress Tracking
 
 ### Week 1 (January 7-13, 2026)
+
 - ✅ UserService implementation (4 hours)
 - 🔄 AchievementService criteria evaluation (in progress)
 - ⏳ ApiAuthService API key entity creation
 - ⏳ DataImportService parsing logic
 
 ### Week 2 (January 14-20, 2026)
+
 - ⏳ ModManagementService installation pipeline
 - ⏳ ChallengeProgressService recalculation
 - ⏳ GameSaveStatesTabViewModel operations
 
 ### Week 3 (January 21-27, 2026)
+
 - ⏳ GameMediaTabViewModel functionality
 - ⏳ GameModsTabViewModel UI
 - ⏳ Dashboard widgets navigation
 
 ### Week 4+ (January 28+, 2026)
+
 - ⏳ PluginMarketplaceService (low priority)
 - ⏳ RetroArchService (low priority)
 - ⏳ GameRecommendationService ML enhancement (low priority)

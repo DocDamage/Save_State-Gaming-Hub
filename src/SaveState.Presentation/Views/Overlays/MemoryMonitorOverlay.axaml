@@ -3,45 +3,193 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SaveState.Presentation.ViewModels.Overlays"
-             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="400"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="500"
              x:Class="SaveState.Presentation.Views.Overlays.MemoryMonitorOverlay"
              x:DataType="vm:MemoryMonitorOverlayViewModel">
 
-    <Border Background="#CC000000" CornerRadius="8" BorderBrush="#33FFFFFF" BorderThickness="1" Width="300">
-        <Grid RowDefinitions="Auto, *, Auto">
+    <UserControl.Styles>
+        <!-- Value change animation -->
+        <Style Selector="TextBlock.value-changed">
+            <Style.Animations>
+                <Animation Duration="0:0:0.3" IterationCount="1">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Foreground" Value="#FFD700"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Foreground" Value="#4CAF50"/>
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <!-- Frozen indicator -->
+        <Style Selector="Border.frozen">
+            <Setter Property="Background" Value="#334CAF50"/>
+            <Setter Property="BorderBrush" Value="#4CAF50"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <!-- Watch item hover -->
+        <Style Selector="Border.watch-item:pointerover">
+            <Setter Property="Background" Value="#22FFFFFF"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="#DD0A0A0A"
+            CornerRadius="12"
+            BorderBrush="#44FFFFFF"
+            BorderThickness="1"
+            Width="400"
+            BoxShadow="0 8 32 #40000000">
+        <Grid RowDefinitions="Auto, Auto, *, Auto" Margin="16">
+
             <!-- Header -->
-            <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="10">
-                <TextBlock Text="{Binding Title}" Foreground="White" FontWeight="Bold"/>
-                <Button Grid.Column="1" Content="✕" Command="{Binding CloseCommand}"
-                        Background="Transparent" Foreground="White" Padding="2" Margin="5,0,0,0"/>
+            <Grid Grid.Row="0" ColumnDefinitions="*, Auto, Auto">
+                <StackPanel>
+                    <TextBlock Text="{Binding Title}"
+                               Foreground="White"
+                               FontWeight="Bold"
+                               FontSize="16"/>
+                    <TextBlock Text="Real-time Memory Monitor"
+                               Foreground="#88FFFFFF"
+                               FontSize="11"
+                               Margin="0,2,0,0"/>
+                </StackPanel>
+
+                <!-- Monitoring indicator -->
+                <Border Grid.Column="1"
+                        Background="#4CAF50"
+                        CornerRadius="4"
+                        Padding="6,2"
+                        Margin="0,0,8,0"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding IsMonitoring}">
+                    <TextBlock Text="● LIVE"
+                               Foreground="White"
+                               FontSize="10"
+                               FontWeight="Bold"/>
+                </Border>
+
+                <Button Grid.Column="2"
+                        Content="✕"
+                        Command="{Binding CloseCommand}"
+                        Background="Transparent"
+                        Foreground="#CCFFFFFF"
+                        Padding="8,4"
+                        FontSize="16"
+                        VerticalAlignment="Center"/>
             </Grid>
 
-            <!-- List -->
-            <ScrollViewer Grid.Row="1" Height="250">
+            <!-- Stats bar -->
+            <Border Grid.Row="1"
+                    Background="#11FFFFFF"
+                    CornerRadius="6"
+                    Padding="8"
+                    Margin="0,12,0,0">
+                <Grid ColumnDefinitions="*, *">
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="WATCHES"
+                                   Foreground="#88FFFFFF"
+                                   FontSize="9"/>
+                        <TextBlock Text="{Binding WatchedAddresses.Count}"
+                                   Foreground="White"
+                                   FontSize="16"
+                                   FontWeight="Bold"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="PROCESS ID"
+                                   Foreground="#88FFFFFF"
+                                   FontSize="9"/>
+                        <TextBlock Text="{Binding ProcessId}"
+                                   Foreground="White"
+                                   FontSize="16"
+                                   FontWeight="Bold"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Watch list -->
+            <ScrollViewer Grid.Row="2" Margin="0,12,0,0">
                 <ItemsControl ItemsSource="{Binding WatchedAddresses}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Grid ColumnDefinitions="*, Auto, Auto, Auto" Margin="10,5">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Text="{Binding Label}" Foreground="White" FontWeight="Bold"/>
-                                    <TextBlock Text="{Binding Address}" Foreground="#88FFFFFF" FontSize="10"/>
-                                </StackPanel>
+                            <Border Classes="watch-item"
+                                    Background="#08FFFFFF"
+                                    CornerRadius="8"
+                                    Padding="12"
+                                    Margin="0,0,0,8">
+                                <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="*, Auto">
 
-                                <TextBlock Grid.Column="1" Text="{Binding Type}" Foreground="#88FFFFFF" FontSize="10" VerticalAlignment="Center" Margin="10,0"/>
+                                    <!-- Label and Address -->
+                                    <StackPanel Grid.Row="0" Grid.Column="0">
+                                        <TextBlock Text="{Binding Label}"
+                                                   Foreground="White"
+                                                   FontWeight="SemiBold"
+                                                   FontSize="13"/>
+                                        <TextBlock Text="{Binding Address}"
+                                                   Foreground="#66FFFFFF"
+                                                   FontSize="10"
+                                                   FontFamily="Consolas"
+                                                   Margin="0,2,0,0"/>
+                                    </StackPanel>
 
-                                <TextBlock Grid.Column="2" Text="{Binding Value}" Foreground="#4CAF50" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0"/>
+                                    <!-- Freeze toggle -->
+                                    <ToggleButton Grid.Row="0" Grid.Column="1"
+                                                  IsChecked="{Binding IsFrozen}"
+                                                  ToolTip.Tip="Freeze Value"
+                                                  VerticalAlignment="Top"
+                                                  Width="32" Height="32"
+                                                  Padding="0">
+                                        <Path Data="M12,2A7,7 0 0,1 19,9C19,11.38 17.19,13.47 14.85,13.91V17A1,1 0 0,1 14,18H10A1,1 0 0,1 9,17V13.91C6.61,13.47 5,11.38 5,9A7,7 0 0,1 12,2M12,4A5,5 0 0,0 7,9C7,11.05 8.23,12.81 10,13.58V16H14V13.58C15.77,12.81 17,11.05 17,9A5,5 0 0,0 12,4Z"
+                                              Fill="{Binding IsFrozen, Converter={StaticResource BoolToColorConverter}}"
+                                              Width="16" Height="16"
+                                              Stretch="Uniform"/>
+                                    </ToggleButton>
 
-                                <CheckBox Grid.Column="3" IsChecked="{Binding IsFrozen}" ToolTip.Tip="Freeze Value"/>
-                            </Grid>
+                                    <!-- Type and Value -->
+                                    <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                          ColumnDefinitions="Auto, *"
+                                          Margin="0,8,0,0">
+                                        <Border Grid.Column="0"
+                                                Background="#22FFFFFF"
+                                                CornerRadius="4"
+                                                Padding="6,2">
+                                            <TextBlock Text="{Binding Type}"
+                                                       Foreground="#88FFFFFF"
+                                                       FontSize="10"
+                                                       FontFamily="Consolas"/>
+                                        </Border>
+
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Value}"
+                                                   Foreground="#4CAF50"
+                                                   FontWeight="Bold"
+                                                   FontSize="16"
+                                                   FontFamily="Consolas"
+                                                   HorizontalAlignment="Right"
+                                                   VerticalAlignment="Center"
+                                                   Classes.value-changed="{Binding HasChanged}"/>
+                                    </Grid>
+                                </Grid>
+                            </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
 
-            <!-- Footer -->
-            <Button Grid.Row="2" Content="Add Address" Command="{Binding AddAddressCommand}"
-                    HorizontalAlignment="Stretch" Margin="10"
-                    Background="#33FFFFFF" Foreground="White"/>
+            <!-- Add button -->
+            <Button Grid.Row="3"
+                    Content="＋ Add Memory Watch"
+                    Command="{Binding AddAddressCommand}"
+                    HorizontalAlignment="Stretch"
+                    Margin="0,12,0,0"
+                    Background="#224CAF50"
+                    Foreground="White"
+                    BorderBrush="#4CAF50"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="12,8"
+                    FontWeight="SemiBold"/>
         </Grid>
     </Border>
 </UserControl>

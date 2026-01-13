@@ -342,6 +342,12 @@ public class VirtualCollectionService : IVirtualCollectionService
         if (filter.Status.HasValue)
             filtered = filtered.Where(g => g.Status == filter.Status.Value);
 
+        if (filter.IsCompleted.HasValue)
+            filtered = filtered.Where(g => g.IsCompleted == filter.IsCompleted.Value);
+
+        if (!string.IsNullOrEmpty(filter.Tag))
+            filtered = filtered.Where(g => g.Tags.Any(tag => string.Equals(tag, filter.Tag, StringComparison.OrdinalIgnoreCase)));
+
         // Note: Rating filtering depends on Game entity having rating properties
 
         return filtered.ToList();

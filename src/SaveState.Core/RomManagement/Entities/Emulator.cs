@@ -40,6 +40,22 @@ public class Emulator : EntityBase
         CommandLineArgs = args;
     }
 
+    public void UpdateName(string name)
+    {
+        Name = Guard.Against.NullOrWhiteSpace(name, nameof(name));
+    }
+
+    public void UpdateExecutablePath(FilePath executablePath)
+    {
+        ExecutablePath = Guard.Against.Null(executablePath, nameof(executablePath));
+        CheckAvailability(); // Re-check availability when path changes
+    }
+
+    public void UpdatePlatform(Guid platformId)
+    {
+        PlatformId = platformId;
+    }
+
     public void CheckAvailability()
     {
         IsAvailable = ExecutablePath.Exists();

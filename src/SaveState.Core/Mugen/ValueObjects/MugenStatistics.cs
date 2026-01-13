@@ -15,6 +15,16 @@ public sealed record CharacterStats(
     Guid? WorstMatchupCharacterId);
 
 /// <summary>
+/// Represents global MUGEN statistics across all characters.
+/// </summary>
+public sealed record GlobalStats(
+    int TotalMatches,
+    int TotalWins,
+    int TotalLosses,
+    string? MostPlayedCharacterName,
+    float HighestWinRate);
+
+/// <summary>
 /// Represents matchup statistics between two characters.
 /// </summary>
 public sealed record MatchupStats(

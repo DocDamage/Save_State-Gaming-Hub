@@ -12,7 +12,12 @@ public interface IDialogService
     /// <summary>
     /// Shows a note editor dialog.
     /// </summary>
-    Task<NoteEditorResult?> ShowNoteEditorAsync(Guid? noteId = null, string? initialContent = null);
+    Task<NoteEditorResult?> ShowNoteEditorAsync(
+        Guid? noteId = null,
+        string? initialContent = null,
+        string? title = null,
+        string? category = null,
+        bool isPinned = false);
 
     /// <summary>
     /// Shows a simple input dialog.
@@ -60,6 +65,16 @@ public interface IDialogService
     Task ShowErrorAsync(string title, string message);
 
     /// <summary>
+    /// Shows a warning dialog.
+    /// </summary>
+    Task ShowWarningAsync(string title, string message);
+
+    /// <summary>
+    /// Shows a message dialog with optional icon.
+    /// </summary>
+    Task ShowMessageDialogAsync(string title, string message, string? icon = null);
+
+    /// <summary>
     /// Shows the task creation dialog.
     /// </summary>
     Task<TaskCreationResult?> ShowTaskCreationDialogAsync(ScheduledTaskViewModel? existingTask = null);
@@ -88,6 +103,40 @@ public interface IDialogService
     /// Shows the emulator editor dialog.
     /// </summary>
     Task<EmulatorEditorResult?> ShowEmulatorEditorAsync(SaveState.Presentation.ViewModels.Shell.EmulatorViewModel? existingEmulator = null);
+
+    /// <summary>
+    /// Shows the ROM details dialog.
+    /// </summary>
+    Task ShowRomDetailsDialogAsync(SaveState.Core.RomManagement.Entities.RomFile romFile);
+
+    /// <summary>
+    /// Shows the emulator configuration dialog.
+    /// </summary>
+    Task<EmulatorConfigResult?> ShowEmulatorConfigDialogAsync(SaveState.Core.RomManagement.Entities.Emulator? existingEmulator = null);
+
+    /// <summary>
+    /// Shows the ROM scan progress dialog with the specified scan action.
+    /// </summary>
+    /// <param name="scanAction">The scan action to execute with cancellation support.</param>
+    Task ShowRomScanProgressDialogAsync(Func<CancellationToken, Task> scanAction);
+
+    /// <summary>
+    /// Shows the ROM metadata editing dialog.
+    /// </summary>
+    Task<RomMetadataResult?> ShowRomMetadataDialogAsync(string title, string? description, string? region, string? version);
+
+/// <summary>
+/// Result from the emulator configuration dialog.
+/// </summary>
+public record EmulatorConfigResult(
+    Guid EmulatorId,
+    string Name,
+    string ExecutablePath,
+    Guid PlatformId,
+    string? Version,
+    string? Description,
+    string? CommandLineArgs,
+    bool IsAvailable);
 
     /// <summary>
     /// Shows a folder picker dialog.
@@ -185,6 +234,16 @@ public interface IDialogService
     Task<PriceAlertResult?> ShowPriceAlertDialogAsync(
         string gameTitle,
         double currentPrice);
+
+    /// <summary>
+    /// Shows the price history chart for a game.
+    /// </summary>
+    Task ShowPriceHistoryChartAsync(string gameTitle);
+
+    /// <summary>
+    /// Shows the emulator setup wizard.
+    /// </summary>
+    Task ShowEmulatorSetupWizardAsync();
 }
 
 /// <summary>
@@ -355,6 +414,15 @@ public record WorkflowEditorResult(
     string Name,
     string Description,
     List<WorkflowStepViewModel> Steps);
+
+/// <summary>
+/// Result from the ROM metadata dialog.
+/// </summary>
+public record RomMetadataResult(
+    string Title,
+    string? Description,
+    string? Region,
+    string? Version);
 
 /// <summary>
 /// View model for a workflow step.

@@ -1,6 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Shell;assembly=SaveState.Presentation"
+             xmlns:mvm="using:SaveState.Presentation.ViewModels.Shell.Mugen"
+             xmlns:mviews="using:SaveState.Presentation.Views.Shell.Mugen"
              x:Class="SaveState.Presentation.Views.Shell.MugenHubView"
              x:DataType="vm:MugenHubViewModel"
              Background="{StaticResource BackgroundBrush}">
@@ -10,24 +12,24 @@
         <Border Grid.Row="0" Classes="GlassContainer" Margin="20,20,20,10" Padding="20">
             <Grid ColumnDefinitions="Auto, *, Auto">
                 <StackPanel Orientation="Horizontal" Spacing="10">
-                    <!-- Tournaments Tab -->
-                    <Button Content="🏆 Tournaments"
-                            Command="{Binding ShowTournamentsCommand}"
-                            Classes.Primary="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Tournaments}"
-                            Classes.Secondary="{Binding SelectedTab, Converter={StaticResource InequalityConverter}, ConverterParameter=Tournaments}"
-                            Padding="15,8"
-                            FontWeight="{Binding SelectedTab, Converter={StaticResource EqualityToFontWeightConverter}, ConverterParameter=Tournaments}" />
 
-                    <!-- Characters Tab -->
-                    <Button Content="🥊 Characters"
-                            Command="{Binding ShowCharactersCommand}"
-                            Classes.Primary="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Characters}"
-                            Classes.Secondary="{Binding SelectedTab, Converter={StaticResource InequalityConverter}, ConverterParameter=Characters}"
+
+
+
+
+
+                    <!-- Netplay Tab -->
+                    <Button Content="Netplay"
+                            Command="{Binding ShowNetplayCommand}"
+                            Classes.Primary="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Netplay}"
+                            Classes.Secondary="{Binding SelectedTab, Converter={StaticResource InequalityConverter}, ConverterParameter=Netplay}"
                             Padding="15,8"
-                            FontWeight="{Binding SelectedTab, Converter={StaticResource EqualityToFontWeightConverter}, ConverterParameter=Characters}" />
+                            FontWeight="{Binding SelectedTab, Converter={StaticResource EqualityToFontWeightConverter}, ConverterParameter=Netplay}" />
+
+
 
                     <!-- Statistics Tab -->
-                    <Button Content="📊 Statistics"
+                    <Button Content="Statistics"
                             Command="{Binding ShowStatisticsCommand}"
                             Classes.Primary="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Statistics}"
                             Classes.Secondary="{Binding SelectedTab, Converter={StaticResource InequalityConverter}, ConverterParameter=Statistics}"
@@ -35,7 +37,7 @@
                             FontWeight="{Binding SelectedTab, Converter={StaticResource EqualityToFontWeightConverter}, ConverterParameter=Statistics}" />
 
                     <!-- Settings Tab -->
-                    <Button Content="⚙️ Settings"
+                    <Button Content="Settings"
                             Command="{Binding ShowSettingsCommand}"
                             Classes.Primary="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Settings}"
                             Classes.Secondary="{Binding SelectedTab, Converter={StaticResource InequalityConverter}, ConverterParameter=Settings}"
@@ -44,7 +46,7 @@
                 </StackPanel>
 
                 <Button Grid.Column="2"
-                        Content="🔄 Refresh"
+                        Content="Refresh"
                         Classes="Secondary"
                         Command="{Binding RefreshCommand}"
                         IsEnabled="{Binding !IsLoading}"
@@ -55,223 +57,65 @@
         <!-- Content Area -->
         <ScrollViewer Grid.Row="1">
             <StackPanel>
-            <!-- TOURNAMENTS TAB -->
-            <Grid IsVisible="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Tournaments}">
-                <Grid ColumnDefinitions="*, 400" Margin="20,0,20,20">
-                    <!-- Tournaments List -->
-                    <Border Classes="GlassContainer" Padding="20" Margin="0,0,10,0">
-                        <Grid RowDefinitions="Auto, Auto, *">
-                            <TextBlock Text="🏆 Tournaments" Classes="SectionHeader" />
 
-                            <!-- Statistics -->
-                            <Grid Grid.Row="1" ColumnDefinitions="*, *, *" Margin="0,15,0,15">
-                                <StackPanel Spacing="5">
-                                    <TextBlock Text="Total" Classes="Label" />
-                                    <TextBlock Text="{Binding TotalTournaments}" FontWeight="Bold" FontSize="20" />
-                                </StackPanel>
 
-                                <StackPanel Grid.Column="1" Spacing="5">
-                                    <TextBlock Text="Active" Classes="Label" />
-                                    <TextBlock Text="{Binding ActiveTournaments}" FontWeight="Bold" FontSize="20" Foreground="#10B981" />
-                                </StackPanel>
 
-                                <StackPanel Grid.Column="2" Spacing="5">
-                                    <TextBlock Text="Completed" Classes="Label" />
-                                    <TextBlock Text="{Binding CompletedTournaments}" FontWeight="Bold" FontSize="20" />
-                                </StackPanel>
-                            </Grid>
 
-                            <!-- Tournaments ItemsControl -->
-                            <ItemsControl Grid.Row="2" ItemsSource="{Binding Tournaments}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Classes="ListItem" Padding="15" Margin="0,0,0,8">
-                                            <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="*, Auto">
-                                                <TextBlock Text="{Binding Name}"
-                                                           FontWeight="SemiBold"
-                                                           FontSize="16" />
-
-                                                <Border Grid.Column="1"
-                                                        Background="#10B981"
-                                                        CornerRadius="4"
-                                                        Padding="6,2"
-                                                        IsVisible="{Binding Status, Converter={StaticResource EqualityConverter}, ConverterParameter=InProgress}">
-                                                    <TextBlock Text="Active" Foreground="White" FontSize="11" />
-                                                </Border>
-
-                                                <Border Grid.Column="1"
-                                                        Background="#3B82F6"
-                                                        CornerRadius="4"
-                                                        Padding="6,2"
-                                                        IsVisible="{Binding Status, Converter={StaticResource EqualityConverter}, ConverterParameter=Completed}">
-                                                    <TextBlock Text="Completed" Foreground="White" FontSize="11" />
-                                                </Border>
-
-                                                <TextBlock Grid.Row="1"
-                                                           Grid.ColumnSpan="2"
-                                                           Text="{Binding Format}"
-                                                           Classes="Subtitle"
-                                                           Margin="0,5,0,0" />
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-
-                            <!-- Empty State -->
-                            <Border Grid.Row="2"
-                                    IsVisible="{Binding Tournaments.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}"
-                                    Padding="40">
-                                <StackPanel Spacing="15" HorizontalAlignment="Center">
-                                    <TextBlock Text="🏆" FontSize="48" HorizontalAlignment="Center" />
-                                    <TextBlock Text="No tournaments yet" Classes="Subtitle" HorizontalAlignment="Center" />
-                                    <TextBlock Text="Create your first tournament to get started" Classes="Subtitle" HorizontalAlignment="Center" />
-                                </StackPanel>
-                            </Border>
-                        </Grid>
-                    </Border>
-
-                    <!-- Create Tournament Panel -->
-                    <Border Grid.Column="1" Classes="GlassContainer" Padding="20" IsVisible="{Binding ShowCreateTournament}">
-                        <Grid RowDefinitions="Auto, *, Auto">
-                            <TextBlock Text="🏆 New Tournament" Classes="SectionHeader" />
-
-                            <StackPanel Grid.Row="1" Spacing="15" Margin="0,15,0,0">
-                                <StackPanel Spacing="5">
-                                    <TextBlock Text="Tournament Name" Classes="Label" />
-                                    <TextBox Text="{Binding TournamentName}" Watermark="e.g. Summer Championship" />
-                                </StackPanel>
-
-                                <StackPanel Spacing="5">
-                                    <TextBlock Text="Format" Classes="Label" />
-                                    <ComboBox ItemsSource="{Binding TournamentFormats}"
-                                              SelectedItem="{Binding SelectedFormat}"
-                                              HorizontalAlignment="Stretch" />
-                                </StackPanel>
-                            </StackPanel>
-
-                            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" Margin="0,15,0,0">
-                                <Button Content="✅ Create"
-                                        Classes="Primary"
-                                        Command="{Binding CreateTournamentCommand}"
-                                        HorizontalAlignment="Stretch" />
-
-                                <Button Content="❌ Cancel"
-                                        Classes="Secondary"
-                                        Command="{Binding CancelCreateTournamentCommand}"
-                                        HorizontalAlignment="Stretch" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-
-                    <!-- Quick Info Panel -->
-                    <Border Grid.Column="1" Classes="GlassContainer" Padding="20" IsVisible="{Binding !ShowCreateTournament}">
-                        <Grid RowDefinitions="Auto, *">
-                            <StackPanel Spacing="10">
-                                <TextBlock Text="💡 Quick Actions" Classes="SectionHeader" />
-                                <Button Content="➕ New Tournament"
-                                        Classes="Primary"
-                                        Command="{Binding ShowCreateTournamentDialogCommand}"
-                                        HorizontalAlignment="Stretch"
-                                        Padding="15,10"
-                                        Margin="0,15,0,0" />
-                            </StackPanel>
-
-                            <ScrollViewer Grid.Row="1" Margin="0,15,0,0">
-                                <StackPanel Spacing="15">
-                                    <Border Background="#1a1a1a" CornerRadius="8" Padding="15">
-                                        <StackPanel Spacing="10">
-                                            <TextBlock Text="🏆 Tournament Formats"
-                                                       FontWeight="SemiBold"
-                                                       FontSize="14" />
-                                            <TextBlock Text="Single Elimination: Fast-paced, one loss and you're out"
-                                                       TextWrapping="Wrap"
-                                                       Classes="Subtitle" />
-                                            <TextBlock Text="Double Elimination: Second chances, losers bracket"
-                                                       TextWrapping="Wrap"
-                                                       Classes="Subtitle" />
-                                            <TextBlock Text="Round Robin: Everyone faces everyone"
-                                                       TextWrapping="Wrap"
-                                                       Classes="Subtitle" />
-                                        </StackPanel>
-                                    </Border>
-                                </StackPanel>
-                            </ScrollViewer>
-                        </Grid>
-                    </Border>
-                </Grid>
-            </Grid>
-
-            <!-- CHARACTERS TAB -->
-            <Grid IsVisible="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Characters}">
+            <!-- NETPLAY TAB -->
+            <Grid IsVisible="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Netplay}">
                 <Border Classes="GlassContainer" Margin="20,0,20,20" Padding="20">
-                     <Grid RowDefinitions="Auto, Auto, *">
-                        <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
-                            <TextBlock Text="🥊 Characters" Classes="SectionHeader" VerticalAlignment="Center"/>
-                            <TextBox Grid.Column="1" Width="200" Text="{Binding SearchText}" Watermark="🔎 Search..." Classes="Rounded"/>
+                    <Grid RowDefinitions="Auto, Auto, *">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Text="Netplay Lobbies" Classes="SectionHeader" />
+                            <Button Grid.Column="1"
+                                    Content="Refresh"
+                                    Classes="Secondary"
+                                    Command="{Binding LoadNetplayCommand}"
+                                    Padding="8,4" />
                         </Grid>
 
-                        <!-- Statistics -->
-                        <Grid Grid.Row="1" ColumnDefinitions="*, *" Margin="0,15,0,15">
-                            <StackPanel Spacing="5">
-                                <TextBlock Text="Total Characters" Classes="Label" />
-                                <TextBlock Text="{Binding TotalCharacters}" FontWeight="Bold" FontSize="20" />
-                            </StackPanel>
+                        <StackPanel Grid.Row="1" Spacing="6">
+                            <TextBlock Text="{Binding NetplayStatus}" Classes="Caption" />
+                            <ProgressBar IsIndeterminate="True"
+                                         Height="4"
+                                         IsVisible="{Binding IsNetplayLoading}" />
+                        </StackPanel>
 
-                            <StackPanel Grid.Column="1" Spacing="5">
-                                <TextBlock Text="Favorites" Classes="Label" />
-                                <TextBlock Text="{Binding FavoriteCharacters}" FontWeight="Bold" FontSize="20" Foreground="#FBBF24" />
-                            </StackPanel>
-                        </Grid>
-
-                        <!-- Characters Grid -->
-                        <ItemsControl Grid.Row="2" ItemsSource="{Binding FilteredCharacters}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Classes="ListItem"
-                                                Padding="15"
-                                                Margin="0,0,10,10"
-                                                Width="200">
-                                            <Grid RowDefinitions="Auto, Auto, Auto">
-                                                <TextBlock Text="{Binding DisplayName}"
-                                                           FontWeight="SemiBold"
-                                                           FontSize="14"
-                                                           TextTrimming="CharacterEllipsis" />
-
-                                                <TextBlock Grid.Row="1"
-                                                           Text="{Binding Author}"
-                                                           Classes="Subtitle"
-                                                           Margin="0,5,0,0" />
-
-                                                <Button Grid.Row="2"
-                                                        Content="☆ Favorite"
+                        <ItemsControl Grid.Row="2" ItemsSource="{Binding NetplayLobbies}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="ListItem" Padding="12" Margin="0,0,0,8">
+                                        <Grid ColumnDefinitions="*, Auto">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding Host}" Classes="Caption" />
+                                                <TextBlock Text="{Binding Region, StringFormat='Region: {0}'}" Classes="Caption" />
+                                                <TextBlock Text="{Binding Description}"
+                                                           Classes="Caption"
+                                                           TextWrapping="Wrap"
+                                                           IsVisible="{Binding Description, Converter={StaticResource NullOrEmptyToBoolConverter}, ConverterParameter=Invert}" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="6" HorizontalAlignment="Right">
+                                                <TextBlock Text="{Binding Players, StringFormat='Players: {0}'}" Classes="Caption" />
+                                                <TextBlock Text="{Binding MaxPlayers, StringFormat='Max: {0}'}" Classes="Caption" />
+                                                <Button Content="Join"
                                                         Classes="Secondary"
-                                                        Command="{Binding $parent[ItemsControl].((vm:MugenHubViewModel)DataContext).ToggleFavoriteCommand}"
+                                                        Command="{Binding $parent[ItemsControl].((vm:MugenHubViewModel)DataContext).JoinLobbyCommand}"
                                                         CommandParameter="{Binding}"
-                                                        Padding="8,4"
-                                                        Margin="0,10,0,0"
-                                                        HorizontalAlignment="Stretch" />
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                                                        IsEnabled="{Binding JoinUrl, Converter={StaticResource NullOrEmptyToBoolConverter}, ConverterParameter=Invert}"
+                                                        Padding="6,4" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
 
-                            <!-- Empty State -->
-                            <Border IsVisible="{Binding FilteredCharacters.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}"
-                                    Padding="40">
-                                <StackPanel Spacing="15" HorizontalAlignment="Center">
-                                    <TextBlock Text="🥊" FontSize="48" HorizontalAlignment="Center" />
-                                    <TextBlock Text="No characters found" Classes="Subtitle" HorizontalAlignment="Center" />
-                                    <TextBlock Text="Scan your MUGEN directory to import characters" Classes="Subtitle" HorizontalAlignment="Center" />
-                                </StackPanel>
-                            </Border>
+                        <Border Grid.Row="2"
+                                IsVisible="{Binding NetplayLobbies.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}"
+                                Padding="20">
+                            <TextBlock Text="No lobbies available." Classes="Subtitle" HorizontalAlignment="Center" />
+                        </Border>
                     </Grid>
                 </Border>
             </Grid>
@@ -279,55 +123,290 @@
             <!-- STATISTICS TAB -->
             <Grid IsVisible="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Statistics}">
                 <Border Classes="GlassContainer" Margin="20,0,20,20" Padding="20">
-                    <Grid RowDefinitions="Auto, *">
-                        <TextBlock Text="📊 Recent Matches" Classes="SectionHeader" />
+                    <Grid ColumnDefinitions="*, 360" RowDefinitions="Auto, *">
+                        <TextBlock Grid.ColumnSpan="2" Text="Recent Matches" Classes="SectionHeader" />
 
-                        <ItemsControl Grid.Row="1" Margin="0,15,0,0" ItemsSource="{Binding RecentMatches}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Classes="ListItem" Padding="15" Margin="0,0,0,8">
-                                            <Grid ColumnDefinitions="*, Auto">
-                                                <StackPanel Spacing="5">
-                                                    <TextBlock Text="{Binding Player1CharacterId}"
-                                                               FontWeight="SemiBold" />
-                                                    <TextBlock Text="vs"
-                                                               Classes="Subtitle"
-                                                               FontSize="12" />
-                                                    <TextBlock Text="{Binding Player2CharacterId}"
-                                                               FontWeight="SemiBold" />
-                                                </StackPanel>
+                        <Grid Grid.Row="1" ColumnDefinitions="*, 360" Margin="0,15,0,0">
+                            <StackPanel Grid.Column="0" Spacing="10">
+                                <ItemsControl ItemsSource="{Binding RecentMatches}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Classes="ListItem" Padding="15" Margin="0,0,0,8">
+                                                <Grid ColumnDefinitions="*, Auto">
+                                                    <StackPanel Spacing="5">
+                                                        <TextBlock Text="{Binding Player1CharacterId}"
+                                                                   FontWeight="SemiBold" FontSize="10"/>
+                                                        <TextBlock Text="vs"
+                                                                   Classes="Subtitle"
+                                                                   FontSize="12" />
+                                                        <TextBlock Text="{Binding Player2CharacterId}"
+                                                                   FontWeight="SemiBold" FontSize="10"/>
+                                                    </StackPanel>
 
-                                                <StackPanel Grid.Column="1" Spacing="5" HorizontalAlignment="Right">
-                                                    <TextBlock Text="{Binding Result}"
-                                                               FontWeight="Bold"
-                                                               Foreground="#10B981" />
-                                                    <TextBlock Text="{Binding Duration, StringFormat='{}{0:mm\\:ss}'}"
-                                                               Classes="Subtitle" />
-                                                </StackPanel>
-                                            </Grid>
+                                                    <StackPanel Grid.Column="1" Spacing="5" HorizontalAlignment="Right">
+                                                        <TextBlock Text="{Binding PlayedAt, StringFormat='{}{0:g}'}"
+                                                                   Classes="Subtitle" />
+                                                        <TextBlock Text="{Binding MatchDuration, StringFormat='{}{0:mm\\:ss}'}"
+                                                                   Classes="Subtitle" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- Empty State -->
+                                <Border IsVisible="{Binding RecentMatches.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}"
+                                        Padding="40">
+                                    <StackPanel Spacing="15" HorizontalAlignment="Center">
+                                        <TextBlock Text="No match history yet" Classes="Subtitle" HorizontalAlignment="Center" />
+                                        <TextBlock Text="Play some matches to see statistics" Classes="Subtitle" HorizontalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="15" Margin="15,0,0,0">
+                                <!-- Tier List -->
+                                <Border Classes="GlassContainer" Padding="15">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="Tier List" Classes="SectionHeader" />
+                                        <ItemsControl ItemsSource="{Binding TierList}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Classes="ListItem" Padding="10" Margin="0,0,0,6">
+                                                        <Grid ColumnDefinitions="30, *, Auto, Auto">
+                                                            <TextBlock Text="{Binding Tier}"
+                                                                       FontWeight="Bold"
+                                                                       Foreground="#F59E0B" />
+                                                            <TextBlock Grid.Column="1" Text="{Binding Name}" />
+                                                            <TextBlock Grid.Column="2" Text="{Binding WinRate, StringFormat='{}{0:P0}'}" Classes="Caption" />
+                                                            <TextBlock Grid.Column="3" Text="{Binding Matches}" Classes="Caption" />
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <Border IsVisible="{Binding TierList.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}"
+                                                Padding="10">
+                                            <TextBlock Text="No tier data yet" Classes="Subtitle" />
                                         </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                                    </StackPanel>
+                                </Border>
 
-                            <!-- Empty State -->
-                            <Border IsVisible="{Binding RecentMatches.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}"
-                                    Padding="40">
-                                <StackPanel Spacing="15" HorizontalAlignment="Center">
-                                    <TextBlock Text="📊" FontSize="48" HorizontalAlignment="Center" />
-                                    <TextBlock Text="No match history yet" Classes="Subtitle" HorizontalAlignment="Center" />
-                                    <TextBlock Text="Play some matches to see statistics" Classes="Subtitle" HorizontalAlignment="Center" />
-                                </StackPanel>
-                            </Border>
+                                <!-- ELO Ratings -->
+                                <Border Classes="GlassContainer" Padding="15">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="ELO Ratings" Classes="SectionHeader" />
+                                        <ItemsControl ItemsSource="{Binding EloRatings}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Classes="ListItem" Padding="10" Margin="0,0,0,6">
+                                                        <Grid ColumnDefinitions="*, Auto, Auto">
+                                                            <TextBlock Text="{Binding CharacterName}" />
+                                                            <TextBlock Grid.Column="1"
+                                                                       Text="{Binding Rating, StringFormat='ELO {0:F0}'}"
+                                                                       Classes="Caption" />
+                                                            <TextBlock Grid.Column="2"
+                                                                       Text="{Binding WinRate, StringFormat='{}{0:P0}'}"
+                                                                       Classes="Caption" />
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <Border IsVisible="{Binding EloRatings.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}"
+                                                Padding="10">
+                                            <TextBlock Text="No ELO data yet" Classes="Subtitle" />
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- AI Tournament Simulation -->
+                                <Border Classes="GlassContainer" Padding="15">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="AI Tournament Simulation" Classes="SectionHeader" />
+                                        <Grid ColumnDefinitions="*, *">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="Participants" Classes="Label" />
+                                                <NumericUpDown Value="{Binding SimulationParticipants}"
+                                                               Minimum="2"
+                                                               Maximum="32"
+                                                               Width="120" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="4">
+                                                <TextBlock Text="Sims per Match" Classes="Label" />
+                                                <NumericUpDown Value="{Binding SimulationsPerMatch}"
+                                                               Minimum="10"
+                                                               Maximum="2000"
+                                                               Width="140" />
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <Grid ColumnDefinitions="*, *">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="Spectator Credits" Classes="Label" />
+                                                <TextBlock Text="{Binding SpectatorCredits}" FontWeight="SemiBold" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="4">
+                                                <TextBlock Text="Bet Amount" Classes="Label" />
+                                                <NumericUpDown Value="{Binding BetAmount}"
+                                                               Minimum="0"
+                                                               Maximum="{Binding SpectatorCredits}"
+                                                               Width="140" />
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Text="Bet On" Classes="Label" />
+                                            <ComboBox ItemsSource="{Binding Characters}"
+                                                      SelectedItem="{Binding SelectedBetCharacter}"
+                                                      Width="240">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding DisplayName}" />
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
+                                        </StackPanel>
+
+                                        <Button Content="Simulate"
+                                                Classes="Secondary"
+                                                Command="{Binding SimulateTournamentCommand}"
+                                                Padding="8,4" />
+
+                                        <ProgressBar IsIndeterminate="True"
+                                                     Height="4"
+                                                     IsVisible="{Binding IsSimulationLoading}" />
+
+                                        <TextBlock Text="{Binding SimulationStatus}" Classes="Caption" />
+                                        <TextBlock Text="{Binding BetStatus}" Classes="Caption" />
+
+                                        <Border IsVisible="{Binding SimulationWinnerName, Converter={StaticResource NullOrEmptyToBoolConverter}, ConverterParameter=Invert}"
+                                                Padding="6">
+                                            <StackPanel Spacing="2">
+                                                <TextBlock Text="{Binding SimulationWinnerName}" FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding SimulationWinnerConfidence, StringFormat='Confidence: {0:P0}'}"
+                                                           Classes="Caption" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <ItemsControl ItemsSource="{Binding SimulationMatches}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Classes="ListItem" Padding="8" Margin="0,0,0,6">
+                                                        <StackPanel Spacing="2">
+                                                            <TextBlock Text="{Binding RoundName}" FontWeight="SemiBold" />
+                                                            <TextBlock Text="{Binding Player1Name, StringFormat='P1: {0}'}" Classes="Caption" />
+                                                            <TextBlock Text="{Binding Player2Name, StringFormat='P2: {0}'}" Classes="Caption" />
+                                                            <TextBlock Text="{Binding WinnerName, StringFormat='Winner: {0}'}" Classes="Caption" />
+                                                            <TextBlock Text="{Binding Confidence, StringFormat='Confidence: {0:P0}'}" Classes="Caption" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <Border IsVisible="{Binding SimulationMatches.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}"
+                                                Padding="10">
+                                            <TextBlock Text="Run a simulation to see predictions." Classes="Subtitle" />
+                                        </Border>
+
+                                        <TextBlock Text="Bet History" FontWeight="SemiBold" Margin="0,6,0,0" />
+                                        <ItemsControl ItemsSource="{Binding BetHistory}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Classes="ListItem" Padding="8" Margin="0,0,0,6">
+                                                        <Grid ColumnDefinitions="*, Auto">
+                                                            <StackPanel Spacing="2">
+                                                                <TextBlock Text="{Binding CharacterName}" FontWeight="SemiBold" />
+                                                                <TextBlock Text="{Binding PlacedAt, StringFormat='Placed: {0:g}'}" Classes="Caption" />
+                                                            </StackPanel>
+                                                            <StackPanel Grid.Column="1" Spacing="2" HorizontalAlignment="Right">
+                                                                <TextBlock Text="{Binding Amount, StringFormat='Bet: {0}'}" Classes="Caption" />
+                                                                <TextBlock Text="{Binding ResultLabel, StringFormat='Result: {0}'}" Classes="Caption" />
+                                                                <TextBlock Text="{Binding CreditsAfter, StringFormat='Credits: {0}'}" Classes="Caption" />
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <Border IsVisible="{Binding BetHistory.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}"
+                                                Padding="10">
+                                            <TextBlock Text="No bets recorded yet." Classes="Subtitle" />
+                                        </Border>
+
+                                        <TextBlock Text="Bet Leaderboard" FontWeight="SemiBold" Margin="0,6,0,0" />
+                                        <ItemsControl ItemsSource="{Binding BetLeaderboard}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Classes="ListItem" Padding="8" Margin="0,0,0,6">
+                                                        <Grid ColumnDefinitions="*, Auto, Auto">
+                                                            <TextBlock Text="{Binding CharacterName}" />
+                                                            <TextBlock Grid.Column="1"
+                                                                       Text="{Binding Bets, StringFormat='Bets: {0}'}"
+                                                                       Classes="Caption" />
+                                                            <TextBlock Grid.Column="2"
+                                                                       Text="{Binding WinRate, StringFormat='{}{0:P0}'}"
+                                                                       Classes="Caption" />
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <Border IsVisible="{Binding BetLeaderboard.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}"
+                                                Padding="10">
+                                            <TextBlock Text="No leaderboard data yet." Classes="Subtitle" />
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Replay Viewer -->
+                                <Border Classes="GlassContainer" Padding="15">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="Replay Viewer" Classes="SectionHeader" />
+                                        <ItemsControl ItemsSource="{Binding Replays}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Classes="ListItem" Padding="10" Margin="0,0,0,6">
+                                                        <Grid ColumnDefinitions="*, Auto">
+                                                            <StackPanel Spacing="4">
+                                                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                                                                <TextBlock Text="{Binding PlayedAt, StringFormat='Played: {0:g}'}" Classes="Caption" />
+                                                                <TextBlock Text="{Binding Duration, StringFormat='Duration: {0:mm\\:ss}'}" Classes="Caption" />
+                                                            </StackPanel>
+                                                            <Button Grid.Column="1"
+                                                                    Content="Open"
+                                                                    Classes="Secondary"
+                                                                    Command="{Binding $parent[ItemsControl].((vm:MugenHubViewModel)DataContext).OpenReplayCommand}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Padding="8,4" />
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <Border IsVisible="{Binding Replays.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}"
+                                                Padding="10">
+                                            <TextBlock Text="No replays found" Classes="Subtitle" />
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
                     </Grid>
                 </Border>
             </Grid>
-
             <!-- SETTINGS TAB -->
             <Grid IsVisible="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Settings}">
                 <Border Classes="GlassContainer" Margin="20,0,20,20" Padding="20">
                     <StackPanel Spacing="20">
-                        <TextBlock Text="⚙️ Fight Settings" Classes="SectionHeader" />
+                        <TextBlock Text="Fight Settings" Classes="SectionHeader" />
 
                         <StackPanel Spacing="10">
                             <TextBlock Text="Rounds to Win" Classes="Label"/>
@@ -344,10 +423,41 @@
                             <Slider Value="{Binding AiDifficulty}" Minimum="1" Maximum="8" Width="300" HorizontalAlignment="Left" TickPlacement="BottomRight" TickFrequency="1" IsSnapToTickEnabled="True"/>
                             <TextBlock Text="{Binding AiDifficulty}" FontWeight="Bold"/>
                         </StackPanel>
+
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Default Stage" Classes="Label"/>
+                            <ComboBox ItemsSource="{Binding Stages}"
+                                      SelectedItem="{Binding SelectedStage}"
+                                      Width="300"
+                                      HorizontalAlignment="Left">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBlock Text="{Binding SelectedStage.Path}" Classes="Caption" TextWrapping="Wrap" />
+                        </StackPanel>
                     </StackPanel>
                 </Border>
             </Grid>
             </StackPanel>
         </ScrollViewer>
+
+        <!-- Loading Overlay -->
+        <Border Grid.RowSpan="2"
+                IsVisible="{Binding IsLoading}"
+                Background="#66000000"
+                ZIndex="200">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="20">
+                <ProgressBar IsIndeterminate="True" Width="200" Height="4" />
+                <TextBlock Text="Loading MUGEN Data..."
+                          HorizontalAlignment="Center"
+                          Classes="Subtitle" />
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>
+
+
+

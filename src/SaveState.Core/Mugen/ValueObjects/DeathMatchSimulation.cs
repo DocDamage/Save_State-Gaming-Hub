@@ -76,8 +76,8 @@ public sealed record MatchFactor(
 /// Represents the prediction result for a single match.
 /// </summary>
 public sealed record MatchPrediction(
-    float Character1WinProbability,
-    float Character2WinProbability,
+    float WinProbabilityPlayer1,
+    float WinProbabilityPlayer2,
     float DrawProbability,
     IReadOnlyList<MatchFactor> Factors,
     string Reasoning);

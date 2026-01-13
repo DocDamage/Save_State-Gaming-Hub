@@ -67,7 +67,8 @@ public partial class GameListViewModel : ObservableObject
         string? collectionId = null,
         string? platformId = null,
         string? sortBy = null,
-        bool sortDescending = false)
+        bool sortDescending = false,
+        CollectionFilter? adHocFilter = null)
     {
         if (IsLoading) return;
 
@@ -82,6 +83,17 @@ public partial class GameListViewModel : ObservableObject
             GameStatus? statusFilter = null;
             if (smartFilter == "playing") statusFilter = GameStatus.Running;
             else if (smartFilter == "installed") statusFilter = GameStatus.Installed;
+            else if (smartFilter == "not_installed") statusFilter = GameStatus.NotInstalled;
+
+            CollectionFilter? effectiveFilter = adHocFilter;
+            if (smartFilter == "favorites")
+            {
+                effectiveFilter = (effectiveFilter ?? new CollectionFilter()) with { Tag = "Favorite" };
+            }
+            else if (smartFilter == "backlog")
+            {
+                effectiveFilter = (effectiveFilter ?? new CollectionFilter()) with { IsInBacklog = true };
+            }
 
             Guid? pId = null;
             string? pFilter = null;
@@ -123,7 +135,8 @@ public partial class GameListViewModel : ObservableObject
                 PlatformFilter = pFilter,
                 CollectionId = cId,
                 SortBy = sortEnum,
-                SortDescending = sortDescending
+                SortDescending = sortDescending,
+                AdHocFilter = effectiveFilter
             };
 
             var pagedResult = await _mediator.Send(query).ConfigureAwait(false);

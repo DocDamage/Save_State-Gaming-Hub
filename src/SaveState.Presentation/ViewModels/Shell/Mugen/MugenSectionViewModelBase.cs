@@ -19,5 +19,11 @@ public abstract partial class MugenSectionViewModelBase : ObservableObject
     [ObservableProperty]
     private bool _isActive;
 
+    [ObservableProperty]
+    private bool _isLoading;
+
+    [ObservableProperty]
+    private string _statusMessage = string.Empty;
+
     public virtual Task InitializeAsync() => Task.CompletedTask;
 }

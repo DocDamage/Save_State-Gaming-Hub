@@ -18,11 +18,31 @@
     <!-- Hover States -->
     <SolidColorBrush x:Key="HoverBrush" Color="#1AFFFFFF" />
     <SolidColorBrush x:Key="HeaderHoverBrush" Color="#2A2C30" />
+    <SolidColorBrush x:Key="HeaderActiveBrush" Color="#10B981" />
+    <SolidColorBrush x:Key="HeaderForegroundBrush" Color="#FFFFFF" />
     <SolidColorBrush x:Key="TitleBarHoverBrush" Color="#1AFFFFFF" />
     <SolidColorBrush x:Key="TitleBarForegroundBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="TitleBarSecondaryBrush" Color="#A1A1AA" />
+
+    <!-- Search / Input -->
+    <SolidColorBrush x:Key="SearchBackgroundBrush" Color="#25262B" />
+    <SolidColorBrush x:Key="SearchBorderBrush" Color="#2C2E33" />
+
+    <!-- Status Bar -->
+    <SolidColorBrush x:Key="StatusBarBackgroundBrush" Color="#1A1B1E" />
+    <SolidColorBrush x:Key="StatusBarForegroundBrush" Color="#A1A1AA" />
+    <SolidColorBrush x:Key="StatusOnlineBrush" Color="#10B981" />
+    <SolidColorBrush x:Key="StatusOfflineBrush" Color="#EF4444" />
 
     <!-- Input / Overlay Background -->
     <SolidColorBrush x:Key="InputBackgroundBrush" Color="#2C2E33" />
+
+    <!-- Overlays -->
+    <SolidColorBrush x:Key="OverlayBackgroundBrush" Color="#1E1E1E" Opacity="0.98" />
+    <SolidColorBrush x:Key="OverlayBorderBrush" Color="#2C2E33" />
+    <SolidColorBrush x:Key="ToastBackgroundBrush" Color="#25262B" />
+    <SolidColorBrush x:Key="VoiceIndicatorBackgroundBrush" Color="#10B981" Opacity="0.9" />
+    <SolidColorBrush x:Key="LoadingBackgroundBrush" Color="#1A1B1E" />
 
     <!-- Primary Brand Colors -->
     <!-- WeMod uses clean white and specific accent greens/blues -->

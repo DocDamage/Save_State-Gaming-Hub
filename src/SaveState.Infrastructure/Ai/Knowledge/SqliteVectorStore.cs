@@ -44,7 +44,6 @@ public class SqliteVectorStore : IKnowledgeStore
 
         await _context.SaveChangesAsync(ct).ConfigureAwait(false);
 
-        _logger.LogDebug("Upserted knowledge record {Id}", id);
     }
 
     public async Task<IReadOnlyList<KnowledgeHit>> SearchAsync(float[] queryEmbedding, int limit, float minRelevance, CancellationToken ct)
@@ -84,7 +83,6 @@ public class SqliteVectorStore : IKnowledgeStore
             await dbContext.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
         }, "UpdateKnowledgeAccessCounts");
 
-        _logger.LogDebug("Found {HitCount} relevant knowledge hits for query", hits.Count);
         return hits;
     }
 
@@ -124,7 +122,6 @@ public class SqliteVectorStore : IKnowledgeStore
         {
             record.UpdateRelevanceScore(record.RelevanceScore * relevanceMultiplier);
             await _context.SaveChangesAsync(ct).ConfigureAwait(false);
-            _logger.LogDebug("Boosted relevance for knowledge record {Id} by factor {Multiplier}", id, relevanceMultiplier);
         }
     }
 
@@ -154,7 +151,6 @@ public class SqliteVectorStore : IKnowledgeStore
         }
         else
         {
-            _logger.LogDebug("No low-quality knowledge records to prune");
         }
     }
 

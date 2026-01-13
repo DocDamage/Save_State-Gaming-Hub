@@ -62,9 +62,9 @@ public class DeathMatchSimulator : IDeathMatchSimulator
 
                 // Simulate round based on prediction
                 var random = Random.Shared.NextDouble();
-                if (random < pred.Character1WinProbability)
+                if (random < pred.WinProbabilityPlayer1)
                     char1Wins++;
-                else if (random < pred.Character1WinProbability + pred.Character2WinProbability)
+                else if (random < pred.WinProbabilityPlayer1 + pred.WinProbabilityPlayer2)
                     char2Wins++;
                 else
                     draws++;
@@ -79,7 +79,7 @@ public class DeathMatchSimulator : IDeathMatchSimulator
 
                 roundPredictions.Add(new RoundPrediction(
                     round,
-                    pred.Character1WinProbability,
+                    pred.WinProbabilityPlayer1,
                     winner,
                     keyFactor));
             }
@@ -94,9 +94,9 @@ public class DeathMatchSimulator : IDeathMatchSimulator
                 var pred = prediction.Value!;
                 var random = Random.Shared.NextDouble();
 
-                if (random < pred.Character1WinProbability)
+                if (random < pred.WinProbabilityPlayer1)
                     char1Wins++;
-                else if (random < pred.Character1WinProbability + pred.Character2WinProbability)
+                else if (random < pred.WinProbabilityPlayer1 + pred.WinProbabilityPlayer2)
                     char2Wins++;
                 else
                     draws++;

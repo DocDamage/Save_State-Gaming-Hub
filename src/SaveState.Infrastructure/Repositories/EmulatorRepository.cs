@@ -32,6 +32,16 @@ public class EmulatorRepository : IEmulatorRepository
             .ConfigureAwait(false);
     }
 
+    public async Task<IReadOnlyList<EmulatorEntity>> GetAllByPlatformIdAsync(Guid platformId, CancellationToken ct = default)
+    {
+        return await _context.Emulators
+            .Include(e => e.Platform)
+            .Where(e => e.PlatformId == platformId)
+            .OrderBy(e => e.Name)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+    }
+
     public async Task<IReadOnlyList<EmulatorEntity>> GetAllAsync(CancellationToken ct = default)
     {
         return await _context.Emulators

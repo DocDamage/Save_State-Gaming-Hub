@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.ValueObjects;
 using SaveState.Presentation.Services;
 using Splat;
 using System.Collections.ObjectModel;
@@ -12,13 +13,17 @@ namespace SaveState.Presentation.ViewModels.Shell;
 public partial class OverlayContainerViewModel : ObservableObject
 {
     private readonly IOverlayService _overlayService;
+    private readonly IUiGameContextService _gameContextService;
 
     private bool _isLoading;
     private string _loadingMessage = "Loading...";
 
-    public OverlayContainerViewModel(IOverlayService overlayService)
+    public OverlayContainerViewModel(
+        IOverlayService overlayService,
+        IUiGameContextService gameContextService)
     {
         _overlayService = overlayService;
+        _gameContextService = gameContextService;
 
         // Subscribe to overlay service events
         _overlayService.OverlayChanged += OnOverlayChanged;
@@ -28,12 +33,13 @@ public partial class OverlayContainerViewModel : ObservableObject
         var navigationService = Locator.Current.GetService<INavigationService>()!;
         var aiOrchestrator = Locator.Current.GetService<SaveState.Core.Ai.Services.IAiOrchestrator>()!;
         var performanceMonitor = Locator.Current.GetService<SaveState.Core.Performance.Services.IPerformanceMonitor>();
+        var speechRecognitionService = Locator.Current.GetService<SaveState.Core.Ai.Services.ISpeechRecognitionService>()!;
         var loggerFactory = Locator.Current.GetService<ILoggerFactory>()!;
 
         // Initialize child view models with real dependencies
         CommandPaletteViewModel = new CommandPaletteViewModel(_overlayService);
-        QuickSearchViewModel = new QuickSearchViewModel(_overlayService, gameRepository, navigationService);
-        AiAssistantViewModel = new AiAssistantViewModel(_overlayService, aiOrchestrator, loggerFactory.CreateLogger<AiAssistantViewModel>());
+        QuickSearchViewModel = new QuickSearchViewModel(_overlayService, gameRepository, navigationService, _gameContextService);
+        AiAssistantViewModel = new AiAssistantViewModel(_overlayService, aiOrchestrator, speechRecognitionService, _gameContextService, gameRepository, loggerFactory.CreateLogger<AiAssistantViewModel>());
         PerformanceHudViewModel = new PerformanceHudViewModel(_overlayService, performanceMonitor);
         VoiceIndicatorViewModel = new VoiceIndicatorViewModel();
 
@@ -238,6 +244,7 @@ public partial class OverlayContainerViewModel : ObservableObject
             case "SessionDetails":
                 if (e.IsVisible && _overlayService.CurrentSessionGameId.HasValue)
                 {
+                    _gameContextService.SetSelectedGame(GameId.From(_overlayService.CurrentSessionGameId.Value));
                     SessionDetailsViewModel.Initialize(_overlayService.CurrentSessionGameId.Value);
                 }
                 OnPropertyChanged(nameof(ShowSessionDetails));

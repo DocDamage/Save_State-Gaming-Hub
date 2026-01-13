@@ -10,6 +10,8 @@ using SaveState.Core.Configuration;
 using SaveState.Core.Monitoring;
 using SaveState.Infrastructure.Ai;
 using SaveState.Infrastructure.Ai.Context;
+using SaveState.Core.Ai.Knowledge;
+using SaveState.Core.Ai.Memory;
 using Xunit;
 
 namespace SaveState.Infrastructure.Tests.Ai;
@@ -45,7 +47,11 @@ public class AiOrchestratorContextTests
             NullLogger<AiOrchestrator>.Instance,
             _metricsMock.Object,
             _cacheMonitorMock.Object,
-            _contextService);
+            _contextService,
+            null!, // SemanticKnowledgeClient
+            new Mock<IShortTermMemory>().Object,
+            new Mock<IWebSearchService>().Object,
+            new Mock<IKnowledgeBaseService>().Object);
     }
 
     [Fact]
@@ -55,7 +61,7 @@ public class AiOrchestratorContextTests
         var sessionId = "test-session";
         _providerMock
             .Setup(p => p.ChatAsync(It.IsAny<ChatRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<ChatResult>.Success(
+            .ReturnsAsync(Result.Success<ChatResult>(
                 new ChatResult("Hello!", "stop", new TokenUsage(10, 5, 15), "gpt-4")));
 
         var request1 = new AiRequest(AiRequestType.Chat, "Hi there!");
@@ -89,3 +95,4 @@ public class AiOrchestratorContextTests
         history.Value.Should().BeEmpty();
     }
 }
+

@@ -24,6 +24,18 @@ While all **tracked TODO items** are complete, there are still **~60 untracked T
 - [x] **Auto-Save Configuration Dialog** - Configure auto-save triggers ✅
 - [ ] **Price History Chart** - Visual price tracking over time
 - [x] **Price Alert System** - Set target price notifications ✅
+- [x] **Voice Command Configuration UI**:
+  - [x] Integrated `VoiceControlViewModel` into Settings.
+  - [x] Added microphone calibration and language selection.
+  - [x] Registered `VoiceControlViewModel` as Singleton for state persistence.
+- [x] **Conversational AI Assistant**:
+  - [x] Full integration of `AiAssistantPanel`.
+  - [x] Added Voice Input support ("Talk to AI").
+  - [ ] Connect to game context (in progress).
+- [ ] **Natural Language Game Search**:
+  - [ ] Implement `INaturalLanguageGameSearch` service.
+  - [ ] Create prompt engineering for query parsing.
+  - [ ] Integreate with Library search.
 - [x] **Tag Management Dialog** - Add/edit game tags ✅
 - [x] **Goal Creation Dialog** - Set game completion goals ✅
 - [ ] **Full Description Viewer** - Expandable description dialog
@@ -151,14 +163,16 @@ While all **tracked TODO items** are complete, there are still **~60 untracked T
 
 ---
 
-### **9. Automation & Workflows** (Priority: Low-Medium)
+### **9. Automation & Workflows** (Priority: Low-Medium) ✅ COMPLETE
 
 **Effort**: 8-10 hours | **Impact**: Power user features
 
-- [ ] **Visual Workflow Editor** - Drag-and-drop workflow creation
-- [ ] **Macro Playback UI** - Visual macro execution with progress
-- [ ] **Scheduled Task UI** - Configure automated tasks
-- [ ] **Macro Marketplace** - Share and download macros
+- [x] **Visual Workflow Editor** - Drag-and-drop workflow creation ✅
+- [x] **Macro Playback UI** - Visual macro execution with progress ✅
+- [x] **Scheduled Task UI** - Configure automated tasks ✅
+- [x] **Macro Marketplace** - Share and download macros ✅
+- [x] **Automation Dashboard Wiring** - All dashboard elements connected to real services ✅
+- [ ] **Develop "Smart Actions"** - Context-aware automation triggers
 
 ---
 
@@ -299,7 +313,7 @@ While not "features," these would improve the codebase:
 - Backend services (90+)
 - Basic UI (118+ views)
 - MUGEN Persistence (100% complete)
-- Automation (90% complete)
+- Automation (100% complete) - *Wired to IWorkflowAutomationService and IMacroManager*
 - Overlay System (100% complete)
 - Cloud & Sync (100% complete)
 

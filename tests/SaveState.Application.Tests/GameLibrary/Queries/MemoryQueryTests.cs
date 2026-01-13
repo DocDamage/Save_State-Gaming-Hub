@@ -30,7 +30,7 @@ public class MemoryQueryTests
         _memoryReaderMock.Setup(x => x.IsAttached).Returns(true);
         _memoryReaderMock
             .Setup(x => x.DetectPatternsAsync(default))
-            .ReturnsAsync(Result<IReadOnlyList<MemoryPattern>>.Success(expectedPatterns));
+            .ReturnsAsync(Result.Success<IReadOnlyList<MemoryPattern>>(expectedPatterns));
 
         var handler = new GetMemoryPatternsQueryHandler(_memoryReaderMock.Object);
         var query = new GetMemoryPatternsQuery { ProcessId = processId };
@@ -61,7 +61,7 @@ public class MemoryQueryTests
             .ReturnsAsync(Result.Success());
         _memoryReaderMock
             .Setup(x => x.DetectPatternsAsync(default))
-            .ReturnsAsync(Result<IReadOnlyList<MemoryPattern>>.Success(expectedPatterns));
+            .ReturnsAsync(Result.Success<IReadOnlyList<MemoryPattern>>(expectedPatterns));
 
         var handler = new GetMemoryPatternsQueryHandler(_memoryReaderMock.Object);
         var query = new GetMemoryPatternsQuery { ProcessId = processId };
