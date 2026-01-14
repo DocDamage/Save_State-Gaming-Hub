@@ -68,7 +68,8 @@ public class GameValidationService : IGameValidationService
         if (mainExecutableResult.IsFailure)
             return false;
 
-        return await _fileSystem.FileExistsAsync(mainExecutableResult.Value, ct).ConfigureAwait(false);
+        // Value is guaranteed to be non-null when IsSuccess is true
+        return await _fileSystem.FileExistsAsync(mainExecutableResult.Value!, ct).ConfigureAwait(false);
     }
 
     private async Task<Result<string>> GetMainExecutablePathAsync(Game game, CancellationToken ct)

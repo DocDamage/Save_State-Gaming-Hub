@@ -31,8 +31,9 @@ public class GetCloudProvidersQueryHandler :
 
             if (result.IsSuccess)
             {
+                // Value is guaranteed to be non-null when IsSuccess is true
                 _logger.LogInformation("Retrieved {Count} available cloud gaming providers",
-                    result.Value.Count);
+                    result.Value!.Count);
             }
 
             return result;
@@ -71,8 +72,9 @@ public class GetActiveCloudSessionsQueryHandler :
 
             if (result.IsSuccess)
             {
+                // Value is guaranteed to be non-null when IsSuccess is true
                 _logger.LogInformation("Retrieved {Count} active cloud gaming sessions",
-                    result.Value.Count);
+                    result.Value!.Count);
             }
 
             return result;
