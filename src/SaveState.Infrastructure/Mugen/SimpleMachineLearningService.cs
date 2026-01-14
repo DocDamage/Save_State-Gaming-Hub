@@ -5,6 +5,7 @@ using SaveState.Core.Mugen.Services;
 using SaveState.Core.Mugen.ValueObjects;
 using SaveState.Core.Mugen.Entities;
 using SaveState.Core.Mugen.Repositories;
+using SaveState.Core.Mugen.DTOs;
 
 namespace SaveState.Infrastructure.Mugen;
 
@@ -34,7 +35,7 @@ public class SimpleMachineLearningService : IMachineLearningService
         _matchupData = InitializeMatchupData();
     }
 
-    public async Task<Result<CharacterMatchupAnalysis>> AnalyzeCharacterMatchupAsync(
+    public async Task<Result<MatchupPrediction>> AnalyzeCharacterMatchupAsync(
         string character1,
         string character2,
         CancellationToken ct = default)
@@ -71,21 +72,21 @@ public class SimpleMachineLearningService : IMachineLearningService
                 strategies.Add("Both characters have similar tools - conditioning wins");
             }
 
-            var analysis = new CharacterMatchupAnalysis(
-                Character1: character1,
-                Character2: character2,
-                Advantage: GetMatchupAdvantageEnum(advantage),
-                WinRate: winRate,
-                StrongMatchupReasons: strongReasons,
-                WeakMatchupReasons: weakReasons,
-                RecommendedStrategies: strategies);
+            var analysis = new MatchupPrediction
+            {
+                Advantage = GetMatchupAdvantageEnum(advantage),
+                WinRate = winRate,
+                StrongMatchupReasons = strongReasons,
+                WeakMatchupReasons = weakReasons,
+                RecommendedStrategies = strategies
+            };
 
             return Result.Success(analysis);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error analyzing character matchup");
-            return Result.Failure<CharacterMatchupAnalysis>($"Failed to analyze matchup: {ex.Message}");
+            return Result.Failure<MatchupPrediction>($"Failed to analyze matchup: {ex.Message}");
         }
     }
 
@@ -289,14 +290,15 @@ public class SimpleMachineLearningService : IMachineLearningService
             var name = GenerateMoveName(parameters);
             var description = GenerateMoveDescription(parameters, mechanics);
 
-            var move = new ProceduralMove(
-                Name: name,
-                Description: description,
-                Type: parameters.MoveType,
-                Properties: properties,
-                Mechanics: mechanics,
-                BalanceScore: balanceScore,
-                GenerationReasoning: $"Generated for {parameters.Difficulty} difficulty with theme '{parameters.Theme}'");
+            var move = new ProceduralMove
+            {
+                Name = name,
+                Description = description,
+                Type = parameters.MoveType,
+                Properties = properties,
+                Mechanics = mechanics,
+                BalanceScore = balanceScore
+            };
 
             return Result.Success(move);
         }
@@ -341,10 +343,11 @@ public class SimpleMachineLearningService : IMachineLearningService
                 Name: GenerateStageName(actualParams),
                 Description: GenerateStageDescription(actualParams),
                 Elements: elements,
+                Difficulty: actualParams.Difficulty,
+                Size: actualParams.Size,
                 Properties: properties,
                 BalanceScore: balanceScore,
-                Theme: actualParams.Theme,
-                Difficulty: actualParams.Difficulty);
+                Theme: actualParams.Theme);
 
             return Result.Success(stage);
         }
@@ -355,7 +358,7 @@ public class SimpleMachineLearningService : IMachineLearningService
         }
     }
 
-    public async Task<Result<CharacterBalanceAnalysis>> AnalyzeCharacterBalanceAsync(
+    public async Task<Result<MatchupAnalysis>> AnalyzeCharacterBalanceAsync(
         string characterName,
         CancellationToken ct = default)
     {
@@ -381,39 +384,26 @@ public class SimpleMachineLearningService : IMachineLearningService
             var averageScore = moveBalanceScores.Values.Average();
             var balanceScoreVal = (int)(averageScore * 50); // Scale roughly to 0-100
 
-            // Generate move analyses
-            var moveAnalyses = moveBalanceScores.Select(kvp => new MoveAnalysis
-            {
-                MoveName = kvp.Key,
-                MoveType = "Normal", // Simplified
-                Effectiveness = (int)(kvp.Value * 50),
-                RiskRewardRatio = 1.0,
-                Issues = kvp.Value > 1.1 ? new List<string> { "Overpowered" } :
-                         kvp.Value < 0.8 ? new List<string> { "Underpowered" } : new List<string>(),
-                Suggestions = kvp.Value > 1.1 ? new List<string> { "Reduce damage" } :
-                              kvp.Value < 0.8 ? new List<string> { "Buff damage" } : new List<string>()
-            }).ToList();
+            // Generate move analyses (as strings for simpler model)
+            var moveAnalyses = moveBalanceScores.Select(kvp =>
+                $"{kvp.Key}: Score {kvp.Value * 50:F0} - {(kvp.Value > 1.1 ? "Overpowered" : kvp.Value < 0.8 ? "Underpowered" : "Balanced")}"
+            ).ToList();
 
-            var recommendations = moveAnalyses.SelectMany(m => m.Suggestions).Distinct().ToList();
+            var recommendations = moveBalanceScores.Where(kvp => kvp.Value > 1.1 || kvp.Value < 0.8)
+                .Select(kvp => kvp.Value > 1.1 ? $"Nerf {kvp.Key} damage" : $"Buff {kvp.Key} damage")
+                .Distinct()
+                .ToList();
 
-            var analysis = new CharacterBalanceAnalysis
+            var analysis = new MatchupAnalysis
             {
-                CharacterId = Guid.NewGuid(),
                 CharacterName = characterName,
                 BalanceScore = balanceScoreVal,
                 TierRating = balanceScoreVal > 60 ? "S" : balanceScoreVal > 50 ? "A" : "B",
-                OffensivePower = (int)(averageScore * 60),
-                DefensiveCapability = 50,
-                Mobility = 50,
-                ComboPotential = 50,
-                ZoningCapability = 50,
-                Strengths = new List<string> { "Generated Stats" },
-                Weaknesses = new List<string>(),
-                Recommendations = recommendations,
-                ComparisonToAverage = "Average",
                 PredictedWinRate = 0.5,
-                AnalyzedAt = DateTimeOffset.UtcNow,
-                MoveAnalyses = moveAnalyses
+                MoveAnalyses = moveAnalyses,
+                Recommendations = recommendations,
+                Summary = $"Character {characterName} seems {(balanceScoreVal > 50 ? "well-balanced" : "needs adjustment")}.",
+                ActionableTips = recommendations
             };
 
             return Result.Success(analysis);
@@ -421,7 +411,7 @@ public class SimpleMachineLearningService : IMachineLearningService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error analyzing character balance");
-            return Result.Failure<CharacterBalanceAnalysis>($"Failed to analyze balance: {ex.Message}");
+            return Result.Failure<MatchupAnalysis>($"Failed to analyze balance: {ex.Message}");
         }
     }
 

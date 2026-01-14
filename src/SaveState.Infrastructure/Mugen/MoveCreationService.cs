@@ -53,10 +53,11 @@ public class MoveCreationService : IMoveCreationService
 
     public Task<Result<ValidationResult>> ValidateMoveAsync(MoveDefinition move, ValidationOptions options, CancellationToken cancellationToken = default)
     {
-        var validation = new ValidationResult
-        {
-            IsValid = true
-        };
+        var validation = new ValidationResult(
+            IsValid: true,
+            Errors: Array.Empty<ValidationError>(),
+            Warnings: Array.Empty<ValidationWarning>(),
+            Suggestions: Array.Empty<string>());
 
         return Task.FromResult(Result.Success(validation));
     }

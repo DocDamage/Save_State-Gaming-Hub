@@ -59,14 +59,6 @@ public record MoveGenerationParameters(
     double PowerLevel,
     string Theme);
 
-public enum DifficultyLevel
-{
-    Beginner,
-    Intermediate,
-    Advanced,
-    Expert
-}
-
 /// <summary>
 /// Training configuration for machine learning models.
 /// </summary>
