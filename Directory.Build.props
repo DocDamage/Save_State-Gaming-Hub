@@ -11,7 +11,7 @@
       CA2007: ConfigureAwait - conflicts with xUnit best practices for test code
       CS1573: Parameter has no matching param tag in XML comment
     -->
-    <NoWarn>$(NoWarn);CA1822;CA2007;1712;1573</NoWarn>
+    <NoWarn>$(NoWarn);CA1822;CA2007;1712;1573;1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
