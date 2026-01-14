@@ -5,18 +5,18 @@ namespace SaveState.Core.Mugen.ValueObjects;
 
 public sealed class PlayerSkill
 {
-    public PlayerSkill(string playerId, int rating, double trend, IReadOnlyDictionary<string, double> preferences, DateTime lastUpdated)
+    public PlayerSkill(string playerId, double rating, double volatility, IReadOnlyDictionary<string, double> characterRatings, DateTime lastUpdated)
     {
         PlayerId = playerId;
         Rating = rating;
-        Trend = trend;
-        Preferences = preferences;
+        Volatility = volatility;
+        CharacterRatings = characterRatings;
         LastUpdated = lastUpdated;
     }
 
     public string PlayerId { get; }
-    public int Rating { get; }
-    public double Trend { get; }
-    public IReadOnlyDictionary<string, double> Preferences { get; }
+    public double Rating { get; }
+    public double Volatility { get; }
+    public IReadOnlyDictionary<string, double> CharacterRatings { get; }
     public DateTime LastUpdated { get; }
 }
