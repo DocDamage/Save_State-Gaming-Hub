@@ -2,23 +2,30 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SaveState.Core.Common;
+using SaveState.Core.Configuration;
+using SaveState.Core.Sync;
+using SaveState.Core.Sync.Entities;
 using SaveState.Core.Sync.Services;
 using SaveState.Core.Sync.Services.DTOs;
 
 namespace SaveState.Infrastructure.Sync;
 
 /// <summary>
-/// Implementation of network quality monitoring with real-time metrics.
+/// Implementation of network quality monitoring with real-time metrics and historical data storage.
 /// </summary>
 public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
 {
     private readonly ILogger<NetworkQualityMonitor> _logger;
     private readonly HttpClient _httpClient;
+    private readonly CloudGamingOptions _options;
+    private readonly INetworkQualityHistoryRepository _historyRepository;
 
     private Timer? _monitoringTimer;
     private NetworkQuality _lastQuality = default!;
     private bool _isMonitoring;
+    private Guid? _currentSessionId;
 
     /// <summary>
     /// Event raised when network quality changes significantly.
@@ -35,12 +42,23 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
     /// </summary>
     /// <param name="logger">Logger for diagnostic information.</param>
     /// <param name="httpClient">HTTP client for network testing.</param>
+    /// <param name="options">Cloud gaming configuration options.</param>
     public NetworkQualityMonitor(
         ILogger<NetworkQualityMonitor> logger,
-        HttpClient httpClient)
+        HttpClient httpClient,
+        IOptions<CloudGamingOptions> options,
+        INetworkQualityHistoryRepository historyRepository)
     {
         _logger = logger;
         _httpClient = httpClient;
+        _options = options.Value;
+        _historyRepository = historyRepository;
+
+        // Start background cleanup task for historical data
+        if (_options.NetworkMonitoring.StoreHistoricalData)
+        {
+            _ = Task.Run(HistoricalDataCleanupTask);
+        }
     }
 
     /// <summary>
@@ -121,6 +139,12 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
                 Level: qualityLevel,
                 MeasuredAt: DateTime.UtcNow);
 
+            // Store historical data if enabled
+            if (_options.NetworkMonitoring.StoreHistoricalData)
+            {
+                StoreHistoricalData(quality);
+            }
+
             // Check for significant quality changes
             if (_lastQuality != null)
             {
@@ -148,6 +172,61 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
     }
 
     /// <summary>
+    /// Stores network quality data in historical storage.
+    /// </summary>
+    private async void StoreHistoricalData(NetworkQuality quality)
+    {
+        try
+        {
+            var historyEntity = NetworkQualityHistory.Create(quality, _currentSessionId);
+            var result = await _historyRepository.AddAsync(historyEntity).ConfigureAwait(false);
+
+            if (!result.IsSuccess)
+            {
+                _logger.LogWarning("Failed to store network quality history: {Error}", result.Error);
+            }
+
+            // Log storage periodically
+            var totalCount = await _historyRepository.CountAsync().ConfigureAwait(false);
+            if (totalCount % 100 == 0) // Log every 100 entries
+            {
+                _logger.LogInformation("Stored {Count} network quality measurements", totalCount);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to store historical network quality data");
+        }
+    }
+
+    /// <summary>
+    /// Background task to clean up old historical data.
+    /// </summary>
+    private async Task HistoricalDataCleanupTask()
+    {
+        while (true)
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromHours(1)); // Run cleanup hourly
+
+                var cutoffDate = DateTime.UtcNow.AddDays(-_options.NetworkMonitoring.HistoricalDataRetentionDays);
+                var deleteResult = await _historyRepository.DeleteOlderThanAsync(cutoffDate).ConfigureAwait(false);
+
+                if (deleteResult.IsSuccess && deleteResult.Value > 0)
+                {
+                    _logger.LogInformation("Cleaned up {Removed} old network quality records",
+                        deleteResult.Value);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during historical data cleanup");
+            }
+        }
+    }
+
+    /// <summary>
     /// Starts continuous network quality monitoring at the specified interval.
     /// </summary>
     /// <param name="interval">The time interval between quality checks.</param>
@@ -163,6 +242,9 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
             {
                 return Task.FromResult(Result.Success()); // Already monitoring
             }
+
+            // Start a new monitoring session
+            _currentSessionId = Guid.NewGuid();
 
             _monitoringTimer = new Timer(
                 async _ =>
@@ -215,6 +297,7 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
             _monitoringTimer?.Dispose();
             _monitoringTimer = null;
             _isMonitoring = false;
+            _currentSessionId = null;
 
             _logger.LogInformation("Stopped network quality monitoring");
             return Task.FromResult(Result.Success());
@@ -240,17 +323,32 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
     {
         try
         {
-            // Placeholder - in a real implementation, this would query stored historical data
-            // For now, return current quality as a single data point
-            var currentQuality = await GetCurrentQualityAsync(ct).ConfigureAwait(false);
-
-            if (!currentQuality.IsSuccess)
+            if (!_options.NetworkMonitoring.StoreHistoricalData)
             {
-                return Result.Failure<IReadOnlyList<NetworkQuality>>(currentQuality.Error);
+                _logger.LogWarning("Historical data storage is disabled");
+                var currentQuality = await GetCurrentQualityAsync(ct).ConfigureAwait(false);
+
+                if (!currentQuality.IsSuccess)
+                {
+                    return Result.Failure<IReadOnlyList<NetworkQuality>>(currentQuality.Error);
+                }
+
+                return Result.Success<IReadOnlyList<NetworkQuality>>(new[] { currentQuality.Value! });
             }
 
-            var history = new List<NetworkQuality> { currentQuality.Value! };
-            return Result.Success<IReadOnlyList<NetworkQuality>>(history);
+            var historyResult = await _historyRepository.GetByTimeRangeAsync(startTime, endTime, ct).ConfigureAwait(false);
+
+            if (!historyResult.IsSuccess)
+            {
+                return Result.Failure<IReadOnlyList<NetworkQuality>>(historyResult.Error);
+            }
+
+            var history = historyResult.Value.Select(h => h.ToDto()).ToList();
+
+            _logger.LogInformation("Retrieved {Count} historical records from {Start} to {End}",
+                history.Count, startTime, endTime);
+
+            return Result.Success<IReadOnlyList<NetworkQuality>>(history.AsReadOnly());
         }
         catch (Exception ex)
         {

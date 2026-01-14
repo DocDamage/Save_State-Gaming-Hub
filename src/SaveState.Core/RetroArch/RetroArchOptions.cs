@@ -72,4 +72,28 @@ public class RetroArchOptions
     /// Gets or sets whether RetroAchievements integration is enabled.
     /// </summary>
     public bool RetroAchievementsEnabled { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether RetroArch network command interface is enabled.
+    /// RetroArch must be started with --network-cmd-enable flag.
+    /// </summary>
+    public bool NetworkCommandEnabled { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the network command interface port.
+    /// Default: 55355 (RetroArch default).
+    /// </summary>
+    public int NetworkCommandPort { get; set; } = 55355;
+
+    /// <summary>
+    /// Gets or sets the network command interface host.
+    /// Default: localhost (127.0.0.1).
+    /// </summary>
+    public string NetworkCommandHost { get; set; } = "127.0.0.1";
+
+    /// <summary>
+    /// Gets or sets the network command timeout in milliseconds.
+    /// Default: 5000ms (5 seconds).
+    /// </summary>
+    public int NetworkCommandTimeout { get; set; } = 5000;
 }

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using MediatR;
 using SaveState.Presentation.Services;
 using SaveState.Core.Automation.Services;
 using SaveState.Core.Automation.Services.DTOs;
@@ -55,7 +56,8 @@ public partial class AutomationDashboardViewModel : ObservableObject
     [ObservableProperty]
     private object? _currentView;
 
-    public MacroMarketplaceViewModel MacroMarketplace { get; }
+    [ObservableProperty]
+    private MacroMarketplaceViewModel _macroMarketplace;
 
     public bool HasScheduledTasks => ScheduledTasks.Count > 0;
     public bool HasWorkflows => Workflows.Count > 0;
@@ -71,14 +73,16 @@ public partial class AutomationDashboardViewModel : ObservableObject
         IWorkflowAutomationService workflowService,
         IMacroManager macroManager,
         ILogger<AutomationDashboardViewModel> logger,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        IMediator mediator,
+        INotificationService notificationService)
     {
         _dialogService = dialogService;
         _workflowService = workflowService;
         _macroManager = macroManager;
         _logger = logger;
 
-        MacroMarketplace = new MacroMarketplaceViewModel(_dialogService, _macroManager, loggerFactory.CreateLogger<MacroMarketplaceViewModel>());
+        MacroMarketplace = new MacroMarketplaceViewModel(mediator, macroManager, notificationService);
 
         // Load data
         _ = LoadDataAsync();

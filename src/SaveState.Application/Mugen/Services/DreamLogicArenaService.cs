@@ -3,6 +3,7 @@ using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Services;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using System.Numerics;
 
 namespace SaveState.Application.Mugen.Services;
 

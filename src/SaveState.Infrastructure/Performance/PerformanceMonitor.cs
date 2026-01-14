@@ -3,6 +3,8 @@ using SaveState.Core.Common;
 using SaveState.Core.Monitoring;
 using SaveState.Core.Performance.Services;
 using System.Diagnostics;
+using System.Management;
+using System.Runtime.InteropServices;
 
 namespace SaveState.Infrastructure.Performance;
 
@@ -17,6 +19,9 @@ public class PerformanceMonitor : IPerformanceMonitor
     private Guid _currentSessionId;
     private readonly List<PerformanceSnapshot> _snapshots = new();
     private readonly object _snapshotsLock = new();
+    private readonly Dictionary<Guid, List<PerformanceSnapshot>> _sessionHistory = new();
+    private DateTime? _lastCpuSampleTime;
+    private TimeSpan? _lastCpuTotalProcessorTime;
 
     public event EventHandler<PerformanceSnapshot>? SnapshotUpdated;
 
@@ -76,8 +81,24 @@ public class PerformanceMonitor : IPerformanceMonitor
             _monitoringTimer = null;
 
             var sessionId = _currentSessionId;
+            List<PerformanceSnapshot> sessionSnapshots;
+            lock (_snapshotsLock)
+            {
+                sessionSnapshots = _snapshots.ToList();
+            }
+
+            if (sessionId != Guid.Empty && sessionSnapshots.Count > 0)
+            {
+                lock (_snapshotsLock)
+                {
+                    _sessionHistory[sessionId] = sessionSnapshots;
+                }
+            }
+
             _currentSessionId = Guid.Empty;
             _monitoredProcess = null;
+            _lastCpuSampleTime = null;
+            _lastCpuTotalProcessorTime = null;
 
             _logger.LogInformation("Stopped performance monitoring for session {SessionId}", sessionId);
 
@@ -106,15 +127,17 @@ public class PerformanceMonitor : IPerformanceMonitor
 
             lock (_snapshotsLock)
             {
-                // If requesting current session, return current snapshots
                 if (sessionId == _currentSessionId)
                 {
                     sessionSnapshots = _snapshots.ToList();
                 }
+                else if (_sessionHistory.TryGetValue(sessionId, out var historical))
+                {
+                    sessionSnapshots = historical.ToList();
+                }
                 else
                 {
-                    // In a real implementation, this would load historical data from storage
-                    return Result.Failure<PerformanceHistory>("Historical session data not implemented", ErrorType.NotImplemented);
+                    return Result.Failure<PerformanceHistory>("No snapshots available for session", ErrorType.NotFound);
                 }
             }
 
@@ -256,25 +279,34 @@ public class PerformanceMonitor : IPerformanceMonitor
     {
         try
         {
-            if (_monitoredProcess == null) return 0;
+            if (_monitoredProcess == null || _monitoredProcess.HasExited) return 0;
 
-            // Get CPU usage for the monitored process
-            var startTime = DateTime.UtcNow;
-            var startCpuUsage = Process.GetCurrentProcess().TotalProcessorTime;
+            _monitoredProcess.Refresh();
+            var now = DateTime.UtcNow;
+            var totalProcessorTime = _monitoredProcess.TotalProcessorTime;
 
-            await Task.Delay(50, ct); // Small delay for measurement
+            if (_lastCpuSampleTime == null || _lastCpuTotalProcessorTime == null)
+            {
+                _lastCpuSampleTime = now;
+                _lastCpuTotalProcessorTime = totalProcessorTime;
+                return 0;
+            }
 
-            var endTime = DateTime.UtcNow;
-            var endCpuUsage = Process.GetCurrentProcess().TotalProcessorTime;
+            var cpuUsedMs = (totalProcessorTime - _lastCpuTotalProcessorTime.Value).TotalMilliseconds;
+            var totalMsPassed = (now - _lastCpuSampleTime.Value).TotalMilliseconds;
 
-            var cpuUsedMs = (endCpuUsage - startCpuUsage).TotalMilliseconds;
-            var totalMsPassed = (endTime - startTime).TotalMilliseconds;
+            _lastCpuSampleTime = now;
+            _lastCpuTotalProcessorTime = totalProcessorTime;
+
+            if (totalMsPassed <= 0)
+                return 0;
 
             var cpuUsageTotal = cpuUsedMs / (Environment.ProcessorCount * totalMsPassed) * 100;
-            return (float)Math.Min(cpuUsageTotal, 100.0);
+            return (float)Math.Clamp(cpuUsageTotal, 0.0, 100.0);
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Failed to calculate CPU usage. Returning 0 as fallback.");
             return 0;
         }
     }
@@ -288,31 +320,87 @@ public class PerformanceMonitor : IPerformanceMonitor
             _monitoredProcess.Refresh();
             return Task.FromResult(_monitoredProcess.WorkingSet64 / 1024 / 1024); // Convert to MB
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Failed to retrieve RAM usage metrics. Returning 0 as fallback.");
             return Task.FromResult(0L);
         }
     }
 
-    private Task<float> GetGpuUsageAsync(CancellationToken ct)
+    private async Task<float> GetGpuUsageAsync(CancellationToken ct)
     {
-        // Placeholder - would integrate with LibreHardwareMonitor or similar
-        // For now, return simulated GPU usage
-        return Task.FromResult((float)Random.Shared.Next(10, 90));
+        try
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || _monitoredProcess == null)
+                return 0;
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var category = new PerformanceCounterCategory("GPU Engine");
+                    var instanceNames = category.GetInstanceNames()
+                        .Where(name => name.Contains($"pid_{_monitoredProcess.Id}", StringComparison.OrdinalIgnoreCase) &&
+                                       name.Contains("engtype_3D", StringComparison.OrdinalIgnoreCase))
+                        .ToArray();
+
+                    if (instanceNames.Length == 0)
+                        return 0f;
+
+                    float total = 0;
+                    foreach (var instance in instanceNames)
+                    {
+                        using var counter = new PerformanceCounter("GPU Engine", "Utilization Percentage", instance);
+                        _ = counter.NextValue(); // Prime counter
+                        Thread.Sleep(20);
+                        total += counter.NextValue();
+                    }
+
+                    return total;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "GPU usage counters unavailable");
+                    return 0f;
+                }
+            }, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to retrieve GPU usage metrics. Returning 0 as fallback.");
+            return 0;
+        }
     }
 
     private Task<float?> GetGpuTemperatureAsync(CancellationToken ct)
     {
-        // Placeholder - would integrate with LibreHardwareMonitor
-        // Return simulated temperature between 40-80°C
-        return Task.FromResult((float?)Random.Shared.Next(40, 80));
+        // GPU temperature retrieval requires vendor-specific APIs; return null when unavailable.
+        return Task.FromResult<float?>(null);
     }
 
     private Task<float?> GetCpuTemperatureAsync(CancellationToken ct)
     {
-        // Placeholder - would integrate with LibreHardwareMonitor
-        // Return simulated temperature between 35-70°C
-        return Task.FromResult((float?)Random.Shared.Next(35, 70));
+        try
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return Task.FromResult<float?>(null);
+
+            using var searcher = new ManagementObjectSearcher(@"root\\WMI", "SELECT CurrentTemperature FROM MSAcpi_ThermalZoneTemperature");
+            foreach (var obj in searcher.Get())
+            {
+                if (obj["CurrentTemperature"] is uint rawTemp && rawTemp > 0)
+                {
+                    // Value is in tenths of Kelvin
+                    var celsius = (rawTemp / 10f) - 273.15f;
+                    return Task.FromResult<float?>(celsius);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "CPU temperature unavailable");
+        }
+
+        return Task.FromResult<float?>(null);
     }
 }
-

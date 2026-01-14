@@ -17,7 +17,6 @@ using SaveState.Core.RomManagement;
 using SaveState.Core.Mugen.Services;
 using SaveState.Infrastructure.Repositories;
 using SaveState.Infrastructure.Mugen;
-using SaveState.Infrastructure.Mugen.Repositories;
 using SaveState.Core.Ai.Knowledge;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Ai.Memory;
@@ -38,8 +37,8 @@ using SaveState.Infrastructure.GameLibrary.Services;
 using SaveState.Infrastructure.Persistence;
 using SaveState.Infrastructure.RomManagement.Services;
 using SaveState.Infrastructure.Common;
-using SaveState.Infrastructure.Common.Services;
 using SaveState.Infrastructure.Health;
+using SaveState.Infrastructure.CrossPlatform;
 
 namespace SaveState.Infrastructure;
 
@@ -67,7 +66,8 @@ public static class DependencyInjection
         services.AddScoped<IGameRepository, GameRepository>();
         services.AddScoped<IPlatformRepository, PlatformRepository>();
         services.AddScoped<IRomFileRepository, RomFileRepository>();
-        services.AddScoped<IEmulatorRepository, EmulatorRepository>();
+        services.AddScoped<IEmulatorRepository, EmulatorRepository>
+        ();
         services.AddScoped<IAchievementRepository, AchievementRepository>();
         services.AddScoped<IPlatformExtensionRegistry, PlatformExtensionRegistry>();
 
@@ -114,7 +114,6 @@ public static class DependencyInjection
         // User Services
         services.AddSingleton<SaveState.Core.Common.Services.IUserPreferencesService, SaveState.Infrastructure.Services.UserPreferencesService>();
         services.AddSingleton<ITaskRunner, TaskRunner>();
-        services.AddSingleton<IExtractionService, SharpCompressExtractionService>();
 
         // Culture and Localization Services
         services.AddSingleton<SaveState.Core.Common.Services.ICultureManager, CultureManager>();
@@ -122,40 +121,15 @@ public static class DependencyInjection
         // Accessibility Services
         services.AddSingleton<SaveState.Core.Common.Services.IAccessibilityService, AccessibilityService>();
 
-        // MUGEN Services
-        services.AddScoped<SaveState.Core.Mugen.Services.IMugenCharacterParser, SaveState.Core.Mugen.Services.MugenCharacterParser>();
-        services.AddScoped<IMugenCharacterLoader, MugenCharacterLoader>();
-        services.AddScoped<IMugenLauncher, MugenLauncher>();
-        services.AddScoped<IMugenDeathMatchService, MugenDeathMatchService>();
-        services.AddScoped<IMugenRosterService, MugenRosterService>();
-
-        // OpenMK Integration
-        services.AddScoped<SaveState.Core.OpenMK.Repositories.IOpenMKCharacterRepository, OpenMK.OpenMKCharacterRepository>();
-        services.AddScoped<SaveState.Core.OpenMK.Repositories.IOpenMKProgressRepository, OpenMK.OpenMKProgressRepository>();
-        services.AddScoped<SaveState.Core.OpenMK.Services.IOpenMKService, OpenMK.OpenMKService>();
-        services.AddScoped<SaveState.Core.OpenMK.Services.IOpenMKMatchService, OpenMK.OpenMKMatchService>();
-        services.AddScoped<SaveState.Core.OpenMK.Services.IOpenMKProgressionService, OpenMK.OpenMKProgressionService>();
-        services.AddScoped<SaveState.Core.OpenMK.Services.IOpenMKStoryService, OpenMK.OpenMKStoryService>();
-        services.AddScoped<IMugenMoveListService, MugenMoveListService>();
-        services.AddScoped<IMugenNetplayService, MugenNetplayService>();
-        services.AddScoped<IMugenDiscoveryService, MugenDiscoveryService>();
-        services.AddScoped<IMugenAssetPreviewService, MugenAssetPreviewService>();
-        services.AddScoped<IMugenCompatibilityService, MugenCompatibilityService>();
-        services.AddScoped<IMugenEloService, MugenEloService>();
-
-        // Move Creation Engine
-        services.AddScoped<IMoveCreationService, MoveCreationService>();
-        services.AddScoped<IMugenTemplateRepository, MugenTemplateRepository>();
-        services.AddScoped<IMugenValidationService, MugenValidationService>();
-        services.AddScoped<IMugenExportService, MugenExportService>();
-        services.AddScoped<IMugenBalancingService, MugenBalancingService>();
-        services.AddScoped<IMugenPreviewService, MugenPreviewService>();
-        services.AddScoped<IMugenTestService, MugenTestService>();
+        // MUGEN Fusion, Move, and Creative Services
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenFusionService, Mugen.MugenFusionService>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMoveCreationService, SaveState.Infrastructure.Mugen.MoveCreationService>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenGraphicsEngine, SaveState.Infrastructure.Mugen.MugenGraphicsEngine>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenSoundDesignStudio, SaveState.Infrastructure.Mugen.MugenSoundDesignStudio>();
 
         // Machine Learning Services
-        services.AddScoped<IMachineLearningService, SimpleMachineLearningService>();
-        services.AddScoped<ICharacterDataRepository, MugenCharacterDataRepository>();
-
+        services.AddScoped<SaveState.Core.Mugen.Services.IMachineLearningService, SaveState.Infrastructure.Mugen.MachineLearningService>();
+        services.AddScoped<SaveState.Core.Mugen.Repositories.IPlayerDataRepository, SaveState.Infrastructure.Mugen.PlayerDataRepository>();
         // Game Providers
         services.AddScoped<IGameProvider, SteamProvider>();
         services.AddScoped<IGameProvider, GogProvider>();
@@ -207,7 +181,6 @@ public static class DependencyInjection
         services.AddScoped<SaveState.Core.UserManagement.Services.IJwtTokenService, JwtTokenService>();
         services.AddScoped<SaveState.Core.UserManagement.Services.IPasswordHasher, PasswordHasher>();
         services.AddScoped<SaveState.Core.UserManagement.Services.IUserContextService, UserManagement.UserContextService>();
-        services.AddScoped<SaveState.Core.UserManagement.Services.IApiKeyService, UserManagement.ApiKeyService>();
 
         // Repositories (User Management)
         services.AddScoped<SaveState.Core.UserManagement.Repositories.IUserRepository, UserManagement.UserRepository>();
@@ -264,23 +237,97 @@ public static class DependencyInjection
         services.AddSingleton<SaveState.Core.Performance.Services.IDisplayCalibrator, Performance.DisplayCalibrator>();
         services.AddSingleton<SaveState.Core.Performance.Services.IAudioOptimizer, Performance.AudioOptimizer>();
 
-        // Phase 8: Game Memory Intelligence Services
-        services.AddSingleton<SaveState.Core.Performance.Services.IMemoryReader, Performance.WindowsMemoryReader>();
-        services.AddScoped<SaveState.Core.Performance.Services.IMemoryWatchService, Performance.MemoryWatchService>();
-        services.AddScoped<SaveState.Core.Performance.Services.IMemoryScanner, Performance.WindowsMemoryScanner>();
-        services.AddScoped<SaveState.Core.Performance.Services.IPointerPathFinder, Performance.WindowsPointerPathFinder>();
-
         // Phase 4: Immersive Launch Experience Services
         services.AddScoped<SaveState.Core.GameLibrary.Services.ILaunchExperienceManager, GameLibrary.Services.LaunchExperienceManager>();
         services.AddScoped<SaveState.Core.GameLibrary.Services.IGameBriefingService, GameLibrary.Services.GameBriefingService>();
 
         // Phase 5: Cloud Gaming & Network Quality Services
         services.AddScoped<SaveState.Core.Sync.Services.ICloudGamingManager, Sync.CloudGamingManager>();
+        services.AddScoped<SaveState.Core.Sync.INetworkQualityHistoryRepository, Repositories.NetworkQualityHistoryRepository>();
         services.AddSingleton<SaveState.Core.Sync.Services.INetworkQualityMonitor, Sync.NetworkQualityMonitor>();
 
         // Phase 6: Voice Command Integration Services
         services.AddScoped<SaveState.Core.Input.Services.IVoiceCommandService, Input.VoiceCommandService>();
         services.AddScoped<SaveState.Core.Ai.Services.ISpeechRecognitionService, Ai.SpeechRecognitionService>();
+
+        // Phase 7: Performance Optimization Services - REQUIRED
+        services.AddSingleton<Performance.QueryOptimizer>();
+        services.AddSingleton<Performance.MemoryProfiler>();
+
+        // Phase 7: Cloud Service Integration - REQUIRED
+        services.AddHttpClient<Cloud.AzureSpeechService>((sp, client) =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var apiKey = config["CloudServices:Azure:SpeechKey"] ?? "";
+            new Cloud.AzureSpeechService(client, sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Cloud.AzureSpeechService>>(), apiKey);
+        });
+
+        services.AddHttpClient<Cloud.GoogleCloudService>((sp, client) =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var apiKey = config["CloudServices:Google:ApiKey"] ?? "";
+            var projectId = config["CloudServices:Google:ProjectId"] ?? "";
+            new Cloud.GoogleCloudService(client, sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Cloud.GoogleCloudService>>(), apiKey, projectId);
+        });
+
+        services.AddHttpClient<Cloud.OpenAiService>((sp, client) =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var apiKey = config["CloudServices:OpenAi:ApiKey"] ?? "";
+            new Cloud.OpenAiService(client, sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Cloud.OpenAiService>>(), apiKey);
+        });
+
+        // Phase 7 Session 2: Distributed Caching - REQUIRED
+        services.AddSingleton<Caching.DistributedCacheService>();
+
+        // Phase 7 Session 2: Cross-Platform Audio - REQUIRED
+        services.AddSingleton<CrossPlatform.MacOS.MacOSAudioService>();
+        services.AddSingleton<CrossPlatform.Linux.LinuxAudioService>();
+
+        // Register audio services based on platform
+        services.AddPlatformAudioServices();
+
+        // Phase 7 Session 3: Machine Learning - REQUIRED
+        services.AddSingleton<MachineLearning.TensorFlowMLService>();
+
+        // Phase 7 Session 3: UI Theming - REQUIRED
+        services.AddSingleton<Theming.ThemeService>();
+
+        // Phase 7 Session 3: Advanced Analytics Reporting - REQUIRED
+        services.AddSingleton<Analytics.AdvancedReportingService>();
+
+        // Phase 7 Session 4: Multiplayer - REQUIRED
+        services.AddSingleton<Multiplayer.MultiplayerService>();
+
+        // Phase 7 Session 5: Streaming - REQUIRED
+        services.AddSingleton<Streaming.StreamingService>();
+
+        // Phase 7 Session 5: Tournaments - REQUIRED
+        services.AddSingleton<Tournaments.TournamentService>();
+
+        // Phase 7 Session 5: Social Features - REQUIRED
+        services.AddSingleton<Social.SocialFeaturesService>();
+
+        // Phase 7 Session 5: Community Marketplace - REQUIRED
+        services.AddSingleton<Community.CommunityMarketplaceService>();
+
+        // Phase 7 Session 5: Plugins - REQUIRED
+        services.AddSingleton<Plugins.PluginService>();
+
+        // Phase 7 Session 6: Cloud Services (Azure, Google ML Engine, ML.NET) - REQUIRED
+        services.AddSingleton<Cloud.AzureBlobStorageService>();
+        services.AddSingleton<Cloud.GoogleCloudMLEngineService>();
+        services.AddSingleton<Cloud.MLNetAdvancedModelsService>();
+
+        // Phase 7 Session 6: Analytics - REQUIRED
+        services.AddSingleton<Analytics.RealTimeAnalyticsDashboardService>();
+        services.AddSingleton<Analytics.AnalyticsQueryBuilderService>();
+        services.AddSingleton<Analytics.DataExportService>();
+
+        // Phase 7 Session 6: UI Enhancements - REQUIRED
+        services.AddSingleton<UIEnhancements.AnimationEngineService>();
+        services.AddSingleton<UIEnhancements.ResponsiveDesignService>();
+        services.AddSingleton<UIEnhancements.AdvancedAccessibilityService>();
 
         // Phase 7: Automation Services
         services.AddScoped<SaveState.Core.Automation.Services.IMacroRecorder, Automation.MacroRecorder>();
@@ -315,11 +362,6 @@ public static class DependencyInjection
         services.AddScoped<SaveState.Core.Mugen.Services.IMugenCollectionService, Mugen.MugenCollectionService>();
         services.AddScoped<SaveState.Core.Mugen.Services.IMugenTrainingService, Mugen.MugenTrainingService>();
         services.AddScoped<SaveState.Core.Mugen.Services.IMugenFusionService, Mugen.MugenFusionService>();
-        services.AddScoped<SaveState.Core.Mugen.Services.IMugenConfigService, Mugen.MugenConfigService>();
-
-        // Graphics & Audio Enhancement Services
-        services.AddScoped<IMugenGraphicsEngine, MugenGraphicsEngine>();
-        services.AddScoped<IMugenSoundDesignStudio, MugenSoundDesignStudio>();
 
         // Named HttpClient for Twitch authentication (used by IGDB)
         services.AddHttpClient("TwitchAuth");
@@ -548,7 +590,6 @@ public static class DependencyInjection
         services.AddScoped<IKnowledgeBaseService, MarkdownKnowledgeBaseService>();
         services.AddSingleton<IConversationContextService, InMemoryConversationContextService>();
         services.AddHttpClient<IWebSearchService, SaveState.Infrastructure.Ai.Services.WebSearchService>();
-        services.AddScoped<INaturalLanguageGameSearch, SaveState.Infrastructure.Ai.Services.NaturalLanguageGameSearch>();
         services.AddScoped<IVoiceProcessor, WhisperVoiceProcessor>();
 
         // Register cloud sync services

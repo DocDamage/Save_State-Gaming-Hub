@@ -98,7 +98,7 @@ public partial class RecentlyAddedWidget : WidgetBase
         if (game != null)
         {
             var gameId = GameId.From(game.Id);
-            _gameContextService.SetSelectedGame(gameId);
+            await _gameContextService.SetCurrentGameAsync(game);
             await _navigationService.NavigateTo("Library", gameId);
         }
     }

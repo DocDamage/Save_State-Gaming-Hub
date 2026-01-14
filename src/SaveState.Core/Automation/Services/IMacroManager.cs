@@ -24,6 +24,11 @@ public interface IMacroManager
         CancellationToken ct = default);
 
     /// <summary>
+    /// Gets all macros.
+    /// </summary>
+    Task<Result<IReadOnlyList<Macro>>> GetMacrosAsync(CancellationToken ct = default);
+
+    /// <summary>
     /// Gets all macros for a specific game.
     /// </summary>
     Task<Result<IReadOnlyList<Macro>>> GetMacrosForGameAsync(

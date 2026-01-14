@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SaveState.Core.Common;
 using SaveState.Core.Common.ValueObjects;
+using SaveState.Core.Configuration;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.Sync.Services;
 using SaveState.Core.Sync.Services.DTOs;
@@ -15,6 +17,7 @@ public class CloudGamingManager : ICloudGamingManager
     private readonly IGameRepository _gameRepository;
     private readonly INetworkQualityMonitor _networkQualityMonitor;
     private readonly ILogger<CloudGamingManager> _logger;
+    private readonly CloudGamingOptions _options;
 
     // In-memory storage for active sessions (can be replaced with repository)
     private readonly Dictionary<Guid, CloudSession> _activeSessions = new();
@@ -24,16 +27,49 @@ public class CloudGamingManager : ICloudGamingManager
     /// </summary>
     /// <param name="gameRepository">Repository for accessing game data.</param>
     /// <param name="networkQualityMonitor">Service for monitoring network quality.</param>
+    /// <param name="options">Cloud gaming configuration options.</param>
     /// <param name="logger">Logger for diagnostic information.</param>
     /// <exception cref="ArgumentNullException">Thrown when any parameter is null.</exception>
     public CloudGamingManager(
         IGameRepository gameRepository,
         INetworkQualityMonitor networkQualityMonitor,
+        IOptions<CloudGamingOptions> options,
         ILogger<CloudGamingManager> logger)
     {
         _gameRepository = gameRepository;
         _networkQualityMonitor = networkQualityMonitor;
+        _options = options.Value;
         _logger = logger;
+
+        // Log configuration status on initialization
+        LogConfigurationStatus();
+    }
+
+    private void LogConfigurationStatus()
+    {
+        if (!_options.Enabled)
+        {
+            _logger.LogWarning("Cloud Gaming is disabled in configuration");
+            return;
+        }
+
+        _logger.LogInformation("Cloud Gaming enabled - Default provider: {Provider}", _options.DefaultProvider);
+
+        var enabledProviders = new List<string>();
+        if (_options.GeForceNow.Enabled) enabledProviders.Add("GeForce NOW");
+        if (_options.XboxCloud.Enabled) enabledProviders.Add("Xbox Cloud");
+        if (_options.AmazonLuna.Enabled && !string.IsNullOrEmpty(_options.AmazonLuna.ApiKey)) enabledProviders.Add("Amazon Luna");
+        if (_options.PlayStationNow.Enabled) enabledProviders.Add("PlayStation Now");
+        if (_options.ShadowPC.Enabled && !string.IsNullOrEmpty(_options.ShadowPC.ApiKey)) enabledProviders.Add("Shadow PC");
+
+        if (enabledProviders.Any())
+        {
+            _logger.LogInformation("Configured cloud gaming providers: {Providers}", string.Join(", ", enabledProviders));
+        }
+        else
+        {
+            _logger.LogWarning("No cloud gaming providers are properly configured");
+        }
     }
 
     /// <summary>
@@ -46,24 +82,131 @@ public class CloudGamingManager : ICloudGamingManager
     {
         try
         {
-            // Return all supported providers
-            var providers = new[]
+            if (!_options.Enabled)
             {
-                CloudGamingProvider.GeForceNow,
-                CloudGamingProvider.XboxCloud,
-                CloudGamingProvider.AmazonLuna,
-                CloudGamingProvider.PlayStationNow,
-                CloudGamingProvider.Boosteroid
-            };
+                _logger.LogWarning("Cloud gaming is disabled - returning empty provider list");
+                return Result.Success<IReadOnlyList<CloudGamingProvider>>(Array.Empty<CloudGamingProvider>());
+            }
 
-            _logger.LogInformation("Retrieved {Count} available cloud gaming providers", providers.Length);
-            return Result.Success<IReadOnlyList<CloudGamingProvider>>(providers);
+            // Return only configured and enabled providers
+            var providers = new List<CloudGamingProvider>();
+
+            if (_options.GeForceNow.Enabled)
+            {
+                providers.Add(CloudGamingProvider.GeForceNow);
+            }
+
+            if (_options.XboxCloud.Enabled && !string.IsNullOrEmpty(_options.XboxCloud.AccountEmail))
+            {
+                providers.Add(CloudGamingProvider.XboxCloud);
+            }
+
+            if (_options.AmazonLuna.Enabled && !string.IsNullOrEmpty(_options.AmazonLuna.ApiKey))
+            {
+                providers.Add(CloudGamingProvider.AmazonLuna);
+            }
+
+            if (_options.PlayStationNow.Enabled && !string.IsNullOrEmpty(_options.PlayStationNow.AccountId))
+            {
+                providers.Add(CloudGamingProvider.PlayStationNow);
+            }
+
+            if (_options.ShadowPC.Enabled && !string.IsNullOrEmpty(_options.ShadowPC.ApiKey))
+            {
+                // Add Shadow PC as a custom/other provider - not in the enum yet
+                // providers.Add(CloudGamingProvider.ShadowPC);
+            }
+
+            // If no providers are configured, return all as potential options
+            if (!providers.Any())
+            {
+                _logger.LogInformation("No cloud gaming providers configured - returning all options");
+                providers.AddRange(new[]
+                {
+                    CloudGamingProvider.GeForceNow,
+                    CloudGamingProvider.XboxCloud,
+                    CloudGamingProvider.AmazonLuna,
+                    CloudGamingProvider.PlayStationNow,
+                    CloudGamingProvider.Boosteroid
+                });
+            }
+
+            _logger.LogInformation("Retrieved {Count} available cloud gaming providers", providers.Count);
+            return Result.Success<IReadOnlyList<CloudGamingProvider>>(providers.AsReadOnly());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get available cloud gaming providers");
             return Result.Failure<IReadOnlyList<CloudGamingProvider>>(
                 $"Failed to get providers: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Validates the configuration for a specific cloud gaming provider.
+    /// </summary>
+    /// <param name="provider">The provider to validate.</param>
+    /// <returns>A result indicating whether the provider is properly configured.</returns>
+    private Result ValidateProviderConfiguration(CloudGamingProvider provider)
+    {
+        if (!_options.Enabled)
+        {
+            return Result.Failure("Cloud gaming is disabled in configuration. Enable it in appsettings.json under CloudGaming:Enabled");
+        }
+
+        switch (provider)
+        {
+            case CloudGamingProvider.GeForceNow:
+                if (!_options.GeForceNow.Enabled)
+                {
+                    return Result.Failure("GeForce NOW is not enabled. Set CloudGaming:GeForceNow:Enabled to true");
+                }
+                // GeForce NOW doesn't require API key for basic usage
+                return Result.Success();
+
+            case CloudGamingProvider.XboxCloud:
+                if (!_options.XboxCloud.Enabled)
+                {
+                    return Result.Failure("Xbox Cloud Gaming is not enabled. Set CloudGaming:XboxCloud:Enabled to true");
+                }
+                if (string.IsNullOrEmpty(_options.XboxCloud.AccountEmail))
+                {
+                    return Result.Failure("Xbox Cloud Gaming requires an account email. Set CloudGaming:XboxCloud:AccountEmail");
+                }
+                if (!_options.XboxCloud.HasGamePassUltimate)
+                {
+                    return Result.Failure("Xbox Cloud Gaming requires Xbox Game Pass Ultimate subscription");
+                }
+                return Result.Success();
+
+            case CloudGamingProvider.AmazonLuna:
+                if (!_options.AmazonLuna.Enabled)
+                {
+                    return Result.Failure("Amazon Luna is not enabled. Set CloudGaming:AmazonLuna:Enabled to true");
+                }
+                if (string.IsNullOrEmpty(_options.AmazonLuna.ApiKey))
+                {
+                    return Result.Failure("Amazon Luna requires an API key. Set CloudGaming:AmazonLuna:ApiKey or use environment variable AMAZON_LUNA_API_KEY");
+                }
+                return Result.Success();
+
+            case CloudGamingProvider.PlayStationNow:
+                if (!_options.PlayStationNow.Enabled)
+                {
+                    return Result.Failure("PlayStation Now is not enabled. Set CloudGaming:PlayStationNow:Enabled to true");
+                }
+                if (string.IsNullOrEmpty(_options.PlayStationNow.AccountId))
+                {
+                    return Result.Failure("PlayStation Now requires an account ID. Set CloudGaming:PlayStationNow:AccountId");
+                }
+                return Result.Success();
+
+            case CloudGamingProvider.Boosteroid:
+                // Boosteroid doesn't have specific configuration yet
+                return Result.Success();
+
+            default:
+                return Result.Failure($"Unknown cloud gaming provider: {provider}");
         }
     }
 
@@ -81,6 +224,14 @@ public class CloudGamingManager : ICloudGamingManager
     {
         try
         {
+            // Validate provider configuration first
+            var configValidation = ValidateProviderConfiguration(provider);
+            if (!configValidation.IsSuccess)
+            {
+                _logger.LogWarning("Cannot start session - configuration invalid: {Error}", configValidation.Error);
+                return Result.Failure<CloudSession>(configValidation.Error!);
+            }
+
             // Verify game exists
             var game = await _gameRepository.GetByIdAsync(GameId.From(gameId), ct)
                 .ConfigureAwait(false);
@@ -110,7 +261,18 @@ public class CloudGamingManager : ICloudGamingManager
                     $"Failed to assess network quality: {networkQuality.Error}");
             }
 
-            // Check if network quality is sufficient
+            // Check if network quality meets minimum thresholds
+            if (!MeetsMinimumQualityRequirements(networkQuality.Value))
+            {
+                _logger.LogWarning("Network quality below minimum requirements for cloud gaming - Latency: {Latency}ms, Bandwidth: {Bandwidth}Mbps",
+                    networkQuality.Value.LatencyMs, networkQuality.Value.BandwidthMbps);
+                
+                return Result.Failure<CloudSession>(
+                    $"Network quality does not meet minimum requirements. Latency: {networkQuality.Value.LatencyMs}ms (max {_options.NetworkMonitoring.MinimumLatencyMs}ms), " +
+                    $"Bandwidth: {networkQuality.Value.BandwidthMbps}Mbps (min {_options.NetworkMonitoring.MinimumBandwidthMbps}Mbps)");
+            }
+
+            // Warn about poor quality but allow session to start
             if (networkQuality.Value.Level == QualityLevel.Poor)
             {
                 _logger.LogWarning("Starting cloud gaming session with poor network quality for game {GameId}", gameId);
@@ -138,6 +300,16 @@ public class CloudGamingManager : ICloudGamingManager
                 gameId, provider);
             return Result.Failure<CloudSession>($"Failed to start session: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Checks if current network quality meets minimum requirements for cloud gaming.
+    /// </summary>
+    private bool MeetsMinimumQualityRequirements(NetworkQuality quality)
+    {
+        return quality.LatencyMs <= _options.NetworkMonitoring.MinimumLatencyMs &&
+               quality.BandwidthMbps >= _options.NetworkMonitoring.MinimumBandwidthMbps &&
+               quality.PacketLossPercent <= _options.NetworkMonitoring.MaximumPacketLossPercent;
     }
 
     /// <summary>
@@ -408,4 +580,3 @@ public class CloudGamingManager : ICloudGamingManager
         return isPopularGame;
     }
 }
-

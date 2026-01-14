@@ -3,8 +3,10 @@ using System.Net.Sockets;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
+using SaveState.Core.Configuration;
 using SaveState.Core.Plugins;
 
 namespace SaveState.Plugins.MugenNetwork;
@@ -19,6 +21,7 @@ public class MugenNetworkPlugin : IPlugin
     private ILogger? _logger;
     private ITaskRunner? _taskRunner;
     private readonly HttpClient _httpClient;
+    private readonly MugenNetworkOptions _options;
     private NetworkStatus _networkStatus = NetworkStatus.Disconnected;
     private readonly List<LobbyInfo> _availableLobbies = new();
     private readonly List<WorkshopItem> _workshopItems = new();
@@ -31,32 +34,62 @@ public class MugenNetworkPlugin : IPlugin
     public string? Description => "Online multiplayer and workshop for MUGEN";
     public PluginCapabilities Capabilities => PluginCapabilities.SocialFeatures | PluginCapabilities.CloudStorage;
 
+    public MugenNetworkPlugin(HttpClient httpClient, IOptions<MugenNetworkOptions> options)
+    {
+        _httpClient = httpClient;
+        _options = options.Value;
+    }
+
     public async Task InitializeAsync(IPluginContext context, CancellationToken ct = default)
     {
         _context = context;
         _logger = context.Logger;
         _taskRunner = context.Services.GetService(typeof(ITaskRunner)) as ITaskRunner;
 
-        _logger.LogInformation("Initializing MUGEN Network plugin");
+        if (!_options.Enabled)
+        {
+            _logger?.LogInformation("MUGEN Network plugin is disabled in configuration");
+            return;
+        }
 
-        // Configure HTTP client for API calls
-        _httpClient.BaseAddress = new Uri("https://api.mugen-network.example.com/"); // Placeholder
+        _logger?.LogInformation("Initializing MUGEN Network plugin");
+
+        // Configure HTTP client with settings from options
+        if (!string.IsNullOrEmpty(_options.ApiBaseUrl))
+        {
+            _httpClient.BaseAddress = new Uri(_options.ApiBaseUrl);
+        }
+        _httpClient.Timeout = TimeSpan.FromMilliseconds(_options.ApiTimeoutMs);
         _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("SaveState-MUGEN/1.0");
 
-        // Register menu items
-        var multiplayerMenuItem = new PluginMenuItem(
-            Id: "mugen.network.multiplayer",
-            Label: "Online Multiplayer",
-            Icon: "🌐",
-            SortOrder: 340,
-            Action: ShowMultiplayerMenuAsync);
+        // Add API key to headers if configured
+        if (!string.IsNullOrEmpty(_options.ApiKey))
+        {
+            _httpClient.DefaultRequestHeaders.Add("X-API-Key", _options.ApiKey);
+        }
 
-        var workshopMenuItem = new PluginMenuItem(
-            Id: "mugen.network.workshop",
-            Label: "Community Workshop",
-            Icon: "🏪",
-            SortOrder: 341,
-            Action: ShowWorkshopAsync);
+        // Register menu items based on enabled features
+        if (_options.EnableMatchmaking)
+        {
+            var multiplayerMenuItem = new PluginMenuItem(
+                Id: "mugen.network.multiplayer",
+                Label: "Online Multiplayer",
+                Icon: "🌐",
+                SortOrder: 340,
+                Action: ShowMultiplayerMenuAsync);
+            await context.RegisterMenuItemAsync(multiplayerMenuItem);
+        }
+
+        if (_options.EnableWorkshop)
+        {
+            var workshopMenuItem = new PluginMenuItem(
+                Id: "mugen.network.workshop",
+                Label: "Community Workshop",
+                Icon: "🏪",
+                SortOrder: 341,
+                Action: ShowWorkshopAsync);
+            await context.RegisterMenuItemAsync(workshopMenuItem);
+        }
 
         var communityMenuItem = new PluginMenuItem(
             Id: "mugen.network.community",
@@ -72,15 +105,20 @@ public class MugenNetworkPlugin : IPlugin
             SortOrder: 343,
             Action: ShowProfileAsync);
 
-        await context.RegisterMenuItemAsync(multiplayerMenuItem);
-        await context.RegisterMenuItemAsync(workshopMenuItem);
         await context.RegisterMenuItemAsync(communityMenuItem);
         await context.RegisterMenuItemAsync(profileMenuItem);
 
-        // Initialize network connection
-        await InitializeNetworkAsync(ct);
+        // Initialize network connection if API key is configured
+        if (!string.IsNullOrEmpty(_options.ApiKey))
+        {
+            await InitializeNetworkAsync(ct);
+        }
+        else
+        {
+            _logger?.LogWarning("MUGEN Network API key not configured. Set MugenNetwork:ApiKey in appsettings.json or use environment variable MUGEN_NETWORK_API_KEY");
+        }
 
-        _logger.LogInformation("MUGEN Network plugin initialized successfully");
+        _logger?.LogInformation("MUGEN Network plugin initialized successfully");
     }
 
     public Task ShutdownAsync(CancellationToken ct = default)

@@ -195,18 +195,88 @@ public class AudioOptimizer : IAudioOptimizer
     {
         try
         {
-            _logger.LogInformation("Setting temporary audio device: {DeviceId}", deviceId);
+            _logger.LogInformation("Attempting to set temporary audio device: {DeviceId}", deviceId);
 
-            // This would use Windows Core Audio API to set the default device temporarily
-            // For now, just log the intent
-            _logger.LogWarning("Temporary device switching requires platform-specific implementation");
+            // Platform-specific implementation required
+            // Windows: Core Audio API (IMMDeviceEnumerator, IMMDevice)
+            // macOS: CoreAudio framework
+            // Linux: PulseAudio or ALSA
+            
+            _logger.LogWarning("Temporary device switching is not yet implemented. Feature requires platform-specific implementation.");
+            
+            return Task.FromResult(Result.Failure(
+                "Temporary device switching is not currently supported on this platform. This feature requires platform-specific Windows Core Audio, macOS CoreAudio, or Linux PulseAudio/ALSA implementation.",
+                ErrorType.NotImplemented));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error attempting to set temporary audio device {DeviceId}", deviceId);
+            return Task.FromResult(Result.Failure($"Failed to set audio device: {ex.Message}", ErrorType.Internal));
+        }
+    }
 
+    public Task<Result> ApplySettingsAsync(AudioSettings settings, CancellationToken ct = default)
+    {
+        return ApplyAudioSettingsAsync(settings, ct);
+    }
+
+    public Task<Result> SaveProfileAsync(AudioProfile profile, CancellationToken ct = default)
+    {
+        try
+        {
+            lock (_profilesLock)
+            {
+                _profiles[profile.Id] = profile;
+            }
+
+            _logger.LogInformation("Saved audio profile '{ProfileName}'", profile.Name);
             return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to set temporary audio device {DeviceId}", deviceId);
-            return Task.FromResult(Result.Failure($"Failed to set audio device: {ex.Message}", ErrorType.Internal));
+            _logger.LogError(ex, "Failed to save audio profile");
+            return Task.FromResult(Result.Failure($"Failed to save profile: {ex.Message}", ErrorType.Internal));
+        }
+    }
+
+    public Task<Result> DeleteProfileAsync(string profileName, CancellationToken ct = default)
+    {
+        try
+        {
+            lock (_profilesLock)
+            {
+                var profileToDelete = _profiles.Values.FirstOrDefault(p => p.Name == profileName);
+                if (profileToDelete != null)
+                {
+                    _profiles.Remove(profileToDelete.Id);
+                    _logger.LogInformation("Deleted audio profile '{ProfileName}'", profileName);
+                    return Task.FromResult(Result.Success());
+                }
+            }
+
+            return Task.FromResult(Result.Failure($"Profile '{profileName}' not found", ErrorType.NotFound));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete audio profile '{ProfileName}'", profileName);
+            return Task.FromResult(Result.Failure($"Failed to delete profile: {ex.Message}", ErrorType.Internal));
+        }
+    }
+
+    public Task<Result<IReadOnlyList<AudioProfile>>> GetSavedProfilesAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            lock (_profilesLock)
+            {
+                var profiles = _profiles.Values.OrderByDescending(p => p.CreatedAt).ToList();
+                return Task.FromResult(Result.Success<IReadOnlyList<AudioProfile>>((IReadOnlyList<AudioProfile>)profiles));
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get saved audio profiles");
+            return Task.FromResult(Result.Failure<IReadOnlyList<AudioProfile>>($"Failed to get profiles: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -330,4 +400,5 @@ public class AudioOptimizer : IAudioOptimizer
             LatencyMode: AudioLatencyMode.Default);
     }
 }
+
 

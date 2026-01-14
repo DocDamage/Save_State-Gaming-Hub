@@ -8,6 +8,7 @@ using SaveState.Application.Mugen.Commands;
 using Microsoft.Extensions.Options;
 using SaveState.Core.Configuration;
 using SaveState.Core.Mugen.Services;
+using SaveState.Core.Mugen.DTOs;
 using SaveState.Core.Mugen.ValueObjects;
 using System.Linq;
 

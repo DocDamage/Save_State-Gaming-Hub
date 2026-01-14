@@ -1,0 +1,116 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="700"
+        x:Class="SaveState.Presentation.Views.Dialogs.EmulatorEditorDialog"
+        x:DataType="vm:EmulatorEditorDialogViewModel"
+        Title="Emulator Configuration"
+        Width="600" Height="700"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True">
+
+    <Window.Styles>
+        <Style Selector="TextBox, ComboBox">
+            <Setter Property="Margin" Value="0,5"/>
+        </Style>
+        <Style Selector="TextBlock.label">
+            <Setter Property="Margin" Value="0,10,0,5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid Margin="20" RowDefinitions="Auto,*,Auto">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Configure Emulator" FontSize="20" FontWeight="Bold"/>
+            <TextBlock Text="Set up or edit an emulator configuration" 
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" 
+                       Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Form -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Name -->
+                <TextBlock Text="Emulator Name *" Classes="label"/>
+                <TextBox Text="{Binding EmulatorName}" 
+                         Watermark="e.g., RetroArch, Dolphin, PCSX2"/>
+
+                <!-- Display Name -->
+                <TextBlock Text="Display Name" Classes="label"/>
+                <TextBox Text="{Binding DisplayName}" 
+                         Watermark="Friendly name for display"/>
+
+                <!-- Executable Path -->
+                <TextBlock Text="Executable Path *" Classes="label"/>
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBox Grid.Column="0" 
+                             Text="{Binding ExecutablePath}" 
+                             Watermark="Path to emulator executable"/>
+                    <Button Grid.Column="1" 
+                            Content="Browse..." 
+                            Command="{Binding BrowseExecutableCommand}"
+                            Margin="5,0,0,0"/>
+                </Grid>
+
+                <!-- Supported Platforms -->
+                <TextBlock Text="Supported Platforms" Classes="label"/>
+                <ComboBox ItemsSource="{Binding AvailablePlatforms}" 
+                          SelectedItem="{Binding SelectedPlatform}"
+                          PlaceholderText="Select platform..."/>
+
+                <!-- Command Line Arguments -->
+                <TextBlock Text="Command Line Template" Classes="label"/>
+                <TextBox Text="{Binding CommandLineTemplate}" 
+                         Watermark='{ROM_PATH}'
+                         AcceptsReturn="True"
+                         Height="60"/>
+                <TextBlock Text="Use {ROM_PATH} as placeholder for ROM file path" 
+                           FontSize="11"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+
+                <!-- Working Directory -->
+                <TextBlock Text="Working Directory" Classes="label"/>
+                <TextBox Text="{Binding WorkingDirectory}" 
+                         Watermark="Optional: Override working directory"/>
+
+                <!-- Save State Support -->
+                <CheckBox Content="Supports Save States" 
+                          IsChecked="{Binding SupportsSaveStates}"
+                          Margin="0,15,0,0"/>
+
+                <!-- Auto-detect Availability -->
+                <CheckBox Content="Auto-detect availability on startup" 
+                          IsChecked="{Binding AutoDetect}"
+                          Margin="0,5,0,0"/>
+
+                <!-- Notes -->
+                <TextBlock Text="Notes" Classes="label" Margin="0,15,0,5"/>
+                <TextBox Text="{Binding Notes}" 
+                         AcceptsReturn="True"
+                         Height="80"
+                         Watermark="Additional notes or configuration tips..."/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right" 
+                    Margin="0,20,0,0">
+            <Button Content="Test" 
+                    Command="{Binding TestEmulatorCommand}"
+                    Margin="0,0,10,0"
+                    IsEnabled="{Binding CanTest}"/>
+            <Button Content="Save" 
+                    Command="{Binding SaveCommand}"
+                    IsDefault="True"
+                    Margin="0,0,10,0"/>
+            <Button Content="Cancel" 
+                    Command="{Binding CancelCommand}"
+                    IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -406,12 +406,15 @@ public partial class CloudSyncViewModel : ObservableObject
             if (result != null)
             {
                 // Update configuration via mediator
-                var updateResult = await _mediator.Send(new UpdateCloudSyncSettingsCommand(
-                    result.ProviderName,
-                    result.EnableAutoSync,
-                    result.ApiKey, // Map ApiKey to ClientID for now as per dialog model
-                    null           // Placeholder for Google Drive
-                ));
+            var oneDriveClientId = result.ProviderName == "OneDrive" ? result.ApiKey : null;
+            var googleDriveClientId = result.ProviderName == "GoogleDrive" ? result.ApiKey : null;
+
+            var updateResult = await _mediator.Send(new UpdateCloudSyncSettingsCommand(
+                result.ProviderName,
+                result.EnableAutoSync,
+                oneDriveClientId,
+                googleDriveClientId
+            ));
 
                 if (updateResult.IsSuccess)
                 {

@@ -17,6 +17,7 @@ using SaveState.Presentation.Views;
 using SaveState.Presentation.Services;
 using SaveState.Core.Mugen.Entities;
 using SaveState.Core.Mugen.Services;
+using SaveState.Core.Mugen.Repositories;
 
 /// <summary>
 /// Entry point for the SaveState Avalonia application.
@@ -119,6 +120,13 @@ public static class Program
         // Register MUGEN ViewModels
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.Mugen.MoveCreationViewModel>();
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.Mugen.MachineLearningViewModel>();
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Automation.MacroMarketplaceViewModel>();
+
+        // Register Optional Feature ViewModels (Phase 6)
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.VoiceCommandViewModel>();
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Analytics.AdvancedAnalyticsViewModel>();
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Settings.AccessibilityViewModel>();
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.Settings.AudioOptimizationViewModel>();
 
         // Register MUGEN Move Creation and Machine Learning services
         builder.Services.AddTransient<IMoveCreationService, SaveState.Infrastructure.Mugen.MoveCreationService>();
@@ -128,10 +136,10 @@ public static class Program
         builder.Services.AddTransient<IMugenExportService, SaveState.Infrastructure.Mugen.MugenExportService>();
         builder.Services.AddTransient<IMugenPreviewService, SaveState.Infrastructure.Mugen.MugenPreviewService>();
         builder.Services.AddTransient<IMugenTestService, SaveState.Infrastructure.Mugen.MugenTestService>();
-        builder.Services.AddTransient<IMachineLearningService, SaveState.Infrastructure.Mugen.SimpleMachineLearningService>();
-        builder.Services.AddTransient<IMatchDataRepository, SaveState.Infrastructure.Mugen.Repositories.MugenMatchDataRepository>();
-        builder.Services.AddTransient<ICharacterDataRepository, SaveState.Infrastructure.Mugen.Repositories.MugenCharacterDataRepository>();
-        builder.Services.AddTransient<IPlayerDataRepository, SaveState.Infrastructure.Mugen.Repositories.MugenPlayerDataRepository>();
+        builder.Services.AddTransient<IMachineLearningService, SaveState.Infrastructure.Mugen.MachineLearningService>();
+        builder.Services.AddTransient<IMatchDataRepository, SaveState.Infrastructure.Mugen.MatchDataRepository>();
+        builder.Services.AddTransient<ICharacterDataRepository, SaveState.Infrastructure.Mugen.CharacterDataRepository>();
+        builder.Services.AddTransient<IPlayerDataRepository, SaveState.Infrastructure.Mugen.PlayerDataRepository>();
 
         var host = builder.Build();
 
@@ -169,8 +177,6 @@ public static class Program
             }
 
             // Seed MUGEN characters if empty
-            // TODO: Re-enable after verifying PaletteInfo configuration
-            /*
             if (!await dbContext.MugenCharacters.AnyAsync())
             {
                 var kfm = MugenCharacter.Create("Kung Fu Man", "chars/kfm/kfm.def", "chars/kfm");
@@ -178,7 +184,6 @@ public static class Program
                 dbContext.MugenCharacters.AddRange(kfm, ryu);
                 await dbContext.SaveChangesAsync();
             }
-            */
 
             // Enable WAL Mode for performance
             dbContext.EnableWalMode();

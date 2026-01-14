@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using SaveState.Core.Mugen.Services;
+using SaveState.Core.Mugen.DTOs;
 using SaveState.Core.Mugen.ValueObjects;
 
 namespace SaveState.Presentation.ViewModels.Shell.Mugen;
@@ -18,10 +19,6 @@ public partial class MugenDownloadsViewModel : MugenSectionViewModelBase
 
     [ObservableProperty]
     private string _statusMessage = "Ready to search.";
-
-    // Kept for compatibility if XAML binds to it, but mainly superseded by Discovery logic
-    [ObservableProperty]
-    private string _assetUrl = string.Empty;
 
     [ObservableProperty]
     private double _downloadProgress;
@@ -78,7 +75,7 @@ public partial class MugenDownloadsViewModel : MugenSectionViewModelBase
         {
             IsBusy = true;
             StatusMessage = $"Installing {item.Name}...";
-            DownloadProgress = 0; // If service supported progress, we'd hook it up
+            DownloadProgress = 0;
 
             var result = await _discoveryService.InstallAsync(item);
 
@@ -100,13 +97,5 @@ public partial class MugenDownloadsViewModel : MugenSectionViewModelBase
         {
             IsBusy = false;
         }
-    }
-
-    // Legacy method from placeholder, kept or refactored
-    [RelayCommand]
-    private async Task DownloadAssetAsync()
-    {
-        // ... (Logic for direct URL download if needed, skipping for now as Discovery is primary)
-        await SearchAsync();
     }
 }

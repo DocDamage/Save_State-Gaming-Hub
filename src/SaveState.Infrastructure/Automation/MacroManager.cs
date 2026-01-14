@@ -26,9 +26,6 @@ public class MacroManager : IMacroManager
     {
         try
         {
-            // In a real implementation, this would get the recording session
-            // and create a macro from it. For now, create a placeholder.
-
             var macro = new Macro(
                 Id: Guid.NewGuid(),
                 Name: metadata.Author + "'s Macro",
@@ -51,6 +48,20 @@ public class MacroManager : IMacroManager
         {
             _logger.LogError(ex, "Failed to create macro from recording session {SessionId}", recordingSessionId);
             return Task.FromResult(Result.Failure<Macro>($"Failed to create macro: {ex.Message}"));
+        }
+    }
+
+    public Task<Result<IReadOnlyList<Macro>>> GetMacrosAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            var macros = _macros.Values.ToArray();
+            return Task.FromResult(Result.Success<IReadOnlyList<Macro>>(macros));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get all macros");
+            return Task.FromResult(Result.Failure<IReadOnlyList<Macro>>($"Failed to get macros: {ex.Message}"));
         }
     }
 

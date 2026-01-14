@@ -16,6 +16,7 @@ using SaveState.Core.Mugen.ValueObjects;
 using SaveState.Core.Configuration;
 using SaveState.Presentation.Services;
 using SaveState.Presentation.ViewModels.Shell.Mugen;
+using SaveState.Core.Mugen.DTOs;
 
 namespace SaveState.Presentation.ViewModels.Shell;
 
@@ -178,7 +179,7 @@ public partial class MugenHubViewModel : ObservableObject
         Replays = new ObservableCollection<MugenReplaySummary>();
         TierList = new ObservableCollection<MugenTierEntry>();
 
-        MoveList = new ObservableCollection<MugenMoveEntry>();
+        MoveList = new ObservableCollection<MugenMoveEntryDto>();
         NetplayLobbies = new ObservableCollection<MugenNetplayLobby>();
         AssetEntries = new ObservableCollection<MugenAssetEntry>();
         CompatibilityIssues = new ObservableCollection<MugenCompatibilityIssue>();
@@ -204,7 +205,7 @@ public partial class MugenHubViewModel : ObservableObject
     public ObservableCollection<MugenReplaySummary> Replays { get; }
     public ObservableCollection<MugenTierEntry> TierList { get; }
 
-    public ObservableCollection<MugenMoveEntry> MoveList { get; }
+    public ObservableCollection<MugenMoveEntryDto> MoveList { get; }
     public ObservableCollection<MugenNetplayLobby> NetplayLobbies { get; }
 
     public ObservableCollection<MugenAssetEntry> AssetEntries { get; }
@@ -457,7 +458,11 @@ public partial class MugenHubViewModel : ObservableObject
             if (result.IsSuccess && result.Value != null)
             {
                 foreach (var issue in result.Value.Issues)
-                    CompatibilityIssues.Add(issue);
+                    CompatibilityIssues.Add(new MugenCompatibilityIssue(
+                        issue.IssueType,
+                        issue.Description,
+                        issue.Severity,
+                        issue.SuggestedFix));
 
                 CompatibilityStatus = CompatibilityIssues.Count == 0
                     ? "No issues detected."
@@ -501,10 +506,18 @@ public partial class MugenHubViewModel : ObservableObject
             if (result.IsSuccess && result.Value != null)
             {
                 foreach (var fix in result.Value.Fixes)
-                    CompatibilityFixes.Add(fix);
+                    CompatibilityFixes.Add(new MugenCompatibilityFix(
+                        fix.FixType,
+                        fix.Description,
+                        fix.Success,
+                        fix.Details));
 
                 foreach (var issue in result.Value.Issues)
-                    CompatibilityIssues.Add(issue);
+                     CompatibilityIssues.Add(new MugenCompatibilityIssue(
+                        issue.IssueType,
+                        issue.Description,
+                        issue.Severity,
+                        issue.SuggestedFix));
 
                 CompatibilityStatus = CompatibilityFixes.Count == 0
                     ? "No fixes applied."
@@ -716,6 +729,7 @@ public partial class MugenHubViewModel : ObservableObject
             if (result.IsSuccess && result.Value != null)
             {
                 foreach (var entry in result.Value)
+                    // Ensure DTO is compatible or map it if needed. MoveList is ObservableCollection<MugenMoveEntryDto>
                     MoveList.Add(entry);
 
                 MoveListStatus = MoveList.Count == 0 ? "No moves found." : $"{MoveList.Count} moves loaded.";
@@ -784,7 +798,14 @@ public partial class MugenHubViewModel : ObservableObject
             if (result.IsSuccess && result.Value != null)
             {
                 foreach (var entry in result.Value)
-                    EloRatings.Add(entry);
+                    EloRatings.Add(new MugenEloRating
+                    {
+                        CharacterName = entry.CharacterName,
+                        Rating = entry.Rating,
+                        Wins = entry.Wins,
+                        Losses = entry.Losses
+                        // Map other fields
+                    });
             }
         }
         catch (Exception ex)
@@ -1264,5 +1285,39 @@ internal sealed class CharacterRecord
 {
     public int Wins { get; set; }
     public int Losses { get; set; }
+}
+
+/// <summary>
+/// Represents a compatibility issue detected in a MUGEN character.
+/// </summary>
+public sealed record MugenCompatibilityIssue(
+    string IssueType,
+    string Description,
+    string Severity,
+    string? SuggestedFix = null
+);
+
+/// <summary>
+/// Represents a compatibility fix applied to a MUGEN character.
+/// </summary>
+public sealed record MugenCompatibilityFix(
+    string FixType,
+    string Description,
+    bool Success,
+    string? Details = null
+);
+
+/// <summary>
+/// Represents an ELO rating for a MUGEN character.
+/// </summary>
+public sealed class MugenEloRating
+{
+    public Guid CharacterId { get; set; }
+    public string CharacterName { get; set; } = string.Empty;
+    public int Rating { get; set; }
+    public int Rank { get; set; }
+    public int Wins { get; set; }
+    public int Losses { get; set; }
+    public double WinRate => (Wins + Losses) > 0 ? (double)Wins / (Wins + Losses) : 0;
 }
 

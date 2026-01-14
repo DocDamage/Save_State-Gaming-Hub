@@ -42,6 +42,77 @@ public interface IAccessibilityService
     /// <param name="text">Text to validate.</param>
     /// <param name="context">Context where the text is used.</param>
     AccessibilityValidationResult ValidateTextAccessibility(string text, TextAccessibilityContext context);
+
+    /// <summary>
+    /// Enables screen reader support.
+    /// </summary>
+    Task EnableScreenReaderAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Disables screen reader support.
+    /// </summary>
+    Task DisableScreenReaderAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Enables text-to-speech functionality.
+    /// </summary>
+    Task EnableTextToSpeechAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Disables text-to-speech functionality.
+    /// </summary>
+    Task DisableTextToSpeechAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Enables high contrast mode.
+    /// </summary>
+    Task EnableHighContrastAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Disables high contrast mode.
+    /// </summary>
+    Task DisableHighContrastAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Applies a color blind mode.
+    /// </summary>
+    /// <param name="mode">The color blind mode to apply.</param>
+    /// <param name="ct">Cancellation token.</param>
+    Task ApplyColorBlindModeAsync(int mode, CancellationToken ct = default);
+
+    /// <summary>
+    /// Disables color blind mode.
+    /// </summary>
+    Task DisableColorBlindModeAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Sets the UI scale factor.
+    /// </summary>
+    /// <param name="scaleFactor">Scale factor (1.0 = 100%).</param>
+    /// <param name="ct">Cancellation token.</param>
+    Task SetUIScaleAsync(float scaleFactor, CancellationToken ct = default);
+
+    /// <summary>
+    /// Sets the font size multiplier.
+    /// </summary>
+    /// <param name="multiplier">Font size multiplier.</param>
+    /// <param name="ct">Cancellation token.</param>
+    Task SetFontSizeMultiplierAsync(float multiplier, CancellationToken ct = default);
+
+    /// <summary>
+    /// Enables motion reduction for animations.
+    /// </summary>
+    Task EnableReduceMotionAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Disables motion reduction for animations.
+    /// </summary>
+    Task DisableReduceMotionAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets the current accessibility settings.
+    /// </summary>
+    Task<Core.Common.Result<AccessibilitySettings>> GetCurrentSettingsAsync(CancellationToken ct = default);
 }
 
 /// <summary>
@@ -143,3 +214,15 @@ public class AccessibilityValidationResult
             Suggestions = suggestions ?? new List<string>()
         };
 }
+
+/// <summary>
+/// Accessibility settings.
+/// </summary>
+public record AccessibilitySettings(
+    bool ScreenReaderEnabled,
+    bool TextToSpeechEnabled,
+    bool HighContrastEnabled,
+    bool ColorBlindModeEnabled,
+    float UIScaleFactor,
+    float FontSizeMultiplier,
+    bool ReduceMotionEnabled);

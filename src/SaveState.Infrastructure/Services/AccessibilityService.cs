@@ -77,21 +77,27 @@ public class AccessibilityService : IAccessibilityService
         {
             try
             {
-                // Platform-specific high contrast detection
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    // Windows high contrast detection would go here
-                    // For now, return false as we don't have platform integration
+                    var hc = new HIGHCONTRAST
+                    {
+                        cbSize = Marshal.SizeOf<HIGHCONTRAST>()
+                    };
+
+                    if (SystemParametersInfo(SPI_GETHIGHCONTRAST, hc.cbSize, ref hc, 0))
+                    {
+                        return (hc.dwFlags & HCF_HIGHCONTRASTON) != 0;
+                    }
+
                     return false;
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    // macOS accessibility settings detection would go here
+                    // macOS accessibility detection would be implemented via native bindings.
                     return false;
                 }
                 else
                 {
-                    // Linux and other platforms
                     return false;
                 }
             }
@@ -110,21 +116,19 @@ public class AccessibilityService : IAccessibilityService
         {
             try
             {
-                // Platform-specific screen reader detection
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    // Windows screen reader detection (NVDA, JAWS, Narrator)
-                    return false; // Placeholder
+                    bool isScreenReader = false;
+                    SystemParametersInfo(SPI_GETSCREENREADER, 0, ref isScreenReader, 0);
+                    return isScreenReader;
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    // macOS VoiceOver detection
-                    return false; // Placeholder
+                    return false;
                 }
                 else
                 {
-                    // Linux screen readers (Orca, etc.)
-                    return false; // Placeholder
+                    return false;
                 }
             }
             catch (Exception ex)
@@ -227,5 +231,255 @@ public class AccessibilityService : IAccessibilityService
         return issues.Any()
             ? AccessibilityValidationResult.Failure(issues, suggestions)
             : AccessibilityValidationResult.Success();
+    }
+
+    private const uint SPI_GETHIGHCONTRAST = 0x0042;
+    private const uint SPI_GETSCREENREADER = 0x0046;
+    private const uint HCF_HIGHCONTRASTON = 0x00000001;
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private struct HIGHCONTRAST
+    {
+        public int cbSize;
+        public int dwFlags;
+        public IntPtr lpszDefaultScheme;
+    }
+
+    [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+    private static extern bool SystemParametersInfo(uint uiAction, int uiParam, ref HIGHCONTRAST pvParam, int fWinIni);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool SystemParametersInfo(uint uiAction, uint uiParam, ref bool pvParam, uint fWinIni);
+
+    // Accessibility feature state flags
+    private bool _screenReaderEnabled;
+    private bool _textToSpeechEnabled;
+    private bool _highContrastEnabled;
+    private bool _colorBlindModeEnabled;
+    private int _colorBlindMode;
+    private float _uiScaleFactor = 1.0f;
+    private float _fontSizeMultiplier = 1.0f;
+    private bool _reduceMotionEnabled;
+
+    /// <inheritdoc />
+    public async Task EnableScreenReaderAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            _screenReaderEnabled = true;
+            _logger.LogInformation("Screen reader enabled");
+            await AnnounceAsync("Screen reader enabled", AnnouncementPriority.High);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to enable screen reader");
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task DisableScreenReaderAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            _screenReaderEnabled = false;
+            _logger.LogInformation("Screen reader disabled");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to disable screen reader");
+        }
+
+        await Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public async Task EnableTextToSpeechAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            _textToSpeechEnabled = true;
+            _logger.LogInformation("Text-to-speech enabled");
+            await AnnounceAsync("Text-to-speech enabled", AnnouncementPriority.High);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to enable text-to-speech");
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task DisableTextToSpeechAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            _textToSpeechEnabled = false;
+            _logger.LogInformation("Text-to-speech disabled");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to disable text-to-speech");
+        }
+
+        await Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public async Task EnableHighContrastAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            _highContrastEnabled = true;
+            _logger.LogInformation("High contrast mode enabled");
+            await AnnounceAsync("High contrast mode enabled", AnnouncementPriority.High);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to enable high contrast mode");
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task DisableHighContrastAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            _highContrastEnabled = false;
+            _logger.LogInformation("High contrast mode disabled");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to disable high contrast mode");
+        }
+
+        await Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public async Task ApplyColorBlindModeAsync(int mode, CancellationToken ct = default)
+    {
+        try
+        {
+            _colorBlindModeEnabled = true;
+            _colorBlindMode = mode;
+            _logger.LogInformation("Color blind mode applied: {Mode}", mode);
+            await AnnounceAsync($"Color blind mode applied: Mode {mode}", AnnouncementPriority.High);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to apply color blind mode");
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task DisableColorBlindModeAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            _colorBlindModeEnabled = false;
+            _logger.LogInformation("Color blind mode disabled");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to disable color blind mode");
+        }
+
+        await Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public async Task SetUIScaleAsync(float scaleFactor, CancellationToken ct = default)
+    {
+        try
+        {
+            if (scaleFactor < 0.5f || scaleFactor > 3.0f)
+            {
+                _logger.LogWarning("UI scale factor out of range: {Factor}", scaleFactor);
+                return;
+            }
+
+            _uiScaleFactor = scaleFactor;
+            _logger.LogInformation("UI scale set to {Factor}%", scaleFactor * 100);
+            await AnnounceAsync($"UI scale changed to {scaleFactor * 100:F0}%", AnnouncementPriority.Normal);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to set UI scale");
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task SetFontSizeMultiplierAsync(float multiplier, CancellationToken ct = default)
+    {
+        try
+        {
+            if (multiplier < 0.8f || multiplier > 2.0f)
+            {
+                _logger.LogWarning("Font size multiplier out of range: {Multiplier}", multiplier);
+                return;
+            }
+
+            _fontSizeMultiplier = multiplier;
+            _logger.LogInformation("Font size multiplier set to {Multiplier}x", multiplier);
+            await AnnounceAsync($"Font size adjusted to {multiplier}x", AnnouncementPriority.Normal);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to set font size multiplier");
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task EnableReduceMotionAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            _reduceMotionEnabled = true;
+            _logger.LogInformation("Reduce motion enabled");
+            await AnnounceAsync("Reduce motion enabled", AnnouncementPriority.High);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to enable reduce motion");
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task DisableReduceMotionAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            _reduceMotionEnabled = false;
+            _logger.LogInformation("Reduce motion disabled");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to disable reduce motion");
+        }
+
+        await Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public async Task<SaveState.Core.Common.Result<AccessibilitySettings>> GetCurrentSettingsAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            var settings = new AccessibilitySettings(
+                ScreenReaderEnabled: _screenReaderEnabled || IsScreenReaderActive,
+                TextToSpeechEnabled: _textToSpeechEnabled,
+                HighContrastEnabled: _highContrastEnabled || IsHighContrastEnabled,
+                ColorBlindModeEnabled: _colorBlindModeEnabled,
+                UIScaleFactor: _uiScaleFactor,
+                FontSizeMultiplier: _fontSizeMultiplier,
+                ReduceMotionEnabled: _reduceMotionEnabled);
+
+            return await Task.FromResult(SaveState.Core.Common.Result.Success<AccessibilitySettings>(settings));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get accessibility settings");
+            return await Task.FromResult(SaveState.Core.Common.Result.Failure<AccessibilitySettings>(
+                $"Failed to get settings: {ex.Message}", SaveState.Core.Common.ErrorType.Internal));
+        }
     }
 }

@@ -5,9 +5,13 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
+using SaveState.Core.GameLibrary.Enums;
+using SaveState.Core.GameLibrary.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Presentation.Services;
+using SaveState.Presentation.ViewModels.Dialogs;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,6 +26,7 @@ public partial class LibraryViewModel : ObservableObject, IRecipient<SaveState.P
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
     private readonly IGameRepository _gameRepository;
+    private readonly IVirtualCollectionService _collectionService;
     private readonly INaturalLanguageGameSearch _nlSearch;
     private readonly ILogger<LibraryViewModel> _logger;
 
@@ -109,6 +114,7 @@ public partial class LibraryViewModel : ObservableObject, IRecipient<SaveState.P
         INavigationService navigationService,
         IDialogService dialogService,
         IGameRepository gameRepository,
+        IVirtualCollectionService collectionService,
         INaturalLanguageGameSearch nlSearch,
         ILogger<LibraryViewModel> logger)
     {
@@ -121,6 +127,7 @@ public partial class LibraryViewModel : ObservableObject, IRecipient<SaveState.P
         _navigationService = navigationService;
         _dialogService = dialogService;
         _gameRepository = gameRepository;
+        _collectionService = collectionService;
         _nlSearch = nlSearch;
         _logger = logger;
 
@@ -379,9 +386,55 @@ public partial class LibraryViewModel : ObservableObject, IRecipient<SaveState.P
              return;
         }
 
-        // Placeholder for collection selector
-        await _dialogService.ShowInformationAsync("Bulk Move", $"Moved {selectedGameIds.Count} games to collection (Placeholder).");
+        var collectionsResult = await _collectionService.GetAllCollectionsAsync(includeSystem: false);
+        if (!collectionsResult.IsSuccess || collectionsResult.Value == null)
+        {
+            _logger.LogWarning("Failed to load collections for bulk move");
+            await _dialogService.ShowErrorAsync("Bulk Move", "Unable to load collections. Please try again.");
+            return;
+        }
+
+        var manualCollections = collectionsResult.Value
+            .Where(c => c.Type == CollectionType.Manual)
+            .Select(c => new CollectionSelectionOption(c.Id, c.Name, c.Type))
+            .ToList();
+
+        if (!manualCollections.Any())
+        {
+            await _dialogService.ShowInformationAsync("Bulk Move", "No manual collections are available. Create one before moving games.");
+            return;
+        }
+
+        var selection = await _dialogService.ShowCollectionSelectionDialogAsync(manualCollections);
+        if (selection == null)
+        {
+            return;
+        }
+
+        var failureCount = 0;
+        foreach (var gameId in selectedGameIds)
+        {
+            var moveResult = await _collectionService.AddGameToCollectionAsync(selection.CollectionId, gameId);
+            if (!moveResult.IsSuccess)
+            {
+                failureCount++;
+                _logger.LogWarning("Failed to move game {GameId} to collection {CollectionId}: {Error}", gameId, selection.CollectionId, moveResult.Error ?? "Unknown error");
+            }
+        }
+
         _toolbarViewModel.IsSelectionMode = false;
+        await LoadLibraryDataAsync();
+
+        if (failureCount > 0)
+        {
+            await _dialogService.ShowWarningAsync(
+                "Bulk Move",
+                $"Moved {selectedGameIds.Count - failureCount} games to '{selection.CollectionName}', but {failureCount} failed.");
+        }
+        else
+        {
+            await _dialogService.ShowInformationAsync("Bulk Move", $"Moved {selectedGameIds.Count} games to '{selection.CollectionName}'.");
+        }
     }
 
     private IEnumerable<GameId> GetSelectedGameIds()

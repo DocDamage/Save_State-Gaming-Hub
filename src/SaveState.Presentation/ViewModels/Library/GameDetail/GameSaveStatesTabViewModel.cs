@@ -74,6 +74,7 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
     }
 
     private GameId? _currentGameId;
+    private Guid? _currentSaveStateRootId;
 
     public async Task LoadDataAsync(GameId gameId)
     {
@@ -95,6 +96,9 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
             var saveStates = result.Value;
             TotalSaveCount = saveStates.Count;
             SaveStatesCountText = $"{TotalSaveCount} save state{(TotalSaveCount == 1 ? "" : "s")}";
+
+            _currentSaveStateRootId = saveStates.FirstOrDefault(s => s.IsCurrent)?.Id
+                ?? saveStates.OrderByDescending(s => s.CreatedAt).FirstOrDefault()?.Id;
 
             // Calculate statistics
             // Note: BranchName functionality not yet implemented in SaveState entity
@@ -323,8 +327,14 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
             var result = await _dialogService.ShowBranchCreationDialogAsync();
             if (result != null)
             {
+                if (_currentSaveStateRootId == null)
+                {
+                    await _dialogService.ShowErrorAsync("Error", "No save state available to branch from.");
+                    return;
+                }
+
                 var command = new CreateBranchCommand(
-                    Guid.Empty, // Placeholder root state - theoretically should be the 'current' one
+                    _currentSaveStateRootId.Value,
                     result.BranchName,
                     result.Description,
                     result.BranchType);

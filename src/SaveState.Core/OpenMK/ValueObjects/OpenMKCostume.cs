@@ -1,3 +1,5 @@
+using System;
+
 namespace SaveState.Core.OpenMK.ValueObjects;
 
 /// <summary>
@@ -19,6 +21,8 @@ public class OpenMKCostume
     /// <summary>
     /// Creates a new OpenMK costume.
     /// </summary>
+    public Guid Id { get; private set; } = Guid.NewGuid();
+
     public OpenMKCostume(
         string name,
         string displayName,

@@ -1,4 +1,6 @@
 using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.Management;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.Performance.Services;
@@ -11,6 +13,8 @@ public class BatteryOptimizer : IBatteryOptimizer
     private BatteryProfile? _activeProfile;
     private Timer? _batteryMonitorTimer;
     private BatteryStatus _lastBatteryStatus;
+    private readonly Dictionary<Guid, BatteryProfile> _profiles = new();
+    private readonly object _profilesLock = new();
 
     public event EventHandler<BatteryStatusChangedEventArgs>? BatteryStatusChanged;
     public event EventHandler<LowBatteryWarningEventArgs>? LowBatteryWarning;
@@ -19,6 +23,7 @@ public class BatteryOptimizer : IBatteryOptimizer
     {
         _logger = logger;
         _lastBatteryStatus = new BatteryStatus(100, TimeSpan.MaxValue, false, PowerMode.Balanced, BatteryHealth.Good, 25.0);
+        SeedDefaultProfiles();
         StartBatteryMonitoring();
     }
 
@@ -47,6 +52,11 @@ public class BatteryOptimizer : IBatteryOptimizer
                 CreatedAt: DateTime.UtcNow,
                 IsActive: false);
 
+            lock (_profilesLock)
+            {
+                _profiles[profile.Id] = profile;
+            }
+
             return Task.FromResult(Result.Success<BatteryProfile>(profile));
         }
         catch (Exception ex)
@@ -59,58 +69,22 @@ public class BatteryOptimizer : IBatteryOptimizer
     {
         try
         {
-            // In a real implementation, this would retrieve the profile from a repository
-            // For now, create a default profile based on the ID
-
-            var settings = profileId.ToString() switch
+            BatteryProfile profile;
+            lock (_profilesLock)
             {
-                var id when id.Contains("performance") => new BatteryOptimizationSettings(
-                    DisableBackgroundApps: false,
-                    ReduceFrameRate: false,
-                    LowerResolution: false,
-                    DisableVSync: false,
-                    ReduceAudioQuality: false,
-                    EnablePowerSaverMode: false,
-                    TargetFrameRate: 60,
-                    ScreenBrightnessPercent: 100),
+                if (!_profiles.TryGetValue(profileId, out profile))
+                {
+                    return Task.FromResult(Result.Failure($"Profile {profileId} not found", ErrorType.NotFound));
+                }
+            }
 
-                var id when id.Contains("powersaver") => new BatteryOptimizationSettings(
-                    DisableBackgroundApps: true,
-                    ReduceFrameRate: true,
-                    LowerResolution: true,
-                    DisableVSync: true,
-                    ReduceAudioQuality: true,
-                    EnablePowerSaverMode: true,
-                    TargetFrameRate: 30,
-                    ScreenBrightnessPercent: 50),
-
-                _ => new BatteryOptimizationSettings( // Balanced
-                    DisableBackgroundApps: true,
-                    ReduceFrameRate: false,
-                    LowerResolution: false,
-                    DisableVSync: false,
-                    ReduceAudioQuality: false,
-                    EnablePowerSaverMode: false,
-                    TargetFrameRate: 60,
-                    ScreenBrightnessPercent: 80)
-            };
-
-            var mode = profileId.ToString() switch
+            _activeProfile = profile with { IsActive = true };
+            lock (_profilesLock)
             {
-                var id when id.Contains("performance") => PowerMode.Performance,
-                var id when id.Contains("powersaver") => PowerMode.PowerSaver,
-                _ => PowerMode.Balanced
-            };
+                _profiles[profileId] = _activeProfile;
+            }
 
-            _activeProfile = new BatteryProfile(
-                Id: profileId,
-                Name: $"{mode} Profile",
-                Mode: mode,
-                Settings: settings,
-                CreatedAt: DateTime.UtcNow,
-                IsActive: true);
-
-            ApplyBatterySettingsAsync(settings, ct);
+            ApplyBatterySettingsAsync(profile.Settings, ct);
 
             return Task.FromResult(Result.Success());
         }
@@ -129,59 +103,10 @@ public class BatteryOptimizer : IBatteryOptimizer
     {
         try
         {
-            // Create default profiles for different power modes
-            var profiles = new List<BatteryProfile>
+            lock (_profilesLock)
             {
-                new BatteryProfile(
-                    Id: Guid.Parse("11111111-1111-1111-1111-111111111111"),
-                    Name: "Performance Mode",
-                    Mode: PowerMode.Performance,
-                    Settings: new BatteryOptimizationSettings(
-                        DisableBackgroundApps: false,
-                        ReduceFrameRate: false,
-                        LowerResolution: false,
-                        DisableVSync: false,
-                        ReduceAudioQuality: false,
-                        EnablePowerSaverMode: false,
-                        TargetFrameRate: 60,
-                        ScreenBrightnessPercent: 100),
-                    CreatedAt: DateTime.UtcNow.AddDays(-1),
-                    IsActive: _activeProfile?.Mode == PowerMode.Performance),
-
-                new BatteryProfile(
-                    Id: Guid.Parse("22222222-2222-2222-2222-222222222222"),
-                    Name: "Balanced Mode",
-                    Mode: PowerMode.Balanced,
-                    Settings: new BatteryOptimizationSettings(
-                        DisableBackgroundApps: true,
-                        ReduceFrameRate: false,
-                        LowerResolution: false,
-                        DisableVSync: false,
-                        ReduceAudioQuality: false,
-                        EnablePowerSaverMode: false,
-                        TargetFrameRate: 60,
-                        ScreenBrightnessPercent: 80),
-                    CreatedAt: DateTime.UtcNow.AddDays(-1),
-                    IsActive: _activeProfile?.Mode == PowerMode.Balanced),
-
-                new BatteryProfile(
-                    Id: Guid.Parse("33333333-3333-3333-3333-333333333333"),
-                    Name: "Power Saver Mode",
-                    Mode: PowerMode.PowerSaver,
-                    Settings: new BatteryOptimizationSettings(
-                        DisableBackgroundApps: true,
-                        ReduceFrameRate: true,
-                        LowerResolution: true,
-                        DisableVSync: true,
-                        ReduceAudioQuality: true,
-                        EnablePowerSaverMode: true,
-                        TargetFrameRate: 30,
-                        ScreenBrightnessPercent: 50),
-                    CreatedAt: DateTime.UtcNow.AddDays(-1),
-                    IsActive: _activeProfile?.Mode == PowerMode.PowerSaver)
-            };
-
-            return Task.FromResult(Result.Success<IReadOnlyList<BatteryProfile>>((IReadOnlyList<BatteryProfile>)profiles));
+                return Task.FromResult(Result.Success<IReadOnlyList<BatteryProfile>>(_profiles.Values.ToList()));
+            }
         }
         catch (Exception ex)
         {
@@ -207,13 +132,11 @@ public class BatteryOptimizer : IBatteryOptimizer
             }
             else
             {
-                // Fallback for unknown platforms
                 return new BatteryStatus(100, TimeSpan.MaxValue, false, PowerMode.Balanced, BatteryHealth.Good, 25.0);
             }
         }
         catch
         {
-            // Return a safe default if battery monitoring fails
             return new BatteryStatus(100, TimeSpan.MaxValue, false, PowerMode.Balanced, BatteryHealth.Good, 25.0);
         }
     }
@@ -222,26 +145,41 @@ public class BatteryOptimizer : IBatteryOptimizer
     {
         try
         {
-            // Use Windows Management Instrumentation (WMI) to get battery info
-            // This is a simplified implementation - real implementation would use proper WMI queries
+            using var searcher = new ManagementObjectSearcher("SELECT EstimatedChargeRemaining, BatteryStatus, EstimatedRunTime FROM Win32_Battery");
+            var results = searcher.Get();
+            if (results.Count == 0)
+            {
+                return _lastBatteryStatus;
+            }
 
-            var percent = 85; // Mock value
-            var isCharging = false;
-            var estimatedHours = 3.5;
-            var temperature = 35.0;
+            var battery = results.Cast<ManagementBaseObject>().First();
+            var percent = Convert.ToInt32(battery["EstimatedChargeRemaining"] ?? 100);
+            var statusCode = Convert.ToInt32(battery["BatteryStatus"] ?? 1);
+            var estimatedRunTime = Convert.ToInt32(battery["EstimatedRunTime"] ?? 0);
 
-            var estimatedRemaining = TimeSpan.FromHours(estimatedHours);
+            var isCharging = statusCode is 6 or 7 or 8 or 9;
             var currentMode = _activeProfile?.Mode ?? PowerMode.Balanced;
+            var estimatedRemaining = estimatedRunTime > 0 && estimatedRunTime < 65535
+                ? TimeSpan.FromMinutes(estimatedRunTime)
+                : TimeSpan.MaxValue;
 
-            var health = percent > 80 ? BatteryHealth.Excellent :
-                        percent > 60 ? BatteryHealth.Good :
-                        percent > 40 ? BatteryHealth.Fair :
-                        percent > 20 ? BatteryHealth.Poor : BatteryHealth.Critical;
+            var cpuTemp = ReadCpuTemperatureCelsius();
+            var temperature = cpuTemp ?? _lastBatteryStatus.TemperatureCelsius;
+
+            var health = percent switch
+            {
+                >= 90 => BatteryHealth.Excellent,
+                >= 70 => BatteryHealth.Good,
+                >= 50 => BatteryHealth.Fair,
+                >= 25 => BatteryHealth.Poor,
+                _ => BatteryHealth.Critical
+            };
 
             return new BatteryStatus(percent, estimatedRemaining, isCharging, currentMode, health, temperature);
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogDebug(ex, "Failed to read Windows battery status");
             return new BatteryStatus(100, TimeSpan.MaxValue, false, PowerMode.Balanced, BatteryHealth.Good, 25.0);
         }
     }
@@ -321,142 +259,247 @@ public class BatteryOptimizer : IBatteryOptimizer
 
     private Task ApplyBatterySettingsAsync(BatteryOptimizationSettings settings, CancellationToken ct)
     {
-        // Apply battery optimization settings
-        // This would interact with system power management APIs
-
-        if (settings.DisableBackgroundApps)
+        try
         {
-            DisableBackgroundApplicationsAsync(ct);
+            if (settings.DisableBackgroundApps || settings.EnablePowerSaverMode)
+            {
+                try
+                {
+                    var process = Process.GetCurrentProcess();
+                    process.PriorityClass = settings.EnablePowerSaverMode ? ProcessPriorityClass.BelowNormal : ProcessPriorityClass.Normal;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Failed to adjust process priority for battery optimization");
+                }
+            }
+
+            if (settings.ReduceFrameRate || settings.LowerResolution)
+            {
+                ApplyPerformanceSettingsAsync(settings, ct);
+            }
+
+            if (settings.ReduceAudioQuality)
+            {
+                ApplyAudioSettingsAsync(settings, ct);
+            }
+
+            SetScreenBrightnessAsync(settings.ScreenBrightnessPercent, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Failed to apply some battery settings");
         }
 
-        if (settings.ReduceFrameRate || settings.LowerResolution)
-        {
-            ApplyPerformanceSettingsAsync(settings, ct);
-        }
-
-        if (settings.ReduceAudioQuality)
-        {
-            ApplyAudioSettingsAsync(settings, ct);
-        }
-
-        SetScreenBrightnessAsync(settings.ScreenBrightnessPercent, ct);
         return Task.CompletedTask;
-    }
-
-    private Task DisableBackgroundApplicationsAsync(CancellationToken ct)
-    {
-        // Disable non-essential background applications
-        return Task.CompletedTask; // Placeholder
     }
 
     private Task ApplyPerformanceSettingsAsync(BatteryOptimizationSettings settings, CancellationToken ct)
     {
-        // Apply performance-related settings for battery saving
-        return Task.CompletedTask; // Placeholder
-    }
-
-    private Task ApplyAudioSettingsAsync(BatteryOptimizationSettings settings, CancellationToken ct)
-    {
-        // Reduce audio quality/processing for battery saving
-        return Task.CompletedTask; // Placeholder
+        // Adjust process priority already handled; hook for future performance tweaks
+        return Task.CompletedTask;
     }
 
     private Task SetScreenBrightnessAsync(int brightnessPercent, CancellationToken ct)
     {
-        // Set screen brightness (platform-specific implementation needed)
-        return Task.CompletedTask; // Placeholder
+        try
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return Task.CompletedTask;
+
+            var clamped = Math.Clamp(brightnessPercent, 0, 100);
+            using var mclass = new ManagementClass("root\\wmi", "WmiMonitorBrightnessMethods", null);
+            foreach (ManagementObject instance in mclass.GetInstances())
+            {
+                instance.InvokeMethod("WmiSetBrightness", new object[] { uint.MaxValue, (byte)clamped });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Failed to set screen brightness");
+        }
+
+        return Task.CompletedTask;
     }
 
-    private int ReadSysFsValue(string batteryPath, string fileName, int defaultValue)
+    private void SeedDefaultProfiles()
+    {
+        lock (_profilesLock)
+        {
+            if (_profiles.Count > 0)
+                return;
+
+            var performanceId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+            var balancedId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+            var powerSaverId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+
+            _profiles[performanceId] = new BatteryProfile(
+                performanceId,
+                "Performance Mode",
+                PowerMode.Performance,
+                new BatteryOptimizationSettings(
+                    DisableBackgroundApps: false,
+                    ReduceFrameRate: false,
+                    LowerResolution: false,
+                    DisableVSync: false,
+                    ReduceAudioQuality: false,
+                    EnablePowerSaverMode: false,
+                    TargetFrameRate: 60,
+                    ScreenBrightnessPercent: 100),
+                DateTime.UtcNow.AddDays(-1),
+                false);
+
+            _profiles[balancedId] = new BatteryProfile(
+                balancedId,
+                "Balanced Mode",
+                PowerMode.Balanced,
+                new BatteryOptimizationSettings(
+                    DisableBackgroundApps: true,
+                    ReduceFrameRate: false,
+                    LowerResolution: false,
+                    DisableVSync: false,
+                    ReduceAudioQuality: false,
+                    EnablePowerSaverMode: false,
+                    TargetFrameRate: 60,
+                    ScreenBrightnessPercent: 80),
+                DateTime.UtcNow.AddDays(-1),
+                true);
+
+            _profiles[powerSaverId] = new BatteryProfile(
+                powerSaverId,
+                "Power Saver Mode",
+                PowerMode.PowerSaver,
+                new BatteryOptimizationSettings(
+                    DisableBackgroundApps: true,
+                    ReduceFrameRate: true,
+                    LowerResolution: true,
+                    DisableVSync: true,
+                    ReduceAudioQuality: true,
+                    EnablePowerSaverMode: true,
+                    TargetFrameRate: 30,
+                    ScreenBrightnessPercent: 50),
+                DateTime.UtcNow.AddDays(-1),
+                false);
+
+            _activeProfile = _profiles[balancedId];
+        }
+    }
+
+    private double? ReadCpuTemperatureCelsius()
     {
         try
         {
-            var filePath = Path.Combine(batteryPath, fileName);
-            if (File.Exists(filePath))
+            using var searcher = new ManagementObjectSearcher(@"root\\WMI", "SELECT CurrentTemperature FROM MSAcpi_ThermalZoneTemperature");
+            foreach (var obj in searcher.Get())
             {
-                var content = File.ReadAllText(filePath).Trim();
-                if (int.TryParse(content, out var value))
+                if (obj["CurrentTemperature"] is uint rawTemp && rawTemp > 0)
                 {
-                    return value;
+                    return (rawTemp / 10.0) - 273.15;
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogDebug(ex, "Failed to read sysfs battery value for {FileName}, returning default", fileName);
+            _logger.LogDebug(ex, "CPU temperature unavailable");
         }
 
-        return defaultValue;
-    }
-
-    private string ReadSysFsValue(string batteryPath, string fileName, string defaultValue)
-    {
-        try
-        {
-            var filePath = Path.Combine(batteryPath, fileName);
-            if (File.Exists(filePath))
-            {
-                return File.ReadAllText(filePath).Trim();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "Failed to read sysfs battery string value for {FileName}, returning default", fileName);
-        }
-
-        return defaultValue;
+        return null;
     }
 
     private void StartBatteryMonitoring()
     {
-        _batteryMonitorTimer = new Timer(_ =>
+        try
         {
-            try
-            {
-                var currentStatus = GetCurrentBatteryStatusAsync(CancellationToken.None);
-
-                // Check for status changes
-                if (!BatteryStatusesEqual(_lastBatteryStatus, currentStatus))
-                {
-                    BatteryStatusChanged?.Invoke(this, new BatteryStatusChangedEventArgs
-                    {
-                        PreviousStatus = _lastBatteryStatus,
-                        CurrentStatus = currentStatus
-                    });
-
-                    _lastBatteryStatus = currentStatus;
-                }
-
-                // Check for low battery warnings
-                if (currentStatus.PercentRemaining <= 20 && !currentStatus.IsCharging)
-                {
-                    LowBatteryWarning?.Invoke(this, new LowBatteryWarningEventArgs
-                    {
-                        PercentRemaining = currentStatus.PercentRemaining,
-                        EstimatedTime = currentStatus.EstimatedRemaining,
-                        IsCharging = currentStatus.IsCharging
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error during battery status monitoring");
-            }
-        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(30)); // Check every 30 seconds
+            _batteryMonitorTimer = new Timer(
+                callback: _ => CheckBatteryStatus(),
+                state: null,
+                dueTime: TimeSpan.FromSeconds(5),
+                period: TimeSpan.FromSeconds(30));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to start battery monitoring timer");
+        }
     }
 
-    private static bool BatteryStatusesEqual(BatteryStatus a, BatteryStatus b)
+    private void CheckBatteryStatus()
     {
-        return a.PercentRemaining == b.PercentRemaining &&
-               a.IsCharging == b.IsCharging &&
-               a.CurrentMode == b.CurrentMode &&
-               Math.Abs(a.TemperatureCelsius - b.TemperatureCelsius) < 1.0;
+        try
+        {
+            var currentStatus = GetCurrentBatteryStatusAsync(CancellationToken.None);
+            
+            // Check for low battery warning
+            if (!currentStatus.IsCharging && currentStatus.PercentRemaining < 20 && 
+                _lastBatteryStatus.PercentRemaining >= 20)
+            {
+                LowBatteryWarning?.Invoke(this, new LowBatteryWarningEventArgs
+                {
+                    PercentRemaining = currentStatus.PercentRemaining,
+                    EstimatedTime = currentStatus.EstimatedRemaining,
+                    IsCharging = currentStatus.IsCharging
+                });
+            }
+            
+            // Notify status change
+            if (currentStatus.PercentRemaining != _lastBatteryStatus.PercentRemaining || 
+                currentStatus.IsCharging != _lastBatteryStatus.IsCharging)
+            {
+                BatteryStatusChanged?.Invoke(this, new BatteryStatusChangedEventArgs
+                {
+                    PreviousStatus = _lastBatteryStatus,
+                    CurrentStatus = currentStatus
+                });
+            }
+            
+            _lastBatteryStatus = currentStatus;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Error checking battery status");
+        }
     }
 
-    public void Dispose()
+    private T ReadSysFsValue<T>(string batteryPath, string fileName, T defaultValue)
     {
-        _batteryMonitorTimer?.Dispose();
+        try
+        {
+            var filePath = Path.Combine(batteryPath, fileName);
+            if (!File.Exists(filePath))
+                return defaultValue;
+
+            var content = File.ReadAllText(filePath).Trim();
+            
+            if (typeof(T) == typeof(int))
+            {
+                return (T)(object)int.Parse(content);
+            }
+            else if (typeof(T) == typeof(double))
+            {
+                return (T)(object)double.Parse(content);
+            }
+            else if (typeof(T) == typeof(string))
+            {
+                return (T)(object)content;
+            }
+            
+            return defaultValue;
+        }
+        catch
+        {
+            return defaultValue;
+        }
+    }
+
+    private Task ApplyAudioSettingsAsync(BatteryOptimizationSettings settings, CancellationToken ct)
+    {
+        // Placeholder for audio quality adjustments
+        // Would require audio framework integration
+        _logger.LogDebug("Audio quality adjustment not yet implemented");
+        return Task.CompletedTask;
     }
 }
+
+
+
 
 

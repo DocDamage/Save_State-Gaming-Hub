@@ -1,5 +1,7 @@
 using SaveState.Presentation.ViewModels.Automation;
+using SaveState.Presentation.ViewModels.Dialogs;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace SaveState.Presentation.Services;
@@ -50,6 +52,11 @@ public interface IDialogService
     Task<string?> ShowFilePickerAsync(string title, string[] extensions);
 
     /// <summary>
+    /// Shows a file open dialog.
+    /// </summary>
+    Task<string?> ShowOpenFileDialogAsync(string title, string[] extensions);
+
+    /// <summary>
     /// Shows a confirmation dialog.
     /// </summary>
     Task<bool> ShowConfirmationAsync(string title, string message, string confirmText = "OK", string cancelText = "Cancel");
@@ -73,6 +80,13 @@ public interface IDialogService
     /// Shows a message dialog with optional icon.
     /// </summary>
     Task ShowMessageDialogAsync(string title, string message, string? icon = null);
+
+    /// <summary>
+    /// Shows a dialog that lets the user select a collection to move games into.
+    /// </summary>
+    Task<CollectionSelectionResult?> ShowCollectionSelectionDialogAsync(
+        IReadOnlyList<CollectionSelectionOption> collections,
+        Guid? currentSelectionId = null);
 
     /// <summary>
     /// Shows the task creation dialog.
@@ -102,7 +116,7 @@ public interface IDialogService
     /// <summary>
     /// Shows the emulator editor dialog.
     /// </summary>
-    Task<EmulatorEditorResult?> ShowEmulatorEditorAsync(SaveState.Presentation.ViewModels.Shell.EmulatorViewModel? existingEmulator = null);
+    Task<EmulatorEditorResult?> ShowEmulatorEditorAsync(SaveState.Core.RomManagement.Entities.Emulator? existingEmulator = null);
 
     /// <summary>
     /// Shows the ROM details dialog.

@@ -82,10 +82,10 @@ public class LiveSyncService : ILiveSyncService
                 new System.Diagnostics.Stopwatch());
 
             // Wire up events
-            watcher.Created += (s, e) => _ = SafeHandleAsync(() => HandleFileCreatedAsync(normalizedPath, e.FullPath, platformName));
+            watcher.Created += (s, e) => _ = SafeHandleAsync(() => HandleFileCreatedAsync(normalizedPath, e.FullPath, platformName), "FileCreated");
             watcher.Deleted += (s, e) => HandleFileDeletedAsync(normalizedPath, e.FullPath, platformName);
             watcher.Changed += (s, e) => HandleFileChangedAsync(normalizedPath, e.FullPath, platformName);
-            watcher.Renamed += (s, e) => _ = SafeHandleAsync(() => HandleFileRenamedAsync(normalizedPath, e.OldFullPath, e.FullPath, platformName));
+            watcher.Renamed += (s, e) => _ = SafeHandleAsync(() => HandleFileRenamedAsync(normalizedPath, e.OldFullPath, e.FullPath, platformName), "FileRenamed");
             watcher.Error += (s, e) => HandleWatcherErrorAsync(normalizedPath, platformName, e.GetException());
 
             _watchers[normalizedPath] = context;
@@ -305,15 +305,32 @@ public class LiveSyncService : ILiveSyncService
         }
     }
 
-    private async Task SafeHandleAsync(Func<Task> action)
+    private async Task<Result> SafeHandleAsync(Func<Task> action, string operationName)
     {
         try
         {
             await action().ConfigureAwait(false);
+            return Result.Success();
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogDebug("Operation cancelled: {Operation}", operationName);
+            return Result.Failure($"{operationName} was cancelled", ErrorType.External);
+        }
+        catch (IOException ioEx)
+        {
+            _logger.LogWarning(ioEx, "IO error in {Operation}", operationName);
+            return Result.Failure($"File system error in {operationName}: {ioEx.Message}", ErrorType.External);
+        }
+        catch (UnauthorizedAccessException authEx)
+        {
+            _logger.LogWarning(authEx, "Access denied in {Operation}", operationName);
+            return Result.Failure($"Access denied in {operationName}: {authEx.Message}", ErrorType.Unauthorized);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error handling FileSystemWatcher event");
+            _logger.LogError(ex, "Unexpected error in {Operation}", operationName);
+            return Result.Failure($"{operationName} failed: {ex.Message}", ErrorType.Internal);
         }
     }
 

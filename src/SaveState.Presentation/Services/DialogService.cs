@@ -7,6 +7,7 @@ using SaveState.Core.Automation.Services;
 using SaveState.Core.Automation.Services.DTOs;
 using SaveState.Presentation.Views.Dialogs;
 using SaveState.Presentation.ViewModels.Automation;
+using SaveState.Presentation.ViewModels.Dialogs;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Linq;
@@ -14,9 +15,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using SaveState.Presentation.ViewModels.Library.GameDetail;
 using SaveState.Presentation.Views.Library.GameDetail;
-using SaveState.Presentation.ViewModels.Emulators;
 using SaveState.Core.RomManagement.Services;
-using SaveState.Presentation.Views.Dialogs;
 
 namespace SaveState.Presentation.Services;
 
@@ -349,6 +348,40 @@ public class DialogService : IDialogService
         }
     }
 
+    public async Task<CollectionSelectionResult?> ShowCollectionSelectionDialogAsync(
+        IReadOnlyList<CollectionSelectionOption> collections,
+        Guid? currentSelectionId = null)
+    {
+        if (collections == null || collections.Count == 0)
+        {
+            _logger.LogWarning("Collection selection dialog requested without available collections");
+            return null;
+        }
+
+        try
+        {
+            var viewModel = new CollectionSelectionDialogViewModel(collections, currentSelectionId);
+            var dialog = new CollectionSelectionDialog
+            {
+                DataContext = viewModel
+            };
+
+            var mainWindow = GetMainWindow();
+            if (mainWindow == null)
+            {
+                _logger.LogWarning("Main window not found for collection selection dialog");
+                return null;
+            }
+
+            return await dialog.ShowDialog<CollectionSelectionResult?>(mainWindow);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show collection selection dialog");
+            return null;
+        }
+    }
+
     public async Task<TaskCreationResult?> ShowTaskCreationDialogAsync(ScheduledTaskViewModel? existingTask = null)
     {
         try
@@ -467,14 +500,31 @@ public class DialogService : IDialogService
         }
     }
 
-    public async Task<EmulatorEditorResult?> ShowEmulatorEditorAsync(SaveState.Presentation.ViewModels.Shell.EmulatorViewModel? existingEmulator = null)
+    public async Task<EmulatorEditorResult?> ShowEmulatorEditorAsync(SaveState.Core.RomManagement.Entities.Emulator? existingEmulator = null)
     {
         try
         {
             _logger.LogInformation("Showing emulator editor dialog");
-            // Placeholder: Returning null for now
-            await ShowInformationAsync("Emulator Configuration", "Emulator configuration dialog is under development.");
-            return null;
+            
+            var vm = new ViewModels.Dialogs.EmulatorEditorDialogViewModel(
+                existingEmulator,
+                _loggerFactory.CreateLogger<ViewModels.Dialogs.EmulatorEditorDialogViewModel>(),
+                this);
+
+            var dialog = new EmulatorEditorDialog
+            {
+                DataContext = vm
+            };
+
+            var mainWindow = GetMainWindow();
+            if (mainWindow == null)
+            {
+                _logger.LogWarning("Main window not found for emulator editor dialog");
+                return null;
+            }
+
+            var result = await dialog.ShowDialog<EmulatorEditorResult?>(mainWindow);
+            return result;
         }
         catch (Exception ex)
         {
@@ -980,8 +1030,52 @@ public class DialogService : IDialogService
         {
             _logger.LogInformation("Showing macro playback for {MacroName} ({MacroId})", macroName, macroId);
 
-            // Placeholder implementation - shows playback progress
-            await ShowInformationAsync("Macro Playback", $"Playing macro '{macroName}'...");
+            // Load the macro
+            var macro = await _macroService.GetMacroAsync(macroId);
+            if (macro == null)
+            {
+                await ShowErrorAsync("Macro Not Found", $"Could not find macro '{macroName}'.");
+                return;
+            }
+
+            // Create progress dialog
+            var progressMessage = $"Playing macro '{macroName}'...";
+            var cancellationToken = new System.Threading.CancellationTokenSource();
+
+            // Execute the macro in background
+            var playbackTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await _macroService.PlayMacroAsync(macroId, cancellationToken.Token);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error during macro playback");
+                    throw;
+                }
+            });
+
+            // Show a simple progress notification
+            // In a real implementation, you might want a proper progress dialog
+            await ShowInformationAsync("Macro Playback", progressMessage);
+
+            // Wait for completion
+            try
+            {
+                await playbackTask;
+                _logger.LogInformation("Macro playback completed successfully");
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Macro playback was cancelled");
+                await ShowInformationAsync("Macro Playback", "Macro playback was cancelled.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Macro playback failed");
+                await ShowErrorAsync("Macro Playback Failed", $"Failed to play macro: {ex.Message}");
+            }
         }
         catch (Exception ex)
         {
@@ -1146,6 +1240,36 @@ public class DialogService : IDialogService
             return null;
         }
     }
+
+    public async Task<string?> ShowOpenFileDialogAsync(string title, string[] extensions)
+    {
+        try
+        {
+            var mainWindow = GetMainWindow();
+            if (mainWindow == null) return null;
+
+            var options = new FilePickerOpenOptions
+            {
+                Title = title,
+                AllowMultiple = false,
+                FileTypeFilter = extensions.Select(ext => new FilePickerFileType(ext) { Patterns = new[] { $"*.{ext}" } }).ToList()
+            };
+
+            var files = await mainWindow.StorageProvider.OpenFilePickerAsync(options);
+            return files.FirstOrDefault()?.Path.LocalPath;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show open file dialog");
+            return null;
+        }
+    }
+    
+    public async Task<string?> ShowFilePickerAsync(string title, string[] extensions)
+    {
+         return await ShowOpenFileDialogAsync(title, extensions);
+    }
+
 }
 
 public enum MessageDialogType

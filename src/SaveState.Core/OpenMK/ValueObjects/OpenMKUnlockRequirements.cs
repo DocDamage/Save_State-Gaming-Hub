@@ -1,3 +1,5 @@
+using System;
+
 namespace SaveState.Core.OpenMK.ValueObjects;
 
 /// <summary>

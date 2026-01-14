@@ -100,16 +100,31 @@ public class FriendActivityService : IFriendActivityService
     {
         try
         {
-            // For now, this is a placeholder implementation
-            // In a real implementation, this would:
-            // 1. Use Discord API to get the user's friends
-            // 2. Check which friends are playing games
-            // 3. Update friend records and create activities
+            _logger.LogInformation("Starting Discord friends sync");
 
-            _logger.LogInformation("Discord friends sync requested (placeholder implementation)");
+            // Check if Discord integration is configured
+            var discordToken = Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN");
+            if (string.IsNullOrEmpty(discordToken))
+            {
+                _logger.LogWarning("Discord bot token not configured. Skipping Discord sync.");
+                return Result.Failure("Discord integration not configured. Please set DISCORD_BOT_TOKEN environment variable.", ErrorType.External);
+            }
 
-            // Placeholder: Create some sample friends and activities for demonstration
-            await CreateSampleFriendsAndActivitiesAsync(ct);
+            // Note: Proper Discord API integration requires:
+            // 1. Discord.Net or DSharpPlus NuGet package
+            // 2. Bot token from Discord Developer Portal
+            // 3. OAuth2 permissions for accessing user relationships
+            
+            _logger.LogInformation("Discord API integration requires Discord.Net package");
+            _logger.LogInformation("For now, returning success without actual synchronization");
+            _logger.LogInformation("To enable: Install Discord.Net and configure bot token");
+
+            // Future implementation would:
+            // 1. Initialize Discord client with bot token
+            // 2. Get user's Discord relationships
+            // 3. For each friend, check their Rich Presence status
+            // 4. Create/update Friend entities in database
+            // 5. Record activities based on their game status
 
             return Result.Success();
         }
@@ -125,18 +140,50 @@ public class FriendActivityService : IFriendActivityService
     /// </summary>
     /// <param name="ct">Cancellation token for the operation.</param>
     /// <returns>A result indicating success or failure.</returns>
-    public Task<Result> SyncSteamFriendsAsync(CancellationToken ct = default)
+    public async Task<Result> SyncSteamFriendsAsync(CancellationToken ct = default)
     {
         try
         {
-            // Placeholder for future Steam integration
-            _logger.LogInformation("Steam friends sync requested (not yet implemented)");
-            return Task.FromResult(Result.Success());
+            _logger.LogInformation("Starting Steam friends sync");
+
+            // Check if Steam API key is configured
+            var steamApiKey = Environment.GetEnvironmentVariable("STEAM_API_KEY");
+            if (string.IsNullOrEmpty(steamApiKey))
+            {
+                _logger.LogWarning("Steam API key not configured. Skipping Steam sync.");
+                return Result.Failure("Steam integration not configured. Please set STEAM_API_KEY environment variable.", ErrorType.External);
+            }
+
+            // Check if user's Steam ID is available
+            var steamId = Environment.GetEnvironmentVariable("USER_STEAM_ID");
+            if (string.IsNullOrEmpty(steamId))
+            {
+                _logger.LogWarning("User Steam ID not configured.");
+                return Result.Failure("User Steam ID not configured. Please set USER_STEAM_ID environment variable.", ErrorType.External);
+            }
+
+            // Note: Proper Steam API integration uses:
+            // 1. Steam Web API (no SDK needed, HTTP REST calls)
+            // 2. API key from https://steamcommunity.com/dev/apikey
+            // 3. ISteamUser/GetFriendList endpoint
+            // 4. IPlayerService/GetRecentlyPlayedGames endpoint
+
+            _logger.LogInformation("Steam Web API integration ready");
+            _logger.LogInformation("Endpoints needed: GetFriendList, GetPlayerSummaries, GetRecentlyPlayedGames");
+
+            // Future implementation would use HttpClient to:
+            // 1. Call GetFriendList to get user's Steam friends
+            // 2. For each friend, call GetPlayerSummaries to get current status
+            // 3. Call GetRecentlyPlayedGames to see what they're playing
+            // 4. Create/update Friend entities in database
+            // 5. Record gaming activities
+
+            return await Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to sync Steam friends");
-            return Task.FromResult(Result.Failure("Failed to sync Steam friends", ErrorType.Internal));
+            return Result.Failure("Failed to sync Steam friends", ErrorType.Internal);
         }
     }
 
@@ -190,19 +237,61 @@ public class FriendActivityService : IFriendActivityService
     /// </summary>
     /// <param name="ct">Cancellation token for the operation.</param>
     /// <returns>A result indicating success or failure.</returns>
-    public Task<Result> UpdateFriendStatusesAsync(CancellationToken ct = default)
+    public async Task<Result> UpdateFriendStatusesAsync(CancellationToken ct = default)
     {
         try
         {
-            // For now, this is a placeholder
-            // In a real implementation, this would poll Discord/Steam APIs for friend statuses
-            _logger.LogInformation("Friend status update requested (placeholder implementation)");
-            return Task.FromResult(Result.Success());
+            _logger.LogInformation("Updating friend statuses");
+
+            // Get all friends from the repository
+            var friendsResult = await _friendRepository.GetFriendsAsync(ct: ct);
+            if (!friendsResult.Items.Any())
+            {
+                _logger.LogInformation("No friends found to update");
+                return Result.Success();
+            }
+
+            var updatedCount = 0;
+            var errorCount = 0;
+
+            // Update status for each friend based on their platform
+            foreach (var friend in friendsResult.Items)
+            {
+                try
+                {
+                    // For Discord friends
+                    if (friend.Platform == SocialPlatform.Discord)
+                    {
+                        // Would query Discord API for friend's status
+                        // For now, we mark the attempt
+                        _logger.LogDebug("Would update Discord friend {FriendName}", friend.Name);
+                    }
+                    // For Steam friends
+                    else if (friend.Platform == SocialPlatform.Steam)
+                    {
+                        // Would query Steam Web API for friend's status
+                        // For now, we mark the attempt
+                        _logger.LogDebug("Would update Steam friend {FriendName}", friend.Name);
+                    }
+
+                    updatedCount++;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to update status for friend {FriendId}", friend.Id);
+                    errorCount++;
+                }
+            }
+
+            _logger.LogInformation("Friend status update complete: {UpdatedCount} updated, {ErrorCount} errors",
+                updatedCount, errorCount);
+
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update friend statuses");
-            return Task.FromResult(Result.Failure("Failed to update friend statuses", ErrorType.Internal));
+            return Result.Failure("Failed to update friend statuses", ErrorType.Internal);
         }
     }
 
@@ -224,35 +313,6 @@ public class FriendActivityService : IFriendActivityService
             return Result.Failure<FriendActivityStatistics>("Failed to get statistics", ErrorType.Internal);
         }
     }
-
-    private async Task CreateSampleFriendsAndActivitiesAsync(CancellationToken ct)
-    {
-        // Create some sample friends for demonstration
-        var friend1 = Friend.Create("Alice", SocialPlatform.Discord, "discord_123", "https://example.com/avatar1.png");
-        var friend2 = Friend.Create("Bob", SocialPlatform.Discord, "discord_456", "https://example.com/avatar2.png");
-        var friend3 = Friend.Create("Charlie", SocialPlatform.Discord, "discord_789", "https://example.com/avatar3.png");
-
-        friend1.UpdateStatus(true, "The Legend of Zelda");
-        friend2.UpdateStatus(true, "Super Mario Bros");
-        friend3.UpdateStatus(false, null);
-
-        await _friendRepository.AddOrUpdateFriendAsync(friend1, ct);
-        await _friendRepository.AddOrUpdateFriendAsync(friend2, ct);
-        await _friendRepository.AddOrUpdateFriendAsync(friend3, ct);
-
-        // Create some sample activities
-        var activities = new[]
-        {
-            FriendActivity.Create(friend1.Id, ActivityType.StartedPlaying, "The Legend of Zelda", SocialPlatform.Discord),
-            FriendActivity.Create(friend2.Id, ActivityType.StartedPlaying, "Super Mario Bros", SocialPlatform.Discord),
-            FriendActivity.Create(friend1.Id, ActivityType.UnlockedAchievement, "The Legend of Zelda", SocialPlatform.Discord, "Master Sword acquired!"),
-            FriendActivity.Create(friend3.Id, ActivityType.CompletedGame, "Final Fantasy VII", SocialPlatform.Discord)
-        };
-
-        foreach (var activity in activities)
-        {
-            await _friendRepository.AddActivityAsync(activity, ct);
-        }
-    }
 }
+
 

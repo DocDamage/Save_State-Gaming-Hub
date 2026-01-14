@@ -34,6 +34,11 @@ public interface IAudioOptimizer
     Task<Result> ApplyProfileAsync(Guid profileId, CancellationToken ct = default);
 
     /// <summary>
+    /// Applies audio settings directly.
+    /// </summary>
+    Task<Result> ApplySettingsAsync(AudioSettings settings, CancellationToken ct = default);
+
+    /// <summary>
     /// Reverts to the original audio settings.
     /// </summary>
     Task<Result> RevertSettingsAsync(CancellationToken ct = default);
@@ -47,6 +52,21 @@ public interface IAudioOptimizer
     /// Sets the default audio device temporarily for gaming.
     /// </summary>
     Task<Result> SetTemporaryDeviceAsync(string deviceId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Saves an audio profile.
+    /// </summary>
+    Task<Result> SaveProfileAsync(AudioProfile profile, CancellationToken ct = default);
+
+    /// <summary>
+    /// Deletes an audio profile.
+    /// </summary>
+    Task<Result> DeleteProfileAsync(string profileName, CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets all saved profiles.
+    /// </summary>
+    Task<Result<IReadOnlyList<AudioProfile>>> GetSavedProfilesAsync(CancellationToken ct = default);
 }
 
 /// <summary>

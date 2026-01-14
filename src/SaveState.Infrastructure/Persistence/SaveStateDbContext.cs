@@ -30,6 +30,7 @@ using MugenTrainingSessionEntity = SaveState.Core.Mugen.Entities.MugenTrainingSe
 using MugenDummyRecordingEntity = SaveState.Core.Mugen.Entities.MugenDummyRecording;
 using TournamentMatchEntity = SaveState.Core.Mugen.Entities.TournamentMatchEntity;
 using TournamentParticipantEntity = SaveState.Core.Mugen.Entities.TournamentParticipant;
+using NetworkQualityHistoryEntity = SaveState.Core.Sync.Entities.NetworkQualityHistory;
 
 namespace SaveState.Infrastructure.Persistence;
 
@@ -94,6 +95,7 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
     public DbSet<Core.Social.Entities.SharedCollectionItem> SharedCollectionItems { get; set; }
     public DbSet<Core.Social.Entities.Friend> Friends { get; set; }
     public DbSet<Core.Social.Entities.FriendActivity> FriendActivities { get; set; }
+    public DbSet<Core.Sync.Entities.NetworkQualityHistory> NetworkQualityHistories { get; set; }
 
 
 
@@ -283,6 +285,23 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
         modelBuilder.Entity<KnowledgeRecord>()
             .HasIndex(kr => kr.LastAccessedAt)
             .HasDatabaseName("IX_KnowledgeRecords_LastAccessedAt");
+
+        // Network Quality History table indexes
+        modelBuilder.Entity<NetworkQualityHistoryEntity>()
+            .HasIndex(nqh => nqh.MeasuredAt)
+            .HasDatabaseName("IX_NetworkQualityHistories_MeasuredAt");
+
+        modelBuilder.Entity<NetworkQualityHistoryEntity>()
+            .HasIndex(nqh => nqh.SessionId)
+            .HasDatabaseName("IX_NetworkQualityHistories_SessionId");
+
+        modelBuilder.Entity<NetworkQualityHistoryEntity>()
+            .HasIndex(nqh => new { nqh.SessionId, nqh.MeasuredAt })
+            .HasDatabaseName("IX_NetworkQualityHistories_SessionId_MeasuredAt");
+
+        modelBuilder.Entity<NetworkQualityHistoryEntity>()
+            .HasIndex(nqh => nqh.Level)
+            .HasDatabaseName("IX_NetworkQualityHistories_Level");
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

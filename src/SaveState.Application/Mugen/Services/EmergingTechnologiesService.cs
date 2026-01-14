@@ -3,6 +3,7 @@ using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Services;
 using SaveState.Application.Mugen;
 using Microsoft.Extensions.Logging;
+using System.Numerics;
 using System.Text.Json;
 
 namespace SaveState.Application.Mugen.Services;
@@ -319,20 +320,20 @@ public class EmergingTechnologiesService : EmergingTechnologiesServiceIEmergingT
                 Timestamp = DateTime.UtcNow,
                 LeftEye = new EmergingTechnologiesServiceEyeData
                 {
-                    Position = new Vector2(0.5, 0.5),
+                    Position = new Vector2(0.5f, 0.5f),
                     PupilSize = 3.2f,
                     IsBlinking = false,
-                    GazeDirection = new Vector3(0, 0, 1)
+                    GazeDirection = new Vector3(0f, 0f, 1f)
                 },
                 RightEye = new EmergingTechnologiesServiceEyeData
                 {
-                    Position = new Vector2(0.52, 0.48),
+                    Position = new Vector2(0.52f, 0.48f),
                     PupilSize = 3.1f,
                     IsBlinking = false,
-                    GazeDirection = new Vector3(0.1, -0.05, 0.99)
+                    GazeDirection = new Vector3(0.1f, -0.05f, 0.99f)
                 },
-                CombinedGaze = new Vector3(0.05, -0.025, 1),
-                FocusPoint = new Vector3(0, 0, 10),
+                CombinedGaze = new Vector3(0.05f, -0.025f, 1f),
+                FocusPoint = new Vector3(0f, 0f, 10f),
                 AttentionLevel = 0.85f,
                 FatigueLevel = 0.15f
             };
@@ -593,9 +594,9 @@ public class EmergingTechnologiesServiceMotionTrackingEngine
             Success = true,
             NewCalibration = new EmergingTechnologiesServiceMotionCalibration
             {
-                AccelerometerBias = new Vector3(0.01, 0.02, 9.81),
-                GyroscopeBias = new Vector3(0.001, -0.002, 0.003),
-                MagnetometerBias = new Vector3(15.5, -22.3, 8.7),
+                AccelerometerBias = new Vector3(0.01f, 0.02f, 9.81f),
+                GyroscopeBias = new Vector3(0.001f, -0.002f, 0.003f),
+                MagnetometerBias = new Vector3(15.5f, -22.3f, 8.7f),
                 CalibrationDate = DateTime.UtcNow
             },
             OptimalSensitivity = new EmergingTechnologiesServiceMotionSensitivity
@@ -611,13 +612,13 @@ public class EmergingTechnologiesServiceMotionTrackingEngine
     private Vector3 CalculateVelocity(EmergingTechnologiesServiceRawMotionData data)
     {
         // Calculate velocity from accelerometer data (simplified)
-        return new Vector3(data.Accelerometer.X * 0.1, data.Accelerometer.Y * 0.1, data.Accelerometer.Z * 0.1);
+            return new Vector3(data.Accelerometer.X * 0.1f, data.Accelerometer.Y * 0.1f, data.Accelerometer.Z * 0.1f);
     }
 
     private Vector3 CalculatePosition(EmergingTechnologiesServiceRawMotionData data)
     {
         // Calculate position from motion data (simplified)
-        return new Vector3(0, 0, 0);
+            return new Vector3(0f, 0f, 0f);
     }
 
     private async Task<List<EmergingTechnologiesServiceMotionGesture>> DetectMotionGesturesAsync(EmergingTechnologiesServiceRawMotionData data, CancellationToken ct)
@@ -628,7 +629,7 @@ public class EmergingTechnologiesServiceMotionTrackingEngine
             new EmergingTechnologiesServiceMotionGesture
             {
                 Type = EmergingTechnologiesServiceMotionGestureType.Swipe,
-                Direction = new Vector3(1, 0, 0),
+                Direction = new Vector3(1f, 0f, 0f),
                 Speed = 2.1f,
                 Confidence = 0.88f
             }

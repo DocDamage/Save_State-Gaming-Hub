@@ -56,6 +56,36 @@ public interface IRetroArchService
     /// Gets RetroAchievements for a game.
     /// </summary>
     Task<Result<IReadOnlyList<Achievement>>> GetAchievementsAsync(string gameHash, CancellationToken ct = default);
+
+    /// <summary>
+    /// Creates a save state via RetroArch network command interface.
+    /// </summary>
+    Task<Result<string>> CreateSaveStateAsync(int slot = -1, CancellationToken ct = default);
+
+    /// <summary>
+    /// Loads a save state via RetroArch network command interface.
+    /// </summary>
+    Task<Result> LoadSaveStateAsync(int slot, CancellationToken ct = default);
+
+    /// <summary>
+    /// Loads a save state from a specific file path via RetroArch network command interface.
+    /// </summary>
+    Task<Result> LoadSaveStateFromFileAsync(string filePath, CancellationToken ct = default);
+
+    /// <summary>
+    /// Captures a screenshot from running RetroArch instance.
+    /// </summary>
+    Task<Result<string>> CaptureScreenshotAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Sends a command to running RetroArch instance via network command interface.
+    /// </summary>
+    Task<Result<string>> SendCommandAsync(string command, CancellationToken ct = default);
+
+    /// <summary>
+    /// Checks if a RetroArch instance is currently running.
+    /// </summary>
+    Task<Result<bool>> IsRunningAsync(CancellationToken ct = default);
 }
 
 /// <summary>

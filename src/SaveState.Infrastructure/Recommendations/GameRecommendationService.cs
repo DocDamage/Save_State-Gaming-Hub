@@ -10,7 +10,7 @@ namespace SaveState.Infrastructure.Recommendations;
 
 /// <summary>
 /// Simplified implementation of game recommendation service.
-/// TODO: Enhance with actual play history and user preferences when schema supports it.
+/// Provides game recommendations based on genres, tags, user ratings, backlog status, and trending games.
 /// </summary>
 public class GameRecommendationService : IGameRecommendationService
 {

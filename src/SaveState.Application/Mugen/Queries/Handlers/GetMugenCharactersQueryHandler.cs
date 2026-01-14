@@ -1,14 +1,14 @@
 namespace SaveState.Application.Mugen.Queries.Handlers;
 
 using MediatR;
-using SaveState.Application.Mugen.DTOs;
+using SaveState.Core.Mugen.DTOs;
 using SaveState.Core.Mugen;
 using SaveState.Core.Mugen.Entities;
 
 /// <summary>
 /// Handles the GetMugenCharactersQuery by retrieving and filtering characters.
 /// </summary>
-public class GetMugenCharactersQueryHandler : IRequestHandler<GetMugenCharactersQuery, IReadOnlyList<MugenCharacterSummaryDto>>
+public class GetMugenCharactersQueryHandler : IRequestHandler<GetMugenCharactersQuery, IReadOnlyList<MugenCharacterSummary>>
 {
     private readonly IMugenCharacterRepository _characterRepository;
 
@@ -27,7 +27,7 @@ public class GetMugenCharactersQueryHandler : IRequestHandler<GetMugenCharacters
     /// <param name="request">The query request.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A list of character summary DTOs.</returns>
-    public async Task<IReadOnlyList<MugenCharacterSummaryDto>> Handle(GetMugenCharactersQuery request, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<MugenCharacterSummary>> Handle(GetMugenCharactersQuery request, CancellationToken cancellationToken)
     {
         // Use paginated repository method for better performance
         // For now, use a reasonable page size; in the future, this could be made configurable
@@ -54,16 +54,17 @@ public class GetMugenCharactersQueryHandler : IRequestHandler<GetMugenCharacters
 
         var filteredCharacters = allCharacters
             .Where(c => request.IncludeInvalid || c.IsValid)
-            .Select(c => new MugenCharacterSummaryDto(
-                c.Id,
-                c.Name,
-                c.DisplayName,
-                c.Author,
-                c.Version,
-                c.IsValid,
-                c.LastScannedAt,
-                c.FileSize
-            ))
+            .Select(c => new MugenCharacterSummary
+            {
+                Id = c.Id,
+                Name = c.Name,
+                DisplayName = c.DisplayName,
+                Author = c.Author,
+                Version = c.Version,
+                IsValid = c.IsValid,
+                LastScannedAt = c.LastScannedAt,
+                FileSize = c.FileSize
+            })
             .ToList();
 
         return filteredCharacters;

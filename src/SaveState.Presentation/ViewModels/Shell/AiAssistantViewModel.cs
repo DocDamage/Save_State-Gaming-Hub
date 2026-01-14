@@ -52,7 +52,7 @@ public partial class AiAssistantViewModel : ObservableObject
         // Welcome message
         Messages.Add(new MessageViewModel("AI", "Hello! I'm your gaming assistant. Ask me anything about your games, strategies, or for recommendations!", MessageType.Assistant));
 
-        _gameContextService.ActiveGameChanged += OnGameContextChanged;
+        _gameContextService.CurrentGameChanged += OnGameContextChanged;
         _ = RefreshActiveGameContextAsync();
     }
 
@@ -162,7 +162,7 @@ public partial class AiAssistantViewModel : ObservableObject
         _overlayService.HideAiAssistantOverlay();
     }
 
-    private void OnGameContextChanged(object? sender, GameId? gameId)
+    private void OnGameContextChanged(object? sender, Game? game)
     {
         _ = RefreshActiveGameContextAsync();
     }
@@ -171,7 +171,9 @@ public partial class AiAssistantViewModel : ObservableObject
     {
         try
         {
-            var activeGameId = _gameContextService.ActiveGameId;
+            var currentGame = _gameContextService.CurrentGame;
+            GameId? activeGameId = currentGame != null ? GameId.From(currentGame.Id) : null;
+            
             if (activeGameId == _activeGameId)
             {
                 return;

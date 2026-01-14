@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using MediatR;
 using SaveState.Application.Performance.Commands;
 using SaveState.Application.Performance.Queries;
-using SaveState.Core.Performance.ValueObjects;
+using SaveState.Core.GameLibrary.Enums;
 
 namespace SaveState.Presentation.ViewModels.Overlays;
 

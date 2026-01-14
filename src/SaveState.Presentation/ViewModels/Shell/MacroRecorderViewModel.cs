@@ -7,6 +7,7 @@ using SaveState.Application.Automation.Commands;
 using SaveState.Core.Automation.Services;
 using SaveState.Core.Automation.Services.DTOs;
 using SaveState.Core.Common.Services;
+using SaveState.Core.GameLibrary.Services;
 using SaveState.Presentation.Services;
 
 namespace SaveState.Presentation.ViewModels.Shell;
@@ -21,6 +22,7 @@ public partial class MacroRecorderViewModel : ObservableObject
     private readonly INotificationService _notificationService;
     private readonly ITaskRunner _taskRunner;
     private readonly ILogger<MacroRecorderViewModel> _logger;
+    private readonly IGameContextService _gameContextService;
 
     [ObservableProperty]
     private bool _isRecording;
@@ -70,13 +72,15 @@ public partial class MacroRecorderViewModel : ObservableObject
         IMacroService macroService,
         INotificationService notificationService,
         ITaskRunner taskRunner,
-        ILogger<MacroRecorderViewModel> logger)
+        ILogger<MacroRecorderViewModel> logger,
+        IGameContextService gameContextService)
     {
         _mediator = mediator;
         _macroService = macroService;
         _notificationService = notificationService;
         _taskRunner = taskRunner;
         _logger = logger;
+        _gameContextService = gameContextService;
 
         Macros = new ObservableCollection<Macro>();
         SpeedOptions = new ObservableCollection<PlaybackSpeed>
@@ -115,8 +119,18 @@ public partial class MacroRecorderViewModel : ObservableObject
 
         try
         {
+            // Get current game ID from context service
+            var currentGameId = _gameContextService.GetCurrentGameId() ?? Guid.Empty;
+            
+            // Warn user if no game is currently selected
+            if (currentGameId == Guid.Empty)
+            {
+                _notificationService.ShowWarning("No game currently selected. Macro will be recorded without game association.");
+                _logger.LogWarning("Starting macro recording without game context");
+            }
+
             var command = new StartMacroRecordingCommand(
-                Guid.Empty, // TODO: Get current game from context
+                currentGameId,
                 RecordingName,
                 RecordingDescription,
                 RecordingMode.Manual);

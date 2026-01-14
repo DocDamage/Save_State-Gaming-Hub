@@ -786,6 +786,274 @@ public partial class RetroArchService : IRetroArchService
         return null;
     }
 
+    public async Task<Result<string>> CreateSaveStateAsync(int slot = -1, CancellationToken ct = default)
+    {
+        try
+        {
+            if (!_options.NetworkCommandEnabled)
+            {
+                return Result.Failure<string>("RetroArch network command interface is not enabled");
+            }
+
+            var isRunning = await IsRunningAsync(ct);
+            if (!isRunning.IsSuccess || !isRunning.Value)
+            {
+                return Result.Failure<string>("RetroArch is not currently running");
+            }
+
+            // Send SAVE_STATE command to RetroArch
+            var command = slot >= 0 ? $"SAVE_STATE_SLOT {slot}\nSAVE_STATE" : "SAVE_STATE";
+            var result = await SendCommandAsync(command, ct);
+
+            if (!result.IsSuccess)
+            {
+                return Result.Failure<string>($"Failed to create save state: {result.Error}");
+            }
+
+            // Get savestate directory from config
+            var configResult = await GetConfigAsync(ct);
+            if (configResult.IsSuccess && !string.IsNullOrEmpty(configResult.Value?.SavestateDirectory))
+            {
+                // Return the expected save state file path
+                var saveStateFile = slot >= 0
+                    ? Path.Combine(configResult.Value.SavestateDirectory, $"slot{slot}.state")
+                    : Path.Combine(configResult.Value.SavestateDirectory, "auto.state");
+
+                LogSaveStateCreated(_logger, saveStateFile);
+                return Result.Success(saveStateFile);
+            }
+
+            LogSaveStateCreated(_logger, "Unknown");
+            return Result.Success("Save state created successfully");
+        }
+        catch (Exception ex)
+        {
+            LogCreateSaveStateError(_logger, ex);
+            return Result.Failure<string>($"Error creating save state: {ex.Message}");
+        }
+    }
+
+    public async Task<Result> LoadSaveStateAsync(int slot, CancellationToken ct = default)
+    {
+        try
+        {
+            if (!_options.NetworkCommandEnabled)
+            {
+                return Result.Failure("RetroArch network command interface is not enabled");
+            }
+
+            var isRunning = await IsRunningAsync(ct);
+            if (!isRunning.IsSuccess || !isRunning.Value)
+            {
+                return Result.Failure("RetroArch is not currently running");
+            }
+
+            // Send LOAD_STATE command to RetroArch
+            var command = $"SAVE_STATE_SLOT {slot}\nLOAD_STATE";
+            var result = await SendCommandAsync(command, ct);
+
+            if (!result.IsSuccess)
+            {
+                return Result.Failure($"Failed to load save state: {result.Error}");
+            }
+
+            LogSaveStateLoaded(_logger, slot);
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            LogLoadSaveStateError(_logger, ex);
+            return Result.Failure($"Error loading save state: {ex.Message}");
+        }
+    }
+
+    public async Task<Result> LoadSaveStateFromFileAsync(string filePath, CancellationToken ct = default)
+    {
+        try
+        {
+            if (!_options.NetworkCommandEnabled)
+            {
+                return Result.Failure("RetroArch network command interface is not enabled");
+            }
+
+            if (!File.Exists(filePath))
+            {
+                return Result.Failure($"Save state file not found: {filePath}");
+            }
+
+            var isRunning = await IsRunningAsync(ct);
+            if (!isRunning.IsSuccess || !isRunning.Value)
+            {
+                return Result.Failure("RetroArch is not currently running");
+            }
+
+            // Send LOAD_STATE command with file path to RetroArch
+            var command = $"LOAD_STATE \"{filePath}\"";
+            var result = await SendCommandAsync(command, ct);
+
+            if (!result.IsSuccess)
+            {
+                return Result.Failure($"Failed to load save state from file: {result.Error}");
+            }
+
+            LogSaveStateLoadedFromFile(_logger, filePath);
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            LogLoadSaveStateError(_logger, ex);
+            return Result.Failure($"Error loading save state from file: {ex.Message}");
+        }
+    }
+
+    public async Task<Result<string>> CaptureScreenshotAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            if (!_options.NetworkCommandEnabled)
+            {
+                return Result.Failure<string>("RetroArch network command interface is not enabled");
+            }
+
+            var isRunning = await IsRunningAsync(ct);
+            if (!isRunning.IsSuccess || !isRunning.Value)
+            {
+                return Result.Failure<string>("RetroArch is not currently running");
+            }
+
+            // Send SCREENSHOT command to RetroArch
+            var result = await SendCommandAsync("SCREENSHOT", ct);
+
+            if (!result.IsSuccess)
+            {
+                return Result.Failure<string>($"Failed to capture screenshot: {result.Error}");
+            }
+
+            // Get config to determine screenshot directory
+            var configResult = await GetConfigAsync(ct);
+            if (configResult.IsSuccess)
+            {
+                var retroArchDir = Path.GetDirectoryName(_retroArchPath);
+                var screenshotDir = Path.Combine(retroArchDir!, "screenshots");
+
+                if (Directory.Exists(screenshotDir))
+                {
+                    // Get the most recent screenshot
+                    var files = Directory.GetFiles(screenshotDir, "*.png")
+                        .OrderByDescending(f => File.GetCreationTimeUtc(f))
+                        .FirstOrDefault();
+
+                    if (files != null)
+                    {
+                        LogScreenshotCaptured(_logger, files);
+                        return Result.Success(files);
+                    }
+                }
+            }
+
+            LogScreenshotCaptured(_logger, "Screenshot saved (path unknown)");
+            return Result.Success("Screenshot captured successfully");
+        }
+        catch (Exception ex)
+        {
+            LogCaptureScreenshotError(_logger, ex);
+            return Result.Failure<string>($"Error capturing screenshot: {ex.Message}");
+        }
+    }
+
+    public async Task<Result<string>> SendCommandAsync(string command, CancellationToken ct = default)
+    {
+        if (!_options.NetworkCommandEnabled)
+        {
+            return Result.Failure<string>("RetroArch network command interface is not enabled");
+        }
+
+        try
+        {
+            using var client = new System.Net.Sockets.TcpClient();
+            var connectTask = client.ConnectAsync(_options.NetworkCommandHost, _options.NetworkCommandPort);
+            var timeoutTask = Task.Delay(_options.NetworkCommandTimeout, ct);
+
+            if (await Task.WhenAny(connectTask, timeoutTask) == timeoutTask)
+            {
+                return Result.Failure<string>($"Connection to RetroArch timed out after {_options.NetworkCommandTimeout}ms");
+            }
+
+            if (!client.Connected)
+            {
+                return Result.Failure<string>("Failed to connect to RetroArch network command interface");
+            }
+
+            using var stream = client.GetStream();
+            var commandBytes = Encoding.UTF8.GetBytes(command + "\n");
+            await stream.WriteAsync(commandBytes, ct);
+            await stream.FlushAsync(ct);
+
+            // Read response
+            var buffer = new byte[1024];
+            var bytesRead = await stream.ReadAsync(buffer, ct);
+            var response = Encoding.UTF8.GetString(buffer, 0, bytesRead).Trim();
+
+            LogCommandSent(_logger, command, response);
+            return Result.Success(response);
+        }
+        catch (System.Net.Sockets.SocketException ex)
+        {
+            LogNetworkCommandError(_logger, command, ex);
+            return Result.Failure<string>($"RetroArch network command failed: {ex.Message}. Ensure RetroArch is running with --network-cmd-enable flag.");
+        }
+        catch (Exception ex)
+        {
+            LogNetworkCommandError(_logger, command, ex);
+            return Result.Failure<string>($"Error sending command to RetroArch: {ex.Message}");
+        }
+    }
+
+    public async Task<Result<bool>> IsRunningAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            // Try to connect to RetroArch network command interface
+            using var client = new System.Net.Sockets.TcpClient();
+            var connectTask = client.ConnectAsync(_options.NetworkCommandHost, _options.NetworkCommandPort);
+            var timeoutTask = Task.Delay(1000, ct); // Short timeout for checking
+
+            if (await Task.WhenAny(connectTask, timeoutTask) == timeoutTask)
+            {
+                return Result.Success(false);
+            }
+
+            var isConnected = client.Connected;
+            if (isConnected)
+            {
+                // Send a simple VERSION command to verify it's actually RetroArch
+                using var stream = client.GetStream();
+                var commandBytes = Encoding.UTF8.GetBytes("VERSION\n");
+                await stream.WriteAsync(commandBytes, ct);
+                await stream.FlushAsync(ct);
+
+                // Try to read response
+                var buffer = new byte[256];
+                var readTask = stream.ReadAsync(buffer, ct).AsTask();
+                var readTimeout = Task.Delay(500, ct);
+
+                if (await Task.WhenAny(readTask, readTimeout) == readTask)
+                {
+                    var response = Encoding.UTF8.GetString(buffer, 0, await readTask);
+                    // If we got any response, RetroArch is running
+                    return Result.Success(!string.IsNullOrWhiteSpace(response));
+                }
+            }
+
+            return Result.Success(isConnected);
+        }
+        catch (Exception)
+        {
+            // Connection failed, RetroArch is not running
+            return Result.Success(false);
+        }
+    }
+
     #region Logging
 
     [LoggerMessage(EventId = 101, Level = LogLevel.Information, Message = "Using configured RetroArch path: {Path}")]
@@ -895,6 +1163,33 @@ public partial class RetroArchService : IRetroArchService
 
     [LoggerMessage(EventId = 136, Level = LogLevel.Information, Message = "Fetched {Count} achievements for game: {GameTitle}")]
     static partial void LogAchievementsFetched(ILogger logger, int count, string gameTitle);
+
+    [LoggerMessage(EventId = 137, Level = LogLevel.Information, Message = "Save state created: {FilePath}")]
+    static partial void LogSaveStateCreated(ILogger logger, string filePath);
+
+    [LoggerMessage(EventId = 138, Level = LogLevel.Error, Message = "Error creating save state")]
+    static partial void LogCreateSaveStateError(ILogger logger, Exception ex);
+
+    [LoggerMessage(EventId = 139, Level = LogLevel.Information, Message = "Save state loaded from slot: {Slot}")]
+    static partial void LogSaveStateLoaded(ILogger logger, int slot);
+
+    [LoggerMessage(EventId = 140, Level = LogLevel.Error, Message = "Error loading save state")]
+    static partial void LogLoadSaveStateError(ILogger logger, Exception ex);
+
+    [LoggerMessage(EventId = 141, Level = LogLevel.Information, Message = "Save state loaded from file: {FilePath}")]
+    static partial void LogSaveStateLoadedFromFile(ILogger logger, string filePath);
+
+    [LoggerMessage(EventId = 142, Level = LogLevel.Information, Message = "Screenshot captured: {FilePath}")]
+    static partial void LogScreenshotCaptured(ILogger logger, string filePath);
+
+    [LoggerMessage(EventId = 143, Level = LogLevel.Error, Message = "Error capturing screenshot")]
+    static partial void LogCaptureScreenshotError(ILogger logger, Exception ex);
+
+    [LoggerMessage(EventId = 144, Level = LogLevel.Debug, Message = "Sent command to RetroArch: {Command}, Response: {Response}")]
+    static partial void LogCommandSent(ILogger logger, string command, string response);
+
+    [LoggerMessage(EventId = 145, Level = LogLevel.Error, Message = "Network command error for command: {Command}")]
+    static partial void LogNetworkCommandError(ILogger logger, string command, Exception ex);
 
     #endregion
 }

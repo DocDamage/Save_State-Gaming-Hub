@@ -4,6 +4,7 @@ using SaveState.Core.Mugen;
 using SaveState.Core.Mugen.Entities;
 using SaveState.Core.Mugen.Services;
 using SaveState.Core.Mugen.ValueObjects;
+using SaveState.Core.Mugen.Repositories;
 using Spectre.Console;
 using SaveState.CLI.Extensions;
 using Microsoft.Extensions.DependencyInjection;
@@ -595,10 +596,10 @@ public class MugenCommands : CommandGroupBase
                 {
                     ctx.Spinner(Spinner.Known.Dots);
                     var graphicsEngine = Host.Services.GetRequiredService<IMugenGraphicsEngine>();
-                    var config = new DynamicLightingConfig
+                    var config = new ScreenFilterConfig
                     {
-                        EnableShadows = shadows,
-                        AmbientIntensity = ambientIntensity
+                        FilterType = ScreenFilterType.Bloom,
+                        Intensity = ambientIntensity
                     };
                     var result = await graphicsEngine.ApplyDynamicLightingAsync(target, config);
                     if (result.IsSuccess)
@@ -1028,36 +1029,20 @@ public class MugenCommands : CommandGroupBase
                     var resultColor = test.TestPassed ? "green" : "red";
                     var status = test.TestPassed ? "PASSED" : "FAILED";
 
-                    AnsiConsole.MarkupLine($"[{resultColor}]{status}[/] - Success Rate: {test.SuccessRate:P1}");
+                    AnsiConsole.MarkupLine($"[{resultColor}]{status}[/]");
 
-                    var chart = new BarChart()
-                        .Width(60)
-                        .Label($"[bold]{moveName} Test Results[/]")
-                        .CenterLabel();
-
-                    var wins = test.RoundResults.Count(r => r.Won);
-                    var losses = test.RoundResults.Count(r => !r.Won);
-
-                    chart.AddItem("Wins", wins, Color.Green);
-                    chart.AddItem("Losses", losses, Color.Red);
-
-                    AnsiConsole.Write(chart);
-
-                    if (test.Issues.Any())
+                    if (test.Findings.Any())
                     {
-                        AnsiConsole.MarkupLine($"[yellow]Issues found:[/]");
-                        foreach (var issue in test.Issues)
-                        {
-                            AnsiConsole.MarkupLine($"  [yellow]- {issue}[/]");
-                        }
-                    }
+                        var chart = new BarChart()
+                            .Width(60)
+                            .Label("[yellow]Test Results[/]");
 
-                    if (test.Recommendations.Any())
-                    {
-                        AnsiConsole.MarkupLine($"[cyan]Recommendations:[/]");
-                        foreach (var rec in test.Recommendations)
+                        AnsiConsole.Write(chart);
+
+                        AnsiConsole.MarkupLine($"[yellow]Findings:[/]");
+                        foreach (var finding in test.Findings)
                         {
-                            AnsiConsole.MarkupLine($"  [cyan]💡 {rec}[/]");
+                            AnsiConsole.MarkupLine($"  • {finding}");
                         }
                     }
                 });
@@ -1107,12 +1092,9 @@ public class MugenCommands : CommandGroupBase
 
                     var move = createResult.Value!;
                     var exportResult = await moveService.ExportMoveAsync(move, new ExportOptions(
-                        OutputDirectory: outputDir,
-                        IncludeComments: true,
-                        OptimizeCode: true,
-                        GenerateAirVersion: false,
-                        CodeStyle: "standard",
-                        AdditionalStates: Array.Empty<string>()));
+                        outputDirectory: outputDir,
+                        generateAirVersion: false,
+                        includeComments: true));
 
                     if (!exportResult.IsSuccess)
                     {
@@ -1369,7 +1351,7 @@ public class MugenCommands : CommandGroupBase
                     };
 
                     var moveScoresText = analysis.MoveAnalyses.Any()
-                        ? string.Join("\n", analysis.MoveAnalyses.Select(m => $"{m.MoveName}: {m.Effectiveness / 100.0:F2}"))
+                        ? string.Join("\n", analysis.MoveAnalyses.Select(m => $"• {m}"))
                         : "No move data available";
 
                     var recommendationsText = analysis.Recommendations.Any()

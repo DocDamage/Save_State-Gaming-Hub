@@ -7,6 +7,7 @@ using SaveState.Core.Configuration;
 using SaveState.Core.Mugen;
 using SaveState.Core.Mugen.Entities;
 using SaveState.Core.Mugen.Services;
+using SaveState.Core.Mugen.ValueObjects;
 using SaveState.Infrastructure.Mugen.FileFormats;
 
 namespace SaveState.Infrastructure.Mugen;

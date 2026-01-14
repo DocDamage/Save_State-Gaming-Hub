@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
@@ -65,12 +66,13 @@ public class MugenExportService : IMugenExportService
 
             var result = new MoveExportResult(
                 CnsFilePath: cnsFilePath,
-            CmdFilePath: cmdFilePath,
-            AirFilePath: airFilePath,
-            CnsFileSize: cnsFileSize,
-            CmdFileSize: cmdFileSize,
-            GeneratedStates: move.States.Select(s => s.StateNumber.ToString()).ToList(),
-            Warnings: new[] { "Export completed successfully" });
+                CmdFilePath: cmdFilePath,
+                AirFilePath: airFilePath,
+                CnsFileSize: cnsFileSize,
+                CmdFileSize: cmdFileSize,
+                AirFileSize: airFileSize,
+                GeneratedStates: move.States.Select(s => s.StateNumber.ToString()).ToList(),
+                Warnings: new[] { "Export completed successfully" });
 
             _logger.LogInformation("Successfully exported move '{MoveName}': CNS={CnsSize} bytes, CMD={CmdSize} bytes",
                 move.Name, cnsFileSize, cmdFileSize);
@@ -531,6 +533,16 @@ public class MugenExportService : IMugenExportService
     public async Task<Result<SaveState.Core.Mugen.ValueObjects.ValidationResult>> ValidateExportReadinessAsync(Guid characterId, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Validating export readiness for character {CharacterId}", characterId);
-        return Result.Success(new SaveState.Core.Mugen.ValueObjects.ValidationResult(true, new List<ValidationError>(), new List<ValidationWarning>(), new List<string>()));
+        return Result.Success(new SaveState.Core.Mugen.ValueObjects.ValidationResult
+        {
+            IsValid = true,
+            Summary = "Ready",
+            MoveAnalyses = Array.Empty<string>(),
+            Recommendations = Array.Empty<string>(),
+            ActionableTips = Array.Empty<string>(),
+            CharacterName = "",
+            BalanceScore = 0,
+            PredictedWinRate = 0
+        });
     }
 }
