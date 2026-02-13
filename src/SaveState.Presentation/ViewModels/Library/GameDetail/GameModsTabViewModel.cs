@@ -3,9 +3,10 @@ using CommunityToolkit.Mvvm.Input;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SaveState.Application.GameLibrary.Queries;
-using SaveState.Presentation.Services;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary.Services;
+using SaveState.Presentation.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -24,6 +25,7 @@ public partial class GameModsTabViewModel : ObservableObject
     private readonly INotificationService _notificationService;
     private readonly IDialogService _dialogService;
     private readonly ILogger<GameModsTabViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
     private GameId? _gameId;
     [ObservableProperty]
     private string? _gameTitle;
@@ -99,13 +101,15 @@ public partial class GameModsTabViewModel : ObservableObject
         IModManagementService modService,
         INotificationService notificationService,
         IDialogService dialogService,
-        ILogger<GameModsTabViewModel> logger)
+        ILogger<GameModsTabViewModel> logger,
+        ITimeProvider timeProvider)
     {
         _mediator = mediator;
         _modService = modService;
         _notificationService = notificationService;
         _dialogService = dialogService;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task LoadDataAsync(GameId gameId)
@@ -126,9 +130,6 @@ public partial class GameModsTabViewModel : ObservableObject
 
             // Count enabled mods
             var enabledMods = mods.Count(m => m.IsEnabled);
-
-            // TODO: Available updates would require checking against a mod repository/source
-            AvailableUpdatesCount = 0;
 
             // Populate mods collection
             Mods.Clear();
@@ -153,6 +154,8 @@ public partial class GameModsTabViewModel : ObservableObject
                     IsInstalled = true
                 });
             }
+
+            AvailableUpdatesCount = Mods.Count(m => m.HasUpdate);
 
             // Populate popular tags
             PopularTags.Clear();
@@ -270,24 +273,24 @@ public partial class GameModsTabViewModel : ObservableObject
             var updatesFound = 0;
             var modsChecked = 0;
 
-            foreach (var mod in Mods)
+            var updateChecks = Mods.Select(async mod =>
             {
-                modsChecked++;
-
-                // Check if mod has update metadata
-                if (mod.Tags.Contains("Nexus") || mod.Tags.Contains("ModDB"))
+                var result = await _modService.CheckForUpdatesAsync(mod.Id);
+                if (result.IsSuccess && result.Value)
                 {
-                    // Simulate version check (in real implementation, query external API)
-                    var hasUpdate = Random.Shared.Next(0, 10) > 7; // 30% chance of update
-
-                    if (hasUpdate)
-                    {
-                        updatesFound++;
-                        mod.HasUpdate = true;
-                        _logger.LogInformation("Update available for mod: {ModName}", mod.Name);
-                    }
+                    mod.HasUpdate = true;
+                    _logger.LogInformation("Update available for mod: {ModName}", mod.Name);
+                    return true;
                 }
-            }
+                return false;
+            });
+
+            var results = await Task.WhenAll(updateChecks);
+            updatesFound = results.Count(r => r);
+            modsChecked = Mods.Count;
+
+
+
 
             if (updatesFound > 0)
             {
@@ -297,6 +300,8 @@ public partial class GameModsTabViewModel : ObservableObject
             {
                 _notificationService.ShowInfo($"All {modsChecked} mods are up to date", "Mod Updates");
             }
+
+            AvailableUpdatesCount = Mods.Count(m => m.HasUpdate);
 
             // Rescan to detect any file system changes
             if (_gameId is not null)
@@ -329,13 +334,13 @@ public partial class GameModsTabViewModel : ObservableObject
             };
 
             // If we have a game title, try to construct a search URL
-            var searchQuery = _gameTitle?.Replace(" ", "+") ?? "";
+            var searchQuery = GameTitle?.Replace(" ", "+") ?? "";
             var selectedUrl = string.IsNullOrEmpty(searchQuery)
                 ? modBrowserUrls[0].Url
                 : $"https://www.nexusmods.com/search/?gsearch={searchQuery}";
 
             // Show selection dialog if multiple sources are available
-            var message = $"Opening mod browser for: {_gameTitle ?? "All Games"}\n\nAvailable sources:\n" +
+            var message = $"Opening mod browser for: {GameTitle ?? "All Games"}\n\nAvailable sources:\n" +
                          string.Join("\n", modBrowserUrls.Select(s => $"• {s.Name}"));
 
             _logger.LogInformation("Opening mod browser URL: {Url}", selectedUrl);
@@ -466,7 +471,7 @@ public partial class GameModsTabViewModel : ObservableObject
             }
 
             // Create a mod pack name based on current timestamp
-            var packName = $"ModPack_{DateTime.Now:yyyyMMdd_HHmmss}";
+            var packName = $"ModPack_{_timeProvider.Now:yyyyMMdd_HHmmss}";
             var modsFolder = GetModsFolder();
 
             if (string.IsNullOrEmpty(modsFolder))
@@ -489,8 +494,8 @@ public partial class GameModsTabViewModel : ObservableObject
                     var metadata = new
                     {
                         PackName = packName,
-                        CreatedDate = DateTime.Now,
-                        GameTitle = _gameTitle,
+                        CreatedDate = _timeProvider.Now,
+                        GameTitle = GameTitle,
                         ModCount = enabledMods.Count,
                         Mods = enabledMods.Select(m => new
                         {

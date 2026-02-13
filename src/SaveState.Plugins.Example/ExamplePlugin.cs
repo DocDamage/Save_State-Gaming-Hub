@@ -1,4 +1,6 @@
 using SaveState.Core.Plugins;
+using SaveState.Core.Common;
+using SaveState.Core.GameLibrary.Entities;
 using Microsoft.Extensions.Logging;
 
 namespace SaveState.Plugins.Example;
@@ -55,8 +57,8 @@ public class ExamplePlugin : IPlugin, IGameProvider, IMetadataScraper
     {
         var games = new List<Game>
         {
-            new Game("Example Game 1", Platform.Create("PC", "Personal Computer")),
-            new Game("Example Game 2", Platform.Create("PC", "Personal Computer"))
+            Game.Create(title: "Example Game 1", platformId: Guid.NewGuid()),
+            Game.Create(title: "Example Game 2", platformId: Guid.NewGuid())
         };
 
         return Task.FromResult(Result.Success<IReadOnlyList<Game>>(games));
@@ -64,7 +66,7 @@ public class ExamplePlugin : IPlugin, IGameProvider, IMetadataScraper
 
     public Task<Result<Game>> GetGameDetailsAsync(string externalId, CancellationToken ct = default)
     {
-        var game = new Game($"Example Game {externalId}", Platform.Create("PC", "Personal Computer"));
+        var game = Game.Create(title: $"Example Game {externalId}", platformId: Guid.NewGuid());
         return Task.FromResult(Result.Success<Game>(game));
     }
 

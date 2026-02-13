@@ -1,0 +1,169 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell.Mugen"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Mugen.Sections.AudioSection"
+             x:DataType="vm:MugenAudioViewModel">
+
+    <ScrollViewer>
+        <StackPanel Margin="20" Spacing="20">
+
+            <!-- Header -->
+            <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="Bold" />
+
+            <!-- Status Message -->
+            <Border Background="{DynamicResource SystemAccentColor}" CornerRadius="4" Padding="10">
+                <TextBlock Text="{Binding StatusMessage}"
+                          Foreground="White"
+                          FontWeight="Medium" />
+            </Border>
+
+            <!-- Audio Analysis Section -->
+            <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="15">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="📊 Audio Analysis" FontSize="18" FontWeight="SemiBold" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <TextBlock Text="Audio File:" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding SelectedAudioFile}"
+                                Watermark="Select audio file path..."
+                                Width="300" />
+                        <Button Content="Browse..." VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <Button Content="Analyze Audio"
+                           Command="{Binding AnalyzeAudioCommand}"
+                           IsEnabled="{Binding !IsProcessing}"
+                           HorizontalAlignment="Left" />
+
+                    <!-- Analysis Results -->
+                    <Border BorderBrush="{DynamicResource SystemControlForegroundAccentBrush}"
+                            BorderThickness="1" CornerRadius="4" Padding="10"
+                            IsVisible="{Binding CurrentAnalysis, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Analysis Results:" FontWeight="SemiBold" />
+
+                            <StackPanel Orientation="Horizontal" Spacing="20">
+                                <TextBlock Text="{Binding CurrentAnalysis.Duration, StringFormat='Duration: {0:F2}s'}" />
+                                <TextBlock Text="{Binding CurrentAnalysis.SampleRate, StringFormat='Sample Rate: {0}'}" />
+                                <TextBlock Text="{Binding CurrentAnalysis.Channels, StringFormat='Channels: {0}'}" />
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Spacing="20">
+                                <TextBlock Text="{Binding CurrentAnalysis.PeakLevelDb, StringFormat='Peak: {0:F1}dBFS'}" />
+                                <TextBlock Text="{Binding CurrentAnalysis.RmsLevelDb, StringFormat='RMS: {0:F1}dBFS'}" />
+                                <TextBlock Text="{Binding CurrentAnalysis.Loudness.Integrated, StringFormat='Loudness: {0:F1}LUFS'}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Progress Bar -->
+                    <ProgressBar Value="{Binding AnalysisProgress}"
+                               IsVisible="{Binding IsProcessing}"
+                               Height="20" />
+                </StackPanel>
+            </Border>
+
+            <!-- Audio Mixing Section -->
+            <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="15">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="🎚️ Audio Mixing" FontSize="18" FontWeight="SemiBold" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <TextBlock Text="Master Volume:" VerticalAlignment="Center" />
+                        <Slider Value="{Binding MasterVolume}"
+                               Minimum="0" Maximum="1" Width="150" />
+                        <TextBlock Text="{Binding MasterVolume, StringFormat={}{0:F2}}"
+                                 VerticalAlignment="Center" Width="40" />
+                    </StackPanel>
+
+                    <Button Content="Apply Audio Mix"
+                           Command="{Binding ApplyAudioMixCommand}"
+                           IsEnabled="{Binding !IsProcessing}"
+                           HorizontalAlignment="Left" />
+                </StackPanel>
+            </Border>
+
+            <!-- Dynamic Music Section -->
+            <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="15">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="🎵 Dynamic Music" FontSize="18" FontWeight="SemiBold" />
+
+                    <CheckBox Content="Enable Dynamic Music System"
+                             IsChecked="{Binding EnableDynamicMusic}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <TextBlock Text="Preview State:" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding AvailableGameStates}"
+                                 SelectedItem="{Binding SelectedMusicState}"
+                                 Width="150" />
+                    </StackPanel>
+
+                    <Button Content="Configure Dynamic Music"
+                           Command="{Binding ConfigureDynamicMusicCommand}"
+                           IsEnabled="{Binding !IsProcessing}"
+                           HorizontalAlignment="Left" />
+                </StackPanel>
+            </Border>
+
+            <!-- 3D Spatialization Section -->
+            <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="15">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="🔊 3D Spatialization" FontSize="18" FontWeight="SemiBold" />
+
+                    <CheckBox Content="Enable 3D Sound Spatialization"
+                             IsChecked="{Binding EnableSpatialization}" />
+
+                    <TextBlock Text="Adds realistic 3D positioning and environmental audio effects."
+                             FontStyle="Italic" Opacity="0.7" />
+
+                    <Button Content="Apply Spatialization"
+                           Command="{Binding ApplySpatializationCommand}"
+                           IsEnabled="{Binding !IsProcessing}"
+                           HorizontalAlignment="Left" />
+                </StackPanel>
+            </Border>
+
+            <!-- Presets Section -->
+            <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="15">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="💾 Audio Presets" FontSize="18" FontWeight="SemiBold" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <TextBlock Text="Available Presets:" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding AvailablePresets}"
+                                 SelectedItem="{Binding SelectedPreset}"
+                                 DisplayMemberBinding="{Binding Name}"
+                                 Width="200" />
+                        <Button Content="Load Preset"
+                               Command="{Binding LoadPresetCommand}"
+                               IsEnabled="{Binding SelectedPreset, Converter={x:Static ObjectConverters.IsNotNull}}"
+                               VerticalAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Action Buttons -->
+            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                <Button Content="Export Configuration"
+                       Command="{Binding ExportConfigurationCommand}"
+                       IsEnabled="{Binding !IsProcessing}" />
+
+                <Button Content="Reset All Enhancements"
+                       Command="{Binding ResetEnhancementsCommand}"
+                       IsEnabled="{Binding !IsProcessing}"
+                       Background="OrangeRed"
+                       Foreground="White" />
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>

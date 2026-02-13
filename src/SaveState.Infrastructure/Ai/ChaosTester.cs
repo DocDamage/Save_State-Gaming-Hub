@@ -90,7 +90,9 @@ public class ChaosTester : IChaosTester
         }
         catch (Exception ex)
         {
+#if DEBUG
             _logger.LogDebug(ex, "Expected failure during chaos test");
+#endif
         }
     }
 
@@ -109,7 +111,9 @@ public class ChaosTester : IChaosTester
         }
         catch (Exception ex)
         {
+#if DEBUG
             _logger.LogDebug(ex, "Expected failure during chaos test");
+#endif
         }
     }
 }

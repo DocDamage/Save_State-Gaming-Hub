@@ -702,7 +702,10 @@ public class DiscordIntegrationPlugin : IPlugin
         _logger?.LogInformation("Discord bot is ready!");
 
         // Set bot status
-        await _discordClient!.SetGameAsync("SaveState Gaming Hub", null, ActivityType.Playing);
+        if (_discordClient is not null)
+        {
+            await _discordClient.SetGameAsync("SaveState Gaming Hub", null, ActivityType.Playing);
+        }
     }
 
     private async Task OnMessageReceived(SocketMessage message)

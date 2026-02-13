@@ -56,9 +56,8 @@ public partial class GameMediaService : IGameMediaService
             var fileFormat = fileInfo.Extension.TrimStart('.');
             var fileSizeBytes = fileInfo.Length;
 
-            // Get actual user ID from context
-            var userIdValue = _userContextService.GetCurrentUserId()
-                ?? Guid.Parse("00000000-0000-0000-0000-000000000001");
+            // Get user ID from context service (always returns valid ID for single-user app)
+            var userIdValue = _userContextService.GetCurrentUserIdRequired();
             var userId = SaveState.Core.Common.ValueObjects.UserId.From(userIdValue);
             var gameIdValue = SaveState.Core.Common.ValueObjects.GameId.From(gameId);
 

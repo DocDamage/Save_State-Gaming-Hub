@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Presentation.Services;
 
@@ -8,10 +9,12 @@ public class NotificationHistoryService : INotificationHistoryService
 {
     private readonly List<NotificationItem> _notifications = new();
     private readonly INotificationService _toastService;
+    private readonly ITimeProvider _timeProvider;
 
-    public NotificationHistoryService(INotificationService toastService)
+    public NotificationHistoryService(INotificationService toastService, ITimeProvider timeProvider)
     {
         _toastService = toastService;
+        _timeProvider = timeProvider;
     }
 
     public IReadOnlyList<NotificationItem> Notifications => _notifications.OrderByDescending(n => n.Timestamp).ToList();
@@ -23,7 +26,7 @@ public class NotificationHistoryService : INotificationHistoryService
             message,
             title,
             type,
-            DateTime.Now,
+            _timeProvider.Now,
             false);
 
         _notifications.Add(item);

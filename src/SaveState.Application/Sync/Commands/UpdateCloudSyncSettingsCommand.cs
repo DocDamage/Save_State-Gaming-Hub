@@ -7,4 +7,7 @@ public record UpdateCloudSyncSettingsCommand(
     string PreferredProvider,
     bool AutoSyncOnExit,
     string? OneDriveClientId,
-    string? GoogleDriveClientId) : IRequest<Result>;
+    string? GoogleDriveClientId,
+    bool EnableBackgroundFailureAlerts,
+    bool EnableBackgroundConflictAlerts,
+    int BackgroundAlertCooldownSeconds) : IRequest<Result>;

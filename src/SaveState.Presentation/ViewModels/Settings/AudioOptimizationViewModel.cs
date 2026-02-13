@@ -4,6 +4,9 @@ using CommunityToolkit.Mvvm.Input;
 using SaveState.Core.Common;
 using SaveState.Core.Performance.Services;
 using SaveState.Presentation.Services;
+using CoreAudioSettings = SaveState.Core.Performance.Services.AudioSettings;
+using CoreAudioProfile = SaveState.Core.Performance.Services.AudioProfile;
+using CoreAudioLatencyMode = SaveState.Core.Performance.Services.AudioLatencyMode;
 
 namespace SaveState.Presentation.ViewModels.Settings;
 
@@ -29,6 +32,9 @@ public partial class AudioOptimizationViewModel : ObservableObject
 
     [ObservableProperty]
     private bool exclusiveMode;
+
+    [ObservableProperty]
+    private string? exclusiveModeWarningMessage;
 
     [ObservableProperty]
     private bool spatialAudioEnabled;
@@ -58,10 +64,16 @@ public partial class AudioOptimizationViewModel : ObservableObject
     private int eqPreset; // 0=Off, 1=Flat, 2=Bass, 3=Treble, 4=Balanced
 
     [ObservableProperty]
-    private ObservableCollection<AudioProfile> savedProfiles = new();
+    private ObservableCollection<CoreAudioProfile> savedProfiles = new();
 
     [ObservableProperty]
     private string? selectedProfileName;
+
+    [ObservableProperty]
+    private CoreAudioProfile? selectedProfile;
+
+    [ObservableProperty]
+    private string newProfileName = string.Empty;
 
     [ObservableProperty]
     private float latency = 0.0f;
@@ -100,14 +112,14 @@ public partial class AudioOptimizationViewModel : ObservableObject
         {
             IsOptimizing = true;
 
-            var settings = new AudioSettings(
+            var settings = new CoreAudioSettings(
                 SampleRate: SampleRate,
                 BitDepth: BitDepth,
                 BufferSize: BufferSize,
                 Channels: Channels,
                 ExclusiveMode: ExclusiveMode,
                 SpatialAudio: SpatialAudioEnabled,
-                LatencyMode: SelectedLatencyMode,
+                LatencyMode: MapToCoreLatencyMode(SelectedLatencyMode),
                 PreferredDeviceId: SelectedAudioDevice);
 
             var result = await _audioOptimizer.ApplySettingsAsync(settings);
@@ -137,21 +149,21 @@ public partial class AudioOptimizationViewModel : ObservableObject
         {
             IsOptimizing = true;
 
-            var settings = new AudioSettings(
+            var settings = new CoreAudioSettings(
                 SampleRate: SampleRate,
                 BitDepth: BitDepth,
                 BufferSize: BufferSize,
                 Channels: Channels,
                 ExclusiveMode: ExclusiveMode,
                 SpatialAudio: SpatialAudioEnabled,
-                LatencyMode: SelectedLatencyMode,
+                LatencyMode: MapToCoreLatencyMode(SelectedLatencyMode),
                 PreferredDeviceId: SelectedAudioDevice);
 
             var result = await _audioOptimizer.CreateGameProfileAsync(gameId, settings);
             if (result.IsSuccess)
             {
                 await _notificationService.ShowNotificationAsync("Audio profile created for game", "Success");
-                SelectedProfileName = result.Value.ProfileName;
+                SelectedProfileName = result.Value.Name;
             }
             else
             {
@@ -173,32 +185,30 @@ public partial class AudioOptimizationViewModel : ObservableObject
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(profileName))
+            var finalName = string.IsNullOrWhiteSpace(profileName) ? NewProfileName : profileName;
+            if (string.IsNullOrWhiteSpace(finalName))
             {
                 await _notificationService.ShowErrorAsync("Profile name cannot be empty");
                 return;
             }
 
-            var settings = new AudioSettings(
+            var settings = new CoreAudioSettings(
                 SampleRate: SampleRate,
                 BitDepth: BitDepth,
                 BufferSize: BufferSize,
                 Channels: Channels,
                 ExclusiveMode: ExclusiveMode,
                 SpatialAudio: SpatialAudioEnabled,
-                LatencyMode: SelectedLatencyMode,
+                LatencyMode: MapToCoreLatencyMode(SelectedLatencyMode),
                 PreferredDeviceId: SelectedAudioDevice);
 
-            var profile = new AudioProfile(
-                ProfileId: Guid.NewGuid(),
-                ProfileName: profileName,
-                Settings: settings,
-                CreatedAt: DateTime.Now);
+            var profile = CoreAudioProfile.Create(null, finalName, settings);
 
             var result = await _audioOptimizer.SaveProfileAsync(profile);
             if (result.IsSuccess)
             {
-                await _notificationService.ShowNotificationAsync($"Profile '{profileName}' saved", "Success");
+                await _notificationService.ShowNotificationAsync($"Profile '{finalName}' saved", "Success");
+                NewProfileName = string.Empty;
                 await LoadSavedProfilesAsync();
             }
             else
@@ -217,7 +227,7 @@ public partial class AudioOptimizationViewModel : ObservableObject
     {
         try
         {
-            var profile = SavedProfiles.FirstOrDefault(p => p.ProfileName == profileName);
+            var profile = SavedProfiles.FirstOrDefault(p => p.Name == profileName);
             if (profile == null)
             {
                 await _notificationService.ShowErrorAsync("Profile not found");
@@ -230,10 +240,10 @@ public partial class AudioOptimizationViewModel : ObservableObject
             Channels = profile.Settings.Channels;
             ExclusiveMode = profile.Settings.ExclusiveMode;
             SpatialAudioEnabled = profile.Settings.SpatialAudio;
-            SelectedLatencyMode = profile.Settings.LatencyMode;
+            SelectedLatencyMode = MapToViewModelLatencyMode(profile.Settings.LatencyMode);
 
             SelectedProfileName = profileName;
-            await ApplyCurrentSettingsAsync();
+            await ApplyCurrentSettings();
         }
         catch (Exception ex)
         {
@@ -281,7 +291,7 @@ public partial class AudioOptimizationViewModel : ObservableObject
             DialogueVolume = 100.0f;
             EqEnabled = false;
 
-            await ApplyCurrentSettingsAsync();
+            await ApplyCurrentSettings();
         }
         catch (Exception ex)
         {
@@ -302,7 +312,7 @@ public partial class AudioOptimizationViewModel : ObservableObject
                 Channels = result.Value.Channels;
                 ExclusiveMode = result.Value.ExclusiveMode;
                 SpatialAudioEnabled = result.Value.SpatialAudio;
-                SelectedLatencyMode = result.Value.LatencyMode;
+                SelectedLatencyMode = MapToViewModelLatencyMode(result.Value.LatencyMode);
                 if (!string.IsNullOrEmpty(result.Value.PreferredDeviceId))
                 {
                     SelectedAudioDevice = result.Value.PreferredDeviceId;
@@ -334,32 +344,49 @@ public partial class AudioOptimizationViewModel : ObservableObject
             await _notificationService.ShowErrorAsync($"Failed to load profiles: {ex.Message}");
         }
     }
+
+    partial void OnExclusiveModeChanged(bool value)
+    {
+        ExclusiveModeWarningMessage = value
+            ? "Exclusive Mode bypasses the Windows mixer and can prevent other apps from playing audio. Enable only when you need low-latency or DRM support."
+            : null;
+    }
+
+    partial void OnSelectedProfileChanged(CoreAudioProfile? value)
+    {
+        if (value == null)
+        {
+            SelectedProfileName = null;
+            return;
+        }
+
+        SelectedProfileName = value.Name;
+    }
+}
+
+// Helper methods for latency mode mapping
+public partial class AudioOptimizationViewModel
+{
+    private static CoreAudioLatencyMode MapToCoreLatencyMode(AudioLatencyMode mode) => mode switch
+    {
+        AudioLatencyMode.Default => CoreAudioLatencyMode.Default,
+        AudioLatencyMode.Low => CoreAudioLatencyMode.Low,
+        AudioLatencyMode.Ultra => CoreAudioLatencyMode.UltraLow,
+        _ => CoreAudioLatencyMode.Default
+    };
+
+    private static AudioLatencyMode MapToViewModelLatencyMode(CoreAudioLatencyMode mode) => mode switch
+    {
+        CoreAudioLatencyMode.Default => AudioLatencyMode.Default,
+        CoreAudioLatencyMode.Balanced => AudioLatencyMode.Default,
+        CoreAudioLatencyMode.Low => AudioLatencyMode.Low,
+        CoreAudioLatencyMode.UltraLow => AudioLatencyMode.Ultra,
+        _ => AudioLatencyMode.Default
+    };
 }
 
 /// <summary>
-/// Represents an audio profile.
-/// </summary>
-public record AudioProfile(
-    Guid ProfileId,
-    string ProfileName,
-    AudioSettings Settings,
-    DateTime CreatedAt);
-
-/// <summary>
-/// Audio settings configuration.
-/// </summary>
-public record AudioSettings(
-    int SampleRate,
-    int BitDepth,
-    int BufferSize,
-    int Channels,
-    bool ExclusiveMode,
-    bool SpatialAudio,
-    AudioLatencyMode LatencyMode,
-    string? PreferredDeviceId);
-
-/// <summary>
-/// Audio latency modes.
+/// Audio latency modes (ViewModel version).
 /// </summary>
 public enum AudioLatencyMode
 {

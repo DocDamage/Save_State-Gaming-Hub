@@ -5,11 +5,13 @@ using Microsoft.Extensions.Logging;
 using SaveState.Application.GameLibrary.Commands;
 using SaveState.Application.GameLibrary.Queries;
 using SaveState.Core.Ai.Services;
+using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
+using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Core.UserManagement.Services;
 using SaveState.Core.Performance.Services;
-using SaveState.Core.Common;
 using SaveState.Presentation.Services;
 using Splat;
 using System;
@@ -37,6 +39,7 @@ public partial class GameDetailViewModel : ObservableObject
     private readonly IBacklogService _backlogService;
     private readonly IUiGameContextService _gameContextService;
     private readonly ILogger<GameDetailViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private GameId _gameId;
@@ -117,7 +120,8 @@ public partial class GameDetailViewModel : ObservableObject
         IClipboardService clipboardService,
         IUiGameContextService gameContextService,
         GameId gameId,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        ITimeProvider timeProvider)
     {
         _mediator = mediator;
         _navigationService = navigationService;
@@ -130,22 +134,24 @@ public partial class GameDetailViewModel : ObservableObject
         _backlogService = backlogService;
         _gameContextService = gameContextService;
         _gameId = gameId;
+        _timeProvider = timeProvider;
         _logger = loggerFactory.CreateLogger<GameDetailViewModel>();
 
         // Initialize tab view models with dependencies
-        OverviewTab = new GameOverviewTabViewModel(_mediator, _userContextService, _aiOrchestrator, _dialogService, _navigationService, _gameContextService, loggerFactory.CreateLogger<GameOverviewTabViewModel>());
+        OverviewTab = new GameOverviewTabViewModel(_mediator, _userContextService, _aiOrchestrator, _dialogService, _navigationService, _gameContextService, loggerFactory.CreateLogger<GameOverviewTabViewModel>(), timeProvider);
         SaveStatesTab = new GameSaveStatesTabViewModel(_mediator, _dialogService, _notificationService, loggerFactory.CreateLogger<GameSaveStatesTabViewModel>());
         AchievementsTab = new GameAchievementsTabViewModel(_mediator, _userContextService, _dialogService, loggerFactory.CreateLogger<GameAchievementsTabViewModel>());
         SessionsTab = new GameSessionsTabViewModel(_mediator, _dialogService, loggerFactory.CreateLogger<GameSessionsTabViewModel>());
-        NotesTab = new GameNotesTabViewModel(_mediator, _userContextService, _dialogService, clipboardService, _notificationService, loggerFactory.CreateLogger<GameNotesTabViewModel>());
-        ModsTab = new GameModsTabViewModel(_mediator, _modService, _notificationService, _dialogService, loggerFactory.CreateLogger<GameModsTabViewModel>());
+        NotesTab = new GameNotesTabViewModel(_mediator, _userContextService, _dialogService, clipboardService, _notificationService, loggerFactory.CreateLogger<GameNotesTabViewModel>(), timeProvider);
+        ModsTab = new GameModsTabViewModel(_mediator, _modService, _notificationService, _dialogService, loggerFactory.CreateLogger<GameModsTabViewModel>(), timeProvider);
         MediaTab = new GameMediaTabViewModel(_mediator, _userContextService, _dialogService,
             Locator.Current.GetService<IGameMediaService>()!,
             _notificationService,
             Locator.Current.GetService<SaveState.Core.Sync.ISyncService>()!,
             clipboardService,
+            Locator.Current.GetService<IImageAnalysisService>(),
             loggerFactory.CreateLogger<GameMediaTabViewModel>());
-        PerformanceTab = new GamePerformanceTabViewModel(_mediator, Locator.Current.GetService<IPerformanceMonitor>()!, loggerFactory.CreateLogger<GamePerformanceTabViewModel>());
+        PerformanceTab = new GamePerformanceTabViewModel(_mediator, Locator.Current.GetService<IPerformanceMonitor>()!, loggerFactory.CreateLogger<GamePerformanceTabViewModel>(), timeProvider);
 
         InitializeTabs();
 
@@ -261,7 +267,7 @@ public partial class GameDetailViewModel : ObservableObject
     [RelayCommand]
     private async Task NavigateBack()
     {
-        _gameContextService.SetSelectedGame(null);
+        _gameContextService.SetSelectedGame((Game?)null);
         await _navigationService.NavigateTo("Library");
     }
 

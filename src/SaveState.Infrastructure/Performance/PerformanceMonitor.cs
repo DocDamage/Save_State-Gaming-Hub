@@ -16,7 +16,7 @@ public class PerformanceMonitor : IPerformanceMonitor
 
     private Process? _monitoredProcess;
     private Timer? _monitoringTimer;
-    private Guid _currentSessionId;
+    private Guid? _currentSessionId;
     private readonly List<PerformanceSnapshot> _snapshots = new();
     private readonly object _snapshotsLock = new();
     private readonly Dictionary<Guid, List<PerformanceSnapshot>> _sessionHistory = new();
@@ -87,15 +87,15 @@ public class PerformanceMonitor : IPerformanceMonitor
                 sessionSnapshots = _snapshots.ToList();
             }
 
-            if (sessionId != Guid.Empty && sessionSnapshots.Count > 0)
+            if (sessionId.HasValue && sessionSnapshots.Count > 0)
             {
                 lock (_snapshotsLock)
                 {
-                    _sessionHistory[sessionId] = sessionSnapshots;
+                    _sessionHistory[sessionId.Value] = sessionSnapshots;
                 }
             }
 
-            _currentSessionId = Guid.Empty;
+            _currentSessionId = null;
             _monitoredProcess = null;
             _lastCpuSampleTime = null;
             _lastCpuTotalProcessorTime = null;
@@ -327,14 +327,14 @@ public class PerformanceMonitor : IPerformanceMonitor
         }
     }
 
-    private async Task<float> GetGpuUsageAsync(CancellationToken ct)
+    private async Task<float?> GetGpuUsageAsync(CancellationToken ct)
     {
         try
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || _monitoredProcess == null)
-                return 0;
+                return null;
 
-            return await Task.Run(() =>
+            return await Task.Run(async () =>
             {
                 try
                 {
@@ -345,30 +345,33 @@ public class PerformanceMonitor : IPerformanceMonitor
                         .ToArray();
 
                     if (instanceNames.Length == 0)
-                        return 0f;
+                        return (float?)null;
 
                     float total = 0;
                     foreach (var instance in instanceNames)
                     {
                         using var counter = new PerformanceCounter("GPU Engine", "Utilization Percentage", instance);
                         _ = counter.NextValue(); // Prime counter
-                        Thread.Sleep(20);
+                        await Task.Delay(20, ct);
                         total += counter.NextValue();
                     }
 
-                    return total;
+                    return (float?)total;
                 }
                 catch (Exception ex)
                 {
                     _logger.LogDebug(ex, "GPU usage counters unavailable");
-                    return 0f;
+                    _metrics.IncrementCounter("performance.gpu_usage.unavailable");
+                    return null;
                 }
             }, ct);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to retrieve GPU usage metrics. Returning 0 as fallback.");
-            return 0;
+            _logger.LogWarning(ex, "Failed to retrieve GPU usage metrics.");
+            _metrics.RecordException("PerformanceMonitor.GetGpuUsageAsync", ex.GetType().Name, ex.Message);
+            _metrics.IncrementCounter("performance.gpu_usage.failure");
+            return null;
         }
     }
 

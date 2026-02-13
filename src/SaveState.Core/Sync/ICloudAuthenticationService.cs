@@ -1,3 +1,5 @@
+using SaveState.Core.Common;
+
 namespace SaveState.Core.Sync;
 
 /// <summary>
@@ -14,8 +16,8 @@ public interface ICloudAuthenticationService
     /// <param name="authUrl">The authorization endpoint URL.</param>
     /// <param name="tokenUrl">The token endpoint URL.</param>
     /// <param name="ct">Cancellation token.</param>
-    /// <returns>An OAuth2 token response containing access and refresh tokens.</returns>
-    Task<OAuth2TokenResponse?> AuthenticateAsync(
+    /// <returns>A Result containing the OAuth2 token response or an error.</returns>
+    Task<Result<OAuth2TokenResponse>> AuthenticateAsync(
         string providerName,
         string clientId,
         string[] scopes,
@@ -26,7 +28,8 @@ public interface ICloudAuthenticationService
     /// <summary>
     /// Refreshes an existing OAuth2 token.
     /// </summary>
-    Task<OAuth2TokenResponse?> RefreshTokenAsync(
+    /// <returns>A Result containing the refreshed token or an error.</returns>
+    Task<Result<OAuth2TokenResponse>> RefreshTokenAsync(
         string clientId,
         string refreshToken,
         string tokenUrl,

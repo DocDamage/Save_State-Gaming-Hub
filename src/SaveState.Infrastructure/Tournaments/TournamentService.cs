@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Constants;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -71,12 +72,12 @@ public class TournamentService
         {
             if (!_tournaments.TryGetValue(tournamentId, out var tournament))
             {
-                return Result.Failure("Tournament not found", ErrorType.Validation);
+                return Result.Failure(ErrorMessages.TournamentNotFound, ErrorType.Validation);
             }
 
             if (tournament.Participants.Count >= tournament.MaxParticipants)
             {
-                return Result.Failure("Tournament is full", ErrorType.Validation);
+                return Result.Failure(ErrorMessages.TournamentFull, ErrorType.Validation);
             }
 
             var participant = new TournamentParticipant(
@@ -97,7 +98,7 @@ public class TournamentService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to register participant");
-            return Result.Failure($"Registration failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure(ErrorMessages.OperationFailed, ErrorType.Internal);
         }
     }
 
@@ -112,7 +113,7 @@ public class TournamentService
         {
             if (!_tournaments.TryGetValue(tournamentId, out var tournament))
             {
-                return Result.Failure("Tournament not found", ErrorType.Validation);
+                return Result.Failure(ErrorMessages.TournamentNotFound, ErrorType.Validation);
             }
 
             _logger.LogInformation("Starting tournament: {TournamentId}", tournamentId);
@@ -125,7 +126,7 @@ public class TournamentService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to start tournament: {TournamentId}", tournamentId);
-            return Result.Failure($"Start failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure(ErrorMessages.OperationFailed, ErrorType.Internal);
         }
     }
 
@@ -142,7 +143,7 @@ public class TournamentService
         {
             if (!_tournaments.TryGetValue(tournamentId, out var tournament))
             {
-                return Result.Failure("Tournament not found", ErrorType.Validation);
+                return Result.Failure(ErrorMessages.TournamentNotFound, ErrorType.Validation);
             }
 
             var winnerIndex = tournament.Participants.FindIndex(p => p.Id == winnerId);
@@ -150,7 +151,7 @@ public class TournamentService
 
             if (winnerIndex == -1 || loserIndex == -1)
             {
-                return Result.Failure("Participant not found", ErrorType.Validation);
+                return Result.Failure(ErrorMessages.ParticipantNotFound, ErrorType.Validation);
             }
 
             var winner = tournament.Participants[winnerIndex];
@@ -169,7 +170,7 @@ public class TournamentService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to record match result");
-            return Result.Failure($"Record failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure(ErrorMessages.OperationFailed, ErrorType.Internal);
         }
     }
 

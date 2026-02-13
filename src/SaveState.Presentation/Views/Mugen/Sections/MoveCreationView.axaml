@@ -1,0 +1,188 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Shell.Mugen"
+             xmlns:local="clr-namespace:SaveState.Presentation.Views.Mugen.Sections"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="SaveState.Presentation.Views.Mugen.Sections.MoveCreationView"
+             x:DataType="vm:MoveCreationViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Navigation Tabs -->
+        <Border Grid.Row="0" Background="{StaticResource GlassBrush}" Margin="20,20,20,10" Padding="15" CornerRadius="8">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <!-- Title -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="🎨" FontSize="18" />
+                    <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource FightingYellowBrush}" />
+                </StackPanel>
+
+                <!-- Navigation Tabs -->
+                <TabControl Grid.Column="1" SelectedIndex="{Binding CurrentView, Converter={StaticResource StringToIndexConverter}, ConverterParameter='Templates|Editor|Validation|Balancing|Export|Testing'}"
+                           Background="Transparent" Margin="20,0">
+                    <TabControl.Styles>
+                        <Style Selector="TabControl WrapPanel">
+                            <Setter Property="Orientation" Value="Horizontal" />
+                        </Style>
+                        <Style Selector="TabItem">
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="Foreground" Value="{StaticResource SecondaryTextBrush}" />
+                            <Setter Property="Padding" Value="15,8" />
+                            <Setter Property="Margin" Value="2,0" />
+                            <Setter Property="CornerRadius" Value="4" />
+                        </Style>
+                        <Style Selector="TabItem:pointerover">
+                            <Setter Property="Background" Value="{StaticResource SecondaryBrush}" />
+                        </Style>
+                        <Style Selector="TabItem:selected">
+                            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+                            <Setter Property="Foreground" Value="White" />
+                        </Style>
+                    </TabControl.Styles>
+
+                    <TabItem Header="📚 Templates" />
+                    <TabItem Header="🎨 Editor" />
+                    <TabItem Header="✅ Validation" />
+                    <TabItem Header="⚖️ Balancing" />
+                    <TabItem Header="📤 Export" />
+                    <TabItem Header="🧪 Testing" />
+                </TabControl>
+
+                <!-- Status -->
+                <Border Grid.Column="2" Background="{StaticResource CardBrush}" Padding="10" CornerRadius="6">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="STATUS" FontSize="10" Foreground="{StaticResource SecondaryTextBrush}" FontWeight="Bold" />
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" TextWrapping="Wrap" MaxWidth="200" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Content Area -->
+        <Grid Grid.Row="1" Margin="20,0,20,20">
+            <!-- Templates View -->
+            <local:MoveTemplateBrowserView IsVisible="{Binding CurrentView, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Templates'}" />
+
+            <!-- Editor View (Placeholder for now) -->
+            <Border IsVisible="{Binding CurrentView, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Editor'}"
+                   Background="{StaticResource CardBrush}" CornerRadius="8" Padding="20">
+                <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <StackPanel Spacing="20" HorizontalAlignment="Center">
+                        <TextBlock Text="🎨" FontSize="48" HorizontalAlignment="Center" />
+                        <TextBlock Text="Move Editor" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" />
+                        <TextBlock Text="Visual frame data editor with hitbox designer coming soon..." FontSize="14" Foreground="{StaticResource SecondaryTextBrush}" HorizontalAlignment="Center" />
+                        <Button Content="Back to Templates" Command="{Binding SwitchViewCommand}" CommandParameter="Templates" Classes="Secondary" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Validation View -->
+            <Border IsVisible="{Binding CurrentView, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Validation'}"
+                   Background="{StaticResource CardBrush}" CornerRadius="8" Padding="20">
+                <Grid RowDefinitions="Auto, *">
+                    <TextBlock Grid.Row="0" Text="Move Validation Results" FontSize="18" FontWeight="Bold" Margin="0,0,0,20" />
+
+                    <ScrollViewer Grid.Row="1">
+                        <StackPanel Spacing="15">
+                            <!-- Validation Status -->
+                            <Border Background="{Binding IsMoveValid, Converter={StaticResource BoolToStatusBrushConverter}}" Padding="15" CornerRadius="6">
+                                <StackPanel Spacing="10">
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock Text="{Binding IsMoveValid, Converter={StaticResource BoolToTextConverter}, ConverterParameter='✅ VALID|❌ INVALID'}" FontSize="16" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding ValidationResult.Errors.Count, StringFormat='Errors: {0}'}" FontSize="14" />
+                                        <TextBlock Text="{Binding ValidationResult.Warnings.Count, StringFormat='Warnings: {0}'}" FontSize="14" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Errors -->
+                            <ItemsControl ItemsSource="{Binding ValidationResult.Errors}" IsVisible="{Binding ValidationResult.Errors.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter='0', Mode=OneWay}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{StaticResource ErrorBrush}" Padding="10" CornerRadius="4">
+                                            <StackPanel Spacing="5">
+                                                <TextBlock Text="❌ ERROR" FontWeight="Bold" />
+                                                <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <!-- Warnings -->
+                            <ItemsControl ItemsSource="{Binding ValidationResult.Warnings}" IsVisible="{Binding ValidationResult.Warnings.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter='0', Mode=OneWay}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{StaticResource WarningBrush}" Padding="10" CornerRadius="4">
+                                            <StackPanel Spacing="5">
+                                                <TextBlock Text="⚠️ WARNING" FontWeight="Bold" />
+                                                <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <!-- Actions -->
+                            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,20,0,0">
+                                <Button Content="Re-validate" Command="{Binding ValidateCurrentMoveCommand}" Classes="Accent" />
+                                <Button Content="Back to Editor" Command="{Binding SwitchViewCommand}" CommandParameter="Editor" Classes="Secondary" />
+                                <Button Content="Continue to Balancing" Command="{Binding SwitchViewCommand}" CommandParameter="Balancing" Classes="Primary"
+                                        IsEnabled="{Binding IsMoveValid}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Balancing View -->
+            <Border IsVisible="{Binding CurrentView, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Balancing'}"
+                   Background="{StaticResource CardBrush}" CornerRadius="8" Padding="20">
+                <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <StackPanel Spacing="20" HorizontalAlignment="Center">
+                        <TextBlock Text="⚖️" FontSize="48" HorizontalAlignment="Center" />
+                        <TextBlock Text="Move Balancing" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" />
+                        <TextBlock Text="Automatic balancing and difficulty scaling coming soon..." FontSize="14" Foreground="{StaticResource SecondaryTextBrush}" HorizontalAlignment="Center" />
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button Content="Conservative Balance" Command="{Binding BalanceCurrentMoveCommand}" CommandParameter="Conservative" Classes="Secondary" />
+                            <Button Content="Aggressive Balance" Command="{Binding BalanceCurrentMoveCommand}" CommandParameter="Aggressive" Classes="Secondary" />
+                        </StackPanel>
+                        <Button Content="Back to Validation" Command="{Binding SwitchViewCommand}" CommandParameter="Validation" Classes="Secondary" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Export View -->
+            <Border IsVisible="{Binding CurrentView, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Export'}"
+                   Background="{StaticResource CardBrush}" CornerRadius="8" Padding="20">
+                <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <StackPanel Spacing="20" HorizontalAlignment="Center">
+                        <TextBlock Text="📤" FontSize="48" HorizontalAlignment="Center" />
+                        <TextBlock Text="Move Export" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" />
+                        <TextBlock Text="MUGEN CNS/CMD file generation coming soon..." FontSize="14" Foreground="{StaticResource SecondaryTextBrush}" HorizontalAlignment="Center" />
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBox Text="./exported_moves" Watermark="Output directory" Width="200" />
+                            <Button Content="Export Move" Command="{Binding ExportCurrentMoveCommand}" CommandParameter="./exported_moves" Classes="Accent" />
+                        </StackPanel>
+                        <Button Content="Back to Balancing" Command="{Binding SwitchViewCommand}" CommandParameter="Balancing" Classes="Secondary" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Testing View -->
+            <Border IsVisible="{Binding CurrentView, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Testing'}"
+                   Background="{StaticResource CardBrush}" CornerRadius="8" Padding="20">
+                <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <StackPanel Spacing="20" HorizontalAlignment="Center">
+                        <TextBlock Text="🧪" FontSize="48" HorizontalAlignment="Center" />
+                        <TextBlock Text="Move Testing" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" />
+                        <TextBlock Text="AI opponent testing and performance analysis coming soon..." FontSize="14" Foreground="{StaticResource SecondaryTextBrush}" HorizontalAlignment="Center" />
+                        <Button Content="Test Against AI" Command="{Binding TestCurrentMoveCommand}" Classes="Accent" />
+                        <Button Content="Back to Export" Command="{Binding SwitchViewCommand}" CommandParameter="Export" Classes="Secondary" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

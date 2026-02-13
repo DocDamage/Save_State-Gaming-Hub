@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Shell.Mugen"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Mugen.Sections.DownloadsSection"
+             x:DataType="vm:MugenDownloadsViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Border Grid.Row="0" Margin="0,0,0,20" Background="{StaticResource SurfaceBrush}" CornerRadius="12" Padding="20">
+            <StackPanel Spacing="15">
+                <TextBlock Text="ASSET DOWNLOADER" Classes="SectionHeader"/>
+                <Grid ColumnDefinitions="*, Auto">
+                    <TextBox Text="{Binding SearchQuery}" Watermark="Search for characters, stages, screenpacks..." KeyDown="OnSearchKeyDown"/>
+                    <Button Grid.Column="1" Command="{Binding SearchCommand}" Content="SEARCH" Classes="Accent" Margin="10,0,0,0"/>
+                </Grid>
+                <Grid ColumnDefinitions="*, Auto">
+                     <ProgressBar IsIndeterminate="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Height="2" VerticalAlignment="Center" Margin="0,5,0,0"/>
+                     <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" Classes="Caption" HorizontalAlignment="Right"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- Results -->
+        <ScrollViewer Grid.Row="1">
+            <ItemsControl ItemsSource="{Binding SearchResults}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Classes="ListItem" Padding="15" Margin="0,0,0,10" Background="{StaticResource SurfaceBrush}" CornerRadius="8">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <StackPanel Spacing="5">
+                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <Border Background="#333" CornerRadius="4" Padding="5,2">
+                                            <TextBlock Text="{Binding ContentType}" FontSize="12" Foreground="#AAA"/>
+                                        </Border>
+                                        <TextBlock Text="{Binding Source}" FontSize="12" Foreground="#888" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Description}" TextWrapping="Wrap" FontSize="14" Margin="0,5,0,0" Foreground="#DDD"/>
+                                </StackPanel>
+
+                                <Button Grid.Column="1" Command="{Binding $parent[UserControl].((vm:MugenDownloadsViewModel)DataContext).InstallItemCommand}"
+                                        CommandParameter="{Binding}" Content="INSTALL" Classes="Secondary" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

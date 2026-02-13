@@ -110,6 +110,26 @@ public class RateLimitingOptions : IValidatableObject
         /// </summary>
         public OperationLimit ProcessAiRequest { get; set; } = new() { MaxRequests = 20, WindowMinutes = 1 };
 
+        /// <summary>
+        /// Rate limits for Google Cloud Speech-to-Text operations.
+        /// </summary>
+        public OperationLimit GoogleCloudSpeech { get; set; } = new() { MaxRequests = 60, WindowMinutes = 1 };
+
+        /// <summary>
+        /// Rate limits for Google Cloud Vision operations.
+        /// </summary>
+        public OperationLimit GoogleCloudVision { get; set; } = new() { MaxRequests = 120, WindowMinutes = 1 };
+
+        /// <summary>
+        /// Rate limits for Google Cloud Translation operations.
+        /// </summary>
+        public OperationLimit GoogleCloudTranslation { get; set; } = new() { MaxRequests = 300, WindowMinutes = 1 };
+
+        /// <summary>
+        /// Rate limits for Google Cloud Storage operations.
+        /// </summary>
+        public OperationLimit GoogleCloudStorage { get; set; } = new() { MaxRequests = 100, WindowMinutes = 1 };
+
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             var results = new List<ValidationResult>();
@@ -121,7 +141,11 @@ public class RateLimitingOptions : IValidatableObject
                 (GetGameMetadata, "GetGameMetadata"),
                 (SearchGames, "SearchGames"),
                 (ScanDirectory, "ScanDirectory"),
-                (ProcessAiRequest, "ProcessAiRequest")
+                (ProcessAiRequest, "ProcessAiRequest"),
+                (GoogleCloudSpeech, "GoogleCloudSpeech"),
+                (GoogleCloudVision, "GoogleCloudVision"),
+                (GoogleCloudTranslation, "GoogleCloudTranslation"),
+                (GoogleCloudStorage, "GoogleCloudStorage")
             };
 
             foreach (var (limit, name) in limits)

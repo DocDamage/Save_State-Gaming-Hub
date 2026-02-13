@@ -75,10 +75,13 @@ public class ClipboardService : IClipboardService
                          await clipboard.SetDataObjectAsync(dataObject);
                      }
                  }
-                 catch (Exception)
+                 catch (IOException)
                  {
-                     // Silent failure or handle appropriately
-                     // Ideally logging should be injected
+                     // File I/O error when reading image - ignore for clipboard best-effort
+                 }
+                 catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
+                 {
+                     // Clipboard or bitmap operation failed - ignore for clipboard best-effort
                  }
              }
         }

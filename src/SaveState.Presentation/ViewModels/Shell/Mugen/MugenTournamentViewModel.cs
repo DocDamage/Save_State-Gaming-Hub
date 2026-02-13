@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MediatR;
 using SaveState.Application.Mugen.DTOs;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Services;
 using SaveState.Core.Mugen.Entities;
 using SaveState.Core.Mugen.ValueObjects;
@@ -16,6 +17,7 @@ public partial class MugenTournamentViewModel : MugenSectionViewModelBase
     private readonly IMugenCollectionService _collectionService;
     private readonly IMatchPredictionEngine _predictionEngine;
     private readonly IDeathMatchSimulator _matchSimulator;
+    private readonly ITimeProvider _timeProvider;
 
     public ObservableCollection<MugenCharacterSummaryDto> Participants { get; } = new();
 
@@ -54,13 +56,15 @@ public partial class MugenTournamentViewModel : MugenSectionViewModelBase
         IMugenTournamentService tournamentService,
         IMugenCollectionService collectionService,
         IMatchPredictionEngine predictionEngine,
-        IDeathMatchSimulator matchSimulator)
+        IDeathMatchSimulator matchSimulator,
+        ITimeProvider timeProvider)
     {
         _mediator = mediator;
         _tournamentService = tournamentService;
         _collectionService = collectionService;
         _predictionEngine = predictionEngine;
         _matchSimulator = matchSimulator;
+        _timeProvider = timeProvider;
         Title = "TOURNAMENT MODE";
     }
 
@@ -90,7 +94,7 @@ public partial class MugenTournamentViewModel : MugenSectionViewModelBase
             {
                 CurrentTournament = result.Value;
                 IsTournamentActive = true;
-                StatusMessage = $"Tournament '{_tournamentName}' created!";
+                StatusMessage = $"Tournament '{TournamentName}' created!";
                 await StartTournamentAsync();
             }
             else
@@ -136,7 +140,9 @@ public partial class MugenTournamentViewModel : MugenSectionViewModelBase
                 : null;
 
             // Update the bracket view model
-            BracketViewModel = new TournamentBracketViewModel(CurrentTournament, characterNames);
+            BracketViewModel = new TournamentBracketViewModel(
+                CurrentTournament?.Name ?? "Tournament",
+                characterNames?.Count ?? 0);
             StatusMessage = "Bracket updated.";
         }
     }
@@ -212,7 +218,7 @@ public partial class MugenTournamentViewModel : MugenSectionViewModelBase
                     BetAmount,
                     won,
                     SpectatorCredits,
-                    DateTime.Now));
+                    _timeProvider.Now));
             }
         }
         catch (Exception ex)

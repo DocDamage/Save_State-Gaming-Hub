@@ -387,10 +387,10 @@ public class VoiceCommandService : IVoiceCommandService
                     {
                         var sequenceResult = await _launchExperienceManager.GenerateLaunchSequenceAsync(
                             launchParams.GameId, ct).ConfigureAwait(false);
-                        if (sequenceResult.IsSuccess)
+                        if (sequenceResult.IsSuccess && sequenceResult.Value is not null)
                         {
                             await _launchExperienceManager.ExecuteLaunchSequenceAsync(
-                                sequenceResult.Value!, ct).ConfigureAwait(false);
+                                sequenceResult.Value, ct).ConfigureAwait(false);
                         }
                         return Result.Success<object?>(null);
                     }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.Analytics.Services;
 using SaveState.Core.Performance.Services;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Services;
 using System.Timers;
 
@@ -20,6 +21,7 @@ public partial class StatusBarViewModel : ObservableObject, IDisposable
     private readonly IAnalyticsService _analyticsService;
     private readonly IPerformanceMonitor? _performanceMonitor;
     private readonly ILogger<StatusBarViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly System.Timers.Timer _refreshTimer;
 
     private bool _isOnline = true;
@@ -36,7 +38,8 @@ public partial class StatusBarViewModel : ObservableObject, IDisposable
         IGameRepository gameRepository,
         IAnalyticsService analyticsService,
         IPerformanceMonitor? performanceMonitor,
-        ILogger<StatusBarViewModel> logger)
+        ILogger<StatusBarViewModel> logger,
+        ITimeProvider timeProvider)
     {
         _navigationService = navigationService;
         _overlayService = overlayService;
@@ -44,6 +47,7 @@ public partial class StatusBarViewModel : ObservableObject, IDisposable
         _analyticsService = analyticsService;
         _performanceMonitor = performanceMonitor;
         _logger = logger;
+        _timeProvider = timeProvider;
 
         // Initialize timer for periodic updates
         _refreshTimer = new System.Timers.Timer(5000); // 5 seconds
@@ -238,7 +242,7 @@ public partial class StatusBarViewModel : ObservableObject, IDisposable
             GameCount = await _gameRepository.CountAsync();
 
             // Get today's playtime from analytics
-            var heatmapResult = await _analyticsService.GetHeatmapAsync(DateTime.Now.Year);
+            var heatmapResult = await _analyticsService.GetHeatmapAsync(_timeProvider.Now.Year);
             if (heatmapResult.IsSuccess && heatmapResult.Value != null)
             {
                 var todayKey = DateOnly.FromDateTime(DateTime.Today);
@@ -259,7 +263,7 @@ public partial class StatusBarViewModel : ObservableObject, IDisposable
                 if (snapshot != null)
                 {
                     CpuUsage = (int)snapshot.CpuUsagePercent;
-                    GpuUsage = (int)snapshot.GpuUsagePercent;
+                    GpuUsage = snapshot.GpuUsagePercent.HasValue ? (int)snapshot.GpuUsagePercent.Value : 0;
                 }
             }
 

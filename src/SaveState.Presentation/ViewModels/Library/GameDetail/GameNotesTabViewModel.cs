@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using SaveState.Application.GameLibrary.Commands;
 using SaveState.Application.GameLibrary.Queries;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.UserManagement.Services;
 using SaveState.Presentation.Services;
@@ -27,6 +28,7 @@ public partial class GameNotesTabViewModel : ObservableObject
     private readonly IClipboardService _clipboardService;
     private readonly INotificationService _notificationService;
     private readonly ILogger<GameNotesTabViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
     internal GameId? _currentGameId;
 
     private List<GameNoteViewModel> _allNotes = new();
@@ -77,7 +79,8 @@ public partial class GameNotesTabViewModel : ObservableObject
         IDialogService dialogService,
         IClipboardService clipboardService,
         INotificationService notificationService,
-        ILogger<GameNotesTabViewModel> logger)
+        ILogger<GameNotesTabViewModel> logger,
+        ITimeProvider timeProvider)
     {
         _mediator = mediator;
         _userContextService = userContextService;
@@ -85,6 +88,7 @@ public partial class GameNotesTabViewModel : ObservableObject
         _clipboardService = clipboardService;
         _notificationService = notificationService;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task LoadDataAsync(GameId gameId)
@@ -391,7 +395,7 @@ public partial class GameNotesTabViewModel : ObservableObject
 
         try
         {
-             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+             var timestamp = _timeProvider.Now.ToString("yyyyMMdd_HHmmss");
              var filename = $"Notes_{_currentGameId}_{timestamp}.json";
              var path = Path.Combine(folder, filename);
 

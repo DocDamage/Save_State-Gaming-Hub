@@ -80,11 +80,17 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
 
     public Task<Result> DetachAsync(CancellationToken ct = default)
     {
+        // This method is synchronous internally but exposed as async for API consistency
+        return Task.FromResult(DetachInternal());
+    }
+
+    private Result DetachInternal()
+    {
         try
         {
             if (!_isAttached)
             {
-                return Task.FromResult(Result.Success()); // Already detached
+                return Result.Success(); // Already detached
             }
 
             _logger.LogInformation("Detaching from process");
@@ -104,12 +110,12 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
             _currentState = GameStateType.Unknown;
 
             _logger.LogInformation("Successfully detached from process");
-            return Task.FromResult(Result.Success());
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error detaching from process");
-            return Task.FromResult(Result.Failure($"Failed to detach from process: {ex.Message}"));
+            return Result.Failure($"Failed to detach from process: {ex.Message}");
         }
     }
 
@@ -135,9 +141,9 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
                         ct.ThrowIfCancellationRequested();
 
                         var patternResult = await ScanForSignatureAsync(signature, ct);
-                        if (patternResult.IsSuccess)
+                        if (patternResult.IsSuccess && patternResult.Value is not null)
                         {
-                            patterns.Add(patternResult.Value!);
+                            patterns.Add(patternResult.Value);
                         }
                     }
                 }
@@ -150,16 +156,16 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
 
                 // Example: Look for health values (common pattern)
                 var healthPatternResult = await ScanForHealthValueAsync(ct);
-                if (healthPatternResult.IsSuccess)
+                if (healthPatternResult.IsSuccess && healthPatternResult.Value is not null)
                 {
-                    patterns.Add(healthPatternResult.Value!);
+                    patterns.Add(healthPatternResult.Value);
                 }
 
                 // Example: Look for score/level values
                 var scorePatternResult = await ScanForScoreValueAsync(ct);
-                if (scorePatternResult.IsSuccess)
+                if (scorePatternResult.IsSuccess && scorePatternResult.Value is not null)
                 {
-                    patterns.Add(scorePatternResult.Value!);
+                    patterns.Add(scorePatternResult.Value);
                 }
             }
 
@@ -318,7 +324,7 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
     public void Dispose()
     {
         _monitoringTimer?.Dispose();
-        DetachAsync().GetAwaiter().GetResult();
+        DetachInternal(); // Use synchronous version to avoid sync-over-async in Dispose
     }
 
     // Windows API declarations

@@ -1,0 +1,255 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Shell.Mugen"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="SaveState.Presentation.Views.Mugen.Sections.MachineLearningView"
+             x:DataType="vm:MachineLearningViewModel">
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{StaticResource GlassBrush}" Margin="20,20,20,10" Padding="15" CornerRadius="8">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <!-- Title -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="🤖" FontSize="18" />
+                    <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource FightingYellowBrush}" />
+                </StackPanel>
+
+                <!-- Status -->
+                <Border Grid.Column="2" Background="{StaticResource CardBrush}" Padding="10" CornerRadius="6">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="STATUS" FontSize="10" Foreground="{StaticResource SecondaryTextBrush}" FontWeight="Bold" />
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" TextWrapping="Wrap" MaxWidth="250" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Content Area -->
+        <Grid Grid.Row="1" Margin="20,0,20,20">
+            <TabControl Background="{StaticResource CardBrush}" CornerRadius="8" Padding="20">
+                <TabControl.Styles>
+                    <Style Selector="TabItem">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="Foreground" Value="{StaticResource SecondaryTextBrush}" />
+                        <Setter Property="Padding" Value="15,8" />
+                        <Setter Property="Margin" Value="2,0" />
+                        <Setter Property="CornerRadius" Value="4" />
+                    </Style>
+                    <Style Selector="TabItem:pointerover">
+                        <Setter Property="Background" Value="{StaticResource SecondaryBrush}" />
+                    </Style>
+                    <Style Selector="TabItem:selected">
+                        <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+                        <Setter Property="Foreground" Value="White" />
+                    </Style>
+                </TabControl.Styles>
+
+                <!-- Match Prediction Tab -->
+                <TabItem Header="🎯 Match Prediction">
+                    <ScrollViewer>
+                        <StackPanel Spacing="20" Margin="0,20,0,0">
+                            <TextBlock Text="Predict match outcomes using ML models" FontSize="18" FontWeight="Bold" />
+
+                            <!-- Input Form -->
+                            <Border Background="{StaticResource GlassBrush}" Padding="20" CornerRadius="8">
+                                <Grid RowDefinitions="Auto, Auto, Auto, Auto" ColumnDefinitions="*, *">
+                                    <!-- Character 1 -->
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Player 1 Character:" FontWeight="Bold" />
+                                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Player1Character}" Watermark="e.g., Ryu, Ken, Guile" />
+
+                                    <!-- Character 2 -->
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Player 2 Character:" FontWeight="Bold" />
+                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Player2Character}" Watermark="e.g., Ryu, Ken, Guile" />
+
+                                    <!-- Player IDs (Optional) -->
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Player 1 ID (Optional):" />
+                                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Player1Id}" Watermark="Player identifier for skill rating" />
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Player 2 ID (Optional):" />
+                                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Player2Id}" Watermark="Player identifier for skill rating" />
+
+                                    <!-- Action Button -->
+                                    <Button Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"
+                                           Content="Predict Match Outcome" Command="{Binding PredictMatchAsyncCommand}"
+                                           Classes="Accent" HorizontalAlignment="Center" Margin="0,10,0,0" />
+                                </Grid>
+                            </Border>
+
+                            <!-- Results -->
+                            <Border Background="{StaticResource CardBrush}" Padding="20" CornerRadius="8"
+                                   IsVisible="{Binding CurrentPrediction, Converter={StaticResource NullOrEmptyToBoolConverter}, ConverterParameter=Invert}">
+                                <StackPanel Spacing="15">
+                                    <TextBlock Text="Prediction Results" FontSize="16" FontWeight="Bold" />
+
+                                    <Grid ColumnDefinitions="*, 20, *">
+                                        <Border Grid.Column="0" Background="{StaticResource SuccessBrush}" Padding="15" CornerRadius="6">
+                                            <StackPanel Spacing="5">
+                                                <TextBlock Text="{Binding CurrentPrediction.WinProbabilityPlayer1, StringFormat='Player 1: {0:P1}'}" FontWeight="Bold" />
+                                                <TextBlock Text="{Binding Player1Character}" FontSize="12" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Grid.Column="2" Background="{StaticResource ErrorBrush}" Padding="15" CornerRadius="6">
+                                            <StackPanel Spacing="5">
+                                                <TextBlock Text="{Binding CurrentPrediction.WinProbabilityPlayer2, StringFormat='Player 2: {0:P1}'}" FontWeight="Bold" />
+                                                <TextBlock Text="{Binding Player2Character}" FontSize="12" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+
+                                    <TextBlock Text="{Binding CurrentPrediction.DrawProbability, StringFormat='Draw Probability: {0:P1}'}" />
+
+                                    <ItemsControl ItemsSource="{Binding CurrentPrediction.KeyFactors}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{StaticResource GlassBrush}" Padding="8" CornerRadius="4" Margin="0,2">
+                                                    <TextBlock Text="{Binding}" />
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- Character Matchup Analysis Tab -->
+                <TabItem Header="⚔️ Character Analysis">
+                    <ScrollViewer>
+                        <StackPanel Spacing="20" Margin="0,20,0,0">
+                            <TextBlock Text="Analyze character matchups and strategies" FontSize="18" FontWeight="Bold" />
+
+                            <!-- Input -->
+                            <Border Background="{StaticResource GlassBrush}" Padding="20" CornerRadius="8">
+                                <StackPanel Spacing="15">
+                                    <Grid ColumnDefinitions="*, 20, *">
+                                        <TextBox Grid.Column="0" Text="{Binding Player1Character}" Watermark="Character 1" />
+                                        <TextBox Grid.Column="2" Text="{Binding Player2Character}" Watermark="Character 2" />
+                                    </Grid>
+                                    <Button Content="Analyze Matchup" Command="{Binding AnalyzeMatchupAsyncCommand}" Classes="Accent" HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Results -->
+                            <Border Background="{StaticResource CardBrush}" Padding="20" CornerRadius="8"
+                                   IsVisible="{Binding CurrentMatchupAnalysis, Converter={StaticResource NullOrEmptyToBoolConverter}, ConverterParameter=Invert}">
+                                <StackPanel Spacing="15">
+                                    <TextBlock Text="{Binding CurrentMatchupAnalysis.Advantage, StringFormat='Advantage: {0}'}" FontSize="16" FontWeight="Bold" />
+                                    <TextBlock Text="{Binding CurrentMatchupAnalysis.WinRate, StringFormat='Win Rate: {0:P1}'}" />
+
+                                    <Grid ColumnDefinitions="*, 20, *">
+                                        <StackPanel Grid.Column="0" Spacing="10">
+                                            <TextBlock Text="Strong Reasons:" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" />
+                                            <ItemsControl ItemsSource="{Binding CurrentMatchupAnalysis.StrongMatchupReasons}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding, StringFormat='• {0}'}" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" Spacing="10">
+                                            <TextBlock Text="Weak Reasons:" FontWeight="Bold" Foreground="{StaticResource ErrorBrush}" />
+                                            <ItemsControl ItemsSource="{Binding CurrentMatchupAnalysis.WeakMatchupReasons}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding, StringFormat='• {0}'}" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- Procedural Generation Tab -->
+                <TabItem Header="🎲 Content Generation">
+                    <ScrollViewer>
+                        <StackPanel Spacing="20" Margin="0,20,0,0">
+                            <TextBlock Text="Generate procedural moves, stages, and balance patches" FontSize="18" FontWeight="Bold" />
+
+                            <TabControl Background="Transparent">
+                                <TabItem Header="Moves">
+                                    <StackPanel Spacing="20" Margin="0,20,0,0">
+                                        <Border Background="{StaticResource GlassBrush}" Padding="20" CornerRadius="8">
+                                            <Grid RowDefinitions="Auto, Auto, Auto, Auto" ColumnDefinitions="*, *">
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Move Type:" FontWeight="Bold" />
+                                                <ComboBox Grid.Row="0" Grid.Column="1" SelectedItem="{Binding GenerationMoveType}" />
+
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Difficulty:" FontWeight="Bold" />
+                                                <ComboBox Grid.Row="1" Grid.Column="1" SelectedItem="{Binding GenerationDifficulty}" />
+
+                                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Power Level:" FontWeight="Bold" />
+                                                <Slider Grid.Row="2" Grid.Column="1" Value="{Binding GenerationPowerLevel}" Minimum="0" Maximum="2" />
+
+                                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Theme:" FontWeight="Bold" />
+                                                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding GenerationTheme}" />
+
+                                                <Button Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"
+                                                       Content="Generate Move" Command="{Binding GenerateProceduralMoveAsyncCommand}"
+                                                       Classes="Accent" HorizontalAlignment="Center" Margin="0,10,0,0" />
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Results -->
+                                        <Border Background="{StaticResource CardBrush}" Padding="20" CornerRadius="8"
+                                               IsVisible="{Binding CurrentProceduralMove, Converter={StaticResource NullOrEmptyToBoolConverter}, ConverterParameter=Invert}">
+                                            <StackPanel Spacing="15">
+                                                <TextBlock Text="{Binding CurrentProceduralMove.Name, StringFormat='Generated: {0}'}" FontSize="16" FontWeight="Bold" />
+                                                <TextBlock Text="{Binding CurrentProceduralMove.Description}" />
+                                                <TextBlock Text="{Binding CurrentProceduralMove.BalanceScore, StringFormat='Balance Score: {0:P1}'}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </TabItem>
+
+                                <TabItem Header="Stages">
+                                    <StackPanel Spacing="20" Margin="0,20,0,0">
+                                        <Button Content="Generate Procedural Stage" Command="{Binding GenerateProceduralStageAsyncCommand}" Classes="Accent" HorizontalAlignment="Center" />
+
+                                        <!-- Results -->
+                                        <Border Background="{StaticResource CardBrush}" Padding="20" CornerRadius="8"
+                                               IsVisible="{Binding CurrentProceduralStage, Converter={StaticResource NullOrEmptyToBoolConverter}, ConverterParameter=Invert}">
+                                            <StackPanel Spacing="15">
+                                                <TextBlock Text="{Binding CurrentProceduralStage.Name, StringFormat='Generated: {0}'}" FontSize="16" FontWeight="Bold" />
+                                                <TextBlock Text="{Binding CurrentProceduralStage.Description}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </TabItem>
+
+                                <TabItem Header="Balance Analysis">
+                                    <StackPanel Spacing="20" Margin="0,20,0,0">
+                                        <Border Background="{StaticResource GlassBrush}" Padding="20" CornerRadius="8">
+                                            <StackPanel Spacing="15">
+                                                <TextBox Text="{Binding AnalysisCharacter}" Watermark="Character to analyze" />
+                                                <Button Content="Analyze Character Balance" Command="{Binding AnalyzeCharacterBalanceAsyncCommand}" Classes="Accent" HorizontalAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Results -->
+                                        <Border Background="{StaticResource CardBrush}" Padding="20" CornerRadius="8"
+                                               IsVisible="{Binding CurrentBalanceAnalysis, Converter={StaticResource NullOrEmptyToBoolConverter}, ConverterParameter=Invert}">
+                                            <StackPanel Spacing="15">
+                                                <TextBlock Text="{Binding CurrentBalanceAnalysis.OverallRating, StringFormat='Rating: {0}'}" FontSize="16" FontWeight="Bold" />
+                                                <TextBlock Text="{Binding CurrentBalanceAnalysis.CompetitiveViability, StringFormat='Competitive Viability: {0:P1}'}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </TabItem>
+                            </TabControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </Grid>
+</UserControl>

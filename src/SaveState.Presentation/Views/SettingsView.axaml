@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SaveState.Presentation.ViewModels"
+             xmlns:audio="using:SaveState.Presentation.Views.Settings"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
              x:Class="SaveState.Presentation.Views.SettingsView"
              x:DataType="vm:SettingsViewModel"
@@ -231,6 +232,8 @@
           </Expander>
         </StackPanel>
       </Border>
+
+      <audio:AudioOptimizationView DataContext="{Binding AudioOptimizationViewModel}" />
 
     </StackPanel>
   </ScrollViewer>

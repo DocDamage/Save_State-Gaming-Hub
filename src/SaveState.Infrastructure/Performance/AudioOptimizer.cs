@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.Performance.Services;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace SaveState.Infrastructure.Performance;
@@ -197,21 +198,57 @@ public class AudioOptimizer : IAudioOptimizer
         {
             _logger.LogInformation("Attempting to set temporary audio device: {DeviceId}", deviceId);
 
-            // Platform-specific implementation required
-            // Windows: Core Audio API (IMMDeviceEnumerator, IMMDevice)
-            // macOS: CoreAudio framework
-            // Linux: PulseAudio or ALSA
-            
-            _logger.LogWarning("Temporary device switching is not yet implemented. Feature requires platform-specific implementation.");
-            
-            return Task.FromResult(Result.Failure(
-                "Temporary device switching is not currently supported on this platform. This feature requires platform-specific Windows Core Audio, macOS CoreAudio, or Linux PulseAudio/ALSA implementation.",
-                ErrorType.NotImplemented));
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                _logger.LogWarning("Audio device switching is only supported on Windows");
+                return Task.FromResult(Result.Failure(
+                    "Audio device switching is only supported on Windows. Linux and macOS support coming soon.",
+                    ErrorType.NotImplemented));
+            }
+
+            // Use Windows Core Audio API to switch device
+            var success = Audio.WindowsCoreAudio.SetDefaultAudioDevice(deviceId);
+
+            if (success)
+            {
+                _logger.LogInformation("Successfully set temporary audio device to: {DeviceId}", deviceId);
+                return Task.FromResult(Result.Success());
+            }
+            else
+            {
+                _logger.LogWarning("Failed to set audio device {DeviceId} - device may not exist or access denied", deviceId);
+                LaunchSoundSettings();
+                return Task.FromResult(Result.Failure(
+                    $"Failed to set audio device '{deviceId}'. The device may not exist, may be disabled, or you may not have permission to change audio settings. Opened Sound settings as fallback.",
+                    ErrorType.ExternalService));
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error attempting to set temporary audio device {DeviceId}", deviceId);
+            LaunchSoundSettings();
             return Task.FromResult(Result.Failure($"Failed to set audio device: {ex.Message}", ErrorType.Internal));
+        }
+    }
+
+    private void LaunchSoundSettings()
+    {
+        try
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "ms-settings:sound",
+                    UseShellExecute = true
+                });
+
+                _logger.LogInformation("Opened Sound settings fallback");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to open Sound settings fallback");
         }
     }
 
@@ -329,33 +366,56 @@ public class AudioOptimizer : IAudioOptimizer
 
         try
         {
-            // In a real implementation, this would use MMDeviceEnumerator from Core Audio API
-            // For now, return placeholder devices
+            // Use Windows Core Audio API to get real devices
+            var windowsDevices = Audio.WindowsCoreAudio.GetAudioDevices();
+            var defaultDeviceId = Audio.WindowsCoreAudio.GetDefaultAudioDeviceId();
 
-            devices.Add(new AudioDevice(
-                Id: "speakers",
-                Name: "Speakers",
-                Description: "Realtek High Definition Audio",
-                Type: AudioDeviceType.Speakers,
-                IsDefault: true,
-                IsEnabled: true));
+            foreach (var winDevice in windowsDevices)
+            {
+                var deviceType = DetermineDeviceType(winDevice.FriendlyName);
 
-            devices.Add(new AudioDevice(
-                Id: "headphones",
-                Name: "Headphones",
-                Description: "USB Audio Device",
-                Type: AudioDeviceType.Headphones,
-                IsDefault: false,
-                IsEnabled: true));
+                devices.Add(new AudioDevice(
+                    Id: winDevice.Id,
+                    Name: winDevice.FriendlyName,
+                    Description: winDevice.Description,
+                    Type: deviceType,
+                    IsDefault: winDevice.Id == defaultDeviceId,
+                    IsEnabled: winDevice.IsActive));
+            }
 
-            _logger.LogDebug("Enumerated {Count} audio devices", devices.Count);
+            _logger.LogDebug("Enumerated {Count} real Windows audio devices", devices.Count);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to enumerate Windows audio devices");
+            _logger.LogWarning(ex, "Failed to enumerate Windows audio devices, falling back to default");
+
+            // Fallback to default device on error
+            devices.Add(new AudioDevice(
+                Id: "default",
+                Name: "Default Audio Device",
+                Description: "System default audio output",
+                Type: AudioDeviceType.Speakers,
+                IsDefault: true,
+                IsEnabled: true));
         }
 
         return devices;
+    }
+
+    private static AudioDeviceType DetermineDeviceType(string deviceName)
+    {
+        var lowerName = deviceName.ToLowerInvariant();
+
+        if (lowerName.Contains("headphone") || lowerName.Contains("headset"))
+            return AudioDeviceType.Headphones;
+        if (lowerName.Contains("speaker"))
+            return AudioDeviceType.Speakers;
+        if (lowerName.Contains("hdmi") || lowerName.Contains("display"))
+            return AudioDeviceType.Monitor;
+        if (lowerName.Contains("bluetooth") || lowerName.Contains("wireless"))
+            return AudioDeviceType.Headphones; // Typically Bluetooth headphones
+
+        return AudioDeviceType.Speakers; // Default fallback
     }
 
     /// <summary>
@@ -400,5 +460,3 @@ public class AudioOptimizer : IAudioOptimizer
             LatencyMode: AudioLatencyMode.Default);
     }
 }
-
-

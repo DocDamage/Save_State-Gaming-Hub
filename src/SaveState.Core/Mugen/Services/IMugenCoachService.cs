@@ -15,7 +15,7 @@ public interface IMugenCoachService
     /// <param name="characterId">Character ID.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>Personalized coaching advice.</returns>
-    Task<string?> GetCoachingAdviceAsync(Guid characterId, CancellationToken ct = default);
+    Task<Result<string>> GetCoachingAdviceAsync(Guid characterId, CancellationToken ct = default);
 
     /// <summary>
     /// Gets matchup advice for two specific characters.

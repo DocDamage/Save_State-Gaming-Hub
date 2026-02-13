@@ -31,7 +31,7 @@
             <StackPanel Spacing="15">
                 <!-- Sync Status Card -->
                 <Border Classes="GlassContainer" Padding="20">
-                    <Grid RowDefinitions="Auto, Auto, Auto, Auto">
+                    <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto">
                         <TextBlock Text="Sync Status" Classes="SectionHeader" />
 
                         <Grid Grid.Row="1" ColumnDefinitions="*, *, *" Margin="0,15,0,0">
@@ -77,6 +77,81 @@
                                     Command="{Binding ViewConflictsCommand}"
                                     ToolTip.Tip="Resolve sync conflicts" />
                         </StackPanel>
+                        <Border Grid.Row="4"
+                                Margin="0,15,0,0"
+                                Padding="14"
+                                Background="#0DFFFFFF"
+                                CornerRadius="8"
+                                BorderBrush="#22FFFFFF"
+                                BorderThickness="1">
+                            <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto">
+                                <Grid ColumnDefinitions="*, *" Margin="0,0,0,8">
+                                    <StackPanel Grid.Column="0" Spacing="4">
+                                        <TextBlock Text="Background Daemon" Classes="Label" />
+                                        <TextBlock Text="{Binding BackgroundDaemonState}" Classes="Value" FontWeight="SemiBold" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Spacing="4">
+                                        <TextBlock Text="Last Auto Sync" Classes="Label" />
+                                        <TextBlock Text="{Binding BackgroundDaemonLastSync}" Classes="Value" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <TextBlock Grid.Row="1"
+                                           Text="{Binding BackgroundDaemonSummary}"
+                                           Classes="Subtitle"
+                                           FontWeight="SemiBold" />
+
+                                <TextBlock Grid.Row="2"
+                                           Margin="0,8,0,0"
+                                           Text="{Binding BackgroundDaemonHealthStatus}"
+                                           Classes="Badge"
+                                           FontWeight="SemiBold" />
+
+                                <TextBlock Grid.Row="3"
+                                           Margin="0,6,0,0"
+                                           Text="{Binding BackgroundDaemonHealthCue}"
+                                           Classes="Caption"
+                                           TextWrapping="Wrap" />
+
+                                <TextBlock Grid.Row="4"
+                                           Margin="0,8,0,0"
+                                           Text="{Binding BackgroundDaemonMessage}"
+                                           Classes="Caption"
+                                           TextWrapping="Wrap" />
+
+                                <StackPanel Grid.Row="5"
+                                            Margin="0,10,0,0"
+                                            Orientation="Horizontal"
+                                            Spacing="8"
+                                            IsVisible="{Binding HasBackgroundQuickActions}">
+                                    <Button Classes="Secondary"
+                                            Content="Resolve Conflicts"
+                                            Command="{Binding ResolveBackgroundConflictsCommand}"
+                                            IsVisible="{Binding ShowResolveConflictsQuickAction}"
+                                            ToolTip.Tip="Open conflict resolution for cloud save-state issues" />
+                                    <Button Classes="Secondary"
+                                            Content="Retry Sync"
+                                            Command="{Binding RetryBackgroundSyncCommand}"
+                                            IsEnabled="{Binding !IsSyncing}"
+                                            IsVisible="{Binding ShowRetrySyncQuickAction}"
+                                            ToolTip.Tip="Run a manual sync cycle now" />
+                                    <Button Classes="Secondary"
+                                            Content="Review Settings"
+                                            Command="{Binding OpenBackgroundSyncSettingsCommand}"
+                                            IsVisible="{Binding ShowConfigureProviderQuickAction}"
+                                            ToolTip.Tip="Open cloud provider and daemon settings" />
+                                </StackPanel>
+
+                                <Button Grid.Row="6"
+                                        Margin="0,10,0,0"
+                                        HorizontalAlignment="Left"
+                                        Classes="Secondary"
+                                        Content="View Details"
+                                        Command="{Binding ViewBackgroundSyncDetailsCommand}"
+                                        ToolTip.Tip="Show detailed daemon telemetry and guidance" />
+                            </Grid>
+                        </Border>
                     </Grid>
                 </Border>
 
@@ -247,7 +322,58 @@
                         </Border>
                     </Grid>
                 </Border>
+                <!-- Cloud Catalog Card -->
+                <Border Classes="GlassContainer" Padding="20">
+                    <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto">
+                        <TextBlock Text="Cloud Catalog" Classes="SectionHeader" />
+
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="0,15,0,0">
+                            <TextBlock Text="Available Cloud Games" Classes="Label" />
+                            <TextBlock Text="{Binding AvailableCloudGamesCount}" Classes="Value" FontWeight="Bold" />
+                            <Button Content="Refresh Catalog"
+                                    Classes="Secondary"
+                                    Command="{Binding BrowseCatalogCommand}"
+                                    ToolTip.Tip="Reload catalog metadata" />
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="2"
+                                   Margin="0,10,0,0"
+                                   Classes="Caption"
+                                   Text="Top games are ranked by the number of providers supporting them." />
+
+                        <Border Grid.Row="3" Margin="0,10,0,0">
+                            <ScrollViewer MaxHeight="180">
+                                <ItemsControl ItemsSource="{Binding TopCloudGames}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Classes="ListItem" Padding="12" Margin="0,0,0,5">
+                                                <StackPanel Spacing="2">
+                                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                                                    <ItemsControl ItemsSource="{Binding Providers}">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <WrapPanel />
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Border Classes="Badge">
+                                                                    <TextBlock Text="{Binding}" FontSize="11" />
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+                    </Grid>
+                </Border>
             </StackPanel>
         </ScrollViewer>
     </Grid>
 </UserControl>
+

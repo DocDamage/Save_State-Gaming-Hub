@@ -199,29 +199,29 @@ public class LocalFileStorageProvider : ICloudStorageProvider
     /// </summary>
     /// <param name="remotePath">The remote storage path of the file.</param>
     /// <param name="ct">Cancellation token for the operation.</param>
-    /// <returns>File information if the file exists, null otherwise.</returns>
-    public Task<CloudFileInfo?> GetFileInfoAsync(string remotePath, CancellationToken ct = default)
+    /// <returns>File information wrapped in a Result.</returns>
+    public Task<Result<CloudFileInfo>> GetFileInfoAsync(string remotePath, CancellationToken ct = default)
     {
         try
         {
             var fullPath = GetFullPath(remotePath);
             if (!File.Exists(fullPath))
             {
-                return Task.FromResult<CloudFileInfo?>(null);
+                return Task.FromResult(Result.Failure<CloudFileInfo>("File not found", ErrorType.NotFound));
             }
 
             var info = new FileInfo(fullPath);
-            return Task.FromResult<CloudFileInfo?>(new CloudFileInfo(
+            return Task.FromResult(Result.Success(new CloudFileInfo(
                 Path: remotePath,
                 Name: info.Name,
                 SizeBytes: info.Length,
                 ModifiedAt: info.LastWriteTimeUtc
-            ));
+            )));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get file info for {RemotePath}", remotePath);
-            return Task.FromResult<CloudFileInfo?>(null);
+            return Task.FromResult(Result.Failure<CloudFileInfo>($"Failed to get file info: {ex.Message}", ErrorType.External));
         }
     }
 

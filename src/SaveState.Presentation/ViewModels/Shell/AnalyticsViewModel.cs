@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Analytics.DTOs;
 using SaveState.Core.Analytics.Services;
+using SaveState.Core.Common.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -20,6 +21,7 @@ public partial class AnalyticsViewModel : ObservableObject
     private readonly IAnalyticsExportService _exportService;
     private readonly SaveState.Presentation.Services.IDialogService _dialogService;
     private readonly ILogger<AnalyticsViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private bool _isLoading;
@@ -29,7 +31,7 @@ public partial class AnalyticsViewModel : ObservableObject
 
     // Heatmap Data
     [ObservableProperty]
-    private int _selectedYear = DateTime.Now.Year;
+    private int _selectedYear;
 
     [ObservableProperty]
     private int _totalDays;
@@ -84,12 +86,15 @@ public partial class AnalyticsViewModel : ObservableObject
         IAnalyticsService analyticsService,
         IAnalyticsExportService exportService,
         SaveState.Presentation.Services.IDialogService dialogService,
-        ILogger<AnalyticsViewModel> logger)
+        ILogger<AnalyticsViewModel> logger,
+        ITimeProvider timeProvider)
     {
         _analyticsService = analyticsService;
         _exportService = exportService;
         _dialogService = dialogService;
         _logger = logger;
+        _timeProvider = timeProvider;
+        _selectedYear = timeProvider.Now.Year;
 
         // Load data when ViewModel is created (fire-and-forget)
         _ = LoadAnalyticsAsync();
@@ -120,7 +125,7 @@ public partial class AnalyticsViewModel : ObservableObject
                 return;
             }
 
-            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var timestamp = _timeProvider.Now.ToString("yyyyMMdd_HHmmss");
             var path = System.IO.Path.Combine(folder, $"SaveState_Analytics_{timestamp}.html");
             var result = await _exportService.GenerateHtmlReportAsync(dataResult.Value, path);
 

@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Services;
 using System;
 using System.Collections.ObjectModel;
@@ -10,6 +11,7 @@ public partial class ConflictsResolutionOverlayViewModel : ObservableObject
 {
     private readonly IOverlayService _overlayService;
     private readonly INotificationService _notificationService;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private ObservableCollection<FileConflictViewModel> _conflicts = new();
@@ -19,10 +21,12 @@ public partial class ConflictsResolutionOverlayViewModel : ObservableObject
 
     public ConflictsResolutionOverlayViewModel(
         IOverlayService overlayService,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        ITimeProvider timeProvider)
     {
         _overlayService = overlayService;
         _notificationService = notificationService;
+        _timeProvider = timeProvider;
         LoadConflicts();
     }
 
@@ -33,17 +37,17 @@ public partial class ConflictsResolutionOverlayViewModel : ObservableObject
         // Simulate some conflicts
         Conflicts.Add(new FileConflictViewModel(
             "game_save_001.sav",
-            DateTime.Now.AddMinutes(-5),
+            _timeProvider.Now.AddMinutes(-5),
             "2.3 MB",
-            DateTime.Now.AddMinutes(-2),
+            _timeProvider.Now.AddMinutes(-2),
             "2.4 MB",
             this));
 
         Conflicts.Add(new FileConflictViewModel(
             "settings.json",
-            DateTime.Now.AddHours(-1),
+            _timeProvider.Now.AddHours(-1),
             "12 KB",
-            DateTime.Now.AddMinutes(-30),
+            _timeProvider.Now.AddMinutes(-30),
             "15 KB",
             this));
 

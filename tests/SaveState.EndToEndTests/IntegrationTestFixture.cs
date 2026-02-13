@@ -22,6 +22,7 @@ public class IntegrationTestFixture : IDisposable
 {
     private readonly IHost _host;
     private readonly IServiceProvider _services;
+    private readonly string _dbPath;
     private bool _disposed;
 
     public IServiceProvider Services => _services;
@@ -30,11 +31,20 @@ public class IntegrationTestFixture : IDisposable
 
     public IntegrationTestFixture()
     {
-        // Build configuration
+        // Generate a unique database name for this test run to avoid file locking
+        _dbPath = Path.Combine(
+            Directory.GetCurrentDirectory(),
+            $"savestate_test_{Guid.NewGuid():N}.db");
+
+        // Build configuration with unique database path
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.Test.json", optional: true)
             .AddEnvironmentVariables()
+            .AddInMemoryCollection(new Dictionary<string, string>
+            {
+                ["ConnectionStrings:DefaultConnection"] = $"Data Source={_dbPath}"
+            })
             .Build();
 
         // Build host with all services
@@ -60,13 +70,50 @@ public class IntegrationTestFixture : IDisposable
         InitializeTestData().GetAwaiter().GetResult();
     }
 
+    /// <summary>
+    /// Cleans up any existing test database files to ensure a fresh schema.
+    /// This prevents issues with stale database schemas from previous test runs.
+    /// </summary>
+    private void CleanupTestDatabase()
+    {
+        try
+        {
+            var basePath = Path.GetDirectoryName(_dbPath);
+            var fileName = Path.GetFileNameWithoutExtension(_dbPath);
+            var extension = Path.GetExtension(_dbPath);
+
+            // Delete main database file
+            if (File.Exists(_dbPath))
+            {
+                File.Delete(_dbPath);
+                Console.WriteLine($"Deleted existing test database: {_dbPath}");
+            }
+
+            // Delete SQLite auxiliary files (shm, wal)
+            var shmPath = Path.Combine(basePath ?? ".", $"{fileName}.db-shm");
+            var walPath = Path.Combine(basePath ?? ".", $"{fileName}.db-wal");
+
+            if (File.Exists(shmPath)) File.Delete(shmPath);
+            if (File.Exists(walPath)) File.Delete(walPath);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Warning: Could not clean up test database: {ex.Message}");
+        }
+    }
+
     private async Task InitializeTestData()
     {
         try
         {
             // Create database if needed
             var dbContext = _services.GetRequiredService<SaveState.Infrastructure.Persistence.SaveStateDbContext>();
+
+            // Ensure fresh database schema - delete and recreate
+            await dbContext.Database.EnsureDeletedAsync().ConfigureAwait(false);
             await dbContext.Database.EnsureCreatedAsync().ConfigureAwait(false);
+
+            Console.WriteLine("Test database created successfully with fresh schema.");
 
             // Seed basic test data
             await SeedTestData(dbContext).ConfigureAwait(false);
@@ -74,6 +121,7 @@ public class IntegrationTestFixture : IDisposable
         catch (Exception ex)
         {
             Console.WriteLine($"FATAL: Failed to initialize test data: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
             throw;
         }
     }
@@ -118,6 +166,9 @@ public class IntegrationTestFixture : IDisposable
             if (disposing)
             {
                 _host?.Dispose();
+
+                // Clean up test database files after tests complete
+                CleanupTestDatabase();
             }
             _disposed = true;
         }

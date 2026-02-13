@@ -22,13 +22,13 @@ public class NetworkCommands : CommandGroupBase
 
         // Test network quality
         var testCommand = new Command("test", "Run a comprehensive network quality test");
-        testCommand.SetHandler(() =>
+        testCommand.SetHandler(async () =>
         {
-            AnsiConsole.Status()
-                .Start("Running network quality test...", ctx =>
+            await AnsiConsole.Status()
+                .StartAsync("Running network quality test...", async ctx =>
                 {
                     ctx.Spinner(Spinner.Known.Dots);
-                    Thread.Sleep(1500); // Simulate test
+                    await Task.Delay(1500); // Simulate test
 
                     AnsiConsole.MarkupLine("[blue]Network Quality Test Results[/]");
                     AnsiConsole.WriteLine();

@@ -62,4 +62,34 @@ public interface ICloudGamingManager
     Task<Result<IReadOnlyList<string>>> GetNetworkRecommendationsAsync(
         CloudGamingProvider provider,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Sets a user override for cloud gaming availability.
+    /// This allows users to manually mark games as available or unavailable on specific providers.
+    /// </summary>
+    /// <param name="gameId">The unique identifier of the game.</param>
+    /// <param name="provider">The cloud gaming provider.</param>
+    /// <param name="isAvailable">Whether the game is available on the provider.</param>
+    /// <returns>A result indicating success.</returns>
+    Result SetCloudAvailabilityOverride(
+        Guid gameId,
+        CloudGamingProvider provider,
+        bool isAvailable);
+
+    /// <summary>
+    /// Clears a user override for cloud gaming availability.
+    /// </summary>
+    /// <param name="gameId">The unique identifier of the game.</param>
+    /// <param name="provider">The cloud gaming provider, or null to clear all overrides for the game.</param>
+    /// <returns>A result indicating success.</returns>
+    Result ClearCloudAvailabilityOverride(
+        Guid gameId,
+        CloudGamingProvider? provider = null);
+
+    /// <summary>
+    /// Gets all user overrides for cloud gaming availability for a specific game.
+    /// </summary>
+    /// <param name="gameId">The unique identifier of the game.</param>
+    /// <returns>A result containing a dictionary of provider overrides, or empty if none exist.</returns>
+    Result<IReadOnlyDictionary<CloudGamingProvider, bool>> GetCloudAvailabilityOverrides(Guid gameId);
 }

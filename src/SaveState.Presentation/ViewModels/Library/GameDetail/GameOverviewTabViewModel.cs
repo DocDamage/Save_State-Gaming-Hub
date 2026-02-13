@@ -5,8 +5,10 @@ using Microsoft.Extensions.Logging;
 using SaveState.Application.GameLibrary.Commands;
 using SaveState.Application.GameLibrary.Queries;
 using SaveState.Core.Ai.Services;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.UserManagement.Services;
+using SaveState.Infrastructure.External;
 using SaveState.Presentation.Services;
 using System;
 using System.Collections.ObjectModel;
@@ -27,6 +29,9 @@ public partial class GameOverviewTabViewModel : ObservableObject
     private readonly IUiGameContextService _gameContextService;
     private readonly ILogger<GameOverviewTabViewModel> _logger;
     private readonly INavigationService _navigationService;
+    private readonly IHowLongToBeatService? _hltbService;
+    private readonly IGamePriceService? _priceService;
+    private readonly ITimeProvider _timeProvider;
     private GameId? _currentGameId;
 
     [ObservableProperty]
@@ -93,7 +98,10 @@ public partial class GameOverviewTabViewModel : ObservableObject
         IDialogService dialogService,
         INavigationService navigationService,
         IUiGameContextService gameContextService,
-        ILogger<GameOverviewTabViewModel> logger)
+        ILogger<GameOverviewTabViewModel> logger,
+        ITimeProvider timeProvider,
+        IHowLongToBeatService? hltbService = null,
+        IGamePriceService? priceService = null)
     {
         _mediator = mediator;
         _userContextService = userContextService;
@@ -102,6 +110,9 @@ public partial class GameOverviewTabViewModel : ObservableObject
         _navigationService = navigationService;
         _gameContextService = gameContextService;
         _logger = logger;
+        _timeProvider = timeProvider;
+        _hltbService = hltbService;
+        _priceService = priceService;
     }
 
 
@@ -197,22 +208,75 @@ public partial class GameOverviewTabViewModel : ObservableObject
                 AchievementProgress = "0/0 (0%)";
             }
 
-            // Mock HLTB data based on title length as a silly heuristic
-            var seed = GameTitle.Length;
-            HltbMainStory = $"{10 + (seed % 20)}h";
-            HltbMainExtras = $"{25 + (seed % 30)}h";
-            HltbCompletionist = $"{60 + (seed % 100)}h";
+            // Load HowLongToBeat data
+            await LoadHltbDataAsync(GameTitle).ConfigureAwait(false);
 
-            // Mock Price data
-            CurrentPrice = "$59.99";
-            LowestPrice = "$19.99";
-            HistoricalLow = "$14.99";
-            NotifyOnSale = true;
+            // Load Price data
+            await LoadPriceDataAsync(GameTitle).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to load overview data for game {GameId}", gameId);
         }
+    }
+
+    private async Task LoadHltbDataAsync(string gameTitle)
+    {
+        try
+        {
+            if (_hltbService != null)
+            {
+                var result = await _hltbService.SearchGameAsync(gameTitle).ConfigureAwait(false);
+                if (result.IsSuccess && result.Value != null)
+                {
+                    HltbMainStory = HowLongToBeatService.FormatPlaytime(result.Value.MainStory);
+                    HltbMainExtras = HowLongToBeatService.FormatPlaytime(result.Value.MainPlusExtras);
+                    HltbCompletionist = HowLongToBeatService.FormatPlaytime(result.Value.Completionist);
+                    return;
+                }
+                _logger.LogInformation("HLTB data not found for '{GameTitle}': {Error}", gameTitle, result.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load HLTB data for '{GameTitle}'", gameTitle);
+        }
+
+        // Fallback to estimate based on title
+        var seed = gameTitle.Length;
+        HltbMainStory = $"{10 + (seed % 20)}h";
+        HltbMainExtras = $"{25 + (seed % 30)}h";
+        HltbCompletionist = $"{60 + (seed % 100)}h";
+    }
+
+    private async Task LoadPriceDataAsync(string gameTitle)
+    {
+        try
+        {
+            if (_priceService != null)
+            {
+                var result = await _priceService.GetCurrentPriceAsync(gameTitle).ConfigureAwait(false);
+                if (result.IsSuccess && result.Value != null)
+                {
+                    CurrentPrice = GamePriceService.FormatPrice(result.Value.CurrentPrice);
+                    LowestPrice = GamePriceService.FormatPrice(result.Value.LowestPrice);
+                    HistoricalLow = GamePriceService.FormatPrice(result.Value.LowestPrice);
+                    NotifyOnSale = result.Value.IsOnSale;
+                    return;
+                }
+                _logger.LogInformation("Price data not found for '{GameTitle}': {Error}", gameTitle, result.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load price data for '{GameTitle}'", gameTitle);
+        }
+
+        // Fallback mock data
+        CurrentPrice = "$59.99";
+        LowestPrice = "$19.99";
+        HistoricalLow = "$14.99";
+        NotifyOnSale = true;
     }
 
     [RelayCommand]
@@ -228,7 +292,7 @@ public partial class GameOverviewTabViewModel : ObservableObject
 
             AiBriefingText = "Generating briefing...";
 
-            var isRunning = _gameContextService.RunningGameId == _currentGameId;
+            var isRunning = _gameContextService.RunningGameId() == _currentGameId?.Value;
             var statusContext = isRunning ? "Note: the user is currently playing this game." : "Note: the user is not currently playing this game.";
 
             var prompt = $"Write a short, engaging briefing for the game '{GameTitle}'. {statusContext} Focus on its key themes, genre, and why it's worth playing. If the user is playing, mention something relevant to an active session. Keep it under 100 words.";
@@ -237,7 +301,7 @@ public partial class GameOverviewTabViewModel : ObservableObject
             if (result.IsSuccess)
             {
                 AiBriefingText = result.Value;
-                AiBriefingTimestamp = DateTime.Now.ToString("g");
+                AiBriefingTimestamp = _timeProvider.Now.ToString("g");
             }
             else
             {

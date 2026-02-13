@@ -7,6 +7,10 @@ using SaveState.Core.DataPortability;
 using SaveState.Core.GameLibrary;
 using SaveState.Infrastructure.Persistence;
 
+using SaveState.Core.Analytics.Services;
+using SaveState.Core.GameLibrary.Enums;
+using SaveState.Core.Common.ValueObjects;
+
 namespace SaveState.Infrastructure.DataPortability;
 
 /// <summary>
@@ -16,6 +20,7 @@ public partial class DataExportService : IDataExportService
 {
     private readonly IGameRepository _gameRepository;
     private readonly SaveStateDbContext _dbContext;
+    private readonly ICompletionPredictionService _predictionService;
     private readonly ILogger<DataExportService> _logger;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -27,10 +32,12 @@ public partial class DataExportService : IDataExportService
     public DataExportService(
         IGameRepository gameRepository,
         SaveStateDbContext dbContext,
+        ICompletionPredictionService predictionService,
         ILogger<DataExportService> logger)
     {
         _gameRepository = gameRepository;
         _dbContext = dbContext;
+        _predictionService = predictionService;
         _logger = logger;
     }
 
@@ -97,6 +104,32 @@ public partial class DataExportService : IDataExportService
             LogExportingGameLibrary(_logger, filePath);
 
             var games = await _gameRepository.GetAllAsync(ct);
+            var predictions = new Dictionary<Guid, object>();
+            foreach (var game in games)
+            {
+                if (game.Status == GameStatus.Running || (game.Status == GameStatus.Installed && game.TotalPlayTime.TotalHours > 2))
+                {
+                    try
+                    {
+                        var predictionResult = await _predictionService.GetPredictionForGameAsync(GameId.From(game.Id), ct);
+                        if (predictionResult.IsSuccess)
+                        {
+                            predictions[game.Id] = new
+                            {
+                                EstimatedRemainingHours = predictionResult.Value.EstimatedTimeRemaining.TotalHours,
+                                predictionResult.Value.ConfidenceScore,
+                                Factors = predictionResult.Value.ReasoningFactors
+                            };
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Prediction failures shouldn't fail the export, but we log them for diagnostics
+                        _logger.LogDebug(ex, "Prediction failed for game {GameId} during export, continuing without prediction", game.Id);
+                    }
+                }
+            }
+
             var exportData = new
             {
                 ExportVersion = "1.0",
@@ -121,7 +154,8 @@ public partial class DataExportService : IDataExportService
                     g.ReleaseDate,
                     g.UserRating,
                     Tags = g.Tags.ToList(),
-                    Genres = g.Genres.Select(gen => gen.Name).ToList()
+                    Genres = g.Genres.Select(gen => gen.Name).ToList(),
+                    CompletionPrediction = predictions.TryGetValue(g.Id, out var pred) ? pred : null
                 }).ToList()
             };
 

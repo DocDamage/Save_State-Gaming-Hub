@@ -80,9 +80,9 @@ public class ScanMugenCharactersCommandHandler : IRequestHandler<ScanMugenCharac
             var metadata = await _characterParser.ParseCharacterAsync(defFilePath, characterDirectory, ct);
 
             // Create or update character
-            if (existingResult.IsSuccess)
+            if (existingResult.IsSuccess && existingResult.Value is not null)
             {
-                var existingCharacter = existingResult.Value!;
+                var existingCharacter = existingResult.Value;
                 existingCharacter.UpdateMetadata(metadata);
                 await _characterRepository.UpdateAsync(existingCharacter, ct);
             }

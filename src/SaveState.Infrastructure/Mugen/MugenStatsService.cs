@@ -79,9 +79,9 @@ public class MugenStatsService : IMugenStatsService
         try
         {
             var characterResult = await _characterRepository.GetByIdAsync(characterId, ct);
-            if (characterResult.IsFailure)
+            if (characterResult.IsFailure || characterResult.Value is null)
                 return Result.Failure<CharacterStats>("Character not found");
-            var character = characterResult.Value!;
+            var character = characterResult.Value;
 
             // Load actual match history from database
             var matches = await _matchHistoryRepository.GetByCharacterAsync(characterId, limit: 1000, ct);
@@ -92,7 +92,7 @@ public class MugenStatsService : IMugenStatsService
                 var emptyStats = new CharacterStats(
                     characterId,
                     character.Name,
-                    0, 0, 0, 0f, TimeSpan.Zero, Guid.Empty, Guid.Empty);
+                    0, 0, 0, 0f, TimeSpan.Zero, null, null);
                 return Result.Success<CharacterStats>(emptyStats);
             }
 
@@ -123,12 +123,12 @@ public class MugenStatsService : IMugenStatsService
             var bestMatchup = opponentStats
                 .OrderByDescending(x => (float)x.Wins / x.OpponentMatches.Count)
                 .ThenByDescending(x => x.OpponentMatches.Count)
-                .FirstOrDefault()?.OpponentId ?? Guid.Empty;
+                .FirstOrDefault()?.OpponentId;
 
             var worstMatchup = opponentStats
                 .OrderBy(x => (float)x.Wins / x.OpponentMatches.Count)
                 .ThenByDescending(x => x.OpponentMatches.Count)
-                .FirstOrDefault()?.OpponentId ?? Guid.Empty;
+                .FirstOrDefault()?.OpponentId;
 
             var stats = new CharacterStats(
                 characterId,
@@ -179,7 +179,9 @@ public class MugenStatsService : IMugenStatsService
 
                     // Get opponent character name
                     var opponentCharacterResult = await _characterRepository.GetByIdAsync(opponentId, ct);
-                    var opponentName = opponentCharacterResult.IsSuccess ? opponentCharacterResult.Value!.Name : $"Character {opponentId}";
+                    var opponentName = opponentCharacterResult.IsSuccess && opponentCharacterResult.Value is not null 
+                        ? opponentCharacterResult.Value.Name 
+                        : $"Character {opponentId}";
 
                     return new MatchupStats(opponentId, opponentName, wins, losses, winRate);
                 })

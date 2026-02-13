@@ -75,11 +75,16 @@ public class OpenAiProvider : ILlmProvider
                 response.EnsureSuccessStatusCode();
 
                 var result = await response.Content.ReadFromJsonAsync<OpenAiCompletionResponse>(ct).ConfigureAwait(false);
+                if (result?.Choices is null || result.Choices.Length == 0)
+                {
+                    return Result.Failure<CompletionResult>("Invalid response from OpenAI API: empty choices");
+                }
+
                 var completionResult = new CompletionResult(
-                    result!.Choices[0].Text,
-                    result.Choices[0].FinishReason,
-                    new TokenUsage(result.Usage.PromptTokens, result.Usage.CompletionTokens, result.Usage.TotalTokens),
-                    result.Model);
+                    result.Choices[0].Text ?? string.Empty,
+                    result.Choices[0].FinishReason ?? string.Empty,
+                    new TokenUsage(result.Usage?.PromptTokens ?? 0, result.Usage?.CompletionTokens ?? 0, result.Usage?.TotalTokens ?? 0),
+                    result.Model ?? "unknown");
                 return Result.Success<CompletionResult>(completionResult);
             }, ct).ConfigureAwait(false);
         }
@@ -118,11 +123,16 @@ public class OpenAiProvider : ILlmProvider
                 response.EnsureSuccessStatusCode();
 
                 var result = await response.Content.ReadFromJsonAsync<OpenAiChatResponse>(ct).ConfigureAwait(false);
+                if (result?.Choices is null || result.Choices.Length == 0 || result.Choices[0].Message?.Content is null)
+                {
+                    return Result.Failure<ChatResult>("Invalid response from OpenAI API: empty choices or missing content");
+                }
+
                 var chatResult = new ChatResult(
-                    result!.Choices[0].Message.Content,
-                    result.Choices[0].FinishReason,
-                    new TokenUsage(result.Usage.PromptTokens, result.Usage.CompletionTokens, result.Usage.TotalTokens),
-                    result.Model);
+                    result.Choices[0].Message.Content ?? string.Empty,
+                    result.Choices[0].FinishReason ?? string.Empty,
+                    new TokenUsage(result.Usage?.PromptTokens ?? 0, result.Usage?.CompletionTokens ?? 0, result.Usage?.TotalTokens ?? 0),
+                    result.Model ?? "unknown");
                 return Result.Success<ChatResult>(chatResult);
             }, ct).ConfigureAwait(false);
         }

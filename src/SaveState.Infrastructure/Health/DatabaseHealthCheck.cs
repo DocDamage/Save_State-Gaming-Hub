@@ -19,6 +19,8 @@ public class DatabaseHealthCheck : IHealthCheck
     {
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Simple query to check database connectivity
             var canConnect = await _dbContext.Database.CanConnectAsync(cancellationToken).ConfigureAwait(false);
 
@@ -26,6 +28,8 @@ public class DatabaseHealthCheck : IHealthCheck
             {
                 return HealthCheckResult.Unhealthy("Cannot connect to database");
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             // Check if migrations are applied
             var pendingMigrations = await _dbContext.Database.GetPendingMigrationsAsync(cancellationToken).ConfigureAwait(false);
@@ -40,6 +44,10 @@ public class DatabaseHealthCheck : IHealthCheck
             }
 
             return HealthCheckResult.Healthy("Database is healthy");
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {

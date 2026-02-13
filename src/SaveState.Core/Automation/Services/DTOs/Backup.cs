@@ -60,8 +60,8 @@ public sealed record BackupSchedule(
 /// </summary>
 public sealed record BackupResult(
     Guid Id,
-    Guid ScheduleId,
-    Guid GameId,
+    Guid? ScheduleId,
+    Guid? GameId,
     DateTime StartedAt,
     DateTime CompletedAt,
     BackupStatus Status,

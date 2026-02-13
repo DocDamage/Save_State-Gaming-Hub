@@ -403,8 +403,8 @@ public partial class TaskSchedulerViewModel : ObservableObject
                 // Map metadata to DTO
                 var result = new BackupResult(
                     Id: metadata.BackupId.Value,
-                    ScheduleId: Guid.Empty, // Disk backups don't track schedule ID in metadata yet
-                    GameId: Guid.Empty, // No specific game for full backups
+                    ScheduleId: null, // Disk backups don't track schedule ID in metadata
+                    GameId: null, // No specific game for full backups
                     StartedAt: metadata.CreatedAt,
                     CompletedAt: metadata.CreatedAt,
                     Status: BackupStatus.Success,

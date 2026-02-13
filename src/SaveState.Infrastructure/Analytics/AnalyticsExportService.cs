@@ -1,8 +1,12 @@
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Analytics.Services;
 using SaveState.Core.Common;
+using System.Globalization;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SaveState.Infrastructure.Analytics;
 
@@ -28,6 +32,15 @@ public class AnalyticsExportService : IAnalyticsExportService
             csv.AppendLine($"Total Games,{data.TotalGames}");
             csv.AppendLine($"Total Sessions,{data.TotalSessions}");
             csv.AppendLine($"Average Session Length,{data.AverageSessionLength}");
+            csv.AppendLine();
+
+            // Game summary (flattened)
+            csv.AppendLine("=== GAME SUMMARY ===");
+            csv.AppendLine("Game Title,Total Play Time,Last Played");
+            foreach (var row in BuildGameSummaryRows(data.Sessions))
+            {
+                csv.AppendLine($"\"{row.GameTitle}\",{row.PlayTime},{row.LastPlayed:yyyy-MM-dd}");
+            }
             csv.AppendLine();
 
             // Sessions
@@ -80,12 +93,7 @@ public class AnalyticsExportService : IAnalyticsExportService
     {
         try
         {
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
-
+            var options = GetJsonOptions();
             var json = JsonSerializer.Serialize(data, options);
             await File.WriteAllTextAsync(filePath, json, ct);
             _logger.LogInformation("Analytics exported to JSON: {FilePath}", filePath);
@@ -191,5 +199,39 @@ public class AnalyticsExportService : IAnalyticsExportService
             return Result.Failure<string>($"Report generation failed: {ex.Message}");
         }
     }
+
+    private static IEnumerable<GameSummaryRow> BuildGameSummaryRows(IReadOnlyList<SessionExportData> sessions)
+    {
+        return sessions
+            .GroupBy(s => s.GameTitle)
+            .Select(g => new GameSummaryRow(
+                GameTitle: g.Key,
+                PlayTime: FormatDuration(TimeSpan.FromTicks(g.Sum(s => s.Duration.Ticks))),
+                LastPlayed: g.Max(s => s.StartedAt)));
+    }
+
+    private static string FormatDuration(TimeSpan duration)
+    {
+        if (duration.TotalHours >= 1)
+        {
+            return $"{duration.TotalHours:F1}h";
+        }
+
+        if (duration.TotalMinutes >= 1)
+        {
+            return $"{duration.TotalMinutes:F0}m";
+        }
+
+        return $"{duration.TotalSeconds:F0}s";
+    }
+
+    private static JsonSerializerOptions GetJsonOptions() => new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
+
+    private sealed record GameSummaryRow(string GameTitle, string PlayTime, DateTime LastPlayed);
 }
 

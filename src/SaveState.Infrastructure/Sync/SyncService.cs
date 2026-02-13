@@ -58,19 +58,34 @@ public class SyncService : ISyncService
 
     private async Task<bool> EnsureProviderAsync()
     {
-        var preferred = await _preferencesService.GetPreferredCloudProviderAsync();
+        var preferred = await _preferencesService.GetPreferredCloudProviderAsync().ConfigureAwait(false);
+        var normalizedPreferred = NormalizeProviderName(preferred);
 
         // If provider already set and matches preference, we're good
-        if (_provider != null && _provider.ProviderName == preferred)
+        if (_provider != null &&
+            (string.IsNullOrWhiteSpace(normalizedPreferred) ||
+             string.Equals(
+                 NormalizeProviderName(_provider.ProviderName),
+                 normalizedPreferred,
+                 StringComparison.Ordinal)))
         {
             return true;
         }
 
-        _provider = _providers.FirstOrDefault(p => p.ProviderName == preferred);
+        _provider = null;
+        if (!string.IsNullOrWhiteSpace(normalizedPreferred))
+        {
+            _provider = _providers.FirstOrDefault(provider =>
+                string.Equals(
+                    NormalizeProviderName(provider.ProviderName),
+                    normalizedPreferred,
+                    StringComparison.Ordinal));
+        }
 
         if (_provider == null)
         {
-             _provider = _providers.FirstOrDefault(p => p.ProviderName != "Local");
+            _provider = _providers.FirstOrDefault(provider => !IsLocalProvider(provider.ProviderName))
+                ?? _providers.FirstOrDefault();
         }
 
         if (_provider != null)
@@ -197,7 +212,8 @@ public class SyncService : ISyncService
                 }
                 else if (status == FileSyncStatus.Conflict)
                 {
-                    var remoteInfo = await _provider.GetFileInfoAsync(remotePath, ct).ConfigureAwait(false);
+                    var remoteInfoResult = await _provider.GetFileInfoAsync(remotePath, ct).ConfigureAwait(false);
+                    var remoteInfo = remoteInfoResult.IsSuccess ? remoteInfoResult.Value : null;
                     var conflict = new SyncConflictEventArgs
                     {
                         LocalPath = localPath,
@@ -341,12 +357,14 @@ public class SyncService : ISyncService
         }
 
         var localModified = File.GetLastWriteTimeUtc(localPath);
-        var remoteInfo = await _provider.GetFileInfoAsync(remotePath, ct).ConfigureAwait(false);
+        var remoteInfoResult = await _provider.GetFileInfoAsync(remotePath, ct).ConfigureAwait(false);
 
-        if (remoteInfo == null)
+        if (remoteInfoResult.IsFailure)
         {
             return FileSyncStatus.LocalNewer;
         }
+
+        var remoteInfo = remoteInfoResult.Value;
 
         // Get last known synced state
         var lastSyncedAt = await GetLastSyncTimeAsync(remotePath, ct).ConfigureAwait(false);
@@ -512,5 +530,25 @@ public class SyncService : ISyncService
             ThroughputBytesPerSecond = throughput,
             EstimatedRemainingTime = remainingTime
         });
+    }
+
+    private static string NormalizeProviderName(string? providerName)
+    {
+        if (string.IsNullOrWhiteSpace(providerName))
+        {
+            return string.Empty;
+        }
+
+        var normalizedChars = providerName
+            .Where(char.IsLetterOrDigit)
+            .Select(char.ToLowerInvariant)
+            .ToArray();
+        return new string(normalizedChars);
+    }
+
+    private static bool IsLocalProvider(string? providerName)
+    {
+        var normalizedName = NormalizeProviderName(providerName);
+        return normalizedName is "local" or "localstorage" or "filesystem";
     }
 }

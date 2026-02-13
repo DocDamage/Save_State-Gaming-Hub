@@ -225,10 +225,11 @@ public class ChallengeProgressService : IChallengeProgressService
             // Step 1: Query GameSessions for playtime/session count
             // Note: GameSession doesn't have UserId directly, so we need to join through Game
             var allSessions = await _context.GameSessions
-                .Where(s => s.EndedAt != null)
+                .Where(s => s.EndedAt.HasValue)
                 .ToListAsync(cancellationToken);
 
             var sessionsByGame = allSessions
+                .Where(s => s.EndedAt.HasValue)
                 .GroupBy(s => s.GameId)
                 .ToDictionary(
                     g => g.Key,

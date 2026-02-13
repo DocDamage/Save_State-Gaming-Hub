@@ -94,7 +94,7 @@ public partial class MobileLibraryViewModel : ObservableObject
         // Filter games based on SearchQuery
         if (string.IsNullOrWhiteSpace(SearchQuery))
         {
-            LoadGamesAsync().Wait();
+            _ = LoadGamesAsync();
         }
         else
         {

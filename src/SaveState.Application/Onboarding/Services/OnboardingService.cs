@@ -42,7 +42,7 @@ public class OnboardingService
 
         var platformNames = sampleGames.Items
             .Where(g => g.Platform != null)
-            .Select(g => g.Platform!.Name)
+            .Select(g => g.Platform?.Name ?? "Unknown")
             .Distinct()
             .Take(5)
             .ToList();

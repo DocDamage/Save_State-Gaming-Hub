@@ -157,6 +157,24 @@ public class BoolToColorConverter : IValueConverter
 }
 
 /// <summary>
+/// Converts a boolean to a status-appropriate brush (green for success, red for failure).
+/// </summary>
+public class BoolToStatusBrushConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return (value as bool?) == true
+            ? new SolidColorBrush(Color.Parse("#28A745")) // Green for success
+            : new SolidColorBrush(Color.Parse("#DC3545")); // Red for failure
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
 /// Checks if a value equals the parameter
 /// </summary>
 public class EqualToConverter : IValueConverter

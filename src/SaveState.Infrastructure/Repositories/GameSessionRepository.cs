@@ -86,12 +86,12 @@ public class GameSessionRepository : IGameSessionRepository
     public async Task<TimeSpan> GetTotalPlaytimeAsync(Guid gameId, CancellationToken ct = default)
     {
         var sessions = await _context.GameSessions
-            .Where(s => s.GameId == gameId && s.EndedAt != null)
-            .Select(s => new { s.StartedAt, s.EndedAt })
+            .Where(s => s.GameId == gameId && s.EndedAt.HasValue)
+            .Select(s => new { s.StartedAt, EndedAt = s.EndedAt!.Value })
             .ToListAsync(ct)
             .ConfigureAwait(false);
 
-        var totalTicks = sessions.Sum(s => (s.EndedAt!.Value - s.StartedAt).Ticks);
+        var totalTicks = sessions.Sum(s => (s.EndedAt - s.StartedAt).Ticks);
         return TimeSpan.FromTicks(totalTicks);
     }
 

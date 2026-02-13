@@ -33,11 +33,11 @@ public class MugenPlayerDataRepository : IPlayerDataRepository
             {
                 // Create default skill for new players
                 var defaultSkill = new PlayerSkill(
-                    PlayerId: playerId,
-                    Rating: 1500.0, // Default Elo rating
-                    Volatility: 0.06, // Default Glicko volatility
-                    CharacterRatings: new Dictionary<string, double>(),
-                    LastUpdated: DateTime.UtcNow);
+                    playerId: playerId,
+                    rating: 1500.0, // Default Elo rating
+                    volatility: 0.06, // Default Glicko volatility
+                    characterRatings: new Dictionary<string, double>(),
+                    lastUpdated: DateTime.UtcNow);
 
                 _playerSkills[playerId] = defaultSkill;
 
@@ -95,40 +95,40 @@ public class MugenPlayerDataRepository : IPlayerDataRepository
         return new Dictionary<string, PlayerSkill>
         {
             ["player1"] = new PlayerSkill(
-                PlayerId: "player1",
-                Rating: 1650.0,
-                Volatility: 0.045,
-                CharacterRatings: new Dictionary<string, double>
+                playerId: "player1",
+                rating: 1650.0,
+                volatility: 0.045,
+                characterRatings: new Dictionary<string, double>
                 {
                     ["Ryu"] = 1700,
                     ["Ken"] = 1680,
                     ["Guile"] = 1550
                 },
-                LastUpdated: DateTime.UtcNow.AddHours(-2)),
+                lastUpdated: DateTime.UtcNow.AddHours(-2)),
 
             ["player2"] = new PlayerSkill(
-                PlayerId: "player2",
-                Rating: 1580.0,
-                Volatility: 0.052,
-                CharacterRatings: new Dictionary<string, double>
+                playerId: "player2",
+                rating: 1580.0,
+                volatility: 0.052,
+                characterRatings: new Dictionary<string, double>
                 {
                     ["Chun-Li"] = 1620,
                     ["Blanka"] = 1600,
                     ["Dhalsim"] = 1500
                 },
-                LastUpdated: DateTime.UtcNow.AddHours(-1)),
+                lastUpdated: DateTime.UtcNow.AddHours(-1)),
 
             ["player3"] = new PlayerSkill(
-                PlayerId: "player3",
-                Rating: 1720.0,
-                Volatility: 0.038,
-                CharacterRatings: new Dictionary<string, double>
+                playerId: "player3",
+                rating: 1720.0,
+                volatility: 0.038,
+                characterRatings: new Dictionary<string, double>
                 {
                     ["Zangief"] = 1750,
                     ["Sagat"] = 1700,
                     ["Ryu"] = 1680
                 },
-                LastUpdated: DateTime.UtcNow.AddMinutes(-30))
+                lastUpdated: DateTime.UtcNow.AddMinutes(-30))
         };
     }
 }

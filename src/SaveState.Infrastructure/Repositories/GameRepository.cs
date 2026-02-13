@@ -8,6 +8,7 @@ using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.Enums;
 using SaveState.Core.GameLibrary.DTOs;
 using SaveState.Core.Monitoring;
+using SaveState.Infrastructure.Performance;
 using SaveState.Infrastructure.Persistence;
 
 /// <summary>
@@ -18,16 +19,19 @@ public class GameRepository : IGameRepository
 {
     private readonly SaveStateDbContext _context;
     private readonly IApplicationMetrics _metrics;
+    private readonly QueryOptimizer _queryOptimizer;
 
     /// <summary>
     /// Initializes a new instance of the GameRepository.
     /// </summary>
     /// <param name="context">The database context for accessing game data.</param>
     /// <param name="metrics">Application metrics collector for performance monitoring.</param>
-    public GameRepository(SaveStateDbContext context, IApplicationMetrics metrics)
+    /// <param name="queryOptimizer">Query optimization and caching helper.</param>
+    public GameRepository(SaveStateDbContext context, IApplicationMetrics metrics, QueryOptimizer queryOptimizer)
     {
         _context = context;
         _metrics = metrics;
+        _queryOptimizer = queryOptimizer;
     }
 
     /// <summary>
@@ -60,23 +64,30 @@ public class GameRepository : IGameRepository
         try
         {
             // Add AsNoTracking() for read-only operations to improve performance
-            var result = await _context.Games
-                .AsNoTracking()
-                .ToListAsync(ct)
-                .ConfigureAwait(false);
+            var result = await _queryOptimizer.ExecuteWithCachingAsync(
+                cacheKey: "games:all",
+                queryFunc: () => _context.Games.AsNoTracking().ToListAsync(ct),
+                cacheDuration: TimeSpan.FromMinutes(10),
+                ct: ct).ConfigureAwait(false);
+
+            if (result.IsFailure || result.Value == null)
+            {
+                _metrics.RecordDatabaseError("GameRepository.GetAllAsync", result.ErrorType.ToString());
+                throw new InvalidOperationException(result.Error ?? "Query failed.");
+            }
 
             var duration = DateTime.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("GameRepository.GetAllAsync", duration);
             _metrics.RecordDatabaseConnectionCount(_context.Database.GetDbConnection().State == System.Data.ConnectionState.Open ? 1 : 0);
 
             // PERFORMANCE MONITORING: Log warning for large result sets
-            if (result.Count > 1000)
+            if (result.Value.Count > 1000)
             {
-                _metrics.RecordPerformanceWarning("GameRepository.GetAllAsync", $"Large dataset loaded: {result.Count} games");
-                _metrics.RecordSlowQuery("GameRepository.GetAllAsync", duration, result.Count);
+                _metrics.RecordPerformanceWarning("GameRepository.GetAllAsync", $"Large dataset loaded: {result.Value.Count} games");
+                _metrics.RecordSlowQuery("GameRepository.GetAllAsync", duration, result.Value.Count);
             }
 
-            return result;
+            return result.Value;
         }
         catch (Exception ex)
         {
@@ -90,7 +101,7 @@ public class GameRepository : IGameRepository
     public async Task<Game?> GetByTitleAndPlatformAsync(GameTitle title, Guid platformId, CancellationToken ct = default)
         => await _context.Games
             .FirstOrDefaultAsync(g =>
-                g.Title.ToLower() == title.Value.ToLower() &&
+                EF.Functions.Like(g.Title, title.Value) &&
                 g.PlatformId == platformId,
                 ct)
             .ConfigureAwait(false);
@@ -423,8 +434,8 @@ public class GameRepository : IGameRepository
     public async Task<IReadOnlyDictionary<string, int>> GetPlatformStatisticsAsync(CancellationToken ct = default)
     {
         var stats = await _context.Games
-            .Where(g => g.Platform != null)
-            .GroupBy(g => g.Platform!.Name.Value)
+            .Where(g => g.Platform != null && g.Platform.Name != null && g.Platform.Name.Value != null)
+            .GroupBy(g => g.Platform!.Name!.Value)
             .Select(g => new { PlatformName = g.Key, Count = g.Count() })
             .ToDictionaryAsync(g => g.PlatformName, g => g.Count, ct)
             .ConfigureAwait(false);

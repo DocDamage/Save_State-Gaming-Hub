@@ -1,0 +1,155 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Overlays"
+             xmlns:performance="using:SaveState.Core.Performance.ValueObjects"
+             mc:Ignorable="d" d:DesignWidth="450" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Overlays.MemoryScannerView"
+             x:DataType="vm:MemoryScannerViewModel">
+
+    <Border Background="#DD0A0A0A"
+            CornerRadius="12"
+            BorderBrush="#44FFFFFF"
+            BorderThickness="1"
+            Width="450"
+            BoxShadow="0 8 32 #40000000">
+        <Grid RowDefinitions="Auto, Auto, Auto, *, Auto" Margin="16">
+
+            <!-- Header -->
+            <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Text="Memory Scanner"
+                               Foreground="White"
+                               FontWeight="Bold"
+                               FontSize="16"/>
+                    <TextBlock Text="Search process memory for specific values"
+                               Foreground="#88FFFFFF"
+                               FontSize="11"/>
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        Content="✕"
+                        Background="Transparent"
+                        Foreground="#CCFFFFFF"
+                        FontSize="16"/>
+            </Grid>
+
+            <!-- Config Area -->
+            <Border Grid.Row="1"
+                    Background="#11FFFFFF"
+                    CornerRadius="8"
+                    Padding="12"
+                    Margin="0,0,0,12">
+                <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="*, *">
+                    <!-- Data Type -->
+                    <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,12">
+                        <TextBlock Text="DATA TYPE" Foreground="#88FFFFFF" FontSize="9" Margin="0,0,0,4"/>
+                        <ComboBox HorizontalAlignment="Stretch"
+                                  SelectedItem="{Binding SelectedDataType}">
+                            <!-- Note: Real app would bind to list of enum values -->
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- Scan Type -->
+                    <StackPanel Grid.Row="0" Grid.Column="1" Margin="8,0,0,12">
+                        <TextBlock Text="SCAN TYPE" Foreground="#88FFFFFF" FontSize="9" Margin="0,0,0,4"/>
+                        <ComboBox HorizontalAlignment="Stretch"
+                                  SelectedItem="{Binding SelectedScanType}">
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- Search Value -->
+                    <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,0,0,12">
+                        <TextBlock Text="SEARCH VALUE" Foreground="#88FFFFFF" FontSize="9" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding SearchValue}"
+                                 Watermark="Enter value to find..."
+                                 Background="#22000000"
+                                 BorderBrush="#33FFFFFF"/>
+                    </StackPanel>
+
+                    <!-- Buttons -->
+                    <Button Grid.Row="2" Grid.Column="0"
+                            Content="First Scan"
+                            Command="{Binding StartNewScanCommand}"
+                            HorizontalAlignment="Stretch"
+                            Margin="0,0,4,0"
+                            Background="#4CAF50"
+                            Foreground="White"
+                            IsEnabled="{Binding !IsScanning}"/>
+
+                    <Button Grid.Row="2" Grid.Column="1"
+                            Content="Next Scan"
+                            Command="{Binding NextScanCommand}"
+                            HorizontalAlignment="Stretch"
+                            Margin="4,0,0,0"
+                            Background="#2196F3"
+                            Foreground="White"
+                            IsEnabled="{Binding CanNarrowDown}"/>
+                </Grid>
+            </Border>
+
+            <!-- Results Summary -->
+            <Border Grid.Row="2"
+                    Background="#08FFFFFF"
+                    CornerRadius="6"
+                    Padding="12,8"
+                    Margin="0,0,0,12">
+                <Grid ColumnDefinitions="*, Auto">
+                    <StackPanel>
+                        <TextBlock Text="TOTAL RESULTS" Foreground="#88FFFFFF" FontSize="9"/>
+                        <TextBlock Text="{Binding ResultCount}" Foreground="White" FontSize="18" FontWeight="Bold"/>
+                    </StackPanel>
+
+                    <ProgressBar Grid.Column="1"
+                                 IsIndeterminate="True"
+                                 Width="100"
+                                 IsVisible="{Binding IsScanning}"
+                                 VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <!-- Results List -->
+            <ScrollViewer Grid.Row="3">
+                <ItemsControl ItemsSource="{Binding Results}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#08FFFFFF"
+                                    CornerRadius="6"
+                                    Padding="10,6"
+                                    Margin="0,0,0,4">
+                                <Grid ColumnDefinitions="*, Auto, Auto">
+                                    <TextBlock Text="{Binding AddressHex}"
+                                               Foreground="White"
+                                               FontFamily="Consolas"
+                                               VerticalAlignment="Center"/>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Value}"
+                                               Foreground="#4CAF50"
+                                               FontWeight="Bold"
+                                               Margin="12,0"
+                                               VerticalAlignment="Center"/>
+
+                                    <Button Grid.Column="2"
+                                            Content="+"
+                                            Command="{Binding AddToWatchCommand}"
+                                            Padding="6,2"
+                                            Background="#22FFFFFF"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Footer -->
+            <TextBlock Grid.Row="4"
+                       Text="Scanning performance-aware buffer: 16MB MVP limit"
+                       Foreground="#44FFFFFF"
+                       FontSize="9"
+                       HorizontalAlignment="Center"
+                       Margin="0,12,0,0"/>
+        </Grid>
+    </Border>
+</UserControl>

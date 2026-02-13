@@ -155,12 +155,12 @@ public class SpeechRecognitionService : ISpeechRecognitionService
 
             // Validate language code
             var languagesResult = await GetAvailableLanguagesAsync(ct).ConfigureAwait(false);
-            if (!languagesResult.IsSuccess)
+            if (!languagesResult.IsSuccess || languagesResult.Value is null)
             {
                 return Result.Failure("Failed to validate language");
             }
 
-            var languageExists = languagesResult.Value!.Any(l =>
+            var languageExists = languagesResult.Value.Any(l =>
                 l.Code.Equals(languageCode, StringComparison.OrdinalIgnoreCase));
 
             if (!languageExists)

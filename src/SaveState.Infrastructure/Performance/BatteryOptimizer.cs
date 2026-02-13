@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Management;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Performance.Services;
 
 namespace SaveState.Infrastructure.Performance;
@@ -10,6 +11,7 @@ namespace SaveState.Infrastructure.Performance;
 public class BatteryOptimizer : IBatteryOptimizer
 {
     private readonly ILogger<BatteryOptimizer> _logger;
+    private readonly ITimeProvider _timeProvider;
     private BatteryProfile? _activeProfile;
     private Timer? _batteryMonitorTimer;
     private BatteryStatus _lastBatteryStatus;
@@ -19,9 +21,10 @@ public class BatteryOptimizer : IBatteryOptimizer
     public event EventHandler<BatteryStatusChangedEventArgs>? BatteryStatusChanged;
     public event EventHandler<LowBatteryWarningEventArgs>? LowBatteryWarning;
 
-    public BatteryOptimizer(ILogger<BatteryOptimizer> logger)
+    public BatteryOptimizer(ILogger<BatteryOptimizer> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         _lastBatteryStatus = new BatteryStatus(100, TimeSpan.MaxValue, false, PowerMode.Balanced, BatteryHealth.Good, 25.0);
         SeedDefaultProfiles();
         StartBatteryMonitoring();
@@ -46,7 +49,7 @@ public class BatteryOptimizer : IBatteryOptimizer
         {
             var profile = new BatteryProfile(
                 Id: Guid.NewGuid(),
-                Name: $"{mode} Mode - {DateTime.Now:yyyy-MM-dd}",
+                Name: $"{mode} Mode - {_timeProvider.Now:yyyy-MM-dd}",
                 Mode: mode,
                 Settings: settings,
                 CreatedAt: DateTime.UtcNow,

@@ -1,0 +1,71 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Library.GameDetail"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
+             x:Class="SaveState.Presentation.Views.Library.GameDetail.PriceHistoryView"
+             x:DataType="vm:PriceHistoryViewModel">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Background="#1a1a1a">
+            <vm:PriceHistoryViewModel GameTitle="Cyberpunk 2077" />
+        </Border>
+    </Design.PreviewWith>
+
+    <Border Classes="GlassContainer" Padding="25" Width="600" Height="450">
+        <StackPanel Spacing="20">
+            <Grid ColumnDefinitions="*, Auto">
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="PRICE HISTORY" Classes="Subtitle" />
+                    <TextBlock Text="{Binding GameTitle}" Classes="Body" Opacity="0.7" />
+                </StackPanel>
+                <Button Grid.Column="1" Content="✕" Classes="IconButton" Command="{Binding CloseCommand}" />
+            </Grid>
+
+            <!-- Stats Row -->
+            <Grid ColumnDefinitions="*, *, *" Margin="0,10">
+                <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                    <TextBlock Text="Current" Classes="Caption" Opacity="0.6" />
+                    <TextBlock Text="{Binding CurrentPrice}" Classes="Heading" Foreground="{StaticResource PrimaryBrush}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                    <TextBlock Text="Lowest" Classes="Caption" Opacity="0.6" />
+                    <TextBlock Text="{Binding LowestPrice}" Classes="Heading" Foreground="Green" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                    <TextBlock Text="Highest" Classes="Caption" Opacity="0.6" />
+                    <TextBlock Text="{Binding HighestPrice}" Classes="Heading" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Chart Area -->
+            <Panel Height="200" Background="#0AFFFFFF" Margin="0,10">
+                <!-- Grid Lines -->
+                <Panel Opacity="0.1">
+                    <Separator VerticalAlignment="Top" />
+                    <Separator VerticalAlignment="Center" />
+                    <Separator VerticalAlignment="Bottom" />
+                </Panel>
+
+                <!-- Mock Chart using a Border with dynamic width/height for visualization -->
+                <TextBlock Text="Price variation over last 6 months"
+                           VerticalAlignment="Center" HorizontalAlignment="Center"
+                           Opacity="0.3" Classes="Caption" />
+
+                <Canvas x:Name="ChartCanvas">
+                    <!-- We'd normally use a custom control or converter here,
+                         but for a mock we'll use a placeholder or stylized path -->
+                    <Path Stroke="{StaticResource PrimaryBrush}"
+                          StrokeThickness="2"
+                          Data="M 0,150 L 50,150 L 70,80 L 100,80 L 120,150 L 250,150 L 270,60 L 300,60 L 320,150 L 550,150" />
+                </Canvas>
+            </Panel>
+
+            <StackPanel Spacing="10" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Set Alert" Classes="Secondary" Width="100" />
+                <Button Content="Close" Width="100" Command="{Binding CloseCommand}" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

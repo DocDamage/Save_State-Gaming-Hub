@@ -21,9 +21,14 @@ public interface IMacroService
     /// <summary>
     /// Starts recording a new macro.
     /// </summary>
+    /// <param name="macroName">The name of the macro.</param>
+    /// <param name="description">A description of the macro.</param>
+    /// <param name="gameId">Optional game ID to associate with the macro.</param>
+    /// <param name="ct">Cancellation token.</param>
     Task<Result<MacroRecording>> StartRecordingAsync(
         string macroName,
         string description,
+        Guid? gameId = null,
         CancellationToken ct = default);
 
     /// <summary>

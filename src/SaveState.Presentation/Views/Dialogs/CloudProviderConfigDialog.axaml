@@ -4,7 +4,7 @@
         x:Class="SaveState.Presentation.Views.Dialogs.CloudProviderConfigDialog"
         x:DataType="vm:CloudProviderConfigDialogViewModel"
         Title="Configure Cloud Provider"
-        Width="500" Height="450"
+        Width="500" Height="560"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
         Background="{StaticResource BackgroundBrush}">
@@ -49,6 +49,27 @@
                 <CheckBox IsChecked="{Binding EnableAutoSync}"
                           Content="Enable automatic synchronization" />
                 <TextBlock Text="Automatically sync your save states and game data in the background"
+                           Classes="Subtitle"
+                           FontSize="11"
+                           Margin="28,0,0,0" />
+            </StackPanel>
+
+            <!-- Background Sync Alerts -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Background Sync Alerts" Classes="Label" />
+                <CheckBox IsChecked="{Binding EnableBackgroundFailureAlerts}"
+                          Content="Notify when background sync failures occur" />
+                <CheckBox IsChecked="{Binding EnableBackgroundConflictAlerts}"
+                          Content="Notify when background sync conflicts are detected" />
+                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <TextBlock Text="Alert cooldown (seconds)" VerticalAlignment="Center" />
+                    <NumericUpDown Value="{Binding AlertCooldownSeconds}"
+                                   Minimum="15"
+                                   Maximum="600"
+                                   Increment="15"
+                                   Width="120" />
+                </StackPanel>
+                <TextBlock Text="Higher cooldown values reduce notification frequency during noisy sync periods."
                            Classes="Subtitle"
                            FontSize="11"
                            Margin="28,0,0,0" />

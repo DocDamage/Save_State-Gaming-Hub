@@ -136,10 +136,10 @@ public class MugenCollectionService : IMugenCollectionService
         {
             // Validate character exists
             var characterResult = await _characterRepository.GetByIdAsync(characterId, ct);
-            if (characterResult.IsFailure)
+            if (characterResult.IsFailure || characterResult.Value is null)
                 return Result.Failure("Character not found");
 
-            var character = characterResult.Value!;
+            var character = characterResult.Value;
 
             // Update favorite status
             character.SetFavorite(isFavorite);

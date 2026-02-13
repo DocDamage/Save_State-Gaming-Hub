@@ -142,7 +142,7 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
             // Store historical data if enabled
             if (_options.NetworkMonitoring.StoreHistoricalData)
             {
-                StoreHistoricalData(quality);
+                await StoreHistoricalDataAsync(quality, ct).ConfigureAwait(false);
             }
 
             // Check for significant quality changes
@@ -174,12 +174,12 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
     /// <summary>
     /// Stores network quality data in historical storage.
     /// </summary>
-    private async void StoreHistoricalData(NetworkQuality quality)
+    private async Task StoreHistoricalDataAsync(NetworkQuality quality, CancellationToken ct)
     {
         try
         {
             var historyEntity = NetworkQualityHistory.Create(quality, _currentSessionId);
-            var result = await _historyRepository.AddAsync(historyEntity).ConfigureAwait(false);
+            var result = await _historyRepository.AddAsync(historyEntity, ct).ConfigureAwait(false);
 
             if (!result.IsSuccess)
             {
@@ -187,11 +187,14 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
             }
 
             // Log storage periodically
-            var totalCount = await _historyRepository.CountAsync().ConfigureAwait(false);
+            var totalCount = await _historyRepository.CountAsync(ct).ConfigureAwait(false);
             if (totalCount % 100 == 0) // Log every 100 entries
             {
                 _logger.LogInformation("Stored {Count} network quality measurements", totalCount);
             }
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
         }
         catch (Exception ex)
         {
@@ -328,12 +331,12 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
                 _logger.LogWarning("Historical data storage is disabled");
                 var currentQuality = await GetCurrentQualityAsync(ct).ConfigureAwait(false);
 
-                if (!currentQuality.IsSuccess)
+                if (!currentQuality.IsSuccess || currentQuality.Value is null)
                 {
-                    return Result.Failure<IReadOnlyList<NetworkQuality>>(currentQuality.Error);
+                    return Result.Failure<IReadOnlyList<NetworkQuality>>(currentQuality.Error ?? "Failed to get current quality");
                 }
 
-                return Result.Success<IReadOnlyList<NetworkQuality>>(new[] { currentQuality.Value! });
+                return Result.Success<IReadOnlyList<NetworkQuality>>(new[] { currentQuality.Value });
             }
 
             var historyResult = await _historyRepository.GetByTimeRangeAsync(startTime, endTime, ct).ConfigureAwait(false);
@@ -416,12 +419,12 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
             var openPorts = await CheckCommonPortsAsync(ct).ConfigureAwait(false);
 
             var diagnostics = new NetworkDiagnostics(
-                PublicIpAddress: publicIpResult.IsSuccess ? publicIpResult.Value! : "Unknown",
-                LocalIpAddress: localIpResult.IsSuccess ? localIpResult.Value! : "Unknown",
+                PublicIpAddress: publicIpResult.IsSuccess && publicIpResult.Value is not null ? publicIpResult.Value : "Unknown",
+                LocalIpAddress: localIpResult.IsSuccess && localIpResult.Value is not null ? localIpResult.Value : "Unknown",
                 DnsServers: dnsServers,
-                Gateway: gatewayResult.IsSuccess ? gatewayResult.Value! : "Unknown",
+                Gateway: gatewayResult.IsSuccess && gatewayResult.Value is not null ? gatewayResult.Value : "Unknown",
                 SubnetMask: "255.255.255.0", // Placeholder
-                NetworkAdapter: networkAdapterResult.IsSuccess ? networkAdapterResult.Value! : "Unknown",
+                NetworkAdapter: networkAdapterResult.IsSuccess && networkAdapterResult.Value is not null ? networkAdapterResult.Value : "Unknown",
                 IsVpnActive: isVpnActive,
                 VpnProvider: vpnProviderResult.IsSuccess ? vpnProviderResult.Value : null,
                 OpenPorts: openPorts);
@@ -921,4 +924,3 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
         _httpClient?.Dispose();
     }
 }
-

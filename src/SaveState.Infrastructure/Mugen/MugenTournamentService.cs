@@ -36,10 +36,10 @@ public class MugenTournamentService : IMugenTournamentService
             foreach (var participantId in request.ParticipantIds)
             {
                 var characterResult = await _characterRepository.GetByIdAsync(participantId, ct);
-                if (characterResult.IsFailure)
+                if (characterResult.IsFailure || characterResult.Value is null)
                     return Result.Failure<MugenTournament>($"Participant {participantId} not found");
 
-                participants.Add(characterResult.Value!);
+                participants.Add(characterResult.Value);
             }
 
             if (participants.Count < 2)
@@ -69,9 +69,9 @@ public class MugenTournamentService : IMugenTournamentService
         {
             // Load tournament with matches
             var tournamentResult = await _tournamentRepository.GetByIdAsync(tournamentId, ct);
-            if (tournamentResult.IsFailure)
+            if (tournamentResult.IsFailure || tournamentResult.Value is null)
                 return Result.Failure("Tournament not found");
-            var tournament = tournamentResult.Value!;
+            var tournament = tournamentResult.Value;
 
             // Find the match
             var match = tournament.Matches.FirstOrDefault(m => m.Id == matchId);
@@ -112,9 +112,9 @@ public class MugenTournamentService : IMugenTournamentService
         {
             // Load tournament from database
             var tournamentResult = await _tournamentRepository.GetByIdAsync(tournamentId, ct);
-            if (tournamentResult.IsFailure)
+            if (tournamentResult.IsFailure || tournamentResult.Value is null)
                 return Result.Failure<TournamentBracket>("Tournament not found");
-            var tournament = tournamentResult.Value!;
+            var tournament = tournamentResult.Value;
 
             // Group matches by round and build bracket
             var rounds = tournament.Matches
@@ -183,9 +183,9 @@ public class MugenTournamentService : IMugenTournamentService
         {
             // Load tournament
             var tournamentResult = await _tournamentRepository.GetByIdAsync(tournamentId, ct);
-            if (tournamentResult.IsFailure)
+            if (tournamentResult.IsFailure || tournamentResult.Value is null)
                 return Result.Failure("Tournament not found");
-            var tournament = tournamentResult.Value!;
+            var tournament = tournamentResult.Value;
 
             // Check if tournament is still in setup phase
             if (tournament.Status != TournamentStatus.Setup)
@@ -224,9 +224,9 @@ public class MugenTournamentService : IMugenTournamentService
         {
             // Load tournament with participants and matches
             var tournamentResult = await _tournamentRepository.GetByIdAsync(tournamentId, ct);
-            if (tournamentResult.IsFailure)
+            if (tournamentResult.IsFailure || tournamentResult.Value is null)
                 return Result.Failure<IReadOnlyList<TournamentStanding>>("Tournament not found");
-            var tournament = tournamentResult.Value!;
+            var tournament = tournamentResult.Value;
 
             // Calculate standings based on tournament progress
             var standings = new List<TournamentStanding>();
@@ -302,10 +302,10 @@ public class MugenTournamentService : IMugenTournamentService
         try
         {
             var tournamentResult = await _tournamentRepository.GetByIdAsync(tournamentId, ct);
-            if (tournamentResult.IsFailure)
+            if (tournamentResult.IsFailure || tournamentResult.Value is null)
                 return Result.Failure("Tournament not found");
 
-            var tournament = tournamentResult.Value!;
+            var tournament = tournamentResult.Value;
             if (tournament.Status != TournamentStatus.Setup)
                 return Result.Failure("Tournament is already started or completed.");
 

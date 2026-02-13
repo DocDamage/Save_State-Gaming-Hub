@@ -1,0 +1,88 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Automation"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Automation.MacroMarketplaceView"
+             x:DataType="vm:MacroMarketplaceViewModel">
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Header -->
+        <Border Grid.Row="0" Margin="0,0,0,20">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Macro Marketplace" FontSize="24" FontWeight="Bold"/>
+                    <TextBlock Text="Discover and download community-created macros" Opacity="0.7"/>
+                </StackPanel>
+
+                <TextBox Grid.Column="1" Width="300" Watermark="Search macros..." Text="{Binding SearchTerm}">
+                    <TextBox.InnerRightContent>
+                        <Button Content="🔍" Command="{Binding SearchCommand}" Classes="accent" Margin="4,0"/>
+                    </TextBox.InnerRightContent>
+                </TextBox>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="200,*">
+            <!-- Filter Sidebar -->
+            <StackPanel Grid.Column="0" Spacing="10" Margin="0,0,20,0">
+                <TextBlock Text="Categories" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                <ListBox ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}"/>
+            </StackPanel>
+
+            <!-- Results Grid -->
+            <ScrollViewer Grid.Column="1">
+                <ItemsControl ItemsSource="{Binding Macros}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Width="280" Height="180"
+                                    Background="{DynamicResource CardBackgroundFillColorDefault}"
+                                    BorderBrush="{DynamicResource CardStrokeColorDefault}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="15"
+                                    Margin="0,0,15,15">
+                                <Grid RowDefinitions="Auto,*,Auto">
+                                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" TextTrimming="CharacterEllipsis"/>
+                                        <Border Grid.Column="1" Background="{DynamicResource AccentFillColorDefault}" CornerRadius="4" Padding="6,2" IsVisible="{Binding IsInstalled}">
+                                            <TextBlock Text="Installed" FontSize="10" Foreground="White"/>
+                                        </Border>
+                                    </Grid>
+
+                                    <StackPanel Grid.Row="1" Margin="0,10">
+                                        <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Opacity="0.8" FontSize="13" MaxLines="3" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Author, StringFormat='by {0}'}" FontSize="12" Opacity="0.5" Margin="0,5,0,0"/>
+                                    </StackPanel>
+
+                                    <Grid Grid.Row="2" ColumnDefinitions="*,Auto">
+                                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Rating, StringFormat='⭐ {0}'}" FontSize="12"/>
+                                            <TextBlock Text="{Binding Downloads, StringFormat='⬇ {0}'}" FontSize="12" Opacity="0.7"/>
+                                        </StackPanel>
+
+                                        <Button Grid.Column="1" Content="{Binding IsDownloading, Converter={x:Static ObjectConverters.IsNull}}"
+                                                Command="{Binding DownloadCommand}"
+                                                IsEnabled="{Binding !IsInstalled}">
+                                             <Panel>
+                                                 <TextBlock Text="Get" IsVisible="{Binding !IsDownloading}"/>
+                                                 <ProgressBar IsIndeterminate="True" Width="20" Height="20" IsVisible="{Binding IsDownloading}"/>
+                                             </Panel>
+                                        </Button>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

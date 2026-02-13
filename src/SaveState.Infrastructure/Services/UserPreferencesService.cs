@@ -10,6 +10,9 @@ namespace SaveState.Infrastructure.Services;
 /// </summary>
 public class UserPreferencesService : SaveState.Core.Common.Services.IUserPreferencesService
 {
+    private const int MinBackgroundAlertCooldownSeconds = 15;
+    private const int MaxBackgroundAlertCooldownSeconds = 600;
+
     private readonly ILogger<UserPreferencesService> _logger;
     private readonly string _preferencesFilePath;
     private UserPreferences? _cachedPreferences;
@@ -83,7 +86,7 @@ public class UserPreferencesService : SaveState.Core.Common.Services.IUserPrefer
     public async Task<string> GetAiApiKeyAsync(string provider, CancellationToken ct = default)
     {
         var prefs = await LoadPreferencesAsync(ct);
-        var encrypted = provider.ToLower() switch
+        var encrypted = provider.ToLowerInvariant() switch
         {
             "openai" => prefs.EncryptedOpenAiApiKey,
             "groq" => prefs.EncryptedGroqApiKey,
@@ -108,7 +111,7 @@ public class UserPreferencesService : SaveState.Core.Common.Services.IUserPrefer
         var prefs = await LoadPreferencesAsync(ct);
         var encrypted = string.IsNullOrEmpty(apiKey) ? string.Empty : Encrypt(apiKey);
 
-        switch (provider.ToLower())
+        switch (provider.ToLowerInvariant())
         {
             case "openai":
                 prefs.EncryptedOpenAiApiKey = encrypted;
@@ -150,7 +153,8 @@ public class UserPreferencesService : SaveState.Core.Common.Services.IUserPrefer
     public async Task<string> GetCloudClientIdAsync(string provider, CancellationToken ct = default)
     {
         var prefs = await LoadPreferencesAsync(ct);
-        var encrypted = provider.ToLower() switch
+        var providerKey = provider.ToLowerInvariant().Replace(" ", string.Empty);
+        var encrypted = providerKey switch
         {
             "onedrive" => prefs.EncryptedOneDriveClientId,
             "googledrive" => prefs.EncryptedGoogleDriveClientId,
@@ -158,7 +162,15 @@ public class UserPreferencesService : SaveState.Core.Common.Services.IUserPrefer
         };
 
         if (string.IsNullOrEmpty(encrypted)) return string.Empty;
-        try { return Decrypt(encrypted); } catch { return string.Empty; }
+        try
+        {
+            return Decrypt(encrypted);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to decrypt cloud client ID for {Provider}", provider);
+            return string.Empty;
+        }
     }
 
     public async Task SetCloudClientIdAsync(string provider, string clientId, CancellationToken ct = default)
@@ -166,7 +178,7 @@ public class UserPreferencesService : SaveState.Core.Common.Services.IUserPrefer
         var prefs = await LoadPreferencesAsync(ct);
         var encrypted = string.IsNullOrEmpty(clientId) ? string.Empty : Encrypt(clientId);
 
-        switch (provider.ToLower().Replace(" ", ""))
+        switch (provider.ToLowerInvariant().Replace(" ", ""))
         {
             case "onedrive":
                 prefs.EncryptedOneDriveClientId = encrypted;
@@ -176,6 +188,45 @@ public class UserPreferencesService : SaveState.Core.Common.Services.IUserPrefer
                 break;
         }
 
+        await SavePreferencesAsync(prefs, ct);
+    }
+
+    public async Task<bool> GetBackgroundSyncFailureAlertsEnabledAsync(CancellationToken ct = default)
+    {
+        var prefs = await LoadPreferencesAsync(ct);
+        return prefs.BackgroundSyncFailureAlertsEnabled;
+    }
+
+    public async Task SetBackgroundSyncFailureAlertsEnabledAsync(bool enabled, CancellationToken ct = default)
+    {
+        var prefs = await LoadPreferencesAsync(ct);
+        prefs.BackgroundSyncFailureAlertsEnabled = enabled;
+        await SavePreferencesAsync(prefs, ct);
+    }
+
+    public async Task<bool> GetBackgroundSyncConflictAlertsEnabledAsync(CancellationToken ct = default)
+    {
+        var prefs = await LoadPreferencesAsync(ct);
+        return prefs.BackgroundSyncConflictAlertsEnabled;
+    }
+
+    public async Task SetBackgroundSyncConflictAlertsEnabledAsync(bool enabled, CancellationToken ct = default)
+    {
+        var prefs = await LoadPreferencesAsync(ct);
+        prefs.BackgroundSyncConflictAlertsEnabled = enabled;
+        await SavePreferencesAsync(prefs, ct);
+    }
+
+    public async Task<int> GetBackgroundSyncAlertCooldownSecondsAsync(CancellationToken ct = default)
+    {
+        var prefs = await LoadPreferencesAsync(ct);
+        return ClampBackgroundAlertCooldownSeconds(prefs.BackgroundSyncAlertCooldownSeconds);
+    }
+
+    public async Task SetBackgroundSyncAlertCooldownSecondsAsync(int cooldownSeconds, CancellationToken ct = default)
+    {
+        var prefs = await LoadPreferencesAsync(ct);
+        prefs.BackgroundSyncAlertCooldownSeconds = ClampBackgroundAlertCooldownSeconds(cooldownSeconds);
         await SavePreferencesAsync(prefs, ct);
     }
 
@@ -234,5 +285,23 @@ public class UserPreferencesService : SaveState.Core.Common.Services.IUserPrefer
         public bool AutoSyncOnExit { get; set; } = true;
         public string? EncryptedOneDriveClientId { get; set; }
         public string? EncryptedGoogleDriveClientId { get; set; }
+        public bool BackgroundSyncFailureAlertsEnabled { get; set; } = true;
+        public bool BackgroundSyncConflictAlertsEnabled { get; set; } = true;
+        public int BackgroundSyncAlertCooldownSeconds { get; set; } = 60;
+    }
+
+    private static int ClampBackgroundAlertCooldownSeconds(int cooldownSeconds)
+    {
+        if (cooldownSeconds < MinBackgroundAlertCooldownSeconds)
+        {
+            return MinBackgroundAlertCooldownSeconds;
+        }
+
+        if (cooldownSeconds > MaxBackgroundAlertCooldownSeconds)
+        {
+            return MaxBackgroundAlertCooldownSeconds;
+        }
+
+        return cooldownSeconds;
     }
 }

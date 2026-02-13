@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Automation.Services;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.ViewModels.Automation;
 using System;
 using System.Diagnostics;
@@ -13,6 +14,7 @@ public partial class MacroRecorderDialogViewModel : ObservableObject
 {
     private readonly IMacroService _macroService;
     private readonly ILogger<MacroRecorderDialogViewModel>? _logger;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private string _status = "Ready to record";
@@ -36,9 +38,11 @@ public partial class MacroRecorderDialogViewModel : ObservableObject
 
     public MacroRecorderDialogViewModel(
         IMacroService macroService,
+        ITimeProvider timeProvider,
         ILogger<MacroRecorderDialogViewModel>? logger = null)
     {
         _macroService = macroService;
+        _timeProvider = timeProvider;
         _logger = logger;
     }
 
@@ -54,7 +58,7 @@ public partial class MacroRecorderDialogViewModel : ObservableObject
             // Start actual recording service
             var result = await _macroService.StartRecordingAsync(
                 MacroName,
-                $"Recorded at {DateTime.Now:t}");
+                $"Recorded at {_timeProvider.Now:t}");
 
             if (result.IsFailure)
             {
@@ -98,7 +102,7 @@ public partial class MacroRecorderDialogViewModel : ObservableObject
         Result = new MacroViewModel
         {
             Name = MacroName,
-            Description = $"Recorded at {DateTime.Now:t}",
+            Description = $"Recorded at {_timeProvider.Now:t}",
             Duration = $"{_stopwatch.Elapsed.TotalSeconds:F1}s",
             ActionsText = $"{_actionsCount} actions"
         };

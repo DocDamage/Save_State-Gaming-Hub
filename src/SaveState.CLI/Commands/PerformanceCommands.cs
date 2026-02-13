@@ -76,13 +76,13 @@ public class PerformanceCommands : CommandGroupBase
             }
 
             var reportResult = await profiler.GenerateReportAsync().ConfigureAwait(false);
-            if (!reportResult.IsSuccess)
+            if (!reportResult.IsSuccess || reportResult.Value is null)
             {
-                AnsiConsole.MarkupLine($"[red]Error generating report: {reportResult.Error}[/]");
+                AnsiConsole.MarkupLine($"[red]Error generating report: {reportResult.Error ?? "Unknown error"}[/]");
                 return;
             }
 
-            var report = reportResult.Value!;
+            var report = reportResult.Value;
 
             AnsiConsole.MarkupLine("[green]Performance profiling stopped![/]");
             AnsiConsole.WriteLine();
@@ -156,13 +156,13 @@ public class PerformanceCommands : CommandGroupBase
             }
 
             var result = await profiler.GetCurrentMetricsAsync().ConfigureAwait(false);
-            if (!result.IsSuccess)
+            if (!result.IsSuccess || result.Value is null)
             {
-                AnsiConsole.MarkupLine($"[red]Error: {result.Error}[/]");
+                AnsiConsole.MarkupLine($"[red]Error: {result.Error ?? "Unknown error"}[/]");
                 return;
             }
 
-            var metrics = result.Value!;
+            var metrics = result.Value;
 
             var table = new Table();
             table.AddColumn("Metric");
@@ -214,13 +214,13 @@ public class PerformanceCommands : CommandGroupBase
             }
 
             var result = await profiler.AnalyzeBottlenecksAsync().ConfigureAwait(false);
-            if (!result.IsSuccess)
+            if (!result.IsSuccess || result.Value is null)
             {
-                AnsiConsole.MarkupLine($"[red]Error: {result.Error}[/]");
+                AnsiConsole.MarkupLine($"[red]Error: {result.Error ?? "Unknown error"}[/]");
                 return;
             }
 
-            var bottlenecks = result.Value!;
+            var bottlenecks = result.Value;
             if (!bottlenecks.Any())
             {
                 AnsiConsole.MarkupLine("[green]No significant bottlenecks detected![/]");

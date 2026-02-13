@@ -2,8 +2,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using SaveState.Core.Mugen.Services;
-using SaveState.Core.Mugen.DTOs;
 using SaveState.Core.Mugen.ValueObjects;
+// Use ValueObjects as canonical type for ambiguous MugenDiscoveryItem
+using MugenDiscoveryItem = SaveState.Core.Mugen.ValueObjects.MugenDiscoveryItem;
 
 namespace SaveState.Presentation.ViewModels.Shell.Mugen;
 

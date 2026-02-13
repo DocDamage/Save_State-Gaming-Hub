@@ -31,6 +31,7 @@
 
                 <TextBox Text="{Binding InputText}"
                          Watermark="{Binding Placeholder}"
+                         PasswordChar="{Binding PasswordChar}"
                          AcceptsReturn="False"
                          FontSize="14"
                          Padding="10"
@@ -38,6 +39,12 @@
                          Foreground="White"
                          BorderBrush="#3B82F6"
                          BorderThickness="1" />
+
+                <CheckBox IsVisible="{Binding IsSensitive}"
+                          IsChecked="{Binding ShowSensitiveText}"
+                          Content="Show input"
+                          Foreground="#CCCCCC"
+                          FontSize="12" />
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,10,0,0">
                     <Button Command="{Binding CancelCommand}"

@@ -61,6 +61,28 @@ public class OpenMKConfiguration : IEntityTypeConfiguration<OpenMKCharacter>
             .IsRequired()
             .HasDefaultValue(true);
 
+        builder.OwnsOne(c => c.UnlockRequirements, nav =>
+        {
+            nav.Property(r => r.Description)
+                .HasMaxLength(500)
+                .HasColumnName("UnlockDescription");
+
+            nav.Property(r => r.Type)
+                .HasConversion<string>()
+                .HasColumnName("UnlockType");
+
+            nav.Property(r => r.RequiredValue)
+                .HasColumnName("UnlockRequiredValue");
+
+            nav.Property(r => r.RequiredCharacter)
+                .HasMaxLength(100)
+                .HasColumnName("UnlockRequiredCharacter");
+
+            nav.Property(r => r.RequiredStage)
+                .HasMaxLength(100)
+                .HasColumnName("UnlockRequiredStage");
+        });
+
         builder.Ignore(c => c.SpecialMoves);
         builder.Ignore(c => c.Fatalities);
         builder.Ignore(c => c.Friendships);

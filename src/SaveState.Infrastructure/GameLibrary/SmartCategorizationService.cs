@@ -90,13 +90,13 @@ public class SmartCategorizationService : ISmartCategorizationService
                     continue;
 
                 var analysisResult = await AnalyzeGameAsync(game.Id, ct);
-                if (analysisResult.IsSuccess)
+                if (analysisResult.IsSuccess && analysisResult.Value is not null)
                 {
                     // In a real implementation, you'd save the tags to the game entity
                     // For now, just log the results
                     _logger.LogInformation("Tagged game '{Title}': Genres={Genres}, Confidence={Confidence}",
                         game.Title,
-                        string.Join(", ", analysisResult.Value!.Genres),
+                        string.Join(", ", analysisResult.Value.Genres),
                         analysisResult.Value.Confidence);
                 }
 

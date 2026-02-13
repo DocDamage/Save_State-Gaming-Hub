@@ -7,7 +7,7 @@ public sealed record Macro(
     Guid Id,
     string Name,
     string Description,
-    Guid GameId,
+    Guid? GameId,
     string UserId,
     IReadOnlyList<MacroAction> Actions,
     MacroMetadata Metadata,
@@ -19,7 +19,7 @@ public sealed record Macro(
 /// Configuration for macro recording.
 /// </summary>
 public sealed record MacroRecordingConfig(
-    Guid GameId,
+    Guid? GameId,
     string Name,
     string Description,
     RecordingMode Mode,

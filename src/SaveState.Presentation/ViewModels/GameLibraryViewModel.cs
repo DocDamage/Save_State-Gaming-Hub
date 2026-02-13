@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Ai.Services;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Core.UserManagement.Services;
@@ -33,6 +34,7 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
     private readonly INaturalLanguageGameSearch _searchService;
     private readonly ILogger<GameLibraryViewModel> _logger;
     private readonly ILoggerFactory _loggerFactory;
+    private readonly ITimeProvider _timeProvider;
 
     // Navigation state
     private GameId? _selectedGameId;
@@ -57,7 +59,8 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
         INaturalLanguageGameSearch searchService,
         Library.LibraryViewModel libraryViewModel,
         ILogger<GameLibraryViewModel> logger,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        ITimeProvider timeProvider)
     {
         _mediator = mediator;
         _navigationService = navigationService;
@@ -73,6 +76,7 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
         _searchService = searchService;
         _logger = logger;
         _loggerFactory = loggerFactory;
+        _timeProvider = timeProvider;
         LibraryViewModel = libraryViewModel;
 
         // Subscribe to natural language search requests
@@ -83,6 +87,28 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
 
         // Set default view
         CurrentView = LibraryViewModel;
+    }
+
+    /// <summary>
+    /// Internal constructor for testing purposes only.
+    /// </summary>
+    internal GameLibraryViewModel()
+    {
+        _mediator = null!;
+        _navigationService = null!;
+        _overlayService = null!;
+        _notificationService = null!;
+        _aiOrchestrator = null!;
+        _userContextService = null!;
+        _modService = null!;
+        _dialogService = null!;
+        _backlogService = null!;
+        _clipboardService = null!;
+        _gameContextService = null!;
+        _searchService = null!;
+        _logger = null!;
+        _loggerFactory = null!;
+        LibraryViewModel = null!;
     }
 
     public async Task ExecuteNaturalLanguageSearch(string query)
@@ -146,7 +172,7 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
     private async Task NavigateToGameDetailAsync(GameId gameId)
     {
         _selectedGameId = gameId;
-        _isShowingGameDetail = true;
+        IsShowingGameDetail = true;
         IsShowingLibrary = false;
 
         // Create or reuse game detail view model
@@ -163,7 +189,8 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
             _clipboardService,
             _gameContextService,
             gameId,
-            _loggerFactory);
+            _loggerFactory,
+            _timeProvider);
         CurrentView = GameDetailViewModel;
 
         _logger.LogInformation("Navigated to game detail for {GameId}", gameId);
@@ -172,7 +199,7 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
     private async Task NavigateToLibraryAsync()
     {
         _selectedGameId = null;
-        _isShowingGameDetail = false;
+        IsShowingGameDetail = false;
         IsShowingLibrary = true;
 
         CurrentView = LibraryViewModel;

@@ -5,6 +5,7 @@ using SaveState.Core.Analytics.Services;
 using SaveState.Core.Common;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary.Enums;
+using SaveState.Infrastructure.External;
 using SaveState.Infrastructure.Persistence;
 using System.Text;
 using System.Text.Json;
@@ -18,16 +19,20 @@ public sealed class CompletionPredictionService : ICompletionPredictionService
 {
     private readonly SaveStateDbContext _dbContext;
     private readonly IAiOrchestrator _aiOrchestrator;
+    private readonly IHowLongToBeatService _hltbService;
     private readonly ILogger<CompletionPredictionService> _logger;
     private static readonly Dictionary<GameId, CompletionMetrics> _completionHistory = new();
+    private static readonly Dictionary<string, HowLongToBeatData> _hltbCache = new();
 
     public CompletionPredictionService(
         SaveStateDbContext dbContext,
         IAiOrchestrator aiOrchestrator,
+        IHowLongToBeatService hltbService,
         ILogger<CompletionPredictionService> logger)
     {
         _dbContext = dbContext;
         _aiOrchestrator = aiOrchestrator;
+        _hltbService = hltbService;
         _logger = logger;
     }
 
@@ -163,55 +168,101 @@ public sealed class CompletionPredictionService : ICompletionPredictionService
     {
         try
         {
-            // Calculate baseline heuristics
             var currentPlaytime = game.TotalPlayTime.TotalHours;
-
-            // Use genre/platform-specific averages if available
-            var platformGames = context.GamesByPlatform.GetValueOrDefault(
-                game.Platform?.Name.Value ?? "Unknown", new List<GameMetrics>());
-
-            var avgCompletionTime = platformGames.Count > 0
-                ? platformGames.Average(g => g.PlaytimeHours)
-                : 15.0; // Fallback heuristic
-
-            // Try AI-enhanced prediction if orchestrator is available
-            double estimatedRemaining = avgCompletionTime - currentPlaytime;
-            double confidence = CalculateBaseConfidence(currentPlaytime, avgCompletionTime);
             var factors = new List<string>();
-            string basedOn = "Historical averages";
+            string basedOn;
+            double estimatedTotalTime;
+            double confidence;
 
-            // Attempt AI enhancement
+            // Try to get HLTB data first (most accurate)
+            var hltbData = await GetHltbDataAsync(game.Title, ct);
+
+            if (hltbData != null && hltbData.MainPlusExtras.HasValue)
+            {
+                // Use HLTB as primary source
+                estimatedTotalTime = hltbData.MainPlusExtras.Value.TotalHours;
+                basedOn = "HowLongToBeat";
+                confidence = 85.0; // HLTB data is highly reliable
+
+                factors.Add($"HLTB Main + Extras: {HowLongToBeatService.FormatPlaytime(hltbData.MainPlusExtras)}");
+
+                if (hltbData.MainStory.HasValue)
+                    factors.Add($"HLTB Main Story: {HowLongToBeatService.FormatPlaytime(hltbData.MainStory)}");
+                if (hltbData.Completionist.HasValue)
+                    factors.Add($"HLTB Completionist: {HowLongToBeatService.FormatPlaytime(hltbData.Completionist)}");
+
+                _logger.LogDebug("Using HLTB data for {GameName}: {Hours}h", game.Title, estimatedTotalTime);
+            }
+            else if (hltbData != null && hltbData.MainStory.HasValue)
+            {
+                // Fall back to Main Story if Main+Extras unavailable
+                estimatedTotalTime = hltbData.MainStory.Value.TotalHours;
+                basedOn = "HowLongToBeat (Main Story)";
+                confidence = 80.0;
+
+                factors.Add($"HLTB Main Story: {HowLongToBeatService.FormatPlaytime(hltbData.MainStory)}");
+            }
+            else
+            {
+                // Fallback to platform averages
+                var platformGames = context.GamesByPlatform.GetValueOrDefault(
+                    game.Platform?.Name.Value ?? "Unknown", new List<GameMetrics>());
+
+                estimatedTotalTime = platformGames.Count > 0
+                    ? platformGames.Average(g => g.PlaytimeHours)
+                    : 15.0; // Generic fallback
+
+                basedOn = "Platform averages";
+                confidence = CalculateBaseConfidence(currentPlaytime, estimatedTotalTime);
+
+                factors.Add($"Platform average: {estimatedTotalTime:F1} hours");
+                factors.Add("HLTB data unavailable");
+            }
+
+            // Adjust confidence based on current progress
+            var progressRatio = currentPlaytime / estimatedTotalTime;
+            if (progressRatio > 0.5)
+            {
+                // More playtime = higher confidence in remaining estimate
+                confidence = Math.Min(95, confidence + (progressRatio * 10));
+            }
+
+            // Add user-specific factors
+            factors.Add($"Current playtime: {currentPlaytime:F1} hours");
+            factors.Add($"Play frequency: {CalculatePlayFrequency(game, context):F1} sessions/week");
+
+            // Try AI enhancement for personalized adjustment
             if (_aiOrchestrator != null)
             {
                 try
                 {
                     var aiResult = await EnhancePredictionWithAI(
-                        game, context, currentPlaytime, avgCompletionTime, ct);
+                        game, context, currentPlaytime, estimatedTotalTime, ct);
 
                     if (aiResult != null)
                     {
-                        estimatedRemaining = aiResult.EstimatedHours - currentPlaytime;
-                        confidence = aiResult.Confidence;
-                        factors = aiResult.Factors;
-                        basedOn = "AI analysis + Historical data";
+                        // Blend AI estimate with HLTB (HLTB weighted higher)
+                        var blendedEstimate = hltbData != null
+                            ? (estimatedTotalTime * 0.7 + aiResult.EstimatedHours * 0.3)
+                            : aiResult.EstimatedHours;
+
+                        estimatedTotalTime = blendedEstimate;
+                        confidence = Math.Min(95, (confidence + aiResult.Confidence) / 2);
+                        basedOn = hltbData != null ? "HowLongToBeat + AI" : "AI Analysis";
+
+                        // Add AI factors if meaningful
+                        if (aiResult.Factors.Count > 0)
+                            factors.AddRange(aiResult.Factors.Take(2));
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "AI prediction failed for {GameName}, using heuristics", game.Title);
+                    _logger.LogDebug(ex, "AI enhancement failed for {GameName}, using base prediction", game.Title);
                 }
             }
 
-            // Add baseline factors if AI didn't provide any
-            if (factors.Count == 0)
-            {
-                factors.Add($"Current playtime: {currentPlaytime:F1} hours");
-                factors.Add($"Platform average: {avgCompletionTime:F1} hours");
-                factors.Add($"Play frequency: {CalculatePlayFrequency(game, context)} sessions/week");
-            }
-
-            // Ensure remaining time is non-negative
-            estimatedRemaining = Math.Max(0, estimatedRemaining);
+            // Calculate remaining time
+            var estimatedRemaining = Math.Max(0, estimatedTotalTime - currentPlaytime);
 
             return new GameCompletionPrediction(
                 GameId.From(game.Id),
@@ -224,6 +275,36 @@ public sealed class CompletionPredictionService : ICompletionPredictionService
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to generate prediction for game {GameName}", game.Title);
+            return null;
+        }
+    }
+
+    private async Task<HowLongToBeatData?> GetHltbDataAsync(string gameTitle, CancellationToken ct)
+    {
+        try
+        {
+            // Check in-memory cache first
+            var cacheKey = gameTitle.ToLowerInvariant().Trim();
+            if (_hltbCache.TryGetValue(cacheKey, out var cached))
+            {
+                return cached;
+            }
+
+            // Fetch from HLTB service
+            var result = await _hltbService.SearchGameAsync(gameTitle, ct);
+
+            if (result.IsSuccess)
+            {
+                _hltbCache[cacheKey] = result.Value;
+                return result.Value;
+            }
+
+            _logger.LogDebug("HLTB data not found for {GameTitle}", gameTitle);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to fetch HLTB data for {GameTitle}", gameTitle);
             return null;
         }
     }
@@ -312,8 +393,8 @@ public sealed class CompletionPredictionService : ICompletionPredictionService
         List<Core.GameLibrary.Entities.GameSession> sessions)
     {
         var gamesByPlatform = games
-            .Where(g => g.Platform != null)
-            .GroupBy(g => g.Platform!.Name.Value)
+            .Where(g => g.Platform?.Name?.Value is not null)
+            .GroupBy(g => g.Platform!.Name!.Value)
             .ToDictionary(
                 g => g.Key,
                 g => g.Select(game => new GameMetrics(
@@ -322,7 +403,7 @@ public sealed class CompletionPredictionService : ICompletionPredictionService
                     game.TotalPlayTime.TotalHours)).ToList());
 
         var avgSessionLength = sessions.Count > 0
-            ? sessions.Average(s => (s.EndedAt!.Value - s.StartedAt).TotalHours)
+            ? sessions.Where(s => s.EndedAt.HasValue).Average(s => (s.EndedAt!.Value - s.StartedAt).TotalHours)
             : 0;
 
         var totalDays = sessions.Count > 0

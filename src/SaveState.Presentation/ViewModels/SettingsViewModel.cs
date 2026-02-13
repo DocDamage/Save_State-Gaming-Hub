@@ -7,6 +7,7 @@ using SaveState.Core.Ai.Services;
 using SaveState.Presentation.Resources;
 using SaveState.Presentation.Services;
 using SaveState.Presentation.ViewModels.Shell;
+using SaveState.Presentation.ViewModels.Settings;
 
 namespace SaveState.Presentation.ViewModels;
 
@@ -60,6 +61,7 @@ public partial class SettingsViewModel : ObservableObject
     private string _groqApiKey = string.Empty;
 
     public VoiceControlViewModel VoiceSettings { get; }
+    public AudioOptimizationViewModel AudioOptimizationViewModel { get; }
 
     public SettingsViewModel(
         ICultureManager cultureManager,
@@ -68,7 +70,8 @@ public partial class SettingsViewModel : ObservableObject
         IAiOrchestrator aiOrchestrator,
         IUserPreferencesService preferencesService,
         IDialogService dialogService,
-        SaveState.Presentation.ViewModels.Shell.VoiceControlViewModel voiceSettings)
+        SaveState.Presentation.ViewModels.Shell.VoiceControlViewModel voiceSettings,
+        AudioOptimizationViewModel audioOptimizationViewModel)
     {
         _cultureManager = cultureManager;
         _resources = resources;
@@ -77,6 +80,7 @@ public partial class SettingsViewModel : ObservableObject
         _preferencesService = preferencesService;
         _dialogService = dialogService;
         VoiceSettings = voiceSettings;
+        AudioOptimizationViewModel = audioOptimizationViewModel;
 
         SelectedCulture = _cultureManager.CurrentCulture;
         SelectedTheme = _themeService.CurrentTheme;

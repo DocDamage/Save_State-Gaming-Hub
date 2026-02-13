@@ -2,8 +2,10 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SaveState.Application.Mugen.DTOs;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Configuration;
 using SaveState.Core.Mugen;
 using SaveState.Core.Mugen.Services;
@@ -59,7 +61,9 @@ public partial class MugenViewModel : ObservableObject
         IMugenLauncher launcher,
         IMugenConfigService configService,
         MoveCreationViewModel moveCreationViewModel,
-        MachineLearningViewModel machineLearningViewModel)
+        MachineLearningViewModel machineLearningViewModel,
+        ILoggerFactory loggerFactory,
+        ITimeProvider timeProvider)
     {
         _mediator = mediator;
         _mugenOptions = mugenOptions.Value;
@@ -68,14 +72,14 @@ public partial class MugenViewModel : ObservableObject
         var hub = new MugenHubSectionAdapter(hubViewModel) { Id = "Hub", Name = "Hub", Icon = "🏠", Title = "MUGEN Hub" };
         var roster = new MugenRosterViewModel(mediator, mugenOptions, rosterService) { Id = "Roster", Name = "Roster", Icon = "👥", Title = "Character Roster" };
         var deathBattle = new MugenDeathBattleViewModel(mediator) { Id = "DeathBattle", Name = "Death Battle", Icon = "💀", Title = "Death Battle Simulator" };
-        var tournament = new MugenTournamentViewModel(mediator, tournamentService, collectionService, predictionEngine, matchSimulator) { Id = "Tournament", Name = "Tournament", Icon = "🏆", Title = "Tournament Mode" };
+        var tournament = new MugenTournamentViewModel(mediator, tournamentService, collectionService, predictionEngine, matchSimulator, timeProvider) { Id = "Tournament", Name = "Tournament", Icon = "🏆", Title = "Tournament Mode" };
         var training = new MugenTrainingViewModel(mediator, trainingService) { Id = "Training", Name = "Training", Icon = "🥋", Title = "Training Mode" };
         var replay = new MugenReplayViewModel(mediator, matchHistoryRepository, launcher, coachService, mugenOptions) { Id = "Replays", Name = "Replays", Icon = "🎬", Title = "Replay Theater" };
         var coach = new MugenCoachViewModel(mediator, coachService, moveListService, collectionService) { Id = "Coach", Name = "Coach", Icon = "🎓", Title = "AI Dojo" };
         var fusion = new MugenFusionViewModel(mediator, fusionService) { Id = "Fusion", Name = "Fusion", Icon = "🧬", Title = "Character Fusion" };
         var engineMods = new MugenEngineModsViewModel(mediator, configService) { Id = "EngineMods", Name = "Engine Mods", Icon = "🛠️", Title = "Engine Modifications" };
         var downloads = new MugenDownloadsViewModel(discoveryService) { Id = "Downloads", Name = "Downloads", Icon = "📥", Title = "Asset Downloader" };
-        var stats = new MugenStatsViewModel(mediator, statsService, eloService, collectionService, matchHistoryRepository) { Id = "Stats", Name = "Stats", Icon = "📊", Title = "Statistics" };
+        var stats = new MugenStatsViewModel(mediator, statsService, eloService, collectionService, matchHistoryRepository, loggerFactory.CreateLogger<MugenStatsViewModel>()) { Id = "Stats", Name = "Stats", Icon = "📊", Title = "Statistics" };
         var moveCreation = moveCreationViewModel;
         moveCreation.Id = "MoveCreation";
         moveCreation.Name = "Move Creation";

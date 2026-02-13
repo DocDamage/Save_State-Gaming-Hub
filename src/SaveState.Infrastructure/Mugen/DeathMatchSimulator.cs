@@ -35,14 +35,14 @@ public class DeathMatchSimulator : IDeathMatchSimulator
         {
             // Get character entities
             var character1Result = await _characterRepository.GetByIdAsync(character1Id, ct);
-            if (character1Result.IsFailure)
+            if (character1Result.IsFailure || character1Result.Value is null)
                 return Result.Failure<SimulationResult>("Character 1 not found");
-            var character1 = character1Result.Value!;
+            var character1 = character1Result.Value;
 
             var character2Result = await _characterRepository.GetByIdAsync(character2Id, ct);
-            if (character2Result.IsFailure)
+            if (character2Result.IsFailure || character2Result.Value is null)
                 return Result.Failure<SimulationResult>("Character 2 not found");
-            var character2 = character2Result.Value!;
+            var character2 = character2Result.Value;
 
             var startTime = DateTime.UtcNow;
             var char1Wins = 0;
@@ -55,10 +55,10 @@ public class DeathMatchSimulator : IDeathMatchSimulator
             for (var round = 1; round <= 3; round++) // Standard MUGEN is best of 3
             {
                 var prediction = await _predictionEngine.PredictMatchAsync(character1, character2, ct);
-                if (!prediction.IsSuccess)
+                if (!prediction.IsSuccess || prediction.Value is null)
                     return Result.Failure<SimulationResult>($"Prediction failed: {prediction.Error}");
 
-                var pred = prediction.Value!;
+                var pred = prediction.Value;
 
                 // Simulate round based on prediction
                 var random = Random.Shared.NextDouble();
@@ -88,10 +88,10 @@ public class DeathMatchSimulator : IDeathMatchSimulator
             for (var i = 3; i < matchCount; i++)
             {
                 var prediction = await _predictionEngine.PredictMatchAsync(character1, character2, ct);
-                if (!prediction.IsSuccess)
+                if (!prediction.IsSuccess || prediction.Value is null)
                     continue;
 
-                var pred = prediction.Value!;
+                var pred = prediction.Value;
                 var random = Random.Shared.NextDouble();
 
                 if (random < pred.WinProbabilityPlayer1)
@@ -147,10 +147,10 @@ public class DeathMatchSimulator : IDeathMatchSimulator
             foreach (var id in participantIds)
             {
                 var characterResult = await _characterRepository.GetByIdAsync(id, ct);
-                if (characterResult.IsFailure)
+                if (characterResult.IsFailure || characterResult.Value is null)
                     return Result.Failure<TournamentSimulation>($"Character {id} not found");
 
-                participants.Add(characterResult.Value!);
+                participants.Add(characterResult.Value);
             }
 
             var simulationId = Guid.NewGuid();
@@ -178,7 +178,8 @@ public class DeathMatchSimulator : IDeathMatchSimulator
                     if (!simulation.IsSuccess)
                         continue;
 
-                    var result = simulation.Value!;
+                    var result = simulation.Value;
+                    if (result is null) continue;
                     var winnerId = result.Character1WinRate > result.Character2WinRate ?
                                   result.Character1Id : result.Character2Id;
                     var confidence = Math.Max(result.Character1WinRate, result.Character2WinRate);

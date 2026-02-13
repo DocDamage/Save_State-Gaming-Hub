@@ -1,0 +1,162 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell.Mugen"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.Mugen.Sections.GraphicsSection"
+             x:DataType="vm:MugenGraphicsViewModel">
+
+    <ScrollViewer>
+        <StackPanel Margin="20" Spacing="20">
+
+            <!-- Header -->
+            <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="Bold" />
+
+            <!-- Status Message -->
+            <Border Background="{DynamicResource SystemAccentColor}" CornerRadius="4" Padding="10">
+                <TextBlock Text="{Binding StatusMessage}"
+                          Foreground="White"
+                          FontWeight="Medium" />
+            </Border>
+
+            <!-- Dynamic Lighting Section -->
+            <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="15">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="🎭 Dynamic Lighting" FontSize="18" FontWeight="SemiBold" />
+
+                    <CheckBox Content="Enable Dynamic Lighting"
+                             IsChecked="{Binding EnableDynamicLighting}" />
+
+                    <CheckBox Content="Enable Real-time Shadows"
+                             IsChecked="{Binding EnableShadows}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <TextBlock Text="Ambient Intensity:" VerticalAlignment="Center" />
+                        <Slider Value="{Binding AmbientIntensity}"
+                               Minimum="0" Maximum="1" Width="150" />
+                        <TextBlock Text="{Binding AmbientIntensity, StringFormat={}{0:F2}}"
+                                 VerticalAlignment="Center" Width="40" />
+                    </StackPanel>
+
+                    <Button Content="Apply Lighting"
+                           Command="{Binding ApplyLightingCommand}"
+                           IsEnabled="{Binding !IsProcessing}"
+                           HorizontalAlignment="Left" />
+                </StackPanel>
+            </Border>
+
+            <!-- Screen Filters Section -->
+            <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="15">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="🖥️ Screen Filters" FontSize="18" FontWeight="SemiBold" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <TextBlock Text="Filter Type:" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding AvailableFilterTypes}"
+                                 SelectedItem="{Binding SelectedFilterType}"
+                                 Width="150" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <TextBlock Text="Intensity:" VerticalAlignment="Center" />
+                        <Slider Value="{Binding FilterIntensity}"
+                               Minimum="0" Maximum="1" Width="150" />
+                        <TextBlock Text="{Binding FilterIntensity, StringFormat={}{0:F2}}"
+                                 VerticalAlignment="Center" Width="40" />
+                    </StackPanel>
+
+                    <Button Content="Apply Filter"
+                           Command="{Binding ApplyScreenFilterCommand}"
+                           IsEnabled="{Binding !IsProcessing}"
+                           HorizontalAlignment="Left" />
+                </StackPanel>
+            </Border>
+
+            <!-- Background Effects Section -->
+            <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="15">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="🌄 Background Effects" FontSize="18" FontWeight="SemiBold" />
+
+                    <CheckBox Content="Enable Parallax Scrolling"
+                             IsChecked="{Binding EnableParallax}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <TextBlock Text="Parallax Speed:" VerticalAlignment="Center" />
+                        <Slider Value="{Binding ParallaxSpeed}"
+                               Minimum="0" Maximum="2" Width="150" />
+                        <TextBlock Text="{Binding ParallaxSpeed, StringFormat={}{0:F2}}"
+                                 VerticalAlignment="Center" Width="40" />
+                    </StackPanel>
+
+                    <Button Content="Apply Background Effects"
+                           Command="{Binding ApplyBackgroundEffectsCommand}"
+                           IsEnabled="{Binding !IsProcessing}"
+                           HorizontalAlignment="Left" />
+                </StackPanel>
+            </Border>
+
+            <!-- Camera System Section -->
+            <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="15">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="📹 Camera System" FontSize="18" FontWeight="SemiBold" />
+
+                    <CheckBox Content="Enable Dynamic Camera"
+                             IsChecked="{Binding EnableDynamicCamera}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <TextBlock Text="Camera Mode:" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding AvailableCameraModes}"
+                                 SelectedItem="{Binding CameraMode}"
+                                 Width="150" />
+                    </StackPanel>
+
+                    <Button Content="Configure Camera"
+                           Command="{Binding ConfigureCameraCommand}"
+                           IsEnabled="{Binding !IsProcessing}"
+                           HorizontalAlignment="Left" />
+                </StackPanel>
+            </Border>
+
+            <!-- Presets Section -->
+            <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="15">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="💾 Graphics Presets" FontSize="18" FontWeight="SemiBold" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <TextBlock Text="Available Presets:" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding AvailablePresets}"
+                                 SelectedItem="{Binding SelectedPreset}"
+                                 DisplayMemberBinding="{Binding Name}"
+                                 Width="200" />
+                        <Button Content="Load Preset"
+                               Command="{Binding LoadPresetCommand}"
+                               IsEnabled="{Binding SelectedPreset, Converter={x:Static ObjectConverters.IsNotNull}}"
+                               VerticalAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Action Buttons -->
+            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                <Button Content="Reset All Enhancements"
+                       Command="{Binding ResetEnhancementsCommand}"
+                       IsEnabled="{Binding !IsProcessing}"
+                       Background="OrangeRed"
+                       Foreground="White" />
+
+                <ProgressBar Value="{Binding AnalysisProgress}"
+                           IsVisible="{Binding IsProcessing}"
+                           Width="200"
+                           Height="20" />
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>

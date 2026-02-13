@@ -46,3 +46,8 @@ secrets.json
 # Coverage
 coverage/
 *.coverage
+
+# Build artifacts
+artifacts/
+*.db.bak
+*.bak

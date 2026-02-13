@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using SaveState.Application.Performance.Queries;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Configuration;
+using SaveState.Core.Common.Services;
 using SaveState.Infrastructure.Persistence;
 using System.Data.Common;
 
@@ -15,15 +16,18 @@ public sealed class GetDatabaseStatisticsQueryHandler : IRequestHandler<GetDatab
     private readonly SaveStateDbContext _dbContext;
     private readonly DatabaseOptions _options;
     private readonly ILogger<GetDatabaseStatisticsQueryHandler> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public GetDatabaseStatisticsQueryHandler(
         SaveStateDbContext dbContext,
         IOptions<DatabaseOptions> options,
-        ILogger<GetDatabaseStatisticsQueryHandler> logger)
+        ILogger<GetDatabaseStatisticsQueryHandler> logger,
+        ITimeProvider timeProvider)
     {
         _dbContext = dbContext;
         _options = options.Value;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<DatabaseStatistics>> Handle(GetDatabaseStatisticsQuery request, CancellationToken ct)
@@ -38,7 +42,7 @@ public sealed class GetDatabaseStatisticsQueryHandler : IRequestHandler<GetDatab
 
             // In a real app, we might track compaction date in a Settings table
             // For now, we'll return a placeholder or use the file's last write time
-            var lastCompacted = DateTime.Now.AddDays(-2); // Placeholder
+            var lastCompacted = _timeProvider.Now.AddDays(-2); // Placeholder
 
             var stats = new DatabaseStatistics(
                 "🟢 Healthy",

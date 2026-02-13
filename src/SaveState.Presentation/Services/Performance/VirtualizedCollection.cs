@@ -34,13 +34,32 @@ public class VirtualizedCollection<T> : IList<T>, INotifyCollectionChanged, INot
             if (index < 0 || index >= _count)
                 throw new ArgumentOutOfRangeException(nameof(index));
 
-            if (!_cachedItems.ContainsKey(index))
+            if (!_cachedItems.TryGetValue(index, out var item))
             {
-                // Load page containing this index
-                LoadPageAsync(index).Wait();
+                // CAUTION: IList<T> indexer requires synchronous implementation.
+                // This is an architectural constraint - IList<T> does not support async indexers.
+                // The blocking call here is unavoidable for interface compliance.
+                // RECOMMENDATION: Use PreloadRangeAsync() before accessing items to avoid blocking.
+                #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
+                try
+                {
+                    LoadPageAsync(index).GetAwaiter().GetResult();
+                    return _cachedItems[index];
+                }
+                catch (InvalidOperationException)
+                {
+                    // Collection was modified during access - caller should preload for reliable access
+                    return default!;
+                }
+                catch (Exception ex) when (ex is ArgumentException or IndexOutOfRangeException)
+                {
+                    // Index access error - return default for graceful degradation
+                    return default!;
+                }
+                #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
             }
 
-            return _cachedItems[index];
+            return item;
         }
         set => throw new NotSupportedException("VirtualizedCollection is read-only");
     }

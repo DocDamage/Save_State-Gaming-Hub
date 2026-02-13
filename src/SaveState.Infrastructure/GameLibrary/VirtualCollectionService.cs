@@ -184,11 +184,11 @@ public class VirtualCollectionService : IVirtualCollectionService
             if (collection.Type == CollectionType.Smart && collection.GetFilter() is { } filter)
             {
                 var filterResult = await ExecuteSmartFilterAsync(filter, ct);
-                if (!filterResult.IsSuccess)
+                if (!filterResult.IsSuccess || filterResult.Value is null)
                 {
-                    return Result.Failure<IReadOnlyList<Game>>(filterResult.Error!, filterResult.ErrorType);
+                    return Result.Failure<IReadOnlyList<Game>>(filterResult.Error ?? "Filter failed", filterResult.ErrorType);
                 }
-                games = filterResult.Value!;
+                games = filterResult.Value;
             }
             else
             {

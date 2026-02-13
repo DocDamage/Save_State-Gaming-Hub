@@ -210,7 +210,11 @@ public class EnhancedShortTermMemoryTests
     [Fact]
     public async Task ConcurrentAccess_HandlesThreadSafety()
     {
-        // Arrange
+        // Arrange - Use higher capacity for concurrent test
+        var config = new MemoryConfig { MaxEntries = 100, MaxTokens = 10000, PruneBatchSize = 10 };
+        _configMock.Setup(c => c.Value).Returns(config);
+        var memory = new EnhancedShortTermMemory(_configMock.Object, _loggerMock.Object);
+        
         var tasks = new List<Task>();
 
         // Act - Concurrently add entries from multiple tasks
@@ -226,7 +230,7 @@ public class EnhancedShortTermMemoryTests
                         $"Content from task {taskId}, entry {j}",
                         DateTime.UtcNow,
                         new[] { "concurrent", $"task-{taskId}" });
-                    await _memory.StoreAsync(entry).ConfigureAwait(false);
+                    await memory.StoreAsync(entry).ConfigureAwait(false);
                 }
             }));
         }
@@ -234,7 +238,7 @@ public class EnhancedShortTermMemoryTests
         await Task.WhenAll(tasks);
 
         // Assert
-        _memory.CurrentEntryCount.Should().BeGreaterThan(0);
+        memory.CurrentEntryCount.Should().Be(50); // All 50 entries should be stored
         // No exceptions should be thrown during concurrent access
     }
 }

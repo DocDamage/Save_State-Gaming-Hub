@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MediatR;
 using SaveState.Application.Mugen.DTOs;
+using SaveState.Core.Mugen.Entities;
 using SaveState.Core.Mugen.Services;
 using SaveState.Core.Mugen.ValueObjects;
 using SaveState.Presentation.ViewModels.Shell.Mugen;
@@ -53,10 +54,10 @@ public partial class MachineLearningViewModel : MugenSectionViewModelBase
     private string _selectedAlgorithm = "Neural Network";
 
     [ObservableProperty]
-    private MugenCharacterSummaryDto? _character1;
+    private MugenCharacter? _character1;
 
     [ObservableProperty]
-    private MugenCharacterSummaryDto? _character2;
+    private MugenCharacter? _character2;
 
     [ObservableProperty]
     private string _predictionResult = string.Empty;
@@ -68,9 +69,9 @@ public partial class MachineLearningViewModel : MugenSectionViewModelBase
     private string _winnerName = string.Empty;
 
     [ObservableProperty]
-    private TrainingModel? _selectedModel;
+    private SaveState.Core.Mugen.DTOs.TrainingModel? _selectedModel;
 
-    public ObservableCollection<MugenCharacterSummaryDto> AvailableCharacters { get; } = new();
+    public ObservableCollection<MugenCharacter> AvailableCharacters { get; } = new();
     public ObservableCollection<string> Algorithms { get; } = new()
     {
         "Neural Network",
@@ -80,7 +81,7 @@ public partial class MachineLearningViewModel : MugenSectionViewModelBase
         "Gradient Boosting",
         "Deep Learning"
     };
-    public ObservableCollection<TrainingModel> TrainedModels { get; } = new();
+    public ObservableCollection<SaveState.Core.Mugen.DTOs.TrainingModel> TrainedModels { get; } = new();
     public ObservableCollection<TrainingMetric> TrainingMetrics { get; } = new();
     public ObservableCollection<PredictionHistory> PredictionHistoryList { get; } = new();
 
@@ -235,13 +236,15 @@ public partial class MachineLearningViewModel : MugenSectionViewModelBase
 
         try
         {
-            var result = await _predictionEngine.PredictMatchOutcomeAsync(Character1.Id, Character2.Id);
+            var result = await _predictionEngine.PredictMatchAsync(Character1, Character2);
             
             if (result.IsSuccess && result.Value != null)
             {
                 var prediction = result.Value;
-                WinnerName = prediction.PredictedWinnerId == Character1.Id ? Character1.DisplayName : Character2.DisplayName;
-                PredictionConfidence = prediction.Confidence * 100;
+                // Determine winner based on win probabilities
+                var isPlayer1Winner = prediction.WinProbabilityPlayer1 > prediction.WinProbabilityPlayer2;
+                WinnerName = isPlayer1Winner ? Character1.DisplayName : Character2.DisplayName;
+                PredictionConfidence = (isPlayer1Winner ? prediction.WinProbabilityPlayer1 : prediction.WinProbabilityPlayer2) * 100;
                 PredictionResult = $"{WinnerName} is predicted to win with {PredictionConfidence:F1}% confidence.";
                 
                 PredictionHistoryList.Insert(0, new PredictionHistory(

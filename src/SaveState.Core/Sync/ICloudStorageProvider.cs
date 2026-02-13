@@ -1,3 +1,5 @@
+using SaveState.Core.Common;
+
 namespace SaveState.Core.Sync;
 
 /// <summary>
@@ -53,7 +55,7 @@ public interface ICloudStorageProvider
     /// <summary>
     /// Gets file metadata from cloud storage.
     /// </summary>
-    Task<CloudFileInfo?> GetFileInfoAsync(
+    Task<Result<CloudFileInfo>> GetFileInfoAsync(
         string remotePath,
         CancellationToken ct = default);
 

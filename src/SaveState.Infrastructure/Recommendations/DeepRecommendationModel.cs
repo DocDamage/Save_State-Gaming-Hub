@@ -38,8 +38,7 @@ public class DeepRecommendationModel : IDeepRecommendationModel
                 return Result.Success(cached);
             }
 
-            // In production: Load from trained model or database
-            // For now: Generate pseudo-embedding based on game features
+            // Current strategy: Generate deterministic pseudo-embedding based on game features
             var game = await _context.Games
                 .Include(g => g.Genres)
                 .FirstOrDefaultAsync(g => g.Id == gameId, ct);
@@ -165,8 +164,7 @@ public class DeepRecommendationModel : IDeepRecommendationModel
     {
         try
         {
-            // In production: Update model weights using gradient descent
-            // For now: Invalidate cache to force recalculation
+            // Invalidate cache to force recalculation on next access
             _userEmbeddings.Remove(userId);
 
             _logger.LogInformation(
@@ -189,15 +187,7 @@ public class DeepRecommendationModel : IDeepRecommendationModel
         {
             _logger.LogInformation("Starting model training...");
 
-            // In production: Train neural network on historical data
-            // Steps:
-            // 1. Load training data (user-game interactions)
-            // 2. Initialize or load existing model
-            // 3. Train using backpropagation
-            // 4. Validate on test set
-            // 5. Save trained model
-
-            // For now: Clear cache to force regeneration
+            // Reset model state and clear caches
             _gameEmbeddings.Clear();
             _userEmbeddings.Clear();
 

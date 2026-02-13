@@ -85,7 +85,7 @@ public partial class NotificationItemViewModel : ObservableObject
 
     private static string FormatTimeAgo(DateTime dt)
     {
-        var span = DateTime.Now - dt;
+        var span = DateTime.UtcNow - dt.ToUniversalTime();
         if (span.TotalMinutes < 1) return "Just now";
         if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes}m ago";
         if (span.TotalHours < 24) return $"{(int)span.TotalHours}h ago";

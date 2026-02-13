@@ -59,14 +59,12 @@ public class MetadataEnrichmentService : IMetadataEnrichmentService
     public async Task<Result<Platform>> DetectPlatformAsync(string gamePath, CancellationToken ct = default)
     {
         var platformNameResult = _extensionRegistry.DetectPlatformName(gamePath);
-        if (platformNameResult.IsFailure)
+        if (platformNameResult.IsFailure || platformNameResult.Value is null)
         {
-            // Error is guaranteed to be non-null when IsFailure is true
-            return Result.Failure<Platform>(platformNameResult.Error!, platformNameResult.ErrorType);
+            return Result.Failure<Platform>(platformNameResult.Error ?? "Failed to detect platform", platformNameResult.ErrorType);
         }
 
-        // Value is guaranteed to be non-null when IsSuccess is true
-        var platform = await _platformRepository.GetByNameAsync(platformNameResult.Value!, ct).ConfigureAwait(false);
+        var platform = await _platformRepository.GetByNameAsync(platformNameResult.Value, ct).ConfigureAwait(false);
         if (platform is null)
         {
             return Result.Failure<Platform>($"Platform '{platformNameResult.Value}' not found in repository", ErrorType.NotFound);

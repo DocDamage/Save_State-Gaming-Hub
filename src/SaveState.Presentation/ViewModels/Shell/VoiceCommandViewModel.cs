@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Input.Services;
 using SaveState.Core.Input.Services.DTOs;
 using SaveState.Presentation.Services;
@@ -15,6 +16,7 @@ public partial class VoiceCommandViewModel : ObservableObject
 {
     private readonly IVoiceCommandService _voiceCommandService;
     private readonly INotificationService _notificationService;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private bool isListening;
@@ -36,10 +38,12 @@ public partial class VoiceCommandViewModel : ObservableObject
 
     public VoiceCommandViewModel(
         IVoiceCommandService voiceCommandService,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        ITimeProvider timeProvider)
     {
         _voiceCommandService = voiceCommandService;
         _notificationService = notificationService;
+        _timeProvider = timeProvider;
     }
 
     public async Task InitializeAsync()
@@ -176,7 +180,7 @@ public partial class VoiceCommandViewModel : ObservableObject
         var historyEntry = new VoiceCommandHistory(
             RecognizedText: recognizedText,
             Confidence: confidence,
-            Timestamp: DateTime.Now,
+            Timestamp: _timeProvider.Now,
             WasSuccessful: confidence > 0.7f);
 
         CommandHistory.Insert(0, historyEntry);

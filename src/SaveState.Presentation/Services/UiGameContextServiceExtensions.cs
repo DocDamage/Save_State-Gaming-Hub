@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary.Entities;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,10 +17,23 @@ public static class UiGameContextServiceExtensions
         else
         {
             // Fire and forget since we can't await in void property/method easily if it wasn't designed for it
-            // Or ideally, update the interface to match usage. 
+            // Or ideally, update the interface to match usage.
             // The usage in errors suggests synchronous usage: service.SetSelectedGame(game);
             // But the interface has SetCurrentGameAsync.
             _ = service.SetCurrentGameAsync(game);
+        }
+    }
+
+    public static void SetSelectedGame(this IUiGameContextService service, GameId? gameId)
+    {
+        if (gameId == null)
+        {
+            service.ClearCurrentGame();
+        }
+        else
+        {
+            // Store the GameId for context - actual game loading happens elsewhere
+            _ = service.SetCurrentGameIdAsync(gameId.Value);
         }
     }
 
@@ -27,10 +41,10 @@ public static class UiGameContextServiceExtensions
     {
         return service.CurrentGame?.Id;
     }
-    
+
     public static Guid? RunningGameId(this IUiGameContextService service)
     {
-        // Assuming CurrentGame implies running or selected context. 
+        // Assuming CurrentGame implies running or selected context.
         // If there is a separate "Running" concept, it needs to be added to the interface.
         // For now, mapping to CurrentGame to satisfy build.
         return service.CurrentGame?.Id;
@@ -39,5 +53,13 @@ public static class UiGameContextServiceExtensions
     public static void SetRunningGame(this IUiGameContextService service, Game? game)
     {
          if (game != null) _ = service.SetCurrentGameAsync(game);
+    }
+
+    public static void SetRunningGame(this IUiGameContextService service, GameId? gameId)
+    {
+        if (gameId != null)
+        {
+            _ = service.SetCurrentGameIdAsync(gameId.Value);
+        }
     }
 }

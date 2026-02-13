@@ -72,9 +72,9 @@ public class MugenCharacterLoader : IMugenCharacterLoader
             ct.ThrowIfCancellationRequested();
 
             var result = await LoadCharacterFromDefAsync(defFile, ct);
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Value is not null)
             {
-                characters.Add(result.Value!);
+                characters.Add(result.Value);
             }
             else
             {

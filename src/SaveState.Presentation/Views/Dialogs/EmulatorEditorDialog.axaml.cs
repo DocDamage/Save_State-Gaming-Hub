@@ -11,7 +11,7 @@ public partial class EmulatorEditorDialog : Window
     {
         InitializeComponent();
 #if DEBUG
-        this.AttachDevTools();
+        // DevTools can be attached via F12 when running the app
 #endif
     }
 

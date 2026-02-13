@@ -29,9 +29,9 @@ public class ScheduleBackupCommandHandler : IRequestHandler<ScheduleBackupComman
             var result = await _backupScheduler.CreateScheduleAsync(request.Config, ct)
                 .ConfigureAwait(false);
 
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Value is not null)
             {
-                _logger.LogInformation("Scheduled backup: {Name}", result.Value!.Name);
+                _logger.LogInformation("Scheduled backup: {Name}", result.Value.Name);
             }
 
             return result;
@@ -133,9 +133,9 @@ public class GetBackupSchedulesCommandHandler : IRequestHandler<GetBackupSchedul
         {
             var result = await _backupScheduler.GetAllSchedulesAsync(ct).ConfigureAwait(false);
 
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Value is not null)
             {
-                _logger.LogInformation("Retrieved {Count} backup schedules", result.Value!.Count);
+                _logger.LogInformation("Retrieved {Count} backup schedules", result.Value.Count);
             }
 
             return result;
@@ -168,9 +168,9 @@ public class GetBackupScheduleCommandHandler : IRequestHandler<GetBackupSchedule
             var result = await _backupScheduler.GetScheduleAsync(request.ScheduleId, ct)
                 .ConfigureAwait(false);
 
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Value is not null)
             {
-                _logger.LogInformation("Retrieved backup schedule: {Name}", result.Value!.Name);
+                _logger.LogInformation("Retrieved backup schedule: {Name}", result.Value.Name);
             }
 
             return result;
@@ -203,9 +203,9 @@ public class ExecuteBackupCommandHandler : IRequestHandler<ExecuteBackupCommand,
             var result = await _backupScheduler.TriggerBackupAsync(request.ScheduleId, ct)
                 .ConfigureAwait(false);
 
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Value is not null)
             {
-                var backupResult = result.Value!;
+                var backupResult = result.Value;
                 _logger.LogInformation("Backup executed: {Status}, Files: {Files}, Size: {Size} bytes",
                     backupResult.Status, backupResult.FilesBackedUp, backupResult.TotalSizeBytes);
             }
@@ -240,9 +240,9 @@ public class GetBackupHistoryCommandHandler : IRequestHandler<GetBackupHistoryCo
             var result = await _backupScheduler.GetBackupHistoryAsync(request.ScheduleId, request.Since, ct)
                 .ConfigureAwait(false);
 
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Value is not null)
             {
-                _logger.LogInformation("Retrieved {Count} backup history entries", result.Value!.Count);
+                _logger.LogInformation("Retrieved {Count} backup history entries", result.Value.Count);
             }
 
             return result;

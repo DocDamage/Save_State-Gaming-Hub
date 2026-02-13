@@ -1,0 +1,160 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
+        x:Class="SaveState.Presentation.Views.Dialogs.RomDetailsDialog"
+        x:DataType="vm:RomDetailsDialogViewModel"
+        Title="ROM Details"
+        Width="650" Height="600"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        SystemDecorations="None"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        TransparencyLevelHint="Mica"
+        Background="Transparent">
+
+    <Panel>
+        <!-- Background Layer -->
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"
+                    TintColor="#1e1e1e"
+                    TintOpacity="0.9"
+                    MaterialOpacity="0.8" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+
+        <Border BorderBrush="{DynamicResource SurfaceStrokeColorDefault}"
+                BorderThickness="1"
+                CornerRadius="8"
+                ClipToBounds="True">
+
+            <Grid RowDefinitions="Auto, *, Auto">
+                <!-- Header -->
+                <Border Grid.Row="0" Padding="24,16" Background="#2d2d2d">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel VerticalAlignment="Center" Spacing="8">
+                            <TextBlock Text="{Binding RomTitle}"
+                                       FontSize="20" FontWeight="SemiBold"
+                                       Foreground="White"/>
+                            <TextBlock Text="{Binding PlatformName}"
+                                       FontSize="14"
+                                       Foreground="#aaaaaa"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="1" Content="✕"
+                                Command="{Binding CloseCommand}"
+                                Classes="IconButton" FontSize="16"
+                                Margin="0,0,0,0"/>
+                    </Grid>
+                </Border>
+
+                <!-- Main Content -->
+                <ScrollViewer Grid.Row="1" Margin="24,20">
+                    <StackPanel Spacing="20">
+
+                        <!-- ROM Info -->
+                        <Border Classes="GlassContainer" Padding="20">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="📁 File Information" Classes="Subtitle" FontWeight="Bold"/>
+
+                                <Grid ColumnDefinitions="Auto, *, Auto, *">
+                                    <TextBlock Grid.Column="0" Text="File Name:" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding FileName}" Margin="10,0" VerticalAlignment="Center"/>
+
+                                    <TextBlock Grid.Column="2" Text="Size:" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="3" Text="{Binding FileSize}" Margin="10,0" VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <Grid ColumnDefinitions="Auto, *">
+                                    <TextBlock Grid.Column="0" Text="Path:" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding FilePath}" Margin="10,0"
+                                               TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <Grid ColumnDefinitions="Auto, *, Auto, *">
+                                    <TextBlock Grid.Column="0" Text="Status:" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding RomStatus}" Margin="10,0" VerticalAlignment="Center"/>
+
+                                    <TextBlock Grid.Column="2" Text="Last Scanned:" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="3" Text="{Binding LastScanned, StringFormat='{}{0:g}'}" Margin="10,0" VerticalAlignment="Center"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Emulator Selection -->
+                        <Border Classes="GlassContainer" Padding="20">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="🎮 Emulator" Classes="Subtitle" FontWeight="Bold"/>
+
+                                <ComboBox ItemsSource="{Binding AvailableEmulators}"
+                                         SelectedItem="{Binding SelectedEmulator}"
+                                         DisplayMemberBinding="{Binding Name}"
+                                         PlaceholderText="Select emulator to launch with"
+                                         HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Launch Options -->
+                        <Border Classes="GlassContainer" Padding="20">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="🚀 Launch Options" Classes="Subtitle" FontWeight="Bold"/>
+
+                                <CheckBox Content="Fullscreen Mode" IsChecked="{Binding LaunchFullscreen}"/>
+                                <CheckBox Content="Enable VSync" IsChecked="{Binding EnableVSync}"/>
+
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Custom Arguments:" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBox Text="{Binding CustomArguments}"
+                                            Watermark="Additional command line arguments"
+                                            HorizontalAlignment="Stretch"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Platform Info -->
+                        <Border Classes="GlassContainer" Padding="20">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="🎯 Platform Information" Classes="Subtitle" FontWeight="Bold"/>
+
+                                <Grid ColumnDefinitions="Auto, *">
+                                    <TextBlock Grid.Column="0" Text="Platform:" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding PlatformName}" Margin="10,0" VerticalAlignment="Center"/>
+
+                                    <TextBlock Grid.Column="0" Text="File Extensions:" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}" Grid.Row="1"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding FileExtensions}" Margin="10,0" VerticalAlignment="Center" Grid.Row="1"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Footer -->
+                <Border Grid.Row="2" Padding="24,16" Background="#252525"
+                        BorderBrush="{DynamicResource SurfaceStrokeColorDefault}" BorderThickness="0,1,0,0">
+                    <Grid ColumnDefinitions="*, Auto, Auto">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                            <Button Content="🔍 Verify ROM" Command="{Binding VerifyRomCommand}"
+                                   Classes="SecondaryButton"/>
+                            <Button Content="📝 Edit Metadata" Command="{Binding EditMetadataCommand}"
+                                   Classes="SecondaryButton"/>
+                            <Button Content="📚 Import to Library" Command="{Binding ImportToLibraryCommand}"
+                                   Classes="SecondaryButton"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="1" Content="Cancel" Command="{Binding CloseCommand}"
+                               Classes="SecondaryButton"/>
+
+                        <Button Grid.Column="2" Content="🚀 Launch ROM" Command="{Binding LaunchRomCommand}"
+                               Classes="PrimaryButton" IsEnabled="{Binding CanLaunch}"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Panel>
+</Window>

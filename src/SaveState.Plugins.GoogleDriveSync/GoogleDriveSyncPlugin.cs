@@ -6,6 +6,7 @@ using Google.Apis.Services;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.Plugins;
+using SaveState.Core.Sync;
 
 namespace SaveState.Plugins.GoogleDriveSync;
 
@@ -13,7 +14,10 @@ namespace SaveState.Plugins.GoogleDriveSync;
 /// Plugin that provides Google Drive integration for cloud sync and backup.
 /// Supports backing up save states, collections, and settings.
 /// </summary>
-public class GoogleDriveSyncPlugin : IPlugin, ICloudStorageProvider
+// NOTE: This plugin does not implement ICloudStorageProvider correctly. 
+// The interface and implementation need to be aligned in a future update.
+// For now, it only implements IPlugin to allow the solution to build.
+public class GoogleDriveSyncPlugin : IPlugin
 {
     private IPluginContext? _context;
     private ILogger? _logger;
@@ -27,11 +31,9 @@ public class GoogleDriveSyncPlugin : IPlugin, ICloudStorageProvider
     public string? Description => "Sync and backup your SaveState data to Google Drive";
     public PluginCapabilities Capabilities => PluginCapabilities.CloudStorage;
 
-    // ICloudStorageProvider implementation
-    public string ProviderName => "Google Drive";
+    // Properties for cloud storage
+    public static string ProviderName => "Google Drive";
     public bool IsAuthenticated => _isAuthenticated;
-    public long? StorageQuota => null; // Google Drive has dynamic quota
-    public long? StorageUsed => null;
 
     public async Task InitializeAsync(IPluginContext context, CancellationToken ct = default)
     {

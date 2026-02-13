@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Analytics.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Infrastructure.Persistence;
 
@@ -14,13 +15,16 @@ public class BacklogAnalyticsService : IBacklogAnalyticsService
 {
     private readonly SaveStateDbContext _dbContext;
     private readonly ILogger<BacklogAnalyticsService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public BacklogAnalyticsService(
         SaveStateDbContext dbContext,
-        ILogger<BacklogAnalyticsService> logger)
+        ILogger<BacklogAnalyticsService> logger,
+        ITimeProvider? timeProvider = null)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
     }
 
     public async Task<Result<BacklogBurndownAnalysis>> GetBurndownAnalysisAsync(
@@ -38,16 +42,16 @@ public class BacklogAnalyticsService : IBacklogAnalyticsService
                 .Include(b => b.Game)
                 .ToListAsync(ct);
 
-            var startDate = DateTime.Now.AddMonths(-monthsBack);
+            var startDate = _timeProvider.Now.AddMonths(-monthsBack);
             var dataPoints = new List<BacklogDataPoint>();
 
             // Calculate data points based on granularity
             var periods = granularity switch
             {
-                BacklogGranularity.Daily => GenerateDailyPeriods(startDate, DateTime.Now),
-                BacklogGranularity.Weekly => GenerateWeeklyPeriods(startDate, DateTime.Now),
-                BacklogGranularity.Monthly => GenerateMonthlyPeriods(startDate, DateTime.Now),
-                _ => GenerateWeeklyPeriods(startDate, DateTime.Now)
+                BacklogGranularity.Daily => GenerateDailyPeriods(startDate, _timeProvider.Now),
+                BacklogGranularity.Weekly => GenerateWeeklyPeriods(startDate, _timeProvider.Now),
+                BacklogGranularity.Monthly => GenerateMonthlyPeriods(startDate, _timeProvider.Now),
+                _ => GenerateWeeklyPeriods(startDate, _timeProvider.Now)
             };
 
             int previousBacklog = 0;
@@ -130,11 +134,11 @@ public class BacklogAnalyticsService : IBacklogAnalyticsService
                 .Include(b => b.Game)
                 .ToListAsync(ct);
 
-            var startDate = DateTime.Now.AddMonths(-monthsBack);
+            var startDate = _timeProvider.Now.AddMonths(-monthsBack);
             var historicalRates = new List<CompletionRateDataPoint>();
 
             // Calculate monthly completion rates
-            var periods = GenerateMonthlyPeriods(startDate, DateTime.Now);
+            var periods = GenerateMonthlyPeriods(startDate, _timeProvider.Now);
 
             foreach (var periodStart in periods)
             {
@@ -195,7 +199,7 @@ public class BacklogAnalyticsService : IBacklogAnalyticsService
         {
             _logger.LogInformation("Calculating backlog velocity over {Weeks} weeks", weeks);
 
-            var cutoffDate = DateTime.Now.AddDays(-weeks * 7);
+            var cutoffDate = _timeProvider.Now.AddDays(-weeks * 7);
 
             var backlogEntries = await _dbContext.BacklogEntries
                 .Include(b => b.Game)
@@ -320,7 +324,7 @@ public class BacklogAnalyticsService : IBacklogAnalyticsService
         if (velocityPerWeek <= 0 || currentBacklog <= 0) return null;
 
         var weeksToComplete = currentBacklog / velocityPerWeek;
-        return DateTime.Now.AddDays(weeksToComplete * 7);
+        return _timeProvider.Now.AddDays(weeksToComplete * 7);
     }
 
     private (TrendDirection direction, double strength) CalculateTrend(List<BacklogDataPoint> dataPoints)

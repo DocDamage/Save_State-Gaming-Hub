@@ -1,0 +1,187 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="550"
+        x:Class="SaveState.Presentation.Views.Dialogs.EmulatorConfigDialog"
+        x:DataType="vm:EmulatorConfigDialogViewModel"
+        Title="{Binding DialogTitle}"
+        Width="650" Height="600"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        SystemDecorations="None"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        TransparencyLevelHint="Mica"
+        Background="Transparent">
+
+    <Panel>
+        <!-- Background Layer -->
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"
+                    TintColor="#1e1e1e"
+                    TintOpacity="0.9"
+                    MaterialOpacity="0.8" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+
+        <Border BorderBrush="{DynamicResource SurfaceStrokeColorDefault}"
+                BorderThickness="1"
+                CornerRadius="8"
+                ClipToBounds="True">
+
+            <Grid RowDefinitions="Auto, *, Auto">
+                <!-- Header -->
+                <Border Grid.Row="0" Padding="24,16" Background="#2d2d2d">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel VerticalAlignment="Center" Spacing="8">
+                            <TextBlock Text="{Binding DialogTitle}"
+                                       FontSize="20" FontWeight="SemiBold"
+                                       Foreground="White"/>
+                            <TextBlock Text="{Binding EmulatorName, StringFormat='Configure {0}'}"
+                                       FontSize="14"
+                                       Foreground="#aaaaaa"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="1" Content="✕"
+                                Command="{Binding CloseCommand}"
+                                Classes="IconButton" FontSize="16"
+                                Margin="0,0,0,0"/>
+                    </Grid>
+                </Border>
+
+                <!-- Main Content -->
+                <ScrollViewer Grid.Row="1" Margin="24,20">
+                    <StackPanel Spacing="20">
+
+                        <!-- Basic Information -->
+                        <Border Classes="GlassContainer" Padding="20">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="📋 Basic Information" Classes="Subtitle" FontWeight="Bold"/>
+
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Name:" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBox Text="{Binding Name}"
+                                            Watermark="Enter emulator name"
+                                            HorizontalAlignment="Stretch"/>
+                                </StackPanel>
+
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Platform:" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <ComboBox ItemsSource="{Binding AvailablePlatforms}"
+                                             SelectedItem="{Binding SelectedPlatform}"
+                                             DisplayMemberBinding="{Binding Name}"
+                                             PlaceholderText="Select platform"
+                                             HorizontalAlignment="Stretch"/>
+                                </StackPanel>
+
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Version:" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBox Text="{Binding Version}"
+                                            Watermark="Enter version (optional)"
+                                            HorizontalAlignment="Stretch"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Executable Configuration -->
+                        <Border Classes="GlassContainer" Padding="20">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="⚙️ Executable Configuration" Classes="Subtitle" FontWeight="Bold"/>
+
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Executable Path:" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <Grid ColumnDefinitions="*, Auto">
+                                        <TextBox Grid.Column="0" Text="{Binding ExecutablePath}"
+                                                Watermark="Select emulator executable"
+                                                IsReadOnly="True"
+                                                HorizontalAlignment="Stretch"/>
+                                        <Button Grid.Column="1" Content="Browse..."
+                                                Command="{Binding BrowseExecutableCommand}"
+                                                Classes="SecondaryButton" Margin="8,0,0,0"/>
+                                    </Grid>
+                                </StackPanel>
+
+                                <Border Classes="GlassContainer" Padding="12" Background="#1a2a1a">
+                                    <Grid ColumnDefinitions="Auto, *">
+                                        <TextBlock Grid.Column="0" Text="{Binding ExecutableStatusIcon}"
+                                                  FontSize="16" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding ExecutableStatusMessage}"
+                                                  Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Launch Configuration -->
+                        <Border Classes="GlassContainer" Padding="20">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="🚀 Launch Configuration" Classes="Subtitle" FontWeight="Bold"/>
+
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Command Line Arguments:" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBox Text="{Binding CommandLineArgs}"
+                                            Watermark="Additional arguments (e.g., -L cores/snes9x_libretro.dll)"
+                                            AcceptsReturn="True"
+                                            TextWrapping="Wrap"
+                                            Height="60"
+                                            HorizontalAlignment="Stretch"/>
+                                    <TextBlock Text="Use {ROM} placeholder for ROM file path"
+                                              Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}" Opacity="0.7"/>
+                                </StackPanel>
+
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Description:" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBox Text="{Binding Description}"
+                                            Watermark="Optional description"
+                                            AcceptsReturn="True"
+                                            TextWrapping="Wrap"
+                                            Height="40"
+                                            HorizontalAlignment="Stretch"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Validation Messages -->
+                        <Border Classes="GlassContainer" Padding="15"
+                               IsVisible="{Binding HasValidationErrors}" Background="#2a1a1a">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="❌ Validation Errors" FontWeight="Bold" Foreground="#ff6b6b"/>
+                                <ItemsControl ItemsSource="{Binding ValidationErrors}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" Foreground="#ff6b6b" FontSize="12"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Footer -->
+                <Border Grid.Row="2" Padding="24,16" Background="#252525"
+                        BorderBrush="{DynamicResource SurfaceStrokeColorDefault}" BorderThickness="0,1,0,0">
+                    <Grid ColumnDefinitions="Auto, *, Auto, Auto">
+                        <Button Grid.Column="0" Content="Test Launch"
+                               Command="{Binding TestLaunchCommand}"
+                               Classes="SecondaryButton"
+                               IsEnabled="{Binding CanTestLaunch}"/>
+
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12">
+                            <Button Content="Cancel" Command="{Binding CloseCommand}"
+                                   Classes="SecondaryButton"/>
+
+                            <Button Content="{Binding SaveButtonText}" Command="{Binding SaveCommand}"
+                                   Classes="PrimaryButton" IsEnabled="{Binding CanSave}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Panel>
+</Window>

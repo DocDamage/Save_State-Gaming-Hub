@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Constants;
 using System.Collections.Generic;
 
 namespace SaveState.Infrastructure.Streaming;
@@ -46,9 +47,7 @@ public class StreamingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to connect Twitch account: {Username}", username);
-            return Result.Failure<StreamingAccount>(
-                $"Connection failed: {ex.Message}",
-                ErrorType.External);
+            return Result.Failure<StreamingAccount>(ErrorMessages.OperationFailed, ErrorType.External);
         }
     }
 
@@ -84,9 +83,7 @@ public class StreamingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to start stream: {StreamTitle}", streamTitle);
-            return Result.Failure<LiveStream>(
-                $"Stream start failed: {ex.Message}",
-                ErrorType.External);
+            return Result.Failure<LiveStream>(ErrorMessages.OperationFailed, ErrorType.External);
         }
     }
 
@@ -101,7 +98,7 @@ public class StreamingService
         {
             if (!_liveStreams.TryGetValue(streamId, out var stream))
             {
-                return Result.Failure("Stream not found", ErrorType.Validation);
+                return Result.Failure(ErrorMessages.StreamNotFound, ErrorType.Validation);
             }
 
             _logger.LogInformation("Stopping stream: {StreamId}", streamId);
@@ -114,7 +111,7 @@ public class StreamingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to stop stream: {StreamId}", streamId);
-            return Result.Failure($"Stream stop failed: {ex.Message}", ErrorType.External);
+            return Result.Failure(ErrorMessages.OperationFailed, ErrorType.External);
         }
     }
 
@@ -129,9 +126,7 @@ public class StreamingService
         {
             if (!_liveStreams.TryGetValue(streamId, out var stream))
             {
-                return Result.Failure<StreamStatistics>(
-                    "Stream not found",
-                    ErrorType.Validation);
+                return Result.Failure<StreamStatistics>(ErrorMessages.StreamNotFound, ErrorType.Validation);
             }
 
             var stats = new StreamStatistics(

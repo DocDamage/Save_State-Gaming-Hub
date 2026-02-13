@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.Performance.Services;
 using SaveState.Presentation.Services;
@@ -19,6 +20,7 @@ public partial class GamePerformanceTabViewModel : ObservableObject
     private readonly IMediator _mediator;
     private readonly IPerformanceMonitor _performanceMonitor;
     private readonly ILogger<GamePerformanceTabViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
     private GameId? _currentGameId;
 
     [ObservableProperty]
@@ -45,11 +47,13 @@ public partial class GamePerformanceTabViewModel : ObservableObject
     public GamePerformanceTabViewModel(
         IMediator mediator,
         IPerformanceMonitor performanceMonitor,
-        ILogger<GamePerformanceTabViewModel> logger)
+        ILogger<GamePerformanceTabViewModel> logger,
+        ITimeProvider timeProvider)
     {
         _mediator = mediator;
         _performanceMonitor = performanceMonitor;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task LoadDataAsync(GameId gameId)
@@ -60,8 +64,8 @@ public partial class GamePerformanceTabViewModel : ObservableObject
         // Simulate loading performance profiles/history
         await Task.Delay(100);
 
-        PerformanceLogs.Add($"[{DateTime.Now:HH:mm:ss}] Session monitoring initialized.");
-        PerformanceLogs.Add($"[{DateTime.Now:HH:mm:ss}] Applied performance profile: 'Gaming High Performance'");
+        PerformanceLogs.Add($"[{_timeProvider.Now:HH:mm:ss}] Session monitoring initialized.");
+        PerformanceLogs.Add($"[{_timeProvider.Now:HH:mm:ss}] Applied performance profile: 'Gaming High Performance'");
     }
 
     [RelayCommand]
@@ -70,14 +74,14 @@ public partial class GamePerformanceTabViewModel : ObservableObject
         IsOptimizing = true;
         _logger.LogInformation("Optimizing system performance for {GameId}", _currentGameId);
 
-        PerformanceLogs.Add($"[{DateTime.Now:HH:mm:ss}] Optimization started...");
+        PerformanceLogs.Add($"[{_timeProvider.Now:HH:mm:ss}] Optimization started...");
 
         // Use IPerformanceMonitor or other services here
         await Task.Delay(1500); // Simulate work
 
-        PerformanceLogs.Add($"[{DateTime.Now:HH:mm:ss}] CPU affinity adjusted.");
-        PerformanceLogs.Add($"[{DateTime.Now:HH:mm:ss}] RAM cleaned (450 MB freed).");
-        PerformanceLogs.Add($"[{DateTime.Now:HH:mm:ss}] Optimization complete.");
+        PerformanceLogs.Add($"[{_timeProvider.Now:HH:mm:ss}] CPU affinity adjusted.");
+        PerformanceLogs.Add($"[{_timeProvider.Now:HH:mm:ss}] RAM cleaned (450 MB freed).");
+        PerformanceLogs.Add($"[{_timeProvider.Now:HH:mm:ss}] Optimization complete.");
 
         IsOptimizing = false;
     }

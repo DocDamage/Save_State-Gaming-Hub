@@ -65,11 +65,10 @@ public class GameValidationService : IGameValidationService
 
         // Check if main executable exists
         var mainExecutableResult = await GetMainExecutablePathAsync(game, ct).ConfigureAwait(false);
-        if (mainExecutableResult.IsFailure)
+        if (mainExecutableResult.IsFailure || mainExecutableResult.Value is null)
             return false;
 
-        // Value is guaranteed to be non-null when IsSuccess is true
-        return await _fileSystem.FileExistsAsync(mainExecutableResult.Value!, ct).ConfigureAwait(false);
+        return await _fileSystem.FileExistsAsync(mainExecutableResult.Value, ct).ConfigureAwait(false);
     }
 
     private async Task<Result<string>> GetMainExecutablePathAsync(Game game, CancellationToken ct)
@@ -83,9 +82,9 @@ public class GameValidationService : IGameValidationService
         if (platformType == PlatformType.Computer || (game.InstallPath != null && game.InstallPath.Contains(":")))
         {
             var result = await FindPcExecutableAsync(game.InstallPath!, ct).ConfigureAwait(false);
-            return result.IsSuccess
-                ? Result.Success<string>(result.Value!)
-                : Result.Failure<string>($"No executable found for PC game '{game.Title}'", ErrorType.NotFound);
+            if (!result.IsSuccess || result.Value is null)
+                return Result.Failure<string>($"No executable found for PC game '{game.Title}'", ErrorType.NotFound);
+            return Result.Success<string>(result.Value);
         }
 
         return Result.Failure<string>($"Platform type '{platformType}' is not supported for executable detection", ErrorType.Validation);

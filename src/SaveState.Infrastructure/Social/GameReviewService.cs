@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Constants;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Services;
@@ -60,14 +61,14 @@ public class GameReviewService : IGameReviewService
             var game = await _gameRepository.GetByIdAsync(GameId.From(gameId), ct);
             if (game is null)
             {
-                return Result.Failure<GameReview>("Game not found", ErrorType.NotFound);
+                return Result.Failure<GameReview>(ErrorMessages.GameNotFound, ErrorType.NotFound);
             }
 
             // Check if review already exists
             var existingReview = await _reviewRepository.GetByGameIdAsync(gameId, ct);
             if (existingReview is not null)
             {
-                return Result.Failure<GameReview>("Review already exists for this game", ErrorType.Conflict);
+                return Result.Failure<GameReview>(ErrorMessages.AlreadyExists, ErrorType.Conflict);
             }
 
             // Get playtime if not provided
@@ -88,7 +89,7 @@ public class GameReviewService : IGameReviewService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create review for game {GameId}", gameId);
-            return Result.Failure<GameReview>("Failed to create review", ErrorType.Internal);
+            return Result.Failure<GameReview>(ErrorMessages.CreateFailed, ErrorType.Internal);
         }
     }
 
@@ -115,7 +116,7 @@ public class GameReviewService : IGameReviewService
             var review = await _reviewRepository.GetByIdAsync(reviewId, ct);
             if (review is null)
             {
-                return Result.Failure<GameReview>("Review not found", ErrorType.NotFound);
+                return Result.Failure<GameReview>(ErrorMessages.ReviewNotFound, ErrorType.NotFound);
             }
 
             review.Update(rating, title, content, containsSpoilers);
@@ -129,7 +130,7 @@ public class GameReviewService : IGameReviewService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update review {ReviewId}", reviewId);
-            return Result.Failure<GameReview>("Failed to update review", ErrorType.Internal);
+            return Result.Failure<GameReview>(ErrorMessages.UpdateFailed, ErrorType.Internal);
         }
     }
 
@@ -146,7 +147,7 @@ public class GameReviewService : IGameReviewService
             var review = await _reviewRepository.GetByIdAsync(reviewId, ct);
             if (review is null)
             {
-                return Result.Failure<GameReview>("Review not found", ErrorType.NotFound);
+                return Result.Failure<GameReview>(ErrorMessages.ReviewNotFound, ErrorType.NotFound);
             }
 
             return Result.Success<GameReview>(review);
@@ -154,7 +155,7 @@ public class GameReviewService : IGameReviewService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get review {ReviewId}", reviewId);
-            return Result.Failure<GameReview>("Failed to get review", ErrorType.Internal);
+            return Result.Failure<GameReview>(ErrorMessages.OperationFailed, ErrorType.Internal);
         }
     }
 
@@ -174,7 +175,7 @@ public class GameReviewService : IGameReviewService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get review for game {GameId}", gameId);
-            return Result.Failure<GameReview?>("Failed to get game review", ErrorType.Internal);
+            return Result.Failure<GameReview?>(ErrorMessages.OperationFailed, ErrorType.Internal);
         }
     }
 
@@ -211,7 +212,7 @@ public class GameReviewService : IGameReviewService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get reviews");
-            return Result.Failure<PagedResult<GameReview>>("Failed to get reviews", ErrorType.Internal);
+            return Result.Failure<PagedResult<GameReview>>(ErrorMessages.OperationFailed, ErrorType.Internal);
         }
     }
 
@@ -240,7 +241,7 @@ public class GameReviewService : IGameReviewService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to delete review {ReviewId}", reviewId);
-            return Result.Failure("Failed to delete review", ErrorType.Internal);
+            return Result.Failure(ErrorMessages.DeleteFailed, ErrorType.Internal);
         }
     }
 
@@ -262,7 +263,7 @@ public class GameReviewService : IGameReviewService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get review statistics");
-            return Result.Failure<GameReviewStatistics>("Failed to get statistics", ErrorType.Internal);
+            return Result.Failure<GameReviewStatistics>(ErrorMessages.OperationFailed, ErrorType.Internal);
         }
     }
 }

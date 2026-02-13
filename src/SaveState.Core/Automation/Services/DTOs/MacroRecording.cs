@@ -5,7 +5,7 @@ namespace SaveState.Core.Automation.Services.DTOs;
 /// </summary>
 public sealed record MacroRecordingSession(
     Guid Id,
-    Guid GameId,
+    Guid? GameId,
     string Name,
     string Description,
     RecordingMode Mode,

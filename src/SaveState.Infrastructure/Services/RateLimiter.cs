@@ -193,6 +193,34 @@ public class RateLimiter : IRateLimiter
             {
                 MaxRequests = _options.Operations.ProcessAiRequest.MaxRequests,
                 WindowDuration = TimeSpan.FromMinutes(_options.Operations.ProcessAiRequest.WindowMinutes)
+            },
+
+            // Google Cloud Speech-to-Text - stricter for cost management
+            ["GoogleCloudSpeech"] = new RateLimitRule
+            {
+                MaxRequests = _options.Operations.GoogleCloudSpeech.MaxRequests,
+                WindowDuration = TimeSpan.FromMinutes(_options.Operations.GoogleCloudSpeech.WindowMinutes)
+            },
+
+            // Google Cloud Vision - moderate rate limiting
+            ["GoogleCloudVision"] = new RateLimitRule
+            {
+                MaxRequests = _options.Operations.GoogleCloudVision.MaxRequests,
+                WindowDuration = TimeSpan.FromMinutes(_options.Operations.GoogleCloudVision.WindowMinutes)
+            },
+
+            // Google Cloud Translation - higher limits
+            ["GoogleCloudTranslation"] = new RateLimitRule
+            {
+                MaxRequests = _options.Operations.GoogleCloudTranslation.MaxRequests,
+                WindowDuration = TimeSpan.FromMinutes(_options.Operations.GoogleCloudTranslation.WindowMinutes)
+            },
+
+            // Google Cloud Storage - moderate rate limiting
+            ["GoogleCloudStorage"] = new RateLimitRule
+            {
+                MaxRequests = _options.Operations.GoogleCloudStorage.MaxRequests,
+                WindowDuration = TimeSpan.FromMinutes(_options.Operations.GoogleCloudStorage.WindowMinutes)
             }
         };
     }

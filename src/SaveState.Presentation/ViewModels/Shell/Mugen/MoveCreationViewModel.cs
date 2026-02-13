@@ -2,11 +2,13 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MediatR;
-using SaveState.Application.Mugen.DTOs;
 using SaveState.Core.Mugen.Services;
+using SaveState.Core.Mugen.DTOs;
 using SaveState.Core.Mugen.ValueObjects;
 using SaveState.Presentation.ViewModels.Shell.Mugen;
 using SaveState.Presentation.Services;
+// Use DTOs as canonical type - MugenMoveEntryDto has all properties (MoveName, Type, Damage, etc.)
+using MugenMoveEntry = SaveState.Core.Mugen.DTOs.MugenMoveEntryDto;
 
 namespace SaveState.Presentation.ViewModels.Shell.Mugen;
 
@@ -72,16 +74,16 @@ public partial class MoveCreationViewModel : MugenSectionViewModelBase
     private string _validationMessage = string.Empty;
 
     [ObservableProperty]
-    private MugenCharacterSummaryDto? _selectedCharacter;
+    private MugenCharacterSummary? _selectedCharacter;
 
     [ObservableProperty]
     private MugenMoveEntry? _selectedMove;
 
-    public ObservableCollection<MugenCharacterSummaryDto> AvailableCharacters { get; } = new();
+    public ObservableCollection<MugenCharacterSummary> AvailableCharacters { get; } = new();
     public ObservableCollection<MugenMoveEntry> ExistingMoves { get; } = new();
-    public ObservableCollection<string> MoveTypes { get; } = new() 
-    { 
-        "Normal", "Special", "Super", "Hyper", "Throw", "Counter", "Projectile" 
+    public ObservableCollection<string> MoveTypes { get; } = new()
+    {
+        "Normal", "Special", "Super", "Hyper", "Throw", "Counter", "Projectile"
     };
     public ObservableCollection<string> PropertyOptions { get; } = new()
     {
@@ -126,7 +128,7 @@ public partial class MoveCreationViewModel : MugenSectionViewModelBase
         }
     }
 
-    partial void OnSelectedCharacterChanged(MugenCharacterSummaryDto? value)
+    partial void OnSelectedCharacterChanged(MugenCharacterSummary? value)
     {
         if (value != null)
         {
@@ -219,7 +221,7 @@ public partial class MoveCreationViewModel : MugenSectionViewModelBase
             );
 
             var result = await _moveCreationService.CreateMoveAsync(SelectedCharacter.Id, moveData);
-            
+
             if (result.IsSuccess)
             {
                 ValidationMessage = $"Move '{MoveName}' created successfully!";
@@ -276,7 +278,7 @@ public partial class MoveCreationViewModel : MugenSectionViewModelBase
             );
 
             var result = await _moveCreationService.UpdateMoveAsync(SelectedCharacter.Id, SelectedMove.MoveName, moveData);
-            
+
             if (result.IsSuccess)
             {
                 ValidationMessage = $"Move '{MoveName}' updated successfully!";
@@ -314,7 +316,7 @@ public partial class MoveCreationViewModel : MugenSectionViewModelBase
         try
         {
             var result = await _moveCreationService.DeleteMoveAsync(SelectedCharacter.Id, SelectedMove.MoveName);
-            
+
             if (result.IsSuccess)
             {
                 ValidationMessage = $"Move '{SelectedMove.MoveName}' deleted successfully!";
@@ -373,7 +375,7 @@ public partial class MoveCreationViewModel : MugenSectionViewModelBase
             );
 
             var result = await _moveCreationService.TestMoveAsync(SelectedCharacter.Id, moveData);
-            
+
             if (result.IsSuccess)
             {
                 ValidationMessage = result.Value ?? "Move test completed successfully!";
@@ -420,6 +422,12 @@ public partial class MoveCreationViewModel : MugenSectionViewModelBase
     [RelayCommand]
     private async Task ExportMoveAsync()
     {
+        if (SelectedCharacter == null)
+        {
+            ValidationMessage = "Please select a character first.";
+            return;
+        }
+
         if (SelectedMove == null)
         {
             ValidationMessage = "Please select a move to export.";
@@ -428,8 +436,8 @@ public partial class MoveCreationViewModel : MugenSectionViewModelBase
 
         try
         {
-            var result = await _moveCreationService.ExportMoveAsync(SelectedCharacter!.Id, SelectedMove.MoveName);
-            
+            var result = await _moveCreationService.ExportMoveAsync(SelectedCharacter.Id, SelectedMove.MoveName);
+
             if (result.IsSuccess)
             {
                 ValidationMessage = $"Move exported to: {result.Value}";

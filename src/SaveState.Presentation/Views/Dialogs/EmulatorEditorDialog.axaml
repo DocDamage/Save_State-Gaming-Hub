@@ -63,8 +63,8 @@
 
                 <!-- Command Line Arguments -->
                 <TextBlock Text="Command Line Template" Classes="label"/>
-                <TextBox Text="{Binding CommandLineTemplate}" 
-                         Watermark='{ROM_PATH}'
+                <TextBox Text="{Binding CommandLineTemplate}"
+                         Watermark="e.g. --rom {ROM_PATH}"
                          AcceptsReturn="True"
                          Height="60"/>
                 <TextBlock Text="Use {ROM_PATH} as placeholder for ROM file path" 

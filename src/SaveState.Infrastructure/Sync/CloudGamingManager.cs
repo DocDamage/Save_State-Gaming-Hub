@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Constants;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.Configuration;
 using SaveState.Core.GameLibrary;
@@ -16,28 +17,35 @@ public class CloudGamingManager : ICloudGamingManager
 {
     private readonly IGameRepository _gameRepository;
     private readonly INetworkQualityMonitor _networkQualityMonitor;
+    private readonly ICloudCatalogService _cloudCatalogService;
     private readonly ILogger<CloudGamingManager> _logger;
     private readonly CloudGamingOptions _options;
 
     // In-memory storage for active sessions (can be replaced with repository)
     private readonly Dictionary<Guid, CloudSession> _activeSessions = new();
 
+    // User overrides for cloud availability (gameId -> provider -> isAvailable)
+    private readonly Dictionary<Guid, Dictionary<CloudGamingProvider, bool>> _userCloudOverrides = new();
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CloudGamingManager"/> class.
     /// </summary>
     /// <param name="gameRepository">Repository for accessing game data.</param>
     /// <param name="networkQualityMonitor">Service for monitoring network quality.</param>
+    /// <param name="cloudCatalogService">Service for cloud gaming catalog lookups.</param>
     /// <param name="options">Cloud gaming configuration options.</param>
     /// <param name="logger">Logger for diagnostic information.</param>
     /// <exception cref="ArgumentNullException">Thrown when any parameter is null.</exception>
     public CloudGamingManager(
         IGameRepository gameRepository,
         INetworkQualityMonitor networkQualityMonitor,
+        ICloudCatalogService cloudCatalogService,
         IOptions<CloudGamingOptions> options,
         ILogger<CloudGamingManager> logger)
     {
         _gameRepository = gameRepository;
         _networkQualityMonitor = networkQualityMonitor;
+        _cloudCatalogService = cloudCatalogService;
         _options = options.Value;
         _logger = logger;
 
@@ -137,8 +145,7 @@ public class CloudGamingManager : ICloudGamingManager
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get available cloud gaming providers");
-            return Result.Failure<IReadOnlyList<CloudGamingProvider>>(
-                $"Failed to get providers: {ex.Message}");
+            return Result.Failure<IReadOnlyList<CloudGamingProvider>>(ErrorMessages.OperationFailed);
         }
     }
 
@@ -151,7 +158,7 @@ public class CloudGamingManager : ICloudGamingManager
     {
         if (!_options.Enabled)
         {
-            return Result.Failure("Cloud gaming is disabled in configuration. Enable it in appsettings.json under CloudGaming:Enabled");
+            return Result.Failure($"{ErrorMessages.CloudGaming}: {ErrorMessages.FeatureNotEnabled}. Enable it in appsettings.json under {ConfigurationKeys.CloudGamingEnabled}");
         }
 
         switch (provider)
@@ -159,7 +166,7 @@ public class CloudGamingManager : ICloudGamingManager
             case CloudGamingProvider.GeForceNow:
                 if (!_options.GeForceNow.Enabled)
                 {
-                    return Result.Failure("GeForce NOW is not enabled. Set CloudGaming:GeForceNow:Enabled to true");
+                    return Result.Failure($"{ErrorMessages.CloudProviderNotEnabled}. Set {ConfigurationKeys.GeForceNowEnabled} to true");
                 }
                 // GeForce NOW doesn't require API key for basic usage
                 return Result.Success();
@@ -167,11 +174,11 @@ public class CloudGamingManager : ICloudGamingManager
             case CloudGamingProvider.XboxCloud:
                 if (!_options.XboxCloud.Enabled)
                 {
-                    return Result.Failure("Xbox Cloud Gaming is not enabled. Set CloudGaming:XboxCloud:Enabled to true");
+                    return Result.Failure($"{ErrorMessages.CloudProviderNotEnabled}. Set {ConfigurationKeys.XboxCloudEnabled} to true");
                 }
                 if (string.IsNullOrEmpty(_options.XboxCloud.AccountEmail))
                 {
-                    return Result.Failure("Xbox Cloud Gaming requires an account email. Set CloudGaming:XboxCloud:AccountEmail");
+                    return Result.Failure($"{ErrorMessages.CloudProviderNotConfigured}. Set {ConfigurationKeys.XboxCloudAccountEmail}");
                 }
                 if (!_options.XboxCloud.HasGamePassUltimate)
                 {
@@ -182,22 +189,22 @@ public class CloudGamingManager : ICloudGamingManager
             case CloudGamingProvider.AmazonLuna:
                 if (!_options.AmazonLuna.Enabled)
                 {
-                    return Result.Failure("Amazon Luna is not enabled. Set CloudGaming:AmazonLuna:Enabled to true");
+                    return Result.Failure($"{ErrorMessages.CloudProviderNotEnabled}. Set {ConfigurationKeys.AmazonLunaEnabled} to true");
                 }
                 if (string.IsNullOrEmpty(_options.AmazonLuna.ApiKey))
                 {
-                    return Result.Failure("Amazon Luna requires an API key. Set CloudGaming:AmazonLuna:ApiKey or use environment variable AMAZON_LUNA_API_KEY");
+                    return Result.Failure($"{ErrorMessages.CloudProviderNotConfigured}. Set {ConfigurationKeys.AmazonLunaApiKey} or use environment variable {EnvironmentVariables.AmazonLunaApiKey}");
                 }
                 return Result.Success();
 
             case CloudGamingProvider.PlayStationNow:
                 if (!_options.PlayStationNow.Enabled)
                 {
-                    return Result.Failure("PlayStation Now is not enabled. Set CloudGaming:PlayStationNow:Enabled to true");
+                    return Result.Failure($"{ErrorMessages.CloudProviderNotEnabled}. Set {ConfigurationKeys.PlayStationNowEnabled} to true");
                 }
                 if (string.IsNullOrEmpty(_options.PlayStationNow.AccountId))
                 {
-                    return Result.Failure("PlayStation Now requires an account ID. Set CloudGaming:PlayStationNow:AccountId");
+                    return Result.Failure($"{ErrorMessages.CloudProviderNotConfigured}. Set {ConfigurationKeys.PlayStationNowAccountId}");
                 }
                 return Result.Success();
 
@@ -206,7 +213,7 @@ public class CloudGamingManager : ICloudGamingManager
                 return Result.Success();
 
             default:
-                return Result.Failure($"Unknown cloud gaming provider: {provider}");
+                return Result.Failure($"{ErrorMessages.InvalidValue}: {provider}");
         }
     }
 
@@ -238,7 +245,7 @@ public class CloudGamingManager : ICloudGamingManager
 
             if (game == null)
             {
-                return Result.Failure<CloudSession>($"Game with ID {gameId} not found");
+                return Result.Failure<CloudSession>(ErrorMessages.GameNotFound);
             }
 
             // Check if game is available on the provider
@@ -420,6 +427,7 @@ public class CloudGamingManager : ICloudGamingManager
 
     /// <summary>
     /// Checks if a game is available for streaming on the specified cloud gaming provider.
+    /// Uses a multi-tier lookup strategy: user override → Steam ID catalog → title catalog → heuristic fallback.
     /// </summary>
     /// <param name="gameId">The unique identifier of the game.</param>
     /// <param name="provider">The cloud gaming provider to check.</param>
@@ -432,6 +440,15 @@ public class CloudGamingManager : ICloudGamingManager
     {
         try
         {
+            // Tier 0: Check user override first (highest priority)
+            if (_userCloudOverrides.TryGetValue(gameId, out var providerOverrides) &&
+                providerOverrides.TryGetValue(provider, out var userOverride))
+            {
+                _logger.LogDebug("Game {GameId} availability on {Provider}: {Available} (user override)",
+                    gameId, provider, userOverride);
+                return Result.Success(userOverride);
+            }
+
             // Verify game exists
             var game = await _gameRepository.GetByIdAsync(GameId.From(gameId), ct)
                 .ConfigureAwait(false);
@@ -441,20 +458,146 @@ public class CloudGamingManager : ICloudGamingManager
                 return Result.Failure<bool>($"Game with ID {gameId} not found");
             }
 
-            // Placeholder logic - in a real implementation, this would query the provider's API
-            // For now, assume major games are available on major providers
-            var isAvailable = IsGameLikelyAvailableOnProvider(game.Title, provider);
+            string gameTitle = game.Title;
 
-            _logger.LogDebug("Game '{Title}' availability on {Provider}: {Available}",
-                game.Title, provider, isAvailable);
+            // Tier 1: Try Steam App ID lookup for more accurate results
+            if (game.Source == "Steam" && int.TryParse(game.SourceId, out var steamAppId) && steamAppId > 0)
+            {
+                var steamResult = await _cloudCatalogService.IsGameAvailableOnProviderBySteamIdAsync(
+                    steamAppId, provider, ct).ConfigureAwait(false);
 
-            return Result.Success<bool>(isAvailable);
+                if (steamResult.IsSuccess)
+                {
+                    _logger.LogDebug("Game '{Title}' (Steam:{SteamId}) availability on {Provider}: {Available} (from catalog by Steam ID)",
+                        gameTitle, steamAppId, provider, steamResult.Value);
+                    return steamResult;
+                }
+            }
+
+            // Tier 2: Check the cloud catalog by game title
+            var catalogResult = await _cloudCatalogService.IsGameAvailableOnProviderAsync(
+                gameTitle, provider, ct).ConfigureAwait(false);
+
+            if (catalogResult.IsSuccess)
+            {
+                _logger.LogDebug("Game '{Title}' availability on {Provider}: {Available} (from catalog by title)",
+                    gameTitle, provider, catalogResult.Value);
+                return catalogResult;
+            }
+
+            // Tier 3: Fallback to heuristic if all catalog lookups failed
+            _logger.LogWarning("All catalog lookups failed for '{Title}', using fallback heuristic", gameTitle);
+            var isAvailable = IsGameLikelyAvailableOnProvider(gameTitle, provider);
+
+            _logger.LogDebug("Game '{Title}' availability on {Provider}: {Available} (heuristic fallback)",
+                gameTitle, provider, isAvailable);
+
+            return Result.Success(isAvailable);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to check game availability for game {GameId} on {Provider}",
                 gameId, provider);
             return Result.Failure<bool>($"Failed to check availability: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Sets a user override for cloud gaming availability.
+    /// This allows users to manually mark games as available or unavailable on specific providers.
+    /// </summary>
+    /// <param name="gameId">The unique identifier of the game.</param>
+    /// <param name="provider">The cloud gaming provider.</param>
+    /// <param name="isAvailable">Whether the game is available on the provider.</param>
+    /// <returns>A result indicating success.</returns>
+    public Result SetCloudAvailabilityOverride(
+        Guid gameId,
+        CloudGamingProvider provider,
+        bool isAvailable)
+    {
+        try
+        {
+            if (!_userCloudOverrides.TryGetValue(gameId, out var providerOverrides))
+            {
+                providerOverrides = new Dictionary<CloudGamingProvider, bool>();
+                _userCloudOverrides[gameId] = providerOverrides;
+            }
+
+            providerOverrides[provider] = isAvailable;
+
+            _logger.LogInformation("Set cloud availability override for game {GameId} on {Provider}: {Available}",
+                gameId, provider, isAvailable);
+
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to set cloud availability override for game {GameId}", gameId);
+            return Result.Failure($"Failed to set override: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Clears a user override for cloud gaming availability.
+    /// </summary>
+    /// <param name="gameId">The unique identifier of the game.</param>
+    /// <param name="provider">The cloud gaming provider, or null to clear all overrides for the game.</param>
+    /// <returns>A result indicating success.</returns>
+    public Result ClearCloudAvailabilityOverride(
+        Guid gameId,
+        CloudGamingProvider? provider = null)
+    {
+        try
+        {
+            if (!_userCloudOverrides.TryGetValue(gameId, out var providerOverrides))
+            {
+                return Result.Success(); // Nothing to clear
+            }
+
+            if (provider.HasValue)
+            {
+                providerOverrides.Remove(provider.Value);
+                _logger.LogInformation("Cleared cloud availability override for game {GameId} on {Provider}",
+                    gameId, provider.Value);
+            }
+            else
+            {
+                _userCloudOverrides.Remove(gameId);
+                _logger.LogInformation("Cleared all cloud availability overrides for game {GameId}", gameId);
+            }
+
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to clear cloud availability override for game {GameId}", gameId);
+            return Result.Failure($"Failed to clear override: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Gets all user overrides for cloud gaming availability for a specific game.
+    /// </summary>
+    /// <param name="gameId">The unique identifier of the game.</param>
+    /// <returns>A result containing a dictionary of provider overrides, or empty if none exist.</returns>
+    public Result<IReadOnlyDictionary<CloudGamingProvider, bool>> GetCloudAvailabilityOverrides(Guid gameId)
+    {
+        try
+        {
+            if (_userCloudOverrides.TryGetValue(gameId, out var providerOverrides))
+            {
+                return Result.Success<IReadOnlyDictionary<CloudGamingProvider, bool>>(
+                    new Dictionary<CloudGamingProvider, bool>(providerOverrides));
+            }
+
+            return Result.Success<IReadOnlyDictionary<CloudGamingProvider, bool>>(
+                new Dictionary<CloudGamingProvider, bool>());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get cloud availability overrides for game {GameId}", gameId);
+            return Result.Failure<IReadOnlyDictionary<CloudGamingProvider, bool>>(
+                $"Failed to get overrides: {ex.Message}");
         }
     }
 

@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Input.Services;
 
 namespace SaveState.Infrastructure.Input;
@@ -7,11 +8,17 @@ namespace SaveState.Infrastructure.Input;
 public class TouchController : ITouchController
 {
     private readonly Dictionary<Guid, TouchProfile> _profiles = new();
+    private readonly ITimeProvider _timeProvider;
     private TouchCalibrationData? _calibrationData;
     private bool _isCalibrated;
 
     public event EventHandler<TouchGestureEventArgs>? GestureDetected;
     public event EventHandler<TouchCalibrationEventArgs>? CalibrationCompleted;
+
+    public TouchController(ITimeProvider timeProvider)
+    {
+        _timeProvider = timeProvider;
+    }
 
     public bool IsCalibrated => _isCalibrated && _calibrationData != null;
 
@@ -22,7 +29,7 @@ public class TouchController : ITouchController
             var profile = new TouchProfile(
                 Id: Guid.NewGuid(),
                 GameId: gameId,
-                Name: $"Touch Profile - {DateTime.Now:yyyy-MM-dd HH:mm}",
+                Name: $"Touch Profile - {_timeProvider.Now:yyyy-MM-dd HH:mm}",
                 Config: config,
                 CalibrationData: _calibrationData ?? GetDefaultCalibrationData(),
                 CreatedAt: DateTime.UtcNow);

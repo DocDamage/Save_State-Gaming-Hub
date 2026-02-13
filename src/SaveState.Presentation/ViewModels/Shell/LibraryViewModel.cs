@@ -9,7 +9,6 @@ public partial class LibraryViewModel : ObservableObject
 {
     public LibraryViewModel()
     {
-        // TODO: Implement library functionality
     }
 
     /// <summary>

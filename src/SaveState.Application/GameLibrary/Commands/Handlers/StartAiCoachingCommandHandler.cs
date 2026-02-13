@@ -2,7 +2,9 @@ namespace SaveState.Application.GameLibrary.Commands.Handlers;
 
 using MediatR;
 using SaveState.Core.Common;
+using SaveState.Core.GameLibrary.Models.AiCoach;
 using SaveState.Core.GameLibrary.Services;
+using SkillLevel = SaveState.Core.GameLibrary.Models.AiCoach.SkillLevel;
 
 /// <summary>
 /// Handler for starting AI coaching sessions.

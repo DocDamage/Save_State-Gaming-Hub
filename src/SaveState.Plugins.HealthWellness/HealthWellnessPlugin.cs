@@ -1,4 +1,6 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Plugins;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -41,6 +43,13 @@ public class HealthWellnessPlugin : IPlugin
     {
         _context = context;
         _logger = context.Logger;
+
+        // Set time provider for session tracker
+        var timeProvider = context.Services.GetService<ITimeProvider>();
+        if (timeProvider != null)
+        {
+            _sessionTracker.SetTimeProvider(timeProvider);
+        }
 
         _logger.LogInformation("Initializing Gaming Health & Wellness plugin");
 
@@ -596,6 +605,12 @@ public class SessionTracker
 {
     private DateTime? _currentSessionStart;
     private readonly List<GamingSession> _sessions = new();
+    private ITimeProvider _timeProvider = null!;
+
+    public void SetTimeProvider(ITimeProvider timeProvider)
+    {
+        _timeProvider = timeProvider;
+    }
 
     public async Task InitializeAsync(CancellationToken ct = default)
     {
@@ -604,18 +619,19 @@ public class SessionTracker
 
     public async Task StartSessionAsync()
     {
-        _currentSessionStart = DateTime.Now;
+        _currentSessionStart = _timeProvider.Now;
     }
 
     public async Task<GamingSession?> EndSessionAsync()
     {
         if (!_currentSessionStart.HasValue) return null;
 
+        var now = _timeProvider.Now;
         var session = new GamingSession
         {
             StartTime = _currentSessionStart.Value,
-            EndTime = DateTime.Now,
-            Duration = DateTime.Now - _currentSessionStart.Value
+            EndTime = now,
+            Duration = now - _currentSessionStart.Value
         };
 
         _sessions.Add(session);
@@ -628,10 +644,11 @@ public class SessionTracker
     {
         if (!_currentSessionStart.HasValue) return null;
 
+        var now = _timeProvider.Now;
         return new GamingSession
         {
             StartTime = _currentSessionStart.Value,
-            Duration = DateTime.Now - _currentSessionStart.Value
+            Duration = now - _currentSessionStart.Value
         };
     }
 

@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SaveState.Core.Common.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace SaveState.Presentation.ViewModels.BigPicture;
 public partial class BigPictureShellViewModel : ObservableObject, IDisposable
 {
     [ObservableProperty]
-    private DateTime currentTime = DateTime.Now;
+    private DateTime currentTime;
 
     [ObservableProperty]
     private string statusText = "Ready";
@@ -18,10 +19,10 @@ public partial class BigPictureShellViewModel : ObservableObject, IDisposable
     private string nowPlayingText = "";
 
     [ObservableProperty]
-    private GameGridViewModel gameGridViewModel = new();
+    private GameGridViewModel gameGridViewModel;
 
     [ObservableProperty]
-    private GameDetailViewModel gameDetailViewModel = new();
+    private GameDetailViewModel gameDetailViewModel;
 
     [ObservableProperty]
     private LaunchExperienceViewModel? launchExperience;
@@ -36,11 +37,16 @@ public partial class BigPictureShellViewModel : ObservableObject, IDisposable
     private bool isTaskOverlayVisible;
 
     private readonly System.Timers.Timer _timer;
+    private readonly ITimeProvider _timeProvider;
 
-    public BigPictureShellViewModel()
+    public BigPictureShellViewModel(ITimeProvider timeProvider)
     {
+        _timeProvider = timeProvider;
+        currentTime = timeProvider.Now;
+        gameGridViewModel = new GameGridViewModel(timeProvider);
+        gameDetailViewModel = new GameDetailViewModel(timeProvider);
         _timer = new System.Timers.Timer(1000);
-        _timer.Elapsed += (s, e) => CurrentTime = DateTime.Now;
+        _timer.Elapsed += (s, e) => CurrentTime = _timeProvider.Now;
         _timer.Start();
 
         GameGridViewModel.GameSelected += OnGameSelected;

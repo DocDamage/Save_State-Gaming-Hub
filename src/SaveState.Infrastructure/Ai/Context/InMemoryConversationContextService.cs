@@ -60,10 +60,10 @@ public sealed class InMemoryConversationContextService : IConversationContextSer
     public async Task<Result> AddMessageAsync(string sessionId, ChatMessage message, CancellationToken ct = default)
     {
         var contextResult = await GetOrCreateContextAsync(sessionId, ct);
-        if (contextResult.IsFailure)
-            return Result.Failure(contextResult.Error!);
+        if (contextResult.IsFailure || contextResult.Value is null)
+            return Result.Failure(contextResult.Error ?? "Failed to get or create context");
 
-        contextResult.Value!.AddMessage(message);
+        contextResult.Value.AddMessage(message);
         _logger.LogInformation("Added {Role} message to session {SessionId}", message.Role, sessionId);
         return Result.Success();
     }
@@ -71,10 +71,10 @@ public sealed class InMemoryConversationContextService : IConversationContextSer
     public async Task<Result<IReadOnlyList<ChatMessage>>> GetHistoryAsync(string sessionId, CancellationToken ct = default)
     {
         var contextResult = await GetOrCreateContextAsync(sessionId, ct);
-        if (contextResult.IsFailure)
-            return Result.Failure<IReadOnlyList<ChatMessage>>(contextResult.Error!);
+        if (contextResult.IsFailure || contextResult.Value is null)
+            return Result.Failure<IReadOnlyList<ChatMessage>>(contextResult.Error ?? "Failed to get or create context");
 
-        return Result.Success<IReadOnlyList<ChatMessage>>(contextResult.Value!.Messages);
+        return Result.Success<IReadOnlyList<ChatMessage>>(contextResult.Value.Messages);
     }
 
     public Task<Result> ClearSessionAsync(string sessionId, CancellationToken ct = default)

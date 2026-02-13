@@ -35,6 +35,21 @@ public interface IMugenRosterService
     /// Removes a character from the roster.
     /// </summary>
     Task<Result> RemoveCharacterAsync(string characterId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Loads the roster from the select.def file.
+    /// </summary>
+    Task<Result<MugenRoster>> LoadRosterAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets the path to the select.def file.
+    /// </summary>
+    string? GetSelectDefPath();
+
+    /// <summary>
+    /// Saves the roster to the select.def file.
+    /// </summary>
+    Task<Result> SaveRosterAsync(MugenRoster roster, CancellationToken ct = default);
 }
 
 /// <summary>

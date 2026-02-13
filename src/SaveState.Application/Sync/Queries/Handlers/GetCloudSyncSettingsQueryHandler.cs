@@ -19,11 +19,20 @@ public class GetCloudSyncSettingsQueryHandler : IRequestHandler<GetCloudSyncSett
         var autoSyncOnExit = await _preferencesService.GetAutoSyncOnExitAsync(cancellationToken);
         var onedriveClientId = await _preferencesService.GetCloudClientIdAsync("OneDrive", cancellationToken);
         var googledriveClientId = await _preferencesService.GetCloudClientIdAsync("Google Drive", cancellationToken);
+        var backgroundFailureAlertsEnabled =
+            await _preferencesService.GetBackgroundSyncFailureAlertsEnabledAsync(cancellationToken);
+        var backgroundConflictAlertsEnabled =
+            await _preferencesService.GetBackgroundSyncConflictAlertsEnabledAsync(cancellationToken);
+        var backgroundAlertCooldownSeconds =
+            await _preferencesService.GetBackgroundSyncAlertCooldownSecondsAsync(cancellationToken);
 
         return Result<CloudSyncSettingsDto>.Success(new CloudSyncSettingsDto(
             preferredProvider,
             autoSyncOnExit,
             onedriveClientId,
-            googledriveClientId));
+            googledriveClientId,
+            backgroundFailureAlertsEnabled,
+            backgroundConflictAlertsEnabled,
+            backgroundAlertCooldownSeconds));
     }
 }

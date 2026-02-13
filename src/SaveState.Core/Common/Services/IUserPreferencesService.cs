@@ -33,4 +33,13 @@ public interface IUserPreferencesService
 
     Task<string> GetCloudClientIdAsync(string provider, CancellationToken ct = default);
     Task SetCloudClientIdAsync(string provider, string clientId, CancellationToken ct = default);
+
+    Task<bool> GetBackgroundSyncFailureAlertsEnabledAsync(CancellationToken ct = default);
+    Task SetBackgroundSyncFailureAlertsEnabledAsync(bool enabled, CancellationToken ct = default);
+
+    Task<bool> GetBackgroundSyncConflictAlertsEnabledAsync(CancellationToken ct = default);
+    Task SetBackgroundSyncConflictAlertsEnabledAsync(bool enabled, CancellationToken ct = default);
+
+    Task<int> GetBackgroundSyncAlertCooldownSecondsAsync(CancellationToken ct = default);
+    Task SetBackgroundSyncAlertCooldownSecondsAsync(int cooldownSeconds, CancellationToken ct = default);
 }

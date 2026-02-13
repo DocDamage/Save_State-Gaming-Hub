@@ -202,10 +202,8 @@ public partial class LibrarySidebarViewModel : ObservableObject
         var filter = SmartFilters.FirstOrDefault(f => f.Id == filterId);
         if (filter == null || SelectedSmartFilter == filter) return;
 
-        _selectedCollection = null;
-        OnPropertyChanged(nameof(SelectedCollection));
-        _selectedPlatform = null;
-        OnPropertyChanged(nameof(SelectedPlatform));
+        SelectedCollection = null;
+        SelectedPlatform = null;
 
         SelectedSmartFilter = filter;
         FilterChanged?.Invoke(this, EventArgs.Empty);
@@ -216,10 +214,8 @@ public partial class LibrarySidebarViewModel : ObservableObject
         var collection = Collections.FirstOrDefault(c => c.Id == collectionId.ToString());
         if (collection == null || SelectedCollection == collection) return;
 
-        _selectedSmartFilter = null;
-        OnPropertyChanged(nameof(SelectedSmartFilter));
-        _selectedPlatform = null;
-        OnPropertyChanged(nameof(SelectedPlatform));
+        SelectedSmartFilter = null;
+        SelectedPlatform = null;
 
         SelectedCollection = collection;
         FilterChanged?.Invoke(this, EventArgs.Empty);
@@ -230,10 +226,8 @@ public partial class LibrarySidebarViewModel : ObservableObject
         var platform = Platforms.FirstOrDefault(p => p.Id == platformId);
         if (platform == null || SelectedPlatform == platform) return;
 
-        _selectedSmartFilter = null;
-        OnPropertyChanged(nameof(SelectedSmartFilter));
-        _selectedCollection = null;
-        OnPropertyChanged(nameof(SelectedCollection));
+        SelectedSmartFilter = null;
+        SelectedCollection = null;
 
         SelectedPlatform = platform;
         FilterChanged?.Invoke(this, EventArgs.Empty);

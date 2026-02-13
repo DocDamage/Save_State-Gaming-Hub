@@ -1,6 +1,8 @@
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Plugins;
 
 namespace SaveState.Plugins.Themes;
@@ -13,6 +15,7 @@ public class AdvancedThemesPlugin : IPlugin, ITheme
 {
     private IPluginContext? _context;
     private ILogger? _logger;
+    private ITimeProvider _timeProvider = null!;
     private ThemeInfo? _currentTheme;
     private readonly Dictionary<string, ThemeInfo> _availableThemes;
 
@@ -26,8 +29,6 @@ public class AdvancedThemesPlugin : IPlugin, ITheme
     // ITheme implementation
     public string ThemeName => _currentTheme?.Name ?? "Default";
     public string DisplayName => _currentTheme?.DisplayName ?? "Default Theme";
-    public string Author => "SaveState Team";
-    public string Version => "1.0.0";
 
     public AdvancedThemesPlugin()
     {
@@ -38,6 +39,7 @@ public class AdvancedThemesPlugin : IPlugin, ITheme
     {
         _context = context;
         _logger = context.Logger;
+        _timeProvider = context.Services.GetRequiredService<ITimeProvider>();
 
         _logger.LogInformation("Initializing Advanced Themes plugin");
 
@@ -90,7 +92,7 @@ public class AdvancedThemesPlugin : IPlugin, ITheme
     public Task ShutdownAsync(CancellationToken ct = default)
     {
         _logger?.LogInformation("Shutting down Advanced Themes plugin");
-        return Task.CompletedTask();
+        return Task.CompletedTask;
     }
 
     // ITheme implementation
@@ -263,7 +265,7 @@ public class AdvancedThemesPlugin : IPlugin, ITheme
             // Morning/Afternoon: Light theme
             // Evening/Night: Dark+ theme
 
-            var currentHour = DateTime.Now.Hour;
+            var currentHour = _timeProvider.Now.Hour;
 
             if (currentHour >= 6 && currentHour < 18) // Daytime
             {

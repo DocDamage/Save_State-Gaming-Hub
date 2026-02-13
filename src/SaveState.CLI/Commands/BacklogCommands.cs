@@ -37,13 +37,13 @@ public class BacklogCommands : CommandGroupBase
             }
 
             var result = await Mediator.Send(new GetBacklogQuery(Status: statusFilter)).ConfigureAwait(false);
-            if (!result.IsSuccess)
+            if (!result.IsSuccess || result.Value is null)
             {
-                AnsiConsole.MarkupLine($"[red]Error: {result.Error}[/]");
+                AnsiConsole.MarkupLine($"[red]Error: {result.Error ?? "Unknown error"}[/]");
                 return;
             }
 
-            var backlog = result.Value!;
+            var backlog = result.Value;
             if (!backlog.Items.Any())
             {
                 AnsiConsole.MarkupLine($"[yellow]No backlog entries found.[/]");
@@ -138,13 +138,13 @@ public class BacklogCommands : CommandGroupBase
         goalsListCommand.SetHandler(async () =>
         {
             var result = await Mediator.Send(new GetActiveGoalsQuery()).ConfigureAwait(false);
-            if (!result.IsSuccess)
+            if (!result.IsSuccess || result.Value is null)
             {
-                AnsiConsole.MarkupLine($"[red]Error: {result.Error}[/]");
+                AnsiConsole.MarkupLine($"[red]Error: {result.Error ?? "Unknown error"}[/]");
                 return;
             }
 
-            var goals = result.Value!;
+            var goals = result.Value;
             if (!goals.Any())
             {
                 AnsiConsole.MarkupLine($"[yellow]No active goals found.[/]");

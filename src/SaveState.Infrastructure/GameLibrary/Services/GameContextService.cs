@@ -45,10 +45,14 @@ public partial class GameContextService : IGameContextService
             LogNoLastPlayedGame(_logger);
             return null;
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             LogGetLastPlayedFailed(_logger, ex);
             return null;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
     }
 

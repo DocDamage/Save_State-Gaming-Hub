@@ -1,0 +1,203 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Retro CRT Theme Colors -->
+    <Style>
+        <Style.Resources>
+            <!-- CRT Green Phosphor -->
+            <Color x:Key="CRTGreen">#00FF41</Color>
+            <Color x:Key="CRTGreenDim">#00AA2B</Color>
+            <Color x:Key="CRTGreenBright">#66FF88</Color>
+
+            <!-- CRT Amber (Alternative) -->
+            <Color x:Key="CRTAmber">#FFAA00</Color>
+            <Color x:Key="CRTAmberDim">#CC8800</Color>
+
+            <!-- Background -->
+            <Color x:Key="CRTBackground">#0A0A0A</Color>
+            <Color x:Key="CRTBackgroundLight">#1A1A1A</Color>
+
+            <!-- Scanline Effect -->
+            <SolidColorBrush x:Key="ScanlineBrush" Color="#10000000" />
+
+            <!-- Glow Effect -->
+            <SolidColorBrush x:Key="PhosphorGlow" Color="#4000FF41" />
+        </Style.Resources>
+    </Style>
+
+    <!-- Base Window Style -->
+    <Style Selector="Window">
+        <Setter Property="Background" Value="{DynamicResource CRTBackground}" />
+        <Setter Property="FontFamily" Value="Consolas, Courier New, monospace" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <!-- Text Styles with Phosphor Glow -->
+    <Style Selector="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource CRTGreen}" />
+        <Setter Property="Effect">
+            <DropShadowEffect Color="{DynamicResource CRTGreen}"
+                              BlurRadius="8"
+                              OffsetX="0"
+                              OffsetY="0"
+                              Opacity="0.6" />
+        </Setter>
+    </Style>
+
+    <!-- Headers with Brighter Glow -->
+    <Style Selector="TextBlock.h1">
+        <Setter Property="Foreground" Value="{DynamicResource CRTGreenBright}" />
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Effect">
+            <DropShadowEffect Color="{DynamicResource CRTGreenBright}"
+                              BlurRadius="12"
+                              OffsetX="0"
+                              OffsetY="0"
+                              Opacity="0.8" />
+        </Setter>
+    </Style>
+
+    <!-- Button Styles -->
+    <Style Selector="Button">
+        <Setter Property="Background" Value="{DynamicResource CRTBackgroundLight}" />
+        <Setter Property="Foreground" Value="{DynamicResource CRTGreen}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CRTGreen}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="FontFamily" Value="Consolas, monospace" />
+        <Setter Property="Effect">
+            <DropShadowEffect Color="{DynamicResource CRTGreen}"
+                              BlurRadius="6"
+                              OffsetX="0"
+                              OffsetY="0"
+                              Opacity="0.4" />
+        </Setter>
+    </Style>
+
+    <Style Selector="Button:pointerover">
+        <Setter Property="Background" Value="{DynamicResource CRTGreen}" />
+        <Setter Property="Foreground" Value="{DynamicResource CRTBackground}" />
+        <Setter Property="Effect">
+            <DropShadowEffect Color="{DynamicResource CRTGreenBright}"
+                              BlurRadius="10"
+                              OffsetX="0"
+                              OffsetY="0"
+                              Opacity="0.8" />
+        </Setter>
+    </Style>
+
+    <!-- TextBox Styles -->
+    <Style Selector="TextBox">
+        <Setter Property="Background" Value="{DynamicResource CRTBackgroundLight}" />
+        <Setter Property="Foreground" Value="{DynamicResource CRTGreen}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CRTGreenDim}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CaretBrush" Value="{DynamicResource CRTGreenBright}" />
+        <Setter Property="SelectionBrush" Value="{DynamicResource CRTGreen}" />
+        <Setter Property="SelectionForegroundBrush" Value="{DynamicResource CRTBackground}" />
+    </Style>
+
+    <!-- ListBox Styles -->
+    <Style Selector="ListBox">
+        <Setter Property="Background" Value="{DynamicResource CRTBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CRTGreen}" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
+    <Style Selector="ListBoxItem">
+        <Setter Property="Foreground" Value="{DynamicResource CRTGreen}" />
+        <Setter Property="Padding" Value="8,4" />
+    </Style>
+
+    <Style Selector="ListBoxItem:selected">
+        <Setter Property="Background" Value="{DynamicResource CRTGreen}" />
+        <Setter Property="Foreground" Value="{DynamicResource CRTBackground}" />
+    </Style>
+
+    <Style Selector="ListBoxItem:pointerover">
+        <Setter Property="Background" Value="{DynamicResource CRTGreenDim}" />
+        <Setter Property="Foreground" Value="{DynamicResource CRTBackground}" />
+    </Style>
+
+    <!-- Border Styles -->
+    <Style Selector="Border.crt-panel">
+        <Setter Property="Background" Value="{DynamicResource CRTBackgroundLight}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CRTGreen}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="12" />
+        <Setter Property="Effect">
+            <DropShadowEffect Color="{DynamicResource CRTGreen}"
+                              BlurRadius="8"
+                              OffsetX="0"
+                              OffsetY="0"
+                              Opacity="0.3" />
+        </Setter>
+    </Style>
+
+    <!-- Scanline Overlay Effect (Optional) -->
+    <Style Selector="Grid.scanlines">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="Transparent" Offset="0" />
+                <GradientStop Color="#10000000" Offset="0.5" />
+                <GradientStop Color="Transparent" Offset="1" />
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="IsHitTestVisible" Value="False" />
+    </Style>
+
+    <!-- ScrollBar Styles -->
+    <Style Selector="ScrollBar">
+        <Setter Property="Background" Value="{DynamicResource CRTBackgroundLight}" />
+    </Style>
+
+    <Style Selector="ScrollBar:vertical /template/ Thumb">
+        <Setter Property="Background" Value="{DynamicResource CRTGreenDim}" />
+    </Style>
+
+    <Style Selector="ScrollBar:horizontal /template/ Thumb">
+        <Setter Property="Background" Value="{DynamicResource CRTGreenDim}" />
+    </Style>
+
+    <!-- ProgressBar Styles -->
+    <Style Selector="ProgressBar">
+        <Setter Property="Background" Value="{DynamicResource CRTBackgroundLight}" />
+        <Setter Property="Foreground" Value="{DynamicResource CRTGreen}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CRTGreen}" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
+    <!-- CheckBox Styles -->
+    <Style Selector="CheckBox">
+        <Setter Property="Foreground" Value="{DynamicResource CRTGreen}" />
+    </Style>
+
+    <!-- RadioButton Styles -->
+    <Style Selector="RadioButton">
+        <Setter Property="Foreground" Value="{DynamicResource CRTGreen}" />
+    </Style>
+
+    <!-- ComboBox Styles -->
+    <Style Selector="ComboBox">
+        <Setter Property="Background" Value="{DynamicResource CRTBackgroundLight}" />
+        <Setter Property="Foreground" Value="{DynamicResource CRTGreen}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CRTGreen}" />
+    </Style>
+
+    <!-- Menu Styles -->
+    <Style Selector="Menu">
+        <Setter Property="Background" Value="{DynamicResource CRTBackground}" />
+    </Style>
+
+    <Style Selector="MenuItem">
+        <Setter Property="Foreground" Value="{DynamicResource CRTGreen}" />
+    </Style>
+
+    <Style Selector="MenuItem:selected">
+        <Setter Property="Background" Value="{DynamicResource CRTGreen}" />
+        <Setter Property="Foreground" Value="{DynamicResource CRTBackground}" />
+    </Style>
+
+</Styles>

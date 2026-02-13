@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary;
 using System.Collections.ObjectModel;
 
@@ -13,17 +14,20 @@ public partial class ActivityFeedWidget : WidgetBase
     private readonly IGameSessionRepository _sessionRepository;
     private readonly IAchievementRepository _achievementRepository;
     private readonly IGameRepository _gameRepository;
+    private readonly ITimeProvider _timeProvider;
 
     public ActivityFeedWidget(
         IGameSessionRepository sessionRepository,
         IAchievementRepository achievementRepository,
         IGameRepository gameRepository,
-        ILogger<ActivityFeedWidget> logger)
+        ILogger<ActivityFeedWidget> logger,
+        ITimeProvider timeProvider)
         : base(logger)
     {
         _sessionRepository = sessionRepository;
         _achievementRepository = achievementRepository;
         _gameRepository = gameRepository;
+        _timeProvider = timeProvider;
         Activities = new ObservableCollection<ActivityItem>();
     }
 
@@ -124,7 +128,7 @@ public record ActivityItem(string Message, DateTime Timestamp, ActivityType Type
 
     private static string GetTimeAgo(DateTime timestamp)
     {
-        var timeSpan = DateTime.Now - timestamp;
+        var timeSpan = DateTime.UtcNow - timestamp.ToUniversalTime();
 
         if (timeSpan.TotalMinutes < 1)
             return "Just now";

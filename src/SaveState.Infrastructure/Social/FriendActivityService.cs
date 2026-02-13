@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Constants;
 using SaveState.Core.Social;
 using SaveState.Core.Social.Entities;
 using SaveState.Core.Social.Services;
@@ -49,7 +50,7 @@ public class FriendActivityService : IFriendActivityService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get activity feed");
-            return Result.Failure<IReadOnlyList<FriendActivity>>("Failed to get activity feed", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<FriendActivity>>(ErrorMessages.OperationFailed, ErrorType.Internal);
         }
     }
 
@@ -68,7 +69,7 @@ public class FriendActivityService : IFriendActivityService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get friends");
-            return Result.Failure<IReadOnlyList<Friend>>("Failed to get friends", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<Friend>>(ErrorMessages.OperationFailed, ErrorType.Internal);
         }
     }
 
@@ -87,7 +88,7 @@ public class FriendActivityService : IFriendActivityService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get online friends");
-            return Result.Failure<IReadOnlyList<Friend>>("Failed to get online friends", ErrorType.Internal);
+            return Result.Failure<IReadOnlyList<Friend>>(ErrorMessages.OperationFailed, ErrorType.Internal);
         }
     }
 
@@ -103,11 +104,11 @@ public class FriendActivityService : IFriendActivityService
             _logger.LogInformation("Starting Discord friends sync");
 
             // Check if Discord integration is configured
-            var discordToken = Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN");
+            var discordToken = Environment.GetEnvironmentVariable(EnvironmentVariables.DiscordBotToken);
             if (string.IsNullOrEmpty(discordToken))
             {
                 _logger.LogWarning("Discord bot token not configured. Skipping Discord sync.");
-                return Result.Failure("Discord integration not configured. Please set DISCORD_BOT_TOKEN environment variable.", ErrorType.External);
+                return Result.Failure(ErrorMessages.DiscordNotConfigured, ErrorType.External);
             }
 
             // Note: Proper Discord API integration requires:
@@ -131,7 +132,7 @@ public class FriendActivityService : IFriendActivityService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to sync Discord friends");
-            return Result.Failure("Failed to sync Discord friends", ErrorType.Internal);
+            return Result.Failure(ErrorMessages.OperationFailed, ErrorType.Internal);
         }
     }
 
@@ -147,19 +148,19 @@ public class FriendActivityService : IFriendActivityService
             _logger.LogInformation("Starting Steam friends sync");
 
             // Check if Steam API key is configured
-            var steamApiKey = Environment.GetEnvironmentVariable("STEAM_API_KEY");
+            var steamApiKey = Environment.GetEnvironmentVariable(EnvironmentVariables.SteamApiKey);
             if (string.IsNullOrEmpty(steamApiKey))
             {
                 _logger.LogWarning("Steam API key not configured. Skipping Steam sync.");
-                return Result.Failure("Steam integration not configured. Please set STEAM_API_KEY environment variable.", ErrorType.External);
+                return Result.Failure(ErrorMessages.SteamNotConfigured, ErrorType.External);
             }
 
             // Check if user's Steam ID is available
-            var steamId = Environment.GetEnvironmentVariable("USER_STEAM_ID");
+            var steamId = Environment.GetEnvironmentVariable(EnvironmentVariables.UserSteamId);
             if (string.IsNullOrEmpty(steamId))
             {
                 _logger.LogWarning("User Steam ID not configured.");
-                return Result.Failure("User Steam ID not configured. Please set USER_STEAM_ID environment variable.", ErrorType.External);
+                return Result.Failure(string.Format("{0}. Please set {1} environment variable.", ErrorMessages.NotConfigured, EnvironmentVariables.UserSteamId), ErrorType.External);
             }
 
             // Note: Proper Steam API integration uses:
@@ -183,7 +184,7 @@ public class FriendActivityService : IFriendActivityService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to sync Steam friends");
-            return Result.Failure("Failed to sync Steam friends", ErrorType.Internal);
+            return Result.Failure(ErrorMessages.OperationFailed, ErrorType.Internal);
         }
     }
 
@@ -208,7 +209,7 @@ public class FriendActivityService : IFriendActivityService
             var friend = await _friendRepository.GetByPlatformIdAsync(SocialPlatform.Discord, friendId.ToString(), ct);
             if (friend is null)
             {
-                return Result.Failure("Friend not found", ErrorType.NotFound);
+                return Result.Failure(ErrorMessages.FriendNotFound, ErrorType.NotFound);
             }
 
             var activity = FriendActivity.Create(
@@ -228,7 +229,7 @@ public class FriendActivityService : IFriendActivityService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to record activity for friend {FriendId}", friendId);
-            return Result.Failure("Failed to record activity", ErrorType.Internal);
+            return Result.Failure(ErrorMessages.OperationFailed, ErrorType.Internal);
         }
     }
 

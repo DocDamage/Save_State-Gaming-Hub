@@ -45,13 +45,13 @@ public class CoachingCommands : CommandGroupBase
                     ctx.Spinner(Spinner.Known.Dots);
 
                     var result = await coachService.AnalyzeReplayAsync(replayPath).ConfigureAwait(false);
-                    if (!result.IsSuccess)
+                    if (!result.IsSuccess || result.Value is null)
                     {
-                        AnsiConsole.MarkupLine($"[red]Error: {result.Error}[/]");
+                        AnsiConsole.MarkupLine($"[red]Error: {result.Error ?? "Unknown error"}[/]");
                         return;
                     }
 
-                    var feedback = result.Value!;
+                    var feedback = result.Value;
                     if (!feedback.Any())
                     {
                         AnsiConsole.MarkupLine("[yellow]No specific feedback generated for this replay.[/]");
@@ -102,13 +102,13 @@ public class CoachingCommands : CommandGroupBase
                     ctx.Spinner(Spinner.Known.Dots);
 
                     var result = await coachService.GetCounterPicksAsync(opponentId).ConfigureAwait(false);
-                    if (!result.IsSuccess)
+                    if (!result.IsSuccess || result.Value is null)
                     {
-                        AnsiConsole.MarkupLine($"[red]Error: {result.Error}[/]");
+                        AnsiConsole.MarkupLine($"[red]Error: {result.Error ?? "Unknown error"}[/]");
                         return;
                     }
 
-                    var counterPicks = result.Value!;
+                    var counterPicks = result.Value;
                     if (!counterPicks.Any())
                     {
                         AnsiConsole.MarkupLine("[yellow]No counter-pick recommendations available.[/]");

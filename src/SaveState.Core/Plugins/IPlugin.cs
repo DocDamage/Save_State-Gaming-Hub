@@ -49,6 +49,26 @@ public interface IPlugin
     /// </summary>
     /// <param name="ct">Cancellation token.</param>
     Task ShutdownAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets whether this plugin supports hot reload.
+    /// If true, the plugin can be unloaded and reloaded without restarting the application.
+    /// </summary>
+    bool CanHotReload => true;
+
+    /// <summary>
+    /// Prepares the plugin for hot reload by serializing any state that should be preserved.
+    /// </summary>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Serialized state that will be passed to the new instance, or null if no state.</returns>
+    Task<byte[]?> PrepareForHotReloadAsync(CancellationToken ct = default) => Task.FromResult<byte[]?>(null);
+
+    /// <summary>
+    /// Restores state after hot reload from a previous instance.
+    /// </summary>
+    /// <param name="state">State serialized from the previous instance.</param>
+    /// <param name="ct">Cancellation token.</param>
+    Task RestoreFromHotReloadAsync(byte[]? state, CancellationToken ct = default) => Task.CompletedTask;
 }
 
 /// <summary>
@@ -160,7 +180,12 @@ public enum PluginCapabilities
     /// <summary>
     /// Plugin provides game memory intelligence features.
     /// </summary>
-    MemoryIntelligence = 1 << 19
+    MemoryIntelligence = 1 << 19,
+
+    /// <summary>
+    /// Plugin provides emulation features.
+    /// </summary>
+    Emulation = 1 << 20
 }
 
 /// <summary>
@@ -316,4 +341,9 @@ public sealed record PluginInfo(
     bool IsEnabled,
     bool IsLoaded,
     string Path,
-    PluginCapabilities Capabilities);
+    PluginCapabilities Capabilities,
+    IReadOnlyList<PluginDependency>? Dependencies = null,
+    IReadOnlyList<PluginConflict>? Conflicts = null,
+    bool CanHotReload = true,
+    bool HasSettings = false);
+

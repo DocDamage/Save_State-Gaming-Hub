@@ -35,10 +35,23 @@ public partial class MainPage : ContentPage
         BindingContext = _viewModel;
     }
 
-    protected override async void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
-        await _viewModel.InitializeAsync();
+        // Fire and forget with explicit exception handling
+        _ = InitializeViewModelAsync();
+    }
+
+    private async Task InitializeViewModelAsync()
+    {
+        try
+        {
+            await _viewModel.InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error initializing main page: {ex}");
+        }
     }
 }
 
@@ -56,10 +69,23 @@ public partial class LibraryPage : ContentPage
         BindingContext = _viewModel;
     }
 
-    protected override async void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
-        await _viewModel.LoadGamesAsync();
+        // Fire and forget with explicit exception handling
+        _ = LoadGamesAsync();
+    }
+
+    private async Task LoadGamesAsync()
+    {
+        try
+        {
+            await _viewModel.LoadGamesAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading games: {ex}");
+        }
     }
 }
 

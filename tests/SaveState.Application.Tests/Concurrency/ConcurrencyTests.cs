@@ -1,6 +1,7 @@
 using FluentAssertions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SaveState.Application.GameLibrary.Commands;
@@ -10,6 +11,7 @@ using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary.DomainServices;
 using SaveState.Application.Common.Events;
 using SaveState.Infrastructure.Persistence;
+using SaveState.Infrastructure.Performance;
 using Moq;
 using SaveState.Core.Common.Interfaces;
 using SaveState.Core.GameLibrary;
@@ -51,6 +53,10 @@ public class ConcurrencyTests : IAsyncLifetime
         services.AddSingleton(new Mock<IAiOrchestrator>().Object);
         services.AddSingleton(new Mock<SaveState.Core.Common.Services.IUserPreferencesService>().Object);
         services.AddSingleton(new Mock<SaveState.Core.Monitoring.IApplicationMetrics>().Object);
+        services.AddSingleton(new Mock<IDistributedCache>().Object);
+
+        // Add performance services
+        services.AddScoped<QueryOptimizer>();
 
         // Add minimal services for testing
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ImportGameCommand).Assembly));

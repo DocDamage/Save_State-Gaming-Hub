@@ -17,6 +17,15 @@ public class UpdateCloudSyncSettingsCommandHandler : IRequestHandler<UpdateCloud
     {
         await _preferencesService.SetPreferredCloudProviderAsync(request.PreferredProvider, cancellationToken);
         await _preferencesService.SetAutoSyncOnExitAsync(request.AutoSyncOnExit, cancellationToken);
+        await _preferencesService.SetBackgroundSyncFailureAlertsEnabledAsync(
+            request.EnableBackgroundFailureAlerts,
+            cancellationToken);
+        await _preferencesService.SetBackgroundSyncConflictAlertsEnabledAsync(
+            request.EnableBackgroundConflictAlerts,
+            cancellationToken);
+        await _preferencesService.SetBackgroundSyncAlertCooldownSecondsAsync(
+            request.BackgroundAlertCooldownSeconds,
+            cancellationToken);
 
         if (!string.IsNullOrEmpty(request.OneDriveClientId))
         {

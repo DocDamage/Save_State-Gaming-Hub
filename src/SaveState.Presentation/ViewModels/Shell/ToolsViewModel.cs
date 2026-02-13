@@ -527,7 +527,7 @@ public partial class ToolsViewModel : ObservableObject
     private void OnPerformanceSnapshotUpdated(object? sender, PerformanceSnapshot snapshot)
     {
         CpuUsage = snapshot.CpuUsagePercent;
-        GpuUsage = snapshot.GpuUsagePercent;
+        GpuUsage = snapshot.GpuUsagePercent ?? 0f;
         RamUsageMb = snapshot.RamUsageMb;
         Fps = snapshot.Fps;
         FrameTimeMs = snapshot.FrameTimeMs;

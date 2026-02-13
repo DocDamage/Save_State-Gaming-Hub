@@ -346,6 +346,32 @@ public class PluginManager : IPluginManager
     public IReadOnlyList<IImporter> GetImporters() => _importers;
     public IReadOnlyList<IExporter> GetExporters() => _exporters;
     public IReadOnlyList<IUIPanel> GetUIPanels() => _uiPanels;
+    public IReadOnlyList<PluginMenuRegistration> GetRegisteredMenuItems()
+    {
+        var registrations = new List<PluginMenuRegistration>();
+
+        foreach (var loadedPlugin in _loadedPlugins.Values.Where(lp => lp.IsEnabled))
+        {
+            if (loadedPlugin.Context is not PluginContext pluginContext)
+            {
+                continue;
+            }
+
+            foreach (var menuItem in pluginContext.GetRegisteredMenuItems())
+            {
+                registrations.Add(new PluginMenuRegistration(
+                    loadedPlugin.Info.Id,
+                    loadedPlugin.Info.Name,
+                    menuItem));
+            }
+        }
+
+        return registrations
+            .OrderBy(item => item.PluginName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(item => item.MenuItem.SortOrder)
+            .ThenBy(item => item.MenuItem.Label, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
 
     public async Task SendEventToPluginsAsync(PluginEventType eventType, object? data = null)
     {

@@ -26,7 +26,9 @@ public class MetadataEnrichmentIntegrationTests : IAsyncLifetime
 
         // Configure in-memory database for testing
         services.AddDbContext<SaveStateDbContext>(options =>
-            options.UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}"));
+        {
+            options.UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}");
+        });
 
         // Register logging
         services.AddLogging();

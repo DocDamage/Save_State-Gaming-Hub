@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Input.Services;
 using SaveState.Core.Input.Entities;
 
@@ -8,14 +9,16 @@ namespace SaveState.Infrastructure.Input;
 public class SteamDeckManager : ISteamDeckManager
 {
     private readonly IControllerProfileService _controllerProfileService;
+    private readonly ITimeProvider _timeProvider;
     private bool _isSteamDeckModeActive;
     private SteamDeckProfile? _activeProfile;
 
     public event EventHandler<SteamDeckModeChangedEventArgs>? SteamDeckModeChanged;
 
-    public SteamDeckManager(IControllerProfileService controllerProfileService)
+    public SteamDeckManager(IControllerProfileService controllerProfileService, ITimeProvider timeProvider)
     {
         _controllerProfileService = controllerProfileService;
+        _timeProvider = timeProvider;
     }
 
     public bool IsSteamDeckModeActive => _isSteamDeckModeActive;
@@ -139,7 +142,7 @@ public class SteamDeckManager : ISteamDeckManager
         {
             // Create controller profile for Steam Deck
             var controllerProfileResult = await _controllerProfileService.CreateProfileAsync(
-                $"Steam Deck Profile - {DateTime.Now:yyyy-MM-dd HH:mm}",
+                $"Steam Deck Profile - {_timeProvider.Now:yyyy-MM-dd HH:mm}",
                 ControllerType.SteamDeck,
                 null,
                 ct);
@@ -151,7 +154,7 @@ public class SteamDeckManager : ISteamDeckManager
 
             var profile = new SteamDeckProfile(
                 Id: Guid.NewGuid(),
-                Name: $"Steam Deck Profile {DateTime.Now:yyyy-MM-dd}",
+                Name: $"Steam Deck Profile {_timeProvider.Now:yyyy-MM-dd}",
                 Config: config,
                 CreatedAt: DateTime.UtcNow,
                 IsActive: false);

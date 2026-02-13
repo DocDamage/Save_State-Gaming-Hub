@@ -1,5 +1,6 @@
 namespace SaveState.Presentation;
 
+using System.Diagnostics;
 using Avalonia;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +18,9 @@ using SaveState.Presentation.Views;
 using SaveState.Presentation.Services;
 using SaveState.Core.Mugen.Entities;
 using SaveState.Core.Mugen.Services;
+using SaveState.Infrastructure.Mugen.Repositories;
 using SaveState.Core.Mugen.Repositories;
+using SaveState.Core.Input.Services;
 
 /// <summary>
 /// Entry point for the SaveState Avalonia application.
@@ -66,6 +69,7 @@ public static class Program
         builder.Services.AddSingleton<IDialogService, DialogService>();
         builder.Services.AddSingleton<IClipboardService, ClipboardService>();
         builder.Services.AddSingleton<IUiGameContextService, UiGameContextService>();
+        builder.Services.AddSingleton<ICommandPaletteService, CommandPaletteService>();
 
         // Add terminal services
         builder.Services.AddSingleton<SaveState.Presentation.Services.Terminal.ICommandExecutor, SaveState.Presentation.Services.Terminal.CommandExecutor>();
@@ -137,9 +141,9 @@ public static class Program
         builder.Services.AddTransient<IMugenPreviewService, SaveState.Infrastructure.Mugen.MugenPreviewService>();
         builder.Services.AddTransient<IMugenTestService, SaveState.Infrastructure.Mugen.MugenTestService>();
         builder.Services.AddTransient<IMachineLearningService, SaveState.Infrastructure.Mugen.MachineLearningService>();
-        builder.Services.AddTransient<IMatchDataRepository, SaveState.Infrastructure.Mugen.MatchDataRepository>();
-        builder.Services.AddTransient<ICharacterDataRepository, SaveState.Infrastructure.Mugen.CharacterDataRepository>();
-        builder.Services.AddTransient<IPlayerDataRepository, SaveState.Infrastructure.Mugen.PlayerDataRepository>();
+        builder.Services.AddTransient<IMatchDataRepository, MugenMatchDataRepository>();
+        builder.Services.AddTransient<ICharacterDataRepository, MugenCharacterDataRepository>();
+        builder.Services.AddTransient<IPlayerDataRepository, MugenPlayerDataRepository>();
 
         var host = builder.Build();
 
@@ -192,7 +196,7 @@ public static class Program
             await SaveState.Infrastructure.Persistence.DatabaseInitializer.InitializeAsync(host.Services);
         }
 
-        Console.WriteLine("[DEBUG] Database initialization complete");
+        Debug.WriteLine("[DEBUG] Database initialization complete");
 
         // Run startup content scanning
         await RunStartupContentScanAsync(host.Services);
@@ -200,30 +204,30 @@ public static class Program
         // Setup the service locator for Avalonia
         Locator.Current.SetServices(host.Services);
 
-        Console.WriteLine("[DEBUG] Starting background services...");
+        Debug.WriteLine("[DEBUG] Starting background services...");
         await host.StartAsync();
 
-        Console.WriteLine("[DEBUG] Locator configured, starting Avalonia...");
+        Debug.WriteLine("[DEBUG] Locator configured, starting Avalonia...");
 
         // Run the Avalonia application
         try
         {
-            Console.WriteLine("[DEBUG] Building AppBuilder...");
+            Debug.WriteLine("[DEBUG] Building AppBuilder...");
             var appBuilder = AppBuilder.Configure<App>()
                 .UsePlatformDetect()
                 .LogToTrace();
 
-            Console.WriteLine("[DEBUG] Starting with ClassicDesktopLifetime...");
+            Debug.WriteLine("[DEBUG] Starting with ClassicDesktopLifetime...");
             appBuilder.StartWithClassicDesktopLifetime(args);
 
-            Console.WriteLine("[DEBUG] Stopping background services...");
+            Debug.WriteLine("[DEBUG] Stopping background services...");
             await host.StopAsync();
 
-            Console.WriteLine("[DEBUG] Application exited normally");
+            Debug.WriteLine("[DEBUG] Application exited normally");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[ERROR] Avalonia startup failed: {ex}");
+            Debug.WriteLine($"[ERROR] Avalonia startup failed: {ex}");
             throw;
         }
     }
@@ -233,7 +237,7 @@ public static class Program
     /// </summary>
     private static async Task RunStartupContentScanAsync(IServiceProvider services)
     {
-        Console.WriteLine("[DEBUG] Starting content discovery scan...");
+        Debug.WriteLine("[DEBUG] Starting content discovery scan...");
 
         try
         {
@@ -251,7 +255,7 @@ public static class Program
                 var fullPath = Path.IsPathRooted(dir) ? dir : Path.Combine(AppContext.BaseDirectory, dir);
                 if (Directory.Exists(fullPath))
                 {
-                    Console.WriteLine($"[DEBUG] Scanning MUGEN characters in: {fullPath}");
+                    Debug.WriteLine($"[DEBUG] Scanning MUGEN characters in: {fullPath}");
                     try
                     {
                         await mediator.Send(new SaveState.Application.Mugen.Commands.ScanMugenCharactersCommand(
@@ -262,22 +266,21 @@ public static class Program
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[WARN] Failed to scan {fullPath}: {ex.Message}");
+                        Debug.WriteLine($"[WARN] Failed to scan {fullPath}: {ex.Message}");
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"[DEBUG] Directory not found: {fullPath}");
+                    Debug.WriteLine($"[DEBUG] Directory not found: {fullPath}");
                 }
             }
 
-            Console.WriteLine($"[DEBUG] Content scan complete. Scanned {scannedCount} directories.");
+            Debug.WriteLine($"[DEBUG] Content scan complete. Scanned {scannedCount} directories.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[WARN] Content scan failed: {ex.Message}");
+            Debug.WriteLine($"[WARN] Content scan failed: {ex.Message}");
             // Don't throw - app should still start even if scan fails
         }
     }
 }
-

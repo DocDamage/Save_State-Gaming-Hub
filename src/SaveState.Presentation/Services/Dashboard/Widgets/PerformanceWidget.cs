@@ -21,7 +21,7 @@ public partial class PerformanceWidget : WidgetBase
         {
             Fps = snapshot.Fps;
             CpuUsage = snapshot.CpuUsagePercent;
-            GpuUsage = snapshot.GpuUsagePercent;
+            GpuUsage = snapshot.GpuUsagePercent ?? 0f;
             RamUsage = snapshot.RamUsageMb;
         };
     }
@@ -51,7 +51,7 @@ public partial class PerformanceWidget : WidgetBase
         {
             Fps = snapshot.Fps;
             CpuUsage = snapshot.CpuUsagePercent;
-            GpuUsage = snapshot.GpuUsagePercent;
+            GpuUsage = snapshot.GpuUsagePercent ?? 0f;
             RamUsage = snapshot.RamUsageMb;
         }
         else if (!_performanceMonitor.IsMonitoring)

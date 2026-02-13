@@ -56,7 +56,12 @@ public class AutomationWorker : BackgroundService
         }
     }
 
-    private async void OnSessionEnded(object? sender, GameSessionEventArgs e)
+    private void OnSessionEnded(object? sender, GameSessionEventArgs e)
+    {
+        _ = OnSessionEndedAsync(e);
+    }
+
+    private async Task OnSessionEndedAsync(GameSessionEventArgs e)
     {
         _logger.LogInformation("Game session ended for {GameId}, checking for 'AfterGameExit' schedules...", e.GameId);
 

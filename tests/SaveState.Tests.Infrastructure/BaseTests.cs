@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Caching.Distributed;
+using SaveState.Infrastructure.Performance;
 using Xunit;
 using Moq;
 
@@ -46,7 +48,7 @@ public abstract class BaseUnitTest : IDisposable
 
     public virtual void Dispose()
     {
-        _serviceProvider?.Dispose();
+        (_serviceProvider as IDisposable)?.Dispose();
         GC.SuppressFinalize(this);
     }
 }
@@ -62,6 +64,7 @@ public abstract class BaseIntegrationTest : IDisposable
     protected BaseIntegrationTest()
     {
         _services = new ServiceCollection();
+        RegisterIntegrationDefaults();
         SetupServices();
         _serviceProvider = _services.BuildServiceProvider();
         InitializeDatabase();
@@ -73,6 +76,14 @@ public abstract class BaseIntegrationTest : IDisposable
     protected virtual void SetupServices()
     {
         // Override in derived classes
+    }
+
+    private void RegisterIntegrationDefaults()
+    {
+        _services.AddLogging();
+        _services.AddDistributedMemoryCache();
+        _services.AddSingleton<QueryOptimizer>();
+        _services.AddSingleton<MemoryProfiler>();
     }
 
     /// <summary>
@@ -102,7 +113,7 @@ public abstract class BaseIntegrationTest : IDisposable
     public virtual async Task DisposeAsync()
     {
         await CleanupAsync();
-        _serviceProvider?.Dispose();
+        (_serviceProvider as IDisposable)?.Dispose();
         GC.SuppressFinalize(this);
     }
 
@@ -156,11 +167,27 @@ public class TestFixture
 public static class TestAssertions
 {
     /// <summary>
+    /// Asserts that a non-generic result is successful.
+    /// </summary>
+    public static void AssertSuccess(Core.Common.Result result)
+    {
+        Assert.True(result.IsSuccess, $"Result should be successful. Error: {result.Error}");
+    }
+
+    /// <summary>
     /// Asserts that a result is successful.
     /// </summary>
     public static void AssertSuccess<T>(Core.Common.Result<T> result)
     {
         Assert.True(result.IsSuccess, $"Result should be successful. Error: {result.Error}");
+    }
+
+    /// <summary>
+    /// Asserts that a non-generic result is a failure.
+    /// </summary>
+    public static void AssertFailure(Core.Common.Result result)
+    {
+        Assert.False(result.IsSuccess, "Result should be a failure");
     }
 
     /// <summary>

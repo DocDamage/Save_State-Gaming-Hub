@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Constants;
 using System.Collections.Generic;
 
 namespace SaveState.Infrastructure.Social;
@@ -49,9 +50,7 @@ public class SocialFeaturesService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create profile for user: {UserId}", userId);
-            return Result.Failure<UserProfile>(
-                $"Profile creation failed: {ex.Message}",
-                ErrorType.Internal);
+            return Result.Failure<UserProfile>(ErrorMessages.CreateFailed, ErrorType.Internal);
         }
     }
 
@@ -90,7 +89,7 @@ public class SocialFeaturesService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to share achievement");
-            return Result.Failure($"Share failed: {ex.Message}", ErrorType.External);
+            return Result.Failure(ErrorMessages.OperationFailed, ErrorType.External);
         }
     }
 
@@ -128,7 +127,7 @@ public class SocialFeaturesService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to share gameplay clip");
-            return Result.Failure($"Share failed: {ex.Message}", ErrorType.External);
+            return Result.Failure(ErrorMessages.OperationFailed, ErrorType.External);
         }
     }
 
@@ -169,9 +168,7 @@ public class SocialFeaturesService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create post");
-            return Result.Failure<SocialPost>(
-                $"Post creation failed: {ex.Message}",
-                ErrorType.Internal);
+            return Result.Failure<SocialPost>(ErrorMessages.CreateFailed, ErrorType.Internal);
         }
     }
 
@@ -187,12 +184,12 @@ public class SocialFeaturesService
         {
             if (!_profiles.TryGetValue(followerId, out var followerProfile))
             {
-                return Result.Failure("Follower profile not found", ErrorType.Validation);
+                return Result.Failure(ErrorMessages.ProfileNotFound, ErrorType.Validation);
             }
 
             if (!_profiles.TryGetValue(followeeId, out var followeeProfile))
             {
-                return Result.Failure("Followee profile not found", ErrorType.Validation);
+                return Result.Failure(ErrorMessages.ProfileNotFound, ErrorType.Validation);
             }
 
             followerProfile.Following.Add(followeeId);
@@ -208,7 +205,7 @@ public class SocialFeaturesService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to follow user");
-            return Result.Failure($"Follow failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure(ErrorMessages.OperationFailed, ErrorType.Internal);
         }
     }
 
@@ -223,7 +220,7 @@ public class SocialFeaturesService
         {
             if (!_posts.TryGetValue(postId, out var post))
             {
-                return Result.Failure("Post not found", ErrorType.Validation);
+                return Result.Failure(ErrorMessages.PostNotFound, ErrorType.Validation);
             }
 
             post.Likes++;
@@ -234,7 +231,7 @@ public class SocialFeaturesService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to like post");
-            return Result.Failure($"Like failed: {ex.Message}", ErrorType.Internal);
+            return Result.Failure(ErrorMessages.OperationFailed, ErrorType.Internal);
         }
     }
 

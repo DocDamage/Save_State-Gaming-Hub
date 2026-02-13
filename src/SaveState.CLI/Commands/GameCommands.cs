@@ -1,7 +1,9 @@
 using System.CommandLine;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using SaveState.Application.GameLibrary.Queries;
 using SaveState.Application.Analytics.Queries;
+using SaveState.Core.Common.Services;
 using Spectre.Console;
 using SaveState.CLI.Extensions;
 
@@ -31,9 +33,9 @@ public class GameCommands : CommandGroupBase
             };
 
             var result = await Mediator.Send(query).ConfigureAwait(false);
-            if (!result.IsSuccess)
+            if (!result.IsSuccess || result.Value is null)
             {
-                AnsiConsole.MarkupLine($"[red]Error: {result.Error}[/]");
+                AnsiConsole.MarkupLine($"[red]Error: {result.Error ?? "Unknown error"}[/]");
                 return;
             }
 
@@ -43,7 +45,7 @@ public class GameCommands : CommandGroupBase
             table.AddColumn("Playtime");
             table.AddColumn("Last Played");
 
-            foreach (var game in result.Value!.Items)
+            foreach (var game in result.Value.Items)
             {
                 var lastPlayed = game.LastPlayed?.ToString("yyyy-MM-dd") ?? "Never";
                 table.AddRow(game.Title, game.Platform, game.TotalPlayTime.ToString(@"hh\:mm"), lastPlayed);
@@ -66,13 +68,13 @@ public class GameCommands : CommandGroupBase
             };
 
             var result = await Mediator.Send(query).ConfigureAwait(false);
-            if (!result.IsSuccess)
+            if (!result.IsSuccess || result.Value is null)
             {
-                AnsiConsole.MarkupLine($"[red]Error: {result.Error}[/]");
+                AnsiConsole.MarkupLine($"[red]Error: {result.Error ?? "Unknown error"}[/]");
                 return;
             }
 
-            if (!result.Value!.Items.Any())
+            if (!result.Value.Items.Any())
             {
                 AnsiConsole.MarkupLine($"[yellow]No games found matching '{term}'[/]");
                 return;
@@ -96,13 +98,13 @@ public class GameCommands : CommandGroupBase
         statsCommand.SetHandler(async () =>
         {
             var result = await Mediator.Send(new GetLibraryStatisticsQuery()).ConfigureAwait(false);
-            if (!result.IsSuccess)
+            if (!result.IsSuccess || result.Value is null)
             {
-                AnsiConsole.MarkupLine($"[red]Error: {result.Error}[/]");
+                AnsiConsole.MarkupLine($"[red]Error: {result.Error ?? "Unknown error"}[/]");
                 return;
             }
 
-            var stats = result.Value!;
+            var stats = result.Value;
             var gamesByStatus = string.Join(", ", stats.GamesByStatus.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
             var gamesByPlatform = string.Join(", ", stats.GamesByPlatform.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
 
@@ -121,18 +123,19 @@ public class GameCommands : CommandGroupBase
 
         // Heatmap command
         var heatmapCommand = new Command("heatmap", "Show gaming activity heatmap");
-        var yearOption = new Option<int>("--year", () => DateTime.Now.Year, "Year to display (default: current year)");
+        var timeProvider = Host.Services.GetRequiredService<ITimeProvider>();
+        var yearOption = new Option<int>("--year", () => timeProvider.Now.Year, "Year to display (default: current year)");
         heatmapCommand.AddOption(yearOption);
         heatmapCommand.SetHandler(async (int year) =>
         {
             var result = await Mediator.Send(new GetGamingHeatmapQuery(year)).ConfigureAwait(false);
-            if (!result.IsSuccess)
+            if (!result.IsSuccess || result.Value is null)
             {
-                AnsiConsole.MarkupLine($"[red]Error: {result.Error}[/]");
+                AnsiConsole.MarkupLine($"[red]Error: {result.Error ?? "Unknown error"}[/]");
                 return;
             }
 
-            var heatmap = result.Value!;
+            var heatmap = result.Value;
 
             // Display summary statistics
             var summaryPanel = new Panel($"[bold]Year:[/] {year}\n" +

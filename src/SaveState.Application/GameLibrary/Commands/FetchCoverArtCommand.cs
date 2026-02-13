@@ -21,8 +21,8 @@ public sealed class FetchCoverArtCommandHandler : IRequestHandler<FetchCoverArtC
     public async Task<Result<string>> Handle(FetchCoverArtCommand request, CancellationToken ct)
     {
         var result = await _coverArtService.FetchCoverArtAsync(request.GameId, ct);
-        return result.IsSuccess
-            ? Result.Success<string>(result.Value!.LocalPath)
-            : Result.Failure<string>(result.Error!, result.ErrorType);
+        if (!result.IsSuccess || result.Value is null)
+            return Result.Failure<string>(result.Error ?? "Failed to fetch cover art", result.ErrorType);
+        return Result.Success<string>(result.Value.LocalPath);
     }
 }

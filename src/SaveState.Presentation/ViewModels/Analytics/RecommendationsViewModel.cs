@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Recommendations.DTOs;
 using SaveState.Core.Recommendations.Queries;
+using SaveState.Core.UserManagement.Services;
 using System.Collections.ObjectModel;
 
 namespace SaveState.Presentation.ViewModels.Analytics;
@@ -15,6 +16,7 @@ public partial class RecommendationsViewModel : ObservableObject
 {
     private readonly IMediator _mediator;
     private readonly ILogger<RecommendationsViewModel> _logger;
+    private readonly IUserContextService? _userContextService;
 
     [ObservableProperty]
     private bool _isLoading;
@@ -33,10 +35,12 @@ public partial class RecommendationsViewModel : ObservableObject
 
     public RecommendationsViewModel(
         IMediator mediator,
-        ILogger<RecommendationsViewModel> logger)
+        ILogger<RecommendationsViewModel> logger,
+        IUserContextService? userContextService = null)
     {
         _mediator = mediator;
         _logger = logger;
+        _userContextService = userContextService;
     }
 
     [RelayCommand]
@@ -47,20 +51,33 @@ public partial class RecommendationsViewModel : ObservableObject
             IsLoading = true;
             ErrorMessage = string.Empty;
 
-            // TODO: Get actual user ID from authentication service
-            var userId = Guid.NewGuid();
+            var userId = _userContextService?.GetCurrentUserId()
+                ?? _userContextService?.CurrentUserId;
 
-            // Load personalized recommendations
-            var recommendationsResult = await _mediator.Send(
-                new GetGameRecommendationsQuery(userId, 10));
+            var hasUser = userId.HasValue && userId.Value != Guid.Empty;
+            if (!hasUser)
+            {
+                _logger.LogWarning("No authenticated user found for personalized recommendations.");
+                ErrorMessage = "Sign in to see personalized recommendations.";
+            }
 
-            if (recommendationsResult.IsSuccess)
+            if (hasUser && userId is not null)
+            {
+                var recommendationsResult = await _mediator.Send(
+                    new GetGameRecommendationsQuery(userId.Value, 10));
+
+                if (recommendationsResult.IsSuccess)
+                {
+                    Recommendations.Clear();
+                    foreach (var rec in recommendationsResult.Value)
+                    {
+                        Recommendations.Add(rec);
+                    }
+                }
+            }
+            else
             {
                 Recommendations.Clear();
-                foreach (var rec in recommendationsResult.Value)
-                {
-                    Recommendations.Add(rec);
-                }
             }
 
             // Load trending games
@@ -77,16 +94,23 @@ public partial class RecommendationsViewModel : ObservableObject
             }
 
             // Load backlog recommendations
-            var backlogResult = await _mediator.Send(
-                new GetBacklogRecommendationsQuery(userId, 5));
+            if (hasUser && userId is not null)
+            {
+                var backlogResult = await _mediator.Send(
+                    new GetBacklogRecommendationsQuery(userId.Value, 5));
 
-            if (backlogResult.IsSuccess)
+                if (backlogResult.IsSuccess)
+                {
+                    BacklogRecommendations.Clear();
+                    foreach (var rec in backlogResult.Value)
+                    {
+                        BacklogRecommendations.Add(rec);
+                    }
+                }
+            }
+            else
             {
                 BacklogRecommendations.Clear();
-                foreach (var rec in backlogResult.Value)
-                {
-                    BacklogRecommendations.Add(rec);
-                }
             }
 
             _logger.LogInformation("Loaded recommendations successfully");

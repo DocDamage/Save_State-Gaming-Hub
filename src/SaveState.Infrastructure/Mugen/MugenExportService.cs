@@ -533,16 +533,10 @@ public class MugenExportService : IMugenExportService
     public async Task<Result<SaveState.Core.Mugen.ValueObjects.ValidationResult>> ValidateExportReadinessAsync(Guid characterId, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Validating export readiness for character {CharacterId}", characterId);
-        return Result.Success(new SaveState.Core.Mugen.ValueObjects.ValidationResult
-        {
-            IsValid = true,
-            Summary = "Ready",
-            MoveAnalyses = Array.Empty<string>(),
-            Recommendations = Array.Empty<string>(),
-            ActionableTips = Array.Empty<string>(),
-            CharacterName = "",
-            BalanceScore = 0,
-            PredictedWinRate = 0
-        });
+        return Result.Success(new SaveState.Core.Mugen.ValueObjects.ValidationResult(
+            IsValid: true,
+            Errors: Array.Empty<ValidationError>(),
+            Warnings: Array.Empty<ValidationWarning>(),
+            Suggestions: new[] { "Character is ready for export" }));
     }
 }

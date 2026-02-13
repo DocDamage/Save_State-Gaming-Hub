@@ -17,10 +17,7 @@ public partial class CommandPaletteView : UserControl
     {
         if (DataContext is ViewModels.Shell.CommandPaletteViewModel viewModel)
         {
-            viewModel.HandleKey(e.Key);
-
-            // Prevent the key from bubbling up
-            e.Handled = true;
+            e.Handled = viewModel.HandleKey(e.Key);
         }
     }
 }

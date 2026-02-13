@@ -11,11 +11,12 @@ namespace SaveState.Plugins.Itch;
 /// Plugin that provides access to Itch.io games.
 /// Supports discovering indie games, downloading, and installation.
 /// </summary>
-public class ItchGameProviderPlugin : IPlugin, IGameProvider
+public class ItchGameProviderPlugin : IPlugin, IGameProvider, IDisposable
 {
     private IPluginContext? _context;
     private ILogger? _logger;
-    private readonly HttpClient _httpClient;
+    private HttpClient? _httpClient;
+    private bool _disposed;
 
     public string Id => "savestate.itch";
     public string Name => "Itch.io Game Provider";
@@ -29,6 +30,8 @@ public class ItchGameProviderPlugin : IPlugin, IGameProvider
 
     public ItchGameProviderPlugin()
     {
+        // Note: In plugin scenarios, IHttpClientFactory may not be available.
+        // We create a shared instance that persists for the plugin lifetime.
         _httpClient = new HttpClient();
         _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("SaveState/1.0");
         _httpClient.Timeout = TimeSpan.FromSeconds(30);
@@ -205,5 +208,20 @@ public class ItchGameProviderPlugin : IPlugin, IGameProvider
         {
             _logger?.LogError(ex, "Error showing featured games");
         }
+    }
+
+    /// <summary>
+    /// Disposes resources used by the plugin.
+    /// </summary>
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        _httpClient?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Configuration;
 using SaveState.Core.Mugen;
 using SaveState.Core.Mugen.Entities;
@@ -27,15 +28,19 @@ public class MugenFusionService : IMugenFusionService
     private readonly SndSoundMerger _soundMerger;
     private readonly CnsStateMerger _stateMerger;
 
+    private readonly ITimeProvider _timeProvider;
+
     public MugenFusionService(
         ILogger<MugenFusionService> logger,
         IMugenCharacterRepository characterRepository,
         IOptions<MugenOptions> options,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _characterRepository = characterRepository;
         _options = options.Value;
+        _timeProvider = timeProvider;
         var exeDir = Path.GetDirectoryName(_options.ExecutablePath) ?? "engines/ikemen";
         _fusionDirectory = Path.Combine(exeDir, "chars", "fusions");
 
@@ -66,9 +71,9 @@ public class MugenFusionService : IMugenFusionService
             foreach (var id in characterIdsList)
             {
                 var charResult = await _characterRepository.GetByIdAsync(id, ct);
-                if (charResult.IsFailure)
+                if (charResult.IsFailure || charResult.Value is null)
                     return Result.Failure<FusionResult>($"Character {id} not found");
-                characters.Add(charResult.Value!);
+                characters.Add(charResult.Value);
             }
 
             // Create fusion directory
@@ -306,7 +311,7 @@ public class MugenFusionService : IMugenFusionService
         };
     }
 
-    private static string CreateFusionDefinitionFile(
+    private string CreateFusionDefinitionFile(
         string name,
         List<MugenCharacter> characters,
         MugenCharacterStats stats,
@@ -322,7 +327,7 @@ public class MugenFusionService : IMugenFusionService
         sb.AppendLine("[Info]");
         sb.AppendLine($"name = \"{name}\"");
         sb.AppendLine($"displayname = \"{name}\"");
-        sb.AppendLine($"versiondate = {DateTime.Now:MM,dd,yyyy}");
+        sb.AppendLine($"versiondate = {_timeProvider.Now:MM,dd,yyyy}");
         sb.AppendLine($"mugenversion = 1.1");
         sb.AppendLine($"author = \"SaveState Fusion Lab\"");
         sb.AppendLine();
@@ -427,13 +432,13 @@ public class MugenFusionService : IMugenFusionService
         return sb.ToString();
     }
 
-    private static string CreateFusionReadme(string name, List<MugenCharacter> characters, bool hasSpr, bool hasAir, bool hasSnd)
+    private string CreateFusionReadme(string name, List<MugenCharacter> characters, bool hasSpr, bool hasAir, bool hasSnd)
     {
         var sb = new StringBuilder();
         sb.AppendLine($"MUGEN Fusion Character: {name}");
         sb.AppendLine("=" + new string('=', name.Length + 24));
         sb.AppendLine();
-        sb.AppendLine($"Created: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+        sb.AppendLine($"Created: {_timeProvider.Now:yyyy-MM-dd HH:mm:ss}");
         sb.AppendLine("Generator: SaveState Reborn Fusion Lab");
         sb.AppendLine();
         sb.AppendLine("Source Characters:");

@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Plugins.DTOs;
 using SaveState.Core.Plugins.Services;
 
@@ -16,6 +17,7 @@ public partial class PluginMarketplaceService : IPluginMarketplaceService
     private readonly HttpClient _httpClient;
     private readonly IPluginManager _pluginManager;
     private readonly ILogger<PluginMarketplaceService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly string _pluginsDirectory;
     private readonly string _marketplaceUrl = "https://api.savestate.app/plugins/v1"; // Production marketplace API
     private const bool UseRealMarketplace = false; // Toggle for production deployment
@@ -28,11 +30,13 @@ public partial class PluginMarketplaceService : IPluginMarketplaceService
     public PluginMarketplaceService(
         HttpClient httpClient,
         IPluginManager pluginManager,
-        ILogger<PluginMarketplaceService> logger)
+        ILogger<PluginMarketplaceService> logger,
+        ITimeProvider timeProvider)
     {
         _httpClient = httpClient;
         _pluginManager = pluginManager;
         _logger = logger;
+        _timeProvider = timeProvider;
 
         // Get plugins directory from app data
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -407,7 +411,7 @@ public partial class PluginMarketplaceService : IPluginMarketplaceService
                 "Enhanced Steam integration with achievements, playtime tracking, and cloud save sync",
                 "SaveState Team", "1.2.0", PluginCategories.Integration,
                 "https://example.com/icons/steam.png", "https://example.com/downloads/steam-enhanced.zip",
-                5420, 4.8, 156, DateTime.Now.AddMonths(-6), DateTime.Now.AddDays(-10),
+                5420, 4.8, 156, _timeProvider.Now.AddMonths(-6), _timeProvider.Now.AddDays(-10),
                 new List<string> { "steam", "integration", "cloud-sync" },
                 new List<string> { "https://example.com/screenshots/1.png" },
                 "https://github.com/savestate/steam-enhanced",
@@ -418,7 +422,7 @@ public partial class PluginMarketplaceService : IPluginMarketplaceService
                 "Advanced dark theme with customizable colors and multiple variants",
                 "ThemeCreators", "2.1.0", PluginCategories.Themes,
                 "https://example.com/icons/dark-mode.png", "https://example.com/downloads/dark-mode.zip",
-                12340, 4.9, 432, DateTime.Now.AddMonths(-3), DateTime.Now.AddDays(-5),
+                12340, 4.9, 432, _timeProvider.Now.AddMonths(-3), _timeProvider.Now.AddDays(-5),
                 new List<string> { "theme", "dark-mode", "ui" },
                 new List<string> { "https://example.com/screenshots/2.png" },
                 "https://github.com/themes/dark-mode-plus",
@@ -429,7 +433,7 @@ public partial class PluginMarketplaceService : IPluginMarketplaceService
                 "Seamless RetroArch integration for emulated games",
                 "EmuDev", "1.5.2", PluginCategories.Emulation,
                 "https://example.com/icons/retroarch.png", "https://example.com/downloads/retroarch.zip",
-                8900, 4.7, 287, DateTime.Now.AddMonths(-8), DateTime.Now.AddDays(-15),
+                8900, 4.7, 287, _timeProvider.Now.AddMonths(-8), _timeProvider.Now.AddDays(-15),
                 new List<string> { "retroarch", "emulation", "retro" },
                 new List<string> { "https://example.com/screenshots/3.png" },
                 "https://github.com/emulation/retroarch-connector",
@@ -440,7 +444,7 @@ public partial class PluginMarketplaceService : IPluginMarketplaceService
                 "Live streaming notifications and viewer stats for Twitch streamers",
                 "StreamTools", "1.0.5", PluginCategories.Social,
                 "https://example.com/icons/twitch.png", "https://example.com/downloads/twitch-alerts.zip",
-                3210, 4.6, 98, DateTime.Now.AddMonths(-2), DateTime.Now.AddDays(-3),
+                3210, 4.6, 98, _timeProvider.Now.AddMonths(-2), _timeProvider.Now.AddDays(-3),
                 new List<string> { "twitch", "streaming", "alerts" },
                 new List<string> { "https://example.com/screenshots/4.png" },
                 "https://github.com/streaming/twitch-alerts",
@@ -451,7 +455,7 @@ public partial class PluginMarketplaceService : IPluginMarketplaceService
                 "Deep analytics with AI-powered insights and predictions",
                 "DataViz Studio", "3.0.1", PluginCategories.Analytics,
                 "https://example.com/icons/analytics.png", "https://example.com/downloads/analytics.zip",
-                6780, 4.9, 234, DateTime.Now.AddMonths(-4), DateTime.Now.AddDays(-7),
+                6780, 4.9, 234, _timeProvider.Now.AddMonths(-4), _timeProvider.Now.AddDays(-7),
                 new List<string> { "analytics", "ai", "statistics", "insights" },
                 new List<string> { "https://example.com/screenshots/5.png" },
                 "https://github.com/analytics/advanced-pro",

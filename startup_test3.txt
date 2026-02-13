@@ -1,0 +1,99 @@
+warn: LuckyPennySoftware.MediatR.License[0]
+      You do not have a valid license key for the Lucky Penny software MediatR. This is allowed for development and testing scenarios. If you are running in production you are required to have a licensed version. Please visit https://luckypennysoftware.com to obtain a valid license.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Game' has a global query filter defined and is the required end of a relationship with the entity 'BacklogEntry'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Game' has a global query filter defined and is the required end of a relationship with the entity 'GameSession'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Game' has a global query filter defined and is the required end of a relationship with the entity 'VirtualCollectionGame'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'MugenCharacter' has a global query filter defined and is the required end of a relationship with the entity 'MugenCollectionCharacter'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'MugenCharacter' has a global query filter defined and is the required end of a relationship with the entity 'MugenMatchupStats'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'MugenCharacter' has a global query filter defined and is the required end of a relationship with the entity 'MugenTrainingSession'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'MugenCharacter' has a global query filter defined and is the required end of a relationship with the entity 'TournamentParticipant'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10622]
+      Entity 'Game' has a global query filter defined and is the required end of a relationship with the entity 'GameReview'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10620]
+      The property 'KnowledgeRecord.Embedding' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10620]
+      The property 'ApiKey.Scopes' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10620]
+      The property 'GameMedia.Tags' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10620]
+      The property 'GameMod.Tags' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[10620]
+      The property 'GameNote.Tags' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform NES not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform SNES not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform Nintendo 64 not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform Game Boy not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform Game Boy Color not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform Game Boy Advance not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform Nintendo DS not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform GameCube not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform Wii not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform PlayStation not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform PlayStation 2 not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform PlayStation Portable not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform Sega Genesis not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform Sega Master System not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform Sega Game Gear not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform Sega Saturn not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform Sega Dreamcast not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform Atari 2600 not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform Atari 7800 not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform Neo Geo not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform TurboGrafx-16 not found. Skipping.
+warn: SaveState.Infrastructure.Persistence.Seeders.RetroArchSeeder[0]
+      Platform WonderSwan not found. Skipping.
+[DEBUG] Database initialization complete
+[DEBUG] Starting content discovery scan...
+[DEBUG] Directory not found: C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Presentation\bin\Debug\net9.0\data/characters
+[DEBUG] Content scan complete. Scanned 0 directories.
+[DEBUG] Starting background services...
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: C:\Users\Doc\Desktop\SaveStateReborn
+[DEBUG] Locator configured, starting Avalonia...
+[DEBUG] Building AppBuilder...
+[DEBUG] Starting with ClassicDesktopLifetime...
+[DEBUG] NavigationService constructor starting
+[DEBUG] NavigationService constructor finished
+[DEBUG] MainShellViewModel constructor started
+[DEBUG] Creating TitleBarViewModel...
+[DEBUG] Creating HeaderBarViewModel...
+[DEBUG] Creating StatusBarViewModel...
+[DEBUG] Creating OverlayContainerViewModel...
+[DEBUG] Subscribing to navigation events...
+[DEBUG] MainShellViewModel constructor finished
+[DEBUG] NavigationService initializing Dashboard...
+[DEBUG] NavigationService initialization complete
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...

@@ -263,20 +263,3 @@ public class StringToIndexConverter : IValueConverter
         return "Templates";
     }
 }
-
-/// <summary>
-/// Converts boolean values to status brush colors (Green for true, Red for false).
-/// </summary>
-public class BoolToStatusBrushConverter : IValueConverter
-{
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        var boolValue = value is bool b && b;
-        return boolValue ? Brushes.Green : Brushes.Red;
-    }
-
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        return BindingOperations.DoNothing;
-    }
-}

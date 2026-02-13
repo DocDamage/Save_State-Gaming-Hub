@@ -1,0 +1,314 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
+             x:Class="SaveState.Presentation.Views.Shell.RomManagementView"
+             x:DataType="vm:RomManagementViewModel">
+
+    <Grid ColumnDefinitions="250, *">
+        <!-- Left Sidebar -->
+        <Border Grid.Column="0" Classes="GlassContainer" Margin="20,20,10,20" Padding="15">
+            <ScrollViewer>
+                <StackPanel Spacing="15">
+                    <TextBlock Text="🎮 ROM MANAGEMENT"
+                              Classes="Subtitle"
+                              FontWeight="Bold"
+                              Margin="0,0,0,10"/>
+
+                    <!-- Quick Stats -->
+                    <Border Classes="GlassContainer" Padding="15" Background="#1a1a1a">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="📊 Statistics" FontWeight="Bold" FontSize="14"/>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="{Binding TotalRomCount, StringFormat='ROMs: {0}'}"
+                                          Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding PlatformCount, StringFormat='Platforms: {0}'}"
+                                          Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding WatchedDirectoriesCount, StringFormat='Watching: {0} dirs'}"
+                                          Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Live Sync Status -->
+                    <Border Classes="GlassContainer" Padding="15">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="🔄 Live Sync" FontWeight="Bold" FontSize="14"/>
+                            <StackPanel Spacing="6">
+                                <Grid ColumnDefinitions="Auto, *">
+                                    <TextBlock Grid.Column="0" Text="{Binding IsLiveSyncEnabled, Converter={StaticResource BoolToStringConverter}, ConverterParameter='🟢|🔴'}"
+                                              VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding IsLiveSyncEnabled, Converter={StaticResource BoolToStringConverter}, ConverterParameter='Active|Inactive'}"
+                                              Margin="8,0,0,0" VerticalAlignment="Center" FontSize="12"/>
+                                </Grid>
+
+                                <TextBlock Text="{Binding LiveSyncUptime, StringFormat='Uptime: {0:hh\\:mm\\:ss}'}"
+                                          Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+
+                                <TextBlock Text="{Binding TotalFilesProcessed, StringFormat='Files: {0}'}"
+                                          Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"/>
+
+                                <TextBlock Text="{Binding LastSyncActivity}"
+                                          Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}"
+                                          TextWrapping="Wrap" MaxHeight="40" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Platform Filter -->
+                    <Border Classes="GlassContainer" Padding="15">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="🎯 Platform Filter" FontWeight="Bold" FontSize="14"/>
+                            <ComboBox ItemsSource="{Binding Platforms}"
+                                     SelectedItem="{Binding SelectedPlatform}"
+                                     DisplayMemberBinding="{Binding Name}"
+                                     PlaceholderText="All Platforms"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ROM Directories -->
+                    <Border Classes="GlassContainer" Padding="15">
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="📁 Directories" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
+                                <Button Content="+" Command="{Binding AddRomDirectoryCommand}"
+                                       Classes="IconButton" FontSize="12" Padding="5"/>
+                            </StackPanel>
+
+                            <ItemsControl ItemsSource="{Binding RomDirectories}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Classes="GlassContainer" Padding="8" Margin="0,0,0,5" Background="#1a1a1a">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="{Binding DirectoryName}" FontSize="12" FontWeight="Medium"/>
+                                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                                    <TextBlock Text="{Binding Status}" FontSize="10"
+                                                              Foreground="{Binding IsWatching, Converter={StaticResource BoolToBrushConverter}, ConverterParameter='Green|Gray'}"/>
+                                                    <Button Content="👁️" Command="{Binding ToggleWatchingCommand}"
+                                                           Classes="IconButton" FontSize="10" Padding="3"/>
+                                                    <Button Content="🗑️" Command="{Binding RemoveCommand}"
+                                                           Classes="IconButton" FontSize="10" Padding="3"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Quick Actions -->
+                    <Border Classes="GlassContainer" Padding="15">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="⚡ Quick Actions" FontWeight="Bold" FontSize="14"/>
+
+                            <Button Content="🔍 Scan ROMs" Command="{Binding ScanRomDirectoriesCommand}"
+                                   Classes="PrimaryButton" IsEnabled="{Binding !IsScanning}"/>
+
+                            <Button Content="{Binding IsLiveSyncEnabled, Converter={StaticResource BoolToStringConverter}, ConverterParameter='🔴 Disable Live Sync|🟢 Enable Live Sync'}"
+                                   Command="{Binding ToggleLiveSyncCommand}" Classes="SecondaryButton"/>
+
+                            <Button Content="🎮 Setup Emulators" Command="{Binding OpenEmulatorSetupCommand}"
+                                   Classes="SecondaryButton"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Main Content Area -->
+        <ScrollViewer Grid.Column="1" Margin="10,20,20,20">
+            <StackPanel Spacing="20">
+
+                <!-- Scan Progress -->
+                <Border Classes="GlassContainer" Padding="20"
+                       IsVisible="{Binding IsScanning}" Background="#2d4a22">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="🔍 Scanning ROMs..." FontSize="18" FontWeight="Bold"/>
+                        <ProgressBar Value="{Binding ScanProgress}" Minimum="0" Maximum="1" Height="8"/>
+                        <TextBlock Text="{Binding ScanStatus}" Classes="Caption"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- ROM Library -->
+                <Border Classes="GlassContainer" Padding="20">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="📚 ROM Library" Classes="Subtitle" FontWeight="Bold"/>
+
+                        <!-- ROM Actions -->
+                        <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,0,0,10">
+                            <Button Content="📚 Import Selected to Library" Command="{Binding ImportSelectedToLibraryCommand}"
+                                   Classes="PrimaryButton"/>
+                            <Button Content="📊 Refresh Library" Command="{Binding RefreshLibraryCommand}"
+                                   Classes="SecondaryButton"/>
+                        </StackPanel>
+
+                        <!-- ROM Grid -->
+                        <DataGrid ItemsSource="{Binding RomFiles}"
+                                 SelectedItem="{Binding SelectedRomFile}"
+                                 SelectionMode="Extended"
+                                 IsReadOnly="True"
+                                 AutoGenerateColumns="False"
+                                 GridLinesVisibility="Horizontal"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Height="350">
+
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="2*"/>
+                                <DataGridTextColumn Header="Platform" Binding="{Binding Platform}" Width="*"/>
+                                <DataGridTextColumn Header="File" Binding="{Binding FileName}" Width="2*"/>
+                                <DataGridTextColumn Header="Size" Binding="{Binding FileSize}" Width="*"/>
+                                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="*"/>
+                                <DataGridTemplateColumn Header="Actions" Width="150">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <Button Content="▶️" ToolTip.Tip="Launch"
+                                                       Command="{Binding LaunchCommand}" Classes="IconButton"/>
+                                                <Button Content="ℹ️" ToolTip.Tip="Details"
+                                                       Command="{Binding ShowDetailsCommand}" Classes="IconButton"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <!-- Empty State -->
+                        <Border Classes="GlassContainer" Padding="40"
+                               IsVisible="{Binding RomFiles.Count, Converter={StaticResource EqualToConverter}, ConverterParameter=0}"
+                               Background="#1a1a1a">
+                            <StackPanel Spacing="15" HorizontalAlignment="Center">
+                                <TextBlock Text="🎮" FontSize="48" HorizontalAlignment="Center"/>
+                                <TextBlock Text="No ROMs Found" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Add ROM directories and scan to populate your library"
+                                          Classes="Caption" HorizontalAlignment="Center" TextWrapping="Wrap"/>
+                                <Button Content="🔍 Start Scanning" Command="{Binding ScanRomDirectoriesCommand}"
+                                       Classes="PrimaryButton" IsEnabled="{Binding !IsScanning}"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Live Sync Activity -->
+                <Border Classes="GlassContainer" Padding="20">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="📋 Recent Sync Activity" Classes="Subtitle" FontWeight="Bold"/>
+
+                        <ItemsControl ItemsSource="{Binding RecentSyncActivities}" MaxHeight="200">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="GlassContainer" Padding="10" Margin="0,0,0,5" Background="#1a1a1a">
+                                        <Grid ColumnDefinitions="Auto, *, Auto">
+                                            <TextBlock Grid.Column="0" Text="{Binding Icon}" FontSize="14" VerticalAlignment="Center"/>
+                                            <StackPanel Grid.Column="1" Margin="8,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Action}" FontWeight="Medium" FontSize="12"/>
+                                                <TextBlock Text="{Binding Details}" Classes="Caption"
+                                                          Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="2" Text="{Binding TimeAgo}" Classes="Caption"
+                                                      Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Empty State -->
+                        <Border Classes="GlassContainer" Padding="20"
+                               IsVisible="{Binding RecentSyncActivities.Count, Converter={StaticResource EqualToConverter}, ConverterParameter=0}"
+                               Background="#1a1a1a">
+                            <StackPanel Spacing="10" HorizontalAlignment="Center">
+                                <TextBlock Text="📭" FontSize="24" HorizontalAlignment="Center"/>
+                                <TextBlock Text="No recent sync activity" FontSize="14"
+                                          HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Platforms Overview -->
+                <Border Classes="GlassContainer" Padding="20">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="🎯 Supported Platforms" Classes="Subtitle" FontWeight="Bold"/>
+
+                        <ItemsControl ItemsSource="{Binding Platforms}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="GlassContainer" Padding="12" Margin="0,0,10,10"
+                                           Background="#1a1a1a" CornerRadius="6">
+                                        <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                            <TextBlock Text="{Binding Name}" FontWeight="Medium" FontSize="14"/>
+                                            <TextBlock Text="{Binding ShortName}" Classes="Caption"
+                                                      Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                    <!-- Emulators Section -->
+                <Border Classes="GlassContainer" Padding="20">
+                    <StackPanel Spacing="15">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="🎮 Configured Emulators" Classes="Subtitle" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Button Content="+ Add Emulator" Command="{Binding AddEmulatorCommand}"
+                                   Classes="PrimaryButton"/>
+                        </StackPanel>
+
+                        <ItemsControl ItemsSource="{Binding Emulators}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="GlassContainer" Padding="15" Margin="0,0,0,10"
+                                           Background="#1a1a1a">
+                                        <Grid ColumnDefinitions="*, Auto, Auto">
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="4">
+                                                <TextBlock Text="{Binding Name}" FontWeight="Medium" FontSize="16"/>
+                                                <TextBlock Text="{Binding Platform}" Classes="Caption"
+                                                          Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{Binding Version}" Classes="Caption"
+                                                          Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="1" Text="{Binding IsAvailable, Converter={StaticResource BoolToStringConverter}, ConverterParameter='🟢 Ready|🔴 Missing'}"
+                                                      VerticalAlignment="Center" Margin="20,0"/>
+
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                <Button Content="⚙️" ToolTip.Tip="Configure"
+                                                       Command="{Binding ConfigureCommand}" Classes="IconButton"/>
+                                                <Button Content="▶️" ToolTip.Tip="Launch"
+                                                       Command="{Binding LaunchCommand}" Classes="IconButton"
+                                                       IsEnabled="{Binding IsAvailable}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Empty Emulators State -->
+                        <Border Classes="GlassContainer" Padding="30"
+                               IsVisible="{Binding Emulators.Count, Converter={StaticResource EqualToConverter}, ConverterParameter=0}"
+                               Background="#1a1a1a">
+                            <StackPanel Spacing="10" HorizontalAlignment="Center">
+                                <TextBlock Text="🎮" FontSize="32" HorizontalAlignment="Center"/>
+                                <TextBlock Text="No Emulators Configured" FontSize="16" FontWeight="Medium" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Configure emulators to launch your ROMs"
+                                          Classes="Caption" HorizontalAlignment="Center"/>
+                                <Button Content="🎮 Setup Emulators" Command="{Binding OpenEmulatorSetupCommand}"
+                                       Classes="PrimaryButton"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

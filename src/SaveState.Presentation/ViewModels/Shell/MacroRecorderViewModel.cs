@@ -119,11 +119,11 @@ public partial class MacroRecorderViewModel : ObservableObject
 
         try
         {
-            // Get current game ID from context service
-            var currentGameId = _gameContextService.GetCurrentGameId() ?? Guid.Empty;
-            
+            // Get current game ID from context service (nullable)
+            var currentGameId = _gameContextService.GetCurrentGameId();
+
             // Warn user if no game is currently selected
-            if (currentGameId == Guid.Empty)
+            if (currentGameId is null)
             {
                 _notificationService.ShowWarning("No game currently selected. Macro will be recorded without game association.");
                 _logger.LogWarning("Starting macro recording without game context");

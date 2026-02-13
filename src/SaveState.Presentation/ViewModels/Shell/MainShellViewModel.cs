@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Services;
 using Splat;
 
@@ -14,45 +15,48 @@ public partial class MainShellViewModel : ObservableObject, IDisposable
     private readonly INavigationService _navigationService;
     private readonly INotificationService _notificationService;
     private readonly ILogger<MainShellViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public MainShellViewModel(
         INavigationService navigationService,
         INotificationService notificationService,
-        ILogger<MainShellViewModel> logger)
+        ILogger<MainShellViewModel> logger,
+        ITimeProvider timeProvider)
     {
-        Console.WriteLine("[DEBUG] MainShellViewModel constructor started");
+        _logger.LogDebug("MainShellViewModel constructor started");
         _navigationService = navigationService;
         _notificationService = notificationService;
         _logger = logger;
+        _timeProvider = timeProvider;
 
-        Console.WriteLine("[DEBUG] Creating TitleBarViewModel...");
+        _logger.LogDebug("Creating TitleBarViewModel");
         // Initialize child view models
         TitleBarViewModel = new TitleBarViewModel();
 
-        Console.WriteLine("[DEBUG] Creating HeaderBarViewModel...");
+        _logger.LogDebug("Creating HeaderBarViewModel");
         HeaderBarViewModel = new HeaderBarViewModel(navigationService, GetOverlayService());
 
-        Console.WriteLine("[DEBUG] Creating StatusBarViewModel...");
+        _logger.LogDebug("Creating StatusBarViewModel");
         // Resolve required services for StatusBarViewModel
         var loggerFactory = Locator.Current.GetService<ILoggerFactory>()!;
         var statusBarLogger = loggerFactory.CreateLogger<StatusBarViewModel>();
         var gameRepository = Locator.Current.GetService<SaveState.Core.GameLibrary.IGameRepository>()!;
         var analyticsService = Locator.Current.GetService<SaveState.Core.Analytics.Services.IAnalyticsService>()!;
         var performanceMonitor = Locator.Current.GetService<SaveState.Core.Performance.Services.IPerformanceMonitor>();
-        StatusBarViewModel = new StatusBarViewModel(navigationService, GetOverlayService(), gameRepository, analyticsService, performanceMonitor, statusBarLogger);
+        StatusBarViewModel = new StatusBarViewModel(navigationService, GetOverlayService(), gameRepository, analyticsService, performanceMonitor, statusBarLogger, timeProvider);
 
-        Console.WriteLine("[DEBUG] Creating OverlayContainerViewModel...");
+        _logger.LogDebug("Creating OverlayContainerViewModel");
         var gameContextService = Locator.Current.GetService<IUiGameContextService>()!;
-        OverlayContainerViewModel = new OverlayContainerViewModel(GetOverlayService(), gameContextService);
+        OverlayContainerViewModel = new OverlayContainerViewModel(GetOverlayService(), gameContextService, timeProvider);
 
         // Note: We no longer call InitializeTabViewModels here.
         // The NavigationService will resolve them lazily as needed.
 
-        Console.WriteLine("[DEBUG] Subscribing to navigation events...");
+        _logger.LogDebug("Subscribing to navigation events");
         // Subscribe to navigation changes
         _navigationService.Navigated += OnNavigated;
 
-        Console.WriteLine("[DEBUG] MainShellViewModel constructor finished");
+        _logger.LogDebug("MainShellViewModel constructor finished");
         _logger.LogInformation("MainShellViewModel initialized");
     }
 

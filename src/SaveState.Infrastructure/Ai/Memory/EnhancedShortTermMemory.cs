@@ -1,14 +1,16 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SaveState.Core.Ai.Memory;
+using System;
 using System.Collections.Concurrent;
+using System.Linq;
 
 namespace SaveState.Infrastructure.Ai.Memory;
 
 public class EnhancedShortTermMemory : IShortTermMemory
 {
     private readonly ConcurrentDictionary<string, MemoryEntry> _memories = new();
-    private readonly ConcurrentDictionary<string, HashSet<string>> _keywordIndex = new();
+    private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> _keywordIndex = new();
     private readonly MemoryConfig _config;
     private readonly ILogger<EnhancedShortTermMemory> _logger;
     private long _totalTokens;
@@ -58,7 +60,9 @@ public class EnhancedShortTermMemory : IShortTermMemory
         foreach (var keyword in keywords)
         {
             if (_keywordIndex.TryGetValue(keyword, out var ids))
-                candidates.UnionWith(ids);
+            {
+                candidates.UnionWith(ids.Keys);
+            }
         }
 
         var results = candidates
@@ -117,44 +121,21 @@ public class EnhancedShortTermMemory : IShortTermMemory
 
     private void UpdateKeywordIndex(MemoryEntry entry)
     {
-        // Index content keywords
-        foreach (var keyword in ExtractKeywords(entry.Content))
+        foreach (var keyword in GetEntryKeywords(entry))
         {
-            var ids = _keywordIndex.GetOrAdd(keyword, _ => new HashSet<string>());
-            ids.Add(entry.Id);
-        }
-
-        // Index context/tag keywords
-        foreach (var context in entry.Contexts)
-        {
-            var ids = _keywordIndex.GetOrAdd(context.ToLowerInvariant(), _ => new HashSet<string>());
-            ids.Add(entry.Id);
+            var ids = _keywordIndex.GetOrAdd(keyword, _ => new ConcurrentDictionary<string, byte>());
+            ids[entry.Id] = 0;
         }
     }
 
     private void RemoveFromKeywordIndex(MemoryEntry entry)
     {
-        // Remove content keywords
-        foreach (var keyword in ExtractKeywords(entry.Content))
+        foreach (var keyword in GetEntryKeywords(entry))
         {
             if (_keywordIndex.TryGetValue(keyword, out var ids))
             {
-                ids.Remove(entry.Id);
-                if (ids.Count == 0)
-                {
-                    _keywordIndex.TryRemove(keyword, out _);
-                }
-            }
-        }
-
-        // Remove context/tag keywords
-        foreach (var context in entry.Contexts)
-        {
-            var keyword = context.ToLowerInvariant();
-            if (_keywordIndex.TryGetValue(keyword, out var ids))
-            {
-                ids.Remove(entry.Id);
-                if (ids.Count == 0)
+                ids.TryRemove(entry.Id, out _);
+                if (ids.IsEmpty)
                 {
                     _keywordIndex.TryRemove(keyword, out _);
                 }
@@ -169,6 +150,14 @@ public class EnhancedShortTermMemory : IShortTermMemory
             .Select(w => w.ToLowerInvariant().Trim())
             .Where(w => w.Length > 2 && !stopWords.Contains(w))
             .Distinct();
+    }
+
+    private static HashSet<string> GetEntryKeywords(MemoryEntry entry)
+    {
+        var contexts = entry.Contexts ?? Array.Empty<string>();
+        return ExtractKeywords(entry.Content)
+            .Concat(contexts.Select(context => context.ToLowerInvariant()))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
     }
 
     private static float CalculateRelevance(MemoryEntry entry, string query, IEnumerable<string> keywords)

@@ -24,24 +24,24 @@ public class NavigationService : ObservableObject, INavigationService
         ILogger<NavigationService> logger,
         IServiceProvider serviceProvider)
     {
-        Console.WriteLine("[DEBUG] NavigationService constructor starting");
+        _logger.LogDebug("NavigationService constructor starting");
         _logger = logger;
         _serviceProvider = serviceProvider;
 
         // Don't resolve ViewModels here - defer until first actual navigation
         // This avoids blocking during DI resolution chain
-        Console.WriteLine("[DEBUG] NavigationService constructor finished");
+        _logger.LogDebug("NavigationService constructor finished");
     }
 
     private void EnsureInitialized()
     {
         if (_isInitialized) return;
 
-        Console.WriteLine("[DEBUG] NavigationService initializing Dashboard...");
+        _logger.LogDebug("NavigationService initializing Dashboard");
         _currentViewModel = GetOrCreateViewModel(TabRegistry.Tabs["Dashboard"].ViewModelType);
         _currentEntry = new NavigationEntry("Dashboard", _currentViewModel.GetType(), null, DateTime.UtcNow);
         _isInitialized = true;
-        Console.WriteLine("[DEBUG] NavigationService initialization complete");
+        _logger.LogDebug("NavigationService initialization complete");
     }
 
     /// <inheritdoc />

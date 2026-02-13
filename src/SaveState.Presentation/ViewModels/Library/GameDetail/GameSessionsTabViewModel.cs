@@ -373,7 +373,7 @@ public partial class GameSessionsTabViewModel : ObservableObject
     [RelayCommand]
     private async Task AddManualSession()
     {
-        var result = await _dialogService.ShowNoteEditorAsync(Guid.Empty, "Manual Session: [Duration] hours\nNotes: ");
+        var result = await _dialogService.ShowNoteEditorAsync(null, "Manual Session: [Duration] hours\nNotes: ");
         if (result != null)
         {
             _logger.LogInformation("Manual session entry added: {Notes}", result.Content);

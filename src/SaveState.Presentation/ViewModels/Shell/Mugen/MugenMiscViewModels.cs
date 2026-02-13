@@ -7,8 +7,11 @@ using SaveState.Core.Mugen.Services;
 using SaveState.Core.Mugen.ValueObjects;
 using SaveState.Core.Mugen;
 using SaveState.Core.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Collections.ObjectModel;
+// Use ValueObjects as canonical type for ambiguous MugenMoveEntry
+using MugenMoveEntry = SaveState.Core.Mugen.ValueObjects.MugenMoveEntry;
 
 namespace SaveState.Presentation.ViewModels.Shell.Mugen;
 
@@ -19,6 +22,7 @@ public partial class MugenStatsViewModel : MugenSectionViewModelBase
     private readonly IMugenEloService _eloService;
     private readonly IMugenCollectionService _collectionService;
     private readonly IMugenMatchHistoryRepository _historyRepository;
+    private readonly ILogger<MugenStatsViewModel> _logger;
 
     [ObservableProperty]
     private int _totalMatches;
@@ -34,20 +38,22 @@ public partial class MugenStatsViewModel : MugenSectionViewModelBase
 
     public ObservableCollection<MugenMatchSummary> RecentMatches { get; } = new();
     public ObservableCollection<MugenTierEntry> TierList { get; } = new();
-    public ObservableCollection<MugenEloRating> EloRatings { get; } = new();
+    public ObservableCollection<SaveState.Core.Mugen.ValueObjects.MugenEloRating> EloRatings { get; } = new();
 
     public MugenStatsViewModel(
         IMediator mediator,
         IMugenStatsService statsService,
         IMugenEloService eloService,
         IMugenCollectionService collectionService,
-        IMugenMatchHistoryRepository historyRepository)
+        IMugenMatchHistoryRepository historyRepository,
+        ILogger<MugenStatsViewModel> logger)
     {
         _mediator = mediator;
         _statsService = statsService;
         _eloService = eloService;
         _collectionService = collectionService;
         _historyRepository = historyRepository;
+        _logger = logger;
         Title = "BATTLE STATISTICS";
     }
 
@@ -119,7 +125,10 @@ public partial class MugenStatsViewModel : MugenSectionViewModelBase
                 }
             }
         }
-        catch (Exception) { }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load recent matches");
+        }
     }
 
     private async Task LoadTierListAsync()
@@ -159,7 +168,10 @@ public partial class MugenStatsViewModel : MugenSectionViewModelBase
             TierList.Clear();
             foreach (var entry in tiers) TierList.Add(entry);
         }
-        catch (Exception) { }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load tier list");
+        }
     }
 
     private static void UpdateLocalRecord(Dictionary<Guid, (int Wins, int Losses)> stats, Guid id, bool won)
@@ -180,7 +192,10 @@ public partial class MugenStatsViewModel : MugenSectionViewModelBase
                 foreach (var entry in result.Value) EloRatings.Add(entry);
             }
         }
-        catch (Exception) { }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load ELO ratings");
+        }
     }
 
     private static string GetTierLabel(double winRate, int matches)
@@ -270,10 +285,10 @@ public partial class MugenCoachViewModel : MugenSectionViewModelBase
          IsMoveListLoading = true;
          MoveList.Clear();
 
-         var advice = await _coachService.GetCoachingAdviceAsync(characterId);
-         if (!string.IsNullOrEmpty(advice))
+         var adviceResult = await _coachService.GetCoachingAdviceAsync(characterId);
+         if (adviceResult.IsSuccess && !string.IsNullOrEmpty(adviceResult.Value))
          {
-             ChatHistory.Add(new ChatMessage("Sensei", advice));
+             ChatHistory.Add(new ChatMessage("Sensei", adviceResult.Value));
          }
 
          var charResult = await _collectionService.GetRosterAsync();

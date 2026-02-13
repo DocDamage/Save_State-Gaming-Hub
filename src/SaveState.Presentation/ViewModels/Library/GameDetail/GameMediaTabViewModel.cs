@@ -3,10 +3,12 @@ using CommunityToolkit.Mvvm.Input;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SaveState.Application.GameLibrary.Queries;
+using SaveState.Application.GameLibrary.Commands;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Core.UserManagement.Services;
+using SaveState.Core.Ai.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -29,6 +31,7 @@ public partial class GameMediaTabViewModel : ObservableObject
     private readonly IGameMediaService _gameMediaService;
     private readonly INotificationService _notificationService;
     private readonly IClipboardService _clipboardService;
+    private readonly IImageAnalysisService? _imageAnalysisService;
     private readonly ILogger<GameMediaTabViewModel> _logger;
     private GameId? _currentGameId;
 
@@ -83,6 +86,15 @@ public partial class GameMediaTabViewModel : ObservableObject
     [ObservableProperty]
     private string _storageAvailableText = "0 GB available";
 
+    [ObservableProperty]
+    private bool _isScanning;
+
+    [ObservableProperty]
+    private string _scanStatusText = string.Empty;
+
+    [ObservableProperty]
+    private ObservableCollection<string> _detectedTags = new();
+
     private readonly ISyncService _syncService;
 
     public GameMediaTabViewModel(
@@ -93,6 +105,7 @@ public partial class GameMediaTabViewModel : ObservableObject
         INotificationService notificationService,
         ISyncService syncService,
         IClipboardService clipboardService,
+        IImageAnalysisService? imageAnalysisService,
         ILogger<GameMediaTabViewModel> logger)
     {
         _mediator = mediator;
@@ -102,6 +115,7 @@ public partial class GameMediaTabViewModel : ObservableObject
         _notificationService = notificationService;
         _syncService = syncService;
         _clipboardService = clipboardService;
+        _imageAnalysisService = imageAnalysisService;
         _logger = logger;
     }
 
@@ -430,6 +444,162 @@ public partial class GameMediaTabViewModel : ObservableObject
                 await _clipboardService.SetTextAsync(item.FilePath);
                 _notificationService.ShowSuccess($"Copied path to clipboard", "Copied");
             }
+        }
+    }
+
+    /// <summary>
+    /// Scans selected screenshots using AI Vision to detect content and suggest tags.
+    /// PHASE 1: Core Services - Screenshot Scanning Feature.
+    /// </summary>
+    [RelayCommand]
+    private async Task ScanSelectedForTags()
+    {
+        if (_imageAnalysisService == null)
+        {
+            _notificationService.ShowWarning("Image analysis service not available", "Feature Unavailable");
+            return;
+        }
+
+        if (_currentGameId == null)
+        {
+            _notificationService.ShowWarning("No game selected", "Scan");
+            return;
+        }
+
+        var selectedItems = MediaItems.Where(x => x.IsSelected && x.IsImage).ToList();
+        if (!selectedItems.Any())
+        {
+            // If nothing selected, scan all screenshots
+            selectedItems = MediaItems.Where(x => x.IsImage).Take(5).ToList();
+            if (!selectedItems.Any())
+            {
+                _notificationService.ShowInfo("No screenshots to analyze", "Scan");
+                return;
+            }
+        }
+
+        try
+        {
+            IsScanning = true;
+            ScanStatusText = $"Analyzing {selectedItems.Count} screenshot(s)...";
+            DetectedTags.Clear();
+
+            var allTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var item in selectedItems)
+            {
+                if (string.IsNullOrEmpty(item.FilePath) || !File.Exists(item.FilePath))
+                    continue;
+
+                ScanStatusText = $"Analyzing {item.FileName}...";
+
+                var result = await _imageAnalysisService.GetSuggestedTagsAsync(item.FilePath, 10);
+
+                if (result.IsSuccess)
+                {
+                    foreach (var tag in result.Value)
+                    {
+                        allTags.Add(tag);
+                    }
+                    _logger.LogDebug("Detected {TagCount} tags from {FileName}", result.Value.Count, item.FileName);
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to analyze {FileName}: {Error}", item.FileName, result.Error);
+                }
+            }
+
+            // Populate detected tags
+            foreach (var tag in allTags.Take(15))
+            {
+                DetectedTags.Add(tag);
+            }
+
+            ScanStatusText = $"Found {DetectedTags.Count} unique tags";
+
+            if (DetectedTags.Any())
+            {
+                // Ask user if they want to add these tags to the game
+                var tagList = string.Join(", ", DetectedTags.Take(10));
+                var confirmMessage = DetectedTags.Count > 10
+                    ? $"Detected tags: {tagList}... and {DetectedTags.Count - 10} more.\n\nWould you like to add these tags to the game?"
+                    : $"Detected tags: {tagList}\n\nWould you like to add these tags to the game?";
+
+                var confirmed = await _dialogService.ShowConfirmationAsync(
+                    "Screenshot Analysis Complete",
+                    confirmMessage);
+
+                if (confirmed)
+                {
+                    await AddDetectedTagsToGame();
+                }
+            }
+            else
+            {
+                _notificationService.ShowInfo("No relevant tags detected in the screenshots", "Scan Complete");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to scan screenshots for tags");
+            _notificationService.ShowError("Failed to analyze screenshots", "Scan Error");
+            ScanStatusText = "Scan failed";
+        }
+        finally
+        {
+            IsScanning = false;
+        }
+    }
+
+    private async Task AddDetectedTagsToGame()
+    {
+        if (_currentGameId == null || !DetectedTags.Any())
+            return;
+
+        try
+        {
+            // Get current tags
+            var gameQuery = new GetGameByIdQuery(_currentGameId);
+            var game = await _mediator.Send(gameQuery);
+
+            if (game == null)
+            {
+                _notificationService.ShowError("Could not find game", "Error");
+                return;
+            }
+
+            // Merge existing tags with new detected tags
+            var existingTags = game.Tags.ToList();
+            var newTags = DetectedTags
+                .Where(t => !existingTags.Contains(t, StringComparer.OrdinalIgnoreCase))
+                .ToList();
+
+            if (!newTags.Any())
+            {
+                _notificationService.ShowInfo("All detected tags already exist on the game", "Tags");
+                return;
+            }
+
+            var allTags = existingTags.Concat(newTags).ToList();
+
+            var command = new UpdateGameTagsCommand(_currentGameId.Value, allTags);
+            var result = await _mediator.Send(command);
+
+            if (result.IsSuccess)
+            {
+                _notificationService.ShowSuccess($"Added {newTags.Count} new tag(s) to the game", "Tags Updated");
+                _logger.LogInformation("Added {Count} tags to game {GameId} from screenshot analysis",
+                    newTags.Count, _currentGameId);
+            }
+            else
+            {
+                _notificationService.ShowError($"Failed to update tags: {result.Error}", "Error");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to add detected tags to game");
+            _notificationService.ShowError("Failed to update game tags", "Error");
         }
     }
 }

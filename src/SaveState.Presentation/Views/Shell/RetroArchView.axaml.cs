@@ -10,7 +10,13 @@ public partial class RetroArchView : UserControl
         InitializeComponent();
     }
 
-    private async void OnLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        // Fire and forget with explicit exception handling
+        _ = LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
     {
         try
         {

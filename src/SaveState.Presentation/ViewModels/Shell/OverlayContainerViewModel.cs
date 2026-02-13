@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
+using SaveState.Core.Input.Services;
 using SaveState.Presentation.Services;
 using Splat;
 using System.Collections.ObjectModel;
@@ -18,12 +20,16 @@ public partial class OverlayContainerViewModel : ObservableObject
     private bool _isLoading;
     private string _loadingMessage = "Loading...";
 
+    private readonly ITimeProvider _timeProvider;
+
     public OverlayContainerViewModel(
         IOverlayService overlayService,
-        IUiGameContextService gameContextService)
+        IUiGameContextService gameContextService,
+        ITimeProvider timeProvider)
     {
         _overlayService = overlayService;
         _gameContextService = gameContextService;
+        _timeProvider = timeProvider;
 
         // Subscribe to overlay service events
         _overlayService.OverlayChanged += OnOverlayChanged;
@@ -35,16 +41,17 @@ public partial class OverlayContainerViewModel : ObservableObject
         var performanceMonitor = Locator.Current.GetService<SaveState.Core.Performance.Services.IPerformanceMonitor>();
         var speechRecognitionService = Locator.Current.GetService<SaveState.Core.Ai.Services.ISpeechRecognitionService>()!;
         var loggerFactory = Locator.Current.GetService<ILoggerFactory>()!;
+        var commandPaletteService = Locator.Current.GetService<ICommandPaletteService>()!;
 
         // Initialize child view models with real dependencies
-        CommandPaletteViewModel = new CommandPaletteViewModel(_overlayService);
+        CommandPaletteViewModel = new CommandPaletteViewModel(_overlayService, commandPaletteService);
         QuickSearchViewModel = new QuickSearchViewModel(_overlayService, gameRepository, navigationService, _gameContextService);
         AiAssistantViewModel = new AiAssistantViewModel(_overlayService, aiOrchestrator, speechRecognitionService, _gameContextService, gameRepository, loggerFactory.CreateLogger<AiAssistantViewModel>());
         PerformanceHudViewModel = new PerformanceHudViewModel(_overlayService, performanceMonitor);
         VoiceIndicatorViewModel = new VoiceIndicatorViewModel();
 
         // New Detail Overlays
-        SessionDetailsViewModel = new Overlays.SessionDetailsOverlayViewModel(_overlayService);
+        SessionDetailsViewModel = new Overlays.SessionDetailsOverlayViewModel(_overlayService, timeProvider);
         AchievementDetailsViewModel = new Overlays.AchievementDetailsOverlayViewModel(_overlayService);
         ModDetailsViewModel = new Overlays.ModDetailsOverlayViewModel(_overlayService);
 
@@ -191,7 +198,7 @@ public partial class OverlayContainerViewModel : ObservableObject
     /// <param name="duration">How long to show the toast (in seconds).</param>
     public void AddToast(string title, string message, int duration = 5)
     {
-        var toast = new ToastViewModel(title, message, duration, this);
+        var toast = new ToastViewModel(title, message, duration, this, _timeProvider);
         Toasts.Add(toast);
         OnPropertyChanged(nameof(HasToasts));
     }
@@ -277,12 +284,12 @@ public class ToastViewModel : ObservableObject
 {
     private readonly OverlayContainerViewModel _parent;
 
-    public ToastViewModel(string title, string message, int durationSeconds, OverlayContainerViewModel parent)
+    public ToastViewModel(string title, string message, int durationSeconds, OverlayContainerViewModel parent, ITimeProvider timeProvider)
     {
         _parent = parent;
         Title = title;
         Message = message;
-        Timestamp = DateTime.Now;
+        Timestamp = timeProvider.Now;
 
         // Auto-remove after duration
         Task.Delay(TimeSpan.FromSeconds(durationSeconds)).ContinueWith(_ =>

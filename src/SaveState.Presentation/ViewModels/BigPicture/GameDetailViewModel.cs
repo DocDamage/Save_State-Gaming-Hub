@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SaveState.Core.Common.Services;
 using System.Collections.ObjectModel;
 
 namespace SaveState.Presentation.ViewModels.BigPicture;
@@ -12,8 +13,11 @@ public partial class GameDetailViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<ActivityViewModel> recentActivity = new();
 
-    public GameDetailViewModel()
+    private readonly ITimeProvider _timeProvider;
+
+    public GameDetailViewModel(ITimeProvider timeProvider)
     {
+        _timeProvider = timeProvider;
         LoadSampleActivity();
     }
 
@@ -21,19 +25,19 @@ public partial class GameDetailViewModel : ObservableObject
     {
         RecentActivity.Add(new ActivityViewModel
         {
-            Timestamp = DateTime.Now.AddDays(-1),
+            Timestamp = _timeProvider.Now.AddDays(-1),
             Description = "Played for 2 hours"
         });
 
         RecentActivity.Add(new ActivityViewModel
         {
-            Timestamp = DateTime.Now.AddDays(-3),
+            Timestamp = _timeProvider.Now.AddDays(-3),
             Description = "Completed Chapter 5"
         });
 
         RecentActivity.Add(new ActivityViewModel
         {
-            Timestamp = DateTime.Now.AddDays(-7),
+            Timestamp = _timeProvider.Now.AddDays(-7),
             Description = "Started new game"
         });
     }
@@ -44,10 +48,10 @@ public partial class GameDetailViewModel : ObservableObject
         if (SelectedGame != null)
         {
             // In real implementation, launch the game
-            SelectedGame.LastPlayed = DateTime.Now;
+            SelectedGame.LastPlayed = _timeProvider.Now;
             RecentActivity.Insert(0, new ActivityViewModel
             {
-                Timestamp = DateTime.Now,
+                Timestamp = _timeProvider.Now,
                 Description = "Launched game"
             });
         }
@@ -61,7 +65,7 @@ public partial class GameDetailViewModel : ObservableObject
             // In real implementation, add to backlog
             RecentActivity.Insert(0, new ActivityViewModel
             {
-                Timestamp = DateTime.Now,
+                Timestamp = _timeProvider.Now,
                 Description = "Added to backlog"
             });
         }

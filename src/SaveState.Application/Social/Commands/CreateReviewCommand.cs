@@ -41,10 +41,10 @@ public class CreateReviewCommandHandler : IRequestHandler<CreateReviewCommand, R
         }
 
         // Optionally update the review with title/content if provided
-        if (request.Title is not null || request.Content is not null)
+        if ((request.Title is not null || request.Content is not null) && result.Value is not null)
         {
             var updateResult = await _reviewService.UpdateReviewAsync(
-                result.Value!.Id,
+                result.Value.Id,
                 title: request.Title,
                 content: request.Content,
                 ct: ct);

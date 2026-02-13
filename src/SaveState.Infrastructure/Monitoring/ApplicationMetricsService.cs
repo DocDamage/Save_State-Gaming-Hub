@@ -311,9 +311,9 @@ public class ApplicationMetricsService : IApplicationMetrics, IDisposable
         }
 
         // Record GPU usage if available
-        if (snapshot.GpuUsagePercent >= 0)
+        if (snapshot.GpuUsagePercent.HasValue)
         {
-            RecordCustomMetric("performance.gpu_usage_percent", snapshot.GpuUsagePercent);
+            RecordCustomMetric("performance.gpu_usage_percent", snapshot.GpuUsagePercent.Value);
         }
     }
 

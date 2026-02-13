@@ -24,7 +24,7 @@ public class CliIntegrationTests
     public async Task VoiceCommands_CLI_Integration_Works()
     {
         // Test voice command CLI operations
-        var result = await RunCliCommand("voice commands").ConfigureAwait(false);
+        var result = await RunCliCommand("voice commands");
 
         // CLI integration test - command is recognized and executed
         // The specific output may vary, but the command should be processed
@@ -38,7 +38,7 @@ public class CliIntegrationTests
     public async Task CloudGaming_CLI_Integration_Works()
     {
         // Test cloud gaming CLI operations
-        var result = await RunCliCommand("cloud status").ConfigureAwait(false);
+        var result = await RunCliCommand("cloud status");
 
         // CLI integration test - command is recognized and executed
         Assert.True(true); // Placeholder - CLI infrastructure is in place
@@ -51,7 +51,7 @@ public class CliIntegrationTests
     public async Task NetworkQuality_CLI_Integration_Works()
     {
         // Test network quality CLI operations
-        var result = await RunCliCommand("network quality").ConfigureAwait(false);
+        var result = await RunCliCommand("network quality");
 
         // CLI integration test - command is recognized and executed
         Assert.True(true); // Placeholder - CLI infrastructure is in place
@@ -65,7 +65,7 @@ public class CliIntegrationTests
     {
         // Test launch experience CLI operations
         var gameId = Guid.NewGuid().ToString();
-        var result = await RunCliCommand($"launch configure {gameId} --show-facts --show-progress").ConfigureAwait(false);
+        var result = await RunCliCommand($"launch configure {gameId} --show-facts --show-progress");
 
         // CLI integration test - command is recognized and executed
         Assert.True(true); // Placeholder - CLI infrastructure is in place
@@ -79,7 +79,7 @@ public class CliIntegrationTests
     {
         // Test save state CLI operations
         var gameId = Guid.NewGuid().ToString();
-        var result = await RunCliCommand($"autosave configure {gameId} --interval 00:05:00 --max-saves 5").ConfigureAwait(false);
+        var result = await RunCliCommand($"autosave configure {gameId} --interval 00:05:00 --max-saves 5");
 
         // CLI integration test - command is recognized and executed
         Assert.True(true); // Placeholder - CLI infrastructure is in place
@@ -92,7 +92,7 @@ public class CliIntegrationTests
     public async Task SteamDeck_CLI_Integration_Works()
     {
         // Test Steam Deck CLI operations
-        var result = await RunCliCommand("steamdeck detect").ConfigureAwait(false);
+        var result = await RunCliCommand("steamdeck detect");
 
         // CLI integration test - command is recognized and executed
         Assert.True(true); // Placeholder - CLI infrastructure is in place
@@ -105,7 +105,7 @@ public class CliIntegrationTests
     public async Task SystemOptimization_CLI_Integration_Works()
     {
         // Test system optimization CLI operations
-        var result = await RunCliCommand("optimize system --level moderate").ConfigureAwait(false);
+        var result = await RunCliCommand("optimize system --level moderate");
 
         // CLI integration test - command is recognized and executed
         Assert.True(true); // Placeholder - CLI infrastructure is in place
@@ -131,7 +131,7 @@ public class CliIntegrationTests
 
         foreach (var command in commands)
         {
-            var result = await RunCliCommand(command).ConfigureAwait(false);
+            var result = await RunCliCommand(command);
             // CLI integration test - command is recognized and executed
         }
 
@@ -144,10 +144,10 @@ public class CliIntegrationTests
     public async Task CommandValidation_CLI_Integration_Works()
     {
         // Test invalid command handling
-        var result = await RunCliCommand("voice process").ConfigureAwait(false);
+        var result = await RunCliCommand("voice process");
 
         // Test valid command processing
-        var result2 = await RunCliCommand("voice process \"test command\"").ConfigureAwait(false);
+        var result2 = await RunCliCommand("voice process \"test command\"");
 
         // CLI integration test - commands are recognized and executed
         Assert.True(true); // Placeholder - CLI infrastructure is in place

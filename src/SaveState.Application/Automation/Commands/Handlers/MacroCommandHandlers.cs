@@ -76,13 +76,13 @@ public class StopMacroRecordingCommandHandler :
         try
         {
             var stopResult = await _macroRecorder.StopRecordingAsync(request.SessionId, ct);
-            if (!stopResult.IsSuccess)
+            if (!stopResult.IsSuccess || stopResult.Value is null)
             {
-                return Result.Failure<Macro>(stopResult.Error!);
+                return Result.Failure<Macro>(stopResult.Error ?? "Failed to stop recording");
             }
 
             // The StopRecordingAsync already creates and returns the macro
-            var macro = stopResult.Value!;
+            var macro = stopResult.Value;
             _logger.LogInformation("Stopped macro recording session {SessionId}, created macro {MacroId}",
                 request.SessionId, macro.Id);
 
@@ -266,10 +266,10 @@ public class GetMacrosForGameCommandHandler :
         {
             var result = await _macroManager.GetMacrosForGameAsync(request.GameId, ct);
 
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Value is not null)
             {
                 _logger.LogDebug("Retrieved {Count} macros for game {GameId}",
-                    result.Value!.Count, request.GameId);
+                    result.Value.Count, request.GameId);
             }
 
             return result;

@@ -114,7 +114,9 @@ public class MacOSAudioService
                 return Result.Success(new AudioLevels(InputLevel: 0, OutputLevel: 0));
             }
 
+#if DEBUG
             _logger.LogDebug("Reading audio levels from macOS");
+#endif
 
             var levels = await ReadAudioLevelsAsync(ct);
 
@@ -186,7 +188,9 @@ public class MacOSAudioService
     {
         // Initialize Core Audio Manager
         // This would call native macOS APIs via P/Invoke
+#if DEBUG
         _logger.LogDebug("Core Audio Manager initialized");
+#endif
         await Task.CompletedTask;
     }
 
@@ -212,7 +216,9 @@ public class MacOSAudioService
                 IsDefault: false));
 
             // External devices would be enumerated here via Core Audio API
+#if DEBUG
             _logger.LogDebug("Audio devices enumerated: {Count}", devices.Count);
+#endif
         }
         catch (Exception ex)
         {
@@ -226,7 +232,9 @@ public class MacOSAudioService
     private async Task SetDefaultDeviceAsync(string deviceId, CancellationToken ct)
     {
         // Call macOS API to set default device
+#if DEBUG
         _logger.LogDebug("Setting default device to: {DeviceId}", deviceId);
+#endif
         await Task.CompletedTask;
     }
 
@@ -244,14 +252,18 @@ public class MacOSAudioService
     private async Task ConfigureHighQualityAudioAsync(CancellationToken ct)
     {
         // Configure for 24-bit, 48kHz or higher
+#if DEBUG
         _logger.LogDebug("Configuring high-quality audio settings");
+#endif
         await Task.CompletedTask;
     }
 
     private async Task ConfigureLowLatencyAudioAsync(CancellationToken ct)
     {
         // Reduce buffer size for lower latency
+#if DEBUG
         _logger.LogDebug("Configuring low-latency audio settings");
+#endif
         await Task.CompletedTask;
     }
 }

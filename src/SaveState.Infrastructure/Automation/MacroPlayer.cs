@@ -38,12 +38,12 @@ public class MacroPlayer : IMacroPlayer, IDisposable
         {
             // Get the macro
             var macroResult = await _macroManager.GetMacroAsync(macroId, ct);
-            if (!macroResult.IsSuccess)
+            if (!macroResult.IsSuccess || macroResult.Value is null)
             {
-                return Result.Failure<MacroPlaybackSession>(macroResult.Error!);
+                return Result.Failure<MacroPlaybackSession>(macroResult.Error ?? "Macro not found");
             }
 
-            var macro = macroResult.Value!;
+            var macro = macroResult.Value;
             var sessionId = Guid.NewGuid();
 
             var session = new MacroPlaybackSession(
@@ -208,12 +208,12 @@ public class MacroPlayer : IMacroPlayer, IDisposable
         try
         {
             var macroResult = await _macroManager.GetMacroAsync(macroId, ct);
-            if (!macroResult.IsSuccess)
+            if (!macroResult.IsSuccess || macroResult.Value is null)
             {
-                return Result.Failure<MacroValidationResult>(macroResult.Error!);
+                return Result.Failure<MacroValidationResult>(macroResult.Error ?? "Macro not found");
             }
 
-            var macro = macroResult.Value!;
+            var macro = macroResult.Value;
             var errors = new List<string>();
             var warnings = new List<string>();
 

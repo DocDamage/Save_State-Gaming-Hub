@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common;
 using SaveState.Core.Sync;
 using System.Diagnostics;
 using System.Text;
@@ -23,7 +24,7 @@ public class CloudAuthenticationService : ICloudAuthenticationService
         _logger = logger;
     }
 
-    public async Task<OAuth2TokenResponse?> AuthenticateAsync(
+    public async Task<Result<OAuth2TokenResponse>> AuthenticateAsync(
         string providerName,
         string clientId,
         string[] scopes,
@@ -63,7 +64,7 @@ public class CloudAuthenticationService : ICloudAuthenticationService
                 var errorBytes = Encoding.UTF8.GetBytes("Authentication failed. You can close this window.");
                 response.OutputStream.Write(errorBytes, 0, errorBytes.Length);
                 response.Close();
-                return null;
+                return Result.Failure<OAuth2TokenResponse>("Authentication failed: state mismatch or missing authorization code", ErrorType.Unauthorized);
             }
 
             var successBytes = Encoding.UTF8.GetBytes("Authentication successful! You can return to SaveState Reborn and close this window.");
@@ -73,10 +74,15 @@ public class CloudAuthenticationService : ICloudAuthenticationService
             _logger.LogInformation("Exchanging authorization code for tokens...");
             return await ExchangeCodeForTokenAsync(clientId, code, redirectUri, tokenUrl, ct).ConfigureAwait(false);
         }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("OAuth2 authentication was cancelled");
+            return Result.Failure<OAuth2TokenResponse>("Authentication was cancelled", ErrorType.Cancelled);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "OAuth2 authentication flow failed");
-            return null;
+            return Result.Failure<OAuth2TokenResponse>($"Authentication failed: {ex.Message}", ErrorType.ExternalService);
         }
         finally
         {
@@ -84,7 +90,7 @@ public class CloudAuthenticationService : ICloudAuthenticationService
         }
     }
 
-    public async Task<OAuth2TokenResponse?> RefreshTokenAsync(
+    public async Task<Result<OAuth2TokenResponse>> RefreshTokenAsync(
         string clientId,
         string refreshToken,
         string tokenUrl,
@@ -100,25 +106,38 @@ public class CloudAuthenticationService : ICloudAuthenticationService
             });
 
             var response = await _httpClient.PostAsync(tokenUrl, content, ct).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode) return null;
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorBody = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+                _logger.LogWarning("Token refresh failed: {Status} {Error}", response.StatusCode, errorBody);
+                return Result.Failure<OAuth2TokenResponse>($"Token refresh failed: {response.StatusCode}", ErrorType.Unauthorized);
+            }
 
             var data = await response.Content.ReadFromJsonAsync<TokenResponseData>(cancellationToken: ct).ConfigureAwait(false);
-            if (data == null) return null;
+            if (data == null)
+            {
+                return Result.Failure<OAuth2TokenResponse>("Failed to parse token response", ErrorType.ExternalService);
+            }
 
-            return new OAuth2TokenResponse(
+            return Result.Success(new OAuth2TokenResponse(
                 data.access_token,
                 data.refresh_token ?? refreshToken,
                 DateTime.UtcNow.AddSeconds(data.expires_in),
-                data.scope?.Split(' ') ?? Array.Empty<string>());
+                data.scope?.Split(' ') ?? Array.Empty<string>()));
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Token refresh was cancelled");
+            return Result.Failure<OAuth2TokenResponse>("Token refresh was cancelled", ErrorType.Cancelled);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Token refresh failed");
-            return null;
+            return Result.Failure<OAuth2TokenResponse>($"Token refresh failed: {ex.Message}", ErrorType.ExternalService);
         }
     }
 
-    private async Task<OAuth2TokenResponse?> ExchangeCodeForTokenAsync(
+    private async Task<Result<OAuth2TokenResponse>> ExchangeCodeForTokenAsync(
         string clientId,
         string code,
         string redirectUri,
@@ -138,17 +157,20 @@ public class CloudAuthenticationService : ICloudAuthenticationService
         {
             var errorBody = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
             _logger.LogError("Token exchange failed: {Status} {Error}", response.StatusCode, errorBody);
-            return null;
+            return Result.Failure<OAuth2TokenResponse>($"Token exchange failed: {response.StatusCode} - {errorBody}", ErrorType.Unauthorized);
         }
 
         var data = await response.Content.ReadFromJsonAsync<TokenResponseData>(cancellationToken: ct).ConfigureAwait(false);
-        if (data == null) return null;
+        if (data == null)
+        {
+            return Result.Failure<OAuth2TokenResponse>("Failed to parse token response", ErrorType.ExternalService);
+        }
 
-        return new OAuth2TokenResponse(
+        return Result.Success(new OAuth2TokenResponse(
             data.access_token,
             data.refresh_token,
             DateTime.UtcNow.AddSeconds(data.expires_in),
-            data.scope?.Split(' ') ?? Array.Empty<string>());
+            data.scope?.Split(' ') ?? Array.Empty<string>()));
     }
 
     private class TokenResponseData

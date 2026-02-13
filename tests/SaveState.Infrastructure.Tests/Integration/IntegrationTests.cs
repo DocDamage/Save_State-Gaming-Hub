@@ -1,6 +1,7 @@
 using Xunit;
 using Microsoft.Extensions.DependencyInjection;
 using SaveState.Core.Common;
+using SaveState.Infrastructure.Persistence;
 using SaveState.Tests.Infrastructure;
 
 namespace SaveState.Tests.Infrastructure.Integration;
@@ -9,19 +10,22 @@ namespace SaveState.Tests.Infrastructure.Integration;
 /// Integration tests for complete workflows.
 /// PHASE 7: REQUIRED - Integration Test Suite
 /// </summary>
-public class GameLibraryIntegrationTests : BaseIntegrationTest
-{
-    protected override void SetupServices()
+    public class GameLibraryIntegrationTests : BaseIntegrationTest
     {
-        // Setup EF Core with test database
-        _services.AddScoped(sp => new SaveState.Infrastructure.Persistence.SaveStateDbContext(
-            new Microsoft.EntityFrameworkCore.DbContextOptions<SaveState.Infrastructure.Persistence.SaveStateDbContext>()));
-    }
 
-    protected override void InitializeDatabase()
-    {
-        // Initialize in-memory database for testing
-    }
+        protected override void SetupServices()
+        {
+            // Setup EF Core with test database
+            var options = SaveStateDbContextModelFactory.CreateInMemoryOptions<SaveStateDbContext>("GameLibraryIntegration");
+            _services.AddScoped(sp => new SaveStateDbContext(options));
+        }
+
+        protected override void InitializeDatabase()
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<SaveStateDbContext>();
+            db.Database.EnsureCreated();
+        }
 
     [Fact]
     public async Task CreateGame_WithCompleteData_PersistsSuccessfully()

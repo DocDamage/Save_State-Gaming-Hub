@@ -29,11 +29,10 @@ public class GetCloudProvidersQueryHandler :
             var result = await _cloudGamingManager.GetAvailableProvidersAsync(ct)
                 .ConfigureAwait(false);
 
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Value is not null)
             {
-                // Value is guaranteed to be non-null when IsSuccess is true
                 _logger.LogInformation("Retrieved {Count} available cloud gaming providers",
-                    result.Value!.Count);
+                    result.Value.Count);
             }
 
             return result;
@@ -70,11 +69,10 @@ public class GetActiveCloudSessionsQueryHandler :
             var result = await _cloudGamingManager.GetActiveSessionsAsync(ct)
                 .ConfigureAwait(false);
 
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Value is not null)
             {
-                // Value is guaranteed to be non-null when IsSuccess is true
                 _logger.LogInformation("Retrieved {Count} active cloud gaming sessions",
-                    result.Value!.Count);
+                    result.Value.Count);
             }
 
             return result;

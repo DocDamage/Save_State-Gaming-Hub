@@ -562,7 +562,7 @@ public class GamingAnalyticsPlugin : IPlugin
             return;
         }
 
-        var totalPlayTime = periodSessions.Sum(s => s.Duration);
+        var totalPlayTime = TimeSpan.FromTicks(periodSessions.Sum(s => s.Duration.Ticks));
         var avgSessionLength = periodSessions.Average(s => s.Duration.TotalMinutes);
         var mostPlayedGame = periodSessions
             .GroupBy(s => s.GameTitle)
@@ -634,7 +634,10 @@ public class GamingAnalyticsPlugin : IPlugin
         _logger?.LogInformation($"- FPS: {snapshot.Fps:F1}");
         _logger?.LogInformation($"- Frame Time: {snapshot.FrameTimeMs:F2}ms");
         _logger?.LogInformation($"- CPU Usage: {snapshot.CpuUsagePercent:F1}%");
-        _logger?.LogInformation($"- GPU Usage: {snapshot.GpuUsagePercent:F1}%");
+        var gpuUsage = snapshot.GpuUsagePercent.HasValue
+            ? $"{snapshot.GpuUsagePercent.Value:F1}%"
+            : "N/A";
+        _logger?.LogInformation($"- GPU Usage: {gpuUsage}");
         _logger?.LogInformation($"- RAM Usage: {snapshot.RamUsageMb}MB");
 
         if (snapshot.GpuTempCelsius.HasValue)

@@ -1,4 +1,6 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Plugins;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -48,6 +50,11 @@ public class ScreenshotCapturePlugin : IPlugin
 
         // Set up output directory
         _outputDirectory = Path.Combine(context.PluginDirectory, "captures");
+
+        // Set time provider for screenshot and video recorders
+        var timeProvider = context.Services.GetService<ITimeProvider>();
+        _screenshotManager.SetTimeProvider(timeProvider!);
+        _videoRecorder.SetTimeProvider(timeProvider!);
         Directory.CreateDirectory(_outputDirectory);
 
         // Register menu items
@@ -501,6 +508,12 @@ public class ScreenshotCapturePlugin : IPlugin
 public class ScreenshotManager
 {
     private string _outputDirectory = string.Empty;
+    private ITimeProvider _timeProvider = null!;
+
+    public void SetTimeProvider(ITimeProvider timeProvider)
+    {
+        _timeProvider = timeProvider;
+    }
 
     public async Task InitializeAsync(string outputDirectory, CancellationToken ct = default)
     {
@@ -509,7 +522,7 @@ public class ScreenshotManager
 
     public async Task<string> CaptureScreenshotAsync(string? customFilename = null, string format = "png")
     {
-        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        var timestamp = _timeProvider.Now.ToString("yyyyMMdd_HHmmss");
         var filename = customFilename ?? $"screenshot_{timestamp}.{format}";
         var filepath = Path.Combine(_outputDirectory, filename);
 
@@ -565,6 +578,12 @@ public class VideoRecorder
 {
     private string _outputDirectory = string.Empty;
     private bool _isRecording;
+    private ITimeProvider _timeProvider = null!;
+
+    public void SetTimeProvider(ITimeProvider timeProvider)
+    {
+        _timeProvider = timeProvider;
+    }
 
     public async Task InitializeAsync(string outputDirectory, CancellationToken ct = default)
     {
@@ -586,7 +605,7 @@ public class VideoRecorder
 
         _isRecording = false;
 
-        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        var timestamp = _timeProvider.Now.ToString("yyyyMMdd_HHmmss");
         var filename = $"recording_{timestamp}.mp4";
 
         // In production: Finalize video file and save

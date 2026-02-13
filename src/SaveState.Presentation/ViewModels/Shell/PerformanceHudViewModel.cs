@@ -121,7 +121,7 @@ public partial class PerformanceHudViewModel : ObservableObject, IDisposable
     {
         // Update from real performance data
         CpuUsage = (int)snapshot.CpuUsagePercent;
-        GpuUsage = (int)snapshot.GpuUsagePercent;
+        GpuUsage = snapshot.GpuUsagePercent.HasValue ? (int)snapshot.GpuUsagePercent.Value : 0;
         MemoryUsage = snapshot.RamUsageMb;
         Fps = (int)snapshot.Fps;
         FrameTimeMs = snapshot.FrameTimeMs;

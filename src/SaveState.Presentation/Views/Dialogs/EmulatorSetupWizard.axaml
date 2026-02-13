@@ -1,0 +1,140 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Emulators"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
+        x:Class="SaveState.Presentation.Views.Dialogs.EmulatorSetupWizard"
+        x:DataType="vm:EmulatorSetupWizardViewModel"
+        Title="Emulator Setup Wizard"
+        Width="650" Height="550"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        SystemDecorations="None"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        TransparencyLevelHint="Mica"
+        Background="Transparent">
+
+    <Panel>
+        <!-- Background Layer -->
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"
+                    TintColor="#1e1e1e"
+                    TintOpacity="0.9"
+                    MaterialOpacity="0.8" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+
+        <Border BorderBrush="{DynamicResource SurfaceStrokeColorDefault}"
+                BorderThickness="1"
+                CornerRadius="8"
+                ClipToBounds="True">
+
+            <Grid RowDefinitions="Auto,*,Auto">
+                <!-- Header -->
+                <Border Grid.Row="0" Padding="24,16" Background="#2d2d2d">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Emulator Setup Wizard"
+                                   FontSize="20" FontWeight="SemiBold"
+                                   Foreground="White"/>
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   FontSize="13"
+                                   Foreground="#aaaaaa"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Main Content Area -->
+                <Panel Grid.Row="1" Margin="24">
+
+                    <!-- Step 0: Selection -->
+                    <Grid IsVisible="{Binding CurrentStep, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=0}"
+                          RowDefinitions="*,Auto">
+                        <ScrollViewer Grid.Row="0">
+                            <ItemsControl ItemsSource="{Binding AvailableEmulators}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Margin="0,0,0,8" Padding="16"
+                                                Background="#333333" CornerRadius="4"
+                                                BorderThickness="1" BorderBrush="#444444">
+                                            <Grid ColumnDefinitions="Auto, *, Auto">
+                                                <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" VerticalAlignment="Center"/>
+                                                <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Option.Name}" FontWeight="Bold" FontSize="16"/>
+                                                    <TextBlock Text="{Binding Option.Description}" FontSize="12" Opacity="0.7" TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="2" Text="{Binding Option.Version}"
+                                                           VerticalAlignment="Top" FontSize="11" Opacity="0.5"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+
+                    <!-- Step 1: Progress -->
+                    <StackPanel IsVisible="{Binding CurrentStep, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=1}"
+                                VerticalAlignment="Center" Spacing="24">
+                        <TextBlock Text="Installing your selected emulators..."
+                                   HorizontalAlignment="Center" FontSize="18"/>
+
+                        <ProgressBar Value="{Binding TotalProgress}" Minimum="0" Maximum="1"
+                                     Height="10" CornerRadius="5"
+                                     Foreground="{DynamicResource SystemAccentColor}"/>
+
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   HorizontalAlignment="Center" FontSize="13" Opacity="0.8"/>
+
+                        <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}"
+                                     Height="2" Width="200" HorizontalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Step 2: Success -->
+                    <StackPanel IsVisible="{Binding CurrentStep, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=2}"
+                                VerticalAlignment="Center" Spacing="16">
+                        <TextBlock Text="✅" FontSize="64" HorizontalAlignment="Center"/>
+                        <TextBlock Text="All set!" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock Text="The selected emulators have been installed and registered. You can now use them to launch your games."
+                                   TextWrapping="Wrap" TextAlignment="Center" Opacity="0.8"/>
+                    </StackPanel>
+
+                </Panel>
+
+                <!-- Footer -->
+                <Border Grid.Row="2" Padding="24,16" Background="#252525"
+                        BorderBrush="{DynamicResource SurfaceStrokeColorDefault}" BorderThickness="0,1,0,0">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Button Grid.Column="0" Content="Cancel" Command="{Binding CancelCommand}"
+                                IsVisible="{Binding CurrentStep, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter=2}"/>
+
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12">
+                            <Button Content="Install Now" Command="{Binding StartInstallationCommand}"
+                                    Classes="primary"
+                                    IsVisible="{Binding CurrentStep, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=0}"/>
+
+                            <Button Content="Finish" Command="{Binding FinishCommand}"
+                                    Classes="primary"
+                                    IsVisible="{Binding CurrentStep, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=2}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Panel>
+
+    <Window.Styles>
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="{DynamicResource SystemAccentColor}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="24,8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style Selector="Button.primary:hover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#0078d4"/> <!-- Example hover color -->
+        </Style>
+    </Window.Styles>
+</Window>

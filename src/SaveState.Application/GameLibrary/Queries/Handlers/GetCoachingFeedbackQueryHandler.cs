@@ -2,6 +2,7 @@ namespace SaveState.Application.GameLibrary.Queries.Handlers;
 
 using MediatR;
 using SaveState.Core.Common;
+using SaveState.Core.GameLibrary.Models.AiCoach;
 using SaveState.Core.GameLibrary.Services;
 
 /// <summary>

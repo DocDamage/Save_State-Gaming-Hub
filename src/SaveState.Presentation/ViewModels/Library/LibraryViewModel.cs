@@ -143,13 +143,18 @@ public partial class LibraryViewModel : ObservableObject, IRecipient<SaveState.P
         InitializeView();
     }
 
-    public async void Receive(SaveState.Presentation.Messages.NaturalLanguageSearchRequestedMessage message)
+    public void Receive(SaveState.Presentation.Messages.NaturalLanguageSearchRequestedMessage message)
     {
-        _logger.LogInformation("Processing natural language search: {Query}", message.Value);
+        _ = ProcessNaturalLanguageSearchAsync(message.Value);
+    }
+
+    private async Task ProcessNaturalLanguageSearchAsync(string query)
+    {
+        _logger.LogInformation("Processing natural language search: {Query}", query);
 
         try
         {
-            var filter = await _nlSearch.ParseQueryAsync(message.Value);
+            var filter = await _nlSearch.ParseQueryAsync(query);
             ActiveAdHocFilter = filter;
             _currentPage = 1;
 
@@ -158,7 +163,7 @@ public partial class LibraryViewModel : ObservableObject, IRecipient<SaveState.P
 
             await LoadLibraryDataAsync();
 
-            _logger.LogInformation("Natural language search applied for query: {Query}", message.Value);
+            _logger.LogInformation("Natural language search applied for query: {Query}", query);
         }
         catch (Exception ex)
         {
@@ -201,13 +206,13 @@ public partial class LibraryViewModel : ObservableObject, IRecipient<SaveState.P
     [RelayCommand]
     public async Task LoadLibraryDataAsync()
     {
-        var smartFilter = _sidebarViewModel.SelectedSmartFilter?.Id;
-        var collectionId = _sidebarViewModel.SelectedCollection?.Id;
-        var platformId = _sidebarViewModel.SelectedPlatform?.Id;
+        var smartFilter = SidebarViewModel.SelectedSmartFilter?.Id;
+        var collectionId = SidebarViewModel.SelectedCollection?.Id;
+        var platformId = SidebarViewModel.SelectedPlatform?.Id;
 
-        var sortOption = _toolbarViewModel.SelectedSortOption?.Id ?? "title_asc";
+        var sortOption = ToolbarViewModel.SelectedSortOption?.Id ?? "title_asc";
         var sortDescending = sortOption.EndsWith("_desc");
-        var searchTerm = _toolbarViewModel.SearchTerm;
+        var searchTerm = ToolbarViewModel.SearchTerm;
 
         await Task.WhenAll(
             SidebarViewModel.LoadSidebarDataCommand.ExecuteAsync(null),
@@ -233,8 +238,8 @@ public partial class LibraryViewModel : ObservableObject, IRecipient<SaveState.P
         // but here we just ensure visual state matches.
         // If this was triggered by toolbar, this command might be redundant if toolbar is binding to this.
         // If toolbar has its own command, this is only used for programmatic/shortcut switches.
-        if (_toolbarViewModel.GridViewButtonClass != "Primary")
-            _toolbarViewModel.SetGridViewCommand.Execute(null);
+        if (ToolbarViewModel.GridViewButtonClass != "Primary")
+            ToolbarViewModel.SetGridViewCommand.Execute(null);
 
         UpdateSelectionMode();
     }
@@ -247,8 +252,8 @@ public partial class LibraryViewModel : ObservableObject, IRecipient<SaveState.P
         IsCompactView = false;
         IsTableView = false;
 
-        if (_toolbarViewModel.ListViewButtonClass != "Primary")
-            _toolbarViewModel.SetListViewCommand.Execute(null);
+        if (ToolbarViewModel.ListViewButtonClass != "Primary")
+            ToolbarViewModel.SetListViewCommand.Execute(null);
 
         UpdateSelectionMode();
     }
@@ -261,8 +266,8 @@ public partial class LibraryViewModel : ObservableObject, IRecipient<SaveState.P
         IsCompactView = true;
         IsTableView = false;
 
-        if (_toolbarViewModel.CompactViewButtonClass != "Primary")
-            _toolbarViewModel.SetCompactViewCommand.Execute(null);
+        if (ToolbarViewModel.CompactViewButtonClass != "Primary")
+            ToolbarViewModel.SetCompactViewCommand.Execute(null);
 
         UpdateSelectionMode();
     }
@@ -275,8 +280,8 @@ public partial class LibraryViewModel : ObservableObject, IRecipient<SaveState.P
         IsCompactView = false;
         IsTableView = true;
 
-        if (_toolbarViewModel.TableViewButtonClass != "Primary")
-            _toolbarViewModel.SetTableViewCommand.Execute(null);
+        if (ToolbarViewModel.TableViewButtonClass != "Primary")
+            ToolbarViewModel.SetTableViewCommand.Execute(null);
 
         UpdateSelectionMode();
     }
@@ -372,7 +377,7 @@ public partial class LibraryViewModel : ObservableObject, IRecipient<SaveState.P
         if (result != null)
         {
              await _dialogService.ShowInformationAsync("Bulk Tagging", $"Applied tags to {selectedGameIds.Count} games.");
-             _toolbarViewModel.IsSelectionMode = false; // Exit selection mode
+             ToolbarViewModel.IsSelectionMode = false; // Exit selection mode
         }
     }
 
@@ -422,7 +427,7 @@ public partial class LibraryViewModel : ObservableObject, IRecipient<SaveState.P
             }
         }
 
-        _toolbarViewModel.IsSelectionMode = false;
+        ToolbarViewModel.IsSelectionMode = false;
         await LoadLibraryDataAsync();
 
         if (failureCount > 0)

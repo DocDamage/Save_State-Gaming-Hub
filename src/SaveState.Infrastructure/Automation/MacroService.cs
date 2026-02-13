@@ -67,10 +67,11 @@ public class MacroService : IMacroService
     /// </summary>
     /// <param name="macroName">The name for the macro.</param>
     /// <param name="description">A description of the macro.</param>
+    /// <param name="gameId">Optional game ID to associate with the macro.</param>
     /// <param name="ct">Cancellation token for the operation.</param>
     /// <returns>A result containing the recording session or an error.</returns>
     public Task<Result<MacroRecording>> StartRecordingAsync(
-        string macroName, string description, CancellationToken ct = default)
+        string macroName, string description, Guid? gameId = null, CancellationToken ct = default)
     {
         try
         {
@@ -83,7 +84,7 @@ public class MacroService : IMacroService
 
                 var recording = new MacroRecording(
                     Id: Guid.NewGuid(),
-                    GameId: Guid.Empty,
+                    GameId: gameId,
                     Name: macroName,
                     Description: description,
                     Mode: RecordingMode.Manual,
@@ -92,7 +93,7 @@ public class MacroService : IMacroService
                     State: MacroRecordingStateImpl.Recording);
 
                 _currentRecording = recording;
-                _logger.LogInformation("Started recording macro: {Name}", macroName);
+                _logger.LogInformation("Started recording macro: {Name} for game {GameId}", macroName, gameId);
                 return Task.FromResult(Result.Success<MacroRecording>(recording));
             }
         }

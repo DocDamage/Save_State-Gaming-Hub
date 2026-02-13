@@ -1,0 +1,17 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SaveState.Plugins.LiveStatsWidget.LiveStatsView">
+    <Border Background="#80000000" CornerRadius="8" Padding="15">
+        <StackPanel Spacing="5">
+            <TextBlock Text="LIVE SESSION" Foreground="Red" FontWeight="Bold" FontSize="10"/>
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="Playtime:" Foreground="White"/>
+                <TextBlock Text="01:23:45" Foreground="#00FF00" FontWeight="Bold"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="Achievements:" Foreground="White"/>
+                <TextBlock Text="12/50" Foreground="#00AAFF"/>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

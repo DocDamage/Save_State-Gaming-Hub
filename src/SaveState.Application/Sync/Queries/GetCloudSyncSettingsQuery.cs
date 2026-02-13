@@ -9,4 +9,7 @@ public record CloudSyncSettingsDto(
     string PreferredProvider,
     bool AutoSyncOnExit,
     string OneDriveClientId,
-    string GoogleDriveClientId);
+    string GoogleDriveClientId,
+    bool EnableBackgroundFailureAlerts,
+    bool EnableBackgroundConflictAlerts,
+    int BackgroundAlertCooldownSeconds);

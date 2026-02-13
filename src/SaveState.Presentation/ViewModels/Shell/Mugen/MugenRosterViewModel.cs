@@ -2,15 +2,17 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MediatR;
-using SaveState.Application.Mugen.DTOs;
+using SaveState.Core.Mugen.DTOs;
 using SaveState.Application.Mugen.Queries;
 using SaveState.Application.Mugen.Commands;
 using Microsoft.Extensions.Options;
 using SaveState.Core.Configuration;
 using SaveState.Core.Mugen.Services;
-using SaveState.Core.Mugen.DTOs;
 using SaveState.Core.Mugen.ValueObjects;
 using System.Linq;
+// Use ValueObjects as canonical types for ambiguous names
+using MugenRosterEntry = SaveState.Core.Mugen.ValueObjects.MugenRosterEntry;
+using MugenRosterEntryType = SaveState.Core.Mugen.ValueObjects.MugenRosterEntryType;
 
 namespace SaveState.Presentation.ViewModels.Shell.Mugen;
 
@@ -30,8 +32,8 @@ public partial class MugenRosterViewModel : MugenSectionViewModelBase
     private string _statusMessage = "Ready";
 
     // --- Database View ---
-    public ObservableCollection<MugenCharacterSummaryDto> AllCharacters { get; } = new();
-    public ObservableCollection<MugenCharacterSummaryDto> FilteredCharacters { get; } = new();
+    public ObservableCollection<MugenCharacterSummary> AllCharacters { get; } = new();
+    public ObservableCollection<MugenCharacterSummary> FilteredCharacters { get; } = new();
 
     // --- Roster Editor View ---
     public ObservableCollection<MugenRosterEntryViewModel> RosterEntries { get; } = new();
@@ -76,7 +78,7 @@ public partial class MugenRosterViewModel : MugenSectionViewModelBase
     private void ApplyFilter()
     {
         var filtered = string.IsNullOrWhiteSpace(SearchTerm)
-            ? (IEnumerable<MugenCharacterSummaryDto>)AllCharacters
+            ? (IEnumerable<MugenCharacterSummary>)AllCharacters
             : AllCharacters.Where(c => c.Name.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
                                        (c.Author?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false));
 
@@ -277,7 +279,7 @@ public partial class MugenRosterViewModel : MugenSectionViewModelBase
     }
 
     [RelayCommand]
-    private void AddToRoster(MugenCharacterSummaryDto character)
+    private void AddToRoster(MugenCharacterSummary character)
     {
         if (character == null) return;
 

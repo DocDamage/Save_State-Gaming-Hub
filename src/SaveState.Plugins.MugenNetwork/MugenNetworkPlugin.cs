@@ -347,57 +347,57 @@ public class MugenNetworkPlugin : IPlugin
             return;
         }
 
-        ShowProfileHeader();
-        ShowProfileStatistics();
-        ShowProfileAchievements();
-        ShowProfileWorkshopStats();
-        ShowProfileCharacters();
+        ShowProfileHeader(_currentUser);
+        ShowProfileStatistics(_currentUser);
+        ShowProfileAchievements(_currentUser);
+        ShowProfileWorkshopStats(_currentUser);
+        ShowProfileCharacters(_currentUser);
     }
 
-    private void ShowProfileHeader()
+    private void ShowProfileHeader(UserProfile user)
     {
-        _logger?.LogInformation("👤 Player Profile: {Name}", _currentUser!.DisplayName);
+        _logger?.LogInformation("👤 Player Profile: {Name}", user.DisplayName);
     }
 
-    private void ShowProfileStatistics()
+    private void ShowProfileStatistics(UserProfile user)
     {
         _logger?.LogInformation("📊 Statistics:");
         _logger?.LogInformation("- Rating: {Rating} RP (Rank: {Rank})",
-            _currentUser!.Rating, GetRankFromRating(_currentUser.Rating));
-        _logger?.LogInformation("- Total Matches: {Matches}", _currentUser.TotalMatches);
-        _logger?.LogInformation("- Win Rate: {WinRate:F1}%", _currentUser.GetWinRate());
+            user.Rating, GetRankFromRating(user.Rating));
+        _logger?.LogInformation("- Total Matches: {Matches}", user.TotalMatches);
+        _logger?.LogInformation("- Win Rate: {WinRate:F1}%", user.GetWinRate());
         _logger?.LogInformation("- Current Streak: {Streak} {Type}",
-            Math.Abs(_currentUser.CurrentStreak),
-            _currentUser.CurrentStreak > 0 ? "wins" : "losses");
+            Math.Abs(user.CurrentStreak),
+            user.CurrentStreak > 0 ? "wins" : "losses");
     }
 
-    private void ShowProfileAchievements()
+    private void ShowProfileAchievements(UserProfile user)
     {
         _logger?.LogInformation("🏆 Achievements:");
-        foreach (var achievement in _currentUser!.UnlockedAchievements.Take(5))
+        foreach (var achievement in user.UnlockedAchievements.Take(5))
         {
             _logger?.LogInformation("- {Achievement}", achievement);
         }
     }
 
-    private void ShowProfileWorkshopStats()
+    private void ShowProfileWorkshopStats(UserProfile user)
     {
         _logger?.LogInformation("📦 Workshop Stats:");
-        _logger?.LogInformation("- Items Uploaded: {Count}", _currentUser!.UploadedItems.Count);
+        _logger?.LogInformation("- Items Uploaded: {Count}", user.UploadedItems.Count);
         _logger?.LogInformation("- Total Downloads: {Downloads}",
-            _currentUser.UploadedItems.Sum(i => i.DownloadCount));
+            user.UploadedItems.Sum(i => i.DownloadCount));
         _logger?.LogInformation("- Average Rating: {Rating:F1}⭐",
-            _currentUser.UploadedItems.Any() ? _currentUser.UploadedItems.Average(i => i.Rating) : 0);
+            user.UploadedItems.Any() ? user.UploadedItems.Average(i => i.Rating) : 0);
     }
 
-    private void ShowProfileCharacters()
+    private void ShowProfileCharacters(UserProfile user)
     {
         _logger?.LogInformation("🎮 Favorite Characters:");
-        foreach (var character in _currentUser!.FavoriteCharacters.Take(3))
+        foreach (var character in user.FavoriteCharacters.Take(3))
         {
-            var winRate = _currentUser.GetCharacterWinRate(character);
+            var winRate = user.GetCharacterWinRate(character);
             _logger?.LogInformation("- {Character}: {WinRate:F1}% win rate ({Matches} matches)",
-                character, winRate, _currentUser.GetCharacterMatches(character));
+                character, winRate, user.GetCharacterMatches(character));
         }
 
             _logger?.LogInformation("Commands:");
@@ -553,7 +553,13 @@ public class MugenNetworkPlugin : IPlugin
             >= 1800 => "Bronze",
             _ => "Unranked"
         };
+    }
 
+    /// <summary>
+    /// Manages P2P network connections for MUGEN multiplayer.
+    /// </summary>
+    public class MugenNetworkManager
+    {
         private readonly ILogger? _logger;
         private readonly ITaskRunner? _taskRunner;
         private TcpListener? _listener;
@@ -681,12 +687,11 @@ public class MugenNetworkPlugin : IPlugin
             }
         }
     }
-}
 
-/// <summary>
-/// Network connection status.
-/// </summary>
-public enum NetworkStatus
+    /// <summary>
+    /// Network connection status.
+    /// </summary>
+    public enum NetworkStatus
 {
     Disconnected,
     Connecting,

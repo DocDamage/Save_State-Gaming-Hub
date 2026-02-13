@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Constants;
 using SaveState.Core.Social.Services;
 using SaveState.Core.Social.Entities;
 
@@ -40,7 +41,7 @@ public class SocialService : ISocialService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving friends");
-            return Task.FromResult(Result.Failure<IReadOnlyList<Friend>>($"Failed to get friends: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<IReadOnlyList<Friend>>(ErrorMessages.OperationFailed, ErrorType.Internal));
         }
     }
 
@@ -66,7 +67,7 @@ public class SocialService : ISocialService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding friend {UserId}", userId);
-            return Task.FromResult(Result.Failure($"Failed to add friend: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure(ErrorMessages.OperationFailed, ErrorType.Internal));
         }
     }
 
@@ -85,12 +86,12 @@ public class SocialService : ISocialService
                 _logger.LogInformation("Friend {FriendId} removed", friendId);
                 return Task.FromResult(Result.Success());
             }
-            return Task.FromResult(Result.Failure("Friend not found", ErrorType.NotFound));
+            return Task.FromResult(Result.Failure(ErrorMessages.FriendNotFound, ErrorType.NotFound));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error removing friend {FriendId}", friendId);
-            return Task.FromResult(Result.Failure($"Failed to remove friend: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure(ErrorMessages.OperationFailed, ErrorType.Internal));
         }
     }
 
@@ -112,7 +113,7 @@ public class SocialService : ISocialService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sharing achievement");
-            return Task.FromResult(Result.Failure($"Failed to share achievement: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure(ErrorMessages.OperationFailed, ErrorType.Internal));
         }
     }
 
@@ -141,7 +142,7 @@ public class SocialService : ISocialService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving leaderboard for type {Type}", type);
-            return Task.FromResult(Result.Failure<IReadOnlyList<LeaderboardEntry>>($"Failed to get leaderboard: {ex.Message}", ErrorType.Internal));
+            return Task.FromResult(Result.Failure<IReadOnlyList<LeaderboardEntry>>(ErrorMessages.OperationFailed, ErrorType.Internal));
         }
     }
 

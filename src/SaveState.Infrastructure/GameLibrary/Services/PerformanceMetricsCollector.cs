@@ -27,11 +27,11 @@ public class PerformanceMetricsCollector
         {
             // Collect all metrics in parallel for better performance
             var fpsTask = Task.Run(() => GetFpsMetrics(ct), ct);
-            var cpuTask = Task.Run(() => GetCpuMetrics(ct), ct);
-            var gpuTask = Task.Run(() => GetGpuMetrics(ct), ct);
+            var cpuTask = GetCpuMetricsAsync(ct);
+            var gpuTask = GetGpuMetricsAsync(ct);
             var memoryTask = Task.Run(() => GetMemoryMetrics(ct), ct);
             var networkTask = Task.Run(() => GetNetworkMetrics(ct), ct);
-            var subsystemTask = Task.Run(() => GetSubsystemMetrics(ct), ct);
+            var subsystemTask = GetSubsystemMetricsAsync(ct);
 
             await Task.WhenAll(fpsTask, cpuTask, gpuTask, memoryTask, networkTask, subsystemTask);
 
@@ -99,7 +99,7 @@ public class PerformanceMetricsCollector
         }
     }
 
-    private (double cpuUsage, double temperature) GetCpuMetrics(CancellationToken ct)
+    private async Task<(double cpuUsage, double temperature)> GetCpuMetricsAsync(CancellationToken ct)
     {
         try
         {
@@ -112,7 +112,7 @@ public class PerformanceMetricsCollector
                 cpuUsage = _cpuCounter.NextValue();
 
                 // Allow time for counter to stabilize
-                Thread.Sleep(50);
+                await Task.Delay(50, ct);
                 if (!ct.IsCancellationRequested)
                 {
                     cpuUsage = Math.Max(cpuUsage, _cpuCounter.NextValue());
@@ -123,7 +123,7 @@ public class PerformanceMetricsCollector
                 // Fallback: Use Process.GetCurrentProcess() CPU time
                 var process = Process.GetCurrentProcess();
                 var startTime = process.TotalProcessorTime;
-                Thread.Sleep(100);
+                await Task.Delay(100, ct);
                 if (!ct.IsCancellationRequested)
                 {
                     var endTime = process.TotalProcessorTime;
@@ -144,7 +144,7 @@ public class PerformanceMetricsCollector
         }
     }
 
-    private (double gpuUsage, long gpuMemory) GetGpuMetrics(CancellationToken ct)
+    private async Task<(double gpuUsage, long gpuMemory)> GetGpuMetricsAsync(CancellationToken ct)
     {
         try
         {
@@ -165,7 +165,7 @@ public class PerformanceMetricsCollector
                 // Try to get GPU engine metrics using Performance Counters
                 using var gpuEngineCounter = new PerformanceCounter("GPU Engine", "Utilization Percentage", "engtype_3D", true);
                 gpuUsage = gpuEngineCounter.NextValue();
-                Thread.Sleep(50);
+                await Task.Delay(50, ct);
                 gpuUsage = Math.Max(gpuUsage, gpuEngineCounter.NextValue());
             }
             catch
@@ -243,18 +243,18 @@ public class PerformanceMetricsCollector
         }
     }
 
-    private IReadOnlyList<SubsystemMetrics> GetSubsystemMetrics(CancellationToken ct)
+    private async Task<IReadOnlyList<SubsystemMetrics>> GetSubsystemMetricsAsync(CancellationToken ct)
     {
         var subsystems = new List<SubsystemMetrics>();
 
         try
         {
             // CPU subsystem
-            var (cpuUsage, cpuTemp) = GetCpuMetrics(ct);
+            var (cpuUsage, cpuTemp) = await GetCpuMetricsAsync(ct);
             subsystems.Add(new SubsystemMetrics("CPU", cpuUsage, cpuTemp, GetSubsystemStatus(cpuUsage)));
 
             // GPU subsystem
-            var (gpuUsage, _) = GetGpuMetrics(ct);
+            var (gpuUsage, _) = await GetGpuMetricsAsync(ct);
             var gpuTemp = GetGpuTemperature();
             subsystems.Add(new SubsystemMetrics("GPU", gpuUsage, gpuTemp, GetSubsystemStatus(gpuUsage)));
 

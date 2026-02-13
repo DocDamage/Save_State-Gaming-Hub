@@ -8,10 +8,10 @@
     <AnalysisMode>Recommended</AnalysisMode>
     <!--
       CA1822: Member does not access instance data (many false positives in service stubs)
-      CA2007: ConfigureAwait - conflicts with xUnit best practices for test code
-      CS1573: Parameter has no matching param tag in XML comment
+      CA2007: ConfigureAwait - disabled for now, will enable after async audit
+      CS1573/1591: XML documentation - project has extensive missing docs, needs dedicated docs effort
     -->
-    <NoWarn>$(NoWarn);CA1822;CA2007;1712;1573;1591</NoWarn>
+    <NoWarn>$(NoWarn);CA1822;CA2007;1573;1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +19,6 @@
     <!-- <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="All" /> -->
     <!-- <PackageReference Include="Roslynator.Analyzers" Version="4.12.0" PrivateAssets="All" /> -->
     <!-- <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0" PrivateAssets="All" /> -->
-    <PackageReference Include="Ardalis.GuardClauses" Version="4.5.0" />
+    <PackageReference Include="Ardalis.GuardClauses" />
   </ItemGroup>
 </Project>

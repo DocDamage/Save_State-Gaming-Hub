@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Timer = System.Timers.Timer;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SaveState.Core.Common.Services;
 using SaveState.Infrastructure.Performance;
 using SaveState.Presentation.Services;
 
@@ -15,6 +16,7 @@ public partial class PerformanceDashboardViewModel : ObservableObject
 {
     private readonly MemoryProfiler _memoryProfiler;
     private readonly INotificationService _notificationService;
+    private readonly ITimeProvider _timeProvider;
     private Timer? _updateTimer;
 
     [ObservableProperty]
@@ -55,10 +57,12 @@ public partial class PerformanceDashboardViewModel : ObservableObject
 
     public PerformanceDashboardViewModel(
         MemoryProfiler memoryProfiler,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        ITimeProvider timeProvider)
     {
         _memoryProfiler = memoryProfiler;
         _notificationService = notificationService;
+        _timeProvider = timeProvider;
     }
 
     public async Task InitializeAsync()
@@ -74,7 +78,7 @@ public partial class PerformanceDashboardViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void StartMonitoring()
+    public async Task StartMonitoringAsync()
     {
         try
         {
@@ -92,17 +96,17 @@ public partial class PerformanceDashboardViewModel : ObservableObject
             _updateTimer.Elapsed += async (s, e) => await UpdateMetricsAsync();
 
             _updateTimer.Start();
-            _notificationService.ShowNotificationAsync("Performance monitoring started", "Info").Wait();
+            await _notificationService.ShowNotificationAsync("Performance monitoring started", "Info");
         }
         catch (Exception ex)
         {
             IsMonitoring = false;
-            _notificationService.ShowErrorAsync($"Failed to start monitoring: {ex.Message}").Wait();
+            await _notificationService.ShowErrorAsync($"Failed to start monitoring: {ex.Message}");
         }
     }
 
     [RelayCommand]
-    public void StopMonitoring()
+    public async Task StopMonitoringAsync()
     {
         try
         {
@@ -113,11 +117,11 @@ public partial class PerformanceDashboardViewModel : ObservableObject
             _updateTimer?.Dispose();
             IsMonitoring = false;
 
-            _notificationService.ShowNotificationAsync("Performance monitoring stopped", "Info").Wait();
+            await _notificationService.ShowNotificationAsync("Performance monitoring stopped", "Info");
         }
         catch (Exception ex)
         {
-            _notificationService.ShowErrorAsync($"Failed to stop monitoring: {ex.Message}").Wait();
+            await _notificationService.ShowErrorAsync($"Failed to stop monitoring: {ex.Message}");
         }
     }
 
@@ -140,22 +144,22 @@ public partial class PerformanceDashboardViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void ClearHistory()
+    public async Task ClearHistoryAsync()
     {
         MemoryHistory.Clear();
         CpuHistory.Clear();
         TopOperations.Clear();
         _memoryProfiler.ClearMetrics();
 
-        _notificationService.ShowNotificationAsync("History cleared", "Success").Wait();
+        await _notificationService.ShowNotificationAsync("History cleared", "Success");
     }
 
     [RelayCommand]
-    public void ChangeUpdateInterval(int seconds)
+    public async Task ChangeUpdateIntervalAsync(int seconds)
     {
         if (seconds < 1 || seconds > 60)
         {
-            _notificationService.ShowErrorAsync("Update interval must be between 1 and 60 seconds").Wait();
+            await _notificationService.ShowErrorAsync("Update interval must be between 1 and 60 seconds");
             return;
         }
 
@@ -222,7 +226,7 @@ public partial class PerformanceDashboardViewModel : ObservableObject
             if (leakAnalysis.LeakSuspected)
             {
                 LeakAlert = new MemoryLeakAlert(
-                    Timestamp: DateTime.Now,
+                    Timestamp: _timeProvider.Now,
                     CurrentMemoryMB: CurrentMemoryMB,
                     Gen2Collections: leakAnalysis.Generation2Collections,
                     Severity: "High");
@@ -245,7 +249,7 @@ public partial class PerformanceDashboardViewModel : ObservableObject
     private void AddHistoryEntry(ObservableCollection<PerformanceMetricSnapshot> collection, long value, int maxEntries)
     {
         collection.Add(new PerformanceMetricSnapshot(
-            Timestamp: DateTime.Now,
+            Timestamp: _timeProvider.Now,
             Value: value));
 
         while (collection.Count > maxEntries)
@@ -273,7 +277,7 @@ public partial class PerformanceDashboardViewModel : ObservableObject
         }
     }
 
-    private string GenerateCsv(IReadOnlyDictionary<string, OperationMetrics> metrics)
+    private string GenerateCsv(IReadOnlyDictionary<string, SaveState.Infrastructure.Performance.OperationMetrics> metrics)
     {
         var csv = "Operation,Duration(ms),Memory(MB),CPU(ms)\n";
 

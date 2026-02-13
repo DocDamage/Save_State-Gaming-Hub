@@ -57,6 +57,10 @@ public interface IModManagementService
     /// Gets a list of external mod sources.
     /// </summary>
     Task<Result<IReadOnlyList<ModSource>>> GetExternalModSourcesAsync(CancellationToken ct = default);
+    /// <summary>
+    /// Checks for updates for a specific mod.
+    /// </summary>
+    Task<Result<bool>> CheckForUpdatesAsync(Guid modId, CancellationToken ct = default);
 }
 
 public record ModSource(string Name, string Url, string Provider);

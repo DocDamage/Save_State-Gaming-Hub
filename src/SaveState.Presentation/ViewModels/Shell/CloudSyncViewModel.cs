@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
-using System.Windows.Input;
+using System.Linq;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MediatR;
@@ -8,7 +9,12 @@ using SaveState.Application.CloudServices.Commands;
 using SaveState.Application.CloudServices.Queries;
 using SaveState.Application.Sync.Commands;
 using SaveState.Application.Sync.Queries;
+using SaveState.Core.Common;
 using SaveState.Core.Common.Enums;
+using SaveState.Core.Common.Services;
+using SaveState.Core.GameLibrary;
+using SaveState.Core.SaveStates.Services;
+using SaveState.Core.SaveStates.Services.DTOs;
 using SaveState.Core.Sync;
 using SaveState.Core.Sync.Services;
 using SaveState.Core.Sync.Services.DTOs;
@@ -21,6 +27,11 @@ namespace SaveState.Presentation.ViewModels.Shell;
 /// </summary>
 public partial class CloudSyncViewModel : ObservableObject
 {
+    private const int MinDaemonAlertCooldownSeconds = 15;
+    private const int MaxDaemonAlertCooldownSeconds = 600;
+    private const int DefaultDaemonAlertCooldownSeconds = 60;
+    private static readonly TimeSpan ManualConflictAlertCooldown = TimeSpan.FromSeconds(15);
+
     private readonly IMediator _mediator;
     private readonly ISyncService _syncService;
     private readonly ICloudGamingManager _cloudGamingManager;
@@ -28,6 +39,20 @@ public partial class CloudSyncViewModel : ObservableObject
     private readonly INotificationService _notificationService;
     private readonly IDialogService _dialogService;
     private readonly ILogger<CloudSyncViewModel> _logger;
+    private readonly ICloudCatalogService _cloudCatalogService;
+    private readonly ITimeProvider _timeProvider;
+    private readonly ISaveStateCloudService _saveStateCloudService;
+    private readonly IGameRepository _gameRepository;
+    private readonly ISaveStateCloudSyncMonitor _saveStateCloudSyncMonitor;
+    private SaveStateCloudDaemonStatus? _lastDaemonStatusSnapshot;
+    private int _pendingDaemonFailureAlerts;
+    private int _pendingDaemonConflictAlerts;
+    private DateTime _lastDaemonFailureAlertAtUtc = DateTime.MinValue;
+    private DateTime _lastDaemonConflictAlertAtUtc = DateTime.MinValue;
+    private DateTime _lastManualConflictAlertAtUtc = DateTime.MinValue;
+    private bool _daemonFailureAlertsEnabled = true;
+    private bool _daemonConflictAlertsEnabled = true;
+    private int _daemonAlertCooldownSeconds = DefaultDaemonAlertCooldownSeconds;
 
     [ObservableProperty]
     private SyncStatus _currentSyncStatus;
@@ -65,6 +90,45 @@ public partial class CloudSyncViewModel : ObservableObject
     [ObservableProperty]
     private string _syncTimeRemaining = string.Empty;
 
+    [ObservableProperty]
+    private int _availableCloudGamesCount;
+
+    [ObservableProperty]
+    private ObservableCollection<CloudCatalogEntry> _topCloudGames = new();
+
+    [ObservableProperty]
+    private bool _isBackgroundSyncEnabled;
+
+    [ObservableProperty]
+    private string _backgroundDaemonState = "Unknown";
+
+    [ObservableProperty]
+    private string _backgroundDaemonLastSync = "Never";
+
+    [ObservableProperty]
+    private string _backgroundDaemonSummary = "0 successful | 0 failed | 0 conflicts | 0 skipped";
+
+    [ObservableProperty]
+    private string _backgroundDaemonMessage = "Daemon status unavailable.";
+
+    [ObservableProperty]
+    private string _backgroundDaemonHealthStatus = "Unknown";
+
+    [ObservableProperty]
+    private string _backgroundDaemonHealthCue = "Background sync health unavailable.";
+
+    [ObservableProperty]
+    private bool _showResolveConflictsQuickAction;
+
+    [ObservableProperty]
+    private bool _showRetrySyncQuickAction;
+
+    [ObservableProperty]
+    private bool _showConfigureProviderQuickAction;
+
+    [ObservableProperty]
+    private bool _hasBackgroundQuickActions;
+
     public CloudSyncViewModel(
         IMediator mediator,
         ISyncService syncService,
@@ -72,7 +136,12 @@ public partial class CloudSyncViewModel : ObservableObject
         INetworkQualityMonitor networkMonitor,
         INotificationService notificationService,
         IDialogService dialogService,
-        ILogger<CloudSyncViewModel> logger)
+        ILogger<CloudSyncViewModel> logger,
+        ICloudCatalogService cloudCatalogService,
+        ITimeProvider timeProvider,
+        ISaveStateCloudService saveStateCloudService,
+        IGameRepository gameRepository,
+        ISaveStateCloudSyncMonitor saveStateCloudSyncMonitor)
     {
         _mediator = mediator;
         _syncService = syncService;
@@ -81,15 +150,23 @@ public partial class CloudSyncViewModel : ObservableObject
         _notificationService = notificationService;
         _dialogService = dialogService;
         _logger = logger;
+        _cloudCatalogService = cloudCatalogService;
+        _timeProvider = timeProvider;
+        _saveStateCloudService = saveStateCloudService;
+        _gameRepository = gameRepository;
+        _saveStateCloudSyncMonitor = saveStateCloudSyncMonitor;
 
         CloudProviders = new ObservableCollection<CloudGamingProvider>();
         ActiveSessions = new ObservableCollection<CloudSession>();
         BackupHistory = new ObservableCollection<BackupHistoryItem>();
+        TopCloudGames = new ObservableCollection<CloudCatalogEntry>();
 
         // Subscribe to sync events
         _syncService.ProgressChanged += OnSyncProgressChanged;
         _syncService.ConflictDetected += OnSyncConflictDetected;
         _networkMonitor.NetworkQualityChanged += OnNetworkQualityChanged;
+        _saveStateCloudSyncMonitor.StatusChanged += OnSaveStateCloudDaemonStatusChanged;
+        ApplyDaemonStatus(_saveStateCloudSyncMonitor.CurrentStatus);
 
         // Initialize async
         _ = InitializeAsync();
@@ -118,13 +195,14 @@ public partial class CloudSyncViewModel : ObservableObject
             CurrentSyncStatus = _syncService.Status;
             IsProviderConfigured = CurrentSyncStatus != SyncStatus.NotConfigured;
             CurrentProvider = _syncService.ActiveProviderName ?? "Not configured";
+            await LoadCloudSyncSettingsAsync();
 
             // Load cloud providers
             var providersResult = await _mediator.Send(new GetCloudProvidersQuery());
-            if (providersResult.IsSuccess)
+            if (providersResult.IsSuccess && providersResult.Value is not null)
             {
                 CloudProviders.Clear();
-                foreach (var provider in providersResult.Value!)
+                foreach (var provider in providersResult.Value)
                 {
                     CloudProviders.Add(provider);
                 }
@@ -132,10 +210,10 @@ public partial class CloudSyncViewModel : ObservableObject
 
             // Load active sessions
             var sessionsResult = await _mediator.Send(new GetActiveCloudSessionsQuery());
-            if (sessionsResult.IsSuccess)
+            if (sessionsResult.IsSuccess && sessionsResult.Value is not null)
             {
                 ActiveSessions.Clear();
-                foreach (var session in sessionsResult.Value!)
+                foreach (var session in sessionsResult.Value)
                 {
                     ActiveSessions.Add(session);
                 }
@@ -153,6 +231,9 @@ public partial class CloudSyncViewModel : ObservableObject
 
             // Load backup history
             await RefreshBackupHistoryAsync();
+
+            // Load initial catalog metadata
+            await LoadCloudCatalogAsync();
 
             _logger.LogInformation("CloudSyncViewModel initialized successfully");
         }
@@ -178,7 +259,7 @@ public partial class CloudSyncViewModel : ObservableObject
 
             if (result.Success)
             {
-                LastSyncTime = DateTime.Now.ToString("g");
+                LastSyncTime = _timeProvider.Now.ToString("g");
                 _notificationService.ShowSuccess($"Sync complete: {result.FilesUploaded} uploaded, {result.FilesDownloaded} downloaded");
             }
             else
@@ -278,7 +359,7 @@ public partial class CloudSyncViewModel : ObservableObject
             var command = new CreateBackupCommand
             {
                 Type = BackupType.Full,
-                Name = $"Backup_{DateTime.Now:yyyy-MM-dd_HH-mm}",
+                Name = $"Backup_{_timeProvider.Now:yyyy-MM-dd_HH-mm}",
                 IncludeSettings = true
             };
 
@@ -402,22 +483,36 @@ public partial class CloudSyncViewModel : ObservableObject
         {
             _logger.LogInformation("Opening provider configuration dialog");
 
-            var result = await _dialogService.ShowCloudProviderConfigDialogAsync(CurrentProvider);
+            var settingsResult = await _mediator.Send(new GetCloudSyncSettingsQuery());
+            var currentSettings = BuildDialogSettings(settingsResult);
+            if (settingsResult.IsSuccess && settingsResult.Value is not null)
+            {
+                ApplyCloudSyncSettings(settingsResult.Value);
+            }
+
+            var result = await _dialogService.ShowCloudProviderConfigDialogAsync(currentSettings);
             if (result != null)
             {
                 // Update configuration via mediator
-            var oneDriveClientId = result.ProviderName == "OneDrive" ? result.ApiKey : null;
-            var googleDriveClientId = result.ProviderName == "GoogleDrive" ? result.ApiKey : null;
+                var normalizedProvider = NormalizeProviderName(result.ProviderName);
+                var oneDriveClientId = normalizedProvider == "onedrive" ? result.ApiKey : null;
+                var googleDriveClientId = normalizedProvider == "googledrive" ? result.ApiKey : null;
 
-            var updateResult = await _mediator.Send(new UpdateCloudSyncSettingsCommand(
-                result.ProviderName,
-                result.EnableAutoSync,
-                oneDriveClientId,
-                googleDriveClientId
-            ));
+                var updateResult = await _mediator.Send(new UpdateCloudSyncSettingsCommand(
+                    result.ProviderName,
+                    result.EnableAutoSync,
+                    oneDriveClientId,
+                    googleDriveClientId,
+                    result.EnableBackgroundFailureAlerts,
+                    result.EnableBackgroundConflictAlerts,
+                    result.AlertCooldownSeconds
+                ));
 
                 if (updateResult.IsSuccess)
                 {
+                    _daemonFailureAlertsEnabled = result.EnableBackgroundFailureAlerts;
+                    _daemonConflictAlertsEnabled = result.EnableBackgroundConflictAlerts;
+                    _daemonAlertCooldownSeconds = ClampDaemonAlertCooldownSeconds(result.AlertCooldownSeconds);
                     CurrentProvider = result.ProviderName;
                     IsProviderConfigured = result.ProviderName != "Not configured";
                     _notificationService.ShowSuccess($"Cloud provider configured: {result.ProviderName}");
@@ -446,39 +541,85 @@ public partial class CloudSyncViewModel : ObservableObject
         {
             _logger.LogInformation("Opening conflicts resolution dialog");
 
-            var conflicts = await _syncService.GetConflictsAsync();
-            if (conflicts.Count == 0)
-            {
-                _notificationService.ShowInfo("No conflicts detected.");
-                return;
-            }
-
-            var viewModels = conflicts.Select(c => new Services.SyncConflictViewModel(
+            var fileConflicts = await _syncService.GetConflictsAsync();
+            var conflictEntries = fileConflicts.Select(c => new Services.SyncConflictViewModel(
                 c.RemotePath,
                 c.LocalModified,
                 c.RemoteModified,
                 File.Exists(c.LocalPath) ? new FileInfo(c.LocalPath).Length : 0,
                 c.RemoteSize
-            )).ToArray();
+            )).ToList();
 
-            var result = await _dialogService.ShowConflictResolutionDialogAsync(viewModels);
+            var saveStateConflictMap = await AppendSaveStateConflictsAsync(conflictEntries);
+            if (conflictEntries.Count == 0)
+            {
+                _notificationService.ShowInfo("No conflicts detected.");
+                return;
+            }
+
+            var result = await _dialogService.ShowConflictResolutionDialogAsync(conflictEntries.ToArray());
             if (result != null)
             {
                 var successCount = 0;
+                var saveStateResolvedCount = 0;
+                var failureMessages = new List<string>();
+                var encryptionKeyCache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
                 foreach (var resolution in result.Resolutions)
                 {
-                    // Map file path back to local path if needed
-                    var conflict = conflicts.FirstOrDefault(c => c.RemotePath == resolution.Key);
-                    if (conflict != null)
+                    if (saveStateConflictMap.TryGetValue(resolution.Key, out var saveStateConflict))
                     {
-                        if (await _syncService.ResolveConflictAsync(conflict.LocalPath, resolution.Value))
+                        var saveStateResult = await ResolveSaveStateConflictAsync(
+                            resolution.Key,
+                            saveStateConflict,
+                            encryptionKeyCache,
+                            resolution.Value);
+                        if (saveStateResult.Success)
                         {
                             successCount++;
+                            saveStateResolvedCount++;
+                        }
+                        else if (!string.IsNullOrWhiteSpace(saveStateResult.Error))
+                        {
+                            failureMessages.Add(saveStateResult.Error);
+                        }
+
+                        continue;
+                    }
+
+                    var fileConflict = fileConflicts.FirstOrDefault(c => c.RemotePath == resolution.Key);
+                    if (fileConflict != null)
+                    {
+                        var resolved = await _syncService.ResolveConflictAsync(fileConflict.LocalPath, resolution.Value);
+                        if (resolved)
+                        {
+                            successCount++;
+                        }
+                        else
+                        {
+                            failureMessages.Add(
+                                $"File conflict '{fileConflict.RemotePath}' failed with strategy '{resolution.Value}'.");
                         }
                     }
                 }
 
-                _notificationService.ShowSuccess($"Successfully resolved {successCount} of {result.Resolutions.Count} conflicts");
+                var totalCount = result.Resolutions.Count;
+                var failureSummary = BuildFailureSummary(failureMessages);
+
+                if (successCount == totalCount)
+                {
+                    _notificationService.ShowSuccess(
+                        $"Successfully resolved {successCount} of {totalCount} conflicts ({saveStateResolvedCount} save-state).");
+                }
+                else if (successCount > 0)
+                {
+                    _notificationService.ShowWarning(
+                        $"Resolved {successCount} of {totalCount} conflicts ({saveStateResolvedCount} save-state). {failureSummary}");
+                }
+                else
+                {
+                    _notificationService.ShowError($"No conflicts were resolved. {failureSummary}");
+                }
 
                 // Refresh status
                 CurrentSyncStatus = _syncService.Status;
@@ -489,6 +630,85 @@ public partial class CloudSyncViewModel : ObservableObject
             _logger.LogError(ex, "Failed to show conflict resolution dialog");
             _notificationService.ShowError("Failed to show conflict resolution");
         }
+    }
+
+    [RelayCommand]
+    private async Task BrowseCatalogAsync()
+    {
+        try
+        {
+            var catalogResult = await _cloudCatalogService.GetCatalogAsync();
+            if (!catalogResult.IsSuccess || catalogResult.Value == null)
+            {
+                _notificationService.ShowError("Failed to load cloud catalog");
+                return;
+            }
+
+            var popularGames = catalogResult.Value.Games
+                .OrderByDescending(g => g.Providers.Count)
+                .ThenBy(g => g.Title)
+                .Take(8)
+                .ToList();
+
+            if (popularGames.Count == 0)
+            {
+                _notificationService.ShowInfo("No popular cloud games available right now");
+                return;
+            }
+
+            TopCloudGames.Clear();
+            foreach (var entry in popularGames)
+            {
+                TopCloudGames.Add(entry);
+            }
+
+            _notificationService.ShowInfo("Top Cloud Games refreshed");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to browse cloud catalog");
+            _notificationService.ShowError("Failed to browse catalog");
+        }
+    }
+
+    [RelayCommand]
+    private async Task ViewBackgroundSyncDetailsAsync()
+    {
+        try
+        {
+            var status = _saveStateCloudSyncMonitor.CurrentStatus;
+            var details = BuildBackgroundSyncDetails(status);
+
+            await _dialogService.ShowInformationAsync("Background Save-State Sync", details);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show background sync details");
+            _notificationService.ShowError("Failed to show background sync details");
+        }
+    }
+
+    [RelayCommand]
+    private async Task ResolveBackgroundConflictsAsync()
+    {
+        await ViewConflictsAsync();
+    }
+
+    [RelayCommand]
+    private async Task RetryBackgroundSyncAsync()
+    {
+        if (IsSyncing)
+        {
+            return;
+        }
+
+        await SyncAsync();
+    }
+
+    [RelayCommand]
+    private async Task OpenBackgroundSyncSettingsAsync()
+    {
+        await ConfigureProviderAsync();
     }
 
     private async Task RefreshBackupHistoryAsync()
@@ -516,6 +736,119 @@ public partial class CloudSyncViewModel : ObservableObject
         {
             _logger.LogError(ex, "Failed to refresh backup history");
         }
+    }
+
+    private async Task LoadCloudCatalogAsync()
+    {
+        try
+        {
+            var catalogResult = await _cloudCatalogService.GetCatalogAsync();
+            if (!catalogResult.IsSuccess || catalogResult.Value == null)
+            {
+                _notificationService.ShowWarning("Unable to load cloud catalog metadata");
+                return;
+            }
+
+            var catalog = catalogResult.Value;
+            AvailableCloudGamesCount = catalog.Games.Count;
+
+            TopCloudGames.Clear();
+            foreach (var entry in catalog.Games
+                .OrderByDescending(g => g.Providers.Count)
+                .ThenBy(g => g.Title)
+                .Take(5))
+            {
+                TopCloudGames.Add(entry);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load cloud catalog metadata");
+        }
+    }
+
+    private async Task LoadCloudSyncSettingsAsync()
+    {
+        try
+        {
+            var settingsResult = await _mediator.Send(new GetCloudSyncSettingsQuery());
+            if (settingsResult.IsSuccess && settingsResult.Value is not null)
+            {
+                ApplyCloudSyncSettings(settingsResult.Value);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Unable to load cloud sync settings");
+        }
+    }
+
+    private void ApplyCloudSyncSettings(CloudSyncSettingsDto settings)
+    {
+        _daemonFailureAlertsEnabled = settings.EnableBackgroundFailureAlerts;
+        _daemonConflictAlertsEnabled = settings.EnableBackgroundConflictAlerts;
+        _daemonAlertCooldownSeconds = ClampDaemonAlertCooldownSeconds(settings.BackgroundAlertCooldownSeconds);
+
+        if (!string.IsNullOrWhiteSpace(settings.PreferredProvider))
+        {
+            CurrentProvider = settings.PreferredProvider;
+            IsProviderConfigured = !string.Equals(
+                settings.PreferredProvider,
+                "Not configured",
+                StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    private CloudProviderConfigResult BuildDialogSettings(Result<CloudSyncSettingsDto> settingsResult)
+    {
+        var settings = settingsResult.IsSuccess ? settingsResult.Value : null;
+        var providerName = settings?.PreferredProvider;
+        if (string.IsNullOrWhiteSpace(providerName))
+        {
+            providerName = string.IsNullOrWhiteSpace(CurrentProvider)
+                ? "GoogleDrive"
+                : CurrentProvider;
+        }
+
+        var normalizedProvider = NormalizeProviderName(providerName);
+        var apiKey = normalizedProvider switch
+        {
+            "onedrive" => settings?.OneDriveClientId ?? string.Empty,
+            "googledrive" => settings?.GoogleDriveClientId ?? string.Empty,
+            _ => string.Empty
+        };
+
+        return new CloudProviderConfigResult(
+            providerName,
+            apiKey,
+            null,
+            settings?.AutoSyncOnExit ?? true,
+            settings?.EnableBackgroundFailureAlerts ?? _daemonFailureAlertsEnabled,
+            settings?.EnableBackgroundConflictAlerts ?? _daemonConflictAlertsEnabled,
+            ClampDaemonAlertCooldownSeconds(settings?.BackgroundAlertCooldownSeconds ?? _daemonAlertCooldownSeconds));
+    }
+
+    private static string NormalizeProviderName(string? providerName)
+    {
+        return (providerName ?? string.Empty)
+            .Trim()
+            .Replace(" ", string.Empty, StringComparison.Ordinal)
+            .ToLowerInvariant();
+    }
+
+    private static int ClampDaemonAlertCooldownSeconds(int cooldownSeconds)
+    {
+        if (cooldownSeconds < MinDaemonAlertCooldownSeconds)
+        {
+            return MinDaemonAlertCooldownSeconds;
+        }
+
+        if (cooldownSeconds > MaxDaemonAlertCooldownSeconds)
+        {
+            return MaxDaemonAlertCooldownSeconds;
+        }
+
+        return cooldownSeconds;
     }
 
     private void OnSyncProgressChanged(object? sender, SyncProgressEventArgs e)
@@ -551,7 +884,15 @@ public partial class CloudSyncViewModel : ObservableObject
 
     private void OnSyncConflictDetected(object? sender, SyncConflictEventArgs e)
     {
-        _notificationService.ShowWarning($"Sync conflict detected: {e.LocalPath}");
+        var nowUtc = _timeProvider.UtcNow;
+        if (nowUtc - _lastManualConflictAlertAtUtc < ManualConflictAlertCooldown)
+        {
+            return;
+        }
+
+        _notificationService.ShowWarning(
+            "Sync conflicts detected during transfer. Open 'View Conflicts' to resolve.");
+        _lastManualConflictAlertAtUtc = nowUtc;
     }
 
     private void OnNetworkQualityChanged(object? sender, NetworkQualityChangedEventArgs e)
@@ -570,6 +911,376 @@ public partial class CloudSyncViewModel : ObservableObject
             _notificationService.ShowWarning("Network quality has significantly degraded");
         }
     }
+
+    private void OnSaveStateCloudDaemonStatusChanged(object? sender, SaveStateCloudDaemonStatus status)
+    {
+        Dispatcher.UIThread.Post(() => ApplyDaemonStatus(status));
+    }
+
+    private void ApplyDaemonStatus(SaveStateCloudDaemonStatus status)
+    {
+        IsBackgroundSyncEnabled = status.Enabled;
+        BackgroundDaemonState = !status.Enabled
+            ? "Disabled"
+            : status.IsRunning ? "Running" : "Stopped";
+        BackgroundDaemonLastSync = status.LastSyncAtUtc.HasValue
+            ? status.LastSyncAtUtc.Value.ToLocalTime().ToString("g")
+            : "Never";
+        BackgroundDaemonSummary =
+            $"{status.SuccessfulSyncCount} successful | {status.FailedSyncCount} failed | {status.ConflictCount} conflicts | {status.SkippedCount} skipped";
+        BackgroundDaemonMessage = status.LastMessage;
+
+        var healthSnapshot = EvaluateDaemonHealth(status);
+        BackgroundDaemonHealthStatus = healthSnapshot.Status;
+        BackgroundDaemonHealthCue = healthSnapshot.Cue;
+        ShowResolveConflictsQuickAction = healthSnapshot.ShowResolveConflictsQuickAction;
+        ShowRetrySyncQuickAction = healthSnapshot.ShowRetrySyncQuickAction;
+        ShowConfigureProviderQuickAction = healthSnapshot.ShowConfigureProviderQuickAction;
+        HasBackgroundQuickActions =
+            ShowResolveConflictsQuickAction ||
+            ShowRetrySyncQuickAction ||
+            ShowConfigureProviderQuickAction;
+
+        ProcessDaemonAlertNotifications(status);
+    }
+
+    private async Task<Dictionary<string, SaveStateConflictEntry>> AppendSaveStateConflictsAsync(ICollection<SyncConflictViewModel> conflicts)
+    {
+        var map = new Dictionary<string, SaveStateConflictEntry>(StringComparer.Ordinal);
+
+        IReadOnlyList<Core.GameLibrary.Entities.Game> games;
+        try
+        {
+            games = await _gameRepository.GetAllAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to enumerate games for save-state conflict detection");
+            return map;
+        }
+
+        foreach (var game in games
+                     .OrderByDescending(g => g.LastPlayedAt ?? g.UpdatedAt ?? g.CreatedAt)
+                     .Take(25))
+        {
+            SaveStateConflictResolution? saveConflict = null;
+            try
+            {
+                var detectResult = await _saveStateCloudService.DetectConflictsAsync(game.Id).ConfigureAwait(false);
+                if (detectResult.IsFailure || detectResult.Value is null || detectResult.Value.Type == SaveStateConflictType.None)
+                {
+                    continue;
+                }
+
+                saveConflict = detectResult.Value;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Failed to detect save-state conflict for game {GameId}", game.Id);
+            }
+
+            if (saveConflict is null)
+            {
+                continue;
+            }
+
+            var displayKey = $"SaveState::{game.Id:N}::{game.Title}";
+            if (map.ContainsKey(displayKey))
+            {
+                continue;
+            }
+
+            conflicts.Add(new SyncConflictViewModel(
+                displayKey,
+                (saveConflict.LocalVersion?.CreatedAtUtc ?? _timeProvider.UtcNow).ToLocalTime(),
+                (saveConflict.CloudVersion?.CreatedAtUtc ?? _timeProvider.UtcNow).ToLocalTime(),
+                saveConflict.LocalVersion?.FileSizeBytes ?? 0,
+                saveConflict.CloudVersion?.FileSizeBytes ?? 0));
+
+            map[displayKey] = new SaveStateConflictEntry(game.Id, saveConflict);
+        }
+
+        return map;
+    }
+
+    private async Task<ConflictApplyResult> ResolveSaveStateConflictAsync(
+        string conflictKey,
+        SaveStateConflictEntry conflictEntry,
+        IDictionary<string, string> encryptionKeyCache,
+        string strategy)
+    {
+        var normalized = strategy.Trim().ToLowerInvariant();
+        if (normalized == "skip")
+        {
+            return ConflictApplyResult.Failed();
+        }
+
+        var conflictStrategy = normalized switch
+        {
+            "keep local" => SaveStateConflictResolutionStrategy.KeepLocal,
+            "keep cloud" => SaveStateConflictResolutionStrategy.KeepCloud,
+            "keep both" => SaveStateConflictResolutionStrategy.KeepBoth,
+            _ => SaveStateConflictResolutionStrategy.PromptUser
+        };
+
+        if (conflictStrategy == SaveStateConflictResolutionStrategy.PromptUser)
+        {
+            _logger.LogWarning(
+                "Unknown save-state conflict strategy '{Strategy}' for game {GameId}",
+                strategy,
+                conflictEntry.GameId);
+            return ConflictApplyResult.Failed($"Unsupported strategy '{strategy}' for save-state conflict '{conflictKey}'.");
+        }
+
+        var metadata = new SaveStateCloudMetadata
+        {
+            DeviceName = Environment.MachineName,
+            ForceUpload = conflictStrategy is SaveStateConflictResolutionStrategy.KeepLocal or SaveStateConflictResolutionStrategy.KeepBoth,
+            VersionName = conflictStrategy switch
+            {
+                SaveStateConflictResolutionStrategy.KeepLocal => $"Conflict KeepLocal {_timeProvider.UtcNow:yyyy-MM-dd HH:mm:ss}",
+                SaveStateConflictResolutionStrategy.KeepBoth => $"Conflict KeepBoth {_timeProvider.UtcNow:yyyy-MM-dd HH:mm:ss}",
+                _ => null
+            }
+        };
+
+        if (conflictStrategy == SaveStateConflictResolutionStrategy.KeepCloud &&
+            conflictEntry.Conflict.CloudVersion?.IsEncrypted == true)
+        {
+            var encryptionCacheKey = BuildEncryptionCacheKey(conflictEntry);
+            if (!encryptionKeyCache.TryGetValue(encryptionCacheKey, out var encryptionKey) ||
+                string.IsNullOrWhiteSpace(encryptionKey))
+            {
+                encryptionKey = await _dialogService.ShowInputDialogAsync(
+                    "Cloud Save Encryption Key",
+                    $"Enter the encryption key to restore cloud save conflict '{conflictKey}'.",
+                    "Encryption key",
+                    isSensitive: true).ConfigureAwait(false);
+
+                if (string.IsNullOrWhiteSpace(encryptionKey))
+                {
+                    return ConflictApplyResult.Failed(
+                        $"Skipped encrypted save-state conflict '{conflictKey}' because no encryption key was provided.");
+                }
+
+                encryptionKey = encryptionKey.Trim();
+                encryptionKeyCache[encryptionCacheKey] = encryptionKey;
+            }
+
+            metadata = metadata with
+            {
+                EncryptionKey = encryptionKey
+            };
+        }
+
+        var resolveResult = await _saveStateCloudService.ResolveConflictAsync(
+            conflictEntry.GameId,
+            conflictStrategy,
+            metadata).ConfigureAwait(false);
+        if (resolveResult.IsFailure)
+        {
+            _logger.LogWarning(
+                "Failed to resolve save-state conflict for game {GameId} with strategy {Strategy}: {Error}",
+                conflictEntry.GameId,
+                strategy,
+                resolveResult.Error);
+            return ConflictApplyResult.Failed(
+                $"Save-state conflict '{conflictKey}' failed with strategy '{strategy}': {resolveResult.Error ?? "unknown error"}.");
+        }
+
+        return ConflictApplyResult.Successful();
+    }
+
+    private static string BuildEncryptionCacheKey(SaveStateConflictEntry conflictEntry)
+    {
+        var fingerprint = conflictEntry.Conflict.CloudVersion?.EncryptionKeyFingerprint;
+        if (!string.IsNullOrWhiteSpace(fingerprint))
+        {
+            return $"fingerprint:{fingerprint.Trim()}";
+        }
+
+        return $"game:{conflictEntry.GameId:N}";
+    }
+
+    private static string BuildFailureSummary(IReadOnlyList<string> failureMessages)
+    {
+        if (failureMessages.Count == 0)
+        {
+            return "No failure details were provided.";
+        }
+
+        var distinctFailures = failureMessages
+            .Where(message => !string.IsNullOrWhiteSpace(message))
+            .Distinct(StringComparer.Ordinal)
+            .Take(3)
+            .ToList();
+
+        if (distinctFailures.Count == 0)
+        {
+            return "No failure details were provided.";
+        }
+
+        var summary = string.Join(" | ", distinctFailures);
+        if (failureMessages.Count > distinctFailures.Count)
+        {
+            summary += $" | +{failureMessages.Count - distinctFailures.Count} more";
+        }
+
+        return summary;
+    }
+
+    private void ProcessDaemonAlertNotifications(SaveStateCloudDaemonStatus status)
+    {
+        if (_lastDaemonStatusSnapshot is null)
+        {
+            _lastDaemonStatusSnapshot = status;
+            return;
+        }
+
+        var failureDelta = Math.Max(0, status.FailedSyncCount - _lastDaemonStatusSnapshot.FailedSyncCount);
+        var conflictDelta = Math.Max(0, status.ConflictCount - _lastDaemonStatusSnapshot.ConflictCount);
+
+        if (_daemonFailureAlertsEnabled && failureDelta > 0)
+        {
+            _pendingDaemonFailureAlerts += failureDelta;
+        }
+        else if (!_daemonFailureAlertsEnabled)
+        {
+            _pendingDaemonFailureAlerts = 0;
+        }
+
+        if (_daemonConflictAlertsEnabled && conflictDelta > 0)
+        {
+            _pendingDaemonConflictAlerts += conflictDelta;
+        }
+        else if (!_daemonConflictAlertsEnabled)
+        {
+            _pendingDaemonConflictAlerts = 0;
+        }
+
+        var nowUtc = _timeProvider.UtcNow;
+        var alertCooldown = TimeSpan.FromSeconds(ClampDaemonAlertCooldownSeconds(_daemonAlertCooldownSeconds));
+
+        if (_daemonFailureAlertsEnabled &&
+            _pendingDaemonFailureAlerts > 0 &&
+            nowUtc - _lastDaemonFailureAlertAtUtc >= alertCooldown)
+        {
+            var failureLabel = _pendingDaemonFailureAlerts == 1 ? "failure" : "failures";
+            _notificationService.ShowError(
+                $"Background save-state sync reported {_pendingDaemonFailureAlerts} new {failureLabel}. {status.LastMessage}");
+            _pendingDaemonFailureAlerts = 0;
+            _lastDaemonFailureAlertAtUtc = nowUtc;
+        }
+
+        if (_daemonConflictAlertsEnabled &&
+            _pendingDaemonConflictAlerts > 0 &&
+            nowUtc - _lastDaemonConflictAlertAtUtc >= alertCooldown)
+        {
+            var conflictLabel = _pendingDaemonConflictAlerts == 1 ? "conflict" : "conflicts";
+            _notificationService.ShowWarning(
+                $"Background save-state sync detected {_pendingDaemonConflictAlerts} new {conflictLabel}. Open 'View Conflicts' to resolve.");
+            _pendingDaemonConflictAlerts = 0;
+            _lastDaemonConflictAlertAtUtc = nowUtc;
+        }
+
+        _lastDaemonStatusSnapshot = status;
+    }
+
+    private static DaemonHealthSnapshot EvaluateDaemonHealth(SaveStateCloudDaemonStatus status)
+    {
+        if (!status.Enabled)
+        {
+            return new DaemonHealthSnapshot(
+                "Disabled",
+                "Background sync daemon is disabled. Enable it in cloud sync settings.",
+                status.ConflictCount > 0,
+                false,
+                true);
+        }
+
+        if (status.FailedSyncCount > 0)
+        {
+            var failureLabel = status.FailedSyncCount == 1 ? "failure" : "failures";
+            return new DaemonHealthSnapshot(
+                "Critical",
+                $"Background sync reported {status.FailedSyncCount} {failureLabel}. Retry sync and review provider settings.",
+                status.ConflictCount > 0,
+                true,
+                true);
+        }
+
+        if (status.ConflictCount > 0)
+        {
+            var conflictLabel = status.ConflictCount == 1 ? "conflict" : "conflicts";
+            return new DaemonHealthSnapshot(
+                "Warning",
+                $"Background sync detected {status.ConflictCount} {conflictLabel}. Resolve conflicts to prevent data divergence.",
+                true,
+                false,
+                false);
+        }
+
+        if (!status.IsRunning)
+        {
+            return new DaemonHealthSnapshot(
+                "Stopped",
+                "Background sync daemon is not running. Retry sync or review daemon settings.",
+                false,
+                true,
+                true);
+        }
+
+        return new DaemonHealthSnapshot(
+            "Healthy",
+            "Background sync is operating normally.",
+            false,
+            false,
+            false);
+    }
+
+    private static string BuildBackgroundSyncDetails(SaveStateCloudDaemonStatus status)
+    {
+        var lines = new List<string>
+        {
+            $"Enabled: {status.Enabled}",
+            $"Running: {status.IsRunning}",
+            $"Updated: {status.UpdatedAtUtc.ToLocalTime():g}",
+            $"Last Auto Sync: {(status.LastSyncAtUtc.HasValue ? status.LastSyncAtUtc.Value.ToLocalTime().ToString("g") : "Never")}",
+            $"Last Game: {(status.LastGameId.HasValue ? status.LastGameId.Value.ToString() : "None")}",
+            $"Successful syncs: {status.SuccessfulSyncCount}",
+            $"Failed syncs: {status.FailedSyncCount}",
+            $"Conflicts: {status.ConflictCount}",
+            $"Skipped: {status.SkippedCount}",
+            $"Last message: {status.LastMessage}"
+        };
+
+        if (status.ConflictCount > 0)
+        {
+            lines.Add("Action: Open 'View Conflicts' to resolve save-state conflicts.");
+        }
+
+        if (status.FailedSyncCount > 0)
+        {
+            lines.Add("Action: Review provider settings and network quality if failures persist.");
+        }
+
+        return string.Join(Environment.NewLine, lines);
+    }
+
+    private sealed record SaveStateConflictEntry(Guid GameId, SaveStateConflictResolution Conflict);
+
+    private sealed record ConflictApplyResult(bool Success, string? Error)
+    {
+        public static ConflictApplyResult Successful() => new(true, null);
+        public static ConflictApplyResult Failed(string? error = null) => new(false, error);
+    }
+
+    private sealed record DaemonHealthSnapshot(
+        string Status,
+        string Cue,
+        bool ShowResolveConflictsQuickAction,
+        bool ShowRetrySyncQuickAction,
+        bool ShowConfigureProviderQuickAction);
 }
 
 /// <summary>
@@ -583,3 +1294,4 @@ public class BackupHistoryItem
     public required string BackupType { get; init; }
     public required string Status { get; init; }
 }
+

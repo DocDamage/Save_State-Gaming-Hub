@@ -65,7 +65,9 @@ public class UpdateLeaderboardRankingCommandHandler : IRequestHandler<UpdateLead
             {
                 // Create new ranking with username from user service
                 var usernameResult = await _userService.GetUsernameAsync(request.UserId, cancellationToken);
-                var userName = usernameResult.IsSuccess ? usernameResult.Value! : $"User-{request.UserId.ToString().Substring(0, 8)}";
+                var userName = usernameResult.IsSuccess && usernameResult.Value is not null 
+                    ? usernameResult.Value 
+                    : $"User-{request.UserId.ToString().Substring(0, 8)}";
 
                 var newRanking = new SaveState.Core.Social.Entities.LeaderboardRanking
                 {

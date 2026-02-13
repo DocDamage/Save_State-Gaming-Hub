@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Constants;
 using SaveState.Core.UserManagement.Entities;
 using SaveState.Core.UserManagement.Repositories;
 using SaveState.Core.UserManagement.Services;
@@ -40,13 +41,13 @@ public class AuthenticationService : IAuthenticationService
 
             if (user == null || !user.IsActive)
             {
-                return AuthenticationResult.Failure("Invalid username or password");
+                return AuthenticationResult.Failure(ErrorMessages.InvalidCredentials);
             }
 
             // Verify password
             if (!_passwordHasher.VerifyPassword(password, user.PasswordHash, user.PasswordSalt))
             {
-                return AuthenticationResult.Failure("Invalid username or password");
+                return AuthenticationResult.Failure(ErrorMessages.InvalidCredentials);
             }
 
             // Generate tokens
@@ -62,7 +63,7 @@ public class AuthenticationService : IAuthenticationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Authentication failed for user {UsernameOrEmail}", usernameOrEmail);
-            return AuthenticationResult.Failure("Authentication failed due to an internal error");
+            return AuthenticationResult.Failure(ErrorMessages.AuthenticationFailed);
         }
     }
 
@@ -73,14 +74,14 @@ public class AuthenticationService : IAuthenticationService
             var user = await _apiKeyRepository.GetUserByApiKeyAsync(apiKey, ct);
             if (user == null)
             {
-                return Result.Failure<User>("Invalid API key", ErrorType.Validation);
+                return Result.Failure<User>(ErrorMessages.InvalidApiKey, ErrorType.Validation);
             }
             return Result.Success<User>(user);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "API Key validation failed");
-            return Result.Failure<User>("API key validation failed", ErrorType.Validation);
+            return Result.Failure<User>(ErrorMessages.AuthenticationFailed, ErrorType.Validation);
         }
     }
 
@@ -92,7 +93,7 @@ public class AuthenticationService : IAuthenticationService
             var principalResult = await _jwtTokenService.ValidateTokenAsync(refreshToken, ct);
             if (principalResult.IsFailure)
             {
-                return TokenRefreshResult.Failure("Invalid refresh token");
+                return TokenRefreshResult.Failure(ErrorMessages.InvalidRefreshToken);
             }
             var principal = principalResult.Value;
 
@@ -100,14 +101,14 @@ public class AuthenticationService : IAuthenticationService
             var tokenTypeClaim = principal.FindFirst("token_type");
             if (tokenTypeClaim?.Value != "refresh")
             {
-                return TokenRefreshResult.Failure("Invalid token type");
+                return TokenRefreshResult.Failure(ErrorMessages.InvalidTokenType);
             }
 
             // Get user ID from token
             var userIdResult = await _jwtTokenService.GetUserIdFromTokenAsync(refreshToken, ct);
             if (userIdResult.IsFailure)
             {
-                return TokenRefreshResult.Failure("Invalid refresh token");
+                return TokenRefreshResult.Failure(ErrorMessages.InvalidRefreshToken);
             }
             var userId = userIdResult.Value;
 
@@ -115,7 +116,7 @@ public class AuthenticationService : IAuthenticationService
             var user = await _userRepository.GetByIdAsync(userId, ct);
             if (user == null || !user.IsActive)
             {
-                return TokenRefreshResult.Failure("User not found or inactive");
+                return TokenRefreshResult.Failure(ErrorMessages.UserInactive);
             }
 
             // Generate new access token
@@ -125,7 +126,7 @@ public class AuthenticationService : IAuthenticationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Token refresh failed");
-            return TokenRefreshResult.Failure("Token refresh failed due to an internal error");
+            return TokenRefreshResult.Failure(ErrorMessages.TokenRefreshFailed);
         }
     }
 }

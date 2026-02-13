@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -17,11 +17,12 @@
     <!-- https://learn.microsoft.comdotnet/core/testing/microsoft-testing-platform-extensions-code-coverage -->
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageReference Include="xunit" Version="2.9.2" />
-    <PackageReference Include="Moq" Version="4.20.70" />
-    <PackageReference Include="FluentAssertions" Version="6.12.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="xunit.runner.visualstudio">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -36,6 +37,7 @@
     <ProjectReference Include="..\..\src\SaveState.Application\SaveState.Application.csproj" />
     <ProjectReference Include="..\..\src\SaveState.Infrastructure\SaveState.Infrastructure.csproj" />
     <ProjectReference Include="..\SaveState.Tests.Fakes\SaveState.Tests.Fakes.csproj" />
+    <ProjectReference Include="..\SaveState.Tests.Infrastructure\SaveState.Tests.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -43,3 +45,4 @@
   </ItemGroup>
 
 </Project>
+

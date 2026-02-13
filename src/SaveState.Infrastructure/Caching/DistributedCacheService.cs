@@ -29,10 +29,12 @@ public class DistributedCacheService : IDistributedCache
     /// </summary>
     public async Task<T?> GetAsync<T>(string key, CancellationToken token = default)
     {
+#if DEBUG
+            _logger.LogDebug("Cache GET: {Key}", key);
+#endif
+
         try
         {
-            _logger.LogDebug("Cache GET: {Key}", key);
-
             var bytes = await _innerCache.GetAsync(key, token);
             if (bytes == null)
             {
@@ -62,10 +64,12 @@ public class DistributedCacheService : IDistributedCache
         DistributedCacheEntryOptions? options = null,
         CancellationToken token = default)
     {
+#if DEBUG
+            _logger.LogDebug("Cache SET: {Key}", key);
+#endif
+
         try
         {
-            _logger.LogDebug("Cache SET: {Key}", key);
-
             var json = JsonSerializer.Serialize(value);
             var bytes = System.Text.Encoding.UTF8.GetBytes(json);
 
@@ -87,9 +91,12 @@ public class DistributedCacheService : IDistributedCache
     /// </summary>
     public async Task RemoveAsync(string key, CancellationToken token = default)
     {
+#if DEBUG
+            _logger.LogDebug("Cache REMOVE: {Key}", key);
+#endif
+
         try
         {
-            _logger.LogDebug("Cache REMOVE: {Key}", key);
             await _innerCache.RemoveAsync(key, token);
         }
         catch (Exception ex)
@@ -110,6 +117,7 @@ public class DistributedCacheService : IDistributedCache
         try
         {
             var cached = await GetAsync<T>(key, token);
+#if DEBUG
             if (cached != null)
             {
                 _logger.LogDebug("Cache HIT: {Key}", key);
@@ -117,6 +125,8 @@ public class DistributedCacheService : IDistributedCache
             }
 
             _logger.LogDebug("Cache MISS: {Key}", key);
+#endif
+
 
             var value = await factory();
             await SetAsync(key, value, new DistributedCacheEntryOptions

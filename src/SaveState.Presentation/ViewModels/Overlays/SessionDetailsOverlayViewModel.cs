@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SaveState.Core.Common.Services;
 using System;
 using System.Collections.ObjectModel;
 
@@ -38,10 +39,12 @@ public partial class SessionDetailsOverlayViewModel : ObservableObject
     private ObservableCollection<SessionItemViewModel> _recentSessions = new();
 
     private readonly SaveState.Presentation.Services.IOverlayService _overlayService;
+    private readonly ITimeProvider _timeProvider;
 
-    public SessionDetailsOverlayViewModel(SaveState.Presentation.Services.IOverlayService overlayService)
+    public SessionDetailsOverlayViewModel(SaveState.Presentation.Services.IOverlayService overlayService, ITimeProvider timeProvider)
     {
         _overlayService = overlayService;
+        _timeProvider = timeProvider;
         // Design-time data
         LoadDesignTimeData();
     }
@@ -58,7 +61,7 @@ public partial class SessionDetailsOverlayViewModel : ObservableObject
 
         RecentSessions.Add(new SessionItemViewModel
         {
-            Date = DateTime.Now.AddHours(-2),
+            Date = _timeProvider.Now.AddHours(-2),
             TimeRange = "6:30 PM - 9:15 PM",
             Platform = "Steam",
             Duration = "2h 45m",
@@ -68,7 +71,7 @@ public partial class SessionDetailsOverlayViewModel : ObservableObject
 
         RecentSessions.Add(new SessionItemViewModel
         {
-            Date = DateTime.Now.AddDays(-1),
+            Date = _timeProvider.Now.AddDays(-1),
             TimeRange = "8:00 PM - 10:30 PM",
             Platform = "Epic Games",
             Duration = "2h 30m",
@@ -78,7 +81,7 @@ public partial class SessionDetailsOverlayViewModel : ObservableObject
 
         RecentSessions.Add(new SessionItemViewModel
         {
-            Date = DateTime.Now.AddDays(-2),
+            Date = _timeProvider.Now.AddDays(-2),
             TimeRange = "7:15 PM - 11:45 PM",
             Platform = "Steam",
             Duration = "4h 30m",

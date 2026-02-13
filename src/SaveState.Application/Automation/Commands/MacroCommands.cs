@@ -8,7 +8,7 @@ namespace SaveState.Application.Automation.Commands;
 /// Start macro recording.
 /// </summary>
 public record StartMacroRecordingCommand(
-    Guid GameId,
+    Guid? GameId,
     string Name,
     string Description,
     RecordingMode Mode = RecordingMode.Manual) : IRequest<Result<MacroRecordingSession>>;

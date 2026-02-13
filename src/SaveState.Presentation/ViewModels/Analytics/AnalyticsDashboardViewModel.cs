@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Analytics.Queries;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Services;
 using System.Collections.ObjectModel;
 using Avalonia.Threading;
@@ -20,6 +21,7 @@ public partial class AnalyticsDashboardViewModel : ObservableObject, IDisposable
     private readonly IRealTimeNotificationService _realTimeService;
     private readonly IAnalyticsExportService _exportService;
     private readonly IUserContextService? _userContextService;
+    private readonly ITimeProvider _timeProvider;
     private readonly DispatcherTimer _refreshTimer;
 
     [ObservableProperty]
@@ -65,7 +67,7 @@ public partial class AnalyticsDashboardViewModel : ObservableObject, IDisposable
     private string _currentStreak = "0 days";
 
     [ObservableProperty]
-    private ObservableCollection<CompletionPrediction> _predictions = new();
+    private ObservableCollection<SaveState.Application.Analytics.Queries.CompletionPrediction> _predictions = new();
 
     [ObservableProperty]
     private ObservableCollection<SaveState.Application.Analytics.Queries.BacklogDataPoint> _backlogData = new();
@@ -97,6 +99,7 @@ public partial class AnalyticsDashboardViewModel : ObservableObject, IDisposable
         INotificationService notificationService,
         IRealTimeNotificationService realTimeService,
         IAnalyticsExportService exportService,
+        ITimeProvider timeProvider,
         IUserContextService? userContextService = null)
     {
         _mediator = mediator;
@@ -104,6 +107,7 @@ public partial class AnalyticsDashboardViewModel : ObservableObject, IDisposable
         _notificationService = notificationService;
         _realTimeService = realTimeService;
         _exportService = exportService;
+        _timeProvider = timeProvider;
         _userContextService = userContextService;
 
         // Load user context
@@ -197,7 +201,7 @@ public partial class AnalyticsDashboardViewModel : ObservableObject, IDisposable
 
                     // Check if current streak is ongoing (ended yesterday or today)
                     var latestStreak = PlayStreaks.OrderByDescending(s => s.EndDate).FirstOrDefault();
-                    if (latestStreak != null && (DateTime.Now.Date - latestStreak.EndDate).TotalDays <= 1)
+                    if (latestStreak != null && (_timeProvider.Now.Date - latestStreak.EndDate).TotalDays <= 1)
                     {
                         CurrentStreak = $"{latestStreak.DaysCount} days";
                     }
@@ -252,7 +256,7 @@ public partial class AnalyticsDashboardViewModel : ObservableObject, IDisposable
             _logger.LogInformation("Exporting analytics to CSV...");
 
             var exportData = BuildExportData();
-            var fileName = $"analytics_export_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+            var fileName = $"analytics_export_{_timeProvider.Now:yyyyMMdd_HHmmss}.csv";
             var filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "SaveState", fileName);
 
             Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
@@ -284,7 +288,7 @@ public partial class AnalyticsDashboardViewModel : ObservableObject, IDisposable
             _logger.LogInformation("Exporting analytics to JSON...");
 
             var exportData = BuildExportData();
-            var fileName = $"analytics_export_{DateTime.Now:yyyyMMdd_HHmmss}.json";
+            var fileName = $"analytics_export_{_timeProvider.Now:yyyyMMdd_HHmmss}.json";
             var filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "SaveState", fileName);
 
             Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
@@ -316,7 +320,7 @@ public partial class AnalyticsDashboardViewModel : ObservableObject, IDisposable
             _logger.LogInformation("Generating HTML report...");
 
             var exportData = BuildExportData();
-            var fileName = $"analytics_report_{DateTime.Now:yyyyMMdd_HHmmss}.html";
+            var fileName = $"analytics_report_{_timeProvider.Now:yyyyMMdd_HHmmss}.html";
             var filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "SaveState", fileName);
 
             Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
@@ -357,7 +361,7 @@ public partial class AnalyticsDashboardViewModel : ObservableObject, IDisposable
         var predictions = Predictions.Select(p => new PredictionExportData(p.GameName, FormatDuration(p.EstimatedTimeRemaining), p.ConfidenceScore)).ToList();
 
         return new AnalyticsExportData(
-            DateTime.Now,
+            _timeProvider.Now,
             TotalPlayTime,
             TotalGames,
             TotalSessions,

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Constants;
 using SaveState.Core.Social;
 using SaveState.Core.Social.Entities;
 using SaveState.Core.Social.Services;
@@ -58,7 +59,7 @@ public class SharedCollectionService : ISharedCollectionService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create shared collection '{Title}'", title);
-            return Result.Failure<SharedCollection>("Failed to create collection", ErrorType.Internal);
+            return Result.Failure<SharedCollection>(ErrorMessages.CreateFailed, ErrorType.Internal);
         }
     }
 
@@ -83,7 +84,7 @@ public class SharedCollectionService : ISharedCollectionService
             var collection = await _repository.GetByIdAsync(collectionId, ct);
             if (collection is null)
             {
-                return Result.Failure<SharedCollection>("Collection not found", ErrorType.NotFound);
+                return Result.Failure<SharedCollection>(ErrorMessages.CollectionNotFound, ErrorType.NotFound);
             }
 
             collection.Update(title, description, isPublic);
@@ -96,7 +97,7 @@ public class SharedCollectionService : ISharedCollectionService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update shared collection {Id}", collectionId);
-            return Result.Failure<SharedCollection>("Failed to update collection", ErrorType.Internal);
+            return Result.Failure<SharedCollection>(ErrorMessages.UpdateFailed, ErrorType.Internal);
         }
     }
 
@@ -113,7 +114,7 @@ public class SharedCollectionService : ISharedCollectionService
             var collection = await _repository.GetByIdAsync(collectionId, ct);
             if (collection is null)
             {
-                return Result.Failure<SharedCollection>("Collection not found", ErrorType.NotFound);
+                return Result.Failure<SharedCollection>(ErrorMessages.CollectionNotFound, ErrorType.NotFound);
             }
 
             return Result.Success<SharedCollection>(collection);
@@ -121,7 +122,7 @@ public class SharedCollectionService : ISharedCollectionService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get shared collection {Id}", collectionId);
-            return Result.Failure<SharedCollection>("Failed to get collection", ErrorType.Internal);
+            return Result.Failure<SharedCollection>(ErrorMessages.OperationFailed, ErrorType.Internal);
         }
     }
 
@@ -138,7 +139,7 @@ public class SharedCollectionService : ISharedCollectionService
             var collection = await _repository.GetByShareCodeAsync(shareCode, ct);
             if (collection is null)
             {
-                return Result.Failure<SharedCollection>("Collection not found", ErrorType.NotFound);
+                return Result.Failure<SharedCollection>(ErrorMessages.CollectionNotFound, ErrorType.NotFound);
             }
 
             // Increment download count

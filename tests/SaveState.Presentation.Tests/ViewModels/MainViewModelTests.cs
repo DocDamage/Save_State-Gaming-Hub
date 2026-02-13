@@ -2,10 +2,12 @@ using FluentAssertions;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
+using SaveState.Presentation;
 using SaveState.Application.Onboarding.Services;
 using SaveState.Presentation.ViewModels;
 using SaveState.Presentation.Resources;
+using Xunit;
+using SaveState.Presentation.Tests;
 
 namespace SaveState.Presentation.Tests.ViewModels;
 
@@ -30,6 +32,11 @@ internal class TestResources : SaveState.Presentation.Resources.Resources
 /// </summary>
 public class MainViewModelTests
 {
+    static MainViewModelTests()
+    {
+        PresentationTestLocator.EnsureGameLibraryRegistered();
+    }
+
     private readonly Mock<IMediator> _mediatorMock = new();
     private readonly TestOnboardingService _onboardingService = new();
     private readonly Mock<ILogger<SaveState.Presentation.ViewModels.Onboarding.OnboardingViewModel>> _onboardingLoggerMock = new();

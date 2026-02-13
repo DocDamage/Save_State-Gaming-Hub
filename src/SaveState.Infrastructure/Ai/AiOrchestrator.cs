@@ -101,15 +101,21 @@ public class AiOrchestrator : IAiOrchestrator
                 var chatResult = await provider.ChatAsync(
                     new ChatRequest(request.Messages!, request.Model ?? _options.DefaultModel, request.MaxTokens ?? 1000), ct).ConfigureAwait(false);
 
-                if (chatResult.IsFailure)
+                if (chatResult.IsFailure || chatResult.Value is null)
                 {
                     var duration = DateTime.UtcNow - startTime;
                     _metrics.RecordAiRequest(provider.ProviderName, "Chat", duration, false);
                     _metrics.RecordApiError(provider.ProviderName, chatResult.Error ?? "Unknown");
+
+                    if (_options.EnableFallback)
+                    {
+                        return await TryFallbackAsync(request, provider, ct).ConfigureAwait(false);
+                    }
+
                     return new AiResponse("", "", new TokenUsage(0, 0, 0), "", provider.ProviderName, false, chatResult.Error);
                 }
 
-                response = new AiResponse(chatResult.Value!.Content, chatResult.Value.FinishReason, chatResult.Value.Usage, chatResult.Value.Model, provider.ProviderName);
+                response = new AiResponse(chatResult.Value.Content, chatResult.Value.FinishReason, chatResult.Value.Usage, chatResult.Value.Model, provider.ProviderName);
 
                 // Record token usage
                 _metrics.RecordAiTokenUsage(provider.ProviderName, chatResult.Value.Usage.PromptTokens, chatResult.Value.Usage.CompletionTokens);
@@ -119,15 +125,21 @@ public class AiOrchestrator : IAiOrchestrator
                 var completionResult = await provider.CompleteAsync(
                     new CompletionRequest(request.Prompt!, request.Model ?? _options.DefaultModel, request.MaxTokens ?? 1000, request.Temperature ?? 0.7f), ct).ConfigureAwait(false);
 
-                if (completionResult.IsFailure)
+                if (completionResult.IsFailure || completionResult.Value is null)
                 {
                     var duration = DateTime.UtcNow - startTime;
                     _metrics.RecordAiRequest(provider.ProviderName, "Completion", duration, false);
                     _metrics.RecordApiError(provider.ProviderName, completionResult.Error ?? "Unknown");
+
+                    if (_options.EnableFallback)
+                    {
+                        return await TryFallbackAsync(request, provider, ct).ConfigureAwait(false);
+                    }
+
                     return new AiResponse("", "", new TokenUsage(0, 0, 0), "", provider.ProviderName, false, completionResult.Error);
                 }
 
-                response = new AiResponse(completionResult.Value!.Text, completionResult.Value.FinishReason, completionResult.Value.Usage, completionResult.Value.Model, provider.ProviderName);
+                response = new AiResponse(completionResult.Value.Text, completionResult.Value.FinishReason, completionResult.Value.Usage, completionResult.Value.Model, provider.ProviderName);
 
                 // Record token usage
                 _metrics.RecordAiTokenUsage(provider.ProviderName, completionResult.Value.Usage.PromptTokens, completionResult.Value.Usage.CompletionTokens);
@@ -279,7 +291,10 @@ public class AiOrchestrator : IAiOrchestrator
 
         // 2. Build Message History
         var historyResult = await _contextService.GetHistoryAsync(sessionId, ct);
-        var messagesWithHistory = BuildMessageHistory(request, historyResult.Value);
+        var historyMessages = historyResult.IsSuccess
+            ? historyResult.Value ?? Array.Empty<ChatMessage>()
+            : Array.Empty<ChatMessage>();
+        var messagesWithHistory = BuildMessageHistory(request, historyMessages);
 
         // 3. Inject Context
         InjectContextMessages(messagesWithHistory, relevantContext, webContext, stmContext);
@@ -390,4 +405,3 @@ public class AiOrchestrator : IAiOrchestrator
     private static string GenerateCacheKey(AiRequest request)
         => $"ai:{request.Type}:{request.Model}:{request.Prompt?.GetHashCode() ?? request.Messages?.GetHashCode() ?? 0}";
 }
-

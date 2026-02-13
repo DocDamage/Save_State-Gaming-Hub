@@ -13,20 +13,24 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net.Http;
 
 public class ModManagementService : IModManagementService
 {
     private readonly IGameModRepository _modRepository;
     private readonly IGameRepository _gameRepository;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<ModManagementService> _logger;
 
     public ModManagementService(
         IGameModRepository modRepository,
         IGameRepository gameRepository,
+        IHttpClientFactory httpClientFactory,
         ILogger<ModManagementService> logger)
     {
         _modRepository = modRepository;
         _gameRepository = gameRepository;
+        _httpClientFactory = httpClientFactory;
         _logger = logger;
     }
 
@@ -255,4 +259,45 @@ public class ModManagementService : IModManagementService
         };
         return Task.FromResult(Result.Success<IReadOnlyList<ModSource>>(sources));
     }
+
+    public async Task<Result<bool>> CheckForUpdatesAsync(Guid modId, CancellationToken ct = default)
+    {
+        try
+        {
+            var mod = await _modRepository.GetByIdAsync(modId, ct).ConfigureAwait(false);
+            if (mod == null) return Result.Failure<bool>("Mod not found");
+
+            if (string.IsNullOrEmpty(mod.SourceUrl))
+            {
+                return Result.Success(false);
+            }
+
+            var client = _httpClientFactory.CreateClient("ModUpdates");
+
+            // Generic reachability check for the source URL
+            // In a full implementation, we would implement specific providers (Nexus, CurseForge, etc.)
+            // to parse the version. For now, we perform a HEAD request to ensure the source is alive.
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Head, mod.SourceUrl);
+                var response = await client.SendAsync(request, ct).ConfigureAwait(false);
+
+                // If we get a 200 OK, the source is alive.
+                // Since we can't parse version without provider logic, we assume no update for now
+                // unless we implement specific logic for specific URLs.
+                return Result.Success(false);
+            }
+            catch
+            {
+                // If network fails, we just return false (no update found) or could return failure
+                return Result.Success(false);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to check for updates for mod {ModId}", modId);
+            return Result.Failure<bool>(ex.Message);
+        }
+    }
 }
+

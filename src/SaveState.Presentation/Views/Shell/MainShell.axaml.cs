@@ -1,5 +1,8 @@
 using Avalonia.Controls;
+using Avalonia.Input;
+using SaveState.Presentation.Services;
 using SaveState.Presentation.ViewModels.Shell;
+using Splat;
 
 namespace SaveState.Presentation.Views.Shell;
 
@@ -8,9 +11,30 @@ namespace SaveState.Presentation.Views.Shell;
 /// </summary>
 public partial class MainShell : Window
 {
+    private IOverlayService? _overlayService;
+
     public MainShell()
     {
         InitializeComponent();
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+
+        if (e.Handled)
+        {
+            return;
+        }
+
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Control) &&
+            e.KeyModifiers.HasFlag(KeyModifiers.Shift) &&
+            e.Key == Key.P)
+        {
+            _overlayService ??= Locator.Current.GetService<IOverlayService>();
+            _overlayService?.ToggleCommandPaletteOverlay();
+            e.Handled = true;
+        }
     }
 
     protected override void OnClosed(EventArgs e)

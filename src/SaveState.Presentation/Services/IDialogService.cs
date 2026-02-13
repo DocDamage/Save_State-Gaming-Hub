@@ -24,7 +24,11 @@ public interface IDialogService
     /// <summary>
     /// Shows a simple input dialog.
     /// </summary>
-    Task<string?> ShowInputDialogAsync(string title, string message, string? placeholder = null);
+    Task<string?> ShowInputDialogAsync(
+        string title,
+        string message,
+        string? placeholder = null,
+        bool isSensitive = false);
 
     /// <summary>
     /// Shows a tag editor dialog.
@@ -213,7 +217,7 @@ public record EmulatorConfigResult(
     /// Shows the cloud provider configuration dialog.
     /// </summary>
     Task<CloudProviderConfigResult?> ShowCloudProviderConfigDialogAsync(
-        string? currentProvider = null);
+        CloudProviderConfigResult? currentSettings = null);
 
     /// <summary>
     /// Shows the sync conflict resolution dialog.
@@ -401,7 +405,10 @@ public record CloudProviderConfigResult(
     string ProviderName,
     string ApiKey,
     string? BucketName,
-    bool EnableAutoSync);
+    bool EnableAutoSync,
+    bool EnableBackgroundFailureAlerts,
+    bool EnableBackgroundConflictAlerts,
+    int AlertCooldownSeconds);
 
 /// <summary>
 /// Result from the conflict resolution dialog.

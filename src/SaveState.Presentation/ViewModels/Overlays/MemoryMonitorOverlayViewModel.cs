@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using MediatR;
 using SaveState.Application.Performance.Commands;
 using SaveState.Application.Performance.Queries;
-using SaveState.Core.GameLibrary.Enums;
+using SaveState.Core.Performance.ValueObjects;
 
 namespace SaveState.Presentation.ViewModels.Overlays;
 
@@ -132,9 +132,9 @@ public partial class MemoryMonitorOverlayViewModel : ObservableObject, IDisposab
                         var query = new GetMemoryWatchesQuery(GameId);
                         var watchesResult = await _mediator.Send(query, _monitoringCts.Token);
 
-                        if (watchesResult.IsSuccess)
+                        if (watchesResult.IsSuccess && watchesResult.Value is not null)
                         {
-                            foreach (var watch in watchesResult.Value!)
+                            foreach (var watch in watchesResult.Value)
                             {
                                 var vm = WatchedAddresses.FirstOrDefault(w => w.Id == watch.Id);
                                 if (vm != null)

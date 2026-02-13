@@ -118,7 +118,9 @@ public class LinuxAudioService
                 return Result.Success(new AudioLevels(InputLevel: 0, OutputLevel: 0));
             }
 
+#if DEBUG
             _logger.LogDebug("Reading audio levels from Linux");
+#endif
 
             var levels = await ReadAudioLevelsAsync(ct);
 
@@ -171,7 +173,9 @@ public class LinuxAudioService
                 return Result.Success(false);
             }
 
+#if DEBUG
             _logger.LogDebug("Checking if Jack audio server is running");
+#endif
 
             // Check if Jack is running
             var isRunning = await CheckJackAsync(ct);
@@ -219,21 +223,27 @@ public class LinuxAudioService
 
     private async Task InitializePipeWireAsync(CancellationToken ct)
     {
+#if DEBUG
         _logger.LogDebug("Initializing PipeWire");
+#endif
         // PipeWire configuration
         await Task.CompletedTask;
     }
 
     private async Task InitializePulseAudioAsync(CancellationToken ct)
     {
+#if DEBUG
         _logger.LogDebug("Initializing PulseAudio");
+#endif
         // PulseAudio configuration
         await Task.CompletedTask;
     }
 
     private async Task InitializeAlsaAsync(CancellationToken ct)
     {
+#if DEBUG
         _logger.LogDebug("Initializing ALSA");
+#endif
         // ALSA configuration
         await Task.CompletedTask;
     }
@@ -255,7 +265,9 @@ public class LinuxAudioService
                 Type: AudioDeviceType.Speakers,
                 IsDefault: true));
 
+#if DEBUG
             _logger.LogDebug("Audio devices enumerated: {Count}", devices.Count);
+#endif
         }
         catch (Exception ex)
         {
@@ -269,7 +281,9 @@ public class LinuxAudioService
     private async Task SetDefaultDeviceAsync(string deviceId, CancellationToken ct)
     {
         // Set default device via PulseAudio or ALSA
+#if DEBUG
         _logger.LogDebug("Setting default device to: {DeviceId}", deviceId);
+#endif
         await Task.CompletedTask;
     }
 
@@ -287,7 +301,9 @@ public class LinuxAudioService
     private async Task ConfigureLowLatencyAudioAsync(CancellationToken ct)
     {
         // Reduce buffer size and increase priority for low latency
+#if DEBUG
         _logger.LogDebug("Configuring low-latency audio settings");
+#endif
         await Task.CompletedTask;
     }
 

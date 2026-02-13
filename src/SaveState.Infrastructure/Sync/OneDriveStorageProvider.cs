@@ -54,14 +54,16 @@ public class OneDriveStorageProvider : ICloudStorageProvider
             var authUrl = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize";
             var tokenUrl = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
 
-            _token = await _authService.AuthenticateAsync("OneDrive", clientId, scopes, authUrl, tokenUrl, ct).ConfigureAwait(false);
+            var result = await _authService.AuthenticateAsync("OneDrive", clientId, scopes, authUrl, tokenUrl, ct).ConfigureAwait(false);
 
-            if (_token != null)
+            if (result.IsSuccess)
             {
+                _token = result.Value;
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token.AccessToken);
                 return true;
             }
 
+            _logger.LogWarning("OneDrive authentication failed: {Error}", result.Error);
             return false;
         }
         catch (Exception ex)
@@ -82,11 +84,15 @@ public class OneDriveStorageProvider : ICloudStorageProvider
                 : savedClientId;
             var tokenUrl = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
 
-            var newToken = await _authService.RefreshTokenAsync(clientId, _token.RefreshToken, tokenUrl, ct).ConfigureAwait(false);
-            if (newToken != null)
+            var result = await _authService.RefreshTokenAsync(clientId, _token.RefreshToken, tokenUrl, ct).ConfigureAwait(false);
+            if (result.IsSuccess)
             {
-                _token = newToken;
+                _token = result.Value;
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token.AccessToken);
+            }
+            else
+            {
+                _logger.LogWarning("Token refresh failed: {Error}", result.Error);
             }
         }
     }
@@ -200,16 +206,17 @@ public class OneDriveStorageProvider : ICloudStorageProvider
         }
     }
 
-    public async Task<CloudFileInfo?> GetFileInfoAsync(string remotePath, CancellationToken ct = default)
+    public async Task<Result<CloudFileInfo>> GetFileInfoAsync(string remotePath, CancellationToken ct = default)
     {
-        if (!IsAuthenticated) return null;
+        if (!IsAuthenticated) return Result.Failure<CloudFileInfo>("Not authenticated", ErrorType.Unauthorized);
 
         try
         {
             var url = $"v1.0/me/drive/root:/{remotePath.TrimStart('/')}";
             var response = await _httpClient.GetAsync(url, ct).ConfigureAwait(false);
 
-            if (!response.IsSuccessStatusCode) return null;
+            if (!response.IsSuccessStatusCode)
+                return Result.Failure<CloudFileInfo>($"Failed to get file info: {response.StatusCode}", ErrorType.External);
 
             var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
             using var doc = JsonDocument.Parse(json);
@@ -220,17 +227,18 @@ public class OneDriveStorageProvider : ICloudStorageProvider
             var modified = root.TryGetProperty("lastModifiedDateTime", out var m) ? m.GetDateTime() : DateTime.UtcNow;
             var isDir = root.TryGetProperty("folder", out _);
 
-            return new CloudFileInfo(remotePath, name, size, modified, IsDirectory: isDir);
+            return Result.Success(new CloudFileInfo(remotePath, name, size, modified, IsDirectory: isDir));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get OneDrive file info");
-            return null;
+            return Result.Failure<CloudFileInfo>($"Failed to get file info: {ex.Message}", ErrorType.External);
         }
     }
 
     public async Task<bool> FileExistsAsync(string remotePath, CancellationToken ct = default)
     {
-        return (await GetFileInfoAsync(remotePath, ct).ConfigureAwait(false)) != null;
+        var result = await GetFileInfoAsync(remotePath, ct).ConfigureAwait(false);
+        return result.IsSuccess;
     }
 }

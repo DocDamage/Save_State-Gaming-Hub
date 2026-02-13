@@ -111,7 +111,7 @@ public class PasswordHasher : IPasswordHasher
             errors.Add("Password cannot contain three or more consecutive identical characters");
         }
 
-        if (Regex.IsMatch(password.ToLower(), @"password|123456|qwerty|admin"))
+        if (Regex.IsMatch(password.ToLowerInvariant(), @"password|123456|qwerty|admin"))
         {
             errors.Add("Password is too common or easily guessable");
         }

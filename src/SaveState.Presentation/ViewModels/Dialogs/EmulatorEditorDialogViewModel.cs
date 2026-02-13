@@ -93,8 +93,8 @@ public partial class EmulatorEditorDialogViewModel : ObservableObject
         if (existingEmulator != null)
         {
             EmulatorName = existingEmulator.Name;
-            DisplayName = existingEmulator.DisplayName ?? existingEmulator.Name;
-            ExecutablePath = existingEmulator.ExecutablePath;
+            DisplayName = existingEmulator.Description ?? existingEmulator.Name;
+            ExecutablePath = existingEmulator.ExecutablePath.Value;
             // Load other properties from existingEmulator if available
         }
     }
@@ -115,10 +115,10 @@ public partial class EmulatorEditorDialogViewModel : ObservableObject
                     "Select Emulator Executable",
                     new[] { "exe", "app", "sh", "bat" });
 
-                if (result != null && result.Any())
+                if (!string.IsNullOrEmpty(result))
                 {
-                    ExecutablePath = result.First();
-                    
+                    ExecutablePath = result;
+
                     // Auto-fill emulator name if empty
                     if (string.IsNullOrWhiteSpace(EmulatorName))
                     {
@@ -164,7 +164,7 @@ public partial class EmulatorEditorDialogViewModel : ObservableObject
             {
                 // Give it a moment to start
                 await Task.Delay(1000);
-                
+
                 if (!process.HasExited)
                 {
                     process.Kill();

@@ -29,9 +29,9 @@ public class CreateWorkflowCommandHandler : IRequestHandler<CreateWorkflowComman
             var result = await _workflowService.CreateWorkflowAsync(request.Config, ct)
                 .ConfigureAwait(false);
 
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Value is not null)
             {
-                _logger.LogInformation("Created workflow: {Name}", result.Value!.Name);
+                _logger.LogInformation("Created workflow: {Name}", result.Value.Name);
             }
 
             return result;
@@ -133,9 +133,9 @@ public class GetWorkflowsCommandHandler : IRequestHandler<GetWorkflowsCommand, R
         {
             var result = await _workflowService.GetAllWorkflowsAsync(ct).ConfigureAwait(false);
 
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Value is not null)
             {
-                _logger.LogInformation("Retrieved {Count} workflows", result.Value!.Count);
+                _logger.LogInformation("Retrieved {Count} workflows", result.Value.Count);
             }
 
             return result;
@@ -168,9 +168,9 @@ public class GetWorkflowCommandHandler : IRequestHandler<GetWorkflowCommand, Res
             var result = await _workflowService.GetWorkflowAsync(request.WorkflowId, ct)
                 .ConfigureAwait(false);
 
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Value is not null)
             {
-                _logger.LogInformation("Retrieved workflow: {Name}", result.Value!.Name);
+                _logger.LogInformation("Retrieved workflow: {Name}", result.Value.Name);
             }
 
             return result;
@@ -203,9 +203,9 @@ public class ExecuteWorkflowCommandHandler : IRequestHandler<ExecuteWorkflowComm
             var result = await _workflowService.ExecuteWorkflowAsync(request.WorkflowId, request.Parameters, ct)
                 .ConfigureAwait(false);
 
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Value is not null)
             {
-                var executionResult = result.Value!;
+                var executionResult = result.Value;
                 _logger.LogInformation("Workflow executed: {Id}, Success: {Success}, Steps: {Executed}/{Skipped}",
                     request.WorkflowId, executionResult.Success, executionResult.StepsExecuted, executionResult.StepsSkipped);
             }
@@ -275,9 +275,9 @@ public class GetWorkflowExecutionHistoryCommandHandler : IRequestHandler<GetWork
             var result = await _workflowService.GetExecutionHistoryAsync(request.WorkflowId, request.Since, ct)
                 .ConfigureAwait(false);
 
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Value is not null)
             {
-                _logger.LogInformation("Retrieved {Count} workflow execution history entries", result.Value!.Count);
+                _logger.LogInformation("Retrieved {Count} workflow execution history entries", result.Value.Count);
             }
 
             return result;
@@ -346,9 +346,9 @@ public class CreateWorkflowFromMacroCommandHandler : IRequestHandler<CreateWorkf
                 request.MacroId, request.WorkflowName, request.Description, ct)
                 .ConfigureAwait(false);
 
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Value is not null)
             {
-                _logger.LogInformation("Created workflow from macro: {Name}", result.Value!.Name);
+                _logger.LogInformation("Created workflow from macro: {Name}", result.Value.Name);
             }
 
             return result;
@@ -416,9 +416,9 @@ public class ImportWorkflowCommandHandler : IRequestHandler<ImportWorkflowComman
             var result = await _workflowService.ImportWorkflowAsync(request.FilePath, ct)
                 .ConfigureAwait(false);
 
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Value is not null)
             {
-                _logger.LogInformation("Imported workflow: {Name}", result.Value!.Name);
+                _logger.LogInformation("Imported workflow: {Name}", result.Value.Name);
             }
 
             return result;

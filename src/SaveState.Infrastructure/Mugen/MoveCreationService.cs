@@ -27,7 +27,7 @@ public class MoveCreationService : IMoveCreationService
             new()
             {
                 Name = "Balanced Strike",
-                Category = category ?? MoveCategory.Attack,
+                Category = category ?? MoveCategory.Normal,
                 Difficulty = DifficultyLevel.Intermediate,
                 Type = MoveType.Special,
                 Description = "A solid special move template",
@@ -156,9 +156,9 @@ public class MoveCreationService : IMoveCreationService
             DisplayName = moveData.Name,
             Command = moveData.Command,
             MoveType = ParseMoveType(moveData.Type),
-            Category = MoveCategory.Attack
+            Category = MoveCategory.Normal
         };
-        
+
         return Task.FromResult(Result.Success(move));
     }
 
@@ -170,9 +170,9 @@ public class MoveCreationService : IMoveCreationService
             DisplayName = moveData.Name,
             Command = moveData.Command,
             MoveType = ParseMoveType(moveData.Type),
-            Category = MoveCategory.Attack
+            Category = MoveCategory.Normal
         };
-        
+
         return Task.FromResult(Result.Success(move));
     }
 

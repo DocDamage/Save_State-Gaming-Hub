@@ -421,8 +421,8 @@ Focus on variety while staying true to their gaming interests.";
         if (string.IsNullOrEmpty(tag) || string.IsNullOrEmpty(title))
             return 0f;
 
-        var tagWords = tag.ToLower().Split(' ');
-        var titleWords = title.ToLower().Split(' ');
+        var tagWords = tag.ToLowerInvariant().Split(' ');
+        var titleWords = title.ToLowerInvariant().Split(' ');
 
         var matches = tagWords.Count(tw => titleWords.Any(tlw => tlw.Contains(tw) || tw.Contains(tlw)));
         return matches > 0 ? Math.Min((float)matches / tagWords.Length, 1f) : 0f;

@@ -7,6 +7,7 @@ using SaveState.Core.Input.Services;
 using SaveState.Core.Input.Services.DTOs;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Ai.Services.DTOs;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Services;
 
 namespace SaveState.Presentation.ViewModels.Shell;
@@ -20,6 +21,7 @@ public partial class VoiceControlViewModel : ObservableObject
     private readonly ISpeechRecognitionService _speechRecognitionService;
     private readonly INotificationService _notificationService;
     private readonly ILogger<VoiceControlViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private bool _isListening;
@@ -35,6 +37,15 @@ public partial class VoiceControlViewModel : ObservableObject
 
     [ObservableProperty]
     private string _lastRecognizedText = string.Empty;
+
+    [ObservableProperty]
+    private float _lastConfidence;
+
+    [ObservableProperty]
+    private string _confidenceDisplay = "--";
+
+    [ObservableProperty]
+    private string _confidenceQuality = "Unknown";
 
     [ObservableProperty]
     private string _statusMessage = "Voice control ready";
@@ -63,12 +74,14 @@ public partial class VoiceControlViewModel : ObservableObject
         IVoiceCommandService voiceCommandService,
         ISpeechRecognitionService speechRecognitionService,
         INotificationService notificationService,
-        ILogger<VoiceControlViewModel> logger)
+        ILogger<VoiceControlViewModel> logger,
+        ITimeProvider timeProvider)
     {
         _voiceCommandService = voiceCommandService;
         _speechRecognitionService = speechRecognitionService;
         _notificationService = notificationService;
         _logger = logger;
+        _timeProvider = timeProvider;
 
         // Subscribe to events
         _voiceCommandService.VoiceCommandRecognized += OnVoiceCommandRecognized;
@@ -79,7 +92,12 @@ public partial class VoiceControlViewModel : ObservableObject
         InitializeAsync();
     }
 
-    private async void InitializeAsync()
+    private void InitializeAsync()
+    {
+        _ = InitializeInternalAsync();
+    }
+
+    private async Task InitializeInternalAsync()
     {
         try
         {
@@ -322,7 +340,7 @@ public partial class VoiceControlViewModel : ObservableObject
         {
             RecentTranscriptions.RemoveAt(0);
         }
-        RecentTranscriptions.Add($"{DateTime.Now:HH:mm:ss} - {e.Result.RecognizedText}");
+        RecentTranscriptions.Add($"{_timeProvider.Now:HH:mm:ss} - {e.Result.RecognizedText}");
     }
 
     private void OnListeningStatusChanged(object? sender, ListeningStatusChangedEventArgs e)
@@ -334,12 +352,36 @@ public partial class VoiceControlViewModel : ObservableObject
     private void OnSpeechRecognized(object? sender, SpeechRecognizedEventArgs e)
     {
         LastRecognizedText = e.Result.RecognizedText;
+        LastConfidence = e.Result.Confidence;
+
+        // Update confidence display with quality indicator
+        var confidencePercent = e.Result.Confidence * 100;
+        ConfidenceDisplay = $"{confidencePercent:F0}%";
+
+        if (e.Result.Confidence >= 0.8f)
+        {
+            ConfidenceQuality = "High";
+        }
+        else if (e.Result.Confidence >= 0.5f)
+        {
+            ConfidenceQuality = "Medium";
+        }
+        else
+        {
+            ConfidenceQuality = "Low";
+            // Show warning for low confidence results
+            _logger.LogWarning("Low confidence speech recognition: {Confidence:P0} - {Text}",
+                e.Result.Confidence, e.Result.RecognizedText);
+            _notificationService.ShowWarning(
+                $"Low confidence result ({confidencePercent:F0}%): \"{e.Result.RecognizedText}\"",
+                "Speech Recognition");
+        }
 
         if (RecentTranscriptions.Count >= 10)
         {
             RecentTranscriptions.RemoveAt(0);
         }
-        RecentTranscriptions.Add($"{DateTime.Now:HH:mm:ss} - {e.Result.RecognizedText}");
+        RecentTranscriptions.Add($"{_timeProvider.Now:HH:mm:ss} [{ConfidenceQuality}] - {e.Result.RecognizedText}");
     }
 
     private void OnSpeechRecognitionError(object? sender, SpeechRecognitionErrorEventArgs e)

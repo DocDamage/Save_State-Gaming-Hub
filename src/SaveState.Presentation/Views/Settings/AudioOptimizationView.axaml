@@ -1,0 +1,127 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Settings"
+             mc:Ignorable="d"
+             x:Class="SaveState.Presentation.Views.Settings.AudioOptimizationView"
+             x:DataType="vm:AudioOptimizationViewModel">
+
+  <Border Classes="Card" Padding="16" CornerRadius="12">
+    <StackPanel Spacing="14">
+      <TextBlock Text="Audio Optimization" Classes="Header" />
+      <TextBlock Text="Tune your system for low-latency gaming or playlists without losing control."
+                 Classes="Body"
+                 Foreground="{StaticResource AccentBrush}" />
+
+      <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+        <ToggleSwitch Content="Exclusive Mode"
+                      IsChecked="{Binding ExclusiveMode}"
+                      AutomationProperties.AutomationId="ExclusiveModeToggle" />
+        <ToggleSwitch Content="Spatial Audio"
+                      IsChecked="{Binding SpatialAudioEnabled}"
+                      AutomationProperties.AutomationId="SpatialAudioToggle" />
+      </StackPanel>
+
+      <TextBlock Text="{Binding ExclusiveModeWarningMessage}"
+                 Foreground="{StaticResource AccentBrush}"
+                 FontStyle="Italic"
+                 FontSize="12"
+                 Margin="0,0,0,4"
+                 IsVisible="{Binding ExclusiveModeWarningMessage, Converter={x:Static ObjectConverters.IsNotNull}}"
+                 AutomationProperties.AutomationId="ExclusiveModeWarningText" />
+
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <Button Content="Apply Settings"
+                Command="{Binding ApplyCurrentSettingsCommand}"
+                Classes="Primary"
+                AutomationProperties.AutomationId="ApplySettingsButton" />
+        <Button Content="Reset to Defaults"
+                Command="{Binding ResetToDefaultsCommand}"
+                Classes="Secondary"
+                AutomationProperties.AutomationId="ResetDefaultsButton" />
+      </StackPanel>
+
+      <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+              BorderThickness="1"
+              CornerRadius="8"
+              Padding="12">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Profile Management" Classes="Header" />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <ComboBox ItemsSource="{Binding SavedProfiles}"
+                      SelectedItem="{Binding SelectedProfile, Mode=TwoWay}"
+                      Width="240"
+                      HorizontalAlignment="Left"
+                      AutomationProperties.AutomationId="SavedProfilesCombo">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding Name}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button Content="Apply Profile"
+                    Command="{Binding LoadProfileCommand}"
+                    CommandParameter="{Binding SelectedProfileName}"
+                    Width="120"
+                    IsEnabled="{Binding SelectedProfileName, Converter={x:Static ObjectConverters.IsNotNull}}"
+                    AutomationProperties.AutomationId="ApplyProfileButton" />
+            <Button Content="Delete Profile"
+                    Command="{Binding DeleteProfileCommand}"
+                    CommandParameter="{Binding SelectedProfileName}"
+                    Width="120"
+                    Classes="Danger"
+                    IsEnabled="{Binding SelectedProfileName, Converter={x:Static ObjectConverters.IsNotNull}}"
+                    AutomationProperties.AutomationId="DeleteProfileButton" />
+          </StackPanel>
+
+            <StackPanel Spacing="4" Margin="0,10,0,0">
+              <TextBlock Text="Profile quick toggles" Classes="Caption" Foreground="{StaticResource AccentBrush}" />
+              <ItemsControl ItemsSource="{Binding SavedProfiles}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Button Command="{Binding DataContext.LoadProfileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          CommandParameter="{Binding Name}"
+                          Classes="Ghost"
+                          MinWidth="130"
+                          Padding="8,4"
+                          ToolTip.Tip="{Binding Settings.ExclusiveMode, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Exclusive|Shared'}"
+                          HorizontalAlignment="Center"
+                          AutomationProperties.AutomationId="{Binding Name, StringFormat='ProfileToggle_{0}'}">
+                    <StackPanel>
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding Settings.ExclusiveMode, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Exclusive|Shared'}"
+                                 Classes="Caption"
+                                 Foreground="{StaticResource TextSecondaryBrush}" />
+                    </StackPanel>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBox Watermark="New profile name"
+                     Text="{Binding NewProfileName, UpdateSourceTrigger=PropertyChanged}"
+                     Width="240"
+                     AutomationProperties.AutomationId="NewProfileNameTextBox" />
+            <Button Content="Save Profile"
+                    Command="{Binding SaveProfileCommand}"
+                    CommandParameter="{Binding NewProfileName}"
+                    Width="120"
+                    AutomationProperties.AutomationId="SaveProfileButton" />
+          </StackPanel>
+
+          <TextBlock Text="Saved profiles let you jump between curated audio settings per game."
+                     Classes="Caption"
+                     Foreground="{StaticResource AccentBrush}" />
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </Border>
+</UserControl>

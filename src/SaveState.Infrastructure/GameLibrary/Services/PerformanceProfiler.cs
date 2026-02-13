@@ -544,8 +544,14 @@ public class PerformanceProfiler : IPerformanceProfiler, IDisposable
 
     public void Dispose()
     {
+        // Stop profiling timer first (synchronous operation)
+        if (_isProfiling)
+        {
+            _profilingTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+            _isProfiling = false;
+        }
+
         _profilingTimer?.Dispose();
-        StopProfilingAsync().GetAwaiter().GetResult();
     }
 }
 

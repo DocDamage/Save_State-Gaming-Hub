@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SaveState.Core.Common.Services;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
@@ -25,11 +26,13 @@ public partial class GameGridViewModel : ObservableObject, IDisposable
 
     private int _selectedIndex = -1;
     private const int GamesPerRow = 5;
+    private readonly ITimeProvider _timeProvider;
 
     public event Action<GameItemViewModel>? GameSelected;
 
-    public GameGridViewModel()
+    public GameGridViewModel(ITimeProvider timeProvider)
     {
+        _timeProvider = timeProvider;
         LoadCollections();
         LoadGames();
         Games.CollectionChanged += OnGamesCollectionChanged;
@@ -126,7 +129,7 @@ public partial class GameGridViewModel : ObservableObject, IDisposable
     {
         if (SelectedGame != null)
         {
-            SelectedGame.LastPlayed = DateTime.Now;
+            SelectedGame.LastPlayed = _timeProvider.Now;
         }
     }
 

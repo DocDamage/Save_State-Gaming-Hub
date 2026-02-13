@@ -126,13 +126,13 @@ public class MemoryCommands : CommandGroupBase
                     ctx.Spinner(Spinner.Known.Dots);
 
                     var result = await memoryReader.DetectPatternsAsync().ConfigureAwait(false);
-                    if (!result.IsSuccess)
+                    if (!result.IsSuccess || result.Value is null)
                     {
-                        AnsiConsole.MarkupLine($"[red]Error: {result.Error}[/]");
+                        AnsiConsole.MarkupLine($"[red]Error: {result.Error ?? "Unknown error"}[/]");
                         return;
                     }
 
-                    var patterns = result.Value!;
+                    var patterns = result.Value;
                     if (!patterns.Any())
                     {
                         AnsiConsole.MarkupLine("[yellow]No known memory patterns detected.[/]");

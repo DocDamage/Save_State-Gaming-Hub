@@ -3,6 +3,7 @@ using SaveState.Core.RomManagement;
 using SaveState.Core.RomManagement.Entities;
 using SaveState.Core.RomManagement.Enums;
 using SaveState.Core.GameLibrary;
+using SaveState.Core.Monitoring;
 using System.Collections.Concurrent;
 
 namespace SaveState.Application.RomManagement.Services;
@@ -14,22 +15,34 @@ public class LiveSyncService : ILiveSyncService
     private readonly IPlatformRepository _platformRepository;
     private readonly IPlatformExtensionRegistry _extensionRegistry;
     private readonly ILogger<LiveSyncService> _logger;
+    private readonly IApplicationMetrics _metrics;
 
     private readonly ConcurrentDictionary<string, WatcherContext> _watchers = new();
     private readonly ConcurrentDictionary<string, SyncStatus> _syncStatuses = new();
+    private readonly object _resilienceLock = new();
+    private int _consecutiveFailures;
+    private DateTime? _circuitOpenedAt;
+
+    private static readonly TimeSpan CircuitBreakerOpenDuration = TimeSpan.FromSeconds(30);
+    private const int CircuitBreakerFailureThreshold = 3;
+    private const int MaxRetryAttempts = 3;
+    private static readonly TimeSpan BaseRetryDelay = TimeSpan.FromMilliseconds(200);
+    private static readonly TimeSpan MaxRetryDelay = TimeSpan.FromSeconds(2);
 
     public LiveSyncService(
         IRomScannerService romScanner,
         IRomFileRepository romFileRepository,
         IPlatformRepository platformRepository,
         IPlatformExtensionRegistry extensionRegistry,
-        ILogger<LiveSyncService> logger)
+        ILogger<LiveSyncService> logger,
+        IApplicationMetrics metrics)
     {
         _romScanner = romScanner ?? throw new ArgumentNullException(nameof(romScanner));
         _romFileRepository = romFileRepository ?? throw new ArgumentNullException(nameof(romFileRepository));
         _platformRepository = platformRepository ?? throw new ArgumentNullException(nameof(platformRepository));
         _extensionRegistry = extensionRegistry ?? throw new ArgumentNullException(nameof(extensionRegistry));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
     }
 
     public event EventHandler<RomFileEventArgs>? RomFileAdded;
@@ -82,10 +95,18 @@ public class LiveSyncService : ILiveSyncService
                 new System.Diagnostics.Stopwatch());
 
             // Wire up events
-            watcher.Created += (s, e) => _ = SafeHandleAsync(() => HandleFileCreatedAsync(normalizedPath, e.FullPath, platformName), "FileCreated");
+            watcher.Created += (s, e) => _ = HandleWatcherOperationAsync(
+                normalizedPath,
+                platformName,
+                "FileCreated",
+                () => HandleFileCreatedAsync(normalizedPath, e.FullPath, platformName));
             watcher.Deleted += (s, e) => HandleFileDeletedAsync(normalizedPath, e.FullPath, platformName);
             watcher.Changed += (s, e) => HandleFileChangedAsync(normalizedPath, e.FullPath, platformName);
-            watcher.Renamed += (s, e) => _ = SafeHandleAsync(() => HandleFileRenamedAsync(normalizedPath, e.OldFullPath, e.FullPath, platformName), "FileRenamed");
+            watcher.Renamed += (s, e) => _ = HandleWatcherOperationAsync(
+                normalizedPath,
+                platformName,
+                "FileRenamed",
+                () => HandleFileRenamedAsync(normalizedPath, e.OldFullPath, e.FullPath, platformName));
             watcher.Error += (s, e) => HandleWatcherErrorAsync(normalizedPath, platformName, e.GetException());
 
             _watchers[normalizedPath] = context;
@@ -305,33 +326,159 @@ public class LiveSyncService : ILiveSyncService
         }
     }
 
-    private async Task<Result> SafeHandleAsync(Func<Task> action, string operationName)
+    private async Task HandleWatcherOperationAsync(string folderPath, string platformName, string operationName, Func<Task> action)
     {
+        var result = await SafeHandleAsync(action, operationName, CancellationToken.None).ConfigureAwait(false);
+        if (result.IsFailure)
+        {
+            OnSyncError(folderPath, platformName, result.Error ?? $"{operationName} failed", null);
+        }
+    }
+
+    private async Task<Result> SafeHandleAsync(Func<Task> action, string operationName, CancellationToken ct)
+    {
+        if (IsCircuitOpen())
+        {
+            _logger.LogWarning("Circuit breaker open for {Operation}", operationName);
+            _metrics.IncrementCounter("livesync.circuit_open", new Dictionary<string, string> { { "operation", operationName } });
+            return Result.Failure($"{operationName} blocked by circuit breaker", ErrorType.External);
+        }
+
+        var attempt = 0;
+        var startedAt = DateTime.UtcNow;
+
         try
         {
-            await action().ConfigureAwait(false);
-            return Result.Success();
+            while (true)
+            {
+                attempt++;
+                _metrics.IncrementCounter("livesync.attempt", new Dictionary<string, string> { { "operation", operationName } });
+
+                try
+                {
+                    await action().ConfigureAwait(false);
+                    ResetCircuit();
+                    _metrics.RecordResponseTime($"LiveSync.{operationName}", DateTime.UtcNow - startedAt);
+                    return Result.Success();
+                }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                {
+                    _logger.LogDebug("Operation cancelled: {Operation}", operationName);
+                    return Result.Failure($"{operationName} was cancelled", ErrorType.External);
+                }
+                catch (UnauthorizedAccessException authEx)
+                {
+                    RegisterFailure(authEx, operationName);
+                    return Result.Failure($"Access denied in {operationName}: {authEx.Message}", ErrorType.Unauthorized);
+                }
+                catch (IOException ioEx)
+                {
+                    if (!await RetryOrFailAsync(ioEx, operationName, attempt, ct).ConfigureAwait(false))
+                    {
+                        return Result.Failure($"File system error in {operationName}: {ioEx.Message}", ErrorType.External);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (!await RetryOrFailAsync(ex, operationName, attempt, ct).ConfigureAwait(false))
+                    {
+                        return Result.Failure($"{operationName} failed: {ex.Message}", ErrorType.Internal);
+                    }
+                }
+            }
         }
-        catch (OperationCanceledException)
+        finally
         {
-            _logger.LogDebug("Operation cancelled: {Operation}", operationName);
-            return Result.Failure($"{operationName} was cancelled", ErrorType.External);
+            _metrics.RecordResponseTime($"LiveSync.{operationName}.Total", DateTime.UtcNow - startedAt);
         }
-        catch (IOException ioEx)
+    }
+
+    private async Task<bool> RetryOrFailAsync(Exception ex, string operationName, int attempt, CancellationToken ct)
+    {
+        RegisterFailure(ex, operationName);
+
+        if (attempt >= MaxRetryAttempts)
         {
-            _logger.LogWarning(ioEx, "IO error in {Operation}", operationName);
-            return Result.Failure($"File system error in {operationName}: {ioEx.Message}", ErrorType.External);
+            OpenCircuitIfNeeded();
+            return false;
         }
-        catch (UnauthorizedAccessException authEx)
+
+        var delay = GetRetryDelay(attempt);
+        _metrics.IncrementCounter("livesync.retry", new Dictionary<string, string>
         {
-            _logger.LogWarning(authEx, "Access denied in {Operation}", operationName);
-            return Result.Failure($"Access denied in {operationName}: {authEx.Message}", ErrorType.Unauthorized);
-        }
-        catch (Exception ex)
+            { "operation", operationName },
+            { "attempt", attempt.ToString() }
+        });
+
+        _logger.LogWarning(ex, "Retrying {Operation} in {Delay} (attempt {Attempt}/{MaxAttempts})",
+            operationName, delay, attempt, MaxRetryAttempts);
+
+        await Task.Delay(delay, ct).ConfigureAwait(false);
+        return true;
+    }
+
+    private void RegisterFailure(Exception ex, string operationName)
+    {
+        _logger.LogWarning(ex, "Error in {Operation}", operationName);
+        _metrics.RecordException($"LiveSync.{operationName}", ex.GetType().Name, ex.Message);
+        _metrics.IncrementCounter("livesync.failure", new Dictionary<string, string> { { "operation", operationName } });
+
+        lock (_resilienceLock)
         {
-            _logger.LogError(ex, "Unexpected error in {Operation}", operationName);
-            return Result.Failure($"{operationName} failed: {ex.Message}", ErrorType.Internal);
+            _consecutiveFailures++;
         }
+    }
+
+    private void ResetCircuit()
+    {
+        lock (_resilienceLock)
+        {
+            _consecutiveFailures = 0;
+            _circuitOpenedAt = null;
+        }
+    }
+
+    private bool IsCircuitOpen()
+    {
+        lock (_resilienceLock)
+        {
+            if (_circuitOpenedAt == null)
+            {
+                return false;
+            }
+
+            if (DateTime.UtcNow - _circuitOpenedAt < CircuitBreakerOpenDuration)
+            {
+                return true;
+            }
+
+            _circuitOpenedAt = null;
+            _consecutiveFailures = 0;
+            return false;
+        }
+    }
+
+    private void OpenCircuitIfNeeded()
+    {
+        lock (_resilienceLock)
+        {
+            if (_consecutiveFailures < CircuitBreakerFailureThreshold || _circuitOpenedAt != null)
+            {
+                return;
+            }
+
+            _circuitOpenedAt = DateTime.UtcNow;
+            _logger.LogWarning("Circuit breaker opened for LiveSync operations");
+            _metrics.IncrementCounter("livesync.circuit_opened");
+        }
+    }
+
+    private static TimeSpan GetRetryDelay(int attempt)
+    {
+        var exponentialDelay = TimeSpan.FromMilliseconds(BaseRetryDelay.TotalMilliseconds * Math.Pow(2, attempt - 1));
+        var jitter = TimeSpan.FromMilliseconds(Random.Shared.Next(0, 150));
+        var delay = exponentialDelay + jitter;
+        return delay > MaxRetryDelay ? MaxRetryDelay : delay;
     }
 
     private async Task HandleFileCreatedAsync(string folderPath, string filePath, string platformName)

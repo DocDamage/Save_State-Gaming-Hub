@@ -167,7 +167,7 @@ public sealed class WorkflowStepEventArgs : EventArgs
 /// </summary>
 public sealed record MacroRecording(
     Guid Id,
-    Guid GameId,
+    Guid? GameId,
     string Name,
     string Description,
     RecordingMode Mode,

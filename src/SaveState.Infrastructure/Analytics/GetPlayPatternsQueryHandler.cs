@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Analytics.Queries;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.Enums;
@@ -14,13 +15,16 @@ public class GetPlayPatternsQueryHandler : IRequestHandler<GetPlayPatternsQuery,
 {
     private readonly SaveStateDbContext _dbContext;
     private readonly ILogger<GetPlayPatternsQueryHandler> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public GetPlayPatternsQueryHandler(
         SaveStateDbContext dbContext,
-        ILogger<GetPlayPatternsQueryHandler> logger)
+        ILogger<GetPlayPatternsQueryHandler> logger,
+        ITimeProvider timeProvider)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<PlayPatternAnalytics>> Handle(GetPlayPatternsQuery request, CancellationToken ct)
@@ -89,10 +93,11 @@ public class GetPlayPatternsQueryHandler : IRequestHandler<GetPlayPatternsQuery,
 
             // Average session data
             AverageSessionData avgSession;
-            if (sessions.Any())
+            var sessionsWithEndTime = sessions.Where(s => s.EndedAt.HasValue).ToList();
+            if (sessionsWithEndTime.Any())
             {
                 var avgDuration = TimeSpan.FromMinutes(
-                    sessions.Average(s => (s.EndedAt!.Value - s.StartedAt).TotalMinutes));
+                    sessionsWithEndTime.Average(s => (s.EndedAt!.Value - s.StartedAt).TotalMinutes));
 
                 var totalDays = (sessions.Max(s => s.StartedAt) - sessions.Min(s => s.StartedAt)).TotalDays;
                 var sessionsPerDay = totalDays > 0 ? sessions.Count / totalDays : 0;
@@ -134,7 +139,7 @@ public class GetPlayPatternsQueryHandler : IRequestHandler<GetPlayPatternsQuery,
             // 2. Backlog & Completion Rates (Last 6 Months)
             var backlogPoints = new List<BacklogDataPoint>();
             var completionRates = new List<CompletionRateDataPoint>();
-            var startDate = DateTime.Now.AddMonths(-6);
+            var startDate = _timeProvider.Now.AddMonths(-6);
 
             for (int i = 0; i <= 6; i++)
             {

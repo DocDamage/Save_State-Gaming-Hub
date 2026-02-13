@@ -1,0 +1,7 @@
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Presentation\Views/Dialogs/RomScanProgressDialog.axaml(73,60,73,60): Avalonia error AVLN2000: Unable to resolve type 0 from namespace https://github.com/avaloniaui Line 73, position 60. [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Presentation\SaveState.Presentation.csproj]
+
+Build FAILED.
+    15061 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:25.32

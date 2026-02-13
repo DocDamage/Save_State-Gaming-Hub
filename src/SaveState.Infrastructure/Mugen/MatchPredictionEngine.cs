@@ -81,13 +81,14 @@ public class MatchPredictionEngine : IMatchPredictionEngine
             var char1Result = await _characterRepository.GetByIdAsync(actualResult.Player1CharacterId, ct);
             var char2Result = await _characterRepository.GetByIdAsync(actualResult.Player2CharacterId, ct);
 
-            if (char1Result.IsFailure || char2Result.IsFailure)
+            if (char1Result.IsFailure || char2Result.IsFailure ||
+                char1Result.Value is null || char2Result.Value is null)
             {
                 return Result.Failure("Characters not found for training");
             }
 
-            var char1 = char1Result.Value!;
-            var char2 = char2Result.Value!;
+            var char1 = char1Result.Value;
+            var char2 = char2Result.Value;
 
             // Create training prompt for AI
             var trainingPrompt = CreateTrainingPrompt(

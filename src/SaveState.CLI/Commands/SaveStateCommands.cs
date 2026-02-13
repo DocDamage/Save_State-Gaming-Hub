@@ -35,13 +35,13 @@ public class SaveStateCommands : CommandGroupBase
             }
 
             var result = await Mediator.Send(new GetSaveStatesQuery(gameId)).ConfigureAwait(false);
-            if (!result.IsSuccess)
+            if (!result.IsSuccess || result.Value is null)
             {
-                AnsiConsole.MarkupLine($"[red]Error: {result.Error}[/]");
+                AnsiConsole.MarkupLine($"[red]Error: {result.Error ?? "Unknown error"}[/]");
                 return;
             }
 
-            var saveStates = result.Value!;
+            var saveStates = result.Value;
             if (!saveStates.Any())
             {
                 AnsiConsole.MarkupLine($"[yellow]No save states found for this game.[/]");
@@ -160,13 +160,13 @@ public class SaveStateCommands : CommandGroupBase
             }
 
             var result = await Mediator.Send(new GetSaveStateTimelineQuery(gameId)).ConfigureAwait(false);
-            if (!result.IsSuccess)
+            if (!result.IsSuccess || result.Value is null)
             {
-                AnsiConsole.MarkupLine($"[red]Error: {result.Error}[/]");
+                AnsiConsole.MarkupLine($"[red]Error: {result.Error ?? "Unknown error"}[/]");
                 return;
             }
 
-            var timeline = result.Value!;
+            var timeline = result.Value;
             if (timeline.Nodes.Count == 0)
             {
                 AnsiConsole.MarkupLine($"[yellow]No save states in timeline.[/]");

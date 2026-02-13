@@ -159,6 +159,7 @@ public partial class MainViewModel : ObservableObject
         var clipboardService = Locator.Current.GetService<IClipboardService>()!;
         var gameContextService = Locator.Current.GetService<IUiGameContextService>()!;
         var loggerFactory = Locator.Current.GetService<ILoggerFactory>()!;
+        var timeProvider = Locator.Current.GetService<Core.Common.Services.ITimeProvider>()!;
 
         CurrentViewModel = new GameDetailViewModel(
             mediator,
@@ -173,6 +174,7 @@ public partial class MainViewModel : ObservableObject
             clipboardService,
             gameContextService,
             gameId,
-            loggerFactory);
+            loggerFactory,
+            timeProvider);
     }
 }

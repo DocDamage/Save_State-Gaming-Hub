@@ -1,0 +1,159 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Shell.Mugen"
+             xmlns:converters="clr-namespace:SaveState.Presentation.Converters"
+             xmlns:valueobjects="clr-namespace:SaveState.Core.Mugen.ValueObjects;assembly=SaveState.Core"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="SaveState.Presentation.Views.Mugen.Sections.MoveTemplateBrowserView"
+             x:DataType="vm:MoveCreationViewModel">
+
+    <UserControl.Resources>
+        <converters:BoolToTextConverter x:Key="BoolToTextConverter" />
+        <converters:NullOrEmptyToBoolConverter x:Key="NullOrEmptyToBoolConverter" />
+    </UserControl.Resources>
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header with Filters and Search -->
+        <Border Grid.Row="0" Background="{StaticResource GlassBrush}" Margin="20,20,20,10" Padding="15" CornerRadius="8">
+            <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="*, Auto">
+                <!-- Title and Search -->
+                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="20">
+                    <StackPanel  Width="300">
+                        <TextBlock Text="MOVE TEMPLATE BROWSER" FontSize="14" FontWeight="Bold" Foreground="{StaticResource FightingYellowBrush}" />
+                        <TextBox Text="{Binding SearchText}" Watermark="Search templates by name or tags..." />
+                    </StackPanel>
+
+                    <!-- Category Filter -->
+                    <StackPanel  Width="150">
+                        <TextBlock Text="Category" FontSize="12" Foreground="{StaticResource SecondaryTextBrush}" />
+                        <ComboBox ItemsSource="{Binding Source={x:Static valueobjects:MoveCategory.Special}, Converter={StaticResource EnumValuesConverter}}"
+                                  SelectedItem="{Binding FilterCategory}"
+                                  PlaceholderText="All Categories" />
+                    </StackPanel>
+
+                    <!-- Type Filter -->
+                    <StackPanel  Width="150">
+                        <TextBlock Text="Type" FontSize="12" Foreground="{StaticResource SecondaryTextBrush}" />
+                        <ComboBox ItemsSource="{Binding Source={x:Static valueobjects:MoveType.Special}, Converter={StaticResource EnumValuesConverter}}"
+                                  SelectedItem="{Binding FilterType}"
+                                  PlaceholderText="All Types" />
+                    </StackPanel>
+
+                    <!-- Difficulty Filter -->
+                    <StackPanel  Width="150">
+                        <TextBlock Text="Difficulty" FontSize="12" Foreground="{StaticResource SecondaryTextBrush}" />
+                        <ComboBox ItemsSource="{Binding Source={x:Static valueobjects:DifficultyLevel.Beginner}, Converter={StaticResource EnumValuesConverter}}"
+                                  SelectedItem="{Binding FilterDifficulty}"
+                                  PlaceholderText="All Levels" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Action Buttons -->
+                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Bottom">
+                    <Button Command="{Binding ClearFiltersCommand}" Classes="Secondary">
+                        <StackPanel Orientation="Horizontal" >
+                            <TextBlock Text="🔄" />
+                            <TextBlock Text="CLEAR FILTERS" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding FilterTemplatesCommand}" Classes="Accent">
+                        <StackPanel Orientation="Horizontal" >
+                            <TextBlock Text="🔍" />
+                            <TextBlock Text="SEARCH" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- Status Message -->
+                <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                          Text="{Binding StatusMessage}"
+                          Foreground="{StaticResource SecondaryTextBrush}"
+                          FontSize="12"
+                          Margin="0,10,0,0" />
+            </Grid>
+        </Border>
+
+        <!-- Template Grid -->
+        <ScrollViewer Grid.Row="1" Margin="20,0,20,20" Padding="0,0,10,0">
+            <ItemsControl ItemsSource="{Binding AvailableTemplates}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Stretch" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{StaticResource CardBrush}"
+                                Margin="5"
+                                Padding="15"
+                                CornerRadius="8"
+                                Width="300"
+                                Height="200">
+                            <Grid RowDefinitions="Auto, *, Auto">
+                                <!-- Template Header -->
+                                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
+                                    <Border Background="{StaticResource AccentBrush}" Padding="5" CornerRadius="4">
+                                        <TextBlock Text="{Binding Category}" FontSize="10" FontWeight="Bold" Foreground="White" />
+                                    </Border>
+                                    <Border Background="{StaticResource SecondaryBrush}" Padding="5" CornerRadius="4">
+                                        <TextBlock Text="{Binding Type}" FontSize="10" FontWeight="Bold" />
+                                    </Border>
+                                    <Border Background="{Binding Difficulty, Converter={StaticResource DifficultyToBrushConverter}}" Padding="5" CornerRadius="4">
+                                        <TextBlock Text="{Binding Difficulty}" FontSize="10" FontWeight="Bold" Foreground="White" />
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- Template Content -->
+                                <StackPanel Grid.Row="1" Spacing="8">
+                                    <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold" />
+                                    <TextBlock Text="{Binding Description}"
+                                              FontSize="12"
+                                              Foreground="{StaticResource SecondaryTextBrush}"
+                                              TextWrapping="Wrap"
+                                              MaxLines="3"
+                                              TextTrimming="CharacterEllipsis" />
+
+                                    <!-- Tags -->
+                                    <WrapPanel Orientation="Horizontal"  Margin="0,5,0,0">
+                                        <TextBlock Text="🏷️" FontSize="10" />
+                                        <ItemsControl ItemsSource="{Binding Tags}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel Orientation="Horizontal"  />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="{StaticResource GlassBrush}" Padding="3,1" CornerRadius="3">
+                                                        <TextBlock Text="{Binding}" FontSize="9" Foreground="{StaticResource SecondaryTextBrush}" />
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </WrapPanel>
+                                </StackPanel>
+
+                                <!-- Action Button -->
+                                <Button Grid.Row="2"
+                                        Command="{Binding $parent[ItemsControl].DataContext.SelectTemplateCommand}"
+                                        CommandParameter="{Binding}"
+                                        Classes="Accent"
+                                        HorizontalAlignment="Stretch"
+                                        Margin="0,10,0,0">
+                                    <StackPanel Orientation="Horizontal" >
+                                        <TextBlock Text="🎨" />
+                                        <TextBlock Text="USE TEMPLATE" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

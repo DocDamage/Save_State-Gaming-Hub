@@ -161,7 +161,7 @@ public partial class MacroMarketplaceViewModel : ObservableObject
 
             foreach (var macro in sampleMacros)
             {
-                if (string.IsNullOrWhiteSpace(SearchQuery) || 
+                if (string.IsNullOrWhiteSpace(SearchQuery) ||
                     macro.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ||
                     macro.Description.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
                 {
@@ -190,21 +190,24 @@ public partial class MacroMarketplaceViewModel : ObservableObject
     {
         try
         {
-            var macros = await _macroManager.GetMacrosAsync();
+            var result = await _macroManager.GetMacrosAsync();
             InstalledMacros.Clear();
 
-            foreach (var macro in macros)
+            if (result.IsSuccess && result.Value != null)
             {
-                InstalledMacros.Add(new MarketplaceMacro
+                foreach (var macro in result.Value)
                 {
-                    Id = macro.Id,
-                    Name = macro.Name,
-                    Description = macro.Description ?? "No description",
-                    Category = "Local",
-                    IsInstalled = true,
-                    Version = "1.0.0",
-                    UpdatedAt = macro.LastModified
-                });
+                    InstalledMacros.Add(new MarketplaceMacro
+                    {
+                        Id = macro.Id,
+                        Name = macro.Name,
+                        Description = macro.Description ?? "No description",
+                        Category = "Local",
+                        IsInstalled = true,
+                        Version = "1.0.0",
+                        UpdatedAt = macro.UpdatedAt
+                    });
+                }
             }
         }
         catch (Exception ex)
@@ -247,10 +250,10 @@ public partial class MacroMarketplaceViewModel : ObservableObject
 
             macro.IsInstalled = true;
             macro.Downloads++;
-            
+
             StatusMessage = $"{macro.Name} downloaded successfully!";
             _notificationService.ShowSuccess($"{macro.Name} installed!");
-            
+
             await LoadInstalledMacrosAsync();
         }
         catch (Exception ex)
@@ -276,7 +279,7 @@ public partial class MacroMarketplaceViewModel : ObservableObject
         try
         {
             var result = await _macroManager.DeleteMacroAsync(macro.Id);
-            
+
             if (result.IsSuccess)
             {
                 macro.IsInstalled = false;
@@ -316,7 +319,7 @@ public partial class MacroMarketplaceViewModel : ObservableObject
 
             StatusMessage = $"{macro.Name} uploaded successfully!";
             _notificationService.ShowSuccess($"{macro.Name} is now available in the marketplace!");
-            
+
             await LoadMyUploadsAsync();
         }
         catch (Exception ex)

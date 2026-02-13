@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.RomManagement;
@@ -22,6 +23,7 @@ public class SaveStateManager : ISaveStateManager
     private readonly IRetroArchService? _retroArchService;
     private readonly IEmulatorService? _emulatorService;
     private readonly ILogger<SaveStateManager> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public SaveStateManager(
         ISaveStateRepository saveStateRepository,
@@ -29,6 +31,7 @@ public class SaveStateManager : ISaveStateManager
         IRomFileRepository romRepository,
         ISessionTrackingService sessionTrackingService,
         ILogger<SaveStateManager> logger,
+        ITimeProvider timeProvider,
         IRetroArchService? retroArchService = null,
         IEmulatorService? emulatorService = null)
     {
@@ -37,6 +40,7 @@ public class SaveStateManager : ISaveStateManager
         _romRepository = romRepository;
         _sessionTrackingService = sessionTrackingService;
         _logger = logger;
+        _timeProvider = timeProvider;
         _retroArchService = retroArchService;
         _emulatorService = emulatorService;
     }
@@ -301,12 +305,12 @@ public class SaveStateManager : ISaveStateManager
         }
     }
 
-    private static string GenerateSaveStatePath(Guid gameId)
+    private string GenerateSaveStatePath(Guid gameId)
     {
         var saveStatesDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SaveStates", gameId.ToString());
         Directory.CreateDirectory(saveStatesDir);
 
-        var fileName = $"savestate_{DateTime.Now:yyyyMMdd_HHmmss}.state";
+        var fileName = $"savestate_{_timeProvider.Now:yyyyMMdd_HHmmss}.state";
         return Path.Combine(saveStatesDir, fileName);
     }
 

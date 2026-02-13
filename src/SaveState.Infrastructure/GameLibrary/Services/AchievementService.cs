@@ -194,7 +194,7 @@ public class AchievementService : IAchievementService
                 minCompletedGames,
                 requireCompletion);
         }
-        catch (Exception ex)
+        catch (JsonException ex)
         {
             _logger.LogWarning(ex, "Failed to parse achievement criteria");
             return null;

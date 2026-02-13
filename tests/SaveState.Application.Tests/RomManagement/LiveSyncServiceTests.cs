@@ -17,6 +17,7 @@ public class LiveSyncServiceTests : IDisposable
     private readonly Mock<IRomFileRepository> _mockRomFileRepository = new();
     private readonly Mock<IPlatformRepository> _mockPlatformRepository = new();
     private readonly Mock<IPlatformExtensionRegistry> _mockExtensionRegistry = new();
+    private readonly Mock<SaveState.Core.Monitoring.IApplicationMetrics> _mockMetrics = new();
     private readonly Mock<ILogger<LiveSyncService>> _mockLogger = new();
     private readonly LiveSyncService _sut;
 
@@ -27,7 +28,8 @@ public class LiveSyncServiceTests : IDisposable
             _mockRomFileRepository.Object,
             _mockPlatformRepository.Object,
             _mockExtensionRegistry.Object,
-            _mockLogger.Object);
+            _mockLogger.Object,
+            _mockMetrics.Object);
     }
 
     public void Dispose()

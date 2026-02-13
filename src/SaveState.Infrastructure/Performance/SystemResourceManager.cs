@@ -69,12 +69,12 @@ public class SystemResourceManager : ISystemResourceManager
             _logger.LogInformation("Analyzing system resources...");
 
             var processes = await GetBackgroundProcessesAsync(ct);
-            if (!processes.IsSuccess)
+            if (!processes.IsSuccess || processes.Value is null)
             {
-                return Result.Failure<SystemAnalysis>(processes.Error!, processes.ErrorType);
+                return Result.Failure<SystemAnalysis>(processes.Error ?? "Unknown error", processes.ErrorType);
             }
 
-            var terminableProcesses = processes.Value!
+            var terminableProcesses = processes.Value
                 .Where(p => p.IsSafeToTerminate)
                 .ToList();
 
@@ -352,9 +352,9 @@ public class SystemResourceManager : ISystemResourceManager
     private async Task CloseProcessesByCategoryAsync(ProcessCategory category, CancellationToken ct)
     {
         var processesResult = await GetBackgroundProcessesAsync(ct);
-        if (!processesResult.IsSuccess) return;
+        if (!processesResult.IsSuccess || processesResult.Value is null) return;
 
-        var toClose = processesResult.Value!
+        var toClose = processesResult.Value
             .Where(p => p.Category == category && p.IsSafeToTerminate)
             .Select(p => p.Name)
             .Distinct();
@@ -506,7 +506,13 @@ public class SystemResourceManager : ISystemResourceManager
                 };
 
                 using var process = Process.Start(startInfo);
-                await process!.WaitForExitAsync(ct);
+                if (process is null)
+                {
+                    _logger.LogWarning("Failed to start powercfg process");
+                    return;
+                }
+
+                await process.WaitForExitAsync(ct);
 
                 _logger.LogInformation("Set power plan to High Performance");
             }

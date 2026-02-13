@@ -117,6 +117,12 @@ public interface IPluginManager
     IReadOnlyList<IUIPanel> GetUIPanels();
 
     /// <summary>
+    /// Gets all menu items currently registered by enabled plugins.
+    /// </summary>
+    /// <returns>Plugin menu registrations.</returns>
+    IReadOnlyList<PluginMenuRegistration> GetRegisteredMenuItems();
+
+    /// <summary>
     /// Sends an event to all loaded plugins.
     /// </summary>
     /// <param name="eventType">The type of event.</param>
@@ -163,3 +169,14 @@ public sealed class LoadedPlugin
         IsEnabled = true;
     }
 }
+
+/// <summary>
+/// Represents a plugin menu item registration with plugin metadata.
+/// </summary>
+/// <param name="PluginId">The plugin identifier.</param>
+/// <param name="PluginName">The display name of the plugin.</param>
+/// <param name="MenuItem">The registered plugin menu item.</param>
+public sealed record PluginMenuRegistration(
+    string PluginId,
+    string PluginName,
+    PluginMenuItem MenuItem);

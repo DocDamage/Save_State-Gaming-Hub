@@ -113,7 +113,7 @@ public partial class AutomationDashboardViewModel : ObservableObject
                         Name = wf.Name,
                         Description = wf.Description,
                         StepsText = $"{wf.Config.Steps.Count} steps",
-                        Icon = "🔄" // Default icon for now
+                        Icon = GetWorkflowIcon(wf.Config)
                     };
 
                     vm.EditAction = EditWorkflow;
@@ -146,7 +146,7 @@ public partial class AutomationDashboardViewModel : ObservableObject
                         Id = macro.Id,
                         Name = macro.Name,
                         Description = macro.Description,
-                        Duration = "0s", // Would need to calculate
+                        Duration = CalculateMacroDuration(macro),
                         ActionsText = $"{macro.Actions.Count} actions"
                     };
 
@@ -177,7 +177,7 @@ public partial class AutomationDashboardViewModel : ObservableObject
                     var task = new ScheduledTaskViewModel
                     {
                         Name = wf.Name,
-                        Schedule = "Scheduled", // Need better schedule parsing
+                        Schedule = wf.Config.Trigger == SaveState.Core.Automation.Services.DTOs.WorkflowTrigger.Scheduled ? "Scheduled" : "Manual",
                         IsEnabled = wf.IsEnabled,
                         NextRun = "Calculating...",
                         StatusColor = wf.IsEnabled ? "#10B981" : "#6B7280"
@@ -251,8 +251,36 @@ public partial class AutomationDashboardViewModel : ObservableObject
         return $"{(int)span.TotalDays}d ago";
     }
 
+    private string GetWorkflowIcon(WorkflowConfig config)
+    {
+        return config.Trigger switch
+        {
+            WorkflowTrigger.Manual => "👆",
+            WorkflowTrigger.Scheduled => "⏰",
+            WorkflowTrigger.OnGameLaunch => "🚀",
+            WorkflowTrigger.OnGameExit => "🛑",
+            WorkflowTrigger.OnEvent => "⚡",
+            _ => "⚡"
+        };
+    }
 
-    private async void EditTask(ScheduledTaskViewModel task)
+    private string CalculateMacroDuration(SaveState.Core.Automation.Services.DTOs.Macro macro)
+    {
+        if (macro.Actions.Count == 0) return "0s";
+
+        // Duration is roughly the timestamp of the last action
+        var lastAction = macro.Actions[macro.Actions.Count - 1];
+        var duration = lastAction.Timestamp;
+
+        if (duration.TotalSeconds < 1) return "< 1s";
+        if (duration.TotalMinutes < 1) return $"{duration.Seconds}s";
+        return $"{duration.Minutes}m {duration.Seconds}s";
+    }
+
+
+
+
+    private async Task EditTaskAsync(ScheduledTaskViewModel task)
     {
         try
         {
@@ -270,6 +298,11 @@ public partial class AutomationDashboardViewModel : ObservableObject
             _logger.LogError(ex, "Failed to edit task {TaskName}", task.Name);
             await _dialogService.ShowErrorAsync("Error", $"Failed to edit task: {ex.Message}");
         }
+    }
+
+    private void EditTask(ScheduledTaskViewModel task)
+    {
+        _ = EditTaskAsync(task);
     }
 
     private void DeleteTask(ScheduledTaskViewModel task)
@@ -290,7 +323,7 @@ public partial class AutomationDashboardViewModel : ObservableObject
         });
     }
 
-    private async void EditWorkflow(WorkflowViewModel workflow)
+    private async Task EditWorkflowAsync(WorkflowViewModel workflow)
     {
         try
         {
@@ -309,7 +342,12 @@ public partial class AutomationDashboardViewModel : ObservableObject
         }
     }
 
-    private async void RunWorkflow(WorkflowViewModel workflow)
+    private void EditWorkflow(WorkflowViewModel workflow)
+    {
+        _ = EditWorkflowAsync(workflow);
+    }
+
+    private async Task RunWorkflowAsync(WorkflowViewModel workflow)
     {
         try
         {
@@ -357,16 +395,27 @@ public partial class AutomationDashboardViewModel : ObservableObject
         }
     }
 
-    private async void EditMacro(MacroViewModel macro)
+    private void RunWorkflow(WorkflowViewModel workflow)
+    {
+        _ = RunWorkflowAsync(workflow);
+    }
+
+    private async Task EditMacroAsync(MacroViewModel macro)
     {
         try
         {
              _ = _dialogService.ShowMacroPlaybackDialogAsync(macro.Id, macro.Name);
+             await Task.CompletedTask;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to open macro editor for {MacroName}", macro.Name);
         }
+    }
+
+    private void EditMacro(MacroViewModel macro)
+    {
+        _ = EditMacroAsync(macro);
     }
 
     private void PlayMacro(MacroViewModel macro)
@@ -391,8 +440,7 @@ public partial class AutomationDashboardViewModel : ObservableObject
     [RelayCommand]
     private async Task CreateAutomation()
     {
-        // For now, simplify to just showing a choice or defaulting to Task
-        // In full implementation, this could be a wizard that asks what type of automation
+        // Show task creation dialog
         var result = await _dialogService.ShowTaskCreationDialogAsync();
         if (result != null)
         {
@@ -470,7 +518,7 @@ public partial class AutomationDashboardViewModel : ObservableObject
     [RelayCommand]
     private void ShowDashboard()
     {
-        CurrentView = null; // Assuming null displays the main dashboard
+        CurrentView = null; // Displays the main dashboard
         _ = LoadDataAsync(); // Refresh data when returning to dashboard
     }
 }

@@ -1,9 +1,12 @@
+using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveState.Core.Analytics.DTOs;
 using SaveState.Core.Analytics.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Services;
 using SaveState.Presentation.ViewModels.Shell;
 
@@ -17,6 +20,7 @@ public partial class AdvancedAnalyticsViewModel : ObservableObject
     private readonly IAnalyticsService _analyticsService;
     private readonly ICompletionPredictionService _predictionService;
     private readonly INotificationService _notificationService;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private GamingHeatmapData? currentHeatmap;
@@ -49,7 +53,7 @@ public partial class AdvancedAnalyticsViewModel : ObservableObject
     private bool isLoading;
 
     [ObservableProperty]
-    private int selectedYear = DateTime.Now.Year;
+    private int selectedYear;
 
     public VoiceCommandViewModel VoiceCommandViewModel { get; private set; }
 
@@ -57,12 +61,15 @@ public partial class AdvancedAnalyticsViewModel : ObservableObject
         IAnalyticsService analyticsService,
         ICompletionPredictionService predictionService,
         INotificationService notificationService,
-        VoiceCommandViewModel voiceCommandViewModel)
+        VoiceCommandViewModel voiceCommandViewModel,
+        ITimeProvider timeProvider)
     {
         _analyticsService = analyticsService;
         _predictionService = predictionService;
         _notificationService = notificationService;
         VoiceCommandViewModel = voiceCommandViewModel;
+        _timeProvider = timeProvider;
+        selectedYear = timeProvider.Now.Year;
     }
 
     public async Task InitializeAsync()
@@ -140,9 +147,45 @@ public partial class AdvancedAnalyticsViewModel : ObservableObject
     {
         try
         {
-            // Load play patterns - would use IPlayPatternAnalyzer if available
             PlayPatterns.Clear();
-            // Example patterns would be added here based on actual implementation
+            var result = await _analyticsService.GetPlaytimeDistributionAsync();
+            if (!result.IsSuccess)
+            {
+                await _notificationService.ShowErrorAsync($"Failed to load play patterns: {result.Error}");
+                return;
+            }
+
+            var distribution = result.Value;
+            if (distribution.ByDayOfWeek.Count == 0 || distribution.ByHour.Count == 0)
+            {
+                return;
+            }
+
+            var topDay = distribution.ByDayOfWeek
+                .OrderByDescending(kvp => kvp.Value)
+                .First();
+            var topHour = distribution.ByHour
+                .OrderByDescending(kvp => kvp.Value)
+                .First();
+
+            var totalDayTime = distribution.ByDayOfWeek.Values.Sum(timespan => timespan.TotalHours);
+            var dayPercentage = totalDayTime <= 0
+                ? 0
+                : (topDay.Value.TotalHours / totalDayTime) * 100;
+
+            PlayPatterns.Add(new PlayPatternInsight(
+                PatternName: "Frequency",
+                Description: $"You play most often on {topDay.Key}",
+                Percentage: dayPercentage,
+                AverageDuration: topDay.Value,
+                DiscoveredAt: DateTime.UtcNow));
+
+            PlayPatterns.Add(new PlayPatternInsight(
+                PatternName: "Peak Hour",
+                Description: $"Peak gaming hour is around {topHour.Key:00}:00",
+                Percentage: 100, // show as a highlight
+                AverageDuration: topHour.Value,
+                DiscoveredAt: DateTime.UtcNow));
         }
         catch (Exception ex)
         {
@@ -154,9 +197,32 @@ public partial class AdvancedAnalyticsViewModel : ObservableObject
     {
         try
         {
-            // Load completion predictions - would use IPredictionService
             CompletionPredictions.Clear();
-            // Example predictions would be added here
+            var result = await _predictionService.GetPredictionsAsync(count: 5);
+            if (!result.IsSuccess)
+            {
+                await _notificationService.ShowErrorAsync($"Failed to load predictions: {result.Error}");
+                return;
+            }
+
+            foreach (var prediction in result.Value)
+            {
+                var completionPercent = Math.Clamp((float)prediction.ConfidenceScore, 0f, 100f);
+                var confidenceLevel = Math.Clamp((float)(prediction.ConfidenceScore / 100.0), 0f, 1f);
+                var reasoning = prediction.ReasoningFactors is { Count: > 0 }
+                    ? string.Join("; ", prediction.ReasoningFactors.Take(2))
+                    : prediction.BasedOn;
+                var recommendation = !string.IsNullOrWhiteSpace(reasoning)
+                    ? $"Based on {reasoning}."
+                    : "Review your play history for more context.";
+
+                CompletionPredictions.Add(new CompletionPrediction(
+                    GameTitle: prediction.GameName,
+                    CompletionPercentage: completionPercent,
+                    EstimatedTimeToCompletion: prediction.EstimatedTimeRemaining,
+                    ConfidenceLevel: confidenceLevel,
+                    RecommendedNextStep: recommendation));
+            }
         }
         catch (Exception ex)
         {

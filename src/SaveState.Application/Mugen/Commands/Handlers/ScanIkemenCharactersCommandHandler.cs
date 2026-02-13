@@ -52,9 +52,12 @@ public class ScanIkemenCharactersCommandHandler : IRequestHandler<ScanIkemenChar
                 {
                     // Update existing character with new metadata
                     // For now, just mark as rescanned - full metadata update would need more complex logic
-                    var existingCharacter = existingResult.Value!;
-                    existingCharacter.UpdateLastScanned();
-                    await _characterRepository.UpdateAsync(existingCharacter, cancellationToken);
+                    if (existingResult.Value is not null)
+                    {
+                        var existingCharacter = existingResult.Value;
+                        existingCharacter.UpdateLastScanned();
+                        await _characterRepository.UpdateAsync(existingCharacter, cancellationToken);
+                    }
                 }
                 else
                 {

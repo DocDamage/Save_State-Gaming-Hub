@@ -17,7 +17,7 @@ public sealed record PerformanceSnapshot(
     float Fps,
     float FrameTimeMs,
     float CpuUsagePercent,
-    float GpuUsagePercent,
+    float? GpuUsagePercent,
     long RamUsageMb,
     float? GpuTempCelsius,
     float? CpuTempCelsius);

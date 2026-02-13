@@ -9,7 +9,7 @@ using SaveStateEntity = SaveState.Core.SaveStates.Entities.SaveState;
 
 namespace SaveState.Infrastructure.SaveStates;
 
-public class AutoSaveManager : IAutoSaveManager
+public class AutoSaveManager : IAutoSaveManager, IDisposable
 {
     private readonly ISaveStateManager _saveStateManager;
     private readonly ISessionTrackingService _sessionTrackingService;
@@ -19,6 +19,7 @@ public class AutoSaveManager : IAutoSaveManager
     private readonly Dictionary<Guid, AutoSaveConfig> _activeConfigs = new();
     private readonly Dictionary<Guid, Timer> _timers = new();
     private readonly Dictionary<Guid, GameStateType> _lastKnownStates = new();
+    private bool _disposed;
 
     public AutoSaveManager(
         ISaveStateManager saveStateManager,
@@ -222,6 +223,33 @@ public class AutoSaveManager : IAutoSaveManager
             SaveTrigger.SignificantProgress => "Significant progress auto-save",
             _ => "Auto-save"
         };
+    }
+
+    /// <summary>
+    /// Disposes resources and unsubscribes from events.
+    /// </summary>
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        // Unsubscribe from event to prevent memory leak
+        _gameMemoryReader.StateChanged -= OnGameStateChanged;
+
+        // Dispose all active timers
+        foreach (var timer in _timers.Values)
+        {
+            timer.Dispose();
+        }
+
+        _timers.Clear();
+        _activeConfigs.Clear();
+
+        GC.SuppressFinalize(this);
     }
 }
 

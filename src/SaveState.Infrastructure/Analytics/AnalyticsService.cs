@@ -1,9 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Analytics.DTOs;
 using SaveState.Core.Analytics.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Infrastructure.Analytics;
 
@@ -15,19 +20,31 @@ public class AnalyticsService : IAnalyticsService
 {
     private readonly IGameSessionRepository _sessionRepository;
     private readonly IGameRepository _gameRepository;
+    private readonly IBacklogRepository _backlogRepository;
+    private readonly ICompletionPredictionService _completionPredictionService;
+    private readonly IStreakCalculator _streakCalculator;
     private readonly ICacheService _cache;
     private readonly ILogger<AnalyticsService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public AnalyticsService(
         IGameSessionRepository sessionRepository,
         IGameRepository gameRepository,
+        IBacklogRepository backlogRepository,
+        ICompletionPredictionService completionPredictionService,
+        IStreakCalculator streakCalculator,
         ICacheService cache,
-        ILogger<AnalyticsService> logger)
+        ILogger<AnalyticsService> logger,
+        ITimeProvider? timeProvider = null)
     {
         _sessionRepository = sessionRepository;
         _gameRepository = gameRepository;
+        _backlogRepository = backlogRepository;
+        _completionPredictionService = completionPredictionService;
+        _streakCalculator = streakCalculator;
         _cache = cache;
         _logger = logger;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
     }
 
     /// <summary>
@@ -46,53 +63,24 @@ public class AnalyticsService : IAnalyticsService
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1); // Cache for 1 hour
 
-                // Get all sessions for the year
                 var startDate = new DateTime(year, 1, 1);
                 var endDate = new DateTime(year + 1, 1, 1);
 
                 var allSessions = await GetAllSessionsInDateRangeAsync(startDate, endDate, ct);
+                var activities = BuildDailyActivities(allSessions);
+                var totalPlaytime = TimeSpan.FromTicks(allSessions.Sum(s => s.Duration.Ticks));
 
-                // Group sessions by date and calculate daily activities
-                var activities = new Dictionary<DateOnly, DailyActivity>();
-                var totalPlaytime = TimeSpan.Zero;
-
-                foreach (var sessionGroup in allSessions.GroupBy(s => DateOnly.FromDateTime(s.StartedAt)))
-                {
-                    var date = sessionGroup.Key;
-                    var sessions = sessionGroup.ToList();
-                    var dailyPlaytime = TimeSpan.FromTicks(sessions.Sum(s => s.Duration.Ticks));
-
-                    var gamesPlayed = sessions
-                        .Select(s => s.Game.Title)
-                        .Distinct()
-                        .ToList();
-
-                    var activityLevel = GetActivityLevel(dailyPlaytime);
-
-                    activities[date] = new DailyActivity(
-                        Date: date,
-                        TotalPlaytime: dailyPlaytime,
-                        SessionCount: sessions.Count,
-                        GamesPlayed: gamesPlayed,
-                        Level: activityLevel);
-
-                    totalPlaytime += dailyPlaytime;
-                }
-
-                // Calculate streaks and statistics
-                var activeDays = activities.Count;
-                var totalDays = (endDate - startDate).Days;
-                var currentStreak = CalculateCurrentStreak(activities, DateOnly.FromDateTime(DateTime.Now));
-                var longestStreak = CalculateLongestStreak(activities);
+                var streakResult = _streakCalculator.Calculate(
+                    activities,
+                    DateOnly.FromDateTime(_timeProvider.Now));
 
                 return new GamingHeatmapData(
                     Activities: activities,
-                    TotalDays: totalDays,
-                    ActiveDays: activeDays,
-                    CurrentStreak: currentStreak,
-                    LongestStreak: longestStreak,
+                    TotalDays: (endDate - startDate).Days,
+                    ActiveDays: activities.Count,
+                    CurrentStreak: streakResult.CurrentStreak,
+                    LongestStreak: streakResult.LongestStreak,
                     TotalPlaytime: totalPlaytime);
-
             }).ConfigureAwait(false);
 
             return Result.Success<GamingHeatmapData>(heatmapData);
@@ -121,7 +109,7 @@ public class AnalyticsService : IAnalyticsService
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
 
-                var endDate = DateTime.Now;
+                var endDate = _timeProvider.Now;
                 var startDate = endDate.AddDays(-weeks * 7);
 
                 var allSessions = await GetAllSessionsInDateRangeAsync(startDate, endDate, ct);
@@ -229,7 +217,7 @@ public class AnalyticsService : IAnalyticsService
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(2); // Cache for 2 hours
 
                 var allSessions = since.HasValue
-                    ? await GetAllSessionsInDateRangeAsync(since.Value.ToDateTime(TimeOnly.MinValue), DateTime.Now, ct)
+                    ? await GetAllSessionsInDateRangeAsync(since.Value.ToDateTime(TimeOnly.MinValue), _timeProvider.Now, ct)
                     : await GetAllSessionsAsync(ct);
 
                 var gameStats = allSessions
@@ -264,6 +252,53 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
+    public async Task<Result<AnalyticsExportData>> GetExportDataAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            var allSessions = await GetAllSessionsAsync(ct);
+            var games = await _gameRepository.GetAllAsync(ct);
+
+            var totalPlayTime = TimeSpan.FromTicks(allSessions.Sum(s => s.Duration.Ticks));
+            var totalGames = games.Count;
+            var totalSessions = allSessions.Count;
+            var avgSession = totalSessions > 0 ? totalPlayTime / totalSessions : TimeSpan.Zero;
+
+            var sessionExports = allSessions.Select(s => new SessionExportData(
+                s.Game.Title,
+                s.StartedAt,
+                s.Duration,
+                s.Game.Platform?.Name ?? "Unknown")).ToList();
+
+            var genreExport = BuildGenreExport(games, totalPlayTime);
+
+            var activities = BuildDailyActivities(allSessions);
+            var streakResult = _streakCalculator.Calculate(
+                activities,
+                DateOnly.FromDateTime(_timeProvider.Now));
+
+            var predictions = await BuildPredictionsAsync(ct);
+
+            var exportData = new AnalyticsExportData(
+                _timeProvider.Now,
+                $"{totalPlayTime.TotalHours:F1} hours",
+                totalGames,
+                totalSessions,
+                $"{avgSession.TotalMinutes:F0} mins",
+                sessionExports,
+                genreExport,
+                streakResult.Streaks,
+                predictions);
+
+            return Result.Success(exportData);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get export data");
+            return Result.Failure<AnalyticsExportData>($"Failed to get export data: {ex.Message}", ErrorType.Internal);
+        }
+    }
+
     private async Task<IReadOnlyList<GameSession>> GetAllSessionsAsync(CancellationToken ct = default)
     {
         return await _sessionRepository.GetAllAsync(ct).ConfigureAwait(false);
@@ -286,103 +321,112 @@ public class AnalyticsService : IAnalyticsService
         };
     }
 
-    private static int CalculateCurrentStreak(IReadOnlyDictionary<DateOnly, DailyActivity> activities, DateOnly today)
+    private static Dictionary<DateOnly, DailyActivity> BuildDailyActivities(IReadOnlyList<GameSession> sessions)
     {
-        var streak = 0;
-        var currentDate = today;
+        var activities = new Dictionary<DateOnly, DailyActivity>();
 
-        while (activities.ContainsKey(currentDate) && activities[currentDate].Level != ActivityLevel.None)
+        foreach (var sessionGroup in sessions.GroupBy(s => DateOnly.FromDateTime(s.StartedAt)))
         {
-            streak++;
-            currentDate = currentDate.AddDays(-1);
+            var date = sessionGroup.Key;
+            var sessionList = sessionGroup.ToList();
+            var dailyPlaytime = TimeSpan.FromTicks(sessionList.Sum(s => s.Duration.Ticks));
+            var gamesPlayed = sessionList
+                .Select(s => s.Game.Title)
+                .Where(title => !string.IsNullOrWhiteSpace(title))
+                .Distinct()
+                .ToList();
+            var activityLevel = GetActivityLevel(dailyPlaytime);
+
+            activities[date] = new DailyActivity(
+                Date: date,
+                TotalPlaytime: dailyPlaytime,
+                SessionCount: sessionList.Count,
+                GamesPlayed: gamesPlayed,
+                Level: activityLevel);
         }
 
-        return streak;
+        return activities;
     }
 
-    private static int CalculateLongestStreak(IReadOnlyDictionary<DateOnly, DailyActivity> activities)
+    private static IReadOnlyList<GenreExportData> BuildGenreExport(IReadOnlyList<Game> games, TimeSpan totalPlayTime)
     {
-        var longestStreak = 0;
-        var currentStreak = 0;
+        var totalHours = totalPlayTime.TotalHours;
 
-        foreach (var date in activities.Keys.OrderBy(d => d))
-        {
-            if (activities[date].Level != ActivityLevel.None)
+        return games
+            .SelectMany(game => game.Genres.Select(genre => new
             {
-                currentStreak++;
-                longestStreak = Math.Max(longestStreak, currentStreak);
-            }
-            else
+                Genre = genre.Name,
+                Hours = game.TotalPlayTime.TotalHours
+            }))
+            .GroupBy(entry => entry.Genre)
+            .Select(group =>
             {
-                currentStreak = 0;
-            }
-        }
+                var hours = group.Sum(item => item.Hours);
+                var percentage = totalHours > 0
+                    ? Math.Round(hours / totalHours * 100, 1)
+                    : 0;
 
-        return longestStreak;
+                return new GenreExportData(group.Key, hours, percentage);
+            })
+            .ToList();
     }
-    public async Task<Result<AnalyticsExportData>> GetExportDataAsync(CancellationToken ct = default)
+
+    private async Task<IReadOnlyList<PredictionExportData>> BuildPredictionsAsync(CancellationToken ct)
     {
         try
         {
-            var allSessions = await GetAllSessionsAsync(ct);
-            var games = await _gameRepository.GetAllAsync(ct);
+            var backlog = await _backlogRepository.GetBacklogAsync(
+                status: BacklogStatus.InProgress,
+                pageSize: 100,
+                ct: ct);
 
-            // Calculate basics
-            var totalPlayTime = TimeSpan.FromTicks(allSessions.Sum(s => s.Duration.Ticks));
-            var totalGames = games.Count;
-            var totalSessions = allSessions.Count;
-            var avgSession = totalSessions > 0 ? totalPlayTime / totalSessions : TimeSpan.Zero;
+            if (!backlog.Items.Any())
+            {
+                return Array.Empty<PredictionExportData>();
+            }
 
-            // Sessions export
-            var sessionExports = allSessions.Select(s => new SessionExportData(
-                s.Game.Title,
-                s.StartedAt,
-                s.Duration,
-                s.Game.Platform?.Name ?? "Unknown"
-            )).ToList();
+            var predictionTasks = backlog.Items.Select(async entry =>
+            {
+                var predictionResult = await _completionPredictionService.GetPredictionForGameAsync(
+                    GameId.From(entry.GameId),
+                    ct);
 
-            // Genre export (assuming games have genres loaded, if not we might need Include)
-            // Ideally we'd query this better, but doing simple in-memory for now
-             var genreGroups = games
-                .SelectMany(g => g.Genres)
-                .GroupBy(g => g.Name)
-                .Select(g => new
-                 {
-                    Genre = g.Key,
-                    Count = g.Count()
-                 })
-                 .ToList();
+                if (predictionResult.IsSuccess && predictionResult.Value != null)
+                {
+                    return new PredictionExportData(
+                        predictionResult.Value.GameName,
+                        FormatPredictionDuration(predictionResult.Value.EstimatedTimeRemaining),
+                        Math.Round(predictionResult.Value.ConfidenceScore, 1));
+                }
 
-             // Simple fallback for genres if navigation property issues
-             var genreExport = new List<GenreExportData>();
-             // Skipping detailed genre calculation for brevity/performance unless critical
+                return null;
+            });
 
-            // Streaks (re-use heatmap logic partially)
-            // Just placeholder streaks for export demo
-            var streakExport = new List<StreakExportData>();
-
-            // Predictions placeholder
-            var predictions = new List<PredictionExportData>();
-
-            var exportData = new AnalyticsExportData(
-                DateTime.Now,
-                $"{totalPlayTime.TotalHours:F1} hours",
-                totalGames,
-                totalSessions,
-                $"{avgSession.TotalMinutes:F0} mins",
-                sessionExports,
-                genreExport,
-                streakExport,
-                predictions
-            );
-
-            return Result.Success(exportData);
+            var predictions = await Task.WhenAll(predictionTasks);
+            return predictions
+                .Where(p => p != null)
+                .Cast<PredictionExportData>()
+                .ToList();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to get export data");
-            return Result.Failure<AnalyticsExportData>($"Failed to get export data: {ex.Message}", ErrorType.Internal);
+            _logger.LogWarning(ex, "Failed to include completion predictions in export");
+            return Array.Empty<PredictionExportData>();
         }
     }
-}
 
+    private static string FormatPredictionDuration(TimeSpan duration)
+    {
+        if (duration.TotalHours >= 1)
+        {
+            return $"{duration.TotalHours:F1}h";
+        }
+
+        if (duration.TotalMinutes >= 1)
+        {
+            return $"{duration.TotalMinutes:F0}m";
+        }
+
+        return $"{duration.TotalSeconds:F0}s";
+    }
+}

@@ -116,6 +116,10 @@ public enum ErrorType
     /// <summary>External service (API, database) failed.</summary>
     ExternalService,
     /// <summary>Feature is not yet implemented.</summary>
-    NotImplemented
+    NotImplemented,
+    /// <summary>Operation was rate limited.</summary>
+    RateLimited,
+    /// <summary>Operation was cancelled.</summary>
+    Cancelled
 }
 

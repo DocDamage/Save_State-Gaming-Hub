@@ -40,12 +40,18 @@ public partial class MugenTrainingViewModel : MugenSectionViewModelBase
             return;
         }
 
+        if (DummyCharacter == null)
+        {
+            TrainingStatus = "Please select a training dummy first.";
+            return;
+        }
+
         try
         {
             TrainingStatus = $"Launching training: {SelectedCharacter.Name}...";
 
             var config = new TrainingConfig(
-                DummyCharacter?.Id ?? Guid.Empty,
+                DummyCharacter.Id,
                 DummyBehavior.Block,
                 true,
                 true,

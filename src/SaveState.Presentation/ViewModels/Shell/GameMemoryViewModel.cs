@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Infrastructure.GameLibrary.Services;
 using SaveState.Presentation.Services;
@@ -18,6 +19,7 @@ public partial class GameMemoryViewModel : ObservableObject, IDisposable
     private readonly IGameMemoryReader _memoryReader;
     private readonly MemoryPatternDatabase _patternDatabase;
     private readonly ILogger<GameMemoryViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
     private System.Timers.Timer? _refreshTimer;
 
     [ObservableProperty]
@@ -60,13 +62,15 @@ public partial class GameMemoryViewModel : ObservableObject, IDisposable
         MemoryPatternDatabase patternDatabase,
         IDialogService dialogService,
         IOverlayService overlayService,
-        ILogger<GameMemoryViewModel> logger)
+        ILogger<GameMemoryViewModel> logger,
+        ITimeProvider timeProvider)
     {
         _memoryReader = memoryReader;
         _patternDatabase = patternDatabase;
         _dialogService = dialogService;
         _overlayService = overlayService;
         _logger = logger;
+        _timeProvider = timeProvider;
 
         _memoryReader.StateChanged += OnGameStateChanged;
 
@@ -237,7 +241,10 @@ public partial class GameMemoryViewModel : ObservableObject, IDisposable
              return;
         }
 
-        var patterns = result.Value!;
+        if (!result.IsSuccess || result.Value is null)
+            return;
+
+        var patterns = result.Value;
 
         DetectedPatterns.Clear();
         foreach (var p in patterns)
@@ -257,7 +264,7 @@ public partial class GameMemoryViewModel : ObservableObject, IDisposable
     {
         // Invoke on UI thread normally, but ObservableCollection usually handles it if bound correctly in Avalonia 11+
         // Safe bet is to lock or use dispatcher if needed. For now simple add.
-        ScanLog.Insert(0, $"[{DateTime.Now:HH:mm:ss}] {message}");
+        ScanLog.Insert(0, $"[{_timeProvider.Now:HH:mm:ss}] {message}");
         if (ScanLog.Count > 100) ScanLog.RemoveAt(ScanLog.Count - 1);
     }
 
