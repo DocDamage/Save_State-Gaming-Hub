@@ -262,7 +262,3 @@ public class AdvancedAnalyticsService
 
     #endregion
 }
-
-/// <summary>
-/// Data aggregator for collecting and processing analytics data.
-/// </summary>

@@ -5,9 +5,12 @@ namespace SaveState.Application.Mugen.Models.BalanceTuning;
 /// </summary>
 public class BalanceRecommendation
 {
+    public string MechanicName { get; set; } = default!;
+    public string Reasoning { get; set; } = default!;
     public string Mechanic { get; set; } = default!;
     public string RecommendationType { get; set; } = default!;
     public float Severity { get; set; } = default!;
     public string Description { get; set; } = default!;
     public RecommendationPriority Priority { get; set; } = default!;
+    public string SuggestedChange { get; set; } = default!;
 }

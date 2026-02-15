@@ -5,6 +5,7 @@ namespace SaveState.Application.Mugen.Models.BalanceTuning;
 /// </summary>
 public class RankingDivision
 {
+    public string DivisionName { get; set; } = default!;
     public string Name { get; set; } = default!;
     public int MinRating { get; set; } = default!;
     public int MaxRating { get; set; } = default!;

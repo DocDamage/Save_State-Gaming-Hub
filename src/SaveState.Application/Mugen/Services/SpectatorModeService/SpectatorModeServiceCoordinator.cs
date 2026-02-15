@@ -1,8 +1,8 @@
 using SaveState.Core.Common;
-using SaveState.Application.Mugen.Services.Engines;
+using SaveState.Application.Mugen.Services.SpectatorModeService.Engines;
 using Microsoft.Extensions.Logging;
 
-namespace SaveState.Application.Mugen.Services;
+namespace SaveState.Application.Mugen.Services.SpectatorModeService;
 
 /// <summary>
 /// Spectator mode service coordinator that delegates to specialized engines.

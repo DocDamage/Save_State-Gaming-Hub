@@ -9,4 +9,8 @@ public class BalanceMetrics
     public float PlayerSatisfaction { get; set; } = default!;
     public TimeSpan MatchDuration { get; set; } = default!;
     public DateTime CollectedAt { get; set; } = default!;
+    public string SessionId { get; set; } = default!;
+    public DateTime Timestamp { get; set; }
+    public float OverallHealth { get; set; }
+    public Dictionary<string, float> MetricValues { get; set; } = default!;
 }

@@ -2,7 +2,7 @@ using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Services;
 using SaveState.Application.Mugen.Models.EmergingTech;
-using SaveState.Application.Mugen.Services.Engines;
+using SaveState.Application.Mugen.Services.EmergingTechnologies.Engines;
 using Microsoft.Extensions.Logging;
 using System.Numerics;
 using System.Text.Json;

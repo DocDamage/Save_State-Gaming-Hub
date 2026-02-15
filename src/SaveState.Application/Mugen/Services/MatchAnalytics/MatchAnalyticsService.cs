@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
-using SaveState.Application.Mugen.Services.MatchAnalytics.Engines;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Services;
+using SaveState.Application.Mugen.Services.MatchAnalytics.Engines;
 
 namespace SaveState.Application.Mugen.Services.MatchAnalytics;
 
@@ -35,8 +35,8 @@ public class MatchAnalyticsService : IMatchAnalyticsService
         _visualizationEngine = new VisualizationEngine(loggerFactory.CreateLogger<VisualizationEngine>());
         _reportingEngine = new ReportingEngine(
             loggerFactory.CreateLogger<ReportingEngine>(),
-            _statisticEngine,
-            _patternEngine);
+            cache,
+            new SystemTimeProvider());
     }
 
     /// <inheritdoc />
@@ -564,10 +564,10 @@ public class MatchAnalyticsService : IMatchAnalyticsService
         );
     }
 
-    private Core.Mugen.Services.PlayerPattern ConvertToLegacyPattern(DetectedPattern pattern)
+    private Core.Mugen.Services.PlayerPattern ConvertToLegacyPattern(PlayerPattern pattern)
     {
         return new Core.Mugen.Services.PlayerPattern(
-            PatternType: pattern.Name,
+            PatternType: pattern.PatternType,
             Description: pattern.Description,
             Frequency: pattern.Frequency,
             AssociatedMoves: pattern.AssociatedMoves,
@@ -576,6 +576,31 @@ public class MatchAnalyticsService : IMatchAnalyticsService
     }
 
     private Core.Mugen.Services.PerformanceTrends ConvertToLegacyTrends(PerformanceTrends trends)
+    {
+        return new Core.Mugen.Services.PerformanceTrends(
+            PlayerId: trends.PlayerId,
+            StartDate: trends.StartDate,
+            EndDate: trends.EndDate,
+            WinRateTrend: trends.WinRateTrend.Select(t => new Core.Mugen.Services.TrendDataPoint(
+                Date: t.Date,
+                Value: t.Value,
+                Context: t.Context
+            )).ToList(),
+            DamageTrend: trends.DamageTrend.Select(t => new Core.Mugen.Services.TrendDataPoint(
+                Date: t.Date,
+                Value: t.Value,
+                Context: t.Context
+            )).ToList(),
+            ComboTrend: trends.ComboTrend.Select(t => new Core.Mugen.Services.TrendDataPoint(
+                Date: t.Date,
+                Value: t.Value,
+                Context: t.Context
+            )).ToList(),
+            NotableChanges: trends.NotableChanges
+        );
+    }
+
+    private Core.Mugen.Services.PerformanceTrends ConvertToLegacyTrends(TrendVisualization trends)
     {
         return new Core.Mugen.Services.PerformanceTrends(
             PlayerId: trends.PlayerId,
@@ -625,14 +650,14 @@ public class MatchAnalyticsService : IMatchAnalyticsService
         );
     }
 
-    private Core.Mugen.Services.ImprovementRecommendation ConvertToLegacyRecommendation(ImprovementRecommendation rec)
+    private Core.Mugen.Services.ImprovementRecommendation ConvertToLegacyRecommendation(SaveState.Core.GameLibrary.Models.AiCoach.Recommendation rec)
     {
         return new Core.Mugen.Services.ImprovementRecommendation(
-            Category: rec.Category,
-            Recommendation: rec.Recommendation,
-            Rationale: rec.Rationale,
+            Category: rec.Category.ToString(),
+            Recommendation: rec.Title + ": " + rec.Description,
+            Rationale: $"Priority: {rec.Priority}. Estimated time: {rec.EstimatedTimeToComplete.TotalHours} hours.",
             Priority: (Core.Mugen.Services.RecommendationPriority)(int)rec.Priority,
-            ActionSteps: rec.ActionSteps
+            ActionSteps: rec.Prerequisites.ToList()
         );
     }
 

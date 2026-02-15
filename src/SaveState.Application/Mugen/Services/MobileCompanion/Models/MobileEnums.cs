@@ -139,7 +139,10 @@ public enum MobileCompanionServiceQuickActionType
     MobileCompanionServiceRemoteCommand,
     SocialAction,
     ContentAction,
-    Navigation
+    Navigation,
+    StartMatch,
+    OpenTraining,
+    OpenCharacterSelect
 }
 
 /// <summary>

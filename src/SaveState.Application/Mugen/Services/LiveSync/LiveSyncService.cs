@@ -1,9 +1,9 @@
 using SaveState.Application.Mugen.Models.LiveSync;
-using SaveState.Application.Mugen.Services.LiveSync.Engines;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using SaveState.Application.Mugen.Services.LiveSync.Engines;
 
 namespace SaveState.Application.Mugen.Services.LiveSync;
 
@@ -348,8 +348,8 @@ public class LiveSyncService : ILiveSyncService
                         LastActive = p.Value.LastSyncAt
                     }),
                 CrossPlatformAchievements = new List<string> { "CrossPlatform Master", "Unified Player" },
-                SyncHealth = _syncEngine.CalculateSyncHealth(account),
-                DataCompleteness = _syncEngine.CalculateDataCompleteness(account),
+                SyncHealth = _syncEngine.CalculateSyncHealth(account).Score,
+                DataCompleteness = _syncEngine.CalculateDataCompleteness(account).OverallCompleteness,
                 GeneratedAt = DateTime.UtcNow
             };
 

@@ -30,6 +30,14 @@ using NarrativeMemoryServiceCrystalTradeRequest = Models.NarrativeMemory.Crystal
 using NarrativeMemoryServiceNarrativeAnalytics = Models.NarrativeMemory.NarrativeAnalytics;
 using NarrativeMemoryServiceNarrativeMatchResult = Models.NarrativeMemory.NarrativeMatchResult;
 
+// Additional model aliases
+using NarrativeMemoryServiceEnhancementRequest = Models.NarrativeMemory.EnhancementRequest;
+using NarrativeMemoryServiceMatchMemory = Models.NarrativeMemory.MatchMemory;
+using NarrativeMemoryServiceTimelineForkRequest = Models.NarrativeMemory.TimelineForkRequest;
+using NarrativeMemoryServiceReplayOptions = Models.NarrativeMemory.ReplayOptions;
+using NarrativeMemoryServiceMoveSynthesisRequest = Models.NarrativeMemory.MoveSynthesisRequest;
+using NarrativeMemoryServiceButterflyEffectResult = Models.NarrativeMemory.ButterflyEffectResult;
+
 // Enum aliases
 using NarrativeMemoryServiceCrystalRarity = Models.NarrativeMemory.CrystalRarity;
 using NarrativeMemoryServiceMatchOutcome = Models.NarrativeMemory.MatchOutcome;

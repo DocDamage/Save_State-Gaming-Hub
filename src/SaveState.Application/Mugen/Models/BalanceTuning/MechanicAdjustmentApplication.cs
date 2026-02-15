@@ -7,4 +7,5 @@ public class MechanicAdjustmentApplication
 {
     public bool Success { get; set; } = default!;
     public float PerformanceImpact { get; set; } = default!;
+    public DateTime AppliedAt { get; set; } = default!;
 }

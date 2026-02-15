@@ -9,4 +9,6 @@ public class BalanceAlert
     public AlertSeverity Severity { get; set; } = default!;
     public string Message { get; set; } = default!;
     public DateTime Timestamp { get; set; } = default!;
+    public string AlertId { get; set; } = default!;
+    public string Mechanic { get; set; } = default!;
 }

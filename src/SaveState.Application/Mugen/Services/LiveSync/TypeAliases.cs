@@ -7,9 +7,9 @@
 
 using SaveState.Application.Mugen.Models.LiveSync;
 using SaveState.Application.Mugen.Services.LiveSync;
-using SaveState.Application.Mugen.Services.LiveSync.Engines;
 using SaveState.Core.Common;
 using Microsoft.Extensions.Logging;
+using SaveState.Application.Mugen.Services.LiveSync.Engines;
 
 #pragma warning disable CS0618 // Type or member is obsolete
 
@@ -231,7 +231,7 @@ public class CrossPlatformSyncServiceBackupData : AccountBackup
 #region Engine Aliases
 
 /// <summary>
-/// Backward compatibility alias for <see cref="Engines.SyncEngine"/>.
+/// Backward compatibility alias for <see cref="SaveState.Application.Mugen.Services.LiveSync.Engines.SyncEngine"/>.
 /// </summary>
 [Obsolete("Use SyncEngine from SaveState.Application.Mugen.Services.LiveSync.Engines instead")]
 public class CrossPlatformSyncServiceSyncEngine : SyncEngine
@@ -242,7 +242,7 @@ public class CrossPlatformSyncServiceSyncEngine : SyncEngine
 }
 
 /// <summary>
-/// Backward compatibility alias for <see cref="Engines.ConflictResolutionEngine"/>.
+/// Backward compatibility alias for <see cref="SaveState.Application.Mugen.Services.LiveSync.Engines.ConflictResolutionEngine"/>.
 /// </summary>
 [Obsolete("Use ConflictResolutionEngine from SaveState.Application.Mugen.Services.LiveSync.Engines instead")]
 public class CrossPlatformSyncServiceConflictResolver : ConflictResolutionEngine
@@ -253,7 +253,7 @@ public class CrossPlatformSyncServiceConflictResolver : ConflictResolutionEngine
 }
 
 /// <summary>
-/// Backward compatibility alias for <see cref="Engines.MigrationEngine"/>.
+/// Backward compatibility alias for <see cref="SaveState.Application.Mugen.Services.LiveSync.Engines.MigrationEngine"/>.
 /// </summary>
 [Obsolete("Use MigrationEngine from SaveState.Application.Mugen.Services.LiveSync.Engines instead")]
 public class CrossPlatformSyncServiceDataMigrationManager : MigrationEngine

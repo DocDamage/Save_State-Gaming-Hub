@@ -24,3 +24,10 @@ public class CrystalSynthesisRequest
     public IReadOnlyList<string> CrystalIds { get; set; } = default!;
     public string DesiredMoveType { get; set; } = default!;
 }
+
+/// <summary>
+/// Move synthesis request (alias for CrystalSynthesisRequest).
+/// </summary>
+public class MoveSynthesisRequest : CrystalSynthesisRequest
+{
+}

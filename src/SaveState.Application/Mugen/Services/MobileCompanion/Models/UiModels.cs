@@ -41,6 +41,24 @@ public class MobileCompanionServiceSocialActivity
     public DateTime Timestamp { get; set; } = default!;
     public int Likes { get; set; } = default!;
     public int Comments { get; set; } = default!;
+
+    /// <summary>
+    /// Activity type alias for compatibility.
+    /// </summary>
+    public MobileCompanionServiceSocialActivityType ActivityType
+    {
+        get => Type;
+        set => Type = value;
+    }
+
+    /// <summary>
+    /// Description alias for Content.
+    /// </summary>
+    public string Description
+    {
+        get => Content;
+        set => Content = value;
+    }
 }
 
 /// <summary>
@@ -54,6 +72,34 @@ public class MobileCompanionServiceContentItem
     public MobileCompanionServiceDownloadStatus Status { get; set; } = default!;
     public int Progress { get; set; } = default!;
     public long Size { get; set; } = default!;
+
+    /// <summary>
+    /// Item ID alias for ContentId.
+    /// </summary>
+    public string ItemId
+    {
+        get => ContentId;
+        set => ContentId = value;
+    }
+
+    /// <summary>
+    /// Title alias for Name.
+    /// </summary>
+    public string Title
+    {
+        get => Name;
+        set => Name = value;
+    }
+
+    /// <summary>
+    /// Description of the content item.
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Priority of the content item.
+    /// </summary>
+    public int Priority { get; set; }
 }
 
 /// <summary>

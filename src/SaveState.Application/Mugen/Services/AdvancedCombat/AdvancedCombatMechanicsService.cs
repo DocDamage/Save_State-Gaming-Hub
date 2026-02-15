@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Mugen.Models.AdvancedCombat;
-using CombatSessionRequest = SaveState.Application.Mugen.Models.AdvancedCombat.AdvancedCombatSessionRequest;
 using SaveState.Application.Mugen.Services.AdvancedCombat.Engines;
+using CombatSessionRequest = SaveState.Application.Mugen.Models.AdvancedCombat.AdvancedCombatSessionRequest;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 

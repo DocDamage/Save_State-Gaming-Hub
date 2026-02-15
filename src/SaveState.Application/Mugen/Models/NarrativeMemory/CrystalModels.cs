@@ -71,6 +71,20 @@ public class CrystalEnhancementRequest
 }
 
 /// <summary>
+/// Enhancement request (alias for CrystalEnhancementRequest).
+/// </summary>
+public class EnhancementRequest : CrystalEnhancementRequest
+{
+}
+
+/// <summary>
+/// Match memory data (alias for NarrativeMatchResult).
+/// </summary>
+public class MatchMemory : NarrativeMatchResult
+{
+}
+
+/// <summary>
 /// Crystal economy data.
 /// </summary>
 public class CrystalEconomy

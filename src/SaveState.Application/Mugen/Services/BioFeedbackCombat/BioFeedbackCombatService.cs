@@ -1,6 +1,7 @@
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using Microsoft.Extensions.Logging;
+using SaveState.Application.Mugen.Services.BioFeedbackCombat.Engines;
 
 namespace SaveState.Application.Mugen.Services.BioFeedbackCombat;
 

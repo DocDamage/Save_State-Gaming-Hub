@@ -1,5 +1,6 @@
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
+using SaveState.Application.Mugen.Services.VrArIntegration.Engines;
 using Microsoft.Extensions.Logging;
 
 namespace SaveState.Application.Mugen.Services.VrArIntegration;

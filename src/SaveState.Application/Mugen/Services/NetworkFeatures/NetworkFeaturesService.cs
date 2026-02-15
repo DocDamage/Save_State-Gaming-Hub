@@ -1,9 +1,9 @@
 using SaveState.Application.Mugen.Models.NetworkFeatures;
-using SaveState.Application.Mugen.Services.NetworkFeatures.Engines;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Services;
 using Microsoft.Extensions.Logging;
+using SaveState.Application.Mugen.Services.NetworkFeatures.Engines;
 
 // Use Core types for the interface implementation
 using CoreMatchmakingRequest = SaveState.Core.Mugen.Services.MatchmakingRequest;
@@ -139,20 +139,27 @@ public class NetworkFeaturesService : INetworkFeaturesService
 
             var hostName = await GetPlayerNameAsync(request.HostId, ct);
             
-            var appSettings = new Models.NetworkFeatures.LobbySettings(
-                request.Settings.MaxPlayers,
-                request.Settings.IsPrivate,
-                request.Settings.GameMode,
-                request.Settings.Rules,
-                request.Settings.AllowSpectators,
-                request.Settings.TimeLimitMinutes);
+            var configuration = new Models.NetworkFeatures.LobbyConfiguration(
+                Name: request.LobbyName,
+                MaxPlayers: request.Settings.MaxPlayers,
+                GameMode: request.Settings.GameMode,
+                Region: "US-East", // Default region
+                IsPrivate: request.Settings.IsPrivate,
+                Password: request.Password,
+                AllowSpectators: request.Settings.AllowSpectators);
             
-            var appRequest = new Models.NetworkFeatures.LobbyCreationRequest(request.HostId, request.LobbyName, appSettings, request.Password);
-            var lobby = _lobbyEngine.CreateLobby(appRequest, hostName);
+            var result = _lobbyEngine.CreateLobby(configuration, request.HostId);
             
-            _activeLobbies[lobby.LobbyId] = lobby;
+            if (result.IsFailure || result.Value is null)
+            {
+                return Result.Failure<CoreLobbyInfo>(result.Error ?? "Failed to create lobby");
+            }
+            
+            var lobby = result.Value;
+            var lobbyInfo = MapToLobbyInfo(lobby, hostName);
+            _activeLobbies[lobby.Id] = lobbyInfo;
 
-            return Result.Success<CoreLobbyInfo>(MapToCoreLobbyInfo(lobby));
+            return Result.Success<CoreLobbyInfo>(MapToCoreLobbyInfo(lobbyInfo));
         }
         catch (Exception ex)
         {
@@ -166,16 +173,29 @@ public class NetworkFeaturesService : INetworkFeaturesService
         await Task.CompletedTask;
         try
         {
-            var lobby = _activeLobbies.Values.FirstOrDefault(l => l.LobbyCode == lobbyCode);
-            var (canJoin, error) = _lobbyEngine.ValidateLobbyJoin(lobby);
+            var lobbyInfo = _activeLobbies.Values.FirstOrDefault(l => l.LobbyCode == lobbyCode);
+            if (lobbyInfo is null)
+            {
+                return Result.Failure<CoreLobbyInfo>("Lobby not found");
+            }
+
+            // For join validation, we would need playerId and password - using defaults for now
+            var playerId = "unknown";
+            var result = _lobbyEngine.ValidateLobbyJoin(lobbyInfo.LobbyId, playerId, null);
             
+            if (result.IsFailure)
+            {
+                return Result.Failure<CoreLobbyInfo>(result.Error ?? "Unable to validate lobby join");
+            }
+            
+            var (canJoin, error) = result.Value;
             if (!canJoin)
             {
                 return Result.Failure<CoreLobbyInfo>(error ?? "Unable to join lobby");
             }
 
             _logger.LogInformation("Player joined lobby {LobbyCode}", lobbyCode);
-            return Result.Success<CoreLobbyInfo>(MapToCoreLobbyInfo(lobby!));
+            return Result.Success<CoreLobbyInfo>(MapToCoreLobbyInfo(lobbyInfo));
         }
         catch (Exception ex)
         {
@@ -189,9 +209,25 @@ public class NetworkFeaturesService : INetworkFeaturesService
         await Task.CompletedTask;
         try
         {
-            var appFilter = new Models.NetworkFeatures.LobbyFilter(filter.GameMode, filter.PrivateOnly, filter.MinPlayers, filter.MaxPlayers, filter.Region);
-            var lobbies = _lobbyEngine.FilterLobbies(_activeLobbies.Values, appFilter).ToList();
-            return Result.Success<IReadOnlyList<CoreLobbyInfo>>(lobbies.Select(MapToCoreLobbyInfo).ToList());
+            var appFilter = new Models.NetworkFeatures.LobbyFilter(
+                filter.GameMode, 
+                filter.PrivateOnly, 
+                filter.MinPlayers, 
+                filter.MaxPlayers, 
+                filter.Region);
+            var lobbies = _lobbyEngine.FilterLobbies(appFilter);
+            
+            // Map engine Lobby objects to LobbyInfo and then to CoreLobbyInfo
+            var lobbyInfos = lobbies.Select(l => 
+            {
+                if (_activeLobbies.TryGetValue(l.Id, out var existingInfo))
+                {
+                    return existingInfo;
+                }
+                return MapToLobbyInfo(l, l.HostName);
+            }).ToList();
+            
+            return Result.Success<IReadOnlyList<CoreLobbyInfo>>(lobbyInfos.Select(MapToCoreLobbyInfo).ToList());
         }
         catch (Exception ex)
         {
@@ -211,15 +247,30 @@ public class NetworkFeaturesService : INetworkFeaturesService
         {
             _logger.LogInformation("Starting spectator session for match {MatchId}", matchId);
 
-            var matchExists = await ValidateMatchExistsAsync(matchId, ct);
-            var (canSpectate, error) = _spectatorEngine.ValidateSpectateRequest(matchId, matchExists, true);
+            // For spectator validation, we would need the actual viewerId - using placeholder for now
+            var viewerId = $"spectator_{Guid.NewGuid():N}";
             
+            var validationResult = _spectatorEngine.ValidateSpectateRequest(matchId, viewerId);
+            
+            if (validationResult.IsFailure)
+            {
+                return Result.Failure<CoreSpectatorSession>(validationResult.Error ?? "Unable to validate spectate request");
+            }
+            
+            var (canSpectate, error) = validationResult.Value;
             if (!canSpectate)
             {
                 return Result.Failure<CoreSpectatorSession>(error ?? "Unable to start spectating");
             }
 
-            var spectatorSession = _spectatorEngine.CreateSpectatorSession(matchId);
+            var result = _spectatorEngine.CreateSpectatorSession(matchId, viewerId);
+            
+            if (result.IsFailure || result.Value is null)
+            {
+                return Result.Failure<CoreSpectatorSession>(result.Error ?? "Failed to create spectator session");
+            }
+
+            var spectatorSession = result.Value;
             _spectatorSessions[spectatorSession.SessionId] = spectatorSession;
 
             return Result.Success<CoreSpectatorSession>(MapToCoreSpectatorSession(spectatorSession));
@@ -412,24 +463,26 @@ public class NetworkFeaturesService : INetworkFeaturesService
 
     private async Task ProcessMatchmakingAsync(MatchmakingSession session, CancellationToken ct)
     {
-        await Task.CompletedTask;
         try
         {
-            var startTime = DateTime.UtcNow;
+            var criteria = new MatchmakingCriteria(
+                CharacterName: session.CharacterName,
+                Mode: session.Mode,
+                Region: session.Preferences?.Region ?? "US-East",
+                MinRating: session.Preferences?.MinRating,
+                MaxRating: session.Preferences?.MaxRating,
+                PreferredCharacters: session.Preferences?.PreferredCharacters,
+                AvoidedCharacters: session.Preferences?.AvoidedCharacters,
+                AllowCrossplay: session.Preferences?.AllowCrossplay ?? true);
 
-            while (!ct.IsCancellationRequested && DateTime.UtcNow - startTime < session.Timeout)
+            var result = await _matchmakingEngine.FindOpponentAsync(session.PlayerId, criteria, ct);
+            
+            if (result.IsSuccess && result.Value is not null && result.Value.MatchFound)
             {
-                var opponent = await _matchmakingEngine.FindOpponentAsync(session, ct);
-                if (opponent != null)
-                {
-                    session.MatchFound = true;
-                    session.OpponentId = opponent.PlayerId;
-                    session.OpponentName = opponent.PlayerName;
-                    session.MatchId = Guid.NewGuid().ToString();
-                    break;
-                }
-
-                await Task.Delay(1000, ct);
+                session.MatchFound = true;
+                session.OpponentId = result.Value.OpponentId;
+                session.OpponentName = result.Value.OpponentName;
+                session.MatchId = result.Value.MatchId ?? Guid.NewGuid().ToString();
             }
         }
         catch (Exception ex)
@@ -609,6 +662,25 @@ public class NetworkFeaturesService : INetworkFeaturesService
     #endregion
 
     #region Mapping Methods
+
+    private Models.NetworkFeatures.LobbyInfo MapToLobbyInfo(Models.NetworkFeatures.Lobby lobby, string hostName)
+    {
+        return new Models.NetworkFeatures.LobbyInfo(
+            lobby.Id,
+            lobby.Code,
+            hostName,
+            lobby.Name,
+            new Models.NetworkFeatures.LobbySettings(
+                lobby.MaxPlayers,
+                lobby.IsPrivate,
+                lobby.GameMode,
+                string.Empty, // Rules - not in Lobby class
+                lobby.AllowSpectators,
+                0), // TimeLimitMinutes - not in Lobby class
+            lobby.Players.ToList(),
+            lobby.Status
+        );
+    }
 
     private CoreLobbyInfo MapToCoreLobbyInfo(Models.NetworkFeatures.LobbyInfo lobby)
     {

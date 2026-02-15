@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Mugen.Models.CrossPhase;
-using SaveState.Application.Mugen.Services.CrossPhase.Engines;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
+using SaveState.Application.Mugen.Services.CrossPhase.Engines;
 
 namespace SaveState.Application.Mugen.Services.CrossPhase;
 
@@ -65,12 +65,13 @@ public class CrossPhaseIntegrationService : ICrossPhaseIntegrationService
             var integrationState = GetOrCreateIntegrationState(sessionId);
 
             // Analyze interaction effects across all mechanics
-            var effects = await _integrationEngine.AnalyzeInteractionEffectsAsync(
-                primaryMechanic, interaction, integrationState, ct);
+            var analyzedInteraction = await _integrationEngine.AnalyzeInteractionEffectsAsync(
+                primaryMechanic, primaryMechanic, interaction, ct);
 
             // Apply cascading effects to dependent mechanics
+            var affectedMechanics = integrationState.ActiveMechanics.ToList();
             var appliedEffects = await _integrationEngine.ApplyCascadingEffectsAsync(
-                effects, sessionId, _activeEffects, _serviceProvider, ct);
+                analyzedInteraction, affectedMechanics, ct);
 
             // Update integration state
             integrationState.LastInteraction = interaction;
@@ -83,8 +84,10 @@ public class CrossPhaseIntegrationService : ICrossPhaseIntegrationService
                 PrimaryMechanic = primaryMechanic,
                 Interaction = interaction,
                 EffectsApplied = appliedEffects.Count,
-                CrossPhaseSynergies = effects.Count(e => e.IsCrossPhase),
-                PerformanceImpact = _optimizationEngine.CalculatePerformanceImpact(effects),
+                CrossPhaseSynergies = appliedEffects.Count(e => e.IsCrossPhase),
+                PerformanceImpact = _optimizationEngine.CalculatePerformanceImpact(
+                    new List<MechanicInteraction> { analyzedInteraction },
+                    new UnifiedPerformanceMetrics()),
                 IntegrationTimestamp = DateTime.UtcNow
             };
 
@@ -107,8 +110,9 @@ public class CrossPhaseIntegrationService : ICrossPhaseIntegrationService
         string context,
         CancellationToken ct = default)
     {
-        return await _synergyEngine.CalculateMechanicSynergyAsync(
-            mechanic1, mechanic2, context, _cache, ct);
+        var synergy = await _synergyEngine.CalculateMechanicSynergyAsync(
+            mechanic1, mechanic2, context, ct);
+        return Result.Success(synergy);
     }
 
     /// <inheritdoc />
@@ -137,7 +141,9 @@ public class CrossPhaseIntegrationService : ICrossPhaseIntegrationService
                 CombatState = combatState,
                 IntegrationState = GetOrCreateIntegrationState(sessionId),
                 ActiveSynergies = _activeEffects.Values.Count(e => e.IsActive),
-                PerformanceMetrics = _optimizationEngine.CalculateUnifiedPerformanceMetrics(),
+                PerformanceMetrics = _optimizationEngine.CalculateUnifiedPerformanceMetrics(
+                    GetOrCreateIntegrationState(sessionId).ActiveMechanics.ToList(),
+                    new Dictionary<string, float>()),
                 RetrievedAt = DateTime.UtcNow
             };
 
@@ -157,7 +163,13 @@ public class CrossPhaseIntegrationService : ICrossPhaseIntegrationService
         CancellationToken ct = default)
     {
         var integrationState = GetOrCreateIntegrationState(sessionId);
-        return await _optimizationEngine.OptimizeIntegrationAsync(sessionId, integrationState, ct);
+        var unifiedState = new UnifiedGameState
+        {
+            SessionId = sessionId,
+            IntegrationState = integrationState,
+            PerformanceMetrics = new UnifiedPerformanceMetrics()
+        };
+        return Result.Success(await _optimizationEngine.OptimizeIntegrationAsync(sessionId, unifiedState, ct));
     }
 
     /// <inheritdoc />
@@ -166,7 +178,7 @@ public class CrossPhaseIntegrationService : ICrossPhaseIntegrationService
         IReadOnlyList<MechanicConflict> conflicts,
         CancellationToken ct = default)
     {
-        return await _conflictResolutionEngine.ResolveMechanicConflictsAsync(sessionId, conflicts, ct);
+        return Result.Success(await _conflictResolutionEngine.ResolveMechanicConflictsAsync(sessionId, conflicts, ct));
     }
 
     #region Private Methods

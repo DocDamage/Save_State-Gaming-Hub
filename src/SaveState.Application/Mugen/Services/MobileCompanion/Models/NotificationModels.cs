@@ -26,6 +26,20 @@ public class MobileCompanionServiceMobileNotification
     public DateTime Timestamp { get; set; } = default!;
     public string? ActionUrl { get; set; } = default!;
     public DateTime? ExpiresAt { get; set; } = default!;
+
+    /// <summary>
+    /// When the notification was created.
+    /// </summary>
+    public DateTime CreatedAt
+    {
+        get => Timestamp;
+        set => Timestamp = value;
+    }
+
+    /// <summary>
+    /// Whether the notification has been read.
+    /// </summary>
+    public bool IsRead { get; set; }
 }
 
 /// <summary>

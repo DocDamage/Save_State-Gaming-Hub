@@ -65,6 +65,32 @@ public record LobbyInfo(
     LobbyStatus Status);
 
 /// <summary>
+/// Represents a game lobby.
+/// </summary>
+public class Lobby
+{
+    public string Id { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string HostPlayerId { get; set; } = string.Empty;
+    public string HostName { get; set; } = string.Empty;
+    public int MaxPlayers { get; set; }
+    public string GameMode { get; set; } = string.Empty;
+    public string Region { get; set; } = string.Empty;
+    public bool IsPrivate { get; set; }
+    public string? PasswordHash { get; set; }
+    public bool AllowSpectators { get; set; }
+    public LobbyStatus Status { get; set; }
+    public List<LobbyPlayer> Players { get; set; } = new();
+    public DateTime CreatedAt { get; set; }
+    public Dictionary<string, string> CustomSettings { get; set; } = new();
+
+    public int CurrentPlayerCount => Players.Count;
+    public bool IsFull => Players.Count >= MaxPlayers;
+    public bool HasPassword => !string.IsNullOrEmpty(PasswordHash);
+}
+
+/// <summary>
 /// Filter for lobby search.
 /// </summary>
 public record LobbyFilter(
@@ -72,7 +98,22 @@ public record LobbyFilter(
     bool? PrivateOnly,
     int? MinPlayers,
     int? MaxPlayers,
-    string? Region);
+    string? Region,
+    bool? HideFull = null,
+    bool? HidePasswordProtected = null);
+
+/// <summary>
+/// Configuration for creating a lobby.
+/// </summary>
+public record LobbyConfiguration(
+    string Name,
+    int MaxPlayers,
+    string GameMode,
+    string Region,
+    bool IsPrivate,
+    string? Password,
+    bool AllowSpectators,
+    Dictionary<string, string>? CustomSettings = null);
 
 /// <summary>
 /// Network session information.

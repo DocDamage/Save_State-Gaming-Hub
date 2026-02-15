@@ -5,8 +5,10 @@ namespace SaveState.Application.Mugen.Services.BioFeedbackCombat;
 /// </summary>
 public enum MeditationTechnique
 {
-    BreathingFocus,
-    Mindfulness,
+    BreathFocus,
+    BodyScan,
     Visualization,
+    Mantra,
+    Mindfulness,
     Zen
 }

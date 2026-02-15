@@ -1,115 +1,52 @@
-// Type aliases for backward compatibility
-// These aliases allow existing code to use the old prefixed type names
-// while the new code uses the clean type names
+namespace SaveState.Application.Mugen.Services.BioFeedbackCombat;
 
-using Microsoft.Extensions.Logging;
-
-namespace SaveState.Application.Mugen.Services;
-
-// Models
-using SaveState.Application.Mugen.Services.BioFeedbackCombat;
-
-public class BioFeedbackCombatServiceBioProfile : BioProfile { }
-public class BioFeedbackCombatServiceBaselineMetrics : BaselineMetrics { }
-public class BioFeedbackCombatServiceBioCalibration : BioCalibration { }
-public class BioFeedbackCombatServiceBioSettings : BioSettings { }
-public class BioFeedbackCombatServiceBioCombatModifiers : BioCombatModifiers { }
-public class BioFeedbackCombatServiceBioFeedbackCombatSession : BioFeedbackCombatSession { }
-public class BioFeedbackCombatServiceBioDataStream : BioDataStream { }
-public class BioFeedbackCombatServiceBioDataPoint : BioDataPoint { }
-public class BioFeedbackCombatServiceCombatBioMetrics : CombatBioMetrics { }
-public class BioFeedbackCombatServicePhysiologicalState : PhysiologicalState { }
-public class BioFeedbackCombatServiceBioProfileRequest : BioProfileRequest { }
-public class BioFeedbackCombatServiceCombatSessionRequest : CombatSessionRequest { }
-public class BioFeedbackCombatServiceBioDataInput : BioDataInput { }
-public class BioFeedbackCombatServiceBioFeedback : BioFeedback { }
-public class BioFeedbackCombatServiceHeartRateFeedback : HeartRateFeedback { }
-public class BioFeedbackCombatServiceBreathingFeedback : BreathingFeedback { }
-public class BioFeedbackCombatServiceMuscleFeedback : MuscleFeedback { }
-public class BioFeedbackCombatServiceWeaponChargeRequest : WeaponChargeRequest { }
-public class BioFeedbackCombatServiceHeartRateWeapon : HeartRateWeapon { }
-public class BioFeedbackCombatServiceComboEnhancementRequest : ComboEnhancementRequest { }
-public class BioFeedbackCombatServiceBreathingCombo : BreathingCombo { }
-public class BioFeedbackCombatServiceDefenseRequest : DefenseRequest { }
-public class BioFeedbackCombatServiceMusclePoweredDefense : MusclePoweredDefense { }
-public class BioFeedbackCombatServiceBurstTrigger : BurstTrigger { }
-public class BioFeedbackCombatServiceAdrenalineBurst : AdrenalineBurst { }
-public class BioFeedbackCombatServiceMeditationRequest : MeditationRequest { }
-public class BioFeedbackCombatServiceMeditationMode : MeditationMode { }
-public class BioFeedbackCombatServiceBioCombatReport : BioCombatReport { }
-public class BioFeedbackCombatServicePhysiologicalTrends : PhysiologicalTrends { }
-public class BioFeedbackCombatServiceBioEffectiveness : BioEffectiveness { }
-public class BioFeedbackCombatServicePeakMoment : PeakMoment { }
-public class BioFeedbackCombatServiceFatigueAnalysis : FatigueAnalysis { }
-public class BioFeedbackCombatServiceStressAnalysis : StressAnalysis { }
-
-// Engines
-public class BioFeedbackCombatServiceHeartRateEngine : HeartRateEngine
-{
-    public BioFeedbackCombatServiceHeartRateEngine(ILogger<HeartRateEngine> logger) : base(logger) { }
-}
-
-public class BioFeedbackCombatServiceBreathingEngine : BreathingEngine
-{
-    public BioFeedbackCombatServiceBreathingEngine(ILogger<BreathingEngine> logger) : base(logger) { }
-}
-
-public class BioFeedbackCombatServiceMuscleTensionEngine : MuscleTensionEngine
-{
-    public BioFeedbackCombatServiceMuscleTensionEngine(ILogger<MuscleTensionEngine> logger) : base(logger) { }
-}
-
-public class BioFeedbackCombatServiceAdrenalineEngine : AdrenalineEngine
-{
-    public BioFeedbackCombatServiceAdrenalineEngine(ILogger<AdrenalineEngine> logger) : base(logger) { }
-}
-
-public class BioFeedbackCombatServiceMeditationEngine : MeditationEngine
-{
-    public BioFeedbackCombatServiceMeditationEngine(ILogger<MeditationEngine> logger) : base(logger) { }
-}
-
-// Interface
-public interface BioFeedbackCombatServiceIBioFeedbackCombatService : IBioFeedbackCombatService { }
-
-// Enums
+// Legacy enum aliases for backward compatibility
 public enum BioFeedbackCombatServiceBioProfileStatus
 {
-    Active = BioProfileStatus.Active,
-    Calibrating = BioProfileStatus.Calibrating,
-    Inactive = BioProfileStatus.Inactive,
-    Error = BioProfileStatus.Error
+    Active = 0,
+    Calibrating = 1,
+    Inactive = 2,
+    Error = 3
 }
 
 public enum BioFeedbackCombatServiceCombatStatus
 {
-    Preparing = CombatStatus.Preparing,
-    Active = CombatStatus.Active,
-    Paused = CombatStatus.Paused,
-    Completed = CombatStatus.Completed,
-    Failed = CombatStatus.Failed
-}
-
-public enum BioFeedbackCombatServiceBurstTriggerType
-{
-    Physiological = BurstTriggerType.Physiological,
-    Combat = BurstTriggerType.Combat,
-    Manual = BurstTriggerType.Manual,
-    Emergency = BurstTriggerType.Emergency
+    Preparing = 0,
+    Active = 1,
+    Paused = 2,
+    Completed = 3,
+    Failed = 4
 }
 
 public enum BioFeedbackCombatServiceMeditationTechnique
 {
-    BreathingFocus = MeditationTechnique.BreathingFocus,
-    Mindfulness = MeditationTechnique.Mindfulness,
-    Visualization = MeditationTechnique.Visualization,
-    Zen = MeditationTechnique.Zen
+    BreathingFocus = 0,
+    BodyScan = 1,
+    Visualization = 2,
+    Mantra = 3,
+    Mindfulness = 4,
+    Zen = 5
+}
+
+public enum BioFeedbackCombatServiceBurstTriggerType
+{
+    Physiological = 0,
+    Combat = 1,
+    Manual = 2,
+    Emergency = 3
 }
 
 public enum BioFeedbackCombatServicePeakType
 {
-    AdrenalineBurst = PeakType.AdrenalineBurst,
-    PerfectCombo = PeakType.PerfectCombo,
-    MeditationPeak = PeakType.MeditationPeak,
-    HeartRateSpike = PeakType.HeartRateSpike
+    AdrenalineBurst = 0,
+    PerfectCombo = 1,
+    MeditationPeak = 2,
+    HeartRateSpike = 3
+}
+
+public enum BioFeedbackCombatServiceTrendDirection
+{
+    Increasing = 0,
+    Decreasing = 1,
+    Stable = 2
 }

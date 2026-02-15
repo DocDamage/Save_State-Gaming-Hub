@@ -28,6 +28,20 @@ public class TimelineBranchRequest
 }
 
 /// <summary>
+/// Timeline fork request (alias for TimelineBranchRequest).
+/// </summary>
+public class TimelineForkRequest : TimelineBranchRequest
+{
+}
+
+/// <summary>
+/// Replay options (alias for ReplayRequest).
+/// </summary>
+public class ReplayOptions : ReplayRequest
+{
+}
+
+/// <summary>
 /// Timeline replay data.
 /// </summary>
 public class TimelineReplay

@@ -1,6 +1,13 @@
 namespace SaveState.Application.Mugen.Services.WebPortal;
 
 /// <summary>
+/// Alias for social activity (for compatibility).
+/// </summary>
+public class WebPortalServiceSocialActivity : WebPortalServiceWebSocialActivity
+{
+}
+
+/// <summary>
 /// Social feed data.
 /// </summary>
 public class WebPortalServiceSocialFeed

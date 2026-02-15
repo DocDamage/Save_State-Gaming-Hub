@@ -8,4 +8,6 @@ public class ReportRecommendation
     public string Type { get; set; } = default!;
     public string Description { get; set; } = default!;
     public RecommendationPriority Priority { get; set; } = default!;
+    public string Category { get; set; } = default!;
+    public float ExpectedImpact { get; set; }
 }

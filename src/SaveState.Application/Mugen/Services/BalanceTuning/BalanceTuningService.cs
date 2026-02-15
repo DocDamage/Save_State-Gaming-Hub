@@ -2,6 +2,7 @@ using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Mugen.Models.BalanceTuning;
+using SaveState.Application.Mugen.Services.BalanceTuning.Engines;
 
 namespace SaveState.Application.Mugen.Services.BalanceTuning;
 
@@ -41,8 +42,8 @@ public class BalanceTuningService : IBalanceTuningService
         _cache = cache;
         _serviceProvider = serviceProvider;
 
-        _eloCalculator = new EloCalculator();
-        _matchmakingBalance = new MatchmakingBalance();
+        _eloCalculator = new EloCalculator(loggerFactory.CreateLogger<EloCalculator>());
+        _matchmakingBalance = new MatchmakingBalance(loggerFactory.CreateLogger<MatchmakingBalance>());
         _statisticalAnalyzer = new StatisticalAnalyzer(loggerFactory.CreateLogger<StatisticalAnalyzer>());
         _analysisEngine = new BalanceAnalysisEngine(loggerFactory.CreateLogger<BalanceAnalysisEngine>());
         _adjustmentEngine = new AdjustmentEngine(loggerFactory.CreateLogger<AdjustmentEngine>());

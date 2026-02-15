@@ -75,7 +75,7 @@ public class EducationalContentService : IEducationalContentService
         await Task.CompletedTask;
         try
         {
-            var results = _contentEngine.QueryTutorials(query);
+            var results = await _contentEngine.QueryTutorialsAsync(query, ct);
             return Result.Success<IReadOnlyList<Tutorial>>(results);
         }
         catch (Exception ex)
@@ -90,7 +90,7 @@ public class EducationalContentService : IEducationalContentService
         await Task.CompletedTask;
         try
         {
-            var tutorial = _contentEngine.GetTutorial(tutorialId);
+            var tutorial = await _contentEngine.GetTutorialAsync(tutorialId, ct);
             return tutorial is null
                 ? Result.Failure<Tutorial>("Tutorial not found")
                 : Result.Success(tutorial);
@@ -261,7 +261,7 @@ public class EducationalContentService : IEducationalContentService
         await Task.CompletedTask;
         try
         {
-            var results = _contentEngine.QueryStrategyGuides(query);
+            var results = await _contentEngine.QueryStrategyGuides(query, ct);
             return Result.Success<IReadOnlyList<StrategyGuide>>(results);
         }
         catch (Exception ex)
@@ -276,7 +276,7 @@ public class EducationalContentService : IEducationalContentService
         await Task.CompletedTask;
         try
         {
-            var guide = _contentEngine.GetStrategyGuide(guideId);
+            var guide = await _contentEngine.GetStrategyGuide(guideId, ct);
             return guide is null
                 ? Result.Failure<StrategyGuide>("Strategy guide not found")
                 : Result.Success(guide);
@@ -293,7 +293,7 @@ public class EducationalContentService : IEducationalContentService
         await Task.CompletedTask;
         try
         {
-            var guide = _contentEngine.GetMechanicsGuide(topic);
+            var guide = await _contentEngine.GetMechanicsGuide(topic, ct);
             return guide is null
                 ? Result.Failure<MechanicsGuide>("Mechanics guide not found")
                 : Result.Success(guide);
@@ -347,7 +347,8 @@ public class EducationalContentService : IEducationalContentService
     public async Task<Result<decimal>> CalculateLearningProgressAsync(string userId, string category, CancellationToken ct = default)
     {
         await Task.CompletedTask;
-        return Result.Success(_progressEngine.CalculateCategoryProgress(userId, category));
+        var progress = await _progressEngine.CalculateCategoryProgress(userId, category);
+        return Result.Success(progress);
     }
 
     #endregion
@@ -358,19 +359,36 @@ public class EducationalContentService : IEducationalContentService
     {
         try
         {
-            var session = await _assessmentEngine.CreatePracticeSessionAsync(request, ct);
+            var session = await _assessmentEngine.CreatePracticeSessionAsync(request.UserId, ct);
             return Result.Success(session);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating practice session for {Topic}", request.Topic);
+            _logger.LogError(ex, "Error creating practice session for {UserId}", request.UserId);
             return Result.Failure<PracticeSession>($"Practice session creation failed: {ex.Message}");
         }
     }
 
     public async Task<IReadOnlyList<string>> AnalyzeMatchAsync(string matchId, string playerId, CancellationToken ct = default)
     {
-        return await _assessmentEngine.AnalyzeMatchAsync(matchId, playerId, ct);
+        // Create match data from the parameters
+        var matchData = new MatchData
+        {
+            MatchId = matchId,
+            UserId = playerId,
+            IsWin = false,
+            RoundsWon = 0,
+            RoundsLost = 0,
+            CombosExecuted = new List<ComboData>(),
+            CombosTaken = new List<ComboData>(),
+            BlocksSuccessful = 0,
+            BlocksMissed = 0,
+            SpecialMovesUsed = 0,
+            MatchDuration = TimeSpan.FromMinutes(3)
+        };
+        
+        var analysis = await _assessmentEngine.AnalyzeMatchAsync(matchData, ct);
+        return analysis.Suggestions.Select(s => s.Suggestion).ToList();
     }
 
     #endregion
@@ -437,15 +455,25 @@ public class EducationalContentService : IEducationalContentService
         {
             _logger.LogInformation("Generating content analytics for period {Period}", period);
 
+            var popularCategories = _learningPathEngine.GetPopularCategories(10);
+            var categoryDict = popularCategories
+                .Select((cat, index) => new { cat, index })
+                .ToDictionary(x => x.cat, x => x.index + 1);
+            
+            var completionRates = _learningPathEngine.GetCompletionRates(10);
+            var ratesDict = completionRates
+                .Select((rate, index) => new { rate, index })
+                .ToDictionary(x => $"Path{x.index + 1}", x => (double)x.rate);
+            
             var analytics = new ContentAnalytics
             {
                 Period = period,
-                TotalTutorials = _contentEngine.TutorialCount,
-                TotalStrategyGuides = _contentEngine.StrategyGuideCount,
-                TotalMechanicsGuides = _contentEngine.MechanicsGuideCount,
-                TotalLearningPaths = _learningPathEngine.LearningPathCount,
-                PopularCategories = _contentEngine.GetPopularCategories(period),
-                CompletionRates = _contentEngine.GetCompletionRates(period),
+                TotalTutorials = _contentEngine.TutorialCount(),
+                TotalStrategyGuides = _contentEngine.StrategyGuideCount(),
+                TotalMechanicsGuides = _contentEngine.MechanicsGuideCount(),
+                TotalLearningPaths = _learningPathEngine.LearningPathCount(),
+                PopularCategories = categoryDict,
+                CompletionRates = ratesDict,
                 UserEngagement = _recommendationEngine.GetEngagementMetrics(period),
                 ContentQuality = _recommendationEngine.GetContentQualityMetrics(period),
                 GeneratedAt = DateTime.UtcNow

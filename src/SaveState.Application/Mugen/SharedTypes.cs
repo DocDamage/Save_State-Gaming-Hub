@@ -72,6 +72,32 @@ public record Vector3(double X, double Y, double Z)
     public static Vector3 operator *(double s, Vector3 v) => v * s;
     public static Vector3 operator +(Vector3 a, Vector3 b) => new Vector3(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
     public static Vector3 operator -(Vector3 a, Vector3 b) => new Vector3(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+
+    /// <summary>
+    /// Calculates the length (magnitude) of the vector.
+    /// </summary>
+    public double Length() => Math.Sqrt(X * X + Y * Y + Z * Z);
+
+    /// <summary>
+    /// Returns a normalized copy of this vector.
+    /// </summary>
+    public Vector3 Normalize()
+    {
+        var length = Length();
+        if (length == 0)
+            return new Vector3(0, 0, 0);
+        return new Vector3(X / length, Y / length, Z / length);
+    }
+
+    /// <summary>
+    /// Implicit conversion from System.Numerics.Vector3.
+    /// </summary>
+    public static implicit operator Vector3(System.Numerics.Vector3 v) => new Vector3(v.X, v.Y, v.Z);
+
+    /// <summary>
+    /// Implicit conversion to System.Numerics.Vector3.
+    /// </summary>
+    public static implicit operator System.Numerics.Vector3(Vector3 v) => new System.Numerics.Vector3((float)v.X, (float)v.Y, (float)v.Z);
 }
 // Emotional resonance types
 public enum EmotionalTrigger

@@ -1,6 +1,6 @@
-using SaveState.Application.Mugen.Services.MobileCompanion.Engines;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
+using SaveState.Application.Mugen.Services.MobileCompanion.Engines;
 using Microsoft.Extensions.Logging;
 
 namespace SaveState.Application.Mugen.Services;

@@ -43,7 +43,20 @@ public class NarrativeMemoryService : INarrativeMemoryService
         {
             _logger.LogInformation("Generating memory crystal for match {MatchId}", matchResult.MatchId);
 
-            var crystal = await _crystalEngine.GenerateCrystalAsync(matchResult, request, ct);
+            // Convert NarrativeMatchResult to MatchMemory
+            var matchMemory = new MatchMemory
+            {
+                MatchId = matchResult.MatchId,
+                RoundNumber = matchResult.RoundNumber,
+                Outcome = matchResult.Outcome,
+                DamageDealt = matchResult.DamageDealt,
+                DamageReceived = matchResult.DamageReceived,
+                Duration = matchResult.Duration,
+                CombosUsed = matchResult.CombosUsed,
+                EmotionalContext = matchResult.EmotionalContext
+            };
+
+            var crystal = await _crystalEngine.GenerateCrystalAsync(request.PlayerId, matchMemory, ct);
             _memoryCrystals[crystal.CrystalId] = crystal;
             await AddToCollectionAsync(request.PlayerId, crystal, ct);
 
@@ -68,7 +81,16 @@ public class NarrativeMemoryService : INarrativeMemoryService
 
             _logger.LogInformation("Creating alternate timeline from crystal {CrystalId}", crystalId);
 
-            var timeline = await _timelineEngine.CreateAlternateTimelineAsync(crystal, request, ct);
+            // Convert TimelineBranchRequest to TimelineForkRequest
+            var forkRequest = new TimelineForkRequest
+            {
+                PlayerId = request.PlayerId,
+                BranchPoint = request.BranchPoint,
+                DesiredOutcome = request.DesiredOutcome,
+                Probability = request.Probability
+            };
+
+            var timeline = await _timelineEngine.CreateAlternateTimelineAsync(request.PlayerId, forkRequest, ct);
             _alternateTimelines[timeline.TimelineId] = timeline;
 
             _logger.LogInformation("Alternate timeline created: {TimelineId}", timeline.TimelineId);
@@ -97,7 +119,15 @@ public class NarrativeMemoryService : INarrativeMemoryService
                 return Result.Failure<SynthesizedMove>("One or more memory crystals not found");
             }
 
-            var synthesizedMove = await _synthesisEngine.SynthesizeMoveAsync(crystals, request, ct);
+            // Convert CrystalSynthesisRequest to MoveSynthesisRequest
+            var moveRequest = new MoveSynthesisRequest
+            {
+                PlayerId = request.PlayerId,
+                CrystalIds = request.CrystalIds,
+                DesiredMoveType = request.DesiredMoveType
+            };
+
+            var synthesizedMove = await _synthesisEngine.SynthesizeMoveAsync(request.PlayerId, moveRequest, ct);
 
             _logger.LogInformation("Move synthesized: {MoveName} ({Power})", synthesizedMove.Name, synthesizedMove.Power);
             return Result.Success<SynthesizedMove>(synthesizedMove);
@@ -120,13 +150,13 @@ public class NarrativeMemoryService : INarrativeMemoryService
 
             _logger.LogInformation("Triggering butterfly effect from crystal {CrystalId}", crystalId);
 
-            var butterflyEffect = await _butterflyEngine.TriggerEffectAsync(crystal, request, ct);
-            await ApplyCascadingChangesAsync(butterflyEffect, ct);
+            var effectResult = await _butterflyEngine.TriggerEffectAsync(crystal.PlayerId, request, ct);
+            await ApplyCascadingChangesAsync(effectResult.Effect, ct);
 
             _logger.LogInformation("Butterfly effect triggered: {Magnitude:F2} magnitude affecting {CrystalCount} crystals",
-                butterflyEffect.Magnitude, butterflyEffect.AffectedCrystals.Count);
+                effectResult.Effect.Magnitude, effectResult.Effect.AffectedCrystals.Count);
 
-            return Result.Success<ButterflyEffect>(butterflyEffect);
+            return Result.Success<ButterflyEffect>(effectResult.Effect);
         }
         catch (Exception ex)
         {
@@ -162,7 +192,15 @@ public class NarrativeMemoryService : INarrativeMemoryService
 
             _logger.LogInformation("Replaying timeline {TimelineId}", timelineId);
 
-            var replay = await _timelineEngine.ReplayTimelineAsync(timeline, request, ct);
+            // Convert ReplayRequest to ReplayOptions
+            var replayOptions = new ReplayOptions
+            {
+                PlayerId = timeline.CreatorId,
+                IncludeCommentary = true,
+                PlaybackSpeed = 1.0f
+            };
+
+            var replay = await _timelineEngine.ReplayTimelineAsync(timelineId, replayOptions, ct);
 
             _logger.LogInformation("Timeline replay completed: {ReplayId}", replay.ReplayId);
             return Result.Success<TimelineReplay>(replay);
@@ -215,7 +253,14 @@ public class NarrativeMemoryService : INarrativeMemoryService
 
             _logger.LogInformation("Enhancing crystal {CrystalId} with {EnhancementType}", crystalId, request.EnhancementType);
 
-            var enhancedCrystal = await _crystalEngine.EnhanceCrystalAsync(crystal, request, ct);
+            // Convert CrystalEnhancementRequest to EnhancementRequest
+            var enhancementRequest = new EnhancementRequest
+            {
+                EnhancementType = request.EnhancementType,
+                EnhancementStrength = request.EnhancementStrength
+            };
+
+            var enhancedCrystal = await _crystalEngine.EnhanceCrystalAsync(crystalId, enhancementRequest, ct);
             _memoryCrystals[crystalId] = enhancedCrystal;
 
             _logger.LogInformation("Crystal enhanced: new rarity {Rarity}", enhancedCrystal.Rarity);

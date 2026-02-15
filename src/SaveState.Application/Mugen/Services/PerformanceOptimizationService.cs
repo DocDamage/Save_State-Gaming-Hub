@@ -2,6 +2,7 @@ using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
+using SaveState.Application.Mugen;
 using SaveState.Application.Mugen.Models.PerformanceOptimization;
 using SaveState.Application.Mugen.Services.PerformanceOptimization.Interfaces;
 using SaveState.Application.Mugen.Services.PerformanceOptimization.Engines;

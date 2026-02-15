@@ -3,6 +3,7 @@
 // while the new code uses the clean type names
 
 using Microsoft.Extensions.Logging;
+using SaveState.Application.Mugen.Services.BalanceTuning.Engines;
 
 namespace SaveState.Application.Mugen.Services;
 
@@ -49,8 +50,14 @@ public class BalanceTuningServiceMechanicUsageStats : MechanicUsageStats { }
 public class BalanceTuningServiceMatchData : MatchData { }
 
 // Engines
-public class BalanceTuningServiceEloCalculator : EloCalculator { }
-public class BalanceTuningServiceMatchmakingBalance : MatchmakingBalance { }
+public class BalanceTuningServiceEloCalculator : EloCalculator
+{
+    public BalanceTuningServiceEloCalculator(ILogger<EloCalculator> logger) : base(logger) { }
+}
+public class BalanceTuningServiceMatchmakingBalance : MatchmakingBalance
+{
+    public BalanceTuningServiceMatchmakingBalance(ILogger<MatchmakingBalance> logger) : base(logger) { }
+}
 
 // Interface
 public interface BalanceTuningServiceIBalanceTuningService : IBalanceTuningService { }
