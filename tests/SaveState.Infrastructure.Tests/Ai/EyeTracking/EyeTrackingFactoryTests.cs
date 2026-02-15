@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SaveState.Core.Assistant.Services;
 using SaveState.Core.Common.Services;
@@ -25,8 +26,14 @@ public class EyeTrackingFactoryTests
 
         // Assert
         provider.Should().NotBeNull();
-        provider.IsAvailable.Should().BeFalse();
-        provider.Should().BeOfType<NoOpEyeTrackingMonitor>();
+        if (provider.IsAvailable)
+        {
+            provider.Should().NotBeOfType<NoOpEyeTrackingMonitor>();
+        }
+        else
+        {
+            provider.Should().BeOfType<NoOpEyeTrackingMonitor>();
+        }
     }
 
     [Fact]

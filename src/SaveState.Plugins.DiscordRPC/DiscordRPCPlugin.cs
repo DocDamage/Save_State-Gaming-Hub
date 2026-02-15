@@ -61,7 +61,11 @@ public sealed class DiscordRPCPlugin : IPlugin
         {
             _client = new DiscordRpcClient(_settings.ApplicationId);
             _client.Initialize();
-            _context?.Logger.LogInformation("Discord RPC client initialized with App ID: {AppId}", _settings.ApplicationId);
+            var logger = _context?.Logger;
+            if (logger?.IsEnabled(LogLevel.Information) == true)
+            {
+                logger.LogInformation("Discord RPC client initialized with App ID: {AppId}", _settings.ApplicationId);
+            }
 
             // Set initial presence
             UpdatePresence("Browsing Library", "Choosing a game to play");
@@ -140,7 +144,11 @@ public sealed class DiscordRPCPlugin : IPlugin
             }
 
             _client.SetPresence(presence);
-            _context?.Logger.LogDebug("Updated Discord presence for: {Game}", _currentGameTitle);
+            var logger = _context?.Logger;
+            if (logger?.IsEnabled(LogLevel.Debug) == true)
+            {
+                logger.LogDebug("Updated Discord presence for: {Game}", _currentGameTitle);
+            }
         }
         catch (Exception ex)
         {

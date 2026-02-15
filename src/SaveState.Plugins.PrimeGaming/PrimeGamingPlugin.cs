@@ -60,7 +60,11 @@ public sealed class PrimeGamingPlugin : IPlugin, IGameProvider
             }
             catch (Exception ex)
             {
-                 _context?.Logger.LogWarning("Could not query Amazon Games DB: {Message}", ex.Message);
+                 var logger = _context?.Logger;
+                 if (logger?.IsEnabled(LogLevel.Warning) == true)
+                 {
+                     logger.LogWarning("Could not query Amazon Games DB: {Message}", ex.Message);
+                 }
             }
         }
         catch (Exception ex)

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.Plugins;
 
@@ -33,7 +34,12 @@ public sealed class ControllerRemapperPlugin : IPlugin
 
     private void ApplyProfile(string game)
     {
-        _context?.Logger.LogInformation("Applying controller profile for {Game}", game);
+        var logger = _context?.Logger;
+        if (logger?.IsEnabled(LogLevel.Information) == true)
+        {
+            logger.LogInformation("Applying controller profile for {Game}", game);
+        }
+
         // SDL_GameControllerAddMapping(...)
     }
 

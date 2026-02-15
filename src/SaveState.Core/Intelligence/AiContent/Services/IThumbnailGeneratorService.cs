@@ -238,11 +238,11 @@ public sealed record GenerationHistoryItem(
 /// </summary>
 public sealed record AiContentGenerationOptions
 {
-    public required string DefaultProvider { get; init; }
-    public string? OpenAiApiKey { get; init; }
-    public string? StableDiffusionEndpoint { get; init; }
-    public int MaxConcurrentGenerations { get; init; } = 3;
-    public TimeSpan GenerationTimeout { get; init; } = TimeSpan.FromMinutes(5);
-    public bool EnableCaching { get; init; } = true;
-    public TimeSpan CacheExpiration { get; init; } = TimeSpan.FromHours(24);
+    public string DefaultProvider { get; set; } = "OpenAI";
+    public string? OpenAiApiKey { get; set; }
+    public string? StableDiffusionEndpoint { get; set; }
+    public int MaxConcurrentGenerations { get; set; } = 3;
+    public TimeSpan GenerationTimeout { get; set; } = TimeSpan.FromMinutes(5);
+    public bool EnableCaching { get; set; } = true;
+    public TimeSpan CacheExpiration { get; set; } = TimeSpan.FromHours(24);
 }

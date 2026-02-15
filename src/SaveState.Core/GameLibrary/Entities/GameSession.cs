@@ -12,6 +12,7 @@ public class GameSession : EntityBase
     public Guid GameId { get; private set; }
     public Game Game { get; private set; } = null!;
     public DateTime StartedAt { get; private set; }
+    public DateTime StartTime => StartedAt;
     public DateTime? EndedAt { get; private set; }
     public SessionEndReason? EndReason { get; private set; }
     public string? Notes { get; private set; }

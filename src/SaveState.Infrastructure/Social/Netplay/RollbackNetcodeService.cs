@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
@@ -79,7 +80,8 @@ public sealed class RollbackNetcodeService : IRollbackNetcodeService
             var gameState = new byte[1024];
             _random.NextBytes(gameState);
 
-            var processingTime = (_timeProvider.GetTimestamp() - startTime) * 1000.0 / Stopwatch.Frequency;
+            var processingTime = (long)Math.Round(
+                (_timeProvider.GetTimestamp() - startTime) * 1000.0 / Stopwatch.Frequency);
 
             var update = new GameStateUpdate(
                 FrameNumber: _currentFrame,
@@ -208,7 +210,8 @@ public sealed class RollbackNetcodeService : IRollbackNetcodeService
                 return Task.FromResult(Result<RollbackResult>.Failure(loadResult.Error!, loadResult.ErrorType));
             }
 
-            var rollbackTime = (_timeProvider.GetTimestamp() - startTime) * 1000.0 / Stopwatch.Frequency;
+            var rollbackTime = (long)Math.Round(
+                (_timeProvider.GetTimestamp() - startTime) * 1000.0 / Stopwatch.Frequency);
 
             var result = new RollbackResult(
                 Success: true,

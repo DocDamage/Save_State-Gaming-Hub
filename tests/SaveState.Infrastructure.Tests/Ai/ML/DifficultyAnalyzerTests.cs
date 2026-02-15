@@ -4,26 +4,40 @@ using SaveState.Core.AI.Assistant;
 using SaveState.Core.Common;
 using SaveState.Infrastructure.AI.ML;
 using SaveState.Tests.Infrastructure;
+using SuggestedDifficulty = SaveState.Core.Assistant.Services.SuggestedDifficulty;
 
 namespace SaveState.Infrastructure.Tests.AI.ML;
 
 public class DifficultyAnalyzerTests : IDisposable
 {
     private readonly TestTimeProvider _timeProvider;
+    private readonly string _tempModelPath;
     private readonly DifficultyAnalyzer _sut;
 
     public DifficultyAnalyzerTests()
     {
         _timeProvider = new TestTimeProvider(new DateTime(2026, 2, 13, 12, 0, 0, DateTimeKind.Utc));
+        _tempModelPath = Path.Combine(Path.GetTempPath(), $"difficulty_analyzer_{Guid.NewGuid()}.json");
         _sut = new DifficultyAnalyzer(
             NullLogger<DifficultyAnalyzer>.Instance,
             _timeProvider,
-            modelPath: null); // Use in-memory model
+            modelPath: _tempModelPath); // Isolated model path per test run
     }
 
     public void Dispose()
     {
         _sut.Dispose();
+        try
+        {
+            if (File.Exists(_tempModelPath))
+            {
+                File.Delete(_tempModelPath);
+            }
+        }
+        catch
+        {
+            // Best-effort cleanup
+        }
     }
 
     [Fact]

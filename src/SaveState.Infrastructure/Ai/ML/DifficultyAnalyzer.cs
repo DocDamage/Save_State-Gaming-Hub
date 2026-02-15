@@ -70,6 +70,16 @@ public sealed class DifficultyAnalyzer : IDifficultyAnalyzer, IDisposable
 
             // Fall back to heuristic analysis
             var heuristicResult = HeuristicAnalysis(metrics);
+            lock (_feedbackLock)
+            {
+                _feedbackRecords[metrics.SessionId] = new SuggestionFeedbackRecord
+                {
+                    SessionId = metrics.SessionId,
+                    SuggestedDifficulty = heuristicResult.SuggestedDifficulty,
+                    Confidence = heuristicResult.Confidence,
+                    SuggestionTimestampUtc = _timeProvider.UtcNow
+                };
+            }
             return Task.FromResult(Result.Success(heuristicResult));
         }
         catch (Exception ex)

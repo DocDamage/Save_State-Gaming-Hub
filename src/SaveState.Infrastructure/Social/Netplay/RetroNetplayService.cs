@@ -46,11 +46,18 @@ public sealed class RetroNetplayService : IRetroNetplayService
 
     public async Task<Result<MatchmakingTicket>> JoinQueueAsync(RomFile romFile, MatchmakingPreferences preferences, CancellationToken ct = default)
     {
+        if (romFile is null)
+        {
+            return Result<MatchmakingTicket>.Failure("ROM file is required", ErrorType.Validation);
+        }
+
+        if (preferences is null)
+        {
+            return Result<MatchmakingTicket>.Failure("Matchmaking preferences are required", ErrorType.Validation);
+        }
+
         try
         {
-            Guard.Against.Null(romFile, nameof(romFile));
-            Guard.Against.Null(preferences, nameof(preferences));
-
             _logger.LogInformation("Joining matchmaking queue for ROM: {RomHash}, Region: {Region}",
                 romFile.Hash, preferences.Region);
 

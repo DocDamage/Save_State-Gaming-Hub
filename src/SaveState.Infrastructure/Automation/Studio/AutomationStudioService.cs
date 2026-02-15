@@ -405,7 +405,7 @@ public sealed class AutomationStudioService : IAutomationStudioService
                 issues.Add(new ValidationIssue(ValidationIssueType.Error, "Workflow name is required"));
 
             if (workflow.Actions.Count == 0)
-                issues.Add(new ValidationIssue(ValidationIssueType.Error, "Workflow must have at least one action"));
+                issues.Add(new ValidationIssue(ValidationIssueType.Warning, "Workflow has no actions configured"));
 
             foreach (var action in workflow.Actions)
             {
@@ -413,8 +413,9 @@ public sealed class AutomationStudioService : IAutomationStudioService
                     issues.Add(new ValidationIssue(ValidationIssueType.Error, "Action ID is required", action.Id));
             }
 
+            var hasErrors = issues.Any(i => i.Type == ValidationIssueType.Error);
             return Task.FromResult(Result<WorkflowValidationResult>.Success(
-                new WorkflowValidationResult(issues.Count == 0, issues)));
+                new WorkflowValidationResult(!hasErrors, issues)));
         }
         catch (Exception ex)
         {

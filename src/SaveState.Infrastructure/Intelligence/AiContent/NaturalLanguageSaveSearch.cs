@@ -44,7 +44,7 @@ public sealed class NaturalLanguageSaveSearch : INaturalLanguageSaveSearch
             {
                 results.Add(new SemanticSaveResult(
                     SaveStateId: saveId,
-                    GameId: context.GameId,
+                    GameId: context.GameId ?? Guid.Empty,
                     GameTitle: context.GameTitle ?? "Unknown",
                     Description: context.PlayerNotes,
                     RelevanceScore: relevanceScore,

@@ -8,7 +8,7 @@ namespace SaveState.Plugins.TwitterShare;
 public sealed class TwitterSharePlugin : IPlugin
 {
     private IPluginContext? _context;
-    private TwitterClient? _client;
+    private TwitterClient? _client = null;
 
     public string Id => "twitter-share";
     public string Name => "Twitter/X Share";

@@ -1,3 +1,4 @@
+using System.Reflection;
 using FluentAssertions;
 using Moq;
 using SaveState.Core.Common;
@@ -6,6 +7,9 @@ using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.Intelligence.GamingDna.Services;
 using SaveState.Infrastructure.Intelligence.GamingDna;
+
+using GenreEntity = SaveState.Core.GameLibrary.Entities.Genre;
+using RecommendationTimeOfDay = SaveState.Core.Intelligence.Recommendations.Services.TimeOfDay;
 
 namespace SaveState.Core.Tests.Intelligence.GamingDna;
 
@@ -77,20 +81,10 @@ public class GamingDnaAnalyzerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
+        var rpgGame = CreateGame("RPG Game", ["RPG"]);
         var sessions = new List<GameSession>
         {
-            new()
-            {
-                GameId = 1,
-                Game = new Game
-                {
-                    Id = 1,
-                    Title = "RPG Game",
-                    Genres = new List<Genre> { new() { Name = "RPG" } }
-                },
-                Duration = TimeSpan.FromHours(30),
-                StartTime = DateTime.UtcNow.AddDays(-1)
-            }
+            CreateSession(rpgGame, TimeSpan.FromHours(30), DateTime.UtcNow.AddDays(-1))
         };
 
         _sessionRepositoryMock
@@ -217,7 +211,7 @@ public class GamingDnaAnalyzerTests
             new List<WeightedGenre>(),
             new List<WeightedGenre>());
         var playStyle = new PlayStyleMetrics(
-            60, 90, TimeOfDay.Evening, DayOfWeek.Saturday,
+            60, 90, RecommendationTimeOfDay.Evening, DayOfWeek.Saturday,
             0.6f, 0.8f, 0.7f, DifficultyPreference.Hard);
         var engagement = new EngagementPatterns(
             0.7f, 0.3f, 0.4f, 0.2f, 0.5f, 0.8f, 0.6f, 0.4f);
@@ -258,41 +252,54 @@ public class GamingDnaAnalyzerTests
         viz.ArchetypeViz.Should().Be(archetypeViz);
     }
 
+    private static Game CreateGame(string title, IEnumerable<string> genres)
+    {
+        var game = Game.Create(title);
+
+        foreach (var genre in genres)
+        {
+            game.Genres.Add(new GenreEntity(genre));
+        }
+
+        return game;
+    }
+
+    private static GameSession CreateSession(Game game, TimeSpan duration, DateTime? startedAt = null)
+    {
+        var startTime = startedAt ?? DateTime.UtcNow - duration;
+        var session = GameSession.Create(game.Id);
+
+        SetPrivateProperty(session, nameof(GameSession.Game), game);
+        SetPrivateProperty(session, nameof(GameSession.StartedAt), startTime);
+        SetPrivateProperty(session, nameof(GameSession.EndedAt), startTime + duration);
+
+        return session;
+    }
+
+    private static void SetPrivateProperty<T>(object target, string propertyName, T value)
+    {
+        var property = target.GetType().GetProperty(
+            propertyName,
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+        if (property is null)
+        {
+            throw new InvalidOperationException(
+                $"Property '{propertyName}' was not found on type '{target.GetType().Name}'.");
+        }
+
+        property.SetValue(target, value);
+    }
+
     private List<GameSession> CreateMockSessions()
     {
+        var rpgGame = CreateGame("RPG Game", ["RPG", "Story"]);
+        var strategyGame = CreateGame("Strategy Game", ["Strategy"]);
+
         return new List<GameSession>
         {
-            new()
-            {
-                GameId = 1,
-                Game = new Game
-                {
-                    Id = 1,
-                    Title = "RPG Game",
-                    Genres = new List<Genre>
-                    {
-                        new() { Name = "RPG" },
-                        new() { Name = "Story" }
-                    }
-                },
-                Duration = TimeSpan.FromHours(40),
-                StartTime = DateTime.UtcNow.AddDays(-1)
-            },
-            new()
-            {
-                GameId = 2,
-                Game = new Game
-                {
-                    Id = 2,
-                    Title = "Strategy Game",
-                    Genres = new List<Genre>
-                    {
-                        new() { Name = "Strategy" }
-                    }
-                },
-                Duration = TimeSpan.FromHours(20),
-                StartTime = DateTime.UtcNow.AddDays(-2)
-            }
+            CreateSession(rpgGame, TimeSpan.FromHours(40), DateTime.UtcNow.AddDays(-1)),
+            CreateSession(strategyGame, TimeSpan.FromHours(20), DateTime.UtcNow.AddDays(-2))
         };
     }
 }

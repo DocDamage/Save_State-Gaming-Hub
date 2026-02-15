@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using SaveState.Core.AI.Assistant;
 using SaveState.Infrastructure.AI.ML;
 using SaveState.Tests.Infrastructure;
+using SuggestedDifficulty = SaveState.Core.Assistant.Services.SuggestedDifficulty;
 
 namespace SaveState.Infrastructure.Tests.AI.ML;
 

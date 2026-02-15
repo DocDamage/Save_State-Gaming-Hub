@@ -585,15 +585,23 @@ public class WellnessMonitor
     public async Task<WellnessStatus> GetStatusAsync()
     {
         // In production: Return real wellness data
-        return new WellnessStatus
-        {
-            OverallHealth = "Good",
-            Recommendations = new[]
+        var recommendations = _isMonitoring
+            ? new[]
             {
                 "Remember to blink regularly",
                 "Take a break in 30 minutes",
                 "Drink water soon"
             }
+            : new[]
+            {
+                "Wellness monitoring is currently disabled",
+                "Enable monitoring to receive personalized reminders"
+            };
+
+        return new WellnessStatus
+        {
+            OverallHealth = _isMonitoring ? "Good" : "Monitoring Disabled",
+            Recommendations = recommendations
         };
     }
 }

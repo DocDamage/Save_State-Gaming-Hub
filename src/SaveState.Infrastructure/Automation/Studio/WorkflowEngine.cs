@@ -105,17 +105,17 @@ public sealed class WorkflowEngine : IWorkflowEngine
                 executionContext = executionContext with { CurrentAction = action };
 
                 var actionResult = await ExecuteActionAsync(action, context, ct).ConfigureAwait(false);
-
-                var resultRecord = new ActionResult(
-                    ActionId: action.Id,
-                    Type: action.Type,
-                    Status: actionResult.IsSuccess ? ActionStatus.Completed : ActionStatus.Failed,
-                    Duration: TimeSpan.FromMilliseconds(100),
-                    Output: actionResult.IsSuccess ? actionResult.Value : null,
-                    ErrorMessage: actionResult.IsFailure ? actionResult.Error : null);
+                var completedAction = actionResult.IsSuccess && actionResult.Value is not null
+                    ? actionResult.Value
+                    : new ActionResult(
+                        ActionId: action.Id,
+                        Type: action.Type,
+                        Status: ActionStatus.Failed,
+                        Duration: TimeSpan.FromMilliseconds(100),
+                        ErrorMessage: actionResult.Error);
 
                 var completedActions = executionContext.CompletedActions.ToList();
-                completedActions.Add(resultRecord);
+                completedActions.Add(completedAction);
                 executionContext = executionContext with { CompletedActions = completedActions };
 
                 if (actionResult.IsFailure)

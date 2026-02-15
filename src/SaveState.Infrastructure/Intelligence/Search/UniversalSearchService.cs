@@ -228,14 +228,14 @@ public sealed class UniversalSearchService : IUniversalSearchService
                 var matchedTerms = GetMatchedTerms(queryTerms, game);
 
                 results.Add(new GameSearchResult(
-                    Id: game.Id.ToString(),
-                    Title: game.Title,
-                    Description: game.Description,
-                    RelevanceScore: relevanceScore,
-                    CoverImageUrl: null,
-                    Genres: game.Genres,
-                    MatchedTerms: matchedTerms,
-                    MatchReason: matchReason));
+                    game.Id.ToString(),
+                    game.Title,
+                    game.Description,
+                    relevanceScore,
+                    null,
+                    game.Genres,
+                    matchedTerms,
+                    matchReason));
             }
         }
 
@@ -262,15 +262,15 @@ public sealed class UniversalSearchService : IUniversalSearchService
             if (relevanceScore > 0.3f)
             {
                 results.Add(new ActionSearchResult(
-                    Id: action.Id,
-                    Title: action.Title,
-                    Description: action.Description,
-                    RelevanceScore: relevanceScore,
-                    ActionType: action.ActionType,
-                    Category: action.Category,
-                    Icon: action.Icon,
-                    Keywords: action.Keywords,
-                    Execute: null));
+                    action.Id,
+                    action.Title,
+                    action.Description,
+                    relevanceScore,
+                    action.ActionType,
+                    action.Category,
+                    action.Icon,
+                    action.Keywords,
+                    null));
             }
         }
 
@@ -300,17 +300,17 @@ public sealed class UniversalSearchService : IUniversalSearchService
                 var matchedTerms = GetContentMatchedTerms(queryTerms, content);
 
                 results.Add(new ContentSearchResult(
-                    Id: content.Id.ToString(),
-                    Title: content.Title,
-                    Content: content.Content,
-                    RelevanceScore: relevanceScore,
-                    ContentType: content.Type,
-                    SourceId: content.SourceId,
-                    SourceTitle: content.SourceType,
-                    CreatedAt: content.CreatedAt,
-                    Author: content.AuthorId,
-                    MatchedTerms: matchedTerms,
-                    Snippets: snippets));
+                    content.Id.ToString(),
+                    content.Title,
+                    content.Content,
+                    relevanceScore,
+                    content.Type,
+                    content.SourceId,
+                    content.SourceType,
+                    content.CreatedAt,
+                    content.AuthorId,
+                    matchedTerms,
+                    snippets));
             }
         }
 

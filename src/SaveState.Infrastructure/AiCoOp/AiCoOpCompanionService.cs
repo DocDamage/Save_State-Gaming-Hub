@@ -14,7 +14,6 @@ public sealed class AiCoOpCompanionService : IAiCoOpCompanionService
     private readonly ILogger<AiCoOpCompanionService> _logger;
     private CompanionPersonality? _activePersonality;
     private readonly Dictionary<string, PlayerBehaviorProfile> _behaviorProfiles = new();
-    private bool _initialized;
 
     public AiCoOpCompanionService(ILogger<AiCoOpCompanionService> logger)
     {
@@ -26,7 +25,6 @@ public sealed class AiCoOpCompanionService : IAiCoOpCompanionService
     {
         _logger.LogInformation("Initializing AI Co-Op companion for game {GameId} with personality {PersonalityName}", gameId, personality.Name);
         _activePersonality = personality;
-        _initialized = true;
         return Task.FromResult(Result.Success());
     }
 
@@ -177,7 +175,6 @@ public sealed class AiCoOpCompanionService : IAiCoOpCompanionService
     public Task<Result> ShutdownAsync(CancellationToken ct = default)
     {
         _logger.LogInformation("Shutting down AI Co-Op Companion Service");
-        _initialized = false;
         return Task.FromResult(Result.Success());
     }
 }

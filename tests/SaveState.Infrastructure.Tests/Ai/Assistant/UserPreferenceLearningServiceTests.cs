@@ -140,16 +140,16 @@ public class UserPreferenceLearningServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetLearningStatistics_WithData_ReturnsCorrectCounts()
+    public async Task GetLearningStatistics_WithData_ReturnsCorrectCounts()
     {
         // Arrange
-        _sut.RecordSuggestionFeedbackAsync(new SuggestionFeedback(
-            Guid.NewGuid(), SuggestionType.BreakReminder, true, null, _timeProvider.UtcNow)).Wait();
-        _sut.RecordSuggestionFeedbackAsync(new SuggestionFeedback(
-            Guid.NewGuid(), SuggestionType.BreakReminder, true, null, _timeProvider.UtcNow)).Wait();
-        _sut.RecordSuggestionFeedbackAsync(new SuggestionFeedback(
-            Guid.NewGuid(), SuggestionType.DifficultyAdjustment, false, null, _timeProvider.UtcNow)).Wait();
-        _sut.RecordUserActionAsync(Guid.NewGuid(), UserActionType.AcceptedSuggestion).Wait();
+        await _sut.RecordSuggestionFeedbackAsync(new SuggestionFeedback(
+            Guid.NewGuid(), SuggestionType.BreakReminder, true, null, _timeProvider.UtcNow));
+        await _sut.RecordSuggestionFeedbackAsync(new SuggestionFeedback(
+            Guid.NewGuid(), SuggestionType.BreakReminder, true, null, _timeProvider.UtcNow));
+        await _sut.RecordSuggestionFeedbackAsync(new SuggestionFeedback(
+            Guid.NewGuid(), SuggestionType.DifficultyAdjustment, false, null, _timeProvider.UtcNow));
+        await _sut.RecordUserActionAsync(Guid.NewGuid(), UserActionType.AcceptedSuggestion);
 
         // Act
         var stats = _sut.GetLearningStatistics();
@@ -162,24 +162,24 @@ public class UserPreferenceLearningServiceTests : IDisposable
     }
 
     [Fact]
-    public void ResetPreferences_ResetsToDefaults()
+    public async Task ResetPreferences_ResetsToDefaults()
     {
         // Arrange - Add some data and update
         for (int i = 0; i < 15; i++)
         {
-            _sut.RecordSuggestionFeedbackAsync(new SuggestionFeedback(
-                Guid.NewGuid(), SuggestionType.BreakReminder, true, null, _timeProvider.UtcNow)).Wait();
+            await _sut.RecordSuggestionFeedbackAsync(new SuggestionFeedback(
+                Guid.NewGuid(), SuggestionType.BreakReminder, true, null, _timeProvider.UtcNow));
         }
-        _sut.UpdatePreferencesAsync().Wait();
+        await _sut.UpdatePreferencesAsync();
 
-        var prefsBefore = _sut.GetUserPreferencesAsync().Result.Value!;
+        var prefsBefore = (await _sut.GetUserPreferencesAsync()).Value!;
         prefsBefore.BreakReminderFrequency.Should().NotBe(0.5f);
 
         // Act
         _sut.ResetPreferences();
 
         // Assert
-        var prefsAfter = _sut.GetUserPreferencesAsync().Result.Value!;
+        var prefsAfter = (await _sut.GetUserPreferencesAsync()).Value!;
         prefsAfter.BreakReminderFrequency.Should().BeApproximately(0.5f, 0.01f);
         prefsAfter.DifficultySuggestionThreshold.Should().BeApproximately(0.7f, 0.01f);
     }
@@ -195,11 +195,11 @@ public class UserPreferenceLearningServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetPreferenceWeight_AfterFeedback_ReturnsUpdatedWeight()
+    public async Task GetPreferenceWeight_AfterFeedback_ReturnsUpdatedWeight()
     {
         // Arrange
-        _sut.RecordSuggestionFeedbackAsync(new SuggestionFeedback(
-            Guid.NewGuid(), SuggestionType.CoachingTip, true, null, _timeProvider.UtcNow)).Wait();
+        await _sut.RecordSuggestionFeedbackAsync(new SuggestionFeedback(
+            Guid.NewGuid(), SuggestionType.CoachingTip, true, null, _timeProvider.UtcNow));
 
         // Act
         var weight = _sut.GetPreferenceWeight("CoachingTip");
@@ -209,14 +209,14 @@ public class UserPreferenceLearningServiceTests : IDisposable
     }
 
     [Fact]
-    public void Constructor_LoadsSavedPreferences()
+    public async Task Constructor_LoadsSavedPreferences()
     {
         // Arrange
-        _sut.RecordSuggestionFeedbackAsync(new SuggestionFeedback(
-            Guid.NewGuid(), SuggestionType.BreakReminder, true, null, _timeProvider.UtcNow)).Wait();
-        _sut.UpdatePreferencesAsync().Wait();
+        await _sut.RecordSuggestionFeedbackAsync(new SuggestionFeedback(
+            Guid.NewGuid(), SuggestionType.BreakReminder, true, null, _timeProvider.UtcNow));
+        await _sut.UpdatePreferencesAsync();
 
-        var prefsBefore = _sut.GetUserPreferencesAsync().Result.Value!;
+        var prefsBefore = (await _sut.GetUserPreferencesAsync()).Value!;
 
         // Act - Create new service instance that loads the same file
         var newService = new UserPreferenceLearningService(
@@ -225,7 +225,7 @@ public class UserPreferenceLearningServiceTests : IDisposable
             _tempPath);
 
         // Assert
-        var prefsAfter = newService.GetUserPreferencesAsync().Result.Value!;
+        var prefsAfter = (await newService.GetUserPreferencesAsync()).Value!;
         prefsAfter.BreakReminderFrequency.Should().Be(prefsBefore.BreakReminderFrequency);
         prefsAfter.LastUpdatedAtUtc.Should().Be(prefsBefore.LastUpdatedAtUtc);
     }

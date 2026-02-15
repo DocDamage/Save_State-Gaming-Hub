@@ -1,5 +1,6 @@
 namespace SaveState.Core.GameLibrary.Entities;
 
+using System.ComponentModel.DataAnnotations.Schema;
 using SaveState.Core.Common.Base;
 using SaveState.Core.Common.Interfaces;
 using SaveState.Core.GameLibrary.Enums;
@@ -24,13 +25,17 @@ public class Game : EntityBase, ISoftDelete
     public DateTime? UpdatedAt { get; private set; }
     public DateTime? LastPlayedAt { get; private set; }
     public TimeSpan TotalPlayTime { get; private set; }
+    public TimeSpan? EstimatedTimeToComplete { get; private set; }
     public DateOnly? ReleaseDate { get; private set; }
     public double? UserRating { get; private set; }
+    public double? Rating => UserRating;
     public string? LaunchArguments { get; private set; }
     public bool IsCompleted { get; private set; }
     public DateTime? CompletedAt { get; private set; }
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
+    [NotMapped]
+    public IReadOnlyList<Platform> Platforms => Platform is null ? [] : [Platform];
 
     // Navigation properties
     public ICollection<GameFile> Files { get; private set; } = new List<GameFile>();
@@ -133,6 +138,12 @@ public class Game : EntityBase, ISoftDelete
     {
         IsCompleted = false;
         CompletedAt = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void SetEstimatedTimeToComplete(TimeSpan? value)
+    {
+        EstimatedTimeToComplete = value;
         UpdatedAt = DateTime.UtcNow;
     }
 

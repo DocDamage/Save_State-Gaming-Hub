@@ -63,4 +63,6 @@ public sealed record SaveStateContext(
     string? CharacterLevel,
     TimeSpan? PlayTimeAtSave,
     IReadOnlyList<string>? Tags,
-    IReadOnlyList<string>? UnlockedAchievements);
+    IReadOnlyList<string>? UnlockedAchievements,
+    Guid? GameId = null,
+    string? GameTitle = null);

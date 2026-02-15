@@ -3,7 +3,9 @@ using Moq;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using SaveState.Core.RomManagement.Entities;
+using SaveState.Core.RomManagement.ValueObjects;
 using SaveState.Core.Social.Netplay;
+using SaveState.Infrastructure.Social.Netplay;
 using Xunit;
 
 namespace SaveState.Core.Tests.Social.Netplay;
@@ -47,7 +49,7 @@ public class NetplayServiceTests
     public async Task JoinQueueAsync_WithValidRom_ReturnsTicket()
     {
         // Arrange
-        var rom = new RomFile { Id = 1, Hash = "abc123", FileName = "test.nes", FilePath = "/test.nes" };
+        var rom = CreateRomFile("abc123");
         var preferences = new MatchmakingPreferences("US-East", 1500, 300, 300, true);
         var expectedTicket = new MatchmakingTicket("ticket1", "abc123", "US-East", MatchmakingStatus.Queued, DateTime.UtcNow, 45);
 
@@ -81,7 +83,7 @@ public class NetplayServiceTests
     public async Task LeaveQueueAsync_WithValidTicket_ReturnsSuccess()
     {
         // Arrange
-        var rom = new RomFile { Id = 1, Hash = "abc123", FileName = "test.nes" };
+        var rom = CreateRomFile("abc123");
         var preferences = new MatchmakingPreferences("US-East");
         var ticket = new MatchmakingTicket("ticket1", "abc123", "US-East", MatchmakingStatus.Queued, DateTime.UtcNow, 45);
 
@@ -148,6 +150,17 @@ public class NetplayServiceTests
         // Assert
         result.IsFailure.Should().BeTrue();
         result.ErrorType.Should().Be(ErrorType.Validation);
+    }
+
+    private static RomFile CreateRomFile(string checksum)
+    {
+        var rom = new RomFile(
+            title: "Test ROM",
+            platformId: Guid.NewGuid(),
+            filePath: new FilePath(@"C:\roms\test.nes"),
+            fileSize: 1024);
+        rom.SetChecksum(checksum);
+        return rom;
     }
 }
 
@@ -261,4 +274,5 @@ public class MatchmakingEngineTests
         result.Value.Should().NotBeNull();
         result.Value!.Region.Should().Be("US-East");
     }
+
 }

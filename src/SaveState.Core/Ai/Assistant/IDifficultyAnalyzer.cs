@@ -75,14 +75,3 @@ public sealed record ModelMetrics(
     DateTime LastTrainedAtUtc,
     string ModelVersion);
 
-/// <summary>
-/// Suggested difficulty adjustment.
-/// </summary>
-public enum SuggestedDifficulty
-{
-    DecreaseSignificantly,
-    DecreaseSlightly,
-    Maintain,
-    IncreaseSlightly,
-    IncreaseSignificantly
-}

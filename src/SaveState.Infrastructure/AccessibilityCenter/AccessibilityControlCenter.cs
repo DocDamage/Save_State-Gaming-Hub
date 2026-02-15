@@ -16,7 +16,6 @@ public sealed class AccessibilityControlCenter : IAccessibilityControlCenter
     private readonly Dictionary<string, AccessibilityProfile> _profiles = new();
     private readonly Dictionary<string, ScannableElement> _scannableElements = new();
     private bool _eyeGazeTrackingActive;
-    private bool _voiceControlActive;
     private bool _oneSwitchActive;
 
     public AccessibilityControlCenter(ILogger<AccessibilityControlCenter> logger)
@@ -140,7 +139,6 @@ public sealed class AccessibilityControlCenter : IAccessibilityControlCenter
     public Task<Result> StartVoiceControlAsync(CancellationToken ct = default)
     {
         _logger.LogInformation("Starting voice control");
-        _voiceControlActive = true;
         return Task.FromResult(Result.Success());
     }
 
@@ -148,7 +146,6 @@ public sealed class AccessibilityControlCenter : IAccessibilityControlCenter
     public Task<Result> StopVoiceControlAsync(CancellationToken ct = default)
     {
         _logger.LogInformation("Stopping voice control");
-        _voiceControlActive = false;
         return Task.FromResult(Result.Success());
     }
 
@@ -279,7 +276,6 @@ public sealed class AccessibilityControlCenter : IAccessibilityControlCenter
     {
         _logger.LogInformation("Shutting down Accessibility Control Center");
         _eyeGazeTrackingActive = false;
-        _voiceControlActive = false;
         _oneSwitchActive = false;
         return Task.FromResult(Result.Success());
     }

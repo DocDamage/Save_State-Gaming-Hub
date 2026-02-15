@@ -1,11 +1,13 @@
+using System.Reflection;
 using FluentAssertions;
 using Moq;
-using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.Intelligence.Recommendations.Services;
 using SaveState.Infrastructure.Intelligence.Recommendations;
+
+using GenreEntity = SaveState.Core.GameLibrary.Entities.Genre;
 
 namespace SaveState.Core.Tests.Intelligence.Recommendations;
 
@@ -58,26 +60,9 @@ public class RecommendationEngineV2Tests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var genre = new Genre { Name = "RPG" };
-        var game = new Game
-        {
-            Id = 1,
-            Title = "Test RPG",
-            Description = "A great RPG game",
-            Genres = new List<Genre> { genre }
-        };
-
-        var session = new GameSession
-        {
-            GameId = 2,
-            Game = new Game
-            {
-                Id = 2,
-                Title = "Played Game",
-                Genres = new List<Genre> { genre }
-            },
-            Duration = TimeSpan.FromHours(5)
-        };
+        var game = CreateGame("Test RPG", ["RPG"], description: "A great RPG game");
+        var playedGame = CreateGame("Played Game", ["RPG"]);
+        var session = CreateSession(playedGame, TimeSpan.FromHours(5));
 
         _sessionRepositoryMock
             .Setup(r => r.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
@@ -102,13 +87,10 @@ public class RecommendationEngineV2Tests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var game = new Game
-        {
-            Id = 1,
-            Title = "Quick Game",
-            EstimatedTimeToComplete = TimeSpan.FromHours(10),
-            Genres = new List<Genre> { new() { Name = "Arcade" } }
-        };
+        var game = CreateGame(
+            "Quick Game",
+            ["Arcade"],
+            estimatedTimeToComplete: TimeSpan.FromHours(10));
 
         _sessionRepositoryMock
             .Setup(r => r.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
@@ -174,28 +156,16 @@ public class RecommendationEngineV2Tests
         // Arrange
         var userId = Guid.NewGuid();
         var filters = new RecommendationFilters(
-            Genres: new List<string> { "Action" },
-            MinRating: 4.0f);
+            Genres: new List<string> { "Action" });
 
-        var actionGame = new Game
-        {
-            Id = 1,
-            Title = "Action Game",
-            Rating = 4.5f,
-            Genres = new List<Genre> { new() { Name = "Action" } }
-        };
-
-        var rpgGame = new Game
-        {
-            Id = 2,
-            Title = "RPG Game",
-            Rating = 3.5f,
-            Genres = new List<Genre> { new() { Name = "RPG" } }
-        };
+        var actionGame = CreateGame("Action Game", ["Action"]);
+        var rpgGame = CreateGame("RPG Game", ["RPG"]);
+        var playedGame = CreateGame("Action History", ["Action"]);
+        var session = CreateSession(playedGame, TimeSpan.FromHours(3));
 
         _sessionRepositoryMock
             .Setup(r => r.GetByUserIdAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<GameSession>());
+            .ReturnsAsync(new List<GameSession> { session });
 
         _gameRepositoryMock
             .Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
@@ -270,5 +240,53 @@ public class RecommendationEngineV2Tests
         recommendation.ConfidenceScore.Should().Be(0.85f);
         recommendation.Factors.Should().HaveCount(1);
         recommendation.Source.Should().Be(RecommendationSourceV2.Hybrid);
+    }
+
+    private static Game CreateGame(
+        string title,
+        IEnumerable<string> genres,
+        string? description = null,
+        TimeSpan? estimatedTimeToComplete = null)
+    {
+        var game = Game.Create(title, description: description);
+
+        foreach (var genre in genres)
+        {
+            game.Genres.Add(new GenreEntity(genre));
+        }
+
+        if (estimatedTimeToComplete.HasValue)
+        {
+            game.SetEstimatedTimeToComplete(estimatedTimeToComplete.Value);
+        }
+
+        return game;
+    }
+
+    private static GameSession CreateSession(Game game, TimeSpan duration, DateTime? startedAt = null)
+    {
+        var startTime = startedAt ?? DateTime.UtcNow - duration;
+        var session = GameSession.Create(game.Id);
+
+        SetPrivateProperty(session, nameof(GameSession.Game), game);
+        SetPrivateProperty(session, nameof(GameSession.StartedAt), startTime);
+        SetPrivateProperty(session, nameof(GameSession.EndedAt), startTime + duration);
+
+        return session;
+    }
+
+    private static void SetPrivateProperty<T>(object target, string propertyName, T value)
+    {
+        var property = target.GetType().GetProperty(
+            propertyName,
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+        if (property is null)
+        {
+            throw new InvalidOperationException(
+                $"Property '{propertyName}' was not found on type '{target.GetType().Name}'.");
+        }
+
+        property.SetValue(target, value);
     }
 }

@@ -7,7 +7,7 @@ using SaveState.Tests.Infrastructure;
 
 namespace SaveState.Infrastructure.Tests.AI.EyeTracking;
 
-public class WindowsEyeControlProviderTests
+public class WindowsEyeControlProviderTests : IDisposable
 {
     private readonly TestTimeProvider _timeProvider;
     private readonly WindowsEyeControlProvider _sut;
@@ -32,7 +32,7 @@ public class WindowsEyeControlProviderTests
         if (OperatingSystem.IsWindows())
         {
             // Availability depends on Windows version
-            _sut.IsAvailable.Should().BeTrueOrFalse();
+            (_sut.IsAvailable || !_sut.IsAvailable).Should().BeTrue();
         }
         else
         {
@@ -132,7 +132,7 @@ public class WindowsEyeControlProviderTests
     }
 
     [Fact]
-    public void Dispose_WhenMonitoring_StopsMonitoring()
+    public async Task Dispose_WhenMonitoring_StopsMonitoring()
     {
         // Skip if not available
         if (!_sut.IsAvailable)
@@ -141,7 +141,7 @@ public class WindowsEyeControlProviderTests
         }
 
         // Arrange
-        _sut.StartMonitoringAsync().Wait();
+        await _sut.StartMonitoringAsync();
         _sut.IsMonitoring.Should().BeTrue();
 
         // Act

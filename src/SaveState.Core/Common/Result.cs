@@ -75,6 +75,10 @@ public class Result
 /// Represents the outcome of an operation that returns a value of type <typeparamref name="T"/>.
 /// </summary>
 /// <typeparam name="T">The type of value returned on success.</typeparam>
+[System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1000:Do not declare static members on generic types",
+    Justification = "Result<T>.Success/Failure is the project-standard result API.")]
 public class Result<T> : Result
 {
     /// <summary>
@@ -82,6 +86,20 @@ public class Result<T> : Result
     /// Always check <see cref="Result.IsSuccess"/> before accessing.
     /// </summary>
     public T? Value { get; }
+
+    /// <summary>
+    /// Creates a successful typed result.
+    /// </summary>
+    /// <param name="value">The success value.</param>
+    public static Result<T> Success(T value) => new(true, value);
+
+    /// <summary>
+    /// Creates a failed typed result.
+    /// </summary>
+    /// <param name="error">The error message.</param>
+    /// <param name="errorType">The type of error.</param>
+    public static new Result<T> Failure(string error, ErrorType errorType = ErrorType.Validation) =>
+        new(false, default, error, errorType);
 
     internal Result(bool isSuccess, T? value = default, string? error = null, ErrorType errorType = ErrorType.None)
         : base(isSuccess, error, errorType)
@@ -122,4 +140,3 @@ public enum ErrorType
     /// <summary>Operation was cancelled.</summary>
     Cancelled
 }
-

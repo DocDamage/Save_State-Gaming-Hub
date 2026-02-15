@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.Plugins;
 using System.Xml.Linq;
@@ -67,7 +68,11 @@ public sealed class LaunchBoxImportPlugin : IPlugin, IImporter
                 }
                 catch (Exception ex)
                 {
-                    _context?.Logger.LogWarning(ex, "Failed to parse LaunchBox XML file: {File}", file);
+                    var logger = _context?.Logger;
+                    if (logger?.IsEnabled(LogLevel.Warning) == true)
+                    {
+                        logger.LogWarning(ex, "Failed to parse LaunchBox XML file: {File}", file);
+                    }
                 }
             }
 

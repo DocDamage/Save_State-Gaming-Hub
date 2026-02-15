@@ -66,7 +66,11 @@ public sealed class ItchIOPlugin : IPlugin, IGameProvider
             }
             catch (Exception ex)
             {
-                 _context?.Logger.LogWarning("Could not query 'caves' table: {Message}", ex.Message);
+                 var logger = _context?.Logger;
+                 if (logger?.IsEnabled(LogLevel.Warning) == true)
+                 {
+                     logger.LogWarning("Could not query 'caves' table: {Message}", ex.Message);
+                 }
             }
 
             // If local DB fails, we technically should rely on API, but that requires Auth.

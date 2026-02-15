@@ -7,7 +7,7 @@ using SaveState.Tests.Infrastructure;
 
 namespace SaveState.Infrastructure.Tests.AI.EyeTracking;
 
-public class TobiiEyeTrackingProviderTests
+public class TobiiEyeTrackingProviderTests : IDisposable
 {
     private readonly TestTimeProvider _timeProvider;
     private readonly TobiiEyeTrackingProvider _sut;

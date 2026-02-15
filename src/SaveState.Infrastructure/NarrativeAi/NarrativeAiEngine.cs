@@ -96,7 +96,7 @@ public sealed class NarrativeAiEngine : INarrativeAiEngine
                 new()
                 {
                     Text = "Just passing through.",
-                    Style = DialogueOptionStyle.Neutral
+                    Style = DialogueOptionStyle.Normal
                 }
             }
         };

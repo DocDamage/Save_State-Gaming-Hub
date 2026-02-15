@@ -14,7 +14,6 @@ public sealed class RealTimeTranslationService : IRealTimeTranslationService
     private readonly ILogger<RealTimeTranslationService> _logger;
     private TranslationConfiguration? _configuration;
     private readonly Dictionary<string, TranslationMemoryEntry> _translationMemory = new();
-    private bool _monitoringActive;
 
     public RealTimeTranslationService(ILogger<RealTimeTranslationService> logger)
     {
@@ -214,7 +213,6 @@ public sealed class RealTimeTranslationService : IRealTimeTranslationService
     public Task<Result> StartScreenMonitoringAsync(Action<ScreenTextCapture> callback, CancellationToken ct = default)
     {
         _logger.LogInformation("Starting screen monitoring for translation");
-        _monitoringActive = true;
         // In production, this would start a background task to capture and translate
         return Task.FromResult(Result.Success());
     }
@@ -223,7 +221,6 @@ public sealed class RealTimeTranslationService : IRealTimeTranslationService
     public Task<Result> StopScreenMonitoringAsync(CancellationToken ct = default)
     {
         _logger.LogInformation("Stopping screen monitoring");
-        _monitoringActive = false;
         return Task.FromResult(Result.Success());
     }
 
@@ -249,7 +246,6 @@ public sealed class RealTimeTranslationService : IRealTimeTranslationService
     public Task<Result> ShutdownAsync(CancellationToken ct = default)
     {
         _logger.LogInformation("Shutting down Real-Time Translation Service");
-        _monitoringActive = false;
         return Task.FromResult(Result.Success());
     }
 }

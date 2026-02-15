@@ -19,6 +19,7 @@ public class RomFile : EntityBase, IAggregateRoot, ISoftDelete
     public string? Version { get; private set; }
     public RomStatus Status { get; private set; }
     public string? Checksum { get; private set; }
+    public string Hash => Checksum ?? string.Empty;
     public DateTime ScannedAt { get; private set; }
     public DateTime? VerifiedAt { get; private set; }
 

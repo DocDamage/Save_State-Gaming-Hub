@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.Plugins;
 
@@ -26,7 +27,11 @@ public sealed class AiRecommenderPlugin : IPlugin
     public async Task<List<string>> GetRecommendationsAsync(string mood)
     {
          await Task.Delay(100); // Simulate AI thought
-         _context?.Logger.LogInformation("Generating recommendations for mood: {Mood}", mood);
+         var logger = _context?.Logger;
+         if (logger?.IsEnabled(LogLevel.Information) == true)
+         {
+             logger.LogInformation("Generating recommendations for mood: {Mood}", mood);
+         }
 
          // Mock logic
          if (mood.ToLower().Contains("chill"))

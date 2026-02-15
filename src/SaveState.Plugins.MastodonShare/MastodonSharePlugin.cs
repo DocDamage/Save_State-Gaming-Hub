@@ -8,7 +8,7 @@ namespace SaveState.Plugins.MastodonShare;
 public sealed class MastodonSharePlugin : IPlugin
 {
     private IPluginContext? _context;
-    private MastodonClient? _client;
+    private MastodonClient? _client = null;
 
     public string Id => "mastodon-share";
     public string Name => "Mastodon Share";

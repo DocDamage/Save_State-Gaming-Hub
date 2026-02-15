@@ -28,6 +28,19 @@ public class GameSessionRepository : IGameSessionRepository
             .ConfigureAwait(false);
     }
 
+    public async Task<IReadOnlyList<GameSession>> GetByUserIdAsync(Guid userId, CancellationToken ct = default)
+    {
+        // Session storage is currently global and not user-scoped.
+        // Return sessions ordered by recency so user-facing consumers still work.
+        _logger.LogDebug("Retrieving sessions for user {UserId} from global session store", userId);
+
+        return await _context.GameSessions
+            .Include(s => s.Game)
+            .OrderByDescending(s => s.StartedAt)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+    }
+
     public async Task<GameSession?> GetActiveSessionAsync(Guid gameId, CancellationToken ct = default)
     {
         return await _context.GameSessions

@@ -267,7 +267,7 @@ public sealed class GamingDnaAnalyzer : IGamingDnaAnalyzer
         };
 
         // Calculate Hardcore score
-        var avgSessionLength = sessions.Average(s => s.Duration?.TotalHours ?? 0);
+        var avgSessionLength = sessions.Average(s => s.Duration.TotalHours);
         var hardcoreScore = Math.Min((float)(avgSessionLength / 3), 1.0f);
         archetypeScores[GamingArchetype.Hardcore] = hardcoreScore;
         indicators[GamingArchetype.Hardcore] = new List<string>
@@ -299,7 +299,7 @@ public sealed class GamingDnaAnalyzer : IGamingDnaAnalyzer
         // Simplified completion rate calculation
         // In production, this would check actual completion achievements/status
         var gamesWithHighPlaytime = sessions
-            .Where(s => s.Duration?.TotalHours > 20)
+            .Where(s => s.Duration.TotalHours > 20)
             .Count();
 
         var uniqueGames = sessions.Select(s => s.GameId).Distinct().Count();
@@ -314,7 +314,7 @@ public sealed class GamingDnaAnalyzer : IGamingDnaAnalyzer
             .SelectMany(s => s.Game.Genres?.Select(g => new
             {
                 Genre = g.Name,
-                PlayTime = s.Duration ?? TimeSpan.Zero,
+                PlayTime = s.Duration,
                 Session = s
             }) ?? Enumerable.Empty<dynamic>())
             .GroupBy(x => (string)x.Genre)
@@ -344,9 +344,9 @@ public sealed class GamingDnaAnalyzer : IGamingDnaAnalyzer
     private PlayStyleMetrics AnalyzePlayStyle(
         IReadOnlyList<Core.GameLibrary.Entities.GameSession> sessions)
     {
-        var avgSessionLength = sessions
-            .Where(s => s.Duration.HasValue)
-            .Average(s => s.Duration!.Value.TotalMinutes);
+        var avgSessionLength = sessions.Count > 0
+            ? sessions.Average(s => s.Duration.TotalMinutes)
+            : 0;
 
         var peakHour = sessions
             .GroupBy(s => s.StartTime.Hour)
@@ -356,11 +356,11 @@ public sealed class GamingDnaAnalyzer : IGamingDnaAnalyzer
 
         var peakTime = peakHour switch
         {
-            >= 5 and < 12 => TimeOfDay.Morning,
-            >= 12 and < 17 => TimeOfDay.Afternoon,
-            >= 17 and < 22 => TimeOfDay.Evening,
-            >= 22 or < 2 => TimeOfDay.Night,
-            _ => TimeOfDay.LateNight
+            >= 5 and < 12 => Core.Intelligence.Recommendations.Services.TimeOfDay.Morning,
+            >= 12 and < 17 => Core.Intelligence.Recommendations.Services.TimeOfDay.Afternoon,
+            >= 17 and < 22 => Core.Intelligence.Recommendations.Services.TimeOfDay.Evening,
+            >= 22 or < 2 => Core.Intelligence.Recommendations.Services.TimeOfDay.Night,
+            _ => Core.Intelligence.Recommendations.Services.TimeOfDay.LateNight
         };
 
         var mostActiveDay = sessions
@@ -392,7 +392,7 @@ public sealed class GamingDnaAnalyzer : IGamingDnaAnalyzer
     {
         var totalGames = sessions.Select(s => s.GameId).Distinct().Count();
         var completedGames = sessions
-            .Where(s => s.Duration?.TotalHours > 30)
+            .Where(s => s.Duration.TotalHours > 30)
             .Select(s => s.GameId)
             .Distinct()
             .Count();
@@ -448,7 +448,7 @@ public sealed class GamingDnaAnalyzer : IGamingDnaAnalyzer
         CancellationToken ct)
     {
         // Simplified achievement analysis
-        var totalPlaytime = sessions.Sum(s => s.Duration?.TotalHours ?? 0);
+        var totalPlaytime = sessions.Sum(s => s.Duration.TotalHours);
         var achievementScore = Math.Min((float)(totalPlaytime / 100), 1.0f);
 
         return new AchievementProfile(

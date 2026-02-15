@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.Plugins;
 using System.Text.Json;
@@ -35,7 +36,12 @@ public sealed class LeaderboardsPlugin : IPlugin
         if (e.EventType == PluginEventType.GameClosed && e.Data is string gameTitle)
         {
              // Mock update
-             _context?.Logger.LogDebug("Updating playtime stats for {Game}", gameTitle);
+             var logger = _context?.Logger;
+             if (logger?.IsEnabled(LogLevel.Debug) == true)
+             {
+                 logger.LogDebug("Updating playtime stats for {Game}", gameTitle);
+             }
+
              // Real implementation would sync to backend here
         }
     }

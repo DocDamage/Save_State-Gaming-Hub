@@ -3,6 +3,7 @@ using Moq;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using SaveState.Core.Automation.Studio;
+using SaveState.Infrastructure.Automation.Studio;
 using Xunit;
 
 namespace SaveState.Core.Tests.Automation.Studio;

@@ -51,11 +51,12 @@ public sealed class HybridRecommendationEngineV2 : IRecommendationEngineV2
             var userSessions = await _sessionRepository.GetByUserIdAsync(context.UserId, ct)
                 .ConfigureAwait(false);
             var playedGameIds = userSessions.Select(s => s.GameId).Distinct().ToHashSet();
+            var excludePlayedGames = context.Filters?.ExcludePlayedGames == true;
 
             // Get candidate games
             var allGames = await _gameRepository.GetAllAsync(ct).ConfigureAwait(false);
             var candidates = allGames
-                .Where(g => !playedGameIds.Contains(g.Id) || !context.Filters?.ExcludePlayedGames == false)
+                .Where(g => !excludePlayedGames || !playedGameIds.Contains(g.Id))
                 .ToList();
 
             // Apply filters
@@ -94,7 +95,7 @@ public sealed class HybridRecommendationEngineV2 : IRecommendationEngineV2
                         ContentScore: contentScore,
                         ContextualScore: contextualScore,
                         CoverArtUrl: game.CoverImagePath,
-                        MatchingTags: game.Tags?.Select(t => t.Name).ToList() ?? new List<string>(),
+                        MatchingTags: game.Tags?.ToList() ?? new List<string>(),
                         Factors: factors,
                         Source: DetermineSource(factors),
                         IsInLibrary: playedGameIds.Contains(game.Id),
@@ -267,19 +268,21 @@ public sealed class HybridRecommendationEngineV2 : IRecommendationEngineV2
 
         if (filters.ReleasedAfter.HasValue)
         {
-            query = query.Where(g => g.ReleaseDate >= filters.ReleasedAfter.Value);
+            var releasedAfter = DateOnly.FromDateTime(filters.ReleasedAfter.Value);
+            query = query.Where(g => g.ReleaseDate.HasValue && g.ReleaseDate.Value >= releasedAfter);
         }
 
         if (filters.ReleasedBefore.HasValue)
         {
-            query = query.Where(g => g.ReleaseDate <= filters.ReleasedBefore.Value);
+            var releasedBefore = DateOnly.FromDateTime(filters.ReleasedBefore.Value);
+            query = query.Where(g => g.ReleaseDate.HasValue && g.ReleaseDate.Value <= releasedBefore);
         }
 
         return query.ToList();
     }
 
     private float CalculateCollaborativeScore(Game game,
-        IReadOnlyList<GameSession> userSessions, HashSet<int> playedGameIds)
+        IReadOnlyList<GameSession> userSessions, HashSet<Guid> playedGameIds)
     {
         // Simplified collaborative filtering
         // In production, this would use matrix factorization or similar
@@ -316,6 +319,10 @@ public sealed class HybridRecommendationEngineV2 : IRecommendationEngineV2
         return Math.Min(matches / (float)Math.Max(userGenres.Count, 3), 1.0f);
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        "Maintainability",
+        "CA1502:Avoid excessive complexity",
+        Justification = "Context scoring intentionally combines multiple weighted factors in one method.")]
     private float CalculateContextualScore(Game game, ContextualFactors? factors)
     {
         if (factors == null) return 0.5f;

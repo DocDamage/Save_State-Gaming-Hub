@@ -46,7 +46,7 @@ public class ThumbnailGeneratorServiceTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value.Title.Should().Be("Test Game");
+        result.Value!.PromptUsed.Should().Contain("Test Game");
         result.Value.Url.Should().NotBeNullOrEmpty();
         result.Value.Metadata.Provider.Should().Be("OpenAI");
     }
@@ -60,6 +60,8 @@ public class ThumbnailGeneratorServiceTests
             GameId: Guid.NewGuid(),
             GameTitle: "Dragon Battle",
             Description: "Dragon game",
+            Genres: null,
+            Tags: null,
             CustomPrompt: customPrompt);
 
         // Act
@@ -77,7 +79,9 @@ public class ThumbnailGeneratorServiceTests
         var request = new ThumbnailGenerationRequest(
             GameId: Guid.NewGuid(),
             GameTitle: "Test Game",
-            Description: "A test game");
+            Description: "A test game",
+            Genres: null,
+            Tags: null);
 
         // Act
         var result = await _service.GenerateVariationsAsync(request, 3);
@@ -128,7 +132,9 @@ public class ThumbnailGeneratorServiceTests
         var request = new ThumbnailGenerationRequest(
             GameId: Guid.NewGuid(),
             GameTitle: "History Test",
-            Description: "Test");
+            Description: "Test",
+            Genres: null,
+            Tags: null);
         await _service.GenerateThumbnailAsync(request);
 
         // Act
@@ -148,7 +154,9 @@ public class ThumbnailGeneratorServiceTests
         var request = new ThumbnailGenerationRequest(
             GameId: Guid.NewGuid(),
             GameTitle: "Delete Test",
-            Description: "Test");
+            Description: "Test",
+            Genres: null,
+            Tags: null);
         var generationResult = await _service.GenerateThumbnailAsync(request);
         var thumbnailId = generationResult.Value!.Id;
 

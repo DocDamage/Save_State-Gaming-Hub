@@ -8,6 +8,7 @@ namespace SaveState.Core.GameLibrary;
 public interface IGameSessionRepository
 {
     Task<GameSession?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<IReadOnlyList<GameSession>> GetByUserIdAsync(Guid userId, CancellationToken ct = default);
     Task<GameSession?> GetActiveSessionAsync(Guid gameId, CancellationToken ct = default);
     Task<IReadOnlyList<GameSession>> GetAllActiveSessionsAsync(CancellationToken ct = default);
     Task<IReadOnlyList<GameSession>> GetByGameIdAsync(Guid gameId, int limit = 50, CancellationToken ct = default);

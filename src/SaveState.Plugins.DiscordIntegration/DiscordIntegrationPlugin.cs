@@ -24,7 +24,7 @@ public class DiscordIntegrationPlugin : IPlugin
     private DiscordSocketClient? _discordClient;
     private IDiscordPresenceService? _presenceService;
     private bool _isBotConnected;
-    private bool _isPresenceConnected;
+    private bool _isPresenceConnected = false;
 
     public string Id => "savestate.discord.integration";
     public string Name => "Advanced Discord Integration";

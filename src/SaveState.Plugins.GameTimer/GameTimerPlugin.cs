@@ -86,7 +86,11 @@ public sealed class GameTimerPlugin : IPlugin
         // Start session timer (check every minute)
         _sessionTimer = new Timer(CheckSessionTime, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
 
-        _context?.Logger.LogInformation("Game session started for {GameId}", _currentGameId);
+        var logger = _context?.Logger;
+        if (logger?.IsEnabled(LogLevel.Information) == true)
+        {
+            logger.LogInformation("Game session started for {GameId}", _currentGameId);
+        }
     }
 
     private void OnGameClosed(object? data)
@@ -99,7 +103,11 @@ public sealed class GameTimerPlugin : IPlugin
 
         var now = _timeProvider.Now;
         var totalTime = now - _sessionStartTime;
-        _context?.Logger.LogInformation("Game session ended. Duration: {Duration}", totalTime);
+        var logger = _context?.Logger;
+        if (logger?.IsEnabled(LogLevel.Information) == true)
+        {
+            logger.LogInformation("Game session ended. Duration: {Duration}", totalTime);
+        }
 
         // Track daily playtime
         var today = _timeProvider.Now.Date;
@@ -158,7 +166,12 @@ public sealed class GameTimerPlugin : IPlugin
 
     private void ShowWarning(string message)
     {
-        _context?.Logger.LogWarning("Game Timer Warning: {Message}", message);
+        var logger = _context?.Logger;
+        if (logger?.IsEnabled(LogLevel.Warning) == true)
+        {
+            logger.LogWarning("Game Timer Warning: {Message}", message);
+        }
+
         _context?.ReportProgress(message, 1.0f);
 
         // In a real implementation, this would show a system notification

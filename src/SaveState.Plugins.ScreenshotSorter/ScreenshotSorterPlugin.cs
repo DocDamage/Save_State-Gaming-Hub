@@ -65,7 +65,12 @@ public sealed class ScreenshotSorterPlugin : IPlugin
         {
             case PluginEventType.GameLaunched:
                 _currentGameTitle = e.Data?.ToString();
-                _context?.Logger.LogDebug("Current game set to: {Game}", _currentGameTitle);
+                var eventLogger = _context?.Logger;
+                if (eventLogger?.IsEnabled(LogLevel.Debug) == true)
+                {
+                    eventLogger.LogDebug("Current game set to: {Game}", _currentGameTitle);
+                }
+
                 break;
             case PluginEventType.GameClosed:
                 _currentGameTitle = null;
@@ -92,7 +97,11 @@ public sealed class ScreenshotSorterPlugin : IPlugin
             _watcher.Created += OnScreenshotCreated;
             _watcher.EnableRaisingEvents = true;
 
-            _context?.Logger.LogInformation("Watching folder: {Folder}", _settings.WatchFolder);
+            var logger = _context?.Logger;
+            if (logger?.IsEnabled(LogLevel.Information) == true)
+            {
+                logger.LogInformation("Watching folder: {Folder}", _settings.WatchFolder);
+            }
         }
         catch (Exception ex)
         {
@@ -133,11 +142,19 @@ public sealed class ScreenshotSorterPlugin : IPlugin
             var hash = await ComputeFileHashAsync(e.FullPath);
             if (_processedHashes.Contains(hash))
             {
-                _context?.Logger.LogInformation("Duplicate screenshot detected: {File}", e.Name);
+                var logger = _context?.Logger;
+                if (logger?.IsEnabled(LogLevel.Information) == true)
+                {
+                    logger.LogInformation("Duplicate screenshot detected: {File}", e.Name);
+                }
+
                 if (_settings.DeleteDuplicates)
                 {
                     File.Delete(e.FullPath);
-                    _context?.Logger.LogInformation("Deleted duplicate: {File}", e.Name);
+                    if (logger?.IsEnabled(LogLevel.Information) == true)
+                    {
+                        logger.LogInformation("Deleted duplicate: {File}", e.Name);
+                    }
                 }
                 return;
             }
@@ -149,7 +166,11 @@ public sealed class ScreenshotSorterPlugin : IPlugin
         }
         catch (Exception ex)
         {
-            _context?.Logger.LogError(ex, "Failed to process screenshot: {File}", e.FullPath);
+            var logger = _context?.Logger;
+            if (logger?.IsEnabled(LogLevel.Error) == true)
+            {
+                logger.LogError(ex, "Failed to process screenshot: {File}", e.FullPath);
+            }
         }
     }
 
@@ -188,19 +209,27 @@ public sealed class ScreenshotSorterPlugin : IPlugin
             // Move the file
             File.Move(sourcePath, targetPath, overwrite: false);
 
-            _context?.Logger.LogInformation("Organized screenshot: {Source} -> {Target}",
-                fileName, Path.Combine(sanitizedTitle, date, newFileName));
+            var logger = _context?.Logger;
+            if (logger?.IsEnabled(LogLevel.Information) == true)
+            {
+                logger.LogInformation("Organized screenshot: {Source} -> {Target}",
+                    fileName, Path.Combine(sanitizedTitle, date, newFileName));
+            }
         }
         catch (Exception ex)
         {
-            _context?.Logger.LogError(ex, "Failed to organize screenshot: {File}", sourcePath);
+            var logger = _context?.Logger;
+            if (logger?.IsEnabled(LogLevel.Error) == true)
+            {
+                logger.LogError(ex, "Failed to organize screenshot: {File}", sourcePath);
+            }
         }
     }
 
     private static async Task<string> ComputeFileHashAsync(string filePath)
     {
         using var stream = File.OpenRead(filePath);
-        var hash = await MD5.HashDataAsync(stream);
+        var hash = await SHA256.HashDataAsync(stream);
         return Convert.ToHexString(hash);
     }
 

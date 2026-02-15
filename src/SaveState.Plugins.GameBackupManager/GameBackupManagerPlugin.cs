@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.Plugins;
 using System.IO.Compression;
@@ -45,7 +46,11 @@ public sealed class GameBackupManagerPlugin : IPlugin
             // from a database (e.g., PCGamingWiki).
             // For this Wave 5 Foundation, we'll log the intent.
 
-            _context?.Logger.LogInformation("Starting backup scan for {Game}...", gameTitle);
+            var logger = _context?.Logger;
+            if (logger?.IsEnabled(LogLevel.Information) == true)
+            {
+                logger.LogInformation("Starting backup scan for {Game}...", gameTitle);
+            }
 
             // Mock Example:
             // var savePath = GetSavePath(gameTitle);
@@ -58,7 +63,11 @@ public sealed class GameBackupManagerPlugin : IPlugin
         }
         catch (Exception ex)
         {
-            _context?.Logger.LogError(ex, "Backup failed for {Game}", gameTitle);
+            var logger = _context?.Logger;
+            if (logger?.IsEnabled(LogLevel.Error) == true)
+            {
+                logger.LogError(ex, "Backup failed for {Game}", gameTitle);
+            }
         }
     }
 

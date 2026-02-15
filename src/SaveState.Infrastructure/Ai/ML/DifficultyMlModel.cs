@@ -19,6 +19,7 @@ public sealed class DifficultyMlModel : IDisposable
     private readonly ITimeProvider _timeProvider;
     private readonly string _modelPath;
     private ModelWeights _weights;
+    private bool _hasPersistedModel;
     private bool _isDisposed;
 
     public DifficultyMlModel(
@@ -33,13 +34,15 @@ public sealed class DifficultyMlModel : IDisposable
             "SaveStateReborn",
             "MLModels",
             "difficulty_model.json");
-        _weights = LoadWeights() ?? CreateDefaultWeights();
+        var loadedWeights = LoadWeights();
+        _weights = loadedWeights ?? CreateDefaultWeights();
+        _hasPersistedModel = loadedWeights is not null;
     }
 
     /// <summary>
     /// Gets whether a trained model is loaded.
     /// </summary>
-    public bool IsModelLoaded => _weights != null && !_isDisposed;
+    public bool IsModelLoaded => _hasPersistedModel && !_isDisposed;
 
     /// <summary>
     /// Gets the model version/timestamp.
@@ -129,6 +132,7 @@ public sealed class DifficultyMlModel : IDisposable
             var newWeights = OptimizeWeights(data);
             _weights = newWeights;
             _weights.LastTrainedAtUtc = _timeProvider.UtcNow;
+            _hasPersistedModel = true;
 
             // Persist weights
             SaveWeights();
@@ -443,11 +447,17 @@ public sealed class DifficultyPrediction
     /// </summary>
     public float GetConfidence()
     {
-        if (Probabilities == null || Probabilities.Length == 0)
+        if (Probabilities != null && Probabilities.Length >= 3)
         {
-            return 0.5f;
+            return Probabilities.Max();
         }
-        return Probabilities.Max();
+
+        if (Scores != null && Scores.Length >= 3)
+        {
+            return CalculateSoftmaxProbabilities(Scores).Max();
+        }
+
+        return 0.5f;
     }
 
     /// <summary>
@@ -457,6 +467,17 @@ public sealed class DifficultyPrediction
     {
         if (Probabilities == null || Probabilities.Length < 3)
         {
+            if (Scores != null && Scores.Length >= 3)
+            {
+                var derived = CalculateSoftmaxProbabilities(Scores);
+                return new Dictionary<SuggestedDifficulty, float>
+                {
+                    [SuggestedDifficulty.Decrease] = derived[0],
+                    [SuggestedDifficulty.Maintain] = derived[1],
+                    [SuggestedDifficulty.Increase] = derived[2]
+                };
+            }
+
             return new Dictionary<SuggestedDifficulty, float>
             {
                 [SuggestedDifficulty.Decrease] = 0.33f,
@@ -471,5 +492,23 @@ public sealed class DifficultyPrediction
             [SuggestedDifficulty.Maintain] = Probabilities[1],
             [SuggestedDifficulty.Increase] = Probabilities[2]
         };
+    }
+
+    private static float[] CalculateSoftmaxProbabilities(float[] scores)
+    {
+        var maxScore = scores.Max();
+        var exp = scores.Select(s => MathF.Exp(s - maxScore)).ToArray();
+        var sum = exp.Sum();
+        if (sum <= 0)
+        {
+            return [0.33f, 0.34f, 0.33f];
+        }
+
+        return
+        [
+            exp[0] / sum,
+            exp[1] / sum,
+            exp[2] / sum
+        ];
     }
 }

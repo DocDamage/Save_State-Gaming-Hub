@@ -119,20 +119,20 @@ public sealed class GameSessionMonitor : BackgroundService, IGameSessionMonitor
     }
 
     /// <inheritdoc />
-    public Task<Result> RecordEventAsync(Guid sessionId, GameplayEvent gameEvent, CancellationToken ct = default)
+    public async Task<Result> RecordEventAsync(Guid sessionId, GameplayEvent gameEvent, CancellationToken ct = default)
     {
         if (!_activeSessions.TryGetValue(sessionId, out var session))
         {
-            return Task.FromResult(Result.Failure(
+            return Result.Failure(
                 $"Session {sessionId} not found.",
-                ErrorType.NotFound));
+                ErrorType.NotFound);
         }
 
         if (!session.IsActive)
         {
-            return Task.FromResult(Result.Failure(
+            return Result.Failure(
                 $"Session {sessionId} is not active.",
-                ErrorType.Validation));
+                ErrorType.Validation);
         }
 
         // Store the event
@@ -150,7 +150,14 @@ public sealed class GameSessionMonitor : BackgroundService, IGameSessionMonitor
         // Update metrics
         UpdateMetrics(sessionId);
 
-        return Task.FromResult(Result.Success());
+        // Run immediate checks so high-signal events can trigger suggestions without waiting
+        // for the background poll interval.
+        var nowUtc = _timeProvider.UtcNow;
+        await CheckDifficultyAdjustmentAsync(session, nowUtc, ct).ConfigureAwait(false);
+        await CheckBreakReminderAsync(session, nowUtc, ct).ConfigureAwait(false);
+        EmitMetricsUpdate(sessionId, nowUtc);
+
+        return Result.Success();
     }
 
     /// <inheritdoc />
@@ -251,13 +258,6 @@ public sealed class GameSessionMonitor : BackgroundService, IGameSessionMonitor
     /// </summary>
     private async Task CheckDifficultyAdjustmentAsync(MonitoredSession session, DateTime nowUtc, CancellationToken ct)
     {
-        // Check cooldown period
-        if (session.LastDifficultySuggestionAtUtc.HasValue &&
-            nowUtc - session.LastDifficultySuggestionAtUtc.Value < TimeSpan.FromMinutes(_difficultySuggestionCooldownMinutes))
-        {
-            return;
-        }
-
         // Minimum session duration before suggesting
         var sessionDuration = nowUtc - session.StartTimeUtc;
         if (sessionDuration < TimeSpan.FromMinutes(5))
@@ -288,6 +288,14 @@ public sealed class GameSessionMonitor : BackgroundService, IGameSessionMonitor
             return;
         }
 
+        // Keep evaluating continuously, but suppress duplicate suggestion events
+        // during the cooldown period.
+        if (session.LastDifficultySuggestionAtUtc.HasValue &&
+            nowUtc - session.LastDifficultySuggestionAtUtc.Value < TimeSpan.FromMinutes(_difficultySuggestionCooldownMinutes))
+        {
+            return;
+        }
+
         // Emit suggestion event
         session.LastDifficultySuggestionAtUtc = nowUtc;
         
@@ -295,7 +303,7 @@ public sealed class GameSessionMonitor : BackgroundService, IGameSessionMonitor
         {
             SessionId = session.SessionId,
             GameId = session.GameId,
-            SuggestedDifficulty = (Core.AI.Assistant.SuggestedDifficulty)(int)analysis.SuggestedDifficulty,
+            SuggestedDifficulty = analysis.SuggestedDifficulty,
             Confidence = analysis.Confidence,
             Reasoning = analysis.Reasoning,
             ContributingFactors = analysis.ContributingFactors,

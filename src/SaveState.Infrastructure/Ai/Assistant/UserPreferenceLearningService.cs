@@ -43,7 +43,7 @@ public sealed class UserPreferenceLearningService : IUserPreferenceLearningServi
             "UserPreferences.json");
         
         // Initialize with default preferences
-        _currentPreferences = CreateDefaultPreferences();
+        _currentPreferences = CreateDefaultPreferences(_timeProvider.UtcNow);
         
         // Try to load saved preferences
         LoadPreferences();
@@ -109,11 +109,18 @@ public sealed class UserPreferenceLearningService : IUserPreferenceLearningServi
             
             if (feedbackList.Count < MinSamplesForUpdate)
             {
-                _logger.LogDebug(
-                    "Insufficient feedback samples ({Count}) for preference update. Need {MinSamples}.",
-                    feedbackList.Count,
-                    MinSamplesForUpdate);
-                return Task.FromResult(Result.Success());
+                if (_actionHistory.Count < MinSamplesForUpdate)
+                {
+                    _logger.LogDebug(
+                        "Insufficient feedback/action samples ({FeedbackCount}/{ActionCount}) for preference update. Need {MinSamples}.",
+                        feedbackList.Count,
+                        _actionHistory.Count,
+                        MinSamplesForUpdate);
+
+                    // Persist current state for deterministic reload behavior.
+                    SavePreferences();
+                    return Task.FromResult(Result.Success());
+                }
             }
 
             // Calculate new preference values based on historical data
@@ -123,7 +130,12 @@ public sealed class UserPreferenceLearningService : IUserPreferenceLearningServi
             _currentPreferences = BlendPreferences(_currentPreferences, newPreferences, LearningRate);
             
             // Update timestamp
-            _currentPreferences = _currentPreferences with { LastUpdatedAtUtc = _timeProvider.UtcNow };
+            var updateTimestamp = _timeProvider.UtcNow;
+            if (updateTimestamp <= _currentPreferences.LastUpdatedAtUtc)
+            {
+                updateTimestamp = _currentPreferences.LastUpdatedAtUtc.AddTicks(1);
+            }
+            _currentPreferences = _currentPreferences with { LastUpdatedAtUtc = updateTimestamp };
 
             // Persist preferences
             SavePreferences();
@@ -159,7 +171,7 @@ public sealed class UserPreferenceLearningService : IUserPreferenceLearningServi
     /// </summary>
     public void ResetPreferences()
     {
-        _currentPreferences = CreateDefaultPreferences();
+        _currentPreferences = CreateDefaultPreferences(_timeProvider.UtcNow);
         _feedbackHistory.Clear();
         _actionHistory.Clear();
         _preferenceWeights.Clear();
@@ -363,7 +375,7 @@ public sealed class UserPreferenceLearningService : IUserPreferenceLearningServi
         }
     }
 
-    private static UserPreferences CreateDefaultPreferences()
+    private static UserPreferences CreateDefaultPreferences(DateTime nowUtc)
     {
         return new UserPreferences(
             BreakReminderFrequency: 0.5f,
@@ -373,7 +385,7 @@ public sealed class UserPreferenceLearningService : IUserPreferenceLearningServi
             AutoAcceptHighConfidenceSuggestions: false,
             PreferredSessionDuration: TimeSpan.FromHours(1.5),
             PreferredGameGenres: new List<string>().AsReadOnly(),
-            LastUpdatedAtUtc: DateTime.UtcNow);
+            LastUpdatedAtUtc: nowUtc);
     }
 
     #endregion

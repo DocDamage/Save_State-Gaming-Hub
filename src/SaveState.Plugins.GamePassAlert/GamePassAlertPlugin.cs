@@ -70,16 +70,24 @@ public sealed class GamePassAlertPlugin : IPlugin
                 if (existing == null)
                 {
                     // New game added to leaving list
-                    _context?.Logger.LogWarning("New game leaving Game Pass: {Title} on {Date}",
-                        game.Title, game.LeavingDate.ToShortDateString());
+                    var logger = _context?.Logger;
+                    if (logger?.IsEnabled(LogLevel.Warning) == true)
+                    {
+                        logger.LogWarning("New game leaving Game Pass: {Title} on {Date}",
+                            game.Title, game.LeavingDate.ToShortDateString());
+                    }
 
                     SendNotification(game, "New game leaving Game Pass!");
                 }
                 else if (existing.LeavingDate != game.LeavingDate)
                 {
                     // Date changed
-                    _context?.Logger.LogInformation("Leaving date updated for {Title}: {OldDate} -> {NewDate}",
-                        game.Title, existing.LeavingDate.ToShortDateString(), game.LeavingDate.ToShortDateString());
+                    var logger = _context?.Logger;
+                    if (logger?.IsEnabled(LogLevel.Information) == true)
+                    {
+                        logger.LogInformation("Leaving date updated for {Title}: {OldDate} -> {NewDate}",
+                            game.Title, existing.LeavingDate.ToShortDateString(), game.LeavingDate.ToShortDateString());
+                    }
                 }
 
                 // Check for upcoming notifications
@@ -122,7 +130,12 @@ public sealed class GamePassAlertPlugin : IPlugin
             var response = await _httpClient.GetAsync(url);
             if (!response.IsSuccessStatusCode)
             {
-                _context?.Logger.LogWarning("Failed to fetch Game Pass catalog: {StatusCode}", response.StatusCode);
+                var warningLogger = _context?.Logger;
+                if (warningLogger?.IsEnabled(LogLevel.Warning) == true)
+                {
+                    warningLogger.LogWarning("Failed to fetch Game Pass catalog: {StatusCode}", response.StatusCode);
+                }
+
                 return new List<LeavingGame>();
             }
 
@@ -148,7 +161,12 @@ public sealed class GamePassAlertPlugin : IPlugin
                 }
             }
 
-            _context?.Logger.LogInformation("Found {Count} games leaving Game Pass", leavingGames.Count);
+            var logger = _context?.Logger;
+            if (logger?.IsEnabled(LogLevel.Information) == true)
+            {
+                logger.LogInformation("Found {Count} games leaving Game Pass", leavingGames.Count);
+            }
+
             return leavingGames;
         }
         catch (Exception ex)
@@ -160,7 +178,12 @@ public sealed class GamePassAlertPlugin : IPlugin
 
     private void SendNotification(LeavingGame game, string message)
     {
-        _context?.Logger.LogWarning("Game Pass Alert: {Game} - {Message}", game.Title, message);
+        var logger = _context?.Logger;
+        if (logger?.IsEnabled(LogLevel.Warning) == true)
+        {
+            logger.LogWarning("Game Pass Alert: {Game} - {Message}", game.Title, message);
+        }
+
         _context?.ReportProgress($"{game.Title}: {message}", 1.0f);
 
         // In a real implementation, this would show a system notification

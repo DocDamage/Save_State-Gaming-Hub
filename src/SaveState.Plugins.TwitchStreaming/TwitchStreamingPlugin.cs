@@ -27,10 +27,10 @@ public class TwitchStreamingPlugin : IPlugin
     private ILogger? _logger;
     private TwitchAPI? _twitchApi;
     private TwitchClient? _twitchClient;
-    private bool _isStreamOnline;
+    private bool _isStreamOnline = false;
     private string? _streamTitle;
     private string? _currentGame;
-    private int _viewerCount;
+    private int _viewerCount = 0;
 
     public string Id => "savestate.twitch.streaming";
     public string Name => "Twitch Streaming Integration";
