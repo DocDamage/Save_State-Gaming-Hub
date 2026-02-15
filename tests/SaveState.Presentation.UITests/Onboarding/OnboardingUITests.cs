@@ -7,22 +7,15 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using SaveState.Application.Onboarding.Services;
 using SaveState.Core.Ai.Services;
+using SaveState.Core.Common;
 using SaveState.Core.GameLibrary;
+using SaveState.Presentation.UITests;
 using SaveState.Presentation.ViewModels;
 using SaveState.Presentation.ViewModels.Onboarding;
 using SaveState.Presentation.Views.Onboarding;
-using SaveState.Presentation.Resources;
 using Xunit;
 
 namespace SaveState.Presentation.UITests.Onboarding;
-
-/// <summary>
-/// Test stub for Resources to avoid complex localization dependencies.
-/// </summary>
-internal class TestResources : SaveState.Presentation.Resources.Resources
-{
-    public TestResources() : base(null!) { }
-}
 
 /// <summary>
 /// UI integration tests for the onboarding flow.
@@ -30,7 +23,12 @@ internal class TestResources : SaveState.Presentation.Resources.Resources
 /// </summary>
 public class OnboardingUITests : HeadlessTestBase
 {
-    private readonly TestResources _resources = new();
+    static OnboardingUITests()
+    {
+        UiTestLocator.EnsureInitialized();
+    }
+
+    private readonly SaveState.Presentation.Resources.Resources _resources = UiTestResourceFactory.Create();
 
     private MainViewModel CreateMockMainViewModel()
     {
@@ -38,6 +36,8 @@ public class OnboardingUITests : HeadlessTestBase
         var mockOnboardingLogger = new Mock<ILogger<SaveState.Presentation.ViewModels.Onboarding.OnboardingViewModel>>();
         var mockMainLogger = new Mock<ILogger<MainViewModel>>();
         var mockUserPreferences = new Mock<SaveState.Core.Common.Services.IUserPreferencesService>();
+        mockUserPreferences.Setup(x => x.ShouldShowOnboardingAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
         return new MainViewModel(mockMediator.Object, CreateMockOnboardingService(), mockOnboardingLogger.Object, mockUserPreferences.Object, mockMainLogger.Object, _resources);
     }
 
@@ -48,19 +48,27 @@ public class OnboardingUITests : HeadlessTestBase
             .ReturnsAsync(new AiResponse("Welcome to SaveState Reborn!", "stop", new TokenUsage(10, 50, 60), "test-model", "test"));
 
         var mockGames = new Mock<IGameRepository>();
-        mockGames.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<SaveState.Core.GameLibrary.Entities.Game>());
+        mockGames.Setup(x => x.CountAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
+        mockGames.Setup(x => x.GetGamesAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string?>(),
+                It.IsAny<Guid?>(),
+                It.IsAny<Guid?>(),
+                It.IsAny<SaveState.Core.GameLibrary.Enums.GameStatus?>(),
+                It.IsAny<string?>(),
+                It.IsAny<SaveState.Core.GameLibrary.Enums.GameSortBy>(),
+                It.IsAny<bool>(),
+                It.IsAny<SaveState.Core.GameLibrary.Entities.CollectionFilter?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PagedResult<SaveState.Core.GameLibrary.Entities.Game>(
+                Array.Empty<SaveState.Core.GameLibrary.Entities.Game>(),
+                0,
+                1,
+                50));
 
         return new OnboardingService(mockAi.Object, mockGames.Object);
-    }
-
-    private MainViewModel CreateTestMainViewModel()
-    {
-        var mockMediator = new Mock<IMediator>();
-        var mockLogger = new Mock<ILogger<OnboardingViewModel>>();
-        var mockUserPreferences = new Mock<SaveState.Core.Common.Services.IUserPreferencesService>();
-        var mockMainViewModelLogger = new Mock<ILogger<MainViewModel>>();
-        return CreateMockMainViewModel();
     }
 
     [AvaloniaFact]
@@ -78,14 +86,16 @@ public class OnboardingUITests : HeadlessTestBase
     {
         // Arrange
         var service = CreateMockOnboardingService();
-        var mockMainViewModel = new Mock<MainViewModel>(MockBehavior.Loose);
+        var mainViewModel = CreateMockMainViewModel();
         var mockLogger = new Mock<ILogger<OnboardingViewModel>>();
 
         // Act
         var mockUserPreferences = new Mock<SaveState.Core.Common.Services.IUserPreferencesService>();
+        mockUserPreferences.Setup(x => x.CompleteOnboardingAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
         var viewModel = new OnboardingViewModel(
             service,
-            mockMainViewModel.Object,
+            mainViewModel,
             mockLogger.Object,
             mockUserPreferences.Object,
             _resources);
@@ -101,10 +111,9 @@ public class OnboardingUITests : HeadlessTestBase
         var service = CreateMockOnboardingService();
         var mockLogger = new Mock<ILogger<OnboardingViewModel>>();
 
-        // Use a simple mock for MainViewModel
-        var mockMediator = new Mock<IMediator>();
         var mockUserPreferences = new Mock<SaveState.Core.Common.Services.IUserPreferencesService>();
-        var mockMainViewModelLogger = new Mock<ILogger<MainViewModel>>();
+        mockUserPreferences.Setup(x => x.CompleteOnboardingAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
         var mainViewModel = CreateMockMainViewModel();
 
         var view = new OnboardingView();
@@ -134,14 +143,16 @@ public class OnboardingUITests : HeadlessTestBase
     {
         // Arrange
         var service = CreateMockOnboardingService();
-        var mockMainViewModel = new Mock<MainViewModel>(MockBehavior.Loose);
+        var mainViewModel = CreateMockMainViewModel();
         var mockLogger = new Mock<ILogger<OnboardingViewModel>>();
 
         // Act
         var mockUserPreferences = new Mock<SaveState.Core.Common.Services.IUserPreferencesService>();
+        mockUserPreferences.Setup(x => x.CompleteOnboardingAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
         var viewModel = new OnboardingViewModel(
             service,
-            mockMainViewModel.Object,
+            mainViewModel,
             mockLogger.Object,
             mockUserPreferences.Object,
             _resources);

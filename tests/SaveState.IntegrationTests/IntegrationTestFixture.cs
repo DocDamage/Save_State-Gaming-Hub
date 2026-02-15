@@ -19,19 +19,14 @@ public class IntegrationTestFixture : IDisposable
         services.AddLogging();
 
         // Register services for integration testing
-        // Use fake metadata service for testing
-        services.AddScoped<IMetadataService, FakeMetadataService>();
-
-        // Wrap with resilient service manually (since we don't have Scrutor in tests)
-        services.AddScoped<ResilientMetadataService>(sp =>
+        // Use fake metadata service and wrap it with resilience behavior.
+        services.AddScoped<FakeMetadataService>();
+        services.AddScoped<IMetadataService>(sp =>
         {
-            var inner = sp.GetRequiredService<IMetadataService>();
+            var inner = sp.GetRequiredService<FakeMetadataService>();
             var logger = sp.GetRequiredService<ILogger<ResilientMetadataService>>();
             return new ResilientMetadataService(inner, logger);
         });
-
-        // Override the IMetadataService to return the resilient wrapper
-        services.AddScoped<IMetadataService>(sp => sp.GetRequiredService<ResilientMetadataService>());
 
         ServiceProvider = services.BuildServiceProvider();
     }

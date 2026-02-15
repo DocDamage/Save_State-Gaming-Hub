@@ -59,7 +59,7 @@ public class ApiContractTests
         // Assert - Genres should always be an array, never null
         metadata.Should().NotBeNull();
         metadata!.Genres.Should().NotBeNull();
-        metadata.Genres.Should().BeOfType(typeof(IReadOnlyList<string>));
+        metadata.Genres.Should().BeAssignableTo<IReadOnlyList<string>>();
     }
 
     [Fact]

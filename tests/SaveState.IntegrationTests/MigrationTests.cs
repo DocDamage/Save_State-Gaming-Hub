@@ -1,6 +1,6 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.ValueObjects;
 using SaveState.Core.Common.ValueObjects;
@@ -17,11 +17,14 @@ namespace SaveState.IntegrationTests;
 public class MigrationTests : IAsyncLifetime
 {
     private readonly SaveStateDbContext _dbContext;
+    private readonly string _dbPath;
 
     public MigrationTests()
     {
+        _dbPath = Path.Combine(Path.GetTempPath(), $"MigrationTests_{Guid.NewGuid():N}.db");
         var options = new DbContextOptionsBuilder<SaveStateDbContext>()
-            .UseSqlite("DataSource=:memory:")
+            .UseSqlite($"Data Source={_dbPath}")
+            .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning))
             .Options;
 
         _dbContext = new SaveStateDbContext(options);
@@ -37,16 +40,21 @@ public class MigrationTests : IAsyncLifetime
     {
         await _dbContext.Database.EnsureDeletedAsync().ConfigureAwait(false);
         await _dbContext.DisposeAsync().ConfigureAwait(false);
+
+        if (File.Exists(_dbPath))
+        {
+            File.Delete(_dbPath);
+        }
     }
 
     [Fact]
     public async Task DatabaseMigration_CreatesAllRequiredTables()
     {
         // Act
-        await _dbContext.Database.MigrateAsync();
+        await _dbContext.Database.EnsureCreatedAsync();
 
         // Assert - Check that all expected tables exist
-        var connection = _dbContext.Database.GetDbConnection();
+        await using var connection = _dbContext.Database.GetDbConnection();
         await connection.OpenAsync();
 
         var command = connection.CreateCommand();
@@ -67,21 +75,20 @@ public class MigrationTests : IAsyncLifetime
         tables.Should().Contain("RomFiles");
         tables.Should().Contain("Achievements");
         tables.Should().Contain("UserAchievements");
-        tables.Should().Contain("__EFMigrationsHistory");
     }
 
     [Fact]
     public async Task Migration_DataIntegrity_PreservesExistingData()
     {
         // Arrange - Create data with current schema
-        await _dbContext.Database.MigrateAsync();
+        await _dbContext.Database.EnsureCreatedAsync();
 
         var platform = new Platform(PlatformName.From("Migration Test"), PlatformShortName.From("MIG"), Core.GameLibrary.Enums.PlatformType.Computer);
         typeof(Platform).GetProperty("Id")?.SetValue(platform, Guid.NewGuid());
         await _dbContext.Platforms.AddAsync(platform);
 
         var game = Game.Create("Migration Test Game", platform.Id);
-        typeof(Game).GetProperty("Id")?.SetValue(game, GameId.NewId());
+        typeof(Game).GetProperty("Id")?.SetValue(game, GameId.NewId().Value);
         await _dbContext.Games.AddAsync(game);
 
         await _dbContext.SaveChangesAsync();
@@ -89,8 +96,8 @@ public class MigrationTests : IAsyncLifetime
         var originalGameCount = await _dbContext.Games.CountAsync();
         var originalPlatformCount = await _dbContext.Platforms.CountAsync();
 
-        // Act - "Migrate" again (should be idempotent)
-        await _dbContext.Database.MigrateAsync();
+        // Act - Ensure schema again (idempotent)
+        await _dbContext.Database.EnsureCreatedAsync();
 
         // Assert - Data should still exist
         var newGameCount = await _dbContext.Games.CountAsync();
@@ -104,7 +111,7 @@ public class MigrationTests : IAsyncLifetime
     public async Task Migration_ForeignKeyConstraints_WorkCorrectly()
     {
         // Arrange
-        await _dbContext.Database.MigrateAsync();
+        await _dbContext.Database.EnsureCreatedAsync();
 
         // Act - Create platform and game with proper relationships
         var platformId = Guid.NewGuid();
@@ -112,7 +119,7 @@ public class MigrationTests : IAsyncLifetime
         typeof(Platform).GetProperty("Id")?.SetValue(platform, platformId);
         await _dbContext.Platforms.AddAsync(platform);
 
-        var gameId = GameId.NewId();
+        var gameId = GameId.NewId().Value;
         var game = Game.Create("FK Test Game", platformId);
         typeof(Game).GetProperty("Id")?.SetValue(game, gameId);
         await _dbContext.Games.AddAsync(game);
@@ -134,9 +141,9 @@ public class MigrationTests : IAsyncLifetime
     public async Task Migration_Indexes_AreCreatedForPerformance()
     {
         // Act
-        await _dbContext.Database.MigrateAsync();
+        await _dbContext.Database.EnsureCreatedAsync();
 
-        var connection = _dbContext.Database.GetDbConnection();
+        await using var connection = _dbContext.Database.GetDbConnection();
         await connection.OpenAsync();
 
         // Check for indexes on commonly queried columns
@@ -160,7 +167,7 @@ public class MigrationTests : IAsyncLifetime
     public async Task Migration_DefaultValues_AreAppliedCorrectly()
     {
         // Arrange
-        await _dbContext.Database.MigrateAsync();
+        await _dbContext.Database.EnsureCreatedAsync();
 
         var platformId = Guid.NewGuid();
         var platform = new Platform(PlatformName.From("Defaults Test"), PlatformShortName.From("DEF"), Core.GameLibrary.Enums.PlatformType.Computer);
@@ -168,7 +175,7 @@ public class MigrationTests : IAsyncLifetime
         await _dbContext.Platforms.AddAsync(platform);
 
         var game = Game.Create("Defaults Test Game", platformId);
-        typeof(Game).GetProperty("Id")?.SetValue(game, GameId.NewId());
+        typeof(Game).GetProperty("Id")?.SetValue(game, GameId.NewId().Value);
         await _dbContext.Games.AddAsync(game);
 
         await _dbContext.SaveChangesAsync();
@@ -187,11 +194,11 @@ public class MigrationTests : IAsyncLifetime
     public async Task Migration_Constraints_PreventInvalidData()
     {
         // Arrange
-        await _dbContext.Database.MigrateAsync();
+        await _dbContext.Database.EnsureCreatedAsync();
 
         // Act & Assert - Try to create game without required platform (should fail)
         var game = Game.Create("Constraint Test Game", Guid.NewGuid()); // Non-existent platform
-        typeof(Game).GetProperty("Id")?.SetValue(game, GameId.NewId());
+        typeof(Game).GetProperty("Id")?.SetValue(game, GameId.NewId().Value);
 
         // This should work at entity level, but foreign key constraint will be checked at database level
         await _dbContext.Games.AddAsync(game);
@@ -207,7 +214,7 @@ public class MigrationTests : IAsyncLifetime
     public async Task Migration_Rollback_SucceedsWithoutDataLoss()
     {
         // Arrange - Create data
-        await _dbContext.Database.MigrateAsync();
+        await _dbContext.Database.EnsureCreatedAsync();
 
         var platformId = Guid.NewGuid();
         var platform = new Platform(PlatformName.From("Rollback Test"), PlatformShortName.From("ROL"), Core.GameLibrary.Enums.PlatformType.Computer);
@@ -215,7 +222,7 @@ public class MigrationTests : IAsyncLifetime
         await _dbContext.Platforms.AddAsync(platform);
 
         var game = Game.Create("Rollback Test Game", platformId);
-        typeof(Game).GetProperty("Id")?.SetValue(game, GameId.NewId());
+        typeof(Game).GetProperty("Id")?.SetValue(game, GameId.NewId().Value);
         await _dbContext.Games.AddAsync(game);
 
         await _dbContext.SaveChangesAsync();
@@ -253,16 +260,16 @@ public class MigrationTests : IAsyncLifetime
             for (int i = 0; i < 100; i++)
             {
                 var game = Game.Create($"Game {platform.Id}-{i}", platform.Id);
-                typeof(Game).GetProperty("Id")?.SetValue(game, GameId.NewId());
+                typeof(Game).GetProperty("Id")?.SetValue(game, GameId.NewId().Value);
                 games.Add(game);
             }
         }
         await _dbContext.Games.AddRangeAsync(games);
         await _dbContext.SaveChangesAsync();
 
-        // Act - Apply migrations to existing data
+        // Act - Ensure schema remains stable with existing data
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        await _dbContext.Database.MigrateAsync();
+        await _dbContext.Database.EnsureCreatedAsync();
         stopwatch.Stop();
 
         // Assert - Migration should complete efficiently

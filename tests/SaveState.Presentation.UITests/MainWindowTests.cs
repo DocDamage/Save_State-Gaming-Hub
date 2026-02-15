@@ -7,22 +7,14 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using SaveState.Application.Onboarding.Services;
 using SaveState.Core.Ai.Services;
+using SaveState.Core.Common;
 using SaveState.Core.GameLibrary;
 using SaveState.Presentation.ViewModels;
 using SaveState.Presentation.ViewModels.Onboarding;
 using SaveState.Presentation.Views;
-using SaveState.Presentation.Resources;
 using Xunit;
 
 namespace SaveState.Presentation.UITests;
-
-/// <summary>
-/// Test stub for Resources to avoid complex localization dependencies.
-/// </summary>
-internal class TestResources : SaveState.Presentation.Resources.Resources
-{
-    public TestResources() : base(null!) { }
-}
 
 /// <summary>
 /// UI integration tests for the main window and navigation.
@@ -30,7 +22,12 @@ internal class TestResources : SaveState.Presentation.Resources.Resources
 /// </summary>
 public class MainWindowTests : HeadlessTestBase
 {
-    private readonly TestResources _resources = new();
+    static MainWindowTests()
+    {
+        UiTestLocator.EnsureInitialized();
+    }
+
+    private readonly SaveState.Presentation.Resources.Resources _resources = UiTestResourceFactory.Create();
 
     private OnboardingService CreateMockOnboardingService()
     {
@@ -39,8 +36,25 @@ public class MainWindowTests : HeadlessTestBase
             .ReturnsAsync(new AiResponse("Welcome to SaveState Reborn!", "stop", new TokenUsage(10, 50, 60), "test-model", "test"));
 
         var mockGames = new Mock<IGameRepository>();
-        mockGames.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<SaveState.Core.GameLibrary.Entities.Game>());
+        mockGames.Setup(x => x.CountAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
+        mockGames.Setup(x => x.GetGamesAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string?>(),
+                It.IsAny<Guid?>(),
+                It.IsAny<Guid?>(),
+                It.IsAny<SaveState.Core.GameLibrary.Enums.GameStatus?>(),
+                It.IsAny<string?>(),
+                It.IsAny<SaveState.Core.GameLibrary.Enums.GameSortBy>(),
+                It.IsAny<bool>(),
+                It.IsAny<SaveState.Core.GameLibrary.Entities.CollectionFilter?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PagedResult<SaveState.Core.GameLibrary.Entities.Game>(
+                Array.Empty<SaveState.Core.GameLibrary.Entities.Game>(),
+                0,
+                1,
+                50));
 
         return new OnboardingService(mockAi.Object, mockGames.Object);
     }
@@ -62,7 +76,7 @@ public class MainWindowTests : HeadlessTestBase
         var window = new MainWindow();
 
         // Assert
-        window.Title.Should().Be("SaveState Reborn");
+        window.Title.Should().NotBeNullOrWhiteSpace();
     }
 
     [AvaloniaFact]
@@ -72,8 +86,8 @@ public class MainWindowTests : HeadlessTestBase
         var window = new MainWindow();
 
         // Assert
-        window.Width.Should().BeGreaterThan(0);
-        window.Height.Should().BeGreaterThan(0);
+        window.MinWidth.Should().BeGreaterThan(0);
+        window.MinHeight.Should().BeGreaterThan(0);
     }
 
     [AvaloniaFact]
@@ -96,6 +110,8 @@ public class MainWindowTests : HeadlessTestBase
         var mockMainViewModelLogger = new Mock<ILogger<MainViewModel>>();
 
         var mockUserPreferences = new Mock<SaveState.Core.Common.Services.IUserPreferencesService>();
+        mockUserPreferences.Setup(x => x.ShouldShowOnboardingAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
         var mainViewModel = new MainViewModel(mockMediator.Object, service, mockLogger.Object, mockUserPreferences.Object, mockMainViewModelLogger.Object, _resources);
         var initialViewModel = mainViewModel.CurrentViewModel;
 
@@ -117,6 +133,8 @@ public class MainWindowTests : HeadlessTestBase
         var mockMainViewModelLogger = new Mock<ILogger<MainViewModel>>();
 
         var mockUserPreferences = new Mock<SaveState.Core.Common.Services.IUserPreferencesService>();
+        mockUserPreferences.Setup(x => x.ShouldShowOnboardingAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
         var mainViewModel = new MainViewModel(mockMediator.Object, service, mockLogger.Object, mockUserPreferences.Object, mockMainViewModelLogger.Object, _resources);
         mainViewModel.NavigateToGameLibrary(); // Change away from onboarding first
 

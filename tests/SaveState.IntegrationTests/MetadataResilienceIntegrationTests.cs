@@ -39,7 +39,7 @@ public class MetadataResilienceIntegrationTests : IClassFixture<IntegrationTestF
         var result = await metadataService.GetGameMetadataAsync("", default);
 
         // Assert
-        result.Should().Be(GameMetadata.Empty);
+        result.Should().BeEquivalentTo(GameMetadata.Empty);
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class MetadataResilienceIntegrationTests : IClassFixture<IntegrationTestF
         var result = await metadataService.GetGameMetadataAsync("   ", default);
 
         // Assert
-        result.Should().Be(GameMetadata.Empty);
+        result.Should().BeEquivalentTo(GameMetadata.Empty);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class MetadataResilienceIntegrationTests : IClassFixture<IntegrationTestF
         var result = await metadataService.GetGameMetadataAsync("Test Game", cts.Token);
 
         // Assert
-        result.Should().Be(GameMetadata.Empty);
+        result.Should().BeEquivalentTo(GameMetadata.Empty);
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class MetadataResilienceIntegrationTests : IClassFixture<IntegrationTestF
         var result = await metadataService.GetCoverImageAsync("Test Game", cts.Token);
 
         // Assert
-        result.Should().BeNull();
+        result.IsFailure.Should().BeTrue();
     }
 
     [Fact]
@@ -109,7 +109,7 @@ public class MetadataResilienceIntegrationTests : IClassFixture<IntegrationTestF
         var result = await resilientService.GetGameMetadataAsync("NonExistentGame12345", default);
 
         // Assert - Should return empty (fallback behavior)
-        result.Should().Be(GameMetadata.Empty);
+        result.Should().BeEquivalentTo(GameMetadata.Empty);
     }
 
     [Fact]
@@ -140,6 +140,6 @@ public class MetadataResilienceIntegrationTests : IClassFixture<IntegrationTestF
         var result = await metadataService.GetCoverImageAsync("DefinitelyNotARealGame", default);
 
         // Assert
-        result.Should().BeNull();
+        result.IsFailure.Should().BeTrue();
     }
 }
