@@ -169,13 +169,13 @@ public class MugenCoachService : IMugenCoachService
 
         try
         {
-            var resolvedPath = ReplayAnalyzer.ResolveReplayPath(replayPath);
-            if (resolvedPath is null)
+            var pathResult = ReplayAnalyzer.ResolveReplayPath(replayPath);
+            if (!pathResult.IsSuccess)
             {
-                return Result.Failure<IReadOnlyList<string>>("Replay file not found.");
+                return Result.Failure<IReadOnlyList<string>>($"Replay file not found: {pathResult.Error}");
             }
 
-            var analysis = await _replayAnalyzer.AnalyzeAsync(resolvedPath, ct);
+            var analysis = await _replayAnalyzer.AnalyzeAsync(pathResult.Value, ct);
             var suggestions = _replayAnalyzer.BuildCoachingSuggestions(analysis);
 
             if (analysis.Events.Count >= 10)

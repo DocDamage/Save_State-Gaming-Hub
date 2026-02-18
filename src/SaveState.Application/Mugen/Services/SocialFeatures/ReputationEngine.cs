@@ -1,5 +1,6 @@
 using SaveState.Application.Mugen.Models.NetworkFeatures;
 using SaveState.Application.Mugen.Models.SocialFeatures;
+using SaveState.Core.Common.Services;
 using Microsoft.Extensions.Logging;
 
 namespace SaveState.Application.Mugen.Services.SocialFeatures;
@@ -10,10 +11,12 @@ namespace SaveState.Application.Mugen.Services.SocialFeatures;
 public sealed class ReputationEngine
 {
     private readonly ILogger<ReputationEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public ReputationEngine(ILogger<ReputationEngine> logger)
+    public ReputationEngine(ILogger<ReputationEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -28,7 +31,7 @@ public sealed class ReputationEngine
             Tier = ReputationTier.Neutral,
             ReportsReceived = 0,
             PositiveInteractions = 0,
-            LastActivity = DateTime.UtcNow
+            LastActivity = _timeProvider.UtcNow
         };
     }
 
@@ -48,7 +51,7 @@ public sealed class ReputationEngine
             ReportedPlayerId = reportedPlayerId,
             Reason = reason,
             Description = description,
-            SubmittedAt = DateTime.UtcNow,
+            SubmittedAt = _timeProvider.UtcNow,
             Status = ReportStatus.Pending
         };
 
@@ -75,7 +78,7 @@ public sealed class ReputationEngine
         reputation.Score = Math.Max(0, reputation.Score + scoreChange);
         reputation.ReportsReceived++;
         reputation.Tier = CalculateReputationTier(reputation.Score);
-        reputation.LastActivity = DateTime.UtcNow;
+        reputation.LastActivity = _timeProvider.UtcNow;
 
         _logger.LogDebug("Updated reputation for {PlayerId}: score {Score}, tier {Tier}",
             reputation.PlayerId, reputation.Score, reputation.Tier);
@@ -104,7 +107,7 @@ public sealed class ReputationEngine
         reputation.PositiveInteractions++;
         reputation.Score = Math.Min(2000, reputation.Score + 5);
         reputation.Tier = CalculateReputationTier(reputation.Score);
-        reputation.LastActivity = DateTime.UtcNow;
+        reputation.LastActivity = _timeProvider.UtcNow;
 
         _logger.LogDebug("Added positive interaction for {PlayerId}", reputation.PlayerId);
     }

@@ -14,6 +14,7 @@ public class NarrativeMemoryService : INarrativeMemoryService
 {
     private readonly ILogger<NarrativeMemoryService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, MemoryCrystal> _memoryCrystals = new();
     private readonly Dictionary<string, AlternateTimeline> _alternateTimelines = new();
     private readonly Dictionary<string, CrystalCollection> _crystalCollections = new();
@@ -25,14 +26,16 @@ public class NarrativeMemoryService : INarrativeMemoryService
     public NarrativeMemoryService(
         ILogger<NarrativeMemoryService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _crystalEngine = new CrystalEngine(loggerFactory.CreateLogger<CrystalEngine>());
-        _timelineEngine = new TimelineEngine(loggerFactory.CreateLogger<TimelineEngine>());
-        _synthesisEngine = new SynthesisEngine(loggerFactory.CreateLogger<SynthesisEngine>());
-        _butterflyEngine = new ButterflyEngine(loggerFactory.CreateLogger<ButterflyEngine>());
+        _timeProvider = timeProvider;
+        _crystalEngine = new CrystalEngine(loggerFactory.CreateLogger<CrystalEngine>(), timeProvider);
+        _timelineEngine = new TimelineEngine(loggerFactory.CreateLogger<TimelineEngine>(), timeProvider);
+        _synthesisEngine = new SynthesisEngine(loggerFactory.CreateLogger<SynthesisEngine>(), timeProvider);
+        _butterflyEngine = new ButterflyEngine(loggerFactory.CreateLogger<ButterflyEngine>(), timeProvider);
 
         InitializeMemorySystem();
     }
@@ -229,7 +232,7 @@ public class NarrativeMemoryService : INarrativeMemoryService
                 TradeOpportunities = await AnalyzeTradeOpportunitiesAsync(playerId, ct),
                 SynthesisPotential = await AnalyzeSynthesisPotentialAsync(playerId, ct),
                 MarketValue = CalculateMarketValue(playerId),
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Crystal economy generated: {TotalValue:F2} total value", economy.CrystalValue);
@@ -297,8 +300,8 @@ public class NarrativeMemoryService : INarrativeMemoryService
                 OfferedValue = CalculateTradeValue(request.OfferedCrystals),
                 RequestedValue = CalculateTradeValue(request.RequestedCrystals),
                 Status = TradeStatus.Pending,
-                CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddHours(24)
+                CreatedAt = _timeProvider.UtcNow,
+                ExpiresAt = _timeProvider.UtcNow.AddHours(24)
             };
 
             _logger.LogInformation("Crystal trade initiated: {TradeId}", trade.TradeId);
@@ -328,7 +331,7 @@ public class NarrativeMemoryService : INarrativeMemoryService
                 NarrativeDiversity = CalculateNarrativeDiversity(playerId),
                 StoryCompletion = CalculateStoryCompletion(playerId),
                 AlternateOutcomesExplored = CalculateAlternateOutcomesExplored(playerId),
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Narrative analytics generated successfully");
@@ -353,7 +356,7 @@ public class NarrativeMemoryService : INarrativeMemoryService
         var collection = await GetOrCreateCollectionAsync(playerId, ct);
         collection.Crystals.Add(crystal.CrystalId);
         collection.TotalCrystals++;
-        collection.LastUpdated = DateTime.UtcNow;
+        collection.LastUpdated = _timeProvider.UtcNow;
     }
 
     private async Task<CrystalCollection> GetOrCreateCollectionAsync(string playerId, CancellationToken ct)
@@ -366,8 +369,8 @@ public class NarrativeMemoryService : INarrativeMemoryService
                 PlayerId = playerId,
                 Crystals = new List<string>(),
                 TotalCrystals = 0,
-                CreatedAt = DateTime.UtcNow,
-                LastUpdated = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow,
+                LastUpdated = _timeProvider.UtcNow
             };
             _crystalCollections[playerId] = collection;
         }
@@ -416,7 +419,7 @@ public class NarrativeMemoryService : INarrativeMemoryService
                 OfferedCrystal = "rare_combo_crystal",
                 RequestedCrystal = "epic_counter_crystal",
                 ValueRatio = 1.8f,
-                ExpiresAt = DateTime.UtcNow.AddDays(7)
+                ExpiresAt = _timeProvider.UtcNow.AddDays(7)
             }
         };
     }

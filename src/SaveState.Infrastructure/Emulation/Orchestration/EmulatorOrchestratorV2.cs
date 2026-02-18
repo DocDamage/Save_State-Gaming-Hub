@@ -221,14 +221,14 @@ public sealed class EmulatorOrchestratorV2 : IEmulatorOrchestratorV2
         }
     }
 
-    public Task<Result<HardwareBasedConfig>> AutoConfigureAsync(EmulatorType emulatorType, CancellationToken ct = default)
+    public async Task<Result<HardwareBasedConfig>> AutoConfigureAsync(EmulatorType emulatorType, CancellationToken ct = default)
     {
         try
         {
-            var capabilities = GetHardwareCapabilitiesAsync(ct).Result;
+            var capabilities = await GetHardwareCapabilitiesAsync(ct).ConfigureAwait(false);
             if (capabilities.IsFailure)
             {
-                return Task.FromResult(Result<HardwareBasedConfig>.Failure(capabilities.Error!, capabilities.ErrorType));
+                return Result<HardwareBasedConfig>.Failure(capabilities.Error!, capabilities.ErrorType);
             }
 
             var caps = capabilities.Value!;
@@ -271,12 +271,12 @@ public sealed class EmulatorOrchestratorV2 : IEmulatorOrchestratorV2
                                          caps.MemoryMb > 8000 ? OptimizationLevel.Aggressive : OptimizationLevel.Balanced);
 
             _logger.LogInformation("Auto-configured {Emulator} for current hardware", emulatorType);
-            return Task.FromResult(Result<HardwareBasedConfig>.Success(config));
+            return Result<HardwareBasedConfig>.Success(config);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to auto-configure emulator");
-            return Task.FromResult(Result<HardwareBasedConfig>.Failure($"Failed to auto-configure: {ex.Message}", ErrorType.Internal));
+            return Result<HardwareBasedConfig>.Failure($"Failed to auto-configure: {ex.Message}", ErrorType.Internal);
         }
     }
 

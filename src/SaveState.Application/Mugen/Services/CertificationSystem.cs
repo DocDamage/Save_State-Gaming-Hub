@@ -17,6 +17,7 @@ public class CertificationSystem : CertificationSystemICertificationSystem
 {
     private readonly ILogger<CertificationSystem> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, CertificationSystemCertification> _certifications = new();
     private readonly Dictionary<string, CertificationSystemBadge> _badges = new();
     private readonly Dictionary<string, CertificationSystemUserCertifications> _userCertifications = new();
@@ -29,11 +30,13 @@ public class CertificationSystem : CertificationSystemICertificationSystem
     public CertificationSystem(
         ILogger<CertificationSystem> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _assessmentEngine = new CertificationSystemAssessmentEngine(loggerFactory.CreateLogger<CertificationSystemAssessmentEngine>());
+        _timeProvider = timeProvider;
+        _assessmentEngine = new CertificationSystemAssessmentEngine(loggerFactory.CreateLogger<CertificationSystemAssessmentEngine>(), timeProvider);
         _badgeAwarder = new CertificationSystemBadgeAwarder(loggerFactory.CreateLogger<CertificationSystemBadgeAwarder>());
         _certificationManager = new CertificationSystemCertificationManager(loggerFactory.CreateLogger<CertificationSystemCertificationManager>());
         _progressTracker = new CertificationSystemProgressTracker(loggerFactory.CreateLogger<CertificationSystemProgressTracker>());
@@ -106,14 +109,14 @@ public class CertificationSystem : CertificationSystemICertificationSystem
                 ApplicationId = Guid.NewGuid().ToString(),
                 UserId = userId,
                 CertificationId = certificationId,
-                AppliedAt = DateTime.UtcNow,
+                AppliedAt = _timeProvider.UtcNow,
                 Status = CertificationSystemApplicationStatus.Pending,
                 PrerequisitesMet = prerequisiteCheck.IsMet,
                 RequiredAssessments = certification.RequiredAssessments,
                 AssessmentResults = new Dictionary<string, CertificationSystemAssessmentResult>(),
                 ReviewNotes = null,
                 ReviewedAt = null,
-                ExpiresAt = DateTime.UtcNow.AddDays(30)
+                ExpiresAt = _timeProvider.UtcNow.AddDays(30)
             };
 
             // Start required assessments
@@ -127,7 +130,7 @@ public class CertificationSystem : CertificationSystemICertificationSystem
                         CertificationSystemAssessmentType = assessmentType,
                         Score = assessment.Value.OverallScore,
                         Passed = assessment.Value.OverallScore >= certification.MinimumScore,
-                        CompletedAt = DateTime.UtcNow
+                        CompletedAt = _timeProvider.UtcNow
                     };
                 }
             }
@@ -136,7 +139,7 @@ public class CertificationSystem : CertificationSystemICertificationSystem
             if (application.AssessmentResults.All(r => r.Value.Passed))
             {
                 application.Status = CertificationSystemApplicationStatus.Approved;
-                application.ReviewedAt = DateTime.UtcNow;
+                application.ReviewedAt = _timeProvider.UtcNow;
 
                 // Award certification
                 await AwardCertificationAsync(userId, certification, ct);
@@ -211,7 +214,7 @@ public class CertificationSystem : CertificationSystemICertificationSystem
                     CertificationPoints = 0,
                     BadgePoints = 0,
                     SkillLevel = SkillLevel.Beginner,
-                    LastUpdated = DateTime.UtcNow
+                    LastUpdated = _timeProvider.UtcNow
                 };
 
                 _userCertifications[userId] = certifications;
@@ -316,7 +319,7 @@ public class CertificationSystem : CertificationSystemICertificationSystem
                     ["Advanced Techniques"] = 0.12,
                     ["Final Evaluation"] = 0.03
                 },
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("CertificationSystemCertification analytics generated successfully");
@@ -347,7 +350,7 @@ public class CertificationSystem : CertificationSystemICertificationSystem
             EstimatedDuration = TimeSpan.FromHours(5),
             SkillsCovered = new[] { "Basic Controls", "Movement", "Simple Combos" },
             BadgeReward = "beginner-master",
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
             TotalAwarded = 0
         };
 
@@ -420,7 +423,7 @@ public class CertificationSystem : CertificationSystemICertificationSystem
                 CertificationPoints = 0,
                 BadgePoints = 0,
                 SkillLevel = SkillLevel.Beginner,
-                LastUpdated = DateTime.UtcNow
+                LastUpdated = _timeProvider.UtcNow
             };
 
             _userCertifications[userId] = userCerts;
@@ -429,7 +432,7 @@ public class CertificationSystem : CertificationSystemICertificationSystem
         var earnedCert = new CertificationSystemEarnedCertification
         {
             CertificationId = certification.CertificationId,
-            EarnedAt = DateTime.UtcNow,
+            EarnedAt = _timeProvider.UtcNow,
             AssessmentScores = new Dictionary<string, double>(),
             CertificateUrl = $"/certificates/{userId}/{certification.CertificationId}"
         };
@@ -441,7 +444,7 @@ public class CertificationSystem : CertificationSystemICertificationSystem
 
         // Update skill level
         userCerts.SkillLevel = DetermineSkillLevel(userCerts.CertificationPoints);
-        userCerts.LastUpdated = DateTime.UtcNow;
+        userCerts.LastUpdated = _timeProvider.UtcNow;
 
         certification.TotalAwarded++;
 
@@ -467,7 +470,7 @@ public class CertificationSystem : CertificationSystemICertificationSystem
                 CertificationPoints = 0,
                 BadgePoints = 0,
                 SkillLevel = SkillLevel.Beginner,
-                LastUpdated = DateTime.UtcNow
+                LastUpdated = _timeProvider.UtcNow
             };
 
             _userCertifications[userId] = userCerts;
@@ -476,7 +479,7 @@ public class CertificationSystem : CertificationSystemICertificationSystem
         var earnedBadge = new CertificationSystemEarnedBadge
         {
             BadgeId = badge.BadgeId,
-            EarnedAt = DateTime.UtcNow,
+            EarnedAt = _timeProvider.UtcNow,
             EarnedReason = reason
         };
 
@@ -484,13 +487,13 @@ public class CertificationSystem : CertificationSystemICertificationSystem
         earnedBadges.Add(earnedBadge);
         userCerts.EarnedBadges = earnedBadges;
         userCerts.BadgePoints += badge.PointsValue;
-        userCerts.LastUpdated = DateTime.UtcNow;
+        userCerts.LastUpdated = _timeProvider.UtcNow;
 
         var award = new CertificationSystemBadgeAward
         {
             BadgeId = badge.BadgeId,
             UserId = userId,
-            AwardedAt = DateTime.UtcNow,
+            AwardedAt = _timeProvider.UtcNow,
             Reason = reason,
             PointsEarned = badge.PointsValue
         };
@@ -513,7 +516,7 @@ public class CertificationSystem : CertificationSystemICertificationSystem
             OverallProgress = 0.0,
             EstimatedCompletion = TimeSpan.FromDays(7),
             NextSteps = new[] { "Complete required assessments", "Meet minimum score requirements" },
-            LastUpdated = DateTime.UtcNow
+            LastUpdated = _timeProvider.UtcNow
         };
 
         // Check assessment completion
@@ -605,7 +608,7 @@ public class CertificationSystem : CertificationSystemICertificationSystem
             CertificationSystemLeaderboardType = CertificationSystemLeaderboardType.CertificationSystemCertification,
             CertificationSystemTimeFrame = CertificationSystemTimeFrame.AllTime,
             Entries = entries,
-            GeneratedAt = DateTime.UtcNow,
+            GeneratedAt = _timeProvider.UtcNow,
             TotalEntries = entries.Count
         };
     }
@@ -619,10 +622,12 @@ public class CertificationSystem : CertificationSystemICertificationSystem
 public class CertificationSystemAssessmentEngine
 {
     private readonly ILogger<CertificationSystemAssessmentEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public CertificationSystemAssessmentEngine(ILogger<CertificationSystemAssessmentEngine> logger)
+    public CertificationSystemAssessmentEngine(ILogger<CertificationSystemAssessmentEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<CertificationSystemSkillAssessment> PerformAssessmentAsync(string userId, CertificationSystemAssessmentType assessmentType, CancellationToken ct)
@@ -654,7 +659,7 @@ public class CertificationSystemAssessmentEngine
             CertificationSystemAssessmentType = assessmentType,
             SkillScores = skillScores,
             OverallScore = overallScore,
-            AssessedAt = DateTime.UtcNow,
+            AssessedAt = _timeProvider.UtcNow,
             ValidityPeriod = TimeSpan.FromDays(30)
         };
     }

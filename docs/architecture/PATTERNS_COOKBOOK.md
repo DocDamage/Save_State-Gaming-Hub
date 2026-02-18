@@ -1,8 +1,16 @@
 # Patterns Cookbook - Copy-Paste Code Examples
 
 **Purpose**: Provides copy-paste code patterns from the **actual SaveState Reborn codebase**. Use these exactly.
-**Last Updated**: January 2, 2026
+**Last Updated**: February 16, 2026
 **Source**: Extracted from `src/` directory
+
+## Quick Stats
+
+| Metric | Value |
+|--------|-------|
+| `return null` migrated to Result<T> | **183** instances ✅ |
+| Services refactored | **10 major services** |
+| Build status | **0 errors, 0 warnings** |
 
 ---
 
@@ -1473,3 +1481,212 @@ When adding a new feature, create these files:
 ---
 
 **This cookbook uses real code from SaveState Reborn. When in doubt, copy exactly from here.**
+---
+
+## 13. Anti-Patterns to Avoid (Updated February 2026)
+
+### ❌ NEVER: Return null from public methods
+
+**Before (WRONG)**:
+```csharp
+public async Task<Game> GetGameAsync(Guid id)
+{
+    var game = await _repository.GetByIdAsync(id);
+    if (game == null) return null;  // ❌ WRONG!
+    return game;
+}
+
+public User FindUser(string email)
+{
+    return _users.FirstOrDefault(u => u.Email == email); // ❌ May return null!
+}
+```
+
+**After (CORRECT)**:
+```csharp
+public async Task<Result<Game>> GetGameAsync(Guid id)
+{
+    var game = await _repository.GetByIdAsync(id);
+    if (game == null)
+        return Result<Game>.Failure($"Game {id} not found", ErrorType.NotFound);
+    return Result<Game>.Success(game);
+}
+
+public Result<User> FindUser(string email)
+{
+    var user = _users.FirstOrDefault(u => u.Email == email);
+    if (user == null)
+        return Result<User>.Failure($"User with email {email} not found", ErrorType.NotFound);
+    return Result<User>.Success(user);
+}
+```
+
+### ✅ ACCEPTABLE: Nullable types in specific patterns
+
+These patterns are **ACCEPTABLE** and do not need migration:
+
+```csharp
+// ✅ Nullable VALUE types for "no data" states
+public Task<Guid?> GetLastPlayedGameIdAsync()  // null = no last game (valid state)
+public Task<DateTime?> GetTimestampAsync()     // null = no timestamp (valid state)
+public Task<int?> GetOptionalSettingAsync()    // null = not configured (valid state)
+
+// ✅ Private parsing/extraction helpers
+private string? ExtractValue(string input) { return null; }  // "Not found" is valid
+private T? FindFirstOrDefault<T>(List<T> list) { return null; }
+
+// ✅ UI dialog cancellation (user cancelled = valid null)
+public Task<string?> ShowDialogAsync() { return Task.FromResult<string?>(null); }
+
+// ✅ Demo/stub implementations (temporary)
+public object? GetResourceDictionary() { return null; } // Not implemented yet
+```
+
+### Migration Status (February 16, 2026)
+
+**183 null returns migrated** to Result<T> pattern:
+
+| Service | Nulls Migrated |
+|---------|---------------|
+| AchievementService | 16 |
+| Smart Launcher | 18 |
+| RecordingEngine | 6 |
+| SessionRecoveryService | 6 |
+| XboxCatalogClient | 3 |
+| SequenceAnalysisEngine | 4 |
+| ReplayPathResolver | 4 |
+| NaturalLanguageGameSearch | 4 |
+| Other services | 122 |
+
+**All public API methods now return `Result<T>` instead of null.**
+
+### ❌ NEVER: Use null-forgiving operator without check
+
+**Before (WRONG)**:
+```csharp
+var game = result.Value!;  // ❌ Dangerous! May be null
+var name = obj!.Property;   // ❌ No null check!
+```
+
+**After (CORRECT)**:
+```csharp
+if (result.IsFailure)
+{
+    _logger.LogWarning("Failed: {Error}", result.Error);
+    return Result<GameDto>.Failure(result.Error!, result.ErrorType);
+}
+var game = result.Value;  // ✅ Safe after IsFailure check
+
+if (obj is null)
+    return Result.Failure<string>("Object not found", ErrorType.NotFound);
+var name = obj.Property;  // ✅ Safe after null check
+```
+
+### ❌ NEVER: async void (except event handlers)
+
+**Before (WRONG)**:
+```csharp
+async void OnButtonClick()  // ❌ Wrong!
+{
+    await DoWorkAsync();
+}
+```
+
+**After (CORRECT)**:
+```csharp
+async Task OnButtonClickAsync()  // ✅ Correct
+{
+    await DoWorkAsync();
+}
+
+// For event handlers only:
+async void OnClosing(object? sender, CancelEventArgs e)  // ✅ OK for event handlers
+{
+    await CleanupAsync();
+}
+```
+
+### ❌ NEVER: Block on async code
+
+**Before (WRONG)**:
+```csharp
+var result = GetDataAsync().Result;  // ❌ Deadlock risk!
+GetDataAsync().Wait();               // ❌ Deadlock risk!
+```
+
+**After (CORRECT)**:
+```csharp
+var result = await GetDataAsync();   // ✅ Always await
+```
+
+### ❌ NEVER: Empty catch blocks
+
+**Before (WRONG)**:
+```csharp
+catch (Exception)
+{
+    // ❌ Silent failure!
+}
+```
+
+**After (CORRECT)**:
+```csharp
+catch (Exception ex)
+{
+    _logger.LogError(ex, "Operation failed: {Operation}", operationName);
+    return Result.Failure<T>($"Operation failed: {ex.Message}", ErrorType.Internal);
+}
+```
+
+### ❌ NEVER: Use DateTime.Now directly
+
+**Before (WRONG)**:
+```csharp
+var now = DateTime.Now;  // ❌ Not testable!
+```
+
+**After (CORRECT)**:
+```csharp
+// Inject ITimeProvider
+public class MyService
+{
+    private readonly ITimeProvider _timeProvider;
+    
+    public MyService(ITimeProvider timeProvider)
+    {
+        _timeProvider = timeProvider;
+    }
+    
+    public void DoWork()
+    {
+        var now = _timeProvider.Now;  // ✅ Testable
+    }
+}
+```
+
+### ❌ NEVER: Use string interpolation in logs
+
+**Before (WRONG)**:
+```csharp
+_logger.LogInformation($"Game imported: {game.Id}");  // ❌ Loses structure
+```
+
+**After (CORRECT)**:
+```csharp
+_logger.LogInformation("Game imported: {GameId}", game.Id);  // ✅ Structured
+```
+
+### ❌ NEVER: New up entities directly
+
+**Before (WRONG)**:
+```csharp
+var game = new Game { Title = title };  // ❌ Bypasses factory validation!
+```
+
+**After (CORRECT)**:
+```csharp
+var game = Game.Create(title);  // ✅ Factory method with validation
+```
+
+---
+

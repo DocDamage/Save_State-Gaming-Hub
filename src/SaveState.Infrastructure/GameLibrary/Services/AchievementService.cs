@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
@@ -37,7 +38,8 @@ public class AchievementService : IAchievementService
         {
             userAchievementLookup.TryGetValue(achievement.Id, out var userAchievement);
 
-            var criteria = ParseCriteria(achievement.Criteria, achievement.GameId);
+            var criteriaResult = ParseCriteria(achievement.Criteria, achievement.GameId);
+            var criteria = criteriaResult.IsSuccess ? criteriaResult.Value : null;
             var targetProgress = userAchievement?.TargetProgress ?? DetermineTargetProgress(achievement, criteria);
             var scopeGameId = criteria?.GameId ?? achievement.GameId;
 
@@ -93,7 +95,8 @@ public class AchievementService : IAchievementService
 
             if (userAchievement == null)
             {
-                var criteria = ParseCriteria(achievement.Criteria, achievement.GameId);
+                var criteriaResult = ParseCriteria(achievement.Criteria, achievement.GameId);
+                var criteria = criteriaResult.IsSuccess ? criteriaResult.Value : null;
                 var targetProgress = DetermineTargetProgress(achievement, criteria);
                 userAchievement = new UserAchievement(userId, achievement.Id, targetProgress);
             }
@@ -158,11 +161,11 @@ public class AchievementService : IAchievementService
         int SessionsInLastDays,
         int DistinctGamesPlayed);
 
-    private AchievementCriteria? ParseCriteria(string? criteriaJson, Guid? fallbackGameId)
+    private Result<AchievementCriteria> ParseCriteria(string? criteriaJson, Guid? fallbackGameId)
     {
         if (string.IsNullOrWhiteSpace(criteriaJson))
         {
-            return null;
+            return Result.Failure<AchievementCriteria>("Criteria JSON is empty");
         }
 
         try
@@ -170,21 +173,28 @@ public class AchievementService : IAchievementService
             using var document = JsonDocument.Parse(criteriaJson);
             if (document.RootElement.ValueKind != JsonValueKind.Object)
             {
-                return null;
+                return Result.Failure<AchievementCriteria>("Criteria JSON is not an object");
             }
 
             var root = document.RootElement;
 
-            var gameId = TryGetGuid(root, "gameId") ?? TryGetGuid(root, "GameId") ?? fallbackGameId;
-            var minSessionCount = TryGetInt(root, "minSessions") ?? TryGetInt(root, "minSessionCount");
-            var minSessionsInLastDays = TryGetInt(root, "minSessionsInLastDays") ?? TryGetInt(root, "minSessionsLastDays");
-            var minTotalPlaytimeMinutes = TryGetInt(root, "minTotalPlaytimeMinutes") ?? TryGetInt(root, "minPlaytimeMinutes");
-            var minTotalPlaytimeHours = TryGetInt(root, "minTotalPlaytimeHours") ?? TryGetInt(root, "minPlaytimeHours");
-            var minDistinctGamesPlayed = TryGetInt(root, "minDistinctGamesPlayed");
-            var minCompletedGames = TryGetInt(root, "minCompletedGames");
-            var requireCompletion = TryGetBool(root, "requireCompletion") ?? TryGetBool(root, "requiresCompletion");
+            var gameId = TryGetGuid(root, "gameId").Value
+                ?? TryGetGuid(root, "GameId").Value
+                ?? fallbackGameId;
+            var minSessionCount = TryGetInt(root, "minSessions").Value
+                ?? TryGetInt(root, "minSessionCount").Value;
+            var minSessionsInLastDays = TryGetInt(root, "minSessionsInLastDays").Value
+                ?? TryGetInt(root, "minSessionsLastDays").Value;
+            var minTotalPlaytimeMinutes = TryGetInt(root, "minTotalPlaytimeMinutes").Value
+                ?? TryGetInt(root, "minPlaytimeMinutes").Value;
+            var minTotalPlaytimeHours = TryGetInt(root, "minTotalPlaytimeHours").Value
+                ?? TryGetInt(root, "minPlaytimeHours").Value;
+            var minDistinctGamesPlayed = TryGetInt(root, "minDistinctGamesPlayed").Value;
+            var minCompletedGames = TryGetInt(root, "minCompletedGames").Value;
+            var requireCompletion = TryGetBool(root, "requireCompletion").Value
+                ?? TryGetBool(root, "requiresCompletion").Value;
 
-            return new AchievementCriteria(
+            return Result.Success(new AchievementCriteria(
                 gameId,
                 minSessionCount,
                 minSessionsInLastDays,
@@ -192,12 +202,12 @@ public class AchievementService : IAchievementService
                 minTotalPlaytimeHours,
                 minDistinctGamesPlayed,
                 minCompletedGames,
-                requireCompletion);
+                requireCompletion));
         }
         catch (JsonException ex)
         {
             _logger.LogWarning(ex, "Failed to parse achievement criteria");
-            return null;
+            return Result.Failure<AchievementCriteria>($"Failed to parse criteria: {ex.Message}");
         }
     }
 
@@ -398,51 +408,51 @@ public class AchievementService : IAchievementService
         return games.Count(game => game.IsCompleted);
     }
 
-    private static int? TryGetInt(JsonElement root, string name)
+    private static Result<int?> TryGetInt(JsonElement root, string name)
     {
         if (!TryGetPropertyIgnoreCase(root, name, out var element))
         {
-            return null;
+            return Result.Success<int?>(null);
         }
 
         if (element.ValueKind == JsonValueKind.Number && element.TryGetInt32(out var value))
         {
-            return value;
+            return Result.Success<int?>(value);
         }
 
         if (element.ValueKind == JsonValueKind.String && int.TryParse(element.GetString(), out value))
         {
-            return value;
+            return Result.Success<int?>(value);
         }
 
-        return null;
+        return Result.Success<int?>(null);
     }
 
-    private static bool? TryGetBool(JsonElement root, string name)
+    private static Result<bool?> TryGetBool(JsonElement root, string name)
     {
         if (!TryGetPropertyIgnoreCase(root, name, out var element))
         {
-            return null;
+            return Result.Success<bool?>(null);
         }
 
         return element.ValueKind == JsonValueKind.True || element.ValueKind == JsonValueKind.False
-            ? element.GetBoolean()
-            : null;
+            ? Result.Success<bool?>(element.GetBoolean())
+            : Result.Success<bool?>(null);
     }
 
-    private static Guid? TryGetGuid(JsonElement root, string name)
+    private static Result<Guid?> TryGetGuid(JsonElement root, string name)
     {
         if (!TryGetPropertyIgnoreCase(root, name, out var element))
         {
-            return null;
+            return Result.Success<Guid?>(null);
         }
 
         if (element.ValueKind == JsonValueKind.String && Guid.TryParse(element.GetString(), out var value))
         {
-            return value;
+            return Result.Success<Guid?>(value);
         }
 
-        return null;
+        return Result.Success<Guid?>(null);
     }
 
     private static bool TryGetPropertyIgnoreCase(JsonElement element, string name, out JsonElement value)

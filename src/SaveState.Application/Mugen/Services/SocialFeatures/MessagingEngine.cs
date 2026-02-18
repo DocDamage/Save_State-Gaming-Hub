@@ -1,4 +1,5 @@
 using SaveState.Application.Mugen.Models.NetworkFeatures;
+using SaveState.Core.Common.Services;
 using Microsoft.Extensions.Logging;
 
 namespace SaveState.Application.Mugen.Services.SocialFeatures;
@@ -9,10 +10,12 @@ namespace SaveState.Application.Mugen.Services.SocialFeatures;
 public sealed class MessagingEngine
 {
     private readonly ILogger<MessagingEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public MessagingEngine(ILogger<MessagingEngine> logger)
+    public MessagingEngine(ILogger<MessagingEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -31,7 +34,7 @@ public sealed class MessagingEngine
             SenderName: fromPlayerName,
             Message: message,
             Channel: channel,
-            Timestamp: DateTime.UtcNow,
+            Timestamp: _timeProvider.UtcNow,
             TargetId: targetId
         );
 

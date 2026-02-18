@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Mugen.Models.DreamLogic;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Application.Mugen.Services.DreamLogic;
 
@@ -9,10 +10,12 @@ namespace SaveState.Application.Mugen.Services.DreamLogic;
 public class CollectiveEngine
 {
     private readonly ILogger<CollectiveEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public CollectiveEngine(ILogger<CollectiveEngine> logger)
+    public CollectiveEngine(ILogger<CollectiveEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public Task<CollectiveDream> InitiateCollectiveDreamAsync(CollectiveDreamRequest request, CancellationToken ct = default)
@@ -32,7 +35,7 @@ public class CollectiveEngine
             },
             ManifestedElements = new List<SymbolicElement>(),
             DreamTheme = DreamTheme.Collective,
-            InitiatedAt = DateTime.UtcNow,
+            InitiatedAt = _timeProvider.UtcNow,
             Duration = request.Duration,
             CoherenceLevel = 1.0f
         };
@@ -101,5 +104,5 @@ public class CollectiveEngine
 /// </summary>
 public class DreamLogicArenaServiceCollectiveEngine : CollectiveEngine
 {
-    public DreamLogicArenaServiceCollectiveEngine(ILogger<CollectiveEngine> logger) : base(logger) { }
+    public DreamLogicArenaServiceCollectiveEngine(ILogger<CollectiveEngine> logger, ITimeProvider timeProvider) : base(logger, timeProvider) { }
 }

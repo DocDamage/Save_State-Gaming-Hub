@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Automation.Services;
 using SaveState.Core.Automation.Services.DTOs;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using System.Collections.Concurrent;
 
 namespace SaveState.Infrastructure.Automation;
@@ -14,6 +15,7 @@ namespace SaveState.Infrastructure.Automation;
 public class BackupScheduler : IBackupScheduler, IDisposable
 {
     private readonly ILogger<BackupScheduler> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly ConcurrentDictionary<Guid, BackupSchedule> _schedules = new();
     private readonly ConcurrentDictionary<Guid, List<BackupResult>> _backupHistory = new();
     private bool _disposed;
@@ -22,9 +24,10 @@ public class BackupScheduler : IBackupScheduler, IDisposable
     public event EventHandler<BackupStartedEventArgs>? BackupStarted;
     public event EventHandler<BackupCompletedEventArgs>? BackupCompleted;
 
-    public BackupScheduler(ILogger<BackupScheduler> logger)
+    public BackupScheduler(ILogger<BackupScheduler> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public Task<Result<BackupSchedule>> CreateScheduleAsync(
@@ -38,8 +41,8 @@ public class BackupScheduler : IBackupScheduler, IDisposable
                 Description: config.Description,
                 Config: config,
                 IsEnabled: config.IsEnabled,
-                CreatedAt: DateTime.UtcNow,
-                LastModified: DateTime.UtcNow);
+                CreatedAt: _timeProvider.UtcNow,
+                LastModified: _timeProvider.UtcNow);
 
             _schedules[schedule.Id] = schedule;
             _backupHistory[schedule.Id] = new List<BackupResult>();
@@ -65,7 +68,7 @@ public class BackupScheduler : IBackupScheduler, IDisposable
         _schedules[scheduleId] = schedule with
         {
             Config = config,
-            LastModified = DateTime.UtcNow
+            LastModified = _timeProvider.UtcNow
         };
 
         _logger.LogInformation("Updated backup schedule: {Id}", scheduleId);
@@ -116,7 +119,7 @@ public class BackupScheduler : IBackupScheduler, IDisposable
 
             OnBackupStarted(scheduleId);
 
-            var startedAt = DateTime.UtcNow;
+            var startedAt = _timeProvider.UtcNow;
 
             // Simulate backup
             await Task.Delay(100, ct);
@@ -126,7 +129,7 @@ public class BackupScheduler : IBackupScheduler, IDisposable
                 ScheduleId: scheduleId,
                 GameId: schedule.Config.GameId,
                 StartedAt: startedAt,
-                CompletedAt: DateTime.UtcNow,
+                CompletedAt: _timeProvider.UtcNow,
                 Status: BackupStatus.Success,
                 TotalSizeBytes: 1024,
                 FilesBackedUp: 1,
@@ -134,7 +137,7 @@ public class BackupScheduler : IBackupScheduler, IDisposable
                 Errors: Array.Empty<string>());
 
             _backupHistory[scheduleId].Add(result);
-            _schedules[scheduleId] = schedule with { LastExecutedAt = DateTime.UtcNow };
+            _schedules[scheduleId] = schedule with { LastExecutedAt = _timeProvider.UtcNow };
 
             OnBackupCompleted(result);
             _logger.LogInformation("Backup completed: {Id}", result.Id);
@@ -170,7 +173,7 @@ public class BackupScheduler : IBackupScheduler, IDisposable
             return Task.FromResult(Result.Failure($"Schedule not found: {scheduleId}"));
         }
 
-        _schedules[scheduleId] = schedule with { IsEnabled = true, LastModified = DateTime.UtcNow };
+        _schedules[scheduleId] = schedule with { IsEnabled = true, LastModified = _timeProvider.UtcNow };
         return Task.FromResult(Result.Success());
     }
 
@@ -181,7 +184,7 @@ public class BackupScheduler : IBackupScheduler, IDisposable
             return Task.FromResult(Result.Failure($"Schedule not found: {scheduleId}"));
         }
 
-        _schedules[scheduleId] = schedule with { IsEnabled = false, LastModified = DateTime.UtcNow };
+        _schedules[scheduleId] = schedule with { IsEnabled = false, LastModified = _timeProvider.UtcNow };
         return Task.FromResult(Result.Success());
     }
 
@@ -193,7 +196,7 @@ public class BackupScheduler : IBackupScheduler, IDisposable
         }
 
         // Simplified - would calculate based on frequency
-        var nextTime = DateTime.UtcNow.AddHours(1);
+        var nextTime = _timeProvider.UtcNow.AddHours(1);
         return Task.FromResult(Result.Success<DateTime?>(nextTime));
     }
 

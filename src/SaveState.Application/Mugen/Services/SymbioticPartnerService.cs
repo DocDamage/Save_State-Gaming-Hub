@@ -14,6 +14,7 @@ public class SymbioticPartnerService : SymbioticPartnerServiceISymbioticPartnerS
 {
     private readonly ILogger<SymbioticPartnerService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, SymbioticPartnerServiceSymbioticPartner> _partners = new();
     private readonly Dictionary<string, SymbioticPartnerServiceSymbiosisSession> _symbiosisSessions = new();
     private readonly SymbioticPartnerServicePartnerEvolutionEngine _evolutionEngine;
@@ -24,14 +25,16 @@ public class SymbioticPartnerService : SymbioticPartnerServiceISymbioticPartnerS
     public SymbioticPartnerService(
         ILogger<SymbioticPartnerService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _evolutionEngine = new SymbioticPartnerServicePartnerEvolutionEngine(loggerFactory.CreateLogger<SymbioticPartnerServicePartnerEvolutionEngine>());
-        _symbiosisEngine = new SymbioticPartnerServiceSymbiosisEngine(loggerFactory.CreateLogger<SymbioticPartnerServiceSymbiosisEngine>());
-        _adaptationEngine = new SymbioticPartnerServiceAdaptationEngine(loggerFactory.CreateLogger<SymbioticPartnerServiceAdaptationEngine>());
-        _communicationEngine = new SymbioticPartnerServiceCommunicationEngine(loggerFactory.CreateLogger<SymbioticPartnerServiceCommunicationEngine>());
+        _timeProvider = timeProvider;
+        _evolutionEngine = new SymbioticPartnerServicePartnerEvolutionEngine(loggerFactory.CreateLogger<SymbioticPartnerServicePartnerEvolutionEngine>(), timeProvider);
+        _symbiosisEngine = new SymbioticPartnerServiceSymbiosisEngine(loggerFactory.CreateLogger<SymbioticPartnerServiceSymbiosisEngine>(), timeProvider);
+        _adaptationEngine = new SymbioticPartnerServiceAdaptationEngine(loggerFactory.CreateLogger<SymbioticPartnerServiceAdaptationEngine>(), timeProvider);
+        _communicationEngine = new SymbioticPartnerServiceCommunicationEngine(loggerFactory.CreateLogger<SymbioticPartnerServiceCommunicationEngine>(), timeProvider);
 
         InitializeDefaultPartners();
     }
@@ -68,8 +71,8 @@ public class SymbioticPartnerService : SymbioticPartnerServiceISymbioticPartnerS
                     SymbioticPartnerServiceCommunicationStyle = SymbioticPartnerServiceCommunicationStyle.Direct,
                     LearningRate = 0.7f
                 },
-                CreatedAt = DateTime.UtcNow,
-                LastInteraction = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
+                LastInteraction = _timeProvider.UtcNow,
                 EvolutionHistory = new List<SymbioticPartnerServiceEvolutionEvent>(),
                 Status = SymbioticPartnerServicePartnerStatus.Active
             };
@@ -110,7 +113,7 @@ public class SymbioticPartnerService : SymbioticPartnerServiceISymbioticPartnerS
                 SymbioticPartnerServiceSymbiosisType = request.SymbioticPartnerServiceSymbiosisType,
                 FusionLevel = CalculateFusionLevel(partner),
                 SynergyEffects = GenerateSynergyEffects(partner, request.SymbioticPartnerServiceSymbiosisType),
-                StartedAt = DateTime.UtcNow,
+                StartedAt = _timeProvider.UtcNow,
                 Duration = request.Duration,
                 Status = SymbioticPartnerServiceSymbiosisStatus.Active,
                 PerformanceMetrics = new SymbioticPartnerServiceSymbiosisMetrics
@@ -166,7 +169,7 @@ public class SymbioticPartnerService : SymbioticPartnerServiceISymbioticPartnerS
                     Trigger = trigger,
                     OldStage = evolution.OldStage,
                     NewStage = evolution.NewStage,
-                    Timestamp = DateTime.UtcNow
+                    Timestamp = _timeProvider.UtcNow
                 });
                 partner.EvolutionHistory = history;
 
@@ -229,7 +232,7 @@ public class SymbioticPartnerService : SymbioticPartnerServiceISymbioticPartnerS
 
             // Update trust and bond based on communication
             partner.TrustLevel = Math.Min(partner.TrustLevel + response.TrustChange, 1.0f);
-            partner.LastInteraction = DateTime.UtcNow;
+            partner.LastInteraction = _timeProvider.UtcNow;
 
             return Result.Success<SymbioticPartnerServiceCommunicationResponse>(response);
         }
@@ -292,7 +295,7 @@ public class SymbioticPartnerService : SymbioticPartnerServiceISymbioticPartnerS
                 CommunicationStats = await AnalyzeCommunicationStatsAsync(partnerId, period, ct),
                 BondStrengthTrend = CalculateBondTrend(partner),
                 PerformanceMetrics = CalculatePerformanceMetrics(partner),
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Partner analytics generated successfully");
@@ -502,10 +505,12 @@ public class SymbioticPartnerService : SymbioticPartnerServiceISymbioticPartnerS
 public class SymbioticPartnerServicePartnerEvolutionEngine
 {
     private readonly ILogger<SymbioticPartnerServicePartnerEvolutionEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public SymbioticPartnerServicePartnerEvolutionEngine(ILogger<SymbioticPartnerServicePartnerEvolutionEngine> logger)
+    public SymbioticPartnerServicePartnerEvolutionEngine(ILogger<SymbioticPartnerServicePartnerEvolutionEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<SymbioticPartnerServicePartnerEvolution> ProcessEvolutionAsync(SymbioticPartnerServiceSymbioticPartner partner, SymbioticPartnerServiceEvolutionTrigger trigger, CancellationToken ct)
@@ -538,7 +543,7 @@ public class SymbioticPartnerServicePartnerEvolutionEngine
             NewLevel = newLevel,
             NewAbilities = GenerateEvolvedAbilities(partner, newStage),
             NewStats = EvolveStats(partner.Stats, newStage),
-            EvolutionTimestamp = DateTime.UtcNow
+            EvolutionTimestamp = _timeProvider.UtcNow
         };
     }
 
@@ -595,10 +600,12 @@ public class SymbioticPartnerServicePartnerEvolutionEngine
 public class SymbioticPartnerServiceSymbiosisEngine
 {
     private readonly ILogger<SymbioticPartnerServiceSymbiosisEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public SymbioticPartnerServiceSymbiosisEngine(ILogger<SymbioticPartnerServiceSymbiosisEngine> logger)
+    public SymbioticPartnerServiceSymbiosisEngine(ILogger<SymbioticPartnerServiceSymbiosisEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<SymbioticPartnerServiceFusionAttack> GenerateFusionAttackAsync(SymbioticPartnerServiceSymbioticPartner partner, SymbioticPartnerServiceSymbiosisSession session, SymbioticPartnerServiceFusionAttackRequest request, CancellationToken ct)
@@ -613,7 +620,7 @@ public class SymbioticPartnerServiceSymbiosisEngine
             Effects = CombineEffects(partner, request),
             Duration = TimeSpan.FromSeconds(5),
             Cooldown = TimeSpan.FromSeconds(30),
-            GeneratedAt = DateTime.UtcNow
+            GeneratedAt = _timeProvider.UtcNow
         };
     }
 
@@ -640,10 +647,12 @@ public class SymbioticPartnerServiceSymbiosisEngine
 public class SymbioticPartnerServiceAdaptationEngine
 {
     private readonly ILogger<SymbioticPartnerServiceAdaptationEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public SymbioticPartnerServiceAdaptationEngine(ILogger<SymbioticPartnerServiceAdaptationEngine> logger)
+    public SymbioticPartnerServiceAdaptationEngine(ILogger<SymbioticPartnerServiceAdaptationEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<SymbioticPartnerServicePartnerAdaptation> AdaptToBehaviorAsync(SymbioticPartnerServiceSymbioticPartner partner, SymbioticPartnerServicePlayerBehavior behavior, CancellationToken ct)
@@ -659,7 +668,7 @@ public class SymbioticPartnerServiceAdaptationEngine
             NewPreferredPlaystyle = newPlaystyle,
             UpdatedAbilities = updatedAbilities,
             BondIncrease = 0.05f,
-            AdaptationTimestamp = DateTime.UtcNow
+            AdaptationTimestamp = _timeProvider.UtcNow
         };
     }
 
@@ -684,10 +693,12 @@ public class SymbioticPartnerServiceAdaptationEngine
 public class SymbioticPartnerServiceCommunicationEngine
 {
     private readonly ILogger<SymbioticPartnerServiceCommunicationEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public SymbioticPartnerServiceCommunicationEngine(ILogger<SymbioticPartnerServiceCommunicationEngine> logger)
+    public SymbioticPartnerServiceCommunicationEngine(ILogger<SymbioticPartnerServiceCommunicationEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<SymbioticPartnerServiceCommunicationResponse> ProcessCommunicationAsync(SymbioticPartnerServiceSymbioticPartner partner, SymbioticPartnerServiceCommunicationRequest request, CancellationToken ct)
@@ -701,7 +712,7 @@ public class SymbioticPartnerServiceCommunicationEngine
             EmotionalResponse = CalculateEmotionalResponse(partner, request),
             TrustChange = request.SymbioticPartnerServiceMessageType == SymbioticPartnerServiceMessageType.Encouragement ? 0.02f : 0.0f,
             BondChange = request.SymbioticPartnerServiceMessageType == SymbioticPartnerServiceMessageType.Praise ? 0.01f : 0.0f,
-            Timestamp = DateTime.UtcNow
+            Timestamp = _timeProvider.UtcNow
         };
     }
 

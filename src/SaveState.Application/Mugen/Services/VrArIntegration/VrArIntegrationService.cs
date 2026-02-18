@@ -14,6 +14,7 @@ public class VrArIntegrationService : IVrArIntegrationService
 {
     private readonly ILogger<VrArIntegrationService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, VrSession> _activeVrSessions = new();
     private readonly Dictionary<string, ArSession> _activeArSessions = new();
     private readonly VrEngine _vrEngine;
@@ -22,10 +23,12 @@ public class VrArIntegrationService : IVrArIntegrationService
     public VrArIntegrationService(
         ILogger<VrArIntegrationService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
+        _timeProvider = timeProvider;
         _vrEngine = new VrEngine(loggerFactory.CreateLogger<VrEngine>());
         _arEngine = new ArEngine(loggerFactory.CreateLogger<ArEngine>());
     }
@@ -73,8 +76,8 @@ public class VrArIntegrationService : IVrArIntegrationService
                     MovementSpeed = config.MovementSpeed,
                     TeleportationEnabled = config.TeleportationEnabled
                 },
-                StartedAt = DateTime.UtcNow,
-                LastActivity = DateTime.UtcNow
+                StartedAt = _timeProvider.UtcNow,
+                LastActivity = _timeProvider.UtcNow
             };
 
             _activeVrSessions[session.SessionId] = session;
@@ -127,8 +130,8 @@ public class VrArIntegrationService : IVrArIntegrationService
                     CpuUsage = 0,
                     MemoryUsage = 0
                 },
-                StartedAt = DateTime.UtcNow,
-                LastActivity = DateTime.UtcNow
+                StartedAt = _timeProvider.UtcNow,
+                LastActivity = _timeProvider.UtcNow
             };
 
             _activeArSessions[session.SessionId] = session;
@@ -160,7 +163,7 @@ public class VrArIntegrationService : IVrArIntegrationService
             var response = await _vrEngine.ProcessVrInputAsync(session, input, ct);
 
             // Update session activity
-            session.LastActivity = DateTime.UtcNow;
+            session.LastActivity = _timeProvider.UtcNow;
 
             // Update performance metrics
             session.PerformanceMetrics.FrameRate = 90;
@@ -190,7 +193,7 @@ public class VrArIntegrationService : IVrArIntegrationService
             var response = await _arEngine.ProcessArInputAsync(session, input, ct);
 
             // Update session activity
-            session.LastActivity = DateTime.UtcNow;
+            session.LastActivity = _timeProvider.UtcNow;
 
             // Update performance metrics
             session.PerformanceMetrics.FrameRate = 60;

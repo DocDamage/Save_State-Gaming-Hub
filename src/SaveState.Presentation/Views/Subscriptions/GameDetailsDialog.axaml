@@ -1,0 +1,85 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Subscriptions"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
+        x:Class="SaveState.Presentation.Views.Subscriptions.GameDetailsDialog"
+        x:DataType="vm:SubscriptionGameViewModel"
+        Title="Game Details"
+        Width="600"
+        Height="500"
+        WindowStartupLocation="CenterOwner">
+
+  <ScrollViewer>
+    <StackPanel Margin="20" Spacing="15">
+      <!-- Header with Cover and Title -->
+      <Grid ColumnDefinitions="120, *">
+        <!-- Cover Image Placeholder -->
+        <Border Grid.Column="0" 
+                Width="100" 
+                Height="150" 
+                Background="{StaticResource AccentBrush}" 
+                CornerRadius="8"
+                Margin="0,0,20,0">
+          <TextBlock Text="🎮" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Border>
+
+        <!-- Title and Info -->
+        <StackPanel Grid.Column="1" Spacing="8">
+          <TextBlock Text="{Binding Title}" Classes="Title" FontSize="24" FontWeight="Bold" />
+          <TextBlock Text="{Binding GenresText}" Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
+          
+          <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,10,0,0">
+            <Border Background="{StaticResource SuccessBrush}" 
+                    CornerRadius="4" 
+                    Padding="8,4"
+                    IsVisible="{Binding IsNewArrival}">
+              <TextBlock Text="✨ New Arrival" Classes="Caption" Foreground="White" />
+            </Border>
+            
+            <Border Background="{StaticResource WarningBrush}" 
+                    CornerRadius="4" 
+                    Padding="8,4"
+                    IsVisible="{Binding IsLeavingSoon}">
+              <TextBlock Text="{Binding StatusText}" Classes="Caption" Foreground="White" />
+            </Border>
+          </StackPanel>
+        </StackPanel>
+      </Grid>
+
+      <!-- Availability Section -->
+      <Border Classes="Card" Padding="16">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Available On" Classes="Header" />
+          <TextBlock Text="{Binding AvailableOnText}" Classes="Body" />
+        </StackPanel>
+      </Border>
+
+      <!-- Stats Section -->
+      <Border Classes="Card" Padding="16" IsVisible="{Binding MetacriticScore, Converter={StaticResource NullToBoolConverter}}">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Ratings" Classes="Header" />
+          <Grid ColumnDefinitions="Auto, *">
+            <TextBlock Grid.Column="0" Text="Metacritic:" Classes="Label" Margin="0,0,10,0" />
+            <TextBlock Grid.Column="1" Text="{Binding MetacriticScore}" Classes="Body" FontWeight="Bold" />
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <!-- Description Section -->
+      <Border Classes="Card" Padding="16" IsVisible="{Binding Description, Converter={StaticResource StringNotEmptyConverter}}">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Description" Classes="Header" />
+          <TextBlock Text="{Binding Description}" Classes="Body" TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
+
+      <!-- Action Buttons -->
+      <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+        <Button Content="Track Game" Classes="Primary" />
+        <Button Content="Close" Classes="Secondary" Click="OnCloseClick" />
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</Window>

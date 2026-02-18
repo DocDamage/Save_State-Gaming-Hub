@@ -19,6 +19,10 @@ public static class TabRegistry
         ["MUGEN"] = new("MUGEN", "🥊", typeof(ViewModels.Shell.MugenViewModel), Key.D4, KeyModifiers.Control),
         ["Analytics"] = new("Analytics", "📊", typeof(ViewModels.Shell.AnalyticsViewModel), Key.D5, KeyModifiers.Control),
         ["Social"] = new("Social", "👥", typeof(ViewModels.Shell.SocialViewModel), Key.D6, KeyModifiers.Control),
+        ["Subscriptions"] = new("Subscriptions", "🎁", typeof(ViewModels.Subscriptions.SubscriptionManagerViewModel), Key.None, KeyModifiers.None),
+        ["Deals"] = new("Deals", "💰", typeof(ViewModels.GameDeals.GameDealsViewModel), Key.None, KeyModifiers.None),
+        ["Achievements"] = new("Achievements", "🏆", typeof(ViewModels.Shell.AchievementHubViewModel), Key.None, KeyModifiers.None),
+        ["Launcher"] = new("Launcher", "🚀", typeof(ViewModels.SmartLauncher.SmartLauncherViewModel), Key.None, KeyModifiers.None),
         ["Cloud"] = new("Cloud", "☁️", typeof(ViewModels.Shell.CloudSyncViewModel), Key.D7, KeyModifiers.Control),
         ["Automation"] = new("Automation", "🎬", typeof(ViewModels.Shell.AutomationViewModel), Key.D8, KeyModifiers.Control),
         ["Tools"] = new("Tools", "🛠️", typeof(ViewModels.Shell.ToolsViewModel), Key.D9, KeyModifiers.Control),
@@ -37,6 +41,10 @@ public static class TabRegistry
         yield return Tabs["MUGEN"];
         yield return Tabs["Analytics"];
         yield return Tabs["Social"];
+        yield return Tabs["Subscriptions"];
+        yield return Tabs["Deals"];
+        yield return Tabs["Achievements"];
+        yield return Tabs["Launcher"];
         yield return Tabs["Cloud"];
         yield return Tabs["Automation"];
         yield return Tabs["Tools"];

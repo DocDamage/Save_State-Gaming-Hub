@@ -15,6 +15,7 @@ public class MugenStreamingService : MugenStreamingServiceIMugenStreamingService
 {
     private readonly ILogger<MugenStreamingService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, MugenStreamingServiceStreamSession> _activeStreams = new();
     private readonly Dictionary<string, MugenStreamingServiceTournamentBroadcast> _tournamentBroadcasts = new();
     private readonly MugenStreamingServiceStreamAnalyticsEngine _analyticsEngine;
@@ -23,11 +24,13 @@ public class MugenStreamingService : MugenStreamingServiceIMugenStreamingService
     public MugenStreamingService(
         ILogger<MugenStreamingService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _analyticsEngine = new MugenStreamingServiceStreamAnalyticsEngine(loggerFactory.CreateLogger<MugenStreamingServiceStreamAnalyticsEngine>());
+        _timeProvider = timeProvider;
+        _analyticsEngine = new MugenStreamingServiceStreamAnalyticsEngine(loggerFactory.CreateLogger<MugenStreamingServiceStreamAnalyticsEngine>(), timeProvider);
         _overlayManager = new MugenStreamingServiceOverlayManager(loggerFactory.CreateLogger<MugenStreamingServiceOverlayManager>());
     }
 
@@ -56,7 +59,7 @@ public class MugenStreamingService : MugenStreamingServiceIMugenStreamingService
                 Platform = request.Platform,
                 StreamUrl = GenerateStreamUrl(streamId, request.Platform),
                 Status = MugenStreamingServiceStreamStatus.Starting,
-                StartTime = DateTime.UtcNow,
+                StartTime = _timeProvider.UtcNow,
                 Viewers = 0,
                 Quality = request.Quality,
                 IsInteractive = request.EnableInteractiveFeatures
@@ -131,7 +134,7 @@ public class MugenStreamingService : MugenStreamingServiceIMugenStreamingService
 
             // Archive stream data
             stream.Status = MugenStreamingServiceStreamStatus.Ended;
-            stream.EndTime = DateTime.UtcNow;
+            stream.EndTime = _timeProvider.UtcNow;
             await ArchiveStreamDataAsync(stream, ct);
 
             _activeStreams.Remove(streamId);
@@ -367,11 +370,13 @@ public class MugenStreamingService : MugenStreamingServiceIMugenStreamingService
 public class MugenStreamingServiceStreamAnalyticsEngine
 {
     private readonly ILogger<MugenStreamingServiceStreamAnalyticsEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, MugenStreamingServiceStreamMetrics> _streamMetrics = new();
 
-    public MugenStreamingServiceStreamAnalyticsEngine(ILogger<MugenStreamingServiceStreamAnalyticsEngine> logger)
+    public MugenStreamingServiceStreamAnalyticsEngine(ILogger<MugenStreamingServiceStreamAnalyticsEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task StartTrackingAsync(string streamId, CancellationToken ct = default)
@@ -379,7 +384,7 @@ public class MugenStreamingServiceStreamAnalyticsEngine
         _streamMetrics[streamId] = new MugenStreamingServiceStreamMetrics
         {
             StreamId = streamId,
-            StartTime = DateTime.UtcNow,
+            StartTime = _timeProvider.UtcNow,
             ViewerCount = 0,
             PeakViewers = 0,
             TotalInteractions = 0,
@@ -422,7 +427,7 @@ public class MugenStreamingServiceStreamAnalyticsEngine
         // Finalize and archive metrics
         if (_streamMetrics.TryGetValue(streamId, out var metrics))
         {
-            metrics.EndTime = DateTime.UtcNow;
+            metrics.EndTime = _timeProvider.UtcNow;
         }
     }
 
@@ -438,7 +443,7 @@ public class MugenStreamingServiceStreamAnalyticsEngine
                 new MugenStreamingServiceHighlightClip { Title = "Final Match", Timestamp = TimeSpan.FromMinutes(45), Views = 500 }
             },
             TotalHighlights = 3,
-            GeneratedAt = DateTime.UtcNow
+            GeneratedAt = _timeProvider.UtcNow
         };
     }
 

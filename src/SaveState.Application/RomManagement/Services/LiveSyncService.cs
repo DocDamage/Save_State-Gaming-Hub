@@ -4,6 +4,7 @@ using SaveState.Core.RomManagement.Entities;
 using SaveState.Core.RomManagement.Enums;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.Monitoring;
+using SaveState.Core.Common.Services;
 using System.Collections.Concurrent;
 
 namespace SaveState.Application.RomManagement.Services;
@@ -16,6 +17,7 @@ public class LiveSyncService : ILiveSyncService
     private readonly IPlatformExtensionRegistry _extensionRegistry;
     private readonly ILogger<LiveSyncService> _logger;
     private readonly IApplicationMetrics _metrics;
+    private readonly ITimeProvider _timeProvider;
 
     private readonly ConcurrentDictionary<string, WatcherContext> _watchers = new();
     private readonly ConcurrentDictionary<string, SyncStatus> _syncStatuses = new();
@@ -35,7 +37,8 @@ public class LiveSyncService : ILiveSyncService
         IPlatformRepository platformRepository,
         IPlatformExtensionRegistry extensionRegistry,
         ILogger<LiveSyncService> logger,
-        IApplicationMetrics metrics)
+        IApplicationMetrics metrics,
+        ITimeProvider timeProvider)
     {
         _romScanner = romScanner ?? throw new ArgumentNullException(nameof(romScanner));
         _romFileRepository = romFileRepository ?? throw new ArgumentNullException(nameof(romFileRepository));
@@ -43,6 +46,7 @@ public class LiveSyncService : ILiveSyncService
         _extensionRegistry = extensionRegistry ?? throw new ArgumentNullException(nameof(extensionRegistry));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     public event EventHandler<RomFileEventArgs>? RomFileAdded;
@@ -116,7 +120,7 @@ public class LiveSyncService : ILiveSyncService
                 normalizedPath,
                 platformName,
                 true,
-                DateTime.UtcNow,
+                _timeProvider.UtcNow,
                 0,
                 TimeSpan.Zero);
 
@@ -247,7 +251,7 @@ public class LiveSyncService : ILiveSyncService
 
     private async Task PerformSyncAsync(string folderPath, Guid platformId, CancellationToken ct)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         var filesAdded = 0;
         var filesRemoved = 0;
         var filesChanged = 0;
@@ -282,7 +286,7 @@ public class LiveSyncService : ILiveSyncService
                 var existingRomFile = existingFilesLookup[removedFilePath];
                 // Mark as deleted in database (soft delete)
                 existingRomFile.IsDeleted = true;
-                existingRomFile.DeletedAt = DateTime.UtcNow;
+                existingRomFile.DeletedAt = _timeProvider.UtcNow;
                 await _romFileRepository.UpdateAsync(existingRomFile, ct).ConfigureAwait(false);
                 filesRemoved++;
             }
@@ -303,14 +307,14 @@ public class LiveSyncService : ILiveSyncService
                 }
             }
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
 
             // Update sync status
             _syncStatuses[folderPath] = new SyncStatus(
                 folderPath,
                 platformName,
                 true,
-                DateTime.UtcNow,
+                _timeProvider.UtcNow,
                 scanResults.Count,
                 TimeSpan.Zero); // Will be updated by GetSyncStatusAsync
 
@@ -345,7 +349,7 @@ public class LiveSyncService : ILiveSyncService
         }
 
         var attempt = 0;
-        var startedAt = DateTime.UtcNow;
+        var startedAt = _timeProvider.UtcNow;
 
         try
         {
@@ -358,7 +362,7 @@ public class LiveSyncService : ILiveSyncService
                 {
                     await action().ConfigureAwait(false);
                     ResetCircuit();
-                    _metrics.RecordResponseTime($"LiveSync.{operationName}", DateTime.UtcNow - startedAt);
+                    _metrics.RecordResponseTime($"LiveSync.{operationName}", _timeProvider.UtcNow - startedAt);
                     return Result.Success();
                 }
                 catch (OperationCanceledException) when (ct.IsCancellationRequested)
@@ -389,7 +393,7 @@ public class LiveSyncService : ILiveSyncService
         }
         finally
         {
-            _metrics.RecordResponseTime($"LiveSync.{operationName}.Total", DateTime.UtcNow - startedAt);
+            _metrics.RecordResponseTime($"LiveSync.{operationName}.Total", _timeProvider.UtcNow - startedAt);
         }
     }
 
@@ -447,7 +451,7 @@ public class LiveSyncService : ILiveSyncService
                 return false;
             }
 
-            if (DateTime.UtcNow - _circuitOpenedAt < CircuitBreakerOpenDuration)
+            if (_timeProvider.UtcNow - _circuitOpenedAt < CircuitBreakerOpenDuration)
             {
                 return true;
             }
@@ -467,7 +471,7 @@ public class LiveSyncService : ILiveSyncService
                 return;
             }
 
-            _circuitOpenedAt = DateTime.UtcNow;
+            _circuitOpenedAt = _timeProvider.UtcNow;
             _logger.LogWarning("Circuit breaker opened for LiveSync operations");
             _metrics.IncrementCounter("livesync.circuit_opened");
         }
@@ -589,31 +593,31 @@ public class LiveSyncService : ILiveSyncService
     private void OnRomFileAdded(string folderPath, string filePath, string platformName, RomFile? romFile)
     {
         RomFileAdded?.Invoke(this, new RomFileEventArgs(
-            folderPath, filePath, platformName, romFile, DateTime.UtcNow));
+            folderPath, filePath, platformName, romFile, _timeProvider.UtcNow));
     }
 
     private void OnRomFileRemoved(string folderPath, string filePath, string platformName, RomFile? romFile)
     {
         RomFileRemoved?.Invoke(this, new RomFileEventArgs(
-            folderPath, filePath, platformName, romFile, DateTime.UtcNow));
+            folderPath, filePath, platformName, romFile, _timeProvider.UtcNow));
     }
 
     private void OnRomFileChanged(string folderPath, string filePath, string platformName, RomFile? romFile)
     {
         RomFileChanged?.Invoke(this, new RomFileEventArgs(
-            folderPath, filePath, platformName, romFile, DateTime.UtcNow));
+            folderPath, filePath, platformName, romFile, _timeProvider.UtcNow));
     }
 
     private void OnSyncCompleted(string folderPath, string platformName, int filesAdded, int filesRemoved, int filesChanged, TimeSpan duration)
     {
         SyncCompleted?.Invoke(this, new SyncEventArgs(
-            folderPath, platformName, filesAdded, filesRemoved, filesChanged, duration, DateTime.UtcNow));
+            folderPath, platformName, filesAdded, filesRemoved, filesChanged, duration, _timeProvider.UtcNow));
     }
 
     private void OnSyncError(string folderPath, string platformName, string errorMessage, Exception? exception)
     {
         SyncError?.Invoke(this, new SyncErrorEventArgs(
-            folderPath, platformName, errorMessage, exception, DateTime.UtcNow));
+            folderPath, platformName, errorMessage, exception, _timeProvider.UtcNow));
     }
 
     private record WatcherContext(
@@ -621,3 +625,4 @@ public class LiveSyncService : ILiveSyncService
         string PlatformName,
         System.Diagnostics.Stopwatch StartTime);
 }
+

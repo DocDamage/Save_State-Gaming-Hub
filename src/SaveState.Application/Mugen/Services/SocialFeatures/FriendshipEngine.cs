@@ -1,6 +1,7 @@
 using SaveState.Application.Mugen.Models.NetworkFeatures;
 using SaveState.Application.Mugen.Models.SocialFeatures;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Application.Mugen.Services.SocialFeatures;
 
@@ -10,10 +11,12 @@ namespace SaveState.Application.Mugen.Services.SocialFeatures;
 public sealed class FriendshipEngine
 {
     private readonly ILogger<FriendshipEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public FriendshipEngine(ILogger<FriendshipEngine> logger)
+    public FriendshipEngine(ILogger<FriendshipEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -27,7 +30,7 @@ public sealed class FriendshipEngine
             Player1Id = fromPlayerId,
             Player2Id = toPlayerId,
             Status = FriendshipStatus.Pending,
-            RequestedAt = DateTime.UtcNow,
+            RequestedAt = _timeProvider.UtcNow,
             RequestedBy = fromPlayerId
         };
 
@@ -53,7 +56,7 @@ public sealed class FriendshipEngine
         }
 
         friendship.Status = FriendshipStatus.Accepted;
-        friendship.AcceptedAt = DateTime.UtcNow;
+        friendship.AcceptedAt = _timeProvider.UtcNow;
 
         _logger.LogInformation("Friend request accepted between {Player1} and {Player2}",
             friendship.Player1Id, friendship.Player2Id);
@@ -72,7 +75,7 @@ public sealed class FriendshipEngine
         }
 
         friendship.Status = FriendshipStatus.Blocked;
-        friendship.DeclinedAt = DateTime.UtcNow;
+        friendship.DeclinedAt = _timeProvider.UtcNow;
 
         _logger.LogInformation("Friend request declined");
         return true;
@@ -90,7 +93,7 @@ public sealed class FriendshipEngine
         }
 
         friendship.Status = FriendshipStatus.Blocked;
-        friendship.RemovedAt = DateTime.UtcNow;
+        friendship.RemovedAt = _timeProvider.UtcNow;
 
         _logger.LogInformation("Friendship removed between {Player1} and {Player2}",
             friendship.Player1Id, friendship.Player2Id);
@@ -108,9 +111,9 @@ public sealed class FriendshipEngine
             Player1Id = blockerId,
             Player2Id = blockedId,
             Status = FriendshipStatus.Blocked,
-            BlockedAt = DateTime.UtcNow,
+            BlockedAt = _timeProvider.UtcNow,
             BlockedBy = blockerId,
-            RequestedAt = DateTime.UtcNow,
+            RequestedAt = _timeProvider.UtcNow,
             RequestedBy = blockerId
         };
 
@@ -124,7 +127,7 @@ public sealed class FriendshipEngine
     public void BlockFriendship(Friendship friendship, string blockerId)
     {
         friendship.Status = FriendshipStatus.Blocked;
-        friendship.BlockedAt = DateTime.UtcNow;
+        friendship.BlockedAt = _timeProvider.UtcNow;
         friendship.BlockedBy = blockerId;
 
         _logger.LogInformation("Player {Blocker} blocked friendship", blockerId);
@@ -201,8 +204,8 @@ public sealed class FriendshipEngine
             Player1Id = player1,
             Player2Id = player2,
             Status = FriendshipStatus.Accepted,
-            RequestedAt = DateTime.UtcNow.AddDays(-30),
-            AcceptedAt = DateTime.UtcNow.AddDays(-29),
+            RequestedAt = _timeProvider.UtcNow.AddDays(-30),
+            AcceptedAt = _timeProvider.UtcNow.AddDays(-29),
             RequestedBy = player1
         };
     }

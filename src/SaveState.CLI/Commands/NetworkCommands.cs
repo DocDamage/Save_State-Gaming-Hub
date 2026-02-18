@@ -69,7 +69,7 @@ public class NetworkCommands : CommandGroupBase
 
         // Start monitoring
         var monitorCommand = new Command("monitor", "Start continuous network monitoring");
-        var intervalOption = new Option<int>("--interval", () => 30, "Monitoring interval in seconds");
+        var intervalOption = new Option<int>("--interval") { DefaultValueFactory = _ => 30, Description = "Monitoring interval in seconds" };
         monitorCommand.AddOption(intervalOption);
         monitorCommand.SetHandler((int intervalSec) =>
         {
@@ -107,7 +107,7 @@ public class NetworkCommands : CommandGroupBase
 
         // Cloud gaming check
         var cloudCommand = new Command("cloud-check", "Check compatibility with cloud gaming services");
-        var providerOption = new Option<string>("--provider", () => "all", "Provider to check");
+        var providerOption = new Option<string>("--provider") { DefaultValueFactory = _ => "all", Description = "Provider to check" };
         cloudCommand.AddOption(providerOption);
         cloudCommand.SetHandler((string provider) =>
         {
@@ -134,3 +134,4 @@ public class NetworkCommands : CommandGroupBase
         rootCommand.AddCommandChecked(networkCommand);
     }
 }
+

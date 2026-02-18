@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Social.Repositories;
 using SaveState.Core.UserManagement.Services;
 
@@ -14,15 +15,18 @@ public class UpdateLeaderboardRankingCommandHandler : IRequestHandler<UpdateLead
     private readonly ICommunityRepository _communityRepository;
     private readonly IUserService _userService;
     private readonly ILogger<UpdateLeaderboardRankingCommandHandler> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public UpdateLeaderboardRankingCommandHandler(
         ICommunityRepository communityRepository,
         IUserService userService,
-        ILogger<UpdateLeaderboardRankingCommandHandler> logger)
+        ILogger<UpdateLeaderboardRankingCommandHandler> logger,
+        ITimeProvider timeProvider)
     {
         _communityRepository = communityRepository;
         _userService = userService;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result> Handle(UpdateLeaderboardRankingCommand request, CancellationToken cancellationToken)
@@ -49,7 +53,7 @@ public class UpdateLeaderboardRankingCommandHandler : IRequestHandler<UpdateLead
                 {
                     existingRanking.Score = request.Score;
                     existingRanking.Metadata = request.Metadata;
-                    existingRanking.LastUpdated = DateTime.UtcNow;
+                    existingRanking.LastUpdated = _timeProvider.UtcNow;
 
                     await _communityRepository.UpdateLeaderboardEntryAsync(existingRanking, cancellationToken);
                     _logger.LogInformation("Updated leaderboard ranking for user {UserId} on leaderboard {LeaderboardId} with score {Score}",
@@ -78,7 +82,7 @@ public class UpdateLeaderboardRankingCommandHandler : IRequestHandler<UpdateLead
                     Score = request.Score,
                     Rank = 0, // Will be calculated when sorting entries
                     Metadata = request.Metadata,
-                    LastUpdated = DateTime.UtcNow
+                    LastUpdated = _timeProvider.UtcNow
                 };
 
                 leaderboard.Entries.Add(newRanking);

@@ -23,7 +23,7 @@ public class PerformanceCommands : CommandGroupBase
 
         // Start profiling subcommand
         var startCommand = new Command("start", "Start performance profiling for a game");
-        var gameIdArgument = new Argument<string>("gameId", "Game ID (GUID) to profile");
+        var gameIdArgument = new Argument<string>("gameId") { Description = "Game ID (GUID) to profile" };
         startCommand.AddArgument(gameIdArgument);
         startCommand.SetHandler(async (string gameIdStr) =>
         {
@@ -263,3 +263,4 @@ public class PerformanceCommands : CommandGroupBase
         rootCommand.AddCommandChecked(perfCommand);
     }
 }
+

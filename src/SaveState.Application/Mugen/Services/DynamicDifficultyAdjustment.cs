@@ -14,6 +14,7 @@ public class DynamicDifficultyAdjustment : DynamicDifficultyAdjustmentIDynamicDi
 {
     private readonly ILogger<DynamicDifficultyAdjustment> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly DynamicDifficultyAdjustmentPerformanceMonitor _performanceMonitor;
     private readonly DynamicDifficultyAdjustmentDifficultyAdapter _difficultyAdapter;
     private readonly DynamicDifficultyAdjustmentBehaviorModulator _behaviorModulator;
@@ -22,13 +23,15 @@ public class DynamicDifficultyAdjustment : DynamicDifficultyAdjustmentIDynamicDi
     public DynamicDifficultyAdjustment(
         ILogger<DynamicDifficultyAdjustment> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
+        _timeProvider = timeProvider;
         _performanceMonitor = new DynamicDifficultyAdjustmentPerformanceMonitor(loggerFactory.CreateLogger<DynamicDifficultyAdjustmentPerformanceMonitor>());
-        _difficultyAdapter = new DynamicDifficultyAdjustmentDifficultyAdapter(loggerFactory.CreateLogger<DynamicDifficultyAdjustmentDifficultyAdapter>());
-        _behaviorModulator = new DynamicDifficultyAdjustmentBehaviorModulator(loggerFactory.CreateLogger<DynamicDifficultyAdjustmentBehaviorModulator>());
+        _difficultyAdapter = new DynamicDifficultyAdjustmentDifficultyAdapter(loggerFactory.CreateLogger<DynamicDifficultyAdjustmentDifficultyAdapter>(), timeProvider);
+        _behaviorModulator = new DynamicDifficultyAdjustmentBehaviorModulator(loggerFactory.CreateLogger<DynamicDifficultyAdjustmentBehaviorModulator>(), timeProvider);
         _learningSystem = new DynamicDifficultyAdjustmentLearningSystem(loggerFactory.CreateLogger<DynamicDifficultyAdjustmentLearningSystem>());
     }
 
@@ -52,8 +55,8 @@ public class DynamicDifficultyAdjustment : DynamicDifficultyAdjustmentIDynamicDi
                 DynamicDifficultyAdjustmentPerformanceThresholds = GeneratePerformanceThresholds(historicalPerformance),
                 AdaptationRules = GenerateAdaptationRules(historicalPerformance),
                 LearningEnabled = true,
-                CreatedAt = DateTime.UtcNow,
-                LastUpdated = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow,
+                LastUpdated = _timeProvider.UtcNow
             };
 
             // Cache the profile
@@ -153,7 +156,7 @@ public class DynamicDifficultyAdjustment : DynamicDifficultyAdjustmentIDynamicDi
                 AdaptationEffectiveness = metrics.AdaptationEffectiveness,
                 LearningProgress = metrics.LearningProgress,
                 OptimalDifficulty = metrics.OptimalDifficulty,
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Adaptation metrics retrieved for {PlayerId}: Effectiveness {Effectiveness:F2}",
@@ -205,7 +208,7 @@ public class DynamicDifficultyAdjustment : DynamicDifficultyAdjustmentIDynamicDi
                 AdaptationSensitivity = calibrationData.AdaptationSensitivity,
                 ChallengeCurve = calibrationData.ChallengeCurve,
                 ConfidenceLevel = calibrationData.ConfidenceLevel,
-                LastCalibrated = DateTime.UtcNow
+                LastCalibrated = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Challenge calibrated for {PlayerId}: Optimal difficulty {Difficulty}",
@@ -243,7 +246,7 @@ public class DynamicDifficultyAdjustment : DynamicDifficultyAdjustmentIDynamicDi
                 PerformanceAnalysis = await GeneratePerformanceAnalysisAsync(playerId, period, ct),
                 Recommendations = await GenerateDifficultyRecommendationsAsync(profileResult.Value, metricsResult.Value, ct),
                 TrendAnalysis = await AnalyzeDifficultyTrendsAsync(playerId, period, ct),
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Difficulty report generated for {PlayerId}", playerId);
@@ -357,7 +360,7 @@ public class DynamicDifficultyAdjustment : DynamicDifficultyAdjustmentIDynamicDi
     private async Task UpdateProfileWithLearningAsync(DynamicDifficultyAdjustmentDifficultyProfile profile, DynamicDifficultyAdjustmentCurrentPerformanceData performance, DynamicDifficultyAdjustmentDifficultyAdjustment adjustment, CancellationToken ct)
     {
         // Update profile based on recent performance and adjustments
-        profile.LastUpdated = DateTime.UtcNow;
+        profile.LastUpdated = _timeProvider.UtcNow;
 
         // Adjust base difficulty based on sustained performance
         if (performance.WinRate > 0.7 && adjustment.DynamicDifficultyAdjustmentDifficultyAdjustmentType == DynamicDifficultyAdjustmentDifficultyAdjustmentType.Increase)
@@ -533,10 +536,12 @@ public class DynamicDifficultyAdjustmentPerformanceMonitor
 public class DynamicDifficultyAdjustmentDifficultyAdapter
 {
     private readonly ILogger<DynamicDifficultyAdjustmentDifficultyAdapter> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public DynamicDifficultyAdjustmentDifficultyAdapter(ILogger<DynamicDifficultyAdjustmentDifficultyAdapter> logger)
+    public DynamicDifficultyAdjustmentDifficultyAdapter(ILogger<DynamicDifficultyAdjustmentDifficultyAdapter> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<DynamicDifficultyAdjustmentDifficultyAdjustment> CalculateAdjustmentAsync(DynamicDifficultyAdjustmentDifficultyProfile profile, DynamicDifficultyAdjustmentCurrentPerformanceData performance, CancellationToken ct = default)
@@ -569,7 +574,7 @@ public class DynamicDifficultyAdjustmentDifficultyAdapter
             Reasoning = GenerateAdjustmentReasoning(adjustment, performance),
             Confidence = CalculateAdjustmentConfidence(performance),
             SuggestedDuration = TimeSpan.FromMinutes(5),
-            GeneratedAt = DateTime.UtcNow
+            GeneratedAt = _timeProvider.UtcNow
         };
     }
 
@@ -600,10 +605,12 @@ public class DynamicDifficultyAdjustmentDifficultyAdapter
 public class DynamicDifficultyAdjustmentBehaviorModulator
 {
     private readonly ILogger<DynamicDifficultyAdjustmentBehaviorModulator> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public DynamicDifficultyAdjustmentBehaviorModulator(ILogger<DynamicDifficultyAdjustmentBehaviorModulator> logger)
+    public DynamicDifficultyAdjustmentBehaviorModulator(ILogger<DynamicDifficultyAdjustmentBehaviorModulator> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<DynamicDifficultyAdjustmentOpponentBehavior> GenerateBehaviorAsync(DynamicDifficultyAdjustmentDifficultyProfile profile, DynamicDifficultyAdjustmentDifficultyAdjustment adjustment, DynamicDifficultyAdjustmentMatchState matchState, CancellationToken ct = default)
@@ -629,7 +636,7 @@ public class DynamicDifficultyAdjustmentBehaviorModulator
             AntiAirFrequency = CalculateAntiAirFrequency(matchState),
             ThrowAttempts = CalculateThrowAttempts(matchState),
             MeterManagement = CalculateMeterManagement(adjustment),
-            ActiveUntil = DateTime.UtcNow.AddMinutes(5)
+            ActiveUntil = _timeProvider.UtcNow.AddMinutes(5)
         };
     }
 

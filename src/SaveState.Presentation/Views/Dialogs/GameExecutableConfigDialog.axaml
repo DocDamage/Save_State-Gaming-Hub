@@ -1,0 +1,63 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="400"
+        x:Class="SaveState.Presentation.Views.Dialogs.GameExecutableConfigDialog"
+        Title="Configure Game Executable"
+        Width="500" Height="400"
+        WindowStartupLocation="CenterOwner">
+
+  <StackPanel Margin="20" Spacing="15">
+    <!-- Header -->
+    <TextBlock Text="🎮 Configure Game Executable" Classes="Title" FontSize="20" />
+    <TextBlock Text="Set the executable path and launch arguments for this game."
+               Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
+
+    <!-- Game Info -->
+    <Border Classes="Card" Padding="15">
+      <StackPanel Spacing="10">
+        <TextBlock x:Name="GameTitleTextBlock" 
+                   FontWeight="SemiBold" 
+                   FontSize="16" />
+        <TextBlock x:Name="GamePlatformTextBlock" 
+                   Classes="Caption"
+                   Foreground="{StaticResource TextSecondaryBrush}" />
+      </StackPanel>
+    </Border>
+
+    <!-- Executable Path -->
+    <Border Classes="Card" Padding="15">
+      <StackPanel Spacing="10">
+        <TextBlock Text="Executable Path" Classes="Header" />
+        <Grid ColumnDefinitions="*, Auto">
+          <TextBox x:Name="ExecutablePathTextBox" 
+                   Grid.Column="0"
+                   Watermark="C:\\Games\\GameName\\game.exe"
+                   Margin="0,0,10,0" />
+          <Button x:Name="BrowseButton"
+                  Grid.Column="1"
+                  Content="📁 Browse"
+                  Classes="Secondary"
+                  Click="OnBrowseClick" />
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <!-- Launch Arguments -->
+    <Border Classes="Card" Padding="15">
+      <StackPanel Spacing="10">
+        <TextBlock Text="Launch Arguments (Optional)" Classes="Header" />
+        <TextBox x:Name="LaunchArgumentsTextBox" 
+                 Watermark="-fullscreen -skipintro"
+                 ToolTip.Tip="Command line arguments to pass to the game executable" />
+      </StackPanel>
+    </Border>
+
+    <!-- Actions -->
+    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+      <Button x:Name="CancelButton" Content="Cancel" Classes="Secondary" Click="OnCancelClick" />
+      <Button x:Name="SaveButton" Content="Save Configuration" Classes="Primary" Click="OnSaveClick" />
+    </StackPanel>
+  </StackPanel>
+</Window>

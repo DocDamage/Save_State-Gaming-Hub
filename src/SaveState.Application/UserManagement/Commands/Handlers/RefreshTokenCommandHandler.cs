@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using SaveState.Application.UserManagement.Commands;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.UserManagement.Services;
 
 namespace SaveState.Application.UserManagement.Commands.Handlers;
@@ -10,13 +11,16 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 {
     private readonly IAuthenticationService _authenticationService;
     private readonly ILogger<RefreshTokenCommandHandler> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public RefreshTokenCommandHandler(
         IAuthenticationService authenticationService,
-        ILogger<RefreshTokenCommandHandler> logger)
+        ILogger<RefreshTokenCommandHandler> logger,
+        ITimeProvider timeProvider)
     {
         _authenticationService = authenticationService;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<RefreshTokenResponse>> Handle(RefreshTokenCommand request, CancellationToken ct)
@@ -36,7 +40,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             var response = new RefreshTokenResponse
             {
                 AccessToken = refreshResult.AccessToken!,
-                AccessTokenExpiresAt = DateTimeOffset.UtcNow.AddHours(1) // Should come from config
+                AccessTokenExpiresAt = _timeProvider.UtcNow.AddHours(1) // Should come from config
             };
 
             _logger.LogInformation("Token refresh successful");

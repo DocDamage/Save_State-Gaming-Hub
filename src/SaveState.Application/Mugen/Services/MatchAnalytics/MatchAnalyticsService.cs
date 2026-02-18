@@ -14,6 +14,7 @@ public class MatchAnalyticsService : IMatchAnalyticsService
 {
     private readonly ILogger<MatchAnalyticsService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly MatchDataEngine _matchDataEngine;
     private readonly StatisticEngine _statisticEngine;
     private readonly PatternEngine _patternEngine;
@@ -23,10 +24,12 @@ public class MatchAnalyticsService : IMatchAnalyticsService
     public MatchAnalyticsService(
         ILogger<MatchAnalyticsService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
+        _timeProvider = timeProvider;
 
         // Initialize engines
         _matchDataEngine = new MatchDataEngine(loggerFactory.CreateLogger<MatchDataEngine>());
@@ -36,7 +39,7 @@ public class MatchAnalyticsService : IMatchAnalyticsService
         _reportingEngine = new ReportingEngine(
             loggerFactory.CreateLogger<ReportingEngine>(),
             cache,
-            new SystemTimeProvider());
+            _timeProvider);
     }
 
     /// <inheritdoc />
@@ -233,7 +236,7 @@ public class MatchAnalyticsService : IMatchAnalyticsService
             }
 
             var patternsResult = await IdentifyPatternsAsync(playerId, ct);
-            var trendsResult = await GetPerformanceTrendsAsync(playerId, DateTime.UtcNow.AddDays(-30), DateTime.UtcNow, ct);
+            var trendsResult = await GetPerformanceTrendsAsync(playerId, _timeProvider.UtcNow.AddDays(-30), _timeProvider.UtcNow, ct);
 
             // Convert data for reporting engine
             var matches = _matchDataEngine.GetPlayerMatches(playerId);
@@ -241,7 +244,7 @@ public class MatchAnalyticsService : IMatchAnalyticsService
             var patterns = await _patternEngine.IdentifyPatternsAsync(playerId, matches, ct);
             var trends = trendsResult.IsSuccess
                 ? ConvertFromLegacyTrends(trendsResult.Value)
-                : new PerformanceTrends(playerId, DateTime.UtcNow.AddDays(-30), DateTime.UtcNow,
+                : new PerformanceTrends(playerId, _timeProvider.UtcNow.AddDays(-30), _timeProvider.UtcNow,
                     Array.Empty<TrendPoint>(), Array.Empty<TrendPoint>(), Array.Empty<TrendPoint>(), Array.Empty<string>());
 
             // Generate recommendations

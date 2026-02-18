@@ -101,7 +101,7 @@ public sealed class RollbackNetcodeService : IRollbackNetcodeService
         }
     }
 
-    public Task<Result> ProcessRemoteInputAsync(InputFrame input, CancellationToken ct = default)
+    public async Task<Result> ProcessRemoteInputAsync(InputFrame input, CancellationToken ct = default)
     {
         try
         {
@@ -109,7 +109,7 @@ public sealed class RollbackNetcodeService : IRollbackNetcodeService
 
             if (_state == null || !_state.IsInitialized)
             {
-                return Task.FromResult(Result.Failure("Rollback not initialized", ErrorType.Validation));
+                return Result.Failure("Rollback not initialized", ErrorType.Validation);
             }
 
             lock (_inputQueue)
@@ -119,7 +119,7 @@ public sealed class RollbackNetcodeService : IRollbackNetcodeService
 
             if (input.FrameNumber < _currentFrame && _config?.PredictiveInputs == true)
             {
-                var rollbackResult = PerformRollbackAsync(input.FrameNumber, ct).Result;
+                var rollbackResult = await PerformRollbackAsync(input.FrameNumber, ct).ConfigureAwait(false);
                 if (rollbackResult.IsSuccess && rollbackResult.Value != null)
                 {
                     RollbackOccurred?.Invoke(this, new RollbackOccurredEventArgs(
@@ -130,12 +130,12 @@ public sealed class RollbackNetcodeService : IRollbackNetcodeService
                 }
             }
 
-            return Task.FromResult(Result.Success());
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to process remote input");
-            return Task.FromResult(Result.Failure($"Failed to process input: {ex.Message}", ErrorType.Internal));
+            return Result.Failure($"Failed to process input: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -191,23 +191,23 @@ public sealed class RollbackNetcodeService : IRollbackNetcodeService
         }
     }
 
-    public Task<Result<RollbackResult>> PerformRollbackAsync(int toFrame, CancellationToken ct = default)
+    public async Task<Result<RollbackResult>> PerformRollbackAsync(int toFrame, CancellationToken ct = default)
     {
         try
         {
             if (_state == null || !_state.IsInitialized)
             {
-                return Task.FromResult(Result<RollbackResult>.Failure("Rollback not initialized", ErrorType.Validation));
+                return Result<RollbackResult>.Failure("Rollback not initialized", ErrorType.Validation);
             }
 
             var startTime = _timeProvider.GetTimestamp();
             var fromFrame = _currentFrame;
             var framesRolledBack = fromFrame - toFrame;
 
-            var loadResult = LoadStateAsync(toFrame, ct).Result;
+            var loadResult = await LoadStateAsync(toFrame, ct).ConfigureAwait(false);
             if (loadResult.IsFailure)
             {
-                return Task.FromResult(Result<RollbackResult>.Failure(loadResult.Error!, loadResult.ErrorType));
+                return Result<RollbackResult>.Failure(loadResult.Error!, loadResult.ErrorType);
             }
 
             var rollbackTime = (long)Math.Round(
@@ -226,12 +226,12 @@ public sealed class RollbackNetcodeService : IRollbackNetcodeService
             _logger.LogDebug("Rollback performed: {FromFrame} -> {ToFrame} ({FramesRolledBack} frames)",
                 fromFrame, toFrame, framesRolledBack);
 
-            return Task.FromResult(Result<RollbackResult>.Success(result));
+            return Result<RollbackResult>.Success(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to perform rollback");
-            return Task.FromResult(Result<RollbackResult>.Failure($"Failed to rollback: {ex.Message}", ErrorType.Internal));
+            return Result<RollbackResult>.Failure($"Failed to rollback: {ex.Message}", ErrorType.Internal);
         }
     }
 

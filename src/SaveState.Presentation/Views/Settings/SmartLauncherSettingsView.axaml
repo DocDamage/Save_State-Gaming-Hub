@@ -1,0 +1,163 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
+             x:Class="SaveState.Presentation.Views.Settings.SmartLauncherSettingsView">
+
+  <ScrollViewer>
+    <StackPanel Spacing="20" Margin="20">
+      <!-- Header -->
+      <TextBlock Text="🚀 Smart Launcher Settings" Classes="Title" FontSize="20" />
+      <TextBlock Text="Configure system optimization and launch behavior"
+                 Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
+
+      <!-- General Settings -->
+      <Border Classes="Card" Padding="15">
+        <StackPanel Spacing="10">
+          <TextBlock Text="General" Classes="Header" />
+          
+          <CheckBox Content="Enable system optimizations"
+                    ToolTip.Tip="Apply performance optimizations when launching games" />
+          
+          <CheckBox Content="Automatically restore system state"
+                    ToolTip.Tip="Restore original settings when game session ends" />
+          
+          <CheckBox Content="Show optimization preview before launch"
+                    ToolTip.Tip="Display what optimizations will be applied" />
+          
+          <CheckBox Content="Enable session monitoring"
+                    ToolTip.Tip="Track gaming sessions and performance metrics" />
+        </StackPanel>
+      </Border>
+
+      <!-- Process Optimization -->
+      <Border Classes="Card" Padding="15">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Process Optimization" Classes="Header" />
+          
+          <CheckBox Content="Suspend background processes"
+                    ToolTip.Tip="Temporarily suspend non-essential processes during gaming" />
+          
+          <CheckBox Content="Optimize memory on launch"
+                    ToolTip.Tip="Clear standby memory and optimize working sets" />
+          
+          <CheckBox Content="Set high process priority"
+                    ToolTip.Tip="Set game process to High priority" />
+          
+          <TextBlock Text="Processes to suspend (one per line):" Classes="Caption" Margin="0,10,0,0" />
+          <TextBox AcceptsReturn="True" Height="80" 
+                   Watermark="chrome&#10;discord&#10;spotify" />
+        </StackPanel>
+      </Border>
+
+      <!-- System Optimizations -->
+      <Border Classes="Card" Padding="15">
+        <StackPanel Spacing="10">
+          <TextBlock Text="System Optimizations" Classes="Header" />
+          
+          <CheckBox Content="Switch to high-performance power plan"
+                    ToolTip.Tip="Change Windows power plan for maximum performance" />
+          
+          <CheckBox Content="Disable Windows visual effects"
+                    ToolTip.Tip="Temporarily disable animations and effects" />
+          
+          <CheckBox Content="Stop unnecessary services"
+                    ToolTip.Tip="Stop selected Windows services during gaming" />
+          
+          <CheckBox Content="Disable fullscreen optimizations"
+                    ToolTip.Tip="Disable Windows fullscreen optimizations for games" />
+        </StackPanel>
+      </Border>
+
+      <!-- Hotkeys -->
+      <Border Classes="Card" Padding="15">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Keyboard Shortcuts" Classes="Header" />
+          
+          <Grid ColumnDefinitions="*, Auto">
+            <TextBlock Grid.Column="0" Text="Stop game hotkey:" VerticalAlignment="Center" />
+            <TextBox Grid.Column="1" Text="Ctrl+Alt+End" Width="150" />
+          </Grid>
+          
+          <Grid ColumnDefinitions="*, Auto">
+            <TextBlock Grid.Column="0" Text="Show launcher hotkey:" VerticalAlignment="Center" />
+            <TextBox Grid.Column="1" Text="Ctrl+Alt+Home" Width="150" />
+          </Grid>
+          
+          <CheckBox Content="Enable numbered hotkeys (Ctrl+Alt+1 through 9)"
+                    IsChecked="True" />
+          
+          <CheckBox Content="Global hotkeys (work when app is not focused)"
+                    IsChecked="True" />
+        </StackPanel>
+      </Border>
+
+      <!-- Session Management -->
+      <Border Classes="Card" Padding="15">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Session Management" Classes="Header" />
+          
+          <Grid ColumnDefinitions="*, Auto">
+            <TextBlock Grid.Column="0" Text="Auto-end session after (hours):" VerticalAlignment="Center" />
+            <NumericUpDown Grid.Column="1" Value="8" Minimum="1" Maximum="24" Width="100" />
+          </Grid>
+          
+          <Grid ColumnDefinitions="*, Auto">
+            <TextBlock Grid.Column="0" Text="Show warning after (hours):" VerticalAlignment="Center" />
+            <NumericUpDown Grid.Column="1" Value="4" Minimum="1" Maximum="12" Width="100" />
+          </Grid>
+          
+          <CheckBox Content="Collect performance metrics"
+                    IsChecked="True" />
+          
+          <CheckBox Content="Track per-game statistics" />
+        </StackPanel>
+      </Border>
+
+      <!-- Notifications -->
+      <Border Classes="Card" Padding="15">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Notifications" Classes="Header" />
+          
+          <CheckBox Content="Show launch success notification"
+                    IsChecked="True" />
+          
+          <CheckBox Content="Show session end notification"
+                    IsChecked="True" />
+          
+          <CheckBox Content="Show optimization warnings" />
+          
+          <CheckBox Content="Show performance summary after session"
+                    IsChecked="True" />
+        </StackPanel>
+      </Border>
+
+      <!-- Danger Zone -->
+      <Border Classes="Card" Padding="15" Background="{StaticResource ErrorBrush}" Opacity="0.1">
+        <StackPanel Spacing="10">
+          <TextBlock Text="⚠️ Danger Zone" Classes="Header" />
+          <TextBlock Text="These actions cannot be undone" Classes="Caption" />
+          
+          <Button Content="Clear All Session History"
+                  Classes="Secondary"
+                  HorizontalAlignment="Left" />
+          
+          <Button Content="Reset All Profiles to Default"
+                  Classes="Secondary"
+                  HorizontalAlignment="Left" />
+          
+          <Button Content="Export Debug Information"
+                  Classes="Ghost"
+                  HorizontalAlignment="Left" />
+        </StackPanel>
+      </Border>
+
+      <!-- Actions -->
+      <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+        <Button Content="Reset to Defaults" Classes="Secondary" />
+        <Button Content="Save Settings" Classes="Primary" />
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

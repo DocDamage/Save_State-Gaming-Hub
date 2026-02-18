@@ -16,6 +16,7 @@ public class BalanceTuningService : IBalanceTuningService
     private readonly ILogger<BalanceTuningService> _logger;
     private readonly ICacheService _cache;
     private readonly IServiceProvider _serviceProvider;
+    private readonly ITimeProvider _timeProvider;
 
     // Balance state tracking
     private readonly Dictionary<string, BalanceProfile> _balanceProfiles = new();
@@ -36,19 +37,21 @@ public class BalanceTuningService : IBalanceTuningService
         ILogger<BalanceTuningService> logger,
         ILoggerFactory loggerFactory,
         ICacheService cache,
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
         _serviceProvider = serviceProvider;
+        _timeProvider = timeProvider;
 
         _eloCalculator = new EloCalculator(loggerFactory.CreateLogger<EloCalculator>());
         _matchmakingBalance = new MatchmakingBalance(loggerFactory.CreateLogger<MatchmakingBalance>());
-        _statisticalAnalyzer = new StatisticalAnalyzer(loggerFactory.CreateLogger<StatisticalAnalyzer>());
+        _statisticalAnalyzer = new StatisticalAnalyzer(loggerFactory.CreateLogger<StatisticalAnalyzer>(), _timeProvider);
         _analysisEngine = new BalanceAnalysisEngine(loggerFactory.CreateLogger<BalanceAnalysisEngine>());
-        _adjustmentEngine = new AdjustmentEngine(loggerFactory.CreateLogger<AdjustmentEngine>());
-        _reportingEngine = new ReportingEngine(loggerFactory.CreateLogger<ReportingEngine>());
-        _monitoringEngine = new MonitoringEngine(loggerFactory.CreateLogger<MonitoringEngine>());
+        _adjustmentEngine = new AdjustmentEngine(loggerFactory.CreateLogger<AdjustmentEngine>(), _timeProvider);
+        _reportingEngine = new ReportingEngine(loggerFactory.CreateLogger<ReportingEngine>(), _timeProvider);
+        _monitoringEngine = new MonitoringEngine(loggerFactory.CreateLogger<MonitoringEngine>(), _timeProvider);
 
         InitializeBalanceSystems();
     }
@@ -69,7 +72,7 @@ public class BalanceTuningService : IBalanceTuningService
                 SkillGapAnalysis = _analysisEngine.AnalyzeSkillGaps(matchData),
                 BalanceScore = _analysisEngine.CalculateBalanceScore(matchData),
                 Recommendations = _analysisEngine.GenerateBalanceRecommendations(matchData),
-                AnalysisTimestamp = DateTime.UtcNow
+                AnalysisTimestamp = _timeProvider.UtcNow
             };
 
             await _cache.SetAsync($"balance_analysis_{sessionId}", analysis, TimeSpan.FromHours(2), ct);
@@ -102,7 +105,7 @@ public class BalanceTuningService : IBalanceTuningService
                 Magnitude = _adjustmentEngine.CalculateAdjustmentMagnitude(mechanic, balanceData),
                 Confidence = _adjustmentEngine.CalculateAdjustmentConfidence(balanceData),
                 Rationale = _adjustmentEngine.GenerateAdjustmentRationale(mechanic, balanceData),
-                CalculatedAt = DateTime.UtcNow
+                CalculatedAt = _timeProvider.UtcNow
             };
 
             if (!_adjustmentEngine.ValidateAdjustment(adjustment))
@@ -134,7 +137,7 @@ public class BalanceTuningService : IBalanceTuningService
 
             var balance = GetOrCreateMechanicBalance(adjustment.Mechanic);
             balance.Parameters = adjustment.TargetParameters;
-            balance.LastAdjusted = DateTime.UtcNow;
+            balance.LastAdjusted = _timeProvider.UtcNow;
             balance.AdjustmentCount++;
 
             _pendingAdjustments.Remove(adjustment);
@@ -142,7 +145,7 @@ public class BalanceTuningService : IBalanceTuningService
             var result = new AdjustmentApplication
             {
                 Adjustment = adjustment,
-                AppliedAt = DateTime.UtcNow,
+                AppliedAt = _timeProvider.UtcNow,
                 Success = application.Success,
                 PerformanceImpact = application.PerformanceImpact,
                 RollbackAvailable = true
@@ -170,7 +173,7 @@ public class BalanceTuningService : IBalanceTuningService
             {
                 Version = patchVersion,
                 Adjustments = adjustments.ToList(),
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 TestResults = await _monitoringEngine.RunBalanceTestsAsync(adjustments, ct),
                 RiskAssessment = _monitoringEngine.AssessPatchRisk(adjustments),
                 RollbackPlan = _monitoringEngine.GenerateRollbackPlan(adjustments)
@@ -208,7 +211,7 @@ public class BalanceTuningService : IBalanceTuningService
                 TrendAnalysis = _monitoringEngine.AnalyzeBalanceTrends(sessionId),
                 Alerts = _monitoringEngine.GenerateBalanceAlerts(sessionId),
                 HealthScore = _monitoringEngine.CalculateBalanceHealth(sessionId),
-                MonitoringTimestamp = DateTime.UtcNow
+                MonitoringTimestamp = _timeProvider.UtcNow
             };
 
             var criticalAlerts = monitoring.Alerts.Where(a => a.Severity == AlertSeverity.Critical).ToList();
@@ -242,7 +245,7 @@ public class BalanceTuningService : IBalanceTuningService
                 Divisions = _reportingEngine.GenerateRankingDivisions(playerStats),
                 SeasonStats = _reportingEngine.CalculateSeasonStatistics(playerStats),
                 BalanceFactors = _reportingEngine.CalculateBalanceFactors(playerStats),
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = _timeProvider.UtcNow
             };
 
             if (!_reportingEngine.ValidateCompetitiveRanking(ranking))
@@ -279,7 +282,7 @@ public class BalanceTuningService : IBalanceTuningService
                 PlayerFeedback = await _reportingEngine.CollectPlayerFeedbackAsync(sessionId, dateRange, ct),
                 TournamentResults = await _reportingEngine.AnalyzeTournamentResultsAsync(sessionId, dateRange, ct),
                 Recommendations = _reportingEngine.GenerateReportRecommendations(sessionId, dateRange),
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             await _cache.SetAsync($"balance_report_{sessionId}_{dateRange.Start:yyyyMMdd}_{dateRange.End:yyyyMMdd}",

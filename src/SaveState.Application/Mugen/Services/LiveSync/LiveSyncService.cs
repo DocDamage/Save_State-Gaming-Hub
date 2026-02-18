@@ -15,6 +15,7 @@ public class LiveSyncService : ILiveSyncService
 {
     private readonly ILogger<LiveSyncService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly SyncEngine _syncEngine;
     private readonly ConflictResolutionEngine _conflictEngine;
     private readonly StateMergeEngine _mergeEngine;
@@ -29,14 +30,16 @@ public class LiveSyncService : ILiveSyncService
     public LiveSyncService(
         ILogger<LiveSyncService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
+        _timeProvider = timeProvider;
 
         // Initialize engines
-        _syncEngine = new SyncEngine(loggerFactory.CreateLogger<SyncEngine>());
-        _conflictEngine = new ConflictResolutionEngine(loggerFactory.CreateLogger<ConflictResolutionEngine>());
+        _syncEngine = new SyncEngine(loggerFactory.CreateLogger<SyncEngine>(), _timeProvider);
+        _conflictEngine = new Engines.ConflictResolutionEngine(loggerFactory.CreateLogger<Engines.ConflictResolutionEngine>());
         _mergeEngine = new StateMergeEngine(loggerFactory.CreateLogger<StateMergeEngine>());
         _transportEngine = new NetworkTransportEngine(loggerFactory.CreateLogger<NetworkTransportEngine>());
         _migrationEngine = new MigrationEngine(loggerFactory.CreateLogger<MigrationEngine>());
@@ -66,8 +69,8 @@ public class LiveSyncService : ILiveSyncService
                 Email = request.Email,
                 DisplayName = request.DisplayName,
                 ProfilePictureUrl = request.ProfilePictureUrl,
-                CreatedAt = DateTime.UtcNow,
-                LastLoginAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
+                LastLoginAt = _timeProvider.UtcNow,
                 Status = AccountStatus.Active,
                 LinkedPlatforms = new Dictionary<PlatformType, PlatformAccount>(),
                 Preferences = CreateDefaultPreferences(),
@@ -133,8 +136,8 @@ public class LiveSyncService : ILiveSyncService
                 PlatformType = request.PlatformType,
                 PlatformUserId = request.PlatformUserId,
                 PlatformUsername = request.PlatformUsername,
-                LinkedAt = DateTime.UtcNow,
-                LastSyncAt = DateTime.UtcNow,
+                LinkedAt = _timeProvider.UtcNow,
+                LastSyncAt = _timeProvider.UtcNow,
                 SyncStatus = SyncStatus.Active
             };
 
@@ -178,7 +181,7 @@ public class LiveSyncService : ILiveSyncService
                 TargetPlatforms = request.TargetPlatforms,
                 Mode = request.Mode,
                 Status = SyncStatus.Active,
-                StartedAt = DateTime.UtcNow,
+                StartedAt = _timeProvider.UtcNow,
                 Progress = new SyncProgress
                 {
                     TotalItems = 100,
@@ -350,7 +353,7 @@ public class LiveSyncService : ILiveSyncService
                 CrossPlatformAchievements = new List<string> { "CrossPlatform Master", "Unified Player" },
                 SyncHealth = _syncEngine.CalculateSyncHealth(account).Score,
                 DataCompleteness = _syncEngine.CalculateDataCompleteness(account).OverallCompleteness,
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Cross-platform stats generated successfully");
@@ -424,7 +427,7 @@ public class LiveSyncService : ILiveSyncService
             {
                 BackupId = Guid.NewGuid().ToString(),
                 AccountId = accountId,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 AccountData = JsonSerializer.Serialize(account),
                 PlatformData = new Dictionary<PlatformType, string>(),
                 TotalSize = 0,
@@ -521,7 +524,7 @@ public class LiveSyncService : ILiveSyncService
                 Achievements = new List<string>(),
                 Statistics = new Dictionary<string, object>(),
                 Preferences = new Dictionary<string, object>(),
-                LastUpdated = DateTime.UtcNow
+                LastUpdated = _timeProvider.UtcNow
             };
         }
     }
@@ -544,7 +547,7 @@ public class LiveSyncService : ILiveSyncService
                 ct);
 
             session.Status = result.Success ? SyncStatus.Completed : SyncStatus.Failed;
-            session.CompletedAt = DateTime.UtcNow;
+            session.CompletedAt = _timeProvider.UtcNow;
 
             if (!result.Success)
             {

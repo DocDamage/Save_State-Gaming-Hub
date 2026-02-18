@@ -43,7 +43,7 @@ public class VirtualizedCollection<T> : IList<T>, INotifyCollectionChanged, INot
                 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
                 try
                 {
-                    LoadPageAsync(index).GetAwaiter().GetResult();
+                    CompleteSynchronously(LoadPageAsync(index));
                     return _cachedItems[index];
                 }
                 catch (InvalidOperationException)
@@ -76,6 +76,17 @@ public class VirtualizedCollection<T> : IList<T>, INotifyCollectionChanged, INot
         {
             _cachedItems[startIndex + i] = items[i];
         }
+    }
+
+    private static void CompleteSynchronously(Task task)
+    {
+        var awaiter = task.GetAwaiter();
+        while (!task.IsCompleted)
+        {
+            Thread.Yield();
+        }
+
+        awaiter.GetResult();
     }
 
     /// <summary>

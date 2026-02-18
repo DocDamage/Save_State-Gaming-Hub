@@ -184,23 +184,23 @@ public partial class CoreManagementEngine : ICoreManagementEngine
     }
 
     /// <inheritdoc />
-    public Task<Result<string>> GetCoreInfoAsync(string coresDirectory, string coreName, CancellationToken ct = default)
+    public async Task<Result<string>> GetCoreInfoAsync(string coresDirectory, string coreName, CancellationToken ct = default)
     {
         try
         {
             var infoPath = Path.Combine(coresDirectory, $"{coreName}_libretro.dll.info");
             if (!File.Exists(infoPath))
             {
-                return Task.FromResult(Result.Failure<string>($"Core info file not found: {infoPath}"));
+                return Result.Failure<string>($"Core info file not found: {infoPath}");
             }
 
-            var content = File.ReadAllText(infoPath);
-            return Task.FromResult(Result.Success(content));
+            var content = await File.ReadAllTextAsync(infoPath, ct).ConfigureAwait(false);
+            return Result.Success(content);
         }
         catch (Exception ex)
         {
             LogGetCoreInfoError(_logger, coreName, ex);
-            return Task.FromResult(Result.Failure<string>($"Error reading core info: {ex.Message}"));
+            return Result.Failure<string>($"Error reading core info: {ex.Message}");
         }
     }
 

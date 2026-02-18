@@ -1,0 +1,176 @@
+name: Quality Gates
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build:
+    name: Build (0 Warnings)
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build with warnings as errors
+      run: dotnet build --no-restore --configuration Release --warnaserror
+      
+  test:
+    name: Run Tests
+    runs-on: windows-latest
+    needs: build
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Run all tests
+      run: dotnet test --no-build --verbosity normal --logger trx
+      
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: '**/*.trx'
+        
+  architecture-tests:
+    name: Architecture Tests
+    runs-on: windows-latest
+    needs: build
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Run architecture tests
+      run: |
+        dotnet test tests/SaveState.Infrastructure.Tests \
+          --filter "FullyQualifiedName~ArchitectureTests" \
+          --no-build \
+          --verbosity normal
+          
+    - name: Run code quality tests
+      run: |
+        dotnet test tests/SaveState.Infrastructure.Tests \
+          --filter "FullyQualifiedName~CodeQualityTests" \
+          --no-build \
+          --verbosity normal
+          
+  code-metrics:
+    name: Code Metrics
+    runs-on: windows-latest
+    needs: build
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Install ReportGenerator
+      run: dotnet tool install --global dotnet-reportgenerator-globaltool
+      
+    - name: Run code coverage
+      run: |
+        dotnet test --collect:"XPlat Code Coverage" --results-directory ./coverage
+        
+    - name: Generate coverage report
+      run: |
+        reportgenerator \
+          -reports:"coverage/**/coverage.cobertura.xml" \
+          -targetdir:"coveragereport" \
+          -reporttypes:Html
+          
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coveragereport
+        
+  null-safety-check:
+    name: Null Safety Check
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check for null-forgiving operators
+      shell: pwsh
+      run: |
+        $forgivingCount = (Get-ChildItem -Path src -Recurse -Filter "*.cs" | 
+          Select-String -Pattern "!\.|!\[" | 
+          Measure-Object).Count
+        
+        Write-Host "Null-forgiving operators found: $forgivingCount"
+        
+        if ($forgivingCount -gt 0) {
+          Write-Host "❌ Found $forgivingCount null-forgiving operators"
+          Get-ChildItem -Path src -Recurse -Filter "*.cs" | 
+            Select-String -Pattern "!\.|!\[" | 
+            Select-Object -First 10 |
+            ForEach-Object { Write-Host "  - $($_.FileName):$($_.LineNumber)" }
+          exit 1
+        } else {
+          Write-Host "✅ No null-forgiving operators found"
+        }
+        
+    - name: Check for DateTime.Now
+      shell: pwsh
+      run: |
+        $dateTimeNowCount = (Get-ChildItem -Path src -Recurse -Filter "*.cs" | 
+          Select-String -Pattern "DateTime\.Now|DateTime\.UtcNow" | 
+          Where-Object { $_.Line -notmatch "ITimeProvider|SystemTimeProvider" } |
+          Measure-Object).Count
+        
+        Write-Host "DateTime.Now/UtcNow usage (excluding ITimeProvider): $dateTimeNowCount"
+        
+        # Allow up to 2 occurrences (expected in ITimeProvider implementations)
+        if ($dateTimeNowCount -gt 2) {
+          Write-Host "⚠️ Found $dateTimeNowCount DateTime.Now/UtcNow usages"
+          Get-ChildItem -Path src -Recurse -Filter "*.cs" | 
+            Select-String -Pattern "DateTime\.Now|DateTime\.UtcNow" | 
+            Where-Object { $_.Line -notmatch "ITimeProvider|SystemTimeProvider" } |
+            Select-Object -First 5 |
+            ForEach-Object { Write-Host "  - $($_.FileName):$($_.LineNumber)" }
+        } else {
+          Write-Host "✅ DateTime.Now usage is within acceptable limits"
+        }

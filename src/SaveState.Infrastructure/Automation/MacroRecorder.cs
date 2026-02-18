@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Automation.Services;
 using SaveState.Core.Automation.Services.DTOs;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Infrastructure.Automation;
 
@@ -11,6 +12,7 @@ namespace SaveState.Infrastructure.Automation;
 public class MacroRecorder : IMacroRecorder, IDisposable
 {
     private readonly ILogger<MacroRecorder> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<Guid, MacroRecordingSession> _activeSessions = new();
     private readonly Dictionary<Guid, List<MacroAction>> _recordedActions = new();
     private bool _disposed;
@@ -19,9 +21,10 @@ public class MacroRecorder : IMacroRecorder, IDisposable
     public event EventHandler<RecordingStoppedEventArgs>? RecordingStopped;
     public event EventHandler<ActionRecordedEventArgs>? ActionRecorded;
 
-    public MacroRecorder(ILogger<MacroRecorder> logger)
+    public MacroRecorder(ILogger<MacroRecorder> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public Task<Result<MacroRecordingSession>> StartRecordingAsync(
@@ -37,13 +40,13 @@ public class MacroRecorder : IMacroRecorder, IDisposable
                 Name: config.Name,
                 Description: config.Description,
                 Mode: config.Mode,
-                StartedAt: DateTime.UtcNow,
+                StartedAt: _timeProvider.UtcNow,
                 Status: new RecordingStatus(
                     IsRecording: true,
                     IsPaused: false,
                     Duration: TimeSpan.Zero,
                     ActionsRecorded: 0,
-                    StartedAt: DateTime.UtcNow),
+                    StartedAt: _timeProvider.UtcNow),
                 RecordedActions: Array.Empty<MacroAction>(),
                 Duration: TimeSpan.Zero);
 
@@ -75,7 +78,7 @@ public class MacroRecorder : IMacroRecorder, IDisposable
             }
 
             var actions = _recordedActions[sessionId];
-            var duration = DateTime.UtcNow - session.StartedAt;
+            var duration = _timeProvider.UtcNow - session.StartedAt;
 
             // Create the macro
             var macro = new Macro(
@@ -90,8 +93,8 @@ public class MacroRecorder : IMacroRecorder, IDisposable
                     Version: "1.0.0",
                     Tags: Array.Empty<string>(),
                     Properties: new Dictionary<string, string>()),
-                CreatedAt: DateTime.UtcNow,
-                UpdatedAt: DateTime.UtcNow);
+                CreatedAt: _timeProvider.UtcNow,
+                UpdatedAt: _timeProvider.UtcNow);
 
             _activeSessions.Remove(sessionId);
             _recordedActions.Remove(sessionId);
@@ -122,7 +125,7 @@ public class MacroRecorder : IMacroRecorder, IDisposable
 
             _recordedActions.Remove(sessionId);
 
-            var duration = DateTime.UtcNow - _activeSessions[sessionId].StartedAt;
+            var duration = _timeProvider.UtcNow - _activeSessions[sessionId].StartedAt;
             OnRecordingStopped(sessionId, null, duration);
 
             _logger.LogInformation("Cancelled macro recording session {SessionId}", sessionId);
@@ -158,7 +161,7 @@ public class MacroRecorder : IMacroRecorder, IDisposable
             var updatedStatus = session.Status with
             {
                 ActionsRecorded = session.Status.ActionsRecorded + 1,
-                Duration = DateTime.UtcNow - session.StartedAt
+                Duration = _timeProvider.UtcNow - session.StartedAt
             };
 
             var updatedSession = session with { Status = updatedStatus };
@@ -238,7 +241,7 @@ public class MacroRecorder : IMacroRecorder, IDisposable
                 return Task.FromResult(Result.Failure<RecordingStatus>("Recording session not found"));
             }
 
-            var currentDuration = DateTime.UtcNow - session.StartedAt;
+            var currentDuration = _timeProvider.UtcNow - session.StartedAt;
             var updatedStatus = session.Status with { Duration = currentDuration };
 
             return Task.FromResult(Result.Success<RecordingStatus>(updatedStatus));

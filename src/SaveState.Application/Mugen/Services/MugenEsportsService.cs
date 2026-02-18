@@ -15,6 +15,7 @@ public class MugenEsportsService : MugenEsportsServiceIMugenEsportsService
 {
     private readonly ILogger<MugenEsportsService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, MugenEsportsServiceEsportsLeague> _activeLeagues = new();
     private readonly Dictionary<string, MugenEsportsServiceProfessionalPlayer> _registeredPlayers = new();
     private readonly Dictionary<string, MugenEsportsServiceTeam> _registeredTeams = new();
@@ -24,12 +25,14 @@ public class MugenEsportsService : MugenEsportsServiceIMugenEsportsService
     public MugenEsportsService(
         ILogger<MugenEsportsService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _rankingSystem = new MugenEsportsServiceRankingSystem(loggerFactory.CreateLogger<MugenEsportsServiceRankingSystem>());
-        _sponsorshipManager = new MugenEsportsServiceSponsorshipManager(loggerFactory.CreateLogger<MugenEsportsServiceSponsorshipManager>());
+        _timeProvider = timeProvider;
+        _rankingSystem = new MugenEsportsServiceRankingSystem(loggerFactory.CreateLogger<MugenEsportsServiceRankingSystem>(), timeProvider);
+        _sponsorshipManager = new MugenEsportsServiceSponsorshipManager(loggerFactory.CreateLogger<MugenEsportsServiceSponsorshipManager>(), timeProvider);
     }
 
     public async Task<Result<MugenEsportsServiceEsportsLeague>> CreateLeagueAsync(MugenEsportsServiceLeagueCreationRequest request, CancellationToken ct = default)
@@ -58,7 +61,7 @@ public class MugenEsportsService : MugenEsportsServiceIMugenEsportsService
                 MaxTeamSize = request.MaxTeamSize,
                 SeasonLength = request.SeasonLength,
                 Status = MugenEsportsServiceLeagueStatus.Forming,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 RegistrationDeadline = request.RegistrationDeadline,
                 SeasonStartDate = request.SeasonStartDate,
                 PrizePool = request.BasePrizePool,
@@ -133,7 +136,7 @@ public class MugenEsportsService : MugenEsportsServiceIMugenEsportsService
                 Email = request.Email,
                 Country = request.Country,
                 DateOfBirth = request.DateOfBirth,
-                RegistrationDate = DateTime.UtcNow,
+                RegistrationDate = _timeProvider.UtcNow,
                 Status = MugenEsportsServicePlayerStatus.Active,
                 CurrentTeam = request.TeamId,
                 MainCharacters = request.MainCharacters,
@@ -181,7 +184,7 @@ public class MugenEsportsService : MugenEsportsServiceIMugenEsportsService
                 Description = request.Description,
                 CaptainId = request.CaptainId,
                 Region = request.Region,
-                FoundedDate = DateTime.UtcNow,
+                FoundedDate = _timeProvider.UtcNow,
                 Status = MugenEsportsServiceTeamStatus.Active,
                 Players = new List<string> { request.CaptainId },
                 Coaches = (request.Coaches ?? Enumerable.Empty<string>()).ToList(),
@@ -402,7 +405,7 @@ public class MugenEsportsService : MugenEsportsServiceIMugenEsportsService
         if (request.MinTeamSize < 1 || request.MaxTeamSize > 8)
             return Result.Failure("Invalid team size constraints");
 
-        if (request.SeasonStartDate <= DateTime.UtcNow)
+        if (request.SeasonStartDate <= _timeProvider.UtcNow)
             return Result.Failure("Season start date must be in the future");
 
         return Result.Success();
@@ -437,12 +440,14 @@ public class MugenEsportsService : MugenEsportsServiceIMugenEsportsService
 public class MugenEsportsServiceRankingSystem
 {
     private readonly ILogger<MugenEsportsServiceRankingSystem> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, MugenEsportsServiceLeagueRankings> _leagueRankings = new();
     private readonly Dictionary<string, int> _playerRankings = new();
 
-    public MugenEsportsServiceRankingSystem(ILogger<MugenEsportsServiceRankingSystem> logger)
+    public MugenEsportsServiceRankingSystem(ILogger<MugenEsportsServiceRankingSystem> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task InitializeLeagueRankingsAsync(string leagueId, CancellationToken ct = default)
@@ -452,7 +457,7 @@ public class MugenEsportsServiceRankingSystem
         {
             LeagueId = leagueId,
             Rankings = new List<MugenEsportsServiceTeamRanking>(),
-            LastUpdated = DateTime.UtcNow
+            LastUpdated = _timeProvider.UtcNow
         };
     }
 
@@ -498,7 +503,7 @@ public class MugenEsportsServiceRankingSystem
         {
             Period = period,
             Rankings = topPlayers,
-            LastUpdated = DateTime.UtcNow
+            LastUpdated = _timeProvider.UtcNow
         };
     }
 }
@@ -509,11 +514,13 @@ public class MugenEsportsServiceRankingSystem
 public class MugenEsportsServiceSponsorshipManager
 {
     private readonly ILogger<MugenEsportsServiceSponsorshipManager> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly List<MugenEsportsServiceSponsorshipDeal> _activeDeals = new();
 
-    public MugenEsportsServiceSponsorshipManager(ILogger<MugenEsportsServiceSponsorshipManager> logger)
+    public MugenEsportsServiceSponsorshipManager(ILogger<MugenEsportsServiceSponsorshipManager> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<MugenEsportsServiceSponsorshipDeal> CreateSponsorshipAsync(MugenEsportsServiceSponsorshipRequest request, CancellationToken ct = default)
@@ -528,7 +535,7 @@ public class MugenEsportsServiceSponsorshipManager
             Amount = request.Amount,
             Duration = request.Duration,
             Terms = request.Terms,
-            StartDate = DateTime.UtcNow,
+            StartDate = _timeProvider.UtcNow,
             Status = MugenEsportsServiceSponsorshipStatus.Active
         };
 

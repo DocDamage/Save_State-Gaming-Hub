@@ -14,6 +14,7 @@ public class AdvancedGraphicsEngine : AdvancedGraphicsEngineIAdvancedGraphicsEng
 {
     private readonly ILogger<AdvancedGraphicsEngine> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, AdvancedGraphicsEngineGraphicsScene> _activeScenes = new();
     private readonly Dictionary<string, AdvancedGraphicsEngineParticleSystem> _particleSystems = new();
     private readonly Dictionary<string, AdvancedGraphicsEngineShaderProgram> _shaderPrograms = new();
@@ -23,10 +24,12 @@ public class AdvancedGraphicsEngine : AdvancedGraphicsEngineIAdvancedGraphicsEng
     public AdvancedGraphicsEngine(
         ILogger<AdvancedGraphicsEngine> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
+        _timeProvider = timeProvider;
         _lightingEngine = new AdvancedGraphicsEngineLightingEngine(loggerFactory.CreateLogger<AdvancedGraphicsEngineLightingEngine>());
         _postProcessingEngine = new AdvancedGraphicsEnginePostProcessingEngine(loggerFactory.CreateLogger<AdvancedGraphicsEnginePostProcessingEngine>());
 
@@ -52,7 +55,7 @@ public class AdvancedGraphicsEngine : AdvancedGraphicsEngineIAdvancedGraphicsEng
                 PostProcessingEffects = new List<AdvancedGraphicsEnginePostProcessingEffect>(),
                 AdvancedGraphicsEngineCameraSettings = CreateDefaultCameraSettings(),
                 AdvancedGraphicsEngineRenderSettings = CreateDefaultRenderSettings(),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             };
 
             var backgroundLayers = new List<AdvancedGraphicsEngineBackgroundLayer>();
@@ -109,7 +112,7 @@ public class AdvancedGraphicsEngine : AdvancedGraphicsEngineIAdvancedGraphicsEng
                 AdvancedGraphicsEngineRenderSettings = request.AdvancedGraphicsEngineRenderSettings,
                 IsActive = false,
                 ParticleCount = 0,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             };
 
             _particleSystems[particleSystem.SystemId] = particleSystem;
@@ -144,7 +147,7 @@ public class AdvancedGraphicsEngine : AdvancedGraphicsEngineIAdvancedGraphicsEng
                 Uniforms = ParseShaderUniforms(request.VertexShader + request.FragmentShader),
                 Attributes = ParseShaderAttributes(request.VertexShader),
                 CompilationStatus = AdvancedGraphicsEngineShaderCompilationStatus.Success,
-                CompiledAt = DateTime.UtcNow,
+                CompiledAt = _timeProvider.UtcNow,
                 PerformanceMetrics = new AdvancedGraphicsEngineShaderPerformanceMetrics
                 {
                     EstimatedDrawCalls = 1000,
@@ -284,7 +287,7 @@ public class AdvancedGraphicsEngine : AdvancedGraphicsEngineIAdvancedGraphicsEng
                 Name = "Default Lighting Shader",
                 Description = "Standard lighting with ambient, diffuse, and specular components",
                 CompilationStatus = AdvancedGraphicsEngineShaderCompilationStatus.Success,
-                CompiledAt = DateTime.UtcNow
+                CompiledAt = _timeProvider.UtcNow
             },
             new AdvancedGraphicsEngineShaderProgram
             {
@@ -292,7 +295,7 @@ public class AdvancedGraphicsEngine : AdvancedGraphicsEngineIAdvancedGraphicsEng
                 Name = "Particle System Shader",
                 Description = "Optimized shader for particle rendering",
                 CompilationStatus = AdvancedGraphicsEngineShaderCompilationStatus.Success,
-                CompiledAt = DateTime.UtcNow
+                CompiledAt = _timeProvider.UtcNow
             },
             new AdvancedGraphicsEngineShaderProgram
             {
@@ -300,7 +303,7 @@ public class AdvancedGraphicsEngine : AdvancedGraphicsEngineIAdvancedGraphicsEng
                 Name = "Bloom Post-Processing",
                 Description = "Bloom effect for bright highlights",
                 CompilationStatus = AdvancedGraphicsEngineShaderCompilationStatus.Success,
-                CompiledAt = DateTime.UtcNow
+                CompiledAt = _timeProvider.UtcNow
             }
         };
 
@@ -321,7 +324,7 @@ public class AdvancedGraphicsEngine : AdvancedGraphicsEngineIAdvancedGraphicsEng
                 Name = "Fire Effect",
                 Description = "Realistic fire particle system",
                 IsActive = false,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             },
             new AdvancedGraphicsEngineParticleSystem
             {
@@ -329,7 +332,7 @@ public class AdvancedGraphicsEngine : AdvancedGraphicsEngineIAdvancedGraphicsEng
                 Name = "Explosion Effect",
                 Description = "Dramatic explosion with debris",
                 IsActive = false,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             },
             new AdvancedGraphicsEngineParticleSystem
             {
@@ -337,7 +340,7 @@ public class AdvancedGraphicsEngine : AdvancedGraphicsEngineIAdvancedGraphicsEng
                 Name = "Magic Effect",
                 Description = "Magical particle effects",
                 IsActive = false,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             }
         };
 

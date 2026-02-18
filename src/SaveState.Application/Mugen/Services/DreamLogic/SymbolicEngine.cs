@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Mugen.Models.DreamLogic;
+using SaveState.Core.Common.Services;
 namespace SaveState.Application.Mugen.Services.DreamLogic;
 
 /// <summary>
@@ -8,10 +9,12 @@ namespace SaveState.Application.Mugen.Services.DreamLogic;
 public class SymbolicEngine
 {
     private readonly ILogger<SymbolicEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public SymbolicEngine(ILogger<SymbolicEngine> logger)
+    public SymbolicEngine(ILogger<SymbolicEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public Task<SymbolicElement> ManifestSymbolAsync(SymbolicRequest request, CancellationToken ct = default)
@@ -25,7 +28,7 @@ public class SymbolicEngine
             RepresentedEmotion = GetEmotionForSymbol(request.SymbolType),
             Intensity = request.Intensity,
             Position = request.Position,
-            ManifestedAt = DateTime.UtcNow
+            ManifestedAt = _timeProvider.UtcNow
         };
 
         return Task.FromResult(element);
@@ -40,7 +43,7 @@ public class SymbolicEngine
             RepresentedEmotion = "wonder",
             Intensity = e.Intensity,
             Position = e.Position,
-            ManifestedAt = DateTime.UtcNow
+            ManifestedAt = _timeProvider.UtcNow
         }).ToList();
 
         return Task.FromResult(symbols);
@@ -53,34 +56,34 @@ public class SymbolicEngine
         return Task.FromResult(emotionalAlignment * symbolPower);
     }
 
-    public Task<SymbolicManifestation> CreateManifestationAsync(DreamState state, SymbolicRequest request, CancellationToken ct = default)
+    public async Task<SymbolicManifestation> CreateManifestationAsync(DreamState state, SymbolicRequest request, CancellationToken ct = default)
     {
         _logger.LogInformation("Creating symbolic manifestation in arena {ArenaId}", state.ArenaId);
 
-        var element = ManifestSymbolAsync(request, ct).Result;
+        var element = await ManifestSymbolAsync(request, ct).ConfigureAwait(false);
         var manifestation = new SymbolicManifestation
         {
             ManifestationId = Guid.NewGuid().ToString(),
             Element = element,
             TriggerCondition = request.TriggerCondition,
             Duration = request.Duration,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = _timeProvider.UtcNow
         };
 
-        return Task.FromResult(manifestation);
+        return manifestation;
     }
 
-    public Task<SymbolicManifestation> CreateSymbolicBackgroundAsync(DreamState state, SymbolicRequest request, CancellationToken ct = default)
+    public async Task<SymbolicManifestation> CreateSymbolicBackgroundAsync(DreamState state, SymbolicRequest request, CancellationToken ct = default)
     {
         _logger.LogInformation("Creating symbolic background in arena {ArenaId}: {SymbolType}", state.ArenaId, request.SymbolType);
 
-        var manifestation = CreateManifestationAsync(state, request, ct).Result;
+        var manifestation = await CreateManifestationAsync(state, request, ct).ConfigureAwait(false);
 
         var manifestations = state.SymbolicManifestations?.ToList() ?? new List<SymbolicElement>();
         manifestations.Add(manifestation.Element);
         state.SymbolicManifestations = manifestations;
 
-        return Task.FromResult(manifestation);
+        return manifestation;
     }
 
     public Task<MemoryPalace> ConstructMemoryPalaceAsync(MemoryPalaceRequest request, CancellationToken ct = default)
@@ -103,7 +106,7 @@ public class SymbolicEngine
             ArenaId = request.ArenaId,
             Rooms = rooms,
             Layout = PalaceLayout.Linear,
-            ConstructedAt = DateTime.UtcNow
+            ConstructedAt = _timeProvider.UtcNow
         };
 
         return Task.FromResult(palace);
@@ -129,5 +132,5 @@ public class SymbolicEngine
 /// </summary>
 public class DreamLogicArenaServiceSymbolicEngine : SymbolicEngine
 {
-    public DreamLogicArenaServiceSymbolicEngine(ILogger<SymbolicEngine> logger) : base(logger) { }
+    public DreamLogicArenaServiceSymbolicEngine(ILogger<SymbolicEngine> logger, ITimeProvider timeProvider) : base(logger, timeProvider) { }
 }

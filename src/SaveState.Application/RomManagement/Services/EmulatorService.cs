@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.RomManagement;
 using SaveState.Core.RomManagement.Entities;
 using SaveState.Core.GameLibrary;
@@ -12,6 +13,7 @@ public class EmulatorService : IEmulatorService
     private readonly IRomFileRepository _romFileRepository;
     private readonly IPlatformRepository _platformRepository;
     private readonly ILogger<EmulatorService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     // Track running emulator processes: RomFileId -> (ProcessId, StartTime)
     private readonly Dictionary<Guid, (int ProcessId, DateTime StartTime)> _runningProcesses = new();
@@ -20,12 +22,14 @@ public class EmulatorService : IEmulatorService
         IEmulatorRepository emulatorRepository,
         IRomFileRepository romFileRepository,
         IPlatformRepository platformRepository,
-        ILogger<EmulatorService> logger)
+        ILogger<EmulatorService> logger,
+        ITimeProvider timeProvider)
     {
         _emulatorRepository = emulatorRepository ?? throw new ArgumentNullException(nameof(emulatorRepository));
         _romFileRepository = romFileRepository ?? throw new ArgumentNullException(nameof(romFileRepository));
         _platformRepository = platformRepository ?? throw new ArgumentNullException(nameof(platformRepository));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     public async Task<EmulatorLaunchResult> LaunchRomAsync(Guid romFileId, CancellationToken ct = default)
@@ -89,7 +93,7 @@ public class EmulatorService : IEmulatorService
             }
 
             // Track the running process
-            _runningProcesses[romFileId] = (process.Id, DateTime.UtcNow);
+            _runningProcesses[romFileId] = (process.Id, _timeProvider.UtcNow);
 
             _logger.LogInformation("Successfully launched ROM {RomFileId} with emulator {EmulatorId} (Process: {ProcessId})",
                 romFileId, emulatorId, process.Id);

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Services;
 
 namespace SaveState.Infrastructure.GameLibrary.Services;
@@ -9,6 +10,7 @@ namespace SaveState.Infrastructure.GameLibrary.Services;
 public class PerformanceProfiler : IPerformanceProfiler, IDisposable
 {
     private readonly ILogger<PerformanceProfiler> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly IGameMemoryReader _memoryReader;
     private readonly PerformanceMetricsCollector _metricsCollector;
     private readonly Timer _profilingTimer;
@@ -23,10 +25,12 @@ public class PerformanceProfiler : IPerformanceProfiler, IDisposable
 
     public PerformanceProfiler(
         ILogger<PerformanceProfiler> logger,
-        IGameMemoryReader memoryReader)
+        IGameMemoryReader memoryReader,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _memoryReader = memoryReader;
+        _timeProvider = timeProvider;
         _metricsCollector = new PerformanceMetricsCollector(logger);
 
         // Collect metrics every 100ms for smooth monitoring
@@ -45,7 +49,7 @@ public class PerformanceProfiler : IPerformanceProfiler, IDisposable
             _logger.LogInformation("Starting performance profiling for game {GameId}", gameId);
 
             _currentGameId = gameId;
-            _profilingStartTime = DateTime.UtcNow;
+            _profilingStartTime = _timeProvider.UtcNow;
             _metricsHistory.Clear();
             _isProfiling = true;
 
@@ -116,7 +120,7 @@ public class PerformanceProfiler : IPerformanceProfiler, IDisposable
 
         try
         {
-            var endTime = DateTime.UtcNow;
+            var endTime = _timeProvider.UtcNow;
             var duration = endTime - _profilingStartTime;
 
             var averageMetrics = CalculateAverageMetrics();
@@ -223,10 +227,10 @@ public class PerformanceProfiler : IPerformanceProfiler, IDisposable
     private PerformanceMetrics CalculateAverageMetrics()
     {
         if (_metricsHistory.Count == 0)
-            return new PerformanceMetrics(DateTime.UtcNow, 0, 0, 0, 0, 0, 0, 0, Array.Empty<SubsystemMetrics>());
+            return new PerformanceMetrics(_timeProvider.UtcNow, 0, 0, 0, 0, 0, 0, 0, Array.Empty<SubsystemMetrics>());
 
         return new PerformanceMetrics(
-            Timestamp: DateTime.UtcNow,
+            Timestamp: _timeProvider.UtcNow,
             Fps: _metricsHistory.Average(m => m.Fps),
             FrameTimeMs: _metricsHistory.Average(m => m.FrameTimeMs),
             CpuUsagePercent: _metricsHistory.Average(m => m.CpuUsagePercent),
@@ -240,10 +244,10 @@ public class PerformanceProfiler : IPerformanceProfiler, IDisposable
     private PerformanceMetrics CalculatePeakMetrics()
     {
         if (_metricsHistory.Count == 0)
-            return new PerformanceMetrics(DateTime.UtcNow, 0, 0, 0, 0, 0, 0, 0, Array.Empty<SubsystemMetrics>());
+            return new PerformanceMetrics(_timeProvider.UtcNow, 0, 0, 0, 0, 0, 0, 0, Array.Empty<SubsystemMetrics>());
 
         return new PerformanceMetrics(
-            Timestamp: DateTime.UtcNow,
+            Timestamp: _timeProvider.UtcNow,
             Fps: _metricsHistory.Max(m => m.Fps),
             FrameTimeMs: _metricsHistory.Min(m => m.FrameTimeMs), // Lower frame time = better
             CpuUsagePercent: _metricsHistory.Max(m => m.CpuUsagePercent),
@@ -257,10 +261,10 @@ public class PerformanceProfiler : IPerformanceProfiler, IDisposable
     private PerformanceMetrics CalculateMinMetrics()
     {
         if (_metricsHistory.Count == 0)
-            return new PerformanceMetrics(DateTime.UtcNow, 0, 0, 0, 0, 0, 0, 0, Array.Empty<SubsystemMetrics>());
+            return new PerformanceMetrics(_timeProvider.UtcNow, 0, 0, 0, 0, 0, 0, 0, Array.Empty<SubsystemMetrics>());
 
         return new PerformanceMetrics(
-            Timestamp: DateTime.UtcNow,
+            Timestamp: _timeProvider.UtcNow,
             Fps: _metricsHistory.Min(m => m.Fps),
             FrameTimeMs: _metricsHistory.Max(m => m.FrameTimeMs), // Higher frame time = worse
             CpuUsagePercent: _metricsHistory.Min(m => m.CpuUsagePercent),
@@ -554,4 +558,3 @@ public class PerformanceProfiler : IPerformanceProfiler, IDisposable
         _profilingTimer?.Dispose();
     }
 }
-

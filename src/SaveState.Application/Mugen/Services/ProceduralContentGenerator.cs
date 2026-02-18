@@ -16,6 +16,7 @@ public class ProceduralContentGenerator : IProceduralContentGenerator
 {
     private readonly ILogger<ProceduralContentGenerator> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly ProceduralContentGeneratorMoveGenerator _moveGenerator;
     private readonly ProceduralContentGeneratorStageGenerator _stageGenerator;
     private readonly ProceduralContentGeneratorCharacterGenerator _characterGenerator;
@@ -25,10 +26,12 @@ public class ProceduralContentGenerator : IProceduralContentGenerator
     public ProceduralContentGenerator(
         ILogger<ProceduralContentGenerator> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
+        _timeProvider = timeProvider;
         _moveGenerator = new ProceduralContentGeneratorMoveGenerator(loggerFactory.CreateLogger<ProceduralContentGeneratorMoveGenerator>());
         _stageGenerator = new ProceduralContentGeneratorStageGenerator(loggerFactory.CreateLogger<ProceduralContentGeneratorStageGenerator>());
         _characterGenerator = new ProceduralContentGeneratorCharacterGenerator(loggerFactory.CreateLogger<ProceduralContentGeneratorCharacterGenerator>());
@@ -69,12 +72,12 @@ public class ProceduralContentGenerator : IProceduralContentGenerator
                 GenerationMetadata = new ProceduralContentGeneratorGenerationMetadata
                 {
                     GeneratorVersion = "1.0.0",
-                    GenerationTime = DateTime.UtcNow,
+                    GenerationTime = _timeProvider.UtcNow,
                     AlgorithmUsed = "NeuralProceduralGeneration",
                     StyleInfluence = styleAnalysis.PrimaryStyle,
                     InspirationMoves = styleAnalysis.SimilarMoves
                 },
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Move generated successfully: {MoveId} with balance score {Score:F2}",
@@ -130,12 +133,12 @@ public class ProceduralContentGenerator : IProceduralContentGenerator
                 GenerationMetadata = new ProceduralContentGeneratorGenerationMetadata
                 {
                     GeneratorVersion = "1.0.0",
-                    GenerationTime = DateTime.UtcNow,
+                    GenerationTime = _timeProvider.UtcNow,
                     AlgorithmUsed = "TerrainGenerationAI",
                     StyleInfluence = request.Theme,
                     InspirationStages = new[] { "Similar themed stages" }
                 },
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Stage generated successfully: {StageId} with visual appeal {Appeal:F2}",
@@ -187,12 +190,12 @@ public class ProceduralContentGenerator : IProceduralContentGenerator
                 GenerationMetadata = new ProceduralContentGeneratorGenerationMetadata
                 {
                     GeneratorVersion = "1.0.0",
-                    GenerationTime = DateTime.UtcNow,
+                    GenerationTime = _timeProvider.UtcNow,
                     AlgorithmUsed = "CharacterDesignAI",
                     StyleInfluence = request.Archetype.ToString(),
                     InspirationCharacters = new[] { "Similar archetype characters" }
                 },
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Character generated successfully: {CharacterId} with balance score {Score:F2}",
@@ -241,12 +244,12 @@ public class ProceduralContentGenerator : IProceduralContentGenerator
                 GenerationMetadata = new ProceduralContentGeneratorGenerationMetadata
                 {
                     GeneratorVersion = "1.0.0",
-                    GenerationTime = DateTime.UtcNow,
+                    GenerationTime = _timeProvider.UtcNow,
                     AlgorithmUsed = "EffectGenerationAI",
                     StyleInfluence = request.EffectType.ToString(),
                     InspirationContent = new[] { "Similar effect types" }
                 },
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Effect generated successfully: {EffectId} with impact score {Score:F2}",
@@ -301,12 +304,12 @@ public class ProceduralContentGenerator : IProceduralContentGenerator
                 GenerationMetadata = new ProceduralContentGeneratorGenerationMetadata
                 {
                     GeneratorVersion = "1.0.0",
-                    GenerationTime = DateTime.UtcNow,
+                    GenerationTime = _timeProvider.UtcNow,
                     AlgorithmUsed = "CollectionGenerationAI",
                     StyleInfluence = request.Theme,
                     InspirationContent = new[] { "Similar themed collections" }
                 },
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Content collection generated: {CollectionId} with coherence score {Score:F2}",
@@ -353,12 +356,12 @@ public class ProceduralContentGenerator : IProceduralContentGenerator
                 GenerationMetadata = new ProceduralContentGeneratorGenerationMetadata
                 {
                     GeneratorVersion = "1.0.0",
-                    GenerationTime = DateTime.UtcNow,
+                    GenerationTime = _timeProvider.UtcNow,
                     AlgorithmUsed = "ContentEvolutionAI",
                     StyleInfluence = request.EvolutionStrategy.ToString(),
                     InspirationContent = new[] { contentId }
                 },
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Content evolved successfully: {EvolutionId} with quality improvement {Improvement:F2}",

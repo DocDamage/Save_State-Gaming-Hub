@@ -114,7 +114,7 @@ public class ArchitectureTests
         }
         
         // Allow some legacy interfaces while documenting the issue
-        invalidInterfaces.Count.Should().BeLessOrEqualTo(5, 
+        invalidInterfaces.Count.Should().BeLessThanOrEqualTo(5, 
             $"{invalidInterfaces.Count} service interfaces don't start with 'I'. Fix: {string.Join(", ", invalidInterfaces.Take(3))}");
     }
 
@@ -173,7 +173,7 @@ public class ArchitectureTests
         
         // Baseline: We refactored most giant classes (>1000 lines)
         // Allow up to 10 remaining large non-migration classes
-        largeClasses.Count.Should().BeLessOrEqualTo(10, 
+        largeClasses.Count.Should().BeLessThanOrEqualTo(10, 
             $"{largeClasses.Count} classes exceed 1000 lines. Baseline allows 10. Top: " +
             string.Join(", ", largeClasses.OrderByDescending(c => c.LineCount).Take(3).Select(c => $"{c.Type.Name}({c.LineCount})")));
     }
@@ -216,7 +216,7 @@ public class ArchitectureTests
         }
         
         // Baseline: 41 large services (Feb 2026) - Goal: 30 by Mar 2026
-        largeServices.Count.Should().BeLessOrEqualTo(45, 
+        largeServices.Count.Should().BeLessThanOrEqualTo(45, 
             $"{largeServices.Count} services exceed 500 lines. Baseline: 41, Goal: 30. Top: " +
             string.Join(", ", largeServices.OrderByDescending(s => s.LineCount).Take(3).Select(s => $"{s.Type.Name}({s.LineCount})")));
     }
@@ -243,7 +243,7 @@ public class ArchitectureTests
         }
         
         // Allow up to 75 large interfaces (updated technical debt baseline)
-        largeInterfaces.Count.Should().BeLessOrEqualTo(75, 
+        largeInterfaces.Count.Should().BeLessThanOrEqualTo(75, 
             $"{largeInterfaces.Count} interfaces have more than 10 methods. Goal: Reduce large interfaces");
     }
 

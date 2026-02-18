@@ -21,4 +21,16 @@
     <!-- <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0" PrivateAssets="All" /> -->
     <PackageReference Include="Ardalis.GuardClauses" />
   </ItemGroup>
+
+  <ItemGroup Condition="
+    '$(MSBuildProjectName)' == 'SaveState.CLI' Or
+    '$(MSBuildProjectName)' == 'SaveState.Plugins.Accessibility' Or
+    '$(MSBuildProjectName)' == 'SaveState.Plugins.DiscordIntegration' Or
+    '$(MSBuildProjectName)' == 'SaveState.Plugins.GameDetection' Or
+    '$(MSBuildProjectName)' == 'SaveState.Plugins.GamingAnalytics' Or
+    '$(MSBuildProjectName)' == 'SaveState.Plugins.HealthWellness' Or
+    '$(MSBuildProjectName)' == 'SaveState.Plugins.ScreenshotCapture' Or
+    '$(MSBuildProjectName)' == 'SaveState.Plugins.TwitchStreaming'">
+    <Compile Include="$(MSBuildThisFileDirectory)src\Shared\SystemCommandLineCompatibility.cs" Link="Compatibility\SystemCommandLineCompatibility.cs" />
+  </ItemGroup>
 </Project>

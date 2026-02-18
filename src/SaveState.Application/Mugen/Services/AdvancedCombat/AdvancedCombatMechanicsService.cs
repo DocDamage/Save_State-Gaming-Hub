@@ -16,6 +16,7 @@ public class AdvancedCombatMechanicsService : IAdvancedCombatMechanicsService
 {
     private readonly ILogger<AdvancedCombatMechanicsService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
 
     // Specialized engines
     private readonly CombatEngine _combatEngine;
@@ -29,19 +30,21 @@ public class AdvancedCombatMechanicsService : IAdvancedCombatMechanicsService
     public AdvancedCombatMechanicsService(
         ILogger<AdvancedCombatMechanicsService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
+        _timeProvider = timeProvider;
 
         // Initialize engines
-        _combatEngine = new CombatEngine(loggerFactory.CreateLogger<CombatEngine>());
-        _zAxisEngine = new ZAxisEngine(loggerFactory.CreateLogger<ZAxisEngine>());
-        _juggleEngine = new JuggleEngine(loggerFactory.CreateLogger<JuggleEngine>());
-        _frameDataEngine = new FrameDataEngine(loggerFactory.CreateLogger<FrameDataEngine>());
-        _inputBufferEngine = new InputBufferEngine(loggerFactory.CreateLogger<InputBufferEngine>());
-        _parryEngine = new ParryEngine(loggerFactory.CreateLogger<ParryEngine>());
-        _comboEngine = new ComboEngine(loggerFactory.CreateLogger<ComboEngine>());
+        _combatEngine = new CombatEngine(loggerFactory.CreateLogger<CombatEngine>(), _timeProvider);
+        _zAxisEngine = new ZAxisEngine(loggerFactory.CreateLogger<ZAxisEngine>(), _timeProvider);
+        _juggleEngine = new JuggleEngine(loggerFactory.CreateLogger<JuggleEngine>(), _timeProvider);
+        _frameDataEngine = new FrameDataEngine(loggerFactory.CreateLogger<FrameDataEngine>(), _timeProvider);
+        _inputBufferEngine = new InputBufferEngine(loggerFactory.CreateLogger<InputBufferEngine>(), _timeProvider);
+        _parryEngine = new ParryEngine(loggerFactory.CreateLogger<ParryEngine>(), _timeProvider);
+        _comboEngine = new ComboEngine(loggerFactory.CreateLogger<ComboEngine>(), _timeProvider);
 
         _logger.LogInformation("Advanced combat mechanics system initialized");
     }
@@ -219,13 +222,13 @@ public class AdvancedCombatMechanicsService : IAdvancedCombatMechanicsService
         var report = new AdvancedCombatReport
         {
             SessionId = sessionId,
-            Duration = DateTime.UtcNow - session.StartedAt,
+            Duration = _timeProvider.UtcNow - session.StartedAt,
             ZAxisUtilization = await AnalyzeZAxisUtilizationAsync(session, ct),
             JuggleMechanics = await AnalyzeJuggleMechanicsAsync(session, ct),
             FrameDataInsights = await AnalyzeFrameDataUsageAsync(session, ct),
             InputBufferEfficiency = await AnalyzeInputBufferEfficiencyAsync(session, ct),
             OverallMechanicsScore = CalculateOverallScore(session),
-            GeneratedAt = DateTime.UtcNow
+            GeneratedAt = _timeProvider.UtcNow
         };
 
         _logger.LogInformation("Advanced combat report generated successfully");
@@ -244,7 +247,7 @@ public class AdvancedCombatMechanicsService : IAdvancedCombatMechanicsService
         {
             TotalMovements = movements.Count,
             AverageDistance = movements.Any() ? (float)movements.Average(m => m.Distance) : 0f,
-            SidestepFrequency = (float)(movements.Count / Math.Max(1, (DateTime.UtcNow - session.StartedAt).TotalMinutes)),
+            SidestepFrequency = (float)(movements.Count / Math.Max(1, (_timeProvider.UtcNow - session.StartedAt).TotalMinutes)),
             PositioningEfficiency = _zAxisEngine.CalculatePositioningEfficiency(movements.ToList(), session),
             EvasionSuccessRate = _zAxisEngine.CalculateEvasionSuccess(movements.ToList())
         };

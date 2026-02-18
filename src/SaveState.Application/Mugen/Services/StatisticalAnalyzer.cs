@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Mugen.Services;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Application.Mugen.Services;
 
@@ -10,11 +11,13 @@ namespace SaveState.Application.Mugen.Services;
 public class StatisticalAnalyzer
 {
     private readonly ILogger<StatisticalAnalyzer> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, CharacterStatistics> _characterStats = new();
 
-    public StatisticalAnalyzer(ILogger<StatisticalAnalyzer> logger)
+    public StatisticalAnalyzer(ILogger<StatisticalAnalyzer> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<PlayerStatistics> CalculatePlayerStatisticsAsync(
@@ -229,7 +232,7 @@ public class StatisticalAnalyzer
             achievements.Add(new Achievement(
                 Name: "Character Collector",
                 Description: "Played 5 different characters",
-                UnlockedAt: DateTime.UtcNow,
+                UnlockedAt: _timeProvider.UtcNow,
                 Rarity: AchievementRarity.Rare
             ));
         }
@@ -241,7 +244,7 @@ public class StatisticalAnalyzer
             achievements.Add(new Achievement(
                 Name: "Winning Streak",
                 Description: "Achieved 80%+ win rate with 10+ matches",
-                UnlockedAt: DateTime.UtcNow,
+                UnlockedAt: _timeProvider.UtcNow,
                 Rarity: AchievementRarity.Epic
             ));
         }
@@ -255,7 +258,7 @@ public class StatisticalAnalyzer
             achievements.Add(new Achievement(
                 Name: "Damage Dealer",
                 Description: "Dealt 10,000+ total damage",
-                UnlockedAt: DateTime.UtcNow,
+                UnlockedAt: _timeProvider.UtcNow,
                 Rarity: AchievementRarity.Rare
             ));
         }

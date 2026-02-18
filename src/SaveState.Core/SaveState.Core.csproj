@@ -6,7 +6,6 @@
     <Nullable>enable</Nullable>
     <!-- Enable XML documentation -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CA2007</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,4 +23,3 @@
   </ItemGroup>
 
 </Project>
-

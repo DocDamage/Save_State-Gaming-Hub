@@ -15,6 +15,7 @@ public class WebPortalService : IWebPortalService
 {
     private readonly ILogger<WebPortalService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
 
     // Data stores (shared with engines)
     private readonly Dictionary<string, WebPortalServiceForumThread> _forumPosts = new();
@@ -35,30 +36,37 @@ public class WebPortalService : IWebPortalService
     public WebPortalService(
         ILogger<WebPortalService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
+        _timeProvider = timeProvider;
 
         // Initialize engines with shared data stores
         _userEngine = new UserManagementEngine(
             loggerFactory.CreateLogger<UserManagementEngine>(),
-            _userProfiles);
+            _userProfiles,
+            _timeProvider);
 
         _forumEngine = new ForumEngine(
             loggerFactory.CreateLogger<ForumEngine>(),
             _forumThreads,
-            new Dictionary<string, WebPortalServiceForumPost>());
+            new Dictionary<string, WebPortalServiceForumPost>(),
+            _timeProvider);
 
         _contentEngine = new ContentManagementEngine(
             loggerFactory.CreateLogger<ContentManagementEngine>(),
-            _contentSubmissions);
+            _contentSubmissions,
+            _timeProvider);
 
         _communityEngine = new CommunityEngine(
-            loggerFactory.CreateLogger<CommunityEngine>());
+            loggerFactory.CreateLogger<CommunityEngine>(),
+            _timeProvider);
 
         _socialEngine = new SocialFeaturesEngine(
-            loggerFactory.CreateLogger<SocialFeaturesEngine>());
+            loggerFactory.CreateLogger<SocialFeaturesEngine>(),
+            _timeProvider);
 
         _authEngine = new AuthenticationEngine(
             loggerFactory.CreateLogger<AuthenticationEngine>());
@@ -342,8 +350,8 @@ public class WebPortalService : IWebPortalService
                 TotalForumThreads = _forumEngine.TotalThreads,
                 TotalContentSubmissions = _contentEngine.TotalSubmissions,
                 ApprovedContent = _contentEngine.ApprovedContentCount,
-                PeriodStart = DateTime.UtcNow.Subtract(period),
-                PeriodEnd = DateTime.UtcNow,
+                PeriodStart = _timeProvider.UtcNow.Subtract(period),
+                PeriodEnd = _timeProvider.UtcNow,
                 TopContributors = await _userEngine.GetTopContributorsAsync(period, ct),
                 PopularTags = await _contentEngine.GetPopularTagsAsync(period, ct),
                 WebPortalServiceEngagementMetrics = await _analyticsEngine.CalculateEngagementMetricsAsync(period, ct)

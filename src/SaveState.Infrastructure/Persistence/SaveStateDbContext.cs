@@ -31,6 +31,18 @@ using MugenDummyRecordingEntity = SaveState.Core.Mugen.Entities.MugenDummyRecord
 using TournamentMatchEntity = SaveState.Core.Mugen.Entities.TournamentMatchEntity;
 using TournamentParticipantEntity = SaveState.Core.Mugen.Entities.TournamentParticipant;
 using NetworkQualityHistoryEntity = SaveState.Core.Sync.Entities.NetworkQualityHistory;
+using SaveState.Core.Subscriptions;
+using SaveState.Core.GameDeals;
+using SaveState.Core.SmartLauncher;
+using SaveState.Core.SaveStateCloudSync;
+using AiBattleAnalysisModel = SaveState.Core.Mugen.AiBattleAnalysis.AiBattleAnalysis;
+using SaveState.Core.Mugen.CharacterFusion;
+using SaveState.Core.Mugen.DeathBattle;
+using SaveState.Core.Mugen.ReplayAnalysis;
+using SaveState.Core.Mugen.ComboDatabase;
+using SaveState.Core.Mugen.TournamentEvents;
+using SaveState.Core.AutoSave;
+using SaveState.Infrastructure.Mugen.Services;
 
 namespace SaveState.Infrastructure.Persistence;
 
@@ -100,7 +112,56 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
     public DbSet<Core.Social.Entities.FriendActivity> FriendActivities { get; set; }
     public DbSet<Core.Sync.Entities.NetworkQualityHistory> NetworkQualityHistories { get; set; }
 
+    // Subscription Management
+    public DbSet<UserSubscriptionEntity> UserSubscriptions { get; set; }
+    public DbSet<TrackedGameEntity> TrackedSubscriptionGames { get; set; }
+    public DbSet<SubscriptionCatalogCacheEntity> SubscriptionCatalogCache { get; set; }
 
+    // Game Deals
+    public DbSet<Core.GameDeals.GameDeal> GameDeals { get; set; }
+    public DbSet<Core.GameDeals.PriceHistoryEntry> PriceHistory { get; set; }
+    public DbSet<Core.GameDeals.PriceAlert> PriceAlerts { get; set; }
+
+    // Smart Launcher
+    public DbSet<LaunchProfile> LaunchProfiles { get; set; }
+    public DbSet<LaunchSession> LaunchSessions { get; set; }
+
+    // Frame Data
+    public DbSet<CharacterFrameDataEntity> CharacterFrameData { get; set; }
+    public DbSet<MoveFrameDataEntity> MoveFrameData { get; set; }
+
+    // Cloud Sync
+    public DbSet<CloudSaveState> CloudSaveStates { get; set; }
+
+    // AI Battle Analysis
+    public DbSet<AiBattleAnalysisModel> AiBattleAnalyses { get; set; }
+
+    // Character Fusion
+    public DbSet<FusedCharacter> FusedCharacters { get; set; }
+    public DbSet<FusionBattleHistory> FusionBattleHistories { get; set; }
+
+    // Death Battle
+    public DbSet<DeathBattleMatch> DeathBattleMatches { get; set; }
+    public DbSet<DeathBattleSuggestion> DeathBattleSuggestions { get; set; }
+
+    // Replay Analysis
+    public DbSet<ReplayAnalysis> ReplayAnalyses { get; set; }
+
+    // Combo Database
+    public DbSet<ComboEntry> ComboEntries { get; set; }
+    public DbSet<ComboPracticeSession> ComboPracticeSessions { get; set; }
+    public DbSet<ComboSubmission> ComboSubmissions { get; set; }
+    public DbSet<ComboCollection> ComboCollections { get; set; }
+
+    // Tournament Events
+    public DbSet<TournamentEvent> TournamentEvents { get; set; }
+
+    // Auto Save
+    public DbSet<AutoSaveConfiguration> AutoSaveConfigurations { get; set; }
+    public DbSet<AutoSaveEntry> AutoSaveEntries { get; set; }
+
+    // Input Recording
+    public DbSet<Core.InputRecording.InputRecording> InputRecordings { get; set; }
 
     public SaveStateDbContext(DbContextOptions<SaveStateDbContext> options)
         : base(options)
@@ -305,6 +366,77 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
         modelBuilder.Entity<NetworkQualityHistoryEntity>()
             .HasIndex(nqh => nqh.Level)
             .HasDatabaseName("IX_NetworkQualityHistories_Level");
+
+        // Subscription Management indexes
+        modelBuilder.Entity<UserSubscriptionEntity>()
+            .HasIndex(us => new { us.UserId, us.ServiceId })
+            .HasDatabaseName("IX_UserSubscriptions_UserId_ServiceId");
+
+        modelBuilder.Entity<UserSubscriptionEntity>()
+            .HasIndex(us => us.UserId)
+            .HasDatabaseName("IX_UserSubscriptions_UserId");
+
+        modelBuilder.Entity<UserSubscriptionEntity>()
+            .HasIndex(us => us.IsActive)
+            .HasDatabaseName("IX_UserSubscriptions_IsActive");
+
+        modelBuilder.Entity<TrackedGameEntity>()
+            .HasIndex(tg => new { tg.UserId, tg.GameTitle })
+            .HasDatabaseName("IX_TrackedSubscriptionGames_UserId_GameTitle");
+
+        modelBuilder.Entity<SubscriptionCatalogCacheEntity>()
+            .HasIndex(cc => new { cc.ServiceId, cc.GameTitle })
+            .HasDatabaseName("IX_SubscriptionCatalogCache_ServiceId_GameTitle");
+
+        modelBuilder.Entity<SubscriptionCatalogCacheEntity>()
+            .HasIndex(cc => cc.DateLeaving)
+            .HasDatabaseName("IX_SubscriptionCatalogCache_DateLeaving");
+
+        // Game Deals indexes
+        modelBuilder.Entity<Core.GameDeals.GameDeal>()
+            .HasIndex(d => d.Title)
+            .HasDatabaseName("IX_GameDeals_Title");
+
+        modelBuilder.Entity<Core.GameDeals.GameDeal>()
+            .HasIndex(d => d.CurrentPrice)
+            .HasDatabaseName("IX_GameDeals_CurrentPrice");
+
+        modelBuilder.Entity<Core.GameDeals.GameDeal>()
+            .HasIndex(d => new { d.IsActive, d.LastUpdated })
+            .HasDatabaseName("IX_GameDeals_IsActive_LastUpdated");
+
+        modelBuilder.Entity<Core.GameDeals.PriceHistoryEntry>()
+            .HasIndex(h => new { h.GameTitle, h.StoreId })
+            .HasDatabaseName("IX_PriceHistory_GameTitle_StoreId");
+
+        modelBuilder.Entity<Core.GameDeals.PriceHistoryEntry>()
+            .HasIndex(h => h.Date)
+            .HasDatabaseName("IX_PriceHistory_Date");
+
+        modelBuilder.Entity<Core.GameDeals.PriceAlert>()
+            .HasIndex(a => a.UserId)
+            .HasDatabaseName("IX_PriceAlerts_UserId");
+
+        modelBuilder.Entity<Core.GameDeals.PriceAlert>()
+            .HasIndex(a => new { a.IsActive, a.GameTitle })
+            .HasDatabaseName("IX_PriceAlerts_IsActive_GameTitle");
+
+        // Smart Launcher indexes
+        modelBuilder.Entity<LaunchProfile>()
+            .HasIndex(p => new { p.GameId, p.IsDefault })
+            .HasDatabaseName("IX_LaunchProfiles_GameId_IsDefault");
+
+        modelBuilder.Entity<LaunchProfile>()
+            .HasIndex(p => p.IsActive)
+            .HasDatabaseName("IX_LaunchProfiles_IsActive");
+
+        modelBuilder.Entity<LaunchSession>()
+            .HasIndex(s => new { s.GameId, s.EndedAt })
+            .HasDatabaseName("IX_LaunchSessions_GameId_EndedAt");
+
+        modelBuilder.Entity<LaunchSession>()
+            .HasIndex(s => s.StartedAt)
+            .HasDatabaseName("IX_LaunchSessions_StartedAt");
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Mugen.Models.Analytics;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Application.Mugen.Services.Analytics;
 
@@ -9,10 +10,12 @@ namespace SaveState.Application.Mugen.Services.Analytics;
 public class PredictiveAnalyzer
 {
     private readonly ILogger<PredictiveAnalyzer> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public PredictiveAnalyzer(ILogger<PredictiveAnalyzer> logger)
+    public PredictiveAnalyzer(ILogger<PredictiveAnalyzer> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public Task<PredictiveModel> TrainModelAsync(ModelTrainingRequest request, CancellationToken ct)
@@ -29,8 +32,8 @@ public class PredictiveAnalyzer
             Precision = 0.85,
             Recall = 0.82,
             F1Score = 0.83,
-            CreatedAt = DateTime.UtcNow,
-            LastTrained = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
+            LastTrained = _timeProvider.UtcNow,
             TrainingDataSize = request.TrainingData.Count,
             Status = ModelStatus.Active,
             FeatureImportance = new Dictionary<string, double>
@@ -63,8 +66,8 @@ public class PredictiveAnalyzer
                 ["engagement_score"] = 0.25,
                 ["skill_progression"] = 0.2
             },
-            GeneratedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddHours(24)
+            GeneratedAt = _timeProvider.UtcNow,
+            ExpiresAt = _timeProvider.UtcNow.AddHours(24)
         });
     }
 
@@ -97,7 +100,7 @@ public class PredictiveAnalyzer
                 "Model performance is excellent",
                 "Consider retraining with more recent data"
             },
-            ValidatedAt = DateTime.UtcNow
+            ValidatedAt = _timeProvider.UtcNow
         });
     }
 }
@@ -132,7 +135,7 @@ public class ModelTestResult
 /// </summary>
 public class AdvancedAnalyticsServicePredictiveAnalyzer : PredictiveAnalyzer
 {
-    public AdvancedAnalyticsServicePredictiveAnalyzer(ILogger<PredictiveAnalyzer> logger) : base(logger) { }
+    public AdvancedAnalyticsServicePredictiveAnalyzer(ILogger<PredictiveAnalyzer> logger, ITimeProvider timeProvider) : base(logger, timeProvider) { }
 }
 
 public class AdvancedAnalyticsServiceModelValidationReport : ModelValidationReport { }

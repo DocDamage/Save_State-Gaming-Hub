@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.Common.Enums;
 using SaveState.Core.GameLibrary;
@@ -11,11 +12,13 @@ public class BackupService : IBackupService
 {
     private readonly IGameRepository _gameRepository;
     private readonly ILogger<BackupService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public BackupService(IGameRepository gameRepository, ILogger<BackupService> logger)
+    public BackupService(IGameRepository gameRepository, ILogger<BackupService> logger, ITimeProvider timeProvider)
     {
         _gameRepository = gameRepository;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<BackupResult> CreateBackupAsync(
@@ -25,7 +28,7 @@ public class BackupService : IBackupService
         bool includeSettings,
         CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         var backupId = BackupId.NewId();
 
         try
@@ -36,7 +39,7 @@ public class BackupService : IBackupService
             var gamesToBackup = await GetGamesToBackupAsync(gameIds, ct).ConfigureAwait(false);
 
         // Create backup directory
-        var backupPath = CreateBackupDirectory(backupId, name);
+        var backupPath = CreateBackupDirectory(backupId, name, startTime);
 
         // Perform backup based on type
         var result = await PerformBackupAsync(type, gamesToBackup, backupPath, includeSettings, backupId, startTime, ct).ConfigureAwait(false);
@@ -73,10 +76,10 @@ public class BackupService : IBackupService
         }
     }
 
-    private static string CreateBackupDirectory(BackupId backupId, string? name)
+    private static string CreateBackupDirectory(BackupId backupId, string? name, DateTime createdAt)
     {
         var basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Backups");
-        var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+        var timestamp = createdAt.ToString("yyyyMMdd_HHmmss");
         var backupName = name ?? $"backup_{timestamp}";
         var backupPath = Path.Combine(basePath, backupName);
 
@@ -87,7 +90,7 @@ public class BackupService : IBackupService
         var metadata = new
         {
             BackupId = backupId.Value,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = createdAt,
             Name = backupName
         };
 
@@ -137,7 +140,7 @@ public class BackupService : IBackupService
         // Update metadata with final results
         await UpdateBackupMetadataAsync(backupPath, totalSize, gamesBackedUp, ct).ConfigureAwait(false);
 
-        var duration = DateTime.UtcNow - startTime;
+        var duration = _timeProvider.UtcNow - startTime;
         _logger.LogInformation("Backup {BackupId} completed in {Duration}. Backed up {GameCount} games, {Size} bytes",
             backupId, duration, gamesBackedUp, totalSize);
 

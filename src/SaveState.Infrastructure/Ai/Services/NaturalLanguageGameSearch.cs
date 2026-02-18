@@ -2,6 +2,7 @@ namespace SaveState.Infrastructure.Ai.Services;
 
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Ai.Services;
+using SaveState.Core.Common;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.Enums;
 using System;
@@ -29,12 +30,13 @@ public class NaturalLanguageGameSearch : INaturalLanguageGameSearch
         }
 
         var heuristicFilter = ParseHeuristicFilter(query);
-        var aiFilter = await TryParseWithAiAsync(query, ct);
+        var aiResult = await TryParseWithAiAsync(query, ct);
+        var aiFilter = aiResult.IsSuccess ? aiResult.Value : null;
 
         return MergeFilters(aiFilter, heuristicFilter);
     }
 
-    private async Task<CollectionFilter?> TryParseWithAiAsync(string query, CancellationToken ct)
+    private async Task<Result<CollectionFilter>> TryParseWithAiAsync(string query, CancellationToken ct)
     {
         var prompt = $@"
 You are a gaming library assistant. Identify search criteria from the user's natural language query.
@@ -68,13 +70,13 @@ Rules:
             if (!result.IsSuccess)
             {
                 _logger.LogWarning("AI generation failed for query: {Query}", query);
-                return null;
+                return Result.Failure<CollectionFilter>("AI generation failed", ErrorType.External);
             }
 
             var json = ExtractJsonObject(result.Value);
             if (string.IsNullOrWhiteSpace(json))
             {
-                return null;
+                return Result.Failure<CollectionFilter>("No JSON found in AI response", ErrorType.Validation);
             }
 
             return TryParseFilterFromJson(json);
@@ -82,8 +84,7 @@ Rules:
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to parse natural language query: {Query}", query);
-            // Return empty filter so we don't crash, maybe results in no filtering or empty results depending on caller
-            return null;
+            return Result.Failure<CollectionFilter>($"Failed to parse query: {ex.Message}", ErrorType.Internal);
         }
     }
 
@@ -119,12 +120,12 @@ Rules:
         return string.Empty;
     }
 
-    private static CollectionFilter? TryParseFilterFromJson(string json)
+    private static Result<CollectionFilter> TryParseFilterFromJson(string json)
     {
         using var document = JsonDocument.Parse(json);
         if (document.RootElement.ValueKind != JsonValueKind.Object)
         {
-            return null;
+            return Result.Failure<CollectionFilter>("JSON is not an object", ErrorType.Validation);
         }
 
         var root = document.RootElement;
@@ -144,7 +145,7 @@ Rules:
         var minPlaytime = ParseDuration(root, "MinPlaytimeHours", "MinPlaytimeMinutes", "MinPlaytime");
         var maxPlaytime = ParseDuration(root, "MaxPlaytimeHours", "MaxPlaytimeMinutes", "MaxPlaytime");
 
-        return new CollectionFilter
+        return Result.Success(new CollectionFilter
         {
             PlatformName = platformName,
             Genre = genre,
@@ -159,7 +160,7 @@ Rules:
             Tag = tag,
             IsCompleted = isCompleted,
             IsInBacklog = isInBacklog
-        };
+        });
     }
 
     private static CollectionFilter MergeFilters(CollectionFilter? primary, CollectionFilter fallback)

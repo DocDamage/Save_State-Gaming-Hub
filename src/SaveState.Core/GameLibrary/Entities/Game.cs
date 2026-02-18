@@ -30,6 +30,7 @@ public class Game : EntityBase, ISoftDelete
     public double? UserRating { get; private set; }
     public double? Rating => UserRating;
     public string? LaunchArguments { get; private set; }
+    public string? ExecutablePath { get; private set; }
     public bool IsCompleted { get; private set; }
     public DateTime? CompletedAt { get; private set; }
     public bool IsDeleted { get; set; }
@@ -124,6 +125,12 @@ public class Game : EntityBase, ISoftDelete
     public void UpdateLaunchConfiguration(string? launchArguments)
     {
         LaunchArguments = launchArguments;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void SetExecutablePath(string? executablePath)
+    {
+        ExecutablePath = executablePath;
         UpdatedAt = DateTime.UtcNow;
     }
 

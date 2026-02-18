@@ -14,6 +14,7 @@ public class EmotionalResonanceService : EmotionalResonanceServiceIEmotionalReso
 {
     private readonly ILogger<EmotionalResonanceService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, EmotionalResonanceServiceResonanceEmotionalState> _characterEmotions = new();
     private readonly Dictionary<string, EmotionalResonanceServiceResonanceField> _resonanceFields = new();
     private readonly Dictionary<string, EmotionalResonanceServiceSpectatorInfluence> _spectatorInfluences = new();
@@ -25,14 +26,16 @@ public class EmotionalResonanceService : EmotionalResonanceServiceIEmotionalReso
     public EmotionalResonanceService(
         ILogger<EmotionalResonanceService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _emotionEngine = new EmotionalResonanceServiceEmotionEngine(loggerFactory.CreateLogger<EmotionalResonanceServiceEmotionEngine>());
-        _resonanceEngine = new EmotionalResonanceServiceResonanceEngine(loggerFactory.CreateLogger<EmotionalResonanceServiceResonanceEngine>());
-        _spectatorEngine = new EmotionalResonanceServiceSpectatorEngine(loggerFactory.CreateLogger<EmotionalResonanceServiceSpectatorEngine>());
-        _psychologicalEngine = new EmotionalResonanceServicePsychologicalEngine(loggerFactory.CreateLogger<EmotionalResonanceServicePsychologicalEngine>());
+        _timeProvider = timeProvider;
+        _emotionEngine = new EmotionalResonanceServiceEmotionEngine(loggerFactory.CreateLogger<EmotionalResonanceServiceEmotionEngine>(), _timeProvider);
+        _resonanceEngine = new EmotionalResonanceServiceResonanceEngine(loggerFactory.CreateLogger<EmotionalResonanceServiceResonanceEngine>(), _timeProvider);
+        _spectatorEngine = new EmotionalResonanceServiceSpectatorEngine(loggerFactory.CreateLogger<EmotionalResonanceServiceSpectatorEngine>(), _timeProvider);
+        _psychologicalEngine = new EmotionalResonanceServicePsychologicalEngine(loggerFactory.CreateLogger<EmotionalResonanceServicePsychologicalEngine>(), _timeProvider);
 
         InitializeEmotionalSystem();
     }
@@ -225,7 +228,7 @@ public class EmotionalResonanceService : EmotionalResonanceServiceIEmotionalReso
                 EmotionalResonanceServiceSpectatorInfluence = await AnalyzeSpectatorInfluenceAsync(characterId, period, ct),
                 BreakingPointHistory = await AnalyzeBreakingPointsAsync(characterId, period, ct),
                 EmotionalStability = CalculateEmotionalStability(characterId),
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Emotional analytics generated successfully");
@@ -278,7 +281,7 @@ public class EmotionalResonanceService : EmotionalResonanceServiceIEmotionalReso
                 SecondaryEmotion = EmotionalResonanceServiceEmotion.Calm,
                 Intensity = 0.5f,
                 Stability = 0.8f,
-                LastUpdated = DateTime.UtcNow,
+                LastUpdated = _timeProvider.UtcNow,
                 EmotionalHistory = new List<EmotionalResonanceServiceEmotionalEvent>(),
                 ResonanceLevel = 0,
                 CrowdInfluence = 0
@@ -363,7 +366,7 @@ public class EmotionalResonanceService : EmotionalResonanceServiceIEmotionalReso
                 SourceCharacterId = characterId,
                 TargetCharacterId = "opponent",
                 ResonanceAmount = 0.3f,
-                Timestamp = DateTime.UtcNow.AddMinutes(-5),
+                Timestamp = _timeProvider.UtcNow.AddMinutes(-5),
                 EventType = EmotionalResonanceServiceResonanceEventType.Transfer
             }
         };
@@ -392,7 +395,7 @@ public class EmotionalResonanceService : EmotionalResonanceServiceIEmotionalReso
                 CharacterId = characterId,
                 TriggerEmotion = EmotionalResonanceServiceEmotion.Anger,
                 EmotionalResonanceServiceBreakingPointType = EmotionalResonanceServiceBreakingPointType.RageMode,
-                Timestamp = DateTime.UtcNow.AddMinutes(-10),
+                Timestamp = _timeProvider.UtcNow.AddMinutes(-10),
                 Duration = TimeSpan.FromSeconds(30),
                 Intensity = 0.9f
             }
@@ -418,10 +421,12 @@ public class EmotionalResonanceService : EmotionalResonanceServiceIEmotionalReso
 public class EmotionalResonanceServiceEmotionEngine
 {
     private readonly ILogger<EmotionalResonanceServiceEmotionEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public EmotionalResonanceServiceEmotionEngine(ILogger<EmotionalResonanceServiceEmotionEngine> logger)
+    public EmotionalResonanceServiceEmotionEngine(ILogger<EmotionalResonanceServiceEmotionEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<EmotionalResonanceServiceResonanceEmotionalState> ProcessTriggerAsync(EmotionalResonanceServiceResonanceEmotionalState currentState, EmotionalResonanceServiceEmotionalTrigger trigger, CancellationToken ct)
@@ -436,7 +441,7 @@ public class EmotionalResonanceServiceEmotionEngine
             SecondaryEmotion = DetermineSecondaryEmotion(currentState, emotionChanges),
             Intensity = Math.Clamp(currentState.Intensity + emotionChanges.IntensityChange, 0, 1),
             Stability = Math.Clamp(currentState.Stability + emotionChanges.StabilityChange, 0, 1),
-            LastUpdated = DateTime.UtcNow,
+            LastUpdated = _timeProvider.UtcNow,
             EmotionalHistory = AddToHistory(currentState.EmotionalHistory, trigger),
             ResonanceLevel = currentState.ResonanceLevel + emotionChanges.ResonanceChange,
             CrowdInfluence = currentState.CrowdInfluence + emotionChanges.CrowdInfluenceChange
@@ -456,7 +461,7 @@ public class EmotionalResonanceServiceEmotionEngine
             SynergyEffects = GenerateSynergyEffects(compatibility),
             ResonanceMultiplier = 1 + compatibility * 0.5f,
             EmotionalResonanceServiceEmotionalBond = DetermineEmotionalBond(state1, state2),
-            CalculatedAt = DateTime.UtcNow
+            CalculatedAt = _timeProvider.UtcNow
         };
     }
 
@@ -471,8 +476,8 @@ public class EmotionalResonanceServiceEmotionEngine
             Intensity = request.Intensity,
             Duration = request.Duration,
             Effects = GenerateBuffEffects(request.EmotionalResonanceServiceBuffType, request.Intensity),
-            AppliedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.Add(request.Duration)
+            AppliedAt = _timeProvider.UtcNow,
+            ExpiresAt = _timeProvider.UtcNow.Add(request.Duration)
         };
     }
 
@@ -510,7 +515,7 @@ public class EmotionalResonanceServiceEmotionEngine
             {
                 EventId = Guid.NewGuid().ToString(),
                 Trigger = trigger,
-                Timestamp = DateTime.UtcNow
+                Timestamp = _timeProvider.UtcNow
             }
         };
 
@@ -569,10 +574,12 @@ public class EmotionalResonanceServiceEmotionEngine
 public class EmotionalResonanceServiceResonanceEngine
 {
     private readonly ILogger<EmotionalResonanceServiceResonanceEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public EmotionalResonanceServiceResonanceEngine(ILogger<EmotionalResonanceServiceResonanceEngine> logger)
+    public EmotionalResonanceServiceResonanceEngine(ILogger<EmotionalResonanceServiceResonanceEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<EmotionalResonanceServiceResonanceField> CreateFieldAsync(EmotionalResonanceServiceResonanceFieldRequest request, CancellationToken ct)
@@ -587,7 +594,7 @@ public class EmotionalResonanceServiceResonanceEngine
             Strength = request.Strength,
             Radius = request.Radius,
             Duration = request.Duration,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
             Effects = GenerateFieldEffects(request.EmotionalResonanceServiceFieldType, request.Strength),
             Active = true
         };
@@ -603,7 +610,7 @@ public class EmotionalResonanceServiceResonanceEngine
             TargetCharacterId = targetId,
             TransferAmount = request.TransferAmount,
             EmotionalResonanceServiceTransferType = request.EmotionalResonanceServiceTransferType,
-            Timestamp = DateTime.UtcNow,
+            Timestamp = _timeProvider.UtcNow,
             Success = true,
             Effects = GenerateTransferEffects(request.EmotionalResonanceServiceTransferType, request.TransferAmount)
         };
@@ -641,10 +648,12 @@ public class EmotionalResonanceServiceResonanceEngine
 public class EmotionalResonanceServiceSpectatorEngine
 {
     private readonly ILogger<EmotionalResonanceServiceSpectatorEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public EmotionalResonanceServiceSpectatorEngine(ILogger<EmotionalResonanceServiceSpectatorEngine> logger)
+    public EmotionalResonanceServiceSpectatorEngine(ILogger<EmotionalResonanceServiceSpectatorEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<EmotionalResonanceServiceSpectatorInfluence> ProcessSupportAsync(string spectatorId, string characterId, EmotionalResonanceServiceSpectatorSupport support, CancellationToken ct)
@@ -659,8 +668,8 @@ public class EmotionalResonanceServiceSpectatorEngine
             Intensity = support.Intensity,
             Duration = support.Duration,
             Effects = GenerateSupportEffects(support.EmotionalResonanceServiceSupportType, support.Intensity),
-            AppliedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.Add(support.Duration)
+            AppliedAt = _timeProvider.UtcNow,
+            ExpiresAt = _timeProvider.UtcNow.Add(support.Duration)
         };
     }
 
@@ -675,7 +684,7 @@ public class EmotionalResonanceServiceSpectatorEngine
             AffectedCharacters = new[] { "character1", "character2" },
             MoodTriggers = new[] { crowdEvent.EventType.ToString() },
             Duration = TimeSpan.FromMinutes(2),
-            UpdatedAt = DateTime.UtcNow
+            UpdatedAt = _timeProvider.UtcNow
         };
     }
 
@@ -697,10 +706,12 @@ public class EmotionalResonanceServiceSpectatorEngine
 public class EmotionalResonanceServicePsychologicalEngine
 {
     private readonly ILogger<EmotionalResonanceServicePsychologicalEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public EmotionalResonanceServicePsychologicalEngine(ILogger<EmotionalResonanceServicePsychologicalEngine> logger)
+    public EmotionalResonanceServicePsychologicalEngine(ILogger<EmotionalResonanceServicePsychologicalEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<EmotionalResonanceServiceBreakingPoint> CheckBreakingPointAsync(EmotionalResonanceServiceResonanceEmotionalState state, CancellationToken ct)
@@ -717,7 +728,7 @@ public class EmotionalResonanceServicePsychologicalEngine
             Intensity = state.Intensity,
             Effects = isTriggered ? GenerateBreakingPointEffects(EmotionalResonanceServiceBreakingPointType.RageMode) : new List<EmotionalResonanceServiceBreakingPointEffect>(),
             Duration = isTriggered ? TimeSpan.FromSeconds(30) : TimeSpan.Zero,
-            CheckedAt = DateTime.UtcNow
+            CheckedAt = _timeProvider.UtcNow
         };
     }
 

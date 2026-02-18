@@ -33,6 +33,32 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release -p:ContinuousIntegrationBuild=true
 
+      - name: Guard continuation-based .Result usage
+        run: |
+          python - <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          pattern = re.compile(r"ContinueWith\s*\([^)]*=>[\s\S]*?\.Result\b", re.MULTILINE)
+          violations = []
+
+          for path in pathlib.Path("src").rglob("*.cs"):
+              text = path.read_text(encoding="utf-8", errors="ignore")
+              for match in pattern.finditer(text):
+                  line = text.count("\n", 0, match.start()) + 1
+                  snippet = match.group(0).splitlines()[0].strip()
+                  violations.append((path.as_posix(), line, snippet))
+
+          if violations:
+              print("Found continuation-based .Result patterns:")
+              for file_path, line, snippet in violations:
+                  print(f"{file_path}:{line}: {snippet}")
+              sys.exit(1)
+
+          print("No continuation-based .Result patterns found in src.")
+          PY
+
       - name: Run unit tests
         run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory ./coverage --filter "Category!=IntegrationTest"
 

@@ -13,6 +13,7 @@ public class MobileCompanionService : IMobileCompanionService
 {
     private readonly ILogger<MobileCompanionService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, MobileCompanionServiceMobileSession> _activeSessions = new();
     private readonly Dictionary<string, MobileCompanionServiceCompanionDevice> _registeredDevices = new();
 
@@ -27,15 +28,17 @@ public class MobileCompanionService : IMobileCompanionService
     public MobileCompanionService(
         ILogger<MobileCompanionService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
+        _timeProvider = timeProvider;
         _remoteControlEngine = new RemoteControlEngine(loggerFactory.CreateLogger<RemoteControlEngine>());
-        _dataStreamingEngine = new DataStreamingEngine(loggerFactory.CreateLogger<DataStreamingEngine>());
-        _notificationEngine = new NotificationEngine(loggerFactory.CreateLogger<NotificationEngine>());
+        _dataStreamingEngine = new DataStreamingEngine(loggerFactory.CreateLogger<DataStreamingEngine>(), timeProvider);
+        _notificationEngine = new NotificationEngine(loggerFactory.CreateLogger<NotificationEngine>(), timeProvider);
         _deviceSyncEngine = new DeviceSyncEngine(loggerFactory.CreateLogger<DeviceSyncEngine>());
-        _companionUiEngine = new CompanionUiEngine(loggerFactory.CreateLogger<CompanionUiEngine>());
+        _companionUiEngine = new CompanionUiEngine(loggerFactory.CreateLogger<CompanionUiEngine>(), timeProvider);
         _analyticsEngine = new AnalyticsEngine(loggerFactory.CreateLogger<AnalyticsEngine>());
     }
 
@@ -81,7 +84,7 @@ public class MobileCompanionService : IMobileCompanionService
             if (!result.IsSuccess)
                 return Result.Failure(result.Error);
 
-            session.LastActivity = DateTime.UtcNow;
+            session.LastActivity = _timeProvider.UtcNow;
             _logger.LogInformation("Remote command executed successfully");
             return Result.Success();
         }, sessionId, "Remote command failed");
@@ -103,7 +106,7 @@ public class MobileCompanionService : IMobileCompanionService
             {
                 SessionId = sessionId,
                 UserId = session.UserId,
-                GeneratedAt = DateTime.UtcNow,
+                GeneratedAt = _timeProvider.UtcNow,
                 QuickActions = await _companionUiEngine.GetQuickActionsAsync(session, ct),
                 LiveStats = session.Features.RealTimeStats
                     ? await _dataStreamingEngine.GetLiveStatsAsync(session.UserId, ct) : null,
@@ -184,7 +187,7 @@ public class MobileCompanionService : IMobileCompanionService
             {
                 SessionId = sessionId,
                 UserId = session.UserId,
-                LastSyncTimestamp = DateTime.UtcNow,
+                LastSyncTimestamp = _timeProvider.UtcNow,
                 SettingsSync = await _deviceSyncEngine.SynchronizeSettingsAsync(session.UserId, request.Settings, ct),
                 ProgressSync = await _deviceSyncEngine.SynchronizeProgressAsync(session.UserId, request.ProgressData, ct),
                 AchievementsSync = await _deviceSyncEngine.SynchronizeAchievementsAsync(session.UserId, request.Achievements, ct),
@@ -266,7 +269,7 @@ public class MobileCompanionService : IMobileCompanionService
             Enum.IsDefined(typeof(MobileCompanionServiceMobilePlatform), request.Platform));
     }
 
-    private static MobileCompanionServiceMobileSession CreateSession(MobileCompanionServiceDeviceRegistrationRequest request)
+    private MobileCompanionServiceMobileSession CreateSession(MobileCompanionServiceDeviceRegistrationRequest request)
     {
         return new MobileCompanionServiceMobileSession
         {
@@ -277,8 +280,8 @@ public class MobileCompanionService : IMobileCompanionService
             AppVersion = request.AppVersion,
             Permissions = request.RequestedPermissions,
             Status = MobileCompanionServiceSessionStatus.Active,
-            CreatedAt = DateTime.UtcNow,
-            LastActivity = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
+            LastActivity = _timeProvider.UtcNow,
             Features = new MobileCompanionServiceSessionFeatures
             {
                 RemoteControl = request.RequestedPermissions.Contains(MobileCompanionServicePermission.RemoteControl),
@@ -300,15 +303,15 @@ public class MobileCompanionService : IMobileCompanionService
             Platform = request.Platform,
             DeviceName = request.DeviceName,
             PushToken = request.PushToken,
-            RegisteredAt = DateTime.UtcNow,
-            LastSeen = DateTime.UtcNow
+            RegisteredAt = _timeProvider.UtcNow,
+            LastSeen = _timeProvider.UtcNow
         };
     }
 
     private void UpdateDeviceLastSeen(string deviceId)
     {
         if (_registeredDevices.TryGetValue(deviceId, out var device))
-            device.LastSeen = DateTime.UtcNow;
+            device.LastSeen = _timeProvider.UtcNow;
     }
 
     private static async Task CleanupSessionAsync(MobileCompanionServiceMobileSession session, CancellationToken ct)

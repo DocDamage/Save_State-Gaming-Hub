@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Mugen.Models.Analytics;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Application.Mugen.Services.Analytics;
 
@@ -9,10 +10,12 @@ namespace SaveState.Application.Mugen.Services.Analytics;
 public class RealTimeAnalyticsProcessor
 {
     private readonly ILogger<RealTimeAnalyticsProcessor> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public RealTimeAnalyticsProcessor(ILogger<RealTimeAnalyticsProcessor> logger)
+    public RealTimeAnalyticsProcessor(ILogger<RealTimeAnalyticsProcessor> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public Task ProcessEventAsync(string eventType, Dictionary<string, object> eventData, CancellationToken ct)
@@ -46,7 +49,7 @@ public class RealTimeAnalyticsProcessor
                 }
             },
             TimeRange = TimeSpan.FromMinutes(5),
-            GeneratedAt = DateTime.UtcNow
+            GeneratedAt = _timeProvider.UtcNow
         });
     }
 
@@ -63,7 +66,7 @@ public class RealTimeAnalyticsProcessor
                     AnomalyId = "anomaly_1",
                     Type = AnomalyType.Spike,
                     Severity = AnomalySeverity.Medium,
-                    DetectedAt = DateTime.UtcNow,
+                    DetectedAt = _timeProvider.UtcNow,
                     Description = "Unusual traffic spike detected",
                     Deviation = 2.5
                 }
@@ -77,5 +80,5 @@ public class RealTimeAnalyticsProcessor
 /// </summary>
 public class AdvancedAnalyticsServiceRealTimeAnalyticsProcessor : RealTimeAnalyticsProcessor
 {
-    public AdvancedAnalyticsServiceRealTimeAnalyticsProcessor(ILogger<RealTimeAnalyticsProcessor> logger) : base(logger) { }
+    public AdvancedAnalyticsServiceRealTimeAnalyticsProcessor(ILogger<RealTimeAnalyticsProcessor> logger, ITimeProvider timeProvider) : base(logger, timeProvider) { }
 }

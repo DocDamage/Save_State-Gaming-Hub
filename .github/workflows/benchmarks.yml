@@ -1,0 +1,65 @@
+name: Performance Benchmarks
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run weekly on Sundays at 2 AM
+    - cron: '0 2 * * 0'
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  benchmarks:
+    name: Run Performance Benchmarks
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore tests/SaveState.Benchmarks
+      
+    - name: Build benchmarks
+      run: dotnet build tests/SaveState.Benchmarks --configuration Release --no-restore
+      
+    - name: Run benchmarks
+      run: |
+        dotnet run --project tests/SaveState.Benchmarks \
+          --configuration Release \
+          --no-build \
+          -- --exporters json html md markdown
+      
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-results
+        path: |
+          BenchmarkDotNet.Artifacts/**/*.json
+          BenchmarkDotNet.Artifacts/**/*.html
+          BenchmarkDotNet.Artifacts/**/*.md
+        retention-days: 30
+        
+    - name: Post benchmark summary
+      if: github.event_name == 'pull_request'
+      shell: pwsh
+      run: |
+        $mdFiles = Get-ChildItem -Path BenchmarkDotNet.Artifacts -Filter "*.md" -Recurse
+        if ($mdFiles) {
+          Write-Host "## Benchmark Results" >> $env:GITHUB_STEP_SUMMARY
+          Write-Host "" >> $env:GITHUB_STEP_SUMMARY
+          foreach ($file in $mdFiles | Select-Object -First 3) {
+            Get-Content $file.FullName >> $env:GITHUB_STEP_SUMMARY
+            Write-Host "" >> $env:GITHUB_STEP_SUMMARY
+          }
+        }

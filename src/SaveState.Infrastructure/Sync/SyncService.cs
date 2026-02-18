@@ -446,20 +446,20 @@ public class SyncService : ISyncService
         return history.TryGetValue(path, out var lastSync) ? lastSync : DateTime.MinValue;
     }
 
-    private Task<Dictionary<string, DateTime>> GetSyncHistoryAsync(CancellationToken ct)
+    private async Task<Dictionary<string, DateTime>> GetSyncHistoryAsync(CancellationToken ct)
     {
         var historyPath = Path.Combine(GetSyncBaseDir(), ".sync_history");
-        if (!File.Exists(historyPath)) return Task.FromResult(new Dictionary<string, DateTime>());
+        if (!File.Exists(historyPath)) return new Dictionary<string, DateTime>();
 
         try
         {
-            var content = File.ReadAllText(historyPath);
+            var content = await File.ReadAllTextAsync(historyPath, ct).ConfigureAwait(false);
             var history = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, DateTime>>(content);
-            return Task.FromResult(history ?? new Dictionary<string, DateTime>());
+            return history ?? new Dictionary<string, DateTime>();
         }
         catch
         {
-            return Task.FromResult(new Dictionary<string, DateTime>());
+            return new Dictionary<string, DateTime>();
         }
     }
 

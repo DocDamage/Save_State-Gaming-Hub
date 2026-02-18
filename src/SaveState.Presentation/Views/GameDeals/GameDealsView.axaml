@@ -1,0 +1,278 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.GameDeals"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="SaveState.Presentation.Views.GameDeals.GameDealsView"
+             x:DataType="vm:GameDealsViewModel">
+
+  <Grid ColumnDefinitions="*, 350">
+    <!-- Main Content -->
+    <ScrollViewer Grid.Column="0" Margin="10">
+      <StackPanel Spacing="15">
+        <!-- Header -->
+        <Border Classes="Card" Padding="20">
+          <StackPanel Spacing="10">
+            <TextBlock Text="💰 Game Deals" Classes="Title" FontSize="24" />
+            <TextBlock Text="Find the best prices across all stores. Set alerts and never miss a deal!"
+                       Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Error Display -->
+        <Border Classes="Card" Background="{StaticResource ErrorBrush}" Padding="12"
+                IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}">
+          <TextBlock Text="{Binding ErrorMessage}" Classes="Body" Foreground="White" />
+        </Border>
+
+        <!-- Filters -->
+        <Border Classes="Card" Padding="15">
+          <StackPanel Spacing="10">
+            <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto">
+              <TextBox Grid.Column="0" 
+                       Text="{Binding SearchQuery}" 
+                       Watermark="Search games..."
+                       Margin="0,0,10,0" />
+              
+              <NumericUpDown Grid.Column="1"
+                             Value="{Binding MinDiscountPercent}"
+                             Minimum="0"
+                             Maximum="100"
+                             Watermark="Min %"
+                             Width="100"
+                             Margin="0,0,10,0" />
+              
+              <NumericUpDown Grid.Column="2"
+                             Value="{Binding MaxPrice}"
+                             Minimum="0"
+                             Watermark="Max $"
+                             Width="100"
+                             Margin="0,0,10,0" />
+              
+              <ComboBox Grid.Column="3"
+                        ItemsSource="{Binding SortOptions}"
+                        SelectedItem="{Binding SelectedSortOrder}"
+                        Width="150"
+                        Margin="0,0,10,0" />
+              
+              <Button Grid.Column="4" 
+                      Content="🔄 Refresh"
+                      Command="{Binding RefreshDealsCommand}"
+                      Classes="Secondary" />
+            </Grid>
+
+            <StackPanel Orientation="Horizontal" Spacing="15">
+              <CheckBox Content="🔥 Only Historical Lows" IsChecked="{Binding OnlyHistoricalLows}" />
+              <Button Content="Clear Filters" Command="{Binding ClearFiltersCommand}" Classes="Ghost" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Loading -->
+        <Border Classes="Card" Padding="20" IsVisible="{Binding IsLoading}">
+          <StackPanel Orientation="Horizontal" Spacing="15" HorizontalAlignment="Center">
+            <ProgressBar IsIndeterminate="True" Width="40" Height="40" />
+            <TextBlock Text="Loading deals..." Classes="Body" VerticalAlignment="Center" />
+          </StackPanel>
+        </Border>
+
+        <!-- Deals Grid -->
+        <ItemsControl ItemsSource="{Binding Deals}" IsVisible="{Binding !IsLoading}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="vm:GameDealViewModel">
+              <Border Classes="Card" 
+                      Width="280" 
+                      Margin="8" 
+                      Padding="12"
+                      Cursor="Hand"
+                      Background="{StaticResource CardBackgroundBrush}"
+                      PointerPressed="OnDealPointerPressed">
+                <StackPanel Spacing="8">
+                  <!-- Badge -->
+                  <Border Background="{StaticResource ErrorBrush}" 
+                          CornerRadius="4" 
+                          Padding="6,2"
+                          HorizontalAlignment="Left"
+                          IsVisible="{Binding ShowBadge}">
+                    <TextBlock Text="{Binding BadgeText}" 
+                               Classes="Caption" 
+                               Foreground="White" 
+                               FontWeight="Bold" />
+                  </Border>
+
+                  <!-- Game Title -->
+                  <TextBlock Text="{Binding Title}" 
+                             FontWeight="SemiBold" 
+                             FontSize="14"
+                             TextTrimming="CharacterEllipsis" />
+
+                  <!-- Store Badge -->
+                  <Border Background="{Binding StoreColor, Converter={StaticResource StringToBrushConverter}}" 
+                          CornerRadius="4" 
+                          Padding="6,2"
+                          HorizontalAlignment="Left">
+                    <TextBlock Text="{Binding StoreName}" 
+                               Classes="Caption" 
+                               Foreground="White" />
+                  </Border>
+
+                  <!-- Prices -->
+                  <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding FormattedPrice}" 
+                               FontSize="20" 
+                               FontWeight="Bold" 
+                               Foreground="{StaticResource SuccessBrush}" />
+                    <TextBlock Text="{Binding FormattedRegularPrice}" 
+                               Classes="Body" 
+                               TextDecorations="Strikethrough"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               IsVisible="{Binding FormattedRegularPrice, Converter={StaticResource StringNotEmptyConverter}}" />
+                    <Border Background="{StaticResource AccentBrush}" 
+                            CornerRadius="4" 
+                            Padding="4,2"
+                            IsVisible="{Binding FormattedDiscount, Converter={StaticResource StringNotEmptyConverter}}">
+                      <TextBlock Text="{Binding FormattedDiscount}" 
+                                 Classes="Caption" 
+                                 Foreground="White" />
+                    </Border>
+                  </StackPanel>
+
+                  <!-- Savings -->
+                  <TextBlock Text="{Binding SavingsText}" 
+                             Classes="Caption" 
+                             Foreground="{StaticResource SuccessBrush}"
+                             IsVisible="{Binding Savings, Converter={StaticResource NullToBoolConverter}}" />
+
+                  <!-- Metacritic -->
+                  <StackPanel Orientation="Horizontal" Spacing="5" IsVisible="{Binding MetacriticScore, Converter={StaticResource NullToBoolConverter}}">
+                    <TextBlock Text="⭐" Classes="Caption" />
+                    <TextBlock Text="{Binding MetacriticScore}" Classes="Caption" FontWeight="Bold" />
+                  </StackPanel>
+
+                  <!-- Actions -->
+                  <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                    <Button Content="🔔 Alert" 
+                            Command="{Binding $parent[UserControl].((vm:GameDealsViewModel)DataContext).CreatePriceAlertCommand}"
+                            CommandParameter="{Binding}"
+                            Classes="Secondary"
+                            FontSize="12" />
+                    <Button Content="🔗 Store" 
+                            Command="{Binding $parent[UserControl].((vm:GameDealsViewModel)DataContext).ShowDealDetailsCommand}"
+                            CommandParameter="{Binding}"
+                            Classes="Primary"
+                            FontSize="12" />
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Sidebar - My Alerts & Stats -->
+    <ScrollViewer Grid.Column="1" Margin="0,10,10,10">
+      <StackPanel Spacing="15">
+        <!-- My Alerts -->
+        <Border Classes="Card" Padding="15">
+          <StackPanel Spacing="10">
+            <TextBlock Text="🔔 My Price Alerts" Classes="Header" />
+            
+            <ItemsControl ItemsSource="{Binding MyAlerts}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:PriceAlertViewModel">
+                  <Border Classes="ListItem" Padding="10" Margin="0,0,0,6">
+                    <Grid ColumnDefinitions="*, Auto">
+                      <StackPanel Grid.Column="0" Spacing="2">
+                        <TextBlock Text="{Binding GameTitle}" 
+                                   FontWeight="SemiBold" 
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding TargetText}" Classes="Caption" />
+                      </StackPanel>
+                      <Button Grid.Column="1" 
+                              Content="🗑️"
+                              Command="{Binding $parent[UserControl].((vm:GameDealsViewModel)DataContext).DeleteAlertCommand}"
+                              CommandParameter="{Binding}"
+                              Classes="Ghost"
+                              FontSize="12" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Text="No active alerts" 
+                       Classes="Caption" 
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       HorizontalAlignment="Center"
+                       IsVisible="{Binding MyAlerts.Count, Converter={StaticResource CountToInvertedBoolConverter}}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Selected Game Stats -->
+        <Border Classes="Card" Padding="15" IsVisible="{Binding SelectedGameStats, Converter={StaticResource NullToBoolConverter}}">
+          <StackPanel Spacing="10">
+            <TextBlock Text="📊 Price Statistics" Classes="Header" />
+            
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*, Auto">
+                <TextBlock Text="Current Low:" Classes="Label" />
+                <TextBlock Grid.Column="1" Text="{Binding SelectedGameStats.CurrentLowestPrice, StringFormat='${0:F2}'}" FontWeight="Bold" />
+              </Grid>
+              
+              <Grid ColumnDefinitions="*, Auto">
+                <TextBlock Text="Historical Low:" Classes="Label" />
+                <TextBlock Grid.Column="1" Text="{Binding SelectedGameStats.HistoricalLowestPrice, StringFormat='${0:F2}'}" FontWeight="Bold" />
+              </Grid>
+              
+              <Grid ColumnDefinitions="*, Auto">
+                <TextBlock Text="Average Price:" Classes="Label" />
+                <TextBlock Grid.Column="1" Text="{Binding SelectedGameStats.AveragePrice, StringFormat='${0:F2}'}" />
+              </Grid>
+
+              <Grid ColumnDefinitions="*, Auto">
+                <TextBlock Text="Times on Sale:" Classes="Label" />
+                <TextBlock Grid.Column="1" Text="{Binding SelectedGameStats.SaleCount}" />
+              </Grid>
+
+              <StackPanel Orientation="Horizontal" Spacing="5">
+                <TextBlock Text="{Binding SelectedGameStats.TrendIcon}" FontSize="16" />
+                <TextBlock Text="{Binding SelectedGameStats.TrendText}" Classes="Body" />
+              </StackPanel>
+
+              <TextBlock Text="{Binding SelectedGameStats.SavingsVsAverageText}" 
+                         Classes="Caption" 
+                         Foreground="{StaticResource SuccessBrush}"
+                         IsVisible="{Binding SelectedGameStats.SavingsVsAverageText, Converter={StaticResource StringNotEmptyConverter}}" />
+
+              <Border Background="{StaticResource CardBackgroundBrush}" 
+                      CornerRadius="8" 
+                      Padding="10"
+                      IsVisible="{Binding SelectedGameStats.BestTimeToBuyRecommendation, Converter={StaticResource StringNotEmptyConverter}}">
+                <TextBlock Text="{Binding SelectedGameStats.BestTimeToBuyRecommendation}" 
+                           Classes="Body" 
+                           TextWrapping="Wrap" />
+              </Border>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Tips -->
+        <Border Classes="Card" Padding="15">
+          <StackPanel Spacing="8">
+            <TextBlock Text="💡 Tips" Classes="Header" />
+            <TextBlock Text="• Set alerts for games you want" Classes="Caption" />
+            <TextBlock Text="• Historical lows are the best time to buy" Classes="Caption" />
+            <TextBlock Text="• Compare with subscription options" Classes="Caption" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

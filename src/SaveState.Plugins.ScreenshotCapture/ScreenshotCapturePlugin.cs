@@ -143,8 +143,8 @@ public class ScreenshotCapturePlugin : IPlugin
         var screenshotCommand = new Command("screenshot", "Screenshot capture");
 
         var screenshotTakeCommand = new Command("take", "Take a screenshot");
-        var filenameOption = new Option<string?>("--filename", "Custom filename");
-        var formatOption = new Option<string>("--format", () => "png", "Image format (png, jpg, bmp)");
+        var filenameOption = new Option<string?>("--filename") { Description = "Custom filename" };
+        var formatOption = new Option<string>("--format") { DefaultValueFactory = _ => "png", Description = "Image format (png, jpg, bmp)" };
         screenshotTakeCommand.AddOption(filenameOption);
         screenshotTakeCommand.AddOption(formatOption);
         screenshotTakeCommand.SetHandler(async (InvocationContext context) =>
@@ -155,8 +155,8 @@ public class ScreenshotCapturePlugin : IPlugin
         });
 
         var screenshotAutoCommand = new Command("auto", "Enable automatic screenshots");
-        var intervalOption = new Option<TimeSpan>("--interval", () => TimeSpan.FromMinutes(5), "Screenshot interval");
-        var enableOption = new Option<bool>("--enable", () => true, "Enable or disable auto screenshots");
+        var intervalOption = new Option<TimeSpan>("--interval") { DefaultValueFactory = _ => TimeSpan.FromMinutes(5), Description = "Screenshot interval" };
+        var enableOption = new Option<bool>("--enable") { DefaultValueFactory = _ => true, Description = "Enable or disable auto screenshots" };
         screenshotAutoCommand.AddOption(intervalOption);
         screenshotAutoCommand.AddOption(enableOption);
         screenshotAutoCommand.SetHandler(async (InvocationContext context) =>
@@ -173,8 +173,8 @@ public class ScreenshotCapturePlugin : IPlugin
         var videoCommand = new Command("video", "Video recording");
 
         var videoRecordCommand = new Command("record", "Record video");
-        var durationOption = new Option<TimeSpan?>("--duration", "Recording duration");
-        var qualityOption = new Option<string>("--quality", () => "high", "Video quality (low, medium, high)");
+        var durationOption = new Option<TimeSpan?>("--duration") { Description = "Recording duration" };
+        var qualityOption = new Option<string>("--quality") { DefaultValueFactory = _ => "high", Description = "Video quality (low, medium, high)" };
         videoRecordCommand.AddOption(durationOption);
         videoRecordCommand.AddOption(qualityOption);
         videoRecordCommand.SetHandler(async (InvocationContext context) =>
@@ -188,7 +188,7 @@ public class ScreenshotCapturePlugin : IPlugin
         videoStopCommand.SetHandler(async (InvocationContext context) => await HandleVideoStopAsync());
 
         var videoClipCommand = new Command("clip", "Create instant clip");
-        var clipDurationOption = new Option<TimeSpan>("--duration", () => TimeSpan.FromSeconds(30), "Clip duration");
+        var clipDurationOption = new Option<TimeSpan>("--duration") { DefaultValueFactory = _ => TimeSpan.FromSeconds(30), Description = "Clip duration" };
         videoClipCommand.AddOption(clipDurationOption);
         videoClipCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -204,8 +204,8 @@ public class ScreenshotCapturePlugin : IPlugin
         var galleryCommand = new Command("gallery", "Media gallery management");
 
         var galleryListCommand = new Command("list", "List captured media");
-        var typeOption = new Option<string>("--type", () => "all", "Media type (all, screenshots, videos)");
-        var limitOption = new Option<int>("--limit", () => 10, "Maximum number of items");
+        var typeOption = new Option<string>("--type") { DefaultValueFactory = _ => "all", Description = "Media type (all, screenshots, videos)" };
+        var limitOption = new Option<int>("--limit") { DefaultValueFactory = _ => 10, Description = "Maximum number of items" };
         galleryListCommand.AddOption(typeOption);
         galleryListCommand.AddOption(limitOption);
         galleryListCommand.SetHandler(async (InvocationContext context) =>
@@ -216,7 +216,7 @@ public class ScreenshotCapturePlugin : IPlugin
         });
 
         var galleryDeleteCommand = new Command("delete", "Delete media file");
-        var fileArgument = new Argument<string>("filename", "Filename to delete");
+        var fileArgument = new Argument<string>("filename") { Description = "Filename to delete" };
         galleryDeleteCommand.AddArgument(fileArgument);
         galleryDeleteCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -225,7 +225,7 @@ public class ScreenshotCapturePlugin : IPlugin
         });
 
         var galleryShareCommand = new Command("share", "Share media to cloud");
-        var shareFileArgument = new Argument<string>("filename", "Filename to share");
+        var shareFileArgument = new Argument<string>("filename") { Description = "Filename to share" };
         galleryShareCommand.AddArgument(shareFileArgument);
         galleryShareCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -241,7 +241,7 @@ public class ScreenshotCapturePlugin : IPlugin
         var epicCommand = new Command("epic", "Epic moment detection and capture");
 
         var epicDetectCommand = new Command("detect", "Enable epic moment detection");
-        var sensitivityOption = new Option<string>("--sensitivity", () => "medium", "Detection sensitivity (low, medium, high)");
+        var sensitivityOption = new Option<string>("--sensitivity") { DefaultValueFactory = _ => "medium", Description = "Detection sensitivity (low, medium, high)" };
         epicDetectCommand.AddOption(sensitivityOption);
         epicDetectCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -633,3 +633,4 @@ public class CaptureOptions
     public bool AutoDeleteOldCaptures { get; set; } = true;
     public TimeSpan CaptureRetentionPeriod { get; set; } = TimeSpan.FromDays(30);
 }
+

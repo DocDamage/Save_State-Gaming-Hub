@@ -15,6 +15,7 @@ public class EnterpriseSecurityService : EnterpriseSecurityServiceIEnterpriseSec
 {
     private readonly ILogger<EnterpriseSecurityService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, EnterpriseSecurityServiceSecurityPolicy> _securityPolicies = new();
     private readonly Dictionary<string, EnterpriseSecurityServiceAuditLog> _auditLogs = new();
     private readonly Dictionary<string, EnterpriseSecurityServiceComplianceReport> _complianceReports = new();
@@ -27,14 +28,16 @@ public class EnterpriseSecurityService : EnterpriseSecurityServiceIEnterpriseSec
     public EnterpriseSecurityService(
         ILogger<EnterpriseSecurityService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _accessControl = new EnterpriseSecurityServiceAccessControlEngine(loggerFactory.CreateLogger<EnterpriseSecurityServiceAccessControlEngine>());
-        _encryptionEngine = new EnterpriseSecurityServiceEncryptionEngine(loggerFactory.CreateLogger<EnterpriseSecurityServiceEncryptionEngine>());
-        _complianceMonitor = new EnterpriseSecurityServiceComplianceMonitor(loggerFactory.CreateLogger<EnterpriseSecurityServiceComplianceMonitor>());
-        _threatDetection = new EnterpriseSecurityServiceThreatDetectionEngine(loggerFactory.CreateLogger<EnterpriseSecurityServiceThreatDetectionEngine>());
+        _timeProvider = timeProvider;
+        _accessControl = new EnterpriseSecurityServiceAccessControlEngine(loggerFactory.CreateLogger<EnterpriseSecurityServiceAccessControlEngine>(), _timeProvider);
+        _encryptionEngine = new EnterpriseSecurityServiceEncryptionEngine(loggerFactory.CreateLogger<EnterpriseSecurityServiceEncryptionEngine>(), _timeProvider);
+        _complianceMonitor = new EnterpriseSecurityServiceComplianceMonitor(loggerFactory.CreateLogger<EnterpriseSecurityServiceComplianceMonitor>(), _timeProvider);
+        _threatDetection = new EnterpriseSecurityServiceThreatDetectionEngine(loggerFactory.CreateLogger<EnterpriseSecurityServiceThreatDetectionEngine>(), _timeProvider);
         _auditManager = new EnterpriseSecurityServiceAuditTrailManager(loggerFactory.CreateLogger<EnterpriseSecurityServiceAuditTrailManager>());
 
         InitializeSecurityPolicies();
@@ -62,7 +65,7 @@ public class EnterpriseSecurityService : EnterpriseSecurityServiceIEnterpriseSec
                     ["risk_level"] = assessment.OverallRisk,
                     ["findings_count"] = assessment.Findings.Count
                 },
-                Timestamp = DateTime.UtcNow,
+                Timestamp = _timeProvider.UtcNow,
                 IpAddress = "system",
                 UserAgent = "EnterpriseSecurityService"
             }, ct);
@@ -96,7 +99,7 @@ public class EnterpriseSecurityService : EnterpriseSecurityServiceIEnterpriseSec
                     ["decision"] = decision.Decision,
                     ["reason"] = decision.Reason
                 },
-                Timestamp = DateTime.UtcNow,
+                Timestamp = _timeProvider.UtcNow,
                 IpAddress = "unknown", // Would be populated from request context
                 UserAgent = "unknown"
             }, ct);
@@ -182,8 +185,8 @@ public class EnterpriseSecurityService : EnterpriseSecurityServiceIEnterpriseSec
                 Rules = request.Rules,
                 Priority = request.Priority,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
+                UpdatedAt = _timeProvider.UtcNow,
                 CreatedBy = request.CreatedBy,
                 AppliesTo = request.AppliesTo
             };
@@ -202,7 +205,7 @@ public class EnterpriseSecurityService : EnterpriseSecurityServiceIEnterpriseSec
                     ["policy_name"] = policy.Name,
                     ["category"] = policy.Category
                 },
-                Timestamp = DateTime.UtcNow,
+                Timestamp = _timeProvider.UtcNow,
                 IpAddress = "unknown",
                 UserAgent = "EnterpriseSecurityService"
             }, ct);
@@ -275,7 +278,7 @@ public class EnterpriseSecurityService : EnterpriseSecurityServiceIEnterpriseSec
                 Status = EnterpriseSecurityServiceIncidentStatus.Reported,
                 Description = report.Description,
                 ReportedBy = report.ReportedBy,
-                ReportedAt = DateTime.UtcNow,
+                ReportedAt = _timeProvider.UtcNow,
                 AffectedSystems = report.AffectedSystems,
                 Evidence = report.Evidence,
                 InvestigationNotes = new List<string>(),
@@ -295,7 +298,7 @@ public class EnterpriseSecurityService : EnterpriseSecurityServiceIEnterpriseSec
                     ["incident_type"] = incident.EnterpriseSecurityServiceIncidentType,
                     ["severity"] = incident.Severity
                 },
-                Timestamp = DateTime.UtcNow,
+                Timestamp = _timeProvider.UtcNow,
                 IpAddress = "unknown",
                 UserAgent = "EnterpriseSecurityService"
             }, ct);
@@ -379,7 +382,7 @@ public class EnterpriseSecurityService : EnterpriseSecurityServiceIEnterpriseSec
                     OpenFindings = 5,
                     CriticalFindings = 0
                 },
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Security metrics generated successfully");
@@ -424,8 +427,8 @@ public class EnterpriseSecurityService : EnterpriseSecurityServiceIEnterpriseSec
             },
             Priority = EnterpriseSecurityServicePolicyPriority.High,
             IsActive = true,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
+            UpdatedAt = _timeProvider.UtcNow,
             CreatedBy = "system",
             AppliesTo = new[] { "all_users" }
         };
@@ -442,10 +445,12 @@ public class EnterpriseSecurityService : EnterpriseSecurityServiceIEnterpriseSec
 public class EnterpriseSecurityServiceAccessControlEngine
 {
     private readonly ILogger<EnterpriseSecurityServiceAccessControlEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public EnterpriseSecurityServiceAccessControlEngine(ILogger<EnterpriseSecurityServiceAccessControlEngine> logger)
+    public EnterpriseSecurityServiceAccessControlEngine(ILogger<EnterpriseSecurityServiceAccessControlEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<EnterpriseSecurityServiceAccessControlDecision> EvaluateAccessAsync(string userId, string resourceId, EnterpriseSecurityServicePermission permission, CancellationToken ct)
@@ -463,7 +468,7 @@ public class EnterpriseSecurityServiceAccessControlEngine
                 ["user_role"] = "premium_user",
                 ["resource_owner"] = userId
             },
-            EvaluatedAt = DateTime.UtcNow
+            EvaluatedAt = _timeProvider.UtcNow
         };
     }
 }
@@ -474,10 +479,12 @@ public class EnterpriseSecurityServiceAccessControlEngine
 public class EnterpriseSecurityServiceEncryptionEngine
 {
     private readonly ILogger<EnterpriseSecurityServiceEncryptionEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public EnterpriseSecurityServiceEncryptionEngine(ILogger<EnterpriseSecurityServiceEncryptionEngine> logger)
+    public EnterpriseSecurityServiceEncryptionEngine(ILogger<EnterpriseSecurityServiceEncryptionEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<EnterpriseSecurityServiceEncryptionResult> EncryptAsync(string data, EnterpriseSecurityServiceEncryptionLevel level, CancellationToken ct)
@@ -492,8 +499,8 @@ public class EnterpriseSecurityServiceEncryptionEngine
             KeyId = keyId,
             Algorithm = level == EnterpriseSecurityServiceEncryptionLevel.High ? "AES-256-GCM" : "AES-128-CBC",
             EnterpriseSecurityServiceEncryptionLevel = level,
-            EncryptedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddYears(1)
+            EncryptedAt = _timeProvider.UtcNow,
+            ExpiresAt = _timeProvider.UtcNow.AddYears(1)
         };
     }
 
@@ -545,10 +552,12 @@ public class EnterpriseSecurityServiceEncryptionEngine
 public class EnterpriseSecurityServiceComplianceMonitor
 {
     private readonly ILogger<EnterpriseSecurityServiceComplianceMonitor> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public EnterpriseSecurityServiceComplianceMonitor(ILogger<EnterpriseSecurityServiceComplianceMonitor> logger)
+    public EnterpriseSecurityServiceComplianceMonitor(ILogger<EnterpriseSecurityServiceComplianceMonitor> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<EnterpriseSecurityServiceComplianceReport> GenerateReportAsync(EnterpriseSecurityServiceComplianceFramework framework, DateTime startDate, DateTime endDate, CancellationToken ct)
@@ -569,7 +578,7 @@ public class EnterpriseSecurityServiceComplianceMonitor
                     Name = "Data Encryption",
                     Status = EnterpriseSecurityServiceComplianceStatus.Compliant,
                     Evidence = "All sensitive data is encrypted using AES-256",
-                    LastVerified = DateTime.UtcNow
+                    LastVerified = _timeProvider.UtcNow
                 },
                 new EnterpriseSecurityServiceComplianceRequirement
                 {
@@ -577,7 +586,7 @@ public class EnterpriseSecurityServiceComplianceMonitor
                     Name = "Access Controls",
                     Status = EnterpriseSecurityServiceComplianceStatus.Compliant,
                     Evidence = "Role-based access control implemented",
-                    LastVerified = DateTime.UtcNow
+                    LastVerified = _timeProvider.UtcNow
                 }
             },
             Findings = new List<EnterpriseSecurityServiceComplianceFinding>
@@ -590,10 +599,10 @@ public class EnterpriseSecurityServiceComplianceMonitor
                     Description = "Audit logs occasionally delayed by up to 5 seconds",
                     Recommendation = "Optimize audit log processing",
                     Status = EnterpriseSecurityServiceFindingStatus.Open,
-                    IdentifiedAt = DateTime.UtcNow
+                    IdentifiedAt = _timeProvider.UtcNow
                 }
             },
-            GeneratedAt = DateTime.UtcNow
+            GeneratedAt = _timeProvider.UtcNow
         };
     }
 
@@ -615,7 +624,7 @@ public class EnterpriseSecurityServiceComplianceMonitor
             Confidence = 0.95,
             Reasons = new[] { "Contains user personal information", "Involves payment data" },
             HandlingRequirements = new[] { "Encrypt at rest", "Access logging required" },
-            ClassifiedAt = DateTime.UtcNow
+            ClassifiedAt = _timeProvider.UtcNow
         };
     }
 }
@@ -626,10 +635,12 @@ public class EnterpriseSecurityServiceComplianceMonitor
 public class EnterpriseSecurityServiceThreatDetectionEngine
 {
     private readonly ILogger<EnterpriseSecurityServiceThreatDetectionEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public EnterpriseSecurityServiceThreatDetectionEngine(ILogger<EnterpriseSecurityServiceThreatDetectionEngine> logger)
+    public EnterpriseSecurityServiceThreatDetectionEngine(ILogger<EnterpriseSecurityServiceThreatDetectionEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<EnterpriseSecurityServiceSecurityAssessment> PerformAssessmentAsync(string targetId, EnterpriseSecurityServiceAssessmentType assessmentType, CancellationToken ct)
@@ -653,7 +664,7 @@ public class EnterpriseSecurityServiceThreatDetectionEngine
                     Description = "Some responses missing security headers",
                     Recommendation = "Implement comprehensive security headers",
                     Status = EnterpriseSecurityServiceFindingStatus.Open,
-                    IdentifiedAt = DateTime.UtcNow
+                    IdentifiedAt = _timeProvider.UtcNow
                 }
             },
             Recommendations = new List<string>
@@ -662,7 +673,7 @@ public class EnterpriseSecurityServiceThreatDetectionEngine
                 "Enable two-factor authentication",
                 "Regular security assessments"
             },
-            AssessedAt = DateTime.UtcNow
+            AssessedAt = _timeProvider.UtcNow
         };
     }
 }

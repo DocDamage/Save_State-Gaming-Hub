@@ -22,6 +22,7 @@ public class AdvancedAiService : IMachineLearningService, IMatchPredictionEngine
 {
     private readonly ILogger<AdvancedAiService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, AdvancedAiServiceAiCharacterMatchupData> _matchupDatabase = new();
     private readonly Dictionary<string, AdvancedAiServicePlayerSkillModel> _playerSkillModels = new();
     private readonly NeuralNetwork _predictionModel;
@@ -30,12 +31,14 @@ public class AdvancedAiService : IMachineLearningService, IMatchPredictionEngine
     public AdvancedAiService(
         ILogger<AdvancedAiService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
+        _timeProvider = timeProvider;
         _predictionModel = new NeuralNetwork(loggerFactory.CreateLogger<NeuralNetwork>());
-        _adaptiveEngine = new NeuralNetworkAdaptiveAiEngine(loggerFactory.CreateLogger<NeuralNetworkAdaptiveAiEngine>());
+        _adaptiveEngine = new NeuralNetworkAdaptiveAiEngine(loggerFactory.CreateLogger<NeuralNetworkAdaptiveAiEngine>(), _timeProvider);
 
         InitializeMatchupDatabase();
     }

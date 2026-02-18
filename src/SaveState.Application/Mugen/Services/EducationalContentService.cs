@@ -16,6 +16,7 @@ public class EducationalContentService : IEducationalContentService
 {
     private readonly ILogger<EducationalContentService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, Tutorial> _tutorials = new();
     private readonly Dictionary<string, StrategyGuide> _strategyGuides = new();
     private readonly Dictionary<string, MechanicsGuide> _mechanicsGuides = new();
@@ -34,10 +35,12 @@ public class EducationalContentService : IEducationalContentService
     public EducationalContentService(
         ILogger<EducationalContentService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
+        _timeProvider = timeProvider;
 
         // Initialize engines
         _contentEngine = new ContentEngine(
@@ -124,7 +127,7 @@ public class EducationalContentService : IEducationalContentService
                 CurrentStep = 0,
                 TotalSteps = stepCount,
                 Status = TutorialStatus.InProgress,
-                StartedAt = DateTime.UtcNow,
+                StartedAt = _timeProvider.UtcNow,
                 Progress = new TutorialProgress
                 {
                     StepsCompleted = 0,
@@ -196,7 +199,7 @@ public class EducationalContentService : IEducationalContentService
                 StepIndex = session.CurrentStep,
                 Action = action,
                 IsCorrect = isCorrect,
-                Timestamp = DateTime.UtcNow
+                Timestamp = _timeProvider.UtcNow
             });
 
             session.Progress.StepsCompleted += isCorrect ? 1 : 0;
@@ -223,7 +226,7 @@ public class EducationalContentService : IEducationalContentService
                 if (session.CurrentStep >= session.TotalSteps)
                 {
                     session.Status = TutorialStatus.Completed;
-                    session.CompletedAt = DateTime.UtcNow;
+                    session.CompletedAt = _timeProvider.UtcNow;
                     await CompleteTutorialAsync(session, ct);
                 }
             }
@@ -418,7 +421,7 @@ public class EducationalContentService : IEducationalContentService
                 UserId = userId,
                 LearningProgress = progress.Value,
                 RecommendedContent = recommendations.Value,
-                LastLogin = DateTime.UtcNow.AddDays(-1),
+                LastLogin = _timeProvider.UtcNow.AddDays(-1),
                 TotalTimeSpent = progress.Value.TotalTimeSpent
             };
             return Result.Success(dashboard);
@@ -476,7 +479,7 @@ public class EducationalContentService : IEducationalContentService
                 CompletionRates = ratesDict,
                 UserEngagement = _recommendationEngine.GetEngagementMetrics(period),
                 ContentQuality = _recommendationEngine.GetContentQualityMetrics(period),
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Content analytics generated successfully");
@@ -525,8 +528,8 @@ public class EducationalContentService : IEducationalContentService
             Prerequisites = Array.Empty<string>(),
             Steps = CreateBasicControlsSteps(),
             AuthorId = "system",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
+            UpdatedAt = _timeProvider.UtcNow,
             ViewCount = 0,
             CompletionCount = 0,
             AverageRating = 0.0,
@@ -548,8 +551,8 @@ public class EducationalContentService : IEducationalContentService
             SkillLevel = SkillLevel.Intermediate,
             Sections = CreateZoningSections(),
             AuthorId = "system",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
+            UpdatedAt = _timeProvider.UtcNow,
             ViewCount = 0,
             HelpfulVotes = 0
         };
@@ -568,10 +571,10 @@ public class EducationalContentService : IEducationalContentService
             Difficulty = DifficultyLevel.Advanced,
             RelatedTopics = new[] { "Hitboxes", "Hurtboxes", "Frame Advantage" },
             AuthorId = "system",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
+            UpdatedAt = _timeProvider.UtcNow,
             ViewCount = 0,
-            LastUpdated = DateTime.UtcNow
+            LastUpdated = _timeProvider.UtcNow
         };
 
         _mechanicsGuides[frameDataGuide.Topic] = frameDataGuide;

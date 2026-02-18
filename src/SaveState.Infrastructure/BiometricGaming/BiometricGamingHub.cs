@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.BiometricGaming.Models;
 using SaveState.Core.BiometricGaming.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Infrastructure.BiometricGaming;
 
@@ -12,14 +13,16 @@ namespace SaveState.Infrastructure.BiometricGaming;
 public sealed class BiometricGamingHub : IBiometricGamingHub
 {
     private readonly ILogger<BiometricGamingHub> _logger;
+    private readonly ITimeProvider _timeProvider;
     private BiometricGamingConfiguration? _configuration;
     private readonly List<BiometricSensor> _connectedSensors = new();
     private readonly Dictionary<string, BiometricGamingSession> _sessions = new();
     private readonly Dictionary<string, Action<BiometricData>> _subscriptions = new();
 
-    public BiometricGamingHub(ILogger<BiometricGamingHub> logger)
+    public BiometricGamingHub(ILogger<BiometricGamingHub> logger, ITimeProvider timeProvider)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     /// <inheritdoc />
@@ -107,7 +110,7 @@ public sealed class BiometricGamingHub : IBiometricGamingHub
             Id = Guid.NewGuid().ToString(),
             UserId = userId,
             GameId = gameId,
-            StartedAt = DateTime.UtcNow
+            StartedAt = _timeProvider.UtcNow
         };
         
         _sessions[session.Id] = session;
@@ -126,7 +129,7 @@ public sealed class BiometricGamingHub : IBiometricGamingHub
         
         var summary = new BiometricSessionSummary
         {
-            Duration = DateTime.UtcNow - session.StartedAt,
+            Duration = _timeProvider.UtcNow - session.StartedAt,
             AverageFocusLevel = 0.75f,
             AverageStressLevel = 0.3f,
             PeakStressLevel = 0.8f,
@@ -213,11 +216,11 @@ public sealed class BiometricGamingHub : IBiometricGamingHub
     }
 
     /// <inheritdoc />
-    public Task<Result<AdaptiveDifficultyAdjustment>> CalculateAdaptiveDifficultyAsync(string sessionId, float currentDifficulty, CancellationToken ct = default)
+    public async Task<Result<AdaptiveDifficultyAdjustment>> CalculateAdaptiveDifficultyAsync(string sessionId, float currentDifficulty, CancellationToken ct = default)
     {
         _logger.LogDebug("Calculating adaptive difficulty for session {SessionId}", sessionId);
         
-        var cognitiveState = GetCognitiveStateAsync(ct).Result;
+        var cognitiveState = await GetCognitiveStateAsync(ct).ConfigureAwait(false);
         
         var adjustment = new AdaptiveDifficultyAdjustment
         {
@@ -251,7 +254,7 @@ public sealed class BiometricGamingHub : IBiometricGamingHub
             }
         }
         
-        return Task.FromResult(Result.Success(adjustment));
+        return Result.Success(adjustment);
     }
 
     /// <inheritdoc />

@@ -51,6 +51,10 @@ using SaveState.Core.DataPortability;
 using SaveState.Core.RetroArch.Services;
 using SaveState.Infrastructure.RetroArch;
 using SaveState.Infrastructure.RetroArch.RetroArchCloudSync;
+using SaveState.Infrastructure.Subscriptions;
+using SaveState.Infrastructure.GameDeals;
+using SaveState.Infrastructure.SmartLauncher;
+using SaveState.Core.SmartLauncher;
 
 namespace SaveState.Infrastructure;
 
@@ -742,6 +746,44 @@ public static class DependencyInjection
         // RetroArch Services
         services.AddRetroArchServices();
 
+        // Subscription Management Services
+        services.AddSubscriptionServices(configuration);
+
+        // Game Deals Services
+        services.AddGameDealsServices(configuration);
+
+        // Smart Launcher Services
+        services.AddSmartLauncherServices();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds Smart Launcher services for system optimization and game launching.
+    /// </summary>
+    private static IServiceCollection AddSmartLauncherServices(this IServiceCollection services)
+    {
+        // Core services
+        services.AddScoped<ISmartLauncherService, SaveState.Application.SmartLauncher.SmartLauncherService>();
+        services.AddScoped<ISystemOptimizerService, SmartLauncher.SystemOptimizerService>();
+        services.AddScoped<ILaunchProfileRepository, SmartLauncher.LaunchProfileRepository>();
+        services.AddScoped<ILaunchSessionRepository, SmartLauncher.LaunchSessionRepository>();
+        services.AddSingleton<IGameProcessMonitor, SmartLauncher.GameProcessMonitor>();
+
+        // Background service for session monitoring
+        services.AddHostedService<SmartLauncher.SmartLauncherBackgroundService>();
+
+        // Statistics and analytics
+        services.AddScoped<ISmartLauncherStatisticsService, SmartLauncher.SmartLauncherStatisticsService>();
+
+        // Profile import/export
+        services.AddScoped<ILaunchProfileImportExportService, SmartLauncher.LaunchProfileImportExportService>();
+
+        // Hotkey service
+        services.AddSingleton<ISmartLauncherHotkeyService, SmartLauncher.SmartLauncherHotkeyService>();
+        services.AddOptions<SmartLauncherHotkeyConfig>()
+            .BindConfiguration("SmartLauncher:Hotkeys");
+
         return services;
     }
 
@@ -774,4 +816,5 @@ public static class DependencyInjection
 
         return services;
     }
+
 }

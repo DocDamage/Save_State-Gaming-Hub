@@ -32,7 +32,7 @@ public class SocialCommands : CommandGroupBase
 
         // Add friend
         var addFriendCommand = new Command("add", "Send a friend request");
-        var userIdArg = new Argument<string>("userId", "User ID to send friend request to");
+        var userIdArg = new Argument<string>("userId") { Description = "User ID to send friend request to" };
         addFriendCommand.AddArgument(userIdArg);
         addFriendCommand.SetHandler((string userIdStr) =>
         {
@@ -42,7 +42,7 @@ public class SocialCommands : CommandGroupBase
 
         // Remove friend
         var removeFriendCommand = new Command("remove", "Remove a friend");
-        var friendIdArg = new Argument<string>("friendId", "Friend ID to remove");
+        var friendIdArg = new Argument<string>("friendId") { Description = "Friend ID to remove" };
         removeFriendCommand.AddArgument(friendIdArg);
         removeFriendCommand.SetHandler((string friendIdStr) =>
         {
@@ -59,7 +59,7 @@ public class SocialCommands : CommandGroupBase
 
         // Global leaderboard
         var globalLbCommand = new Command("global", "View global leaderboard");
-        var limitOption = new Option<int>("--limit", () => 20, "Number of entries to show");
+        var limitOption = new Option<int>("--limit") { DefaultValueFactory = _ => 20, Description = "Number of entries to show" };
         globalLbCommand.AddOption(limitOption);
         globalLbCommand.SetHandler((int limit) =>
         {
@@ -88,8 +88,8 @@ public class SocialCommands : CommandGroupBase
 
         // Share achievement
         var shareCommand = new Command("share", "Share an achievement");
-        var achievementArg = new Argument<string>("achievement", "Achievement name to share");
-        var descriptionOption = new Option<string?>("--description", "Custom description");
+        var achievementArg = new Argument<string>("achievement") { Description = "Achievement name to share" };
+        var descriptionOption = new Option<string?>("--description") { Description = "Custom description" };
         shareCommand.AddArgument(achievementArg);
         shareCommand.AddOption(descriptionOption);
         shareCommand.SetHandler((string achievement, string? description) =>
@@ -107,3 +107,4 @@ public class SocialCommands : CommandGroupBase
         rootCommand.AddCommandChecked(socialCommand);
     }
 }
+

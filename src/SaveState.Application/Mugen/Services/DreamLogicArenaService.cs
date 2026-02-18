@@ -16,6 +16,7 @@ public class DreamLogicArenaService : IDreamLogicArenaService
 {
     private readonly ILogger<DreamLogicArenaService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly ArenaEngine _arenaEngine;
     private readonly DreamEngine _dreamEngine;
     private readonly GeometryEngine _geometryEngine;
@@ -26,16 +27,18 @@ public class DreamLogicArenaService : IDreamLogicArenaService
     public DreamLogicArenaService(
         ILogger<DreamLogicArenaService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _arenaEngine = new ArenaEngine(loggerFactory.CreateLogger<ArenaEngine>());
-        _dreamEngine = new DreamEngine(loggerFactory.CreateLogger<DreamEngine>());
-        _geometryEngine = new GeometryEngine(loggerFactory.CreateLogger<GeometryEngine>());
-        _surrealEngine = new SurrealEngine(loggerFactory.CreateLogger<SurrealEngine>());
-        _symbolicEngine = new SymbolicEngine(loggerFactory.CreateLogger<SymbolicEngine>());
-        _collectiveEngine = new CollectiveEngine(loggerFactory.CreateLogger<CollectiveEngine>());
+        _timeProvider = timeProvider;
+        _arenaEngine = new ArenaEngine(loggerFactory.CreateLogger<ArenaEngine>(), timeProvider);
+        _dreamEngine = new DreamEngine(loggerFactory.CreateLogger<DreamEngine>(), timeProvider);
+        _geometryEngine = new GeometryEngine(loggerFactory.CreateLogger<GeometryEngine>(), timeProvider);
+        _surrealEngine = new SurrealEngine(loggerFactory.CreateLogger<SurrealEngine>(), timeProvider);
+        _symbolicEngine = new SymbolicEngine(loggerFactory.CreateLogger<SymbolicEngine>(), timeProvider);
+        _collectiveEngine = new CollectiveEngine(loggerFactory.CreateLogger<CollectiveEngine>(), timeProvider);
 
         InitializeDreamLogic();
     }
@@ -145,7 +148,7 @@ public class DreamLogicArenaService : IDreamLogicArenaService
                     RepresentedEmotion = "nostalgia",
                     Intensity = 0.8f,
                     Position = new System.Numerics.Vector3(0f, 0f, 0f),
-                    ManifestedAt = DateTime.UtcNow
+                    ManifestedAt = _timeProvider.UtcNow
                 }, ct);
             }
 

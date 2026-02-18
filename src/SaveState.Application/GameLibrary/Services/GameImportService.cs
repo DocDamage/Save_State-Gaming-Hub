@@ -5,6 +5,7 @@ using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.DTOs;
 using SaveState.Core.GameLibrary.Events;
 using SaveState.Core.Common.ValueObjects;
+using SaveState.Core.Common.Services;
 using SaveState.Application.Common.Events;
 using SaveState.Application.GameLibrary.DTOs;
 
@@ -17,19 +18,22 @@ public class GameImportService : IGameImportService
     private readonly IGameRepository _gameRepository;
     private readonly IEventPublisher _eventPublisher;
     private readonly ILogger<GameImportService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public GameImportService(
         IEnumerable<IGameProvider> providers,
         IMetadataService metadataService,
         IGameRepository gameRepository,
         IEventPublisher eventPublisher,
-        ILogger<GameImportService> logger)
+        ILogger<GameImportService> logger,
+        ITimeProvider timeProvider)
     {
         _providers = providers;
         _metadataService = metadataService;
         _gameRepository = gameRepository;
         _eventPublisher = eventPublisher;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<ImportResult> ImportAllLibrariesAsync(
@@ -39,7 +43,7 @@ public class GameImportService : IGameImportService
     {
         var result = new ImportResult
         {
-            StartedAt = DateTimeOffset.Now
+            StartedAt = new DateTimeOffset(_timeProvider.Now)
         };
 
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
@@ -58,7 +62,7 @@ public class GameImportService : IGameImportService
             // Step 3: Import games with metadata enrichment
             await ImportGamesAsync(uniqueGames, options, progress, result, ct).ConfigureAwait(false);
 
-            result.CompletedAt = DateTimeOffset.Now;
+            result.CompletedAt = new DateTimeOffset(_timeProvider.Now);
             result.Duration = stopwatch.Elapsed;
 
             progress?.Report(new ImportProgress
@@ -75,7 +79,7 @@ public class GameImportService : IGameImportService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Game import failed after {Elapsed}", stopwatch.Elapsed);
-            result.CompletedAt = DateTimeOffset.Now;
+            result.CompletedAt = new DateTimeOffset(_timeProvider.Now);
             result.Duration = stopwatch.Elapsed;
             return result;
         }

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Mugen.Models.DreamLogic;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Application.Mugen.Services.DreamLogic;
 
@@ -10,10 +11,12 @@ namespace SaveState.Application.Mugen.Services.DreamLogic;
 public class GeometryEngine
 {
     private readonly ILogger<GeometryEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public GeometryEngine(ILogger<GeometryEngine> logger)
+    public GeometryEngine(ILogger<GeometryEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public Task<DreamArena> GenerateArenaAsync(DreamArenaRequest request, CancellationToken ct = default)
@@ -28,7 +31,7 @@ public class GeometryEngine
             BaseGeometry = GenerateBaseGeometry(request.Dimensions),
             DreamPotential = CalculateDreamPotential(request.DreamTheme),
             EmotionalResonance = 0.5f,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
             StabilityRating = 1.0f
         };
 
@@ -47,7 +50,7 @@ public class GeometryEngine
             TransformationParameters = request.Parameters,
             ResultingGeometry = TransformGeometry(state.CurrentGeometry, request),
             StabilityChange = -0.1f,
-            AppliedAt = DateTime.UtcNow
+            AppliedAt = _timeProvider.UtcNow
         };
 
         return Task.FromResult(geometry);
@@ -96,5 +99,5 @@ public class GeometryEngine
 /// </summary>
 public class DreamLogicArenaServiceGeometryEngine : GeometryEngine
 {
-    public DreamLogicArenaServiceGeometryEngine(ILogger<GeometryEngine> logger) : base(logger) { }
+    public DreamLogicArenaServiceGeometryEngine(ILogger<GeometryEngine> logger, ITimeProvider timeProvider) : base(logger, timeProvider) { }
 }

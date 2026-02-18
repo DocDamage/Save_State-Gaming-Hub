@@ -20,7 +20,7 @@ public class MugenCommands : CommandGroupBase
 
         // Scan command
         var scanCommand = new Command("scan", "Scan for MUGEN characters");
-        var pathOption = new Option<string?>("--path", "Path to scan (defaults to data/characters)");
+        var pathOption = new Option<string?>("--path") { Description = "Path to scan (defaults to data/characters)" };
         scanCommand.AddOption(pathOption);
         scanCommand.SetHandler(async (string? path) =>
         {
@@ -66,7 +66,7 @@ public class MugenCommands : CommandGroupBase
 
         // List characters
         var listCharsCommand = new Command("list", "List all MUGEN characters");
-        var limitOption = new Option<int>("--limit", () => 20, "Maximum number of characters to display");
+        var limitOption = new Option<int>("--limit") { DefaultValueFactory = _ => 20, Description = "Maximum number of characters to display" };
         listCharsCommand.AddOption(limitOption);
         listCharsCommand.SetHandler(async (int limit) =>
         {
@@ -75,7 +75,7 @@ public class MugenCommands : CommandGroupBase
 
         // Character stats
         var statsCommand = new Command("stats", "Show character statistics");
-        var charIdArg = new Argument<string>("characterId", "Character ID (GUID)");
+        var charIdArg = new Argument<string>("characterId") { Description = "Character ID (GUID)" };
         statsCommand.AddArgument(charIdArg);
         statsCommand.SetHandler(async (string charIdStr) =>
         {
@@ -101,7 +101,7 @@ public class MugenCommands : CommandGroupBase
 
         // Create collection
         var createCollectionCommand = new Command("create", "Create a new character collection");
-        var nameArg = new Argument<string>("name", "Collection name");
+        var nameArg = new Argument<string>("name") { Description = "Collection name" };
         createCollectionCommand.AddArgument(nameArg);
         createCollectionCommand.SetHandler(async (string name) =>
         {
@@ -127,9 +127,9 @@ public class MugenCommands : CommandGroupBase
 
         // Create tournament
         var createTournamentCommand = new Command("create", "Create a new tournament");
-        var nameArg = new Argument<string>("name", "Tournament name");
-        var formatOption = new Option<TournamentFormat>("--format", () => TournamentFormat.SingleElimination, "Tournament format");
-        var participantsOption = new Option<int>("--participants", () => 8, "Maximum participants");
+        var nameArg = new Argument<string>("name") { Description = "Tournament name" };
+        var formatOption = new Option<TournamentFormat>("--format") { DefaultValueFactory = _ => TournamentFormat.SingleElimination, Description = "Tournament format" };
+        var participantsOption = new Option<int>("--participants") { DefaultValueFactory = _ => 8, Description = "Maximum participants" };
         createTournamentCommand.AddArgument(nameArg);
         createTournamentCommand.AddOption(formatOption);
         createTournamentCommand.AddOption(participantsOption);
@@ -140,7 +140,7 @@ public class MugenCommands : CommandGroupBase
 
         // Start tournament
         var startTournamentCommand = new Command("start", "Start a tournament");
-        var tournamentIdArg = new Argument<string>("tournamentId", "Tournament ID (GUID)");
+        var tournamentIdArg = new Argument<string>("tournamentId") { Description = "Tournament ID (GUID)" };
         startTournamentCommand.AddArgument(tournamentIdArg);
         startTournamentCommand.SetHandler(async (string tournamentIdStr) =>
         {
@@ -160,7 +160,7 @@ public class MugenCommands : CommandGroupBase
 
         // Coaching advice
         var adviceCommand = new Command("advice", "Get coaching advice for a character");
-        var charIdArg = new Argument<string>("characterId", "Character ID (GUID)");
+        var charIdArg = new Argument<string>("characterId") { Description = "Character ID (GUID)" };
         adviceCommand.AddArgument(charIdArg);
         adviceCommand.SetHandler(async (string charIdStr) =>
         {
@@ -177,7 +177,7 @@ public class MugenCommands : CommandGroupBase
         var matchesCommand = new Command("matches", "View match history");
 
         var recentCommand = new Command("recent", "Show recent matches");
-        var countOption = new Option<int>("--count", () => 10, "Number of matches to show");
+        var countOption = new Option<int>("--count") { DefaultValueFactory = _ => 10, Description = "Number of matches to show" };
         recentCommand.AddOption(countOption);
         recentCommand.SetHandler(async (int count) =>
         {
@@ -192,9 +192,9 @@ public class MugenCommands : CommandGroupBase
     private Command BuildDeathmatchCommand()
     {
         var deathmatchCommand = new Command("deathmatch", "Simulate death matches");
-        var p1Arg = new Argument<string>("player1", "Player 1 ID (GUID)");
-        var p2Arg = new Argument<string>("player2", "Player 2 ID (GUID)");
-        var simsOption = new Option<int>("--simulations", () => 1000, "Number of simulations");
+        var p1Arg = new Argument<string>("player1") { Description = "Player 1 ID (GUID)" };
+        var p2Arg = new Argument<string>("player2") { Description = "Player 2 ID (GUID)" };
+        var simsOption = new Option<int>("--simulations") { DefaultValueFactory = _ => 1000, Description = "Number of simulations" };
 
         deathmatchCommand.AddArgument(p1Arg);
         deathmatchCommand.AddArgument(p2Arg);
@@ -221,9 +221,9 @@ public class MugenCommands : CommandGroupBase
 
         // Apply lighting
         var applyLightingCommand = new Command("lighting", "Apply dynamic lighting effects");
-        var targetOption = new Option<string>("--target", "Target to apply lighting to (character or stage)") { IsRequired = true };
-        var shadowsOption = new Option<bool>("--shadows", "Enable real-time shadows");
-        var ambientIntensityOption = new Option<float>("--ambient-intensity", "Ambient lighting intensity (0.0-1.0)");
+        var targetOption = new Option<string>("--target") { Description = "Target to apply lighting to (character or stage)", Required = true };
+        var shadowsOption = new Option<bool>("--shadows") { Description = "Enable real-time shadows" };
+        var ambientIntensityOption = new Option<float>("--ambient-intensity") { Description = "Ambient lighting intensity (0.0-1.0)" };
         applyLightingCommand.AddOption(targetOption);
         applyLightingCommand.AddOption(shadowsOption);
         applyLightingCommand.AddOption(ambientIntensityOption);
@@ -238,3 +238,4 @@ public class MugenCommands : CommandGroupBase
         return graphicsCommand;
     }
 }
+

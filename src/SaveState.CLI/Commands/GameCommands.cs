@@ -22,9 +22,9 @@ public class GameCommands : CommandGroupBase
     {
         // List command
         var listCommand = new Command("list", "List all games");
-        var platformOption = new Option<string?>("--platform", "Filter by platform");
+        var platformOption = new Option<string?>("--platform") { Description = "Filter by platform" };
         listCommand.AddOption(platformOption);
-        listCommand.SetHandler(async (platform) =>
+        listCommand.SetHandler(async (string? platform) =>
         {
             var query = new GetGameSummariesQuery
             {
@@ -57,9 +57,9 @@ public class GameCommands : CommandGroupBase
 
         // Search command
         var searchCommand = new Command("search", "Search games by title");
-        var searchTermArgument = new Argument<string>("term", "Search term");
+        var searchTermArgument = new Argument<string>("term") { Description = "Search term" };
         searchCommand.AddArgument(searchTermArgument);
-        searchCommand.SetHandler(async (term) =>
+        searchCommand.SetHandler(async (string term) =>
         {
             var query = new GetGameSummariesQuery
             {
@@ -124,7 +124,7 @@ public class GameCommands : CommandGroupBase
         // Heatmap command
         var heatmapCommand = new Command("heatmap", "Show gaming activity heatmap");
         var timeProvider = Host.Services.GetRequiredService<ITimeProvider>();
-        var yearOption = new Option<int>("--year", () => timeProvider.Now.Year, "Year to display (default: current year)");
+        var yearOption = new Option<int>("--year") { DefaultValueFactory = _ => timeProvider.Now.Year, Description = "Year to display (default: current year)" };
         heatmapCommand.AddOption(yearOption);
         heatmapCommand.SetHandler(async (int year) =>
         {
@@ -247,3 +247,4 @@ public class GameCommands : CommandGroupBase
         rootCommand.AddCommandChecked(heatmapCommand);
     }
 }
+

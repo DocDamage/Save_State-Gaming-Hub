@@ -14,6 +14,7 @@ public class SoundDesignStudio : SoundDesignStudioISoundDesignStudio
 {
     private readonly ILogger<SoundDesignStudio> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, SoundDesignStudioAudioProject> _activeProjects = new();
     private readonly Dictionary<string, SoundDesignStudioAudioTrack> _audioTracks = new();
     private readonly Dictionary<string, SoundDesignStudioAudioEffect> _audioEffects = new();
@@ -24,10 +25,12 @@ public class SoundDesignStudio : SoundDesignStudioISoundDesignStudio
     public SoundDesignStudio(
         ILogger<SoundDesignStudio> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
+        _timeProvider = timeProvider;
         _audioEngine = new SoundDesignStudioAudioEngine(loggerFactory.CreateLogger<SoundDesignStudioAudioEngine>());
         _mixingConsole = new SoundDesignStudioMixingConsole(loggerFactory.CreateLogger<SoundDesignStudioMixingConsole>());
         _spatialEngine = new SoundDesignStudioSpatialAudioEngine(loggerFactory.CreateLogger<SoundDesignStudioSpatialAudioEngine>());
@@ -53,8 +56,8 @@ public class SoundDesignStudio : SoundDesignStudioISoundDesignStudio
                 SoundDesignStudioTimeSignature = request.SoundDesignStudioTimeSignature,
                 Tracks = new List<SoundDesignStudioAudioTrack>(),
                 MasterBus = CreateMasterBus(),
-                CreatedAt = DateTime.UtcNow,
-                LastModified = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow,
+                LastModified = _timeProvider.UtcNow
             };
 
             // Add initial tracks
@@ -103,7 +106,7 @@ public class SoundDesignStudio : SoundDesignStudioISoundDesignStudio
                 EffectsChain = new List<SoundDesignStudioAudioEffect>(),
                 Clips = new List<SoundDesignStudioAudioClip>(),
                 Automation = new Dictionary<string, SoundDesignStudioAutomationCurve>(),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             };
 
             // Add initial effects
@@ -145,7 +148,7 @@ public class SoundDesignStudio : SoundDesignStudioISoundDesignStudio
                 WetDryMix = request.WetDryMix,
                 Bypass = false,
                 PresetName = request.PresetName,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             };
 
             _audioEffects[effect.EffectId] = effect;
@@ -182,7 +185,7 @@ public class SoundDesignStudio : SoundDesignStudioISoundDesignStudio
                 WaveformData = analysis.WaveformData,
                 Tempo = analysis.Tempo,
                 Key = analysis.Key,
-                ImportedAt = DateTime.UtcNow
+                ImportedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Audio file imported: {ClipId}", clip.ClipId);
@@ -237,7 +240,7 @@ public class SoundDesignStudio : SoundDesignStudioISoundDesignStudio
                         WetDryMix = e.WetDryMix
                     }).ToList()
                 },
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             };
 
             var mixSnapshots = project.MixSnapshots?.ToList() ?? new List<SoundDesignStudioMixSnapshot>();
@@ -341,7 +344,7 @@ public class SoundDesignStudio : SoundDesignStudioISoundDesignStudio
                 PeakLevels = await CalculatePeakLevelsAsync(project, ct),
                 LUFS = await CalculateLUFSAsync(project, ct),
                 StereoWidth = await CalculateStereoWidthAsync(project, ct),
-                AnalyzedAt = DateTime.UtcNow
+                AnalyzedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Audio analysis completed for project {ProjectId}", projectId);

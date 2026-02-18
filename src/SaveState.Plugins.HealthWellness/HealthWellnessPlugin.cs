@@ -172,9 +172,9 @@ public class HealthWellnessPlugin : IPlugin
         var limitsCommand = new Command("limits", "Playtime limits management");
 
         var limitsSetCommand = new Command("set", "Set playtime limits");
-        var dailyLimitOption = new Option<TimeSpan?>("--daily", "Daily playtime limit");
-        var sessionLimitOption = new Option<TimeSpan?>("--session", "Single session limit");
-        var breakIntervalOption = new Option<TimeSpan>("--break-interval", () => TimeSpan.FromHours(2), "Break reminder interval");
+        var dailyLimitOption = new Option<TimeSpan?>("--daily") { Description = "Daily playtime limit" };
+        var sessionLimitOption = new Option<TimeSpan?>("--session") { Description = "Single session limit" };
+        var breakIntervalOption = new Option<TimeSpan>("--break-interval") { DefaultValueFactory = _ => TimeSpan.FromHours(2), Description = "Break reminder interval" };
         limitsSetCommand.AddOption(dailyLimitOption);
         limitsSetCommand.AddOption(sessionLimitOption);
         limitsSetCommand.AddOption(breakIntervalOption);
@@ -200,7 +200,7 @@ public class HealthWellnessPlugin : IPlugin
         var healthCommand = new Command("health", "Health monitoring and tips");
 
         var healthTipsCommand = new Command("tips", "Show wellness tips");
-        var categoryOption = new Option<string>("--category", () => "general", "Tip category (general, eyes, posture, hydration)");
+        var categoryOption = new Option<string>("--category") { DefaultValueFactory = _ => "general", Description = "Tip category (general, eyes, posture, hydration)" };
         healthTipsCommand.AddOption(categoryOption);
         healthTipsCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -222,7 +222,7 @@ public class HealthWellnessPlugin : IPlugin
         var remindersCommand = new Command("reminders", "Wellness reminders");
 
         var remindersEnableCommand = new Command("enable", "Enable wellness reminders");
-        var typeArgument = new Argument<string>("type", "Reminder type (breaks, hydration, stretches, posture)");
+        var typeArgument = new Argument<string>("type") { Description = "Reminder type (breaks, hydration, stretches, posture)" };
         remindersEnableCommand.AddArgument(typeArgument);
         remindersEnableCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -231,7 +231,7 @@ public class HealthWellnessPlugin : IPlugin
         });
 
         var remindersDisableCommand = new Command("disable", "Disable wellness reminders");
-        var disableTypeArgument = new Argument<string>("type", "Reminder type to disable");
+        var disableTypeArgument = new Argument<string>("type") { Description = "Reminder type to disable" };
         remindersDisableCommand.AddArgument(disableTypeArgument);
         remindersDisableCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -775,3 +775,4 @@ public class WellnessOptions
     public bool EnableWellnessMonitoring { get; set; } = true;
     public bool EnableParentalControls { get; set; } = false;
 }
+

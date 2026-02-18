@@ -32,11 +32,11 @@ public class TwitchStreamingPlugin : IPlugin
     private string? _currentGame;
     private int _viewerCount = 0;
 
-    public string Id => "savestate.twitch.streaming";
-    public string Name => "Twitch Streaming Integration";
-    public string Version => "1.0.0";
-    public string Author => "SaveState Team";
-    public string? Description => "Complete Twitch streaming integration with OBS, chat bot, and gaming overlays";
+    public string Id => TwitchStreamingStrings.PluginId;
+    public string Name => TwitchStreamingStrings.PluginName;
+    public string Version => TwitchStreamingStrings.PluginVersion;
+    public string Author => TwitchStreamingStrings.PluginAuthor;
+    public string? Description => TwitchStreamingStrings.PluginDescription;
     public PluginCapabilities Capabilities => PluginCapabilities.UIExtension | PluginCapabilities.SocialFeatures;
 
     public async Task InitializeAsync(IPluginContext context, CancellationToken ct = default)
@@ -44,7 +44,7 @@ public class TwitchStreamingPlugin : IPlugin
         _context = context;
         _logger = context.Logger;
 
-        _logger.LogInformation("Initializing Twitch Streaming Integration plugin");
+        _logger.LogInformation(TwitchStreamingStrings.LogInitializing);
 
         // Register menu items
         await RegisterMenuItemsAsync(context);
@@ -55,12 +55,12 @@ public class TwitchStreamingPlugin : IPlugin
         // Initialize Twitch API and client
         await InitializeTwitchIntegrationAsync(ct);
 
-        _logger.LogInformation("Twitch Streaming Integration plugin initialized");
+        _logger.LogInformation(TwitchStreamingStrings.LogInitialized);
     }
 
     public async Task ShutdownAsync(CancellationToken ct = default)
     {
-        _logger?.LogInformation("Shutting down Twitch Streaming Integration plugin");
+        _logger?.LogInformation(TwitchStreamingStrings.LogShuttingDown);
 
         if (_twitchClient != null && _twitchClient.IsConnected)
         {
@@ -72,9 +72,9 @@ public class TwitchStreamingPlugin : IPlugin
     {
         // Stream management menu items
         var streamStatusItem = new PluginMenuItem(
-            Id: "twitch.stream.status",
-            Label: "Stream Status",
-            Icon: "📺",
+            Id: TwitchStreamingStrings.MenuStreamStatusId,
+            Label: TwitchStreamingStrings.MenuStreamStatusLabel,
+            Icon: TwitchStreamingStrings.MenuStreamStatusIcon,
             SortOrder: 600,
             Action: () => ShowStreamStatusAsync());
 
@@ -136,7 +136,7 @@ public class TwitchStreamingPlugin : IPlugin
         streamStatusCommand.SetHandler(async (InvocationContext context) => await HandleStreamStatusAsync());
 
         var streamStartCommand = new Command("start", "Start streaming with gaming setup");
-        var gameArgument = new Argument<string>("game", "Game to stream");
+        var gameArgument = new Argument<string>("game") { Description = "Game to stream" };
         streamStartCommand.AddArgument(gameArgument);
         streamStartCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -148,8 +148,8 @@ public class TwitchStreamingPlugin : IPlugin
         streamStopCommand.SetHandler(async (InvocationContext context) => await HandleStreamStopAsync());
 
         var streamUpdateCommand = new Command("update", "Update stream title and game");
-        var titleArgument = new Argument<string>("title", "Stream title");
-        var gameOption = new Option<string?>("--game", "Game category");
+        var titleArgument = new Argument<string>("title") { Description = "Stream title" };
+        var gameOption = new Option<string?>("--game") { Description = "Game category" };
         streamUpdateCommand.AddArgument(titleArgument);
         streamUpdateCommand.AddOption(gameOption);
         streamUpdateCommand.SetHandler(async (InvocationContext context) =>
@@ -168,9 +168,9 @@ public class TwitchStreamingPlugin : IPlugin
         var obsCommand = new Command("obs", "OBS integration commands");
 
         var obsConnectCommand = new Command("connect", "Connect to OBS WebSocket");
-        var obsHostOption = new Option<string>("--host", () => "localhost", "OBS WebSocket host");
-        var obsPortOption = new Option<int>("--port", () => 4455, "OBS WebSocket port");
-        var obsPasswordOption = new Option<string?>("--password", "OBS WebSocket password");
+        var obsHostOption = new Option<string>("--host") { DefaultValueFactory = _ => "localhost", Description = "OBS WebSocket host" };
+        var obsPortOption = new Option<int>("--port") { DefaultValueFactory = _ => 4455, Description = "OBS WebSocket port" };
+        var obsPasswordOption = new Option<string?>("--password") { Description = "OBS WebSocket password" };
         obsConnectCommand.AddOption(obsHostOption);
         obsConnectCommand.AddOption(obsPortOption);
         obsConnectCommand.AddOption(obsPasswordOption);
@@ -183,7 +183,7 @@ public class TwitchStreamingPlugin : IPlugin
         });
 
         var obsSceneCommand = new Command("scene", "Switch OBS scene");
-        var sceneArgument = new Argument<string>("scene-name", "Scene to switch to");
+        var sceneArgument = new Argument<string>("scene-name") { Description = "Scene to switch to" };
         obsSceneCommand.AddArgument(sceneArgument);
         obsSceneCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -198,7 +198,7 @@ public class TwitchStreamingPlugin : IPlugin
         var chatCommand = new Command("chat", "Chat bot management");
 
         var chatConnectCommand = new Command("connect", "Connect chat bot");
-        var channelArgument = new Argument<string>("channel", "Twitch channel to join");
+        var channelArgument = new Argument<string>("channel") { Description = "Twitch channel to join" };
         chatConnectCommand.AddArgument(channelArgument);
         chatConnectCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -210,8 +210,8 @@ public class TwitchStreamingPlugin : IPlugin
         chatDisconnectCommand.SetHandler(async (InvocationContext context) => await HandleChatDisconnectAsync());
 
         var chatCommandAddCommand = new Command("add-command", "Add custom chat command");
-        var cmdArgument = new Argument<string>("command", "Command name (without !)");
-        var responseArgument = new Argument<string>("response", "Command response");
+        var cmdArgument = new Argument<string>("command") { Description = "Command name (without !)" };
+        var responseArgument = new Argument<string>("response") { Description = "Command response" };
         chatCommandAddCommand.AddArgument(cmdArgument);
         chatCommandAddCommand.AddArgument(responseArgument);
         chatCommandAddCommand.SetHandler(async (InvocationContext context) =>
@@ -729,3 +729,4 @@ public class TwitchIntegrationOptions
     public bool EnableClips { get; set; } = true;
     public bool EnableOverlays { get; set; } = true;
 }
+

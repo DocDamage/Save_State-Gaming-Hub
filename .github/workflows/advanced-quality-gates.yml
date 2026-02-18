@@ -1,0 +1,195 @@
+name: Advanced Quality Gates
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  code-analysis:
+    name: Code Analysis
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Run .NET Analyzers
+      run: |
+        dotnet build --no-restore --verbosity minimal 2>&1 | Tee-Object build.log
+        
+        # Check for analyzer warnings
+        $warnings = Select-String -Path build.log -Pattern "warning" | Measure-Object
+        Write-Host "Total warnings: $($warnings.Count)"
+        
+        if ($warnings.Count -gt 10) {
+          Write-Host "::warning::More than 10 analyzer warnings found"
+        }
+      
+    - name: Upload build log
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-log
+        path: build.log
+
+  mutation-testing:
+    name: Mutation Testing
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Install Stryker
+      run: dotnet tool install --global dotnet-stryker
+      
+    - name: Run mutation tests
+      run: |
+        cd tests/SaveState.Core.Tests
+        dotnet stryker --break-at 80 || true
+      continue-on-error: true
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Review dependencies
+      uses: actions/dependency-review-action@v3
+      with:
+        fail-on-severity: moderate
+
+  code-coverage:
+    name: Code Coverage
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Run tests with coverage
+      run: |
+        dotnet test --no-restore --verbosity minimal \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./coverage
+          
+    - name: Install ReportGenerator
+      run: dotnet tool install --global dotnet-reportgenerator-globaltool
+      
+    - name: Generate coverage report
+      run: |
+        reportgenerator \
+          -reports:"coverage/**/coverage.cobertura.xml" \
+          -targetdir:"coveragereport" \
+          -reporttypes:Html;MarkdownSummaryGithub
+          
+    - name: Check coverage threshold
+      shell: pwsh
+      run: |
+        $coverageFile = "coveragereport/Summary.md"
+        if (Test-Path $coverageFile) {
+          $content = Get-Content $coverageFile -Raw
+          Write-Host $content
+          
+          # Extract coverage percentage
+          if ($content -match '(\d+(?:\.\d+)?)%') {
+            $coverage = [decimal]$matches[1]
+            Write-Host "Code coverage: $coverage%"
+            
+            if ($coverage -lt 60) {
+              Write-Host "::error::Code coverage is below 60%"
+              exit 1
+            }
+          }
+        }
+        
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coveragereport
+
+  architecture-compliance:
+    name: Architecture Compliance
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Run architecture tests
+      run: |
+        dotnet test tests/SaveState.Infrastructure.Tests \
+          --filter "FullyQualifiedName~ArchitectureTests" \
+          --no-restore \
+          --verbosity normal
+          
+    - name: Run code quality tests
+      run: |
+        dotnet test tests/SaveState.Infrastructure.Tests \
+          --filter "FullyQualifiedName~CodeQualityTests" \
+          --no-restore \
+          --verbosity normal
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+      continue-on-error: true
+      
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'

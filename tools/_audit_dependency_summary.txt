@@ -1,0 +1,43 @@
+OUTDATED projects=80 top=243 transitive=3642
+OUTDATED_TOP_PROJECTS
+C:/Users/Doc/Desktop/SaveStateReborn/tests/SaveState.Presentation.UITests/SaveState.Presentation.UITests.csproj|total=159|top=7|trans=152
+C:/Users/Doc/Desktop/SaveStateReborn/tests/SaveState.Presentation.Tests/SaveState.Presentation.Tests.csproj|total=158|top=5|trans=153
+C:/Users/Doc/Desktop/SaveStateReborn/tests/SaveState.Accessibility.Tests/SaveState.Accessibility.Tests.csproj|total=157|top=5|trans=152
+C:/Users/Doc/Desktop/SaveStateReborn/src/SaveState.Presentation/SaveState.Presentation.csproj|total=143|top=17|trans=126
+C:/Users/Doc/Desktop/SaveStateReborn/src/SaveState.Plugins.MugenManager/SaveState.Plugins.MugenManager.csproj|total=115|top=1|trans=114
+C:/Users/Doc/Desktop/SaveStateReborn/src/SaveState.Plugins.Itch/SaveState.Plugins.Itch.csproj|total=114|top=1|trans=113
+C:/Users/Doc/Desktop/SaveStateReborn/src/SaveState.Plugins.MugenNetwork/SaveState.Plugins.MugenNetwork.csproj|total=114|top=2|trans=112
+C:/Users/Doc/Desktop/SaveStateReborn/src/SaveState.Infrastructure/SaveState.Infrastructure.csproj|total=111|top=20|trans=91
+C:/Users/Doc/Desktop/SaveStateReborn/tests/SaveState.EndToEndTests/SaveState.EndToEndTests.csproj|total=107|top=8|trans=99
+C:/Users/Doc/Desktop/SaveStateReborn/tests/SaveState.IntegrationTests/SaveState.IntegrationTests.csproj|total=107|top=7|trans=100
+OUTDATED_TOP_PACKAGES
+Ardalis.GuardClauses|80
+Microsoft.IdentityModel.JsonWebTokens|78
+System.Text.Json|78
+Microsoft.Extensions.Primitives|78
+Microsoft.IdentityModel.Tokens|78
+Microsoft.Extensions.Options|78
+Microsoft.Extensions.Caching.Abstractions|78
+Microsoft.Extensions.Logging.Abstractions|78
+Microsoft.Extensions.Configuration.Abstractions|78
+Microsoft.Extensions.Configuration|78
+Microsoft.IdentityModel.Abstractions|78
+Microsoft.IdentityModel.Logging|78
+Microsoft.Extensions.DependencyInjection.Abstractions|78
+System.Diagnostics.DiagnosticSource|38
+System.Text.Encodings.Web|38
+VULNERABLE top=0 transitive=0
+DEPRECATED top=1 transitive=66
+DEPRECATED_TOP_LEVEL
+C:/Users/Doc/Desktop/SaveStateReborn/src/SaveState.Presentation/SaveState.Presentation.csproj|Avalonia.Xaml.Behaviors|requested=11.2.6|resolved=11.2.6|alt=Xaml.Behaviors.Avalonia
+DEPRECATED_TRANSITIVE_TOP
+SQLitePCLRaw.lib.e_sqlite3|30
+Avalonia.Xaml.Interactions.Events|4
+Avalonia.Xaml.Interactions.Draggable|4
+Avalonia.Xaml.Interactivity|4
+Avalonia.Xaml.Interactions.DragAndDrop|4
+Avalonia.Xaml.Interactions.Custom|4
+Avalonia.Xaml.Interactions.Responsive|4
+Avalonia.Xaml.Interactions|4
+Avalonia.Xaml.Behaviors|3
+System.Reflection.Metadata|1

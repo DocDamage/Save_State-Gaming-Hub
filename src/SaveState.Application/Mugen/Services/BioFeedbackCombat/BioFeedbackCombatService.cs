@@ -14,6 +14,7 @@ public class BioFeedbackCombatService : IBioFeedbackCombatService
 {
     private readonly ILogger<BioFeedbackCombatService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, BioProfile> _bioProfiles = new();
     private readonly Dictionary<string, BioFeedbackCombatSession> _combatSessions = new();
     private readonly HeartRateEngine _heartRateEngine;
@@ -25,15 +26,17 @@ public class BioFeedbackCombatService : IBioFeedbackCombatService
     public BioFeedbackCombatService(
         ILogger<BioFeedbackCombatService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _heartRateEngine = new HeartRateEngine(loggerFactory.CreateLogger<HeartRateEngine>());
-        _breathingEngine = new BreathingEngine(loggerFactory.CreateLogger<BreathingEngine>());
-        _muscleEngine = new MuscleTensionEngine(loggerFactory.CreateLogger<MuscleTensionEngine>());
-        _adrenalineEngine = new AdrenalineEngine(loggerFactory.CreateLogger<AdrenalineEngine>());
-        _meditationEngine = new MeditationEngine(loggerFactory.CreateLogger<MeditationEngine>());
+        _timeProvider = timeProvider;
+        _heartRateEngine = new HeartRateEngine(loggerFactory.CreateLogger<HeartRateEngine>(), _timeProvider);
+        _breathingEngine = new BreathingEngine(loggerFactory.CreateLogger<BreathingEngine>(), _timeProvider);
+        _muscleEngine = new MuscleTensionEngine(loggerFactory.CreateLogger<MuscleTensionEngine>(), _timeProvider);
+        _adrenalineEngine = new AdrenalineEngine(loggerFactory.CreateLogger<AdrenalineEngine>(), _timeProvider);
+        _meditationEngine = new MeditationEngine(loggerFactory.CreateLogger<MeditationEngine>(), _timeProvider);
 
         InitializeBioFeedback();
     }
@@ -54,7 +57,7 @@ public class BioFeedbackCombatService : IBioFeedbackCombatService
                     RestingHeartRate = 70,
                     NormalBreathingRate = 14,
                     BaselineMuscleTension = 0.3f,
-                    CalibratedAt = DateTime.UtcNow
+                    CalibratedAt = _timeProvider.UtcNow
                 },
                 BioSettings = new BioSettings
                 {
@@ -71,8 +74,8 @@ public class BioFeedbackCombatService : IBioFeedbackCombatService
                     MuscleTensionDefenseBonus = 0.2f,
                     AdrenalineBurstEnabled = true
                 },
-                CreatedAt = DateTime.UtcNow,
-                LastCalibration = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
+                LastCalibration = _timeProvider.UtcNow,
                 Status = BioProfileStatus.Active
             };
 
@@ -130,7 +133,7 @@ public class BioFeedbackCombatService : IBioFeedbackCombatService
                     FocusLevel = 0.8f,
                     FatigueLevel = 0.1f
                 },
-                StartedAt = DateTime.UtcNow,
+                StartedAt = _timeProvider.UtcNow,
                 Status = CombatStatus.Active
             };
 
@@ -350,14 +353,14 @@ public class BioFeedbackCombatService : IBioFeedbackCombatService
             var report = new BioCombatReport
             {
                 SessionId = sessionId,
-                Duration = DateTime.UtcNow - session.StartedAt,
+                Duration = _timeProvider.UtcNow - session.StartedAt,
                 CombatMetrics = session.CombatMetrics,
                 PhysiologicalTrends = AnalyzePhysiologicalTrends(session),
                 BioEffectiveness = CalculateBioEffectiveness(session),
                 PeakPerformanceMoments = IdentifyPeakMoments(session),
                 FatigueAccumulation = CalculateFatigueAccumulation(session),
                 StressManagement = AnalyzeStressManagement(session),
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Bio combat report generated successfully");
@@ -392,7 +395,7 @@ public class BioFeedbackCombatService : IBioFeedbackCombatService
 
             // Clean up session
             session.Status = CombatStatus.Completed;
-            session.EndedAt = DateTime.UtcNow;
+            session.EndedAt = _timeProvider.UtcNow;
 
             _logger.LogInformation("Combat session ended successfully");
             return Result.Success();
@@ -422,7 +425,7 @@ public class BioFeedbackCombatService : IBioFeedbackCombatService
             BaselineMuscleTension = 0.3f,
             NormalSkinConductance = 2.0f,
             BaselineTemperature = 36.6f,
-            EstablishedAt = DateTime.UtcNow
+            EstablishedAt = _timeProvider.UtcNow
         };
     }
 
@@ -438,7 +441,7 @@ public class BioFeedbackCombatService : IBioFeedbackCombatService
             DamageBonus = heartRate.DamageBonus + breathing.DamageBonus + muscle.DamageBonus,
             SpeedBonus = heartRate.SpeedBonus + breathing.SpeedBonus + muscle.SpeedBonus,
             DefenseBonus = heartRate.DefenseBonus + breathing.DefenseBonus + muscle.DefenseBonus,
-            Timestamp = DateTime.UtcNow
+            Timestamp = _timeProvider.UtcNow
         };
     }
 
@@ -464,7 +467,7 @@ public class BioFeedbackCombatService : IBioFeedbackCombatService
     private void UpdateSessionData(BioFeedbackCombatSession session, BioDataInput input)
     {
         // Update session with new bio data
-        var timestamp = DateTime.UtcNow;
+        var timestamp = _timeProvider.UtcNow;
 
         var heartRateData = session.BioDataStream.HeartRateData?.ToList() ?? new List<BioDataPoint>();
         heartRateData.Add(new BioDataPoint { Value = input.HeartRate, Timestamp = timestamp });
@@ -532,7 +535,7 @@ public class BioFeedbackCombatService : IBioFeedbackCombatService
         return new FatigueAnalysis
         {
             TotalFatigue = session.PhysiologicalState.FatigueLevel,
-            FatigueRate = (float)(session.PhysiologicalState.FatigueLevel / (DateTime.UtcNow - session.StartedAt).TotalHours),
+            FatigueRate = (float)(session.PhysiologicalState.FatigueLevel / (_timeProvider.UtcNow - session.StartedAt).TotalHours),
             RecoveryTime = TimeSpan.FromHours(session.PhysiologicalState.FatigueLevel * 2)
         };
     }
@@ -567,7 +570,7 @@ public class BioFeedbackCombatService : IBioFeedbackCombatService
     private async Task UpdateBioProfileFromSessionAsync(BioProfile profile, BioFeedbackCombatSession session, CancellationToken ct)
     {
         // Update bio profile with session insights
-        profile.LastCalibration = DateTime.UtcNow;
+        profile.LastCalibration = _timeProvider.UtcNow;
 
         // Adjust sensitivity based on effectiveness
         var effectiveness = CalculateBioEffectiveness(session);

@@ -262,7 +262,41 @@ public record EmulatorConfigResult(
     /// Shows the emulator setup wizard.
     /// </summary>
     Task ShowEmulatorSetupWizardAsync();
+
+    /// <summary>
+    /// Shows the game executable configuration dialog.
+    /// </summary>
+    Task<GameExecutableConfigResult?> ShowGameExecutableConfigAsync(
+        Guid gameId,
+        string gameTitle,
+        string? currentExecutablePath = null,
+        string? currentLaunchArguments = null);
+
+    /// <summary>
+    /// Shows the launch profile editor dialog.
+    /// </summary>
+    Task<LaunchProfileResult?> ShowLaunchProfileEditorAsync(
+        SaveState.Core.SmartLauncher.LaunchProfile? existingProfile = null);
 }
+
+/// <summary>
+/// Result from the game executable configuration dialog.
+/// </summary>
+public record GameExecutableConfigResult(
+    string ExecutablePath,
+    string? LaunchArguments);
+
+/// <summary>
+/// Result from the launch profile editor dialog.
+/// </summary>
+public record LaunchProfileResult(
+    string Name,
+    string? Description,
+    SaveState.Core.SmartLauncher.ProcessPriority Priority,
+    List<string> ProcessesToSuspend,
+    bool EnableMemoryOptimization,
+    bool ClearStandbyList,
+    bool DisableVisualEffects);
 
 /// <summary>
 /// Result from the auto-save configuration dialog.

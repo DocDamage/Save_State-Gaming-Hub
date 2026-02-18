@@ -15,6 +15,7 @@ public class CrossPhaseIntegrationService : ICrossPhaseIntegrationService
     private readonly ILogger<CrossPhaseIntegrationService> _logger;
     private readonly ICacheService _cache;
     private readonly IServiceProvider _serviceProvider;
+    private readonly ITimeProvider _timeProvider;
 
     // Integration state tracking
     private readonly Dictionary<string, MechanicIntegrationState> _integrationStates = new();
@@ -30,20 +31,24 @@ public class CrossPhaseIntegrationService : ICrossPhaseIntegrationService
         ILogger<CrossPhaseIntegrationService> logger,
         ILoggerFactory loggerFactory,
         ICacheService cache,
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
         _serviceProvider = serviceProvider;
+        _timeProvider = timeProvider;
 
         // Initialize engines
-        _integrationEngine = new IntegrationEngine(loggerFactory.CreateLogger<IntegrationEngine>());
+        _integrationEngine = new IntegrationEngine(loggerFactory.CreateLogger<IntegrationEngine>(), _timeProvider);
         _synergyEngine = new SynergyEngine(
             loggerFactory.CreateLogger<SynergyEngine>(),
+            _timeProvider,
             _integrationEngine);
-        _optimizationEngine = new OptimizationEngine(loggerFactory.CreateLogger<OptimizationEngine>());
+        _optimizationEngine = new OptimizationEngine(loggerFactory.CreateLogger<OptimizationEngine>(), _timeProvider);
         _conflictResolutionEngine = new ConflictResolutionEngine(
             loggerFactory.CreateLogger<ConflictResolutionEngine>(),
+            _timeProvider,
             _integrationEngine);
 
         InitializeIntegration();
@@ -88,7 +93,7 @@ public class CrossPhaseIntegrationService : ICrossPhaseIntegrationService
                 PerformanceImpact = _optimizationEngine.CalculatePerformanceImpact(
                     new List<MechanicInteraction> { analyzedInteraction },
                     new UnifiedPerformanceMetrics()),
-                IntegrationTimestamp = DateTime.UtcNow
+                IntegrationTimestamp = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Cross-phase integration completed: {Effects} effects applied, {Synergies} synergies",
@@ -144,7 +149,7 @@ public class CrossPhaseIntegrationService : ICrossPhaseIntegrationService
                 PerformanceMetrics = _optimizationEngine.CalculateUnifiedPerformanceMetrics(
                     GetOrCreateIntegrationState(sessionId).ActiveMechanics.ToList(),
                     new Dictionary<string, float>()),
-                RetrievedAt = DateTime.UtcNow
+                RetrievedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Unified game state retrieved: {Synergies} active synergies", unifiedState.ActiveSynergies);
@@ -198,8 +203,8 @@ public class CrossPhaseIntegrationService : ICrossPhaseIntegrationService
                 ActiveMechanics = new HashSet<MechanicType>(),
                 TotalInteractions = 0,
                 ActiveEffectCount = 0,
-                CreatedAt = DateTime.UtcNow,
-                LastUpdated = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow,
+                LastUpdated = _timeProvider.UtcNow
             };
             _integrationStates[sessionId] = state;
         }

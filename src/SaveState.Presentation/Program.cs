@@ -120,6 +120,8 @@ public static class Program
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.ToolsViewModel>();
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.TerminalViewModel>();
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.GameMemoryViewModel>();
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.SmartLauncher.SmartLauncherViewModel>();
+        builder.Services.AddTransient<SaveState.Presentation.ViewModels.SmartLauncher.SmartLauncherStatisticsViewModel>();
 
         // Register MUGEN ViewModels
         builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.Mugen.MoveCreationViewModel>();

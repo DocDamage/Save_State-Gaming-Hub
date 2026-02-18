@@ -14,6 +14,7 @@ public class CinematicCameraSystem : CinematicCameraSystemICinematicCameraSystem
 {
     private readonly ILogger<CinematicCameraSystem> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, CinematicCameraSystemCameraSequence> _cameraSequences = new();
     private readonly Dictionary<string, CinematicCameraSystemCameraPreset> _cameraPresets = new();
     private readonly CinematicCameraSystemCameraController _cameraController;
@@ -23,11 +24,13 @@ public class CinematicCameraSystem : CinematicCameraSystemICinematicCameraSystem
     public CinematicCameraSystem(
         ILogger<CinematicCameraSystem> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _cameraController = new CinematicCameraSystemCameraController(loggerFactory.CreateLogger<CinematicCameraSystemCameraController>());
+        _timeProvider = timeProvider;
+        _cameraController = new CinematicCameraSystemCameraController(loggerFactory.CreateLogger<CinematicCameraSystemCameraController>(), _timeProvider);
         _sequenceDirector = new CinematicCameraSystemSequenceDirector(loggerFactory.CreateLogger<CinematicCameraSystemSequenceDirector>());
         _cameraRigSystem = new CinematicCameraSystemCameraRigSystem(loggerFactory.CreateLogger<CinematicCameraSystemCameraRigSystem>());
 
@@ -52,7 +55,7 @@ public class CinematicCameraSystem : CinematicCameraSystemICinematicCameraSystem
                 AudioSyncPoints = request.AudioSyncPoints,
                 Priority = request.Priority,
                 Loop = request.Loop,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             };
 
             _cameraSequences[sequence.SequenceId] = sequence;
@@ -91,7 +94,7 @@ public class CinematicCameraSystem : CinematicCameraSystemICinematicCameraSystem
                 PostProcessing = request.PostProcessing,
                 Category = request.Category,
                 Tags = request.Tags,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             };
 
             _cameraPresets[preset.PresetId] = preset;
@@ -183,7 +186,7 @@ public class CinematicCameraSystem : CinematicCameraSystemICinematicCameraSystem
                 LookAtTarget = request.LookAtTarget,
                 Duration = request.Duration,
                 Loop = request.Loop,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             };
 
             // Validate path
@@ -222,7 +225,7 @@ public class CinematicCameraSystem : CinematicCameraSystemICinematicCameraSystem
                 Duration = request.Duration,
                 Priority = request.Priority,
                 OneTime = request.OneTime,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Cinematic event created: {EventId}", cinematicEvent.EventId);
@@ -248,7 +251,7 @@ public class CinematicCameraSystem : CinematicCameraSystemICinematicCameraSystem
                 Duration = request.Duration,
                 CinematicCameraSystemEasingFunction = request.CinematicCameraSystemEasingFunction,
                 Parameters = request.Parameters,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Camera transition created: {TransitionId}", transition.TransitionId);
@@ -313,7 +316,7 @@ public class CinematicCameraSystem : CinematicCameraSystemICinematicCameraSystem
                 CameraStability = CalculateCameraStability(sequence),
                 PerformanceScore = CalculatePerformanceScore(sequence),
                 Recommendations = GeneratePerformanceRecommendations(sequence),
-                AnalyzedAt = DateTime.UtcNow
+                AnalyzedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Sequence performance analysis completed: {SequenceId}", sequenceId);
@@ -350,7 +353,7 @@ public class CinematicCameraSystem : CinematicCameraSystemICinematicCameraSystem
                     CinematicCameraSystemProjectionMode = CinematicCameraSystemProjectionMode.Perspective
                 },
                 Tags = new[] { "closeup", "dramatic", "intense" },
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             },
             new CinematicCameraSystemCameraPreset
             {
@@ -369,7 +372,7 @@ public class CinematicCameraSystem : CinematicCameraSystemICinematicCameraSystem
                     CinematicCameraSystemProjectionMode = CinematicCameraSystemProjectionMode.Perspective
                 },
                 Tags = new[] { "wide", "arena", "epic" },
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             },
             new CinematicCameraSystemCameraPreset
             {
@@ -388,7 +391,7 @@ public class CinematicCameraSystem : CinematicCameraSystemICinematicCameraSystem
                     CinematicCameraSystemProjectionMode = CinematicCameraSystemProjectionMode.Perspective
                 },
                 Tags = new[] { "slowmotion", "bullet_time", "dynamic" },
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             },
             new CinematicCameraSystemCameraPreset
             {
@@ -407,7 +410,7 @@ public class CinematicCameraSystem : CinematicCameraSystemICinematicCameraSystem
                     CinematicCameraSystemProjectionMode = CinematicCameraSystemProjectionMode.Perspective
                 },
                 Tags = new[] { "dutch", "tension", "dramatic" },
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             }
         };
 
@@ -484,10 +487,12 @@ public class CinematicCameraSystem : CinematicCameraSystemICinematicCameraSystem
 public class CinematicCameraSystemCameraController
 {
     private readonly ILogger<CinematicCameraSystemCameraController> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public CinematicCameraSystemCameraController(ILogger<CinematicCameraSystemCameraController> logger)
+    public CinematicCameraSystemCameraController(ILogger<CinematicCameraSystemCameraController> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task ApplyPresetAsync(CinematicCameraSystemCameraPreset preset, CinematicCameraSystemCameraContext context, CancellationToken ct = default)
@@ -504,7 +509,7 @@ public class CinematicCameraSystemCameraController
             Target = new Vector3(0, 0, 0),
             Up = new Vector3(0, 1, 0),
             FieldOfView = 45.0f,
-            Timestamp = DateTime.UtcNow
+            Timestamp = _timeProvider.UtcNow
         };
     }
 }

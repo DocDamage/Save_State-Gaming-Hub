@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Infrastructure.Theming;
 
@@ -11,12 +12,14 @@ namespace SaveState.Infrastructure.Theming;
 public class ThemeService
 {
     private readonly ILogger<ThemeService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, ThemeDefinition> _themes = new();
     private ThemeDefinition _currentTheme;
 
-    public ThemeService(ILogger<ThemeService> logger)
+    public ThemeService(ILogger<ThemeService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         _currentTheme = CreateDefaultTheme();
         InitializeThemes();
     }
@@ -72,7 +75,7 @@ public class ThemeService
                 IsDark: true,
                 Colors: colors,
                 Metrics: metrics,
-                CreatedAt: DateTime.UtcNow);
+                CreatedAt: _timeProvider.UtcNow);
 
             _themes[themeName] = theme;
             _logger.LogInformation("Custom theme created: {ThemeName}", themeName);
@@ -128,7 +131,7 @@ public class ThemeService
                 IsDark: true,
                 Colors: new ThemeColors(),
                 Metrics: new ThemeMetrics(),
-                CreatedAt: DateTime.UtcNow);
+                CreatedAt: _timeProvider.UtcNow);
 
             _themes[theme.Name] = theme;
 
@@ -160,7 +163,7 @@ public class ThemeService
                 OnBackground: "#FFFFFF",
                 OnSurface: "#FFFFFF"),
             Metrics: ThemeMetrics.Default(),
-            CreatedAt: DateTime.UtcNow);
+            CreatedAt: _timeProvider.UtcNow);
 
         // High Contrast Dark Mode
         _themes["HighContrastDark"] = new ThemeDefinition(
@@ -176,7 +179,7 @@ public class ThemeService
                 OnBackground: "#FFFFFF",
                 OnSurface: "#FFFFFF"),
             Metrics: ThemeMetrics.Default(),
-            CreatedAt: DateTime.UtcNow);
+            CreatedAt: _timeProvider.UtcNow);
 
         // OLED Dark Mode (True Black)
         _themes["OLEDDark"] = new ThemeDefinition(
@@ -192,7 +195,7 @@ public class ThemeService
                 OnBackground: "#FFFFFF",
                 OnSurface: "#FFFFFF"),
             Metrics: ThemeMetrics.Default(),
-            CreatedAt: DateTime.UtcNow);
+            CreatedAt: _timeProvider.UtcNow);
 
         // Light Mode (Default)
         _themes["Light"] = new ThemeDefinition(
@@ -208,7 +211,7 @@ public class ThemeService
                 OnBackground: "#000000",
                 OnSurface: "#000000"),
             Metrics: ThemeMetrics.Default(),
-            CreatedAt: DateTime.UtcNow);
+            CreatedAt: _timeProvider.UtcNow);
 
         // Midnight Theme (Dark Purple)
         _themes["Midnight"] = new ThemeDefinition(
@@ -224,7 +227,7 @@ public class ThemeService
                 OnBackground: "#E0E0E0",
                 OnSurface: "#E0E0E0"),
             Metrics: ThemeMetrics.Default(),
-            CreatedAt: DateTime.UtcNow);
+            CreatedAt: _timeProvider.UtcNow);
 
         // Ocean Theme (Dark Blue)
         _themes["Ocean"] = new ThemeDefinition(
@@ -240,7 +243,7 @@ public class ThemeService
                 OnBackground: "#E0F4FF",
                 OnSurface: "#E0F4FF"),
             Metrics: ThemeMetrics.Default(),
-            CreatedAt: DateTime.UtcNow);
+            CreatedAt: _timeProvider.UtcNow);
 
         _logger.LogInformation("Initialized {Count} themes", _themes.Count);
     }
@@ -253,7 +256,7 @@ public class ThemeService
             IsDark: true,
             Colors: new ThemeColors(),
             Metrics: ThemeMetrics.Default(),
-            CreatedAt: DateTime.UtcNow);
+            CreatedAt: _timeProvider.UtcNow);
     }
 
     private string SerializeTheme(ThemeDefinition theme)

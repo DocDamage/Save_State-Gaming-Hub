@@ -16,6 +16,7 @@ public class UiUxEnhancementService : IUiUxEnhancementService
     private readonly ILogger<UiUxEnhancementService> _logger;
     private readonly ICacheService _cache;
     private readonly IServiceProvider _serviceProvider;
+    private readonly ITimeProvider _timeProvider;
 
     // UI State management
     private readonly Dictionary<string, UiState> _uiStates = new();
@@ -35,11 +36,13 @@ public class UiUxEnhancementService : IUiUxEnhancementService
         ILogger<UiUxEnhancementService> logger,
         ILoggerFactory loggerFactory,
         ICacheService cache,
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
         _serviceProvider = serviceProvider;
+        _timeProvider = timeProvider;
 
         _hudEngine = new HudEngine();
         _menuEngine = new MenuEngine();
@@ -63,7 +66,7 @@ public class UiUxEnhancementService : IUiUxEnhancementService
                 Layout = _hudEngine.CalculateOptimalLayout(preferences.ScreenResolution, generatedElements.Count),
                 Theme = preferences.Theme,
                 AccessibilitySettings = preferences.AccessibilitySettings,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             };
 
             _hudConfigs[sessionId] = config;
@@ -93,7 +96,7 @@ public class UiUxEnhancementService : IUiUxEnhancementService
                 NavigationGraph = _menuEngine.BuildNavigationGraph(menuConfig.EnabledFeatures),
                 Theme = menuConfig.Theme,
                 LocalizationSettings = menuConfig.LocalizationSettings,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             };
 
             _menuSystems[sessionId] = menuSystem;
@@ -123,7 +126,7 @@ public class UiUxEnhancementService : IUiUxEnhancementService
                 AnimationLibrary = _feedbackEngine.LoadAnimationLibrary(feedbackConfig.Theme),
                 SoundLibrary = _feedbackEngine.LoadSoundLibrary(feedbackConfig.AudioEnabled),
                 ParticleEffects = _feedbackEngine.LoadParticleEffects(feedbackConfig.ParticlesEnabled),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             };
 
             _feedbackSystems.Add(feedbackSystem);
@@ -151,7 +154,7 @@ public class UiUxEnhancementService : IUiUxEnhancementService
             var update = new HudUpdate
             {
                 SessionId = sessionId,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = _timeProvider.UtcNow,
                 ElementUpdates = GenerateElementUpdates(config, data),
                 LayoutAdjustments = CalculateLayoutAdjustments(config, data),
                 VisualEffects = _feedbackEngine.GenerateVisualEffects(new FeedbackTrigger { TriggerType = "hud_update", Intensity = 0.5f }),
@@ -182,7 +185,7 @@ public class UiUxEnhancementService : IUiUxEnhancementService
             var update = new MenuUpdate
             {
                 SessionId = sessionId,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = _timeProvider.UtcNow,
                 CurrentMenu = menuState.CurrentMenu,
                 MenuItems = GenerateMenuItems(menuSystem, menuState),
                 NavigationOptions = GenerateNavigationOptions(menuSystem, menuState),
@@ -214,7 +217,7 @@ public class UiUxEnhancementService : IUiUxEnhancementService
             var update = new FeedbackUpdate
             {
                 SessionId = sessionId,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = _timeProvider.UtcNow,
                 Trigger = trigger,
                 ActiveFeedback = GenerateActiveFeedback(feedbackSystem, trigger),
                 VisualEffects = _feedbackEngine.GenerateVisualEffects(trigger),
@@ -228,7 +231,7 @@ public class UiUxEnhancementService : IUiUxEnhancementService
                 Type = "feedback",
                 Data = JsonSerializer.Serialize(update),
                 Priority = trigger.Priority,
-                Timestamp = DateTime.UtcNow
+                Timestamp = _timeProvider.UtcNow
             });
 
             _logger.LogDebug("Feedback triggered for session {SessionId}: {TriggerType}", sessionId, trigger.TriggerType);
@@ -253,7 +256,7 @@ public class UiUxEnhancementService : IUiUxEnhancementService
                 FeedbackSystem = _feedbackSystems.FirstOrDefault(f => f.SessionId == sessionId),
                 PendingNotifications = _notificationQueue.Where(n => n.SessionId == sessionId).ToList(),
                 UiState = GetOrCreateUiState(sessionId),
-                CapturedAt = DateTime.UtcNow
+                CapturedAt = _timeProvider.UtcNow
             };
 
             _logger.LogDebug("UI state snapshot captured for session {SessionId}", sessionId);
@@ -283,7 +286,7 @@ public class UiUxEnhancementService : IUiUxEnhancementService
                 Analysis = analysis,
                 OptimizationsApplied = appliedOptimizations.Count,
                 PerformanceImprovement = CalculateUiImprovement(appliedOptimizations),
-                OptimizedAt = DateTime.UtcNow
+                OptimizedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("UI optimized: {Optimizations} applied, {Improvement:F1}% improvement",
@@ -313,7 +316,7 @@ public class UiUxEnhancementService : IUiUxEnhancementService
             {
                 SessionId = sessionId,
                 IsActive = true,
-                LastUpdate = DateTime.UtcNow,
+                LastUpdate = _timeProvider.UtcNow,
                 PerformanceMetrics = new UiPerformanceMetrics(),
                 UserPreferences = new UiUserPreferences()
             };
@@ -486,7 +489,7 @@ public class UiUxEnhancementService : IUiUxEnhancementService
                 StrategyId = Guid.NewGuid().ToString(),
                 Type = strategy.Type,
                 ImprovementAchieved = strategy.ExpectedImprovement * 0.95f,
-                AppliedAt = DateTime.UtcNow
+                AppliedAt = _timeProvider.UtcNow
             });
         }
 

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.NarrativeAi.Models;
 using SaveState.Core.NarrativeAi.Services;
 
@@ -12,11 +13,13 @@ namespace SaveState.Infrastructure.NarrativeAi;
 public sealed class NarrativeAiEngine : INarrativeAiEngine
 {
     private readonly ILogger<NarrativeAiEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, DialogueNode> _dialogueTrees = new();
 
-    public NarrativeAiEngine(ILogger<NarrativeAiEngine> logger)
+    public NarrativeAiEngine(ILogger<NarrativeAiEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     /// <inheritdoc />
@@ -53,21 +56,21 @@ public sealed class NarrativeAiEngine : INarrativeAiEngine
     }
 
     /// <inheritdoc />
-    public Task<Result<IReadOnlyList<GeneratedQuest>>> GenerateQuestsAsync(QuestGenerationRequest request, int count, CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<GeneratedQuest>>> GenerateQuestsAsync(QuestGenerationRequest request, int count, CancellationToken ct = default)
     {
         _logger.LogInformation("Generating {Count} quests", count);
         
         var quests = new List<GeneratedQuest>();
         for (int i = 0; i < count; i++)
         {
-            var questResult = GenerateQuestAsync(request, ct).Result;
+            var questResult = await GenerateQuestAsync(request, ct).ConfigureAwait(false);
             if (questResult.IsSuccess)
             {
                 quests.Add(questResult.Value!);
             }
         }
         
-        return Task.FromResult(Result.Success<IReadOnlyList<GeneratedQuest>>(quests));
+        return Result.Success<IReadOnlyList<GeneratedQuest>>(quests);
     }
 
     /// <inheritdoc />
@@ -161,7 +164,7 @@ public sealed class NarrativeAiEngine : INarrativeAiEngine
         
         var updatedState = state with
         {
-            LastUpdated = DateTime.UtcNow
+            LastUpdated = _timeProvider.UtcNow
         };
         
         return Task.FromResult(Result.Success(updatedState));

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Mugen.Models.Analytics;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Application.Mugen.Services.Analytics;
 
@@ -9,10 +10,12 @@ namespace SaveState.Application.Mugen.Services.Analytics;
 public class DataAggregator
 {
     private readonly ILogger<DataAggregator> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public DataAggregator(ILogger<DataAggregator> logger)
+    public DataAggregator(ILogger<DataAggregator> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public Task<BusinessAnalyticsReport> GenerateReportAsync(AnalyticsReportRequest request, CancellationToken ct)
@@ -26,7 +29,7 @@ public class DataAggregator
             StartDate = request.StartDate,
             EndDate = request.EndDate,
             DataPoints = 15000,
-            GeneratedAt = DateTime.UtcNow,
+            GeneratedAt = _timeProvider.UtcNow,
             Summary = new ReportSummary
             {
                 TotalUsers = 50000,
@@ -122,7 +125,7 @@ public class DataAggregator
             SegmentationCriteria = request.SegmentationCriteria,
             Segments = segments,
             TotalUsers = segments.Sum(s => s.Size),
-            AnalysisDate = DateTime.UtcNow,
+            AnalysisDate = _timeProvider.UtcNow,
             Insights = new List<string>
             {
                 "Power users drive 40% of revenue",
@@ -137,5 +140,5 @@ public class DataAggregator
 /// </summary>
 public class AdvancedAnalyticsServiceDataAggregator : DataAggregator
 {
-    public AdvancedAnalyticsServiceDataAggregator(ILogger<DataAggregator> logger) : base(logger) { }
+    public AdvancedAnalyticsServiceDataAggregator(ILogger<DataAggregator> logger, ITimeProvider timeProvider) : base(logger, timeProvider) { }
 }

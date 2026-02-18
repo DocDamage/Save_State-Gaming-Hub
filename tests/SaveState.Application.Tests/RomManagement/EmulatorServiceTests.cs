@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Application.RomManagement.Services;
 using SaveState.Core.RomManagement;
 using SaveState.Core.GameLibrary;
@@ -20,15 +21,18 @@ public class EmulatorServiceTests
     private readonly Mock<IRomFileRepository> _mockRomFileRepository = new();
     private readonly Mock<IPlatformRepository> _mockPlatformRepository = new();
     private readonly Mock<ILogger<EmulatorService>> _mockLogger = new();
+    private readonly Mock<ITimeProvider> _mockTimeProvider = new();
     private readonly EmulatorService _sut;
 
     public EmulatorServiceTests()
     {
+        _mockTimeProvider.Setup(x => x.UtcNow).Returns(DateTime.UtcNow);
         _sut = new EmulatorService(
             _mockEmulatorRepository.Object,
             _mockRomFileRepository.Object,
             _mockPlatformRepository.Object,
-            _mockLogger.Object);
+            _mockLogger.Object,
+            _mockTimeProvider.Object);
     }
 
     [Fact]

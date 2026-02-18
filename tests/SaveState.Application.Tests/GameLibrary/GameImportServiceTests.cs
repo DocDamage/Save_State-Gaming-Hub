@@ -13,6 +13,7 @@ using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.Events;
 using SaveState.Core.Common.ValueObjects;
+using SaveState.Core.Common.Services;
 
 public class GameImportServiceTests
 {
@@ -30,7 +31,8 @@ public class GameImportServiceTests
             _mockMetadataService.Object,
             _mockGameRepository.Object,
             _mockEventPublisher.Object,
-            _mockLogger.Object);
+            _mockLogger.Object,
+            new SystemTimeProvider());
     }
 
     [Fact]

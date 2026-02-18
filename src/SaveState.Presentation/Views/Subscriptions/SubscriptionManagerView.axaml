@@ -1,0 +1,272 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Subscriptions"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="700"
+             x:Class="SaveState.Presentation.Views.Subscriptions.SubscriptionManagerView"
+             x:DataType="vm:SubscriptionManagerViewModel"
+             AutomationProperties.Name="Subscription Manager"
+             AutomationProperties.HelpText="Manage your game subscription services and track games"
+             AutomationProperties.AutomationId="SubscriptionManagerView">
+
+  <ScrollViewer>
+    <StackPanel Margin="20" Spacing="20">
+
+      <!-- Header -->
+      <Border Classes="Card" Padding="20">
+        <StackPanel Spacing="10">
+          <TextBlock Text="🎮 Subscription Manager" Classes="Title" />
+          <TextBlock Text="Manage your game subscriptions, compare services, and track games across platforms."
+                     Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
+        </StackPanel>
+      </Border>
+
+      <!-- Error Display -->
+      <Border Classes="Card" Background="{StaticResource ErrorBrush}" Padding="16"
+              IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}">
+        <StackPanel Orientation="Horizontal" Spacing="10">
+          <TextBlock Text="⚠️" FontSize="20" />
+          <TextBlock Text="{Binding ErrorMessage}" Classes="Body" Foreground="White" />
+        </StackPanel>
+      </Border>
+
+      <!-- Loading Indicator -->
+      <Border Classes="Card" Padding="20" IsVisible="{Binding IsLoading}">
+        <StackPanel Orientation="Horizontal" Spacing="15" HorizontalAlignment="Center">
+          <ProgressBar IsIndeterminate="True" Width="40" Height="40" />
+          <TextBlock Text="Loading subscription data..." Classes="Body" VerticalAlignment="Center" />
+        </StackPanel>
+      </Border>
+
+      <!-- Comparison Summary -->
+      <Border Classes="Card" Padding="16" IsVisible="{Binding Comparison, Converter={StaticResource NullToBoolConverter}}">
+        <StackPanel Spacing="12">
+          <TextBlock Text="📊 Subscription Comparison" Classes="Header" />
+          
+          <Grid ColumnDefinitions="*, *, *" RowDefinitions="Auto">
+            <StackPanel Grid.Column="0" Spacing="4">
+              <TextBlock Text="Total Monthly Cost" Classes="Label" />
+              <TextBlock Text="{Binding Comparison.FormattedTotalCost}" Classes="Header" FontSize="24" />
+            </StackPanel>
+            
+            <StackPanel Grid.Column="1" Spacing="4">
+              <TextBlock Text="Total Games" Classes="Label" />
+              <TextBlock Text="{Binding Comparison.FormattedGameCount}" Classes="Header" FontSize="24" />
+            </StackPanel>
+            
+            <StackPanel Grid.Column="2" Spacing="4">
+              <TextBlock Text="Best Value" Classes="Label" />
+              <TextBlock Text="{Binding Comparison.BestValueRecommendation}" Classes="Body" TextWrapping="Wrap" />
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <!-- Available Services -->
+      <Border Classes="Card" Padding="16">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="*, Auto">
+            <TextBlock Text="Available Services" Classes="Header" Grid.Column="0" />
+            <Button Content="🔄 Refresh"
+                    Command="{Binding RefreshCommand}"
+                    Classes="Secondary"
+                    Grid.Column="1" />
+          </Grid>
+
+          <ItemsControl ItemsSource="{Binding Services}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:SubscriptionServiceViewModel">
+                <Border Classes="ListItem" Padding="16" Margin="0,0,0,8">
+                  <Grid ColumnDefinitions="Auto, *, Auto, Auto" RowDefinitions="Auto, Auto">
+                    <!-- Service Icon/Logo -->
+                    <Border Grid.RowSpan="2" Width="48" Height="48" 
+                            Background="{StaticResource AccentBrush}" 
+                            CornerRadius="8" Margin="0,0,12,0">
+                      <TextBlock Text="🎮" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+
+                    <!-- Service Name -->
+                    <TextBlock Grid.Row="0" Grid.Column="1" 
+                               Text="{Binding Name}" 
+                               Classes="Subheader" 
+                               FontWeight="SemiBold" />
+
+                    <!-- Description -->
+                    <TextBlock Grid.Row="1" Grid.Column="1" 
+                               Text="{Binding Description}" 
+                               Classes="Caption" 
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+
+                    <!-- Price -->
+                    <StackPanel Grid.RowSpan="2" Grid.Column="2" 
+                                VerticalAlignment="Center" Margin="20,0">
+                      <TextBlock Text="{Binding FormattedPrice}" 
+                                 Classes="Subheader" 
+                                 FontWeight="Bold" />
+                      <TextBlock Text="{Binding GameCountText}" 
+                                 Classes="Caption" 
+                                 HorizontalAlignment="Right" />
+                    </StackPanel>
+
+                    <!-- Features -->
+                    <StackPanel Grid.RowSpan="2" Grid.Column="3" 
+                                VerticalAlignment="Center" Spacing="4">
+                      <TextBlock Text="{Binding FeaturesText}" 
+                                 Classes="Caption" 
+                                 Foreground="{StaticResource AccentBrush}" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <!-- Alerts Section -->
+      <Border Classes="Card" Padding="16" IsVisible="{Binding Alerts.Count, Converter={StaticResource CountToBoolConverter}}">
+        <StackPanel Spacing="12">
+          <TextBlock Text="⚠️ Leaving Soon Alerts" Classes="Header" />
+          
+          <ItemsControl ItemsSource="{Binding Alerts}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:SubscriptionAlertViewModel">
+                <Border Classes="ListItem" 
+                        Padding="12" 
+                        Margin="0,0,0,6"
+                        Background="{Binding IsUrgent, Converter={StaticResource BoolToBrushConverter}, ConverterParameter='{StaticResource WarningBrush}|{StaticResource CardBackgroundBrush}'}">
+                  <Grid ColumnDefinitions="*, Auto">
+                    <StackPanel Grid.Column="0" Spacing="2">
+                      <TextBlock Text="{Binding GameTitle}" FontWeight="SemiBold" />
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding ServiceName}" Classes="Caption" />
+                        <TextBlock Text="•" Classes="Caption" />
+                        <TextBlock Text="{Binding DaysRemainingText}" 
+                                   Classes="Caption"
+                                   Foreground="{Binding IsUrgent, Converter={StaticResource BoolToBrushConverter}, ConverterParameter='{StaticResource ErrorBrush}|{StaticResource TextSecondaryBrush}'}" />
+                      </StackPanel>
+                    </StackPanel>
+                    
+                    <Border Grid.Column="1" 
+                            Background="{StaticResource ErrorBrush}" 
+                            CornerRadius="4" 
+                            Padding="6,2"
+                            IsVisible="{Binding IsUrgent}">
+                      <TextBlock Text="URGENT" Classes="Caption" Foreground="White" FontWeight="Bold" />
+                    </Border>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <!-- Search Games Section -->
+      <Border Classes="Card" Padding="16">
+        <StackPanel Spacing="12">
+          <TextBlock Text="🔍 Search Games" Classes="Header" />
+          <TextBlock Text="Search for games across all subscription services."
+                     Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
+          
+          <Grid ColumnDefinitions="*, Auto, Auto">
+            <TextBox Grid.Column="0" 
+                     Text="{Binding SearchQuery}" 
+                     Watermark="Search games..."
+                     Margin="0,0,10,0" />
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding ServiceFilters}"
+                      SelectedItem="{Binding SelectedServiceFilter}"
+                      Width="150"
+                      Margin="0,0,10,0" />
+            <Button Grid.Column="2" 
+                    Content="Search"
+                    Command="{Binding SearchGamesCommand}"
+                    Classes="Primary" />
+          </Grid>
+
+          <!-- Search Results -->
+          <ScrollViewer MaxHeight="300" IsVisible="{Binding SearchResults.Count, Converter={StaticResource CountToBoolConverter}}">
+            <ItemsControl ItemsSource="{Binding SearchResults}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:SubscriptionGameViewModel">
+                  <Border Classes="ListItem" Padding="12" Margin="0,0,0,6">
+                    <Grid ColumnDefinitions="60, *, Auto">
+                      <!-- Cover Image Placeholder -->
+                      <Border Grid.Column="0" Width="50" Height="50" Background="{StaticResource AccentBrush}" CornerRadius="4" Margin="0,0,10,0">
+                        <TextBlock Text="🎮" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                      </Border>
+
+                      <!-- Game Info -->
+                      <StackPanel Grid.Column="1" Spacing="2">
+                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding GenresText}" Classes="Caption" Foreground="{StaticResource TextSecondaryBrush}" />
+                        <TextBlock Text="{Binding AvailableOnText}" Classes="Caption" />
+                      </StackPanel>
+
+                      <!-- Status -->
+                      <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" Spacing="2">
+                        <TextBlock Text="{Binding StatusText}" Classes="Caption" />
+                        <TextBlock Text="{Binding MetacriticScore, StringFormat='Metacritic: {0}'}}" 
+                                   Classes="Caption" 
+                                   IsVisible="{Binding MetacriticScore, Converter={StaticResource NullToBoolConverter}}" />
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </StackPanel>
+      </Border>
+
+      <!-- Track Game Section -->
+      <Border Classes="Card" Padding="16">
+        <StackPanel Spacing="12">
+          <TextBlock Text="📌 Track a Game" Classes="Header" />
+          <TextBlock Text="Enter a game title to get notifications when it becomes available or is leaving soon."
+                     Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
+          
+          <Grid ColumnDefinitions="*, Auto">
+            <TextBox Grid.Column="0" 
+                     Text="{Binding NewGameTitle}" 
+                     Watermark="Enter game title..."
+                     Margin="0,0,10,0" />
+            <Button Grid.Column="1" 
+                    Content="Track Game"
+                    Command="{Binding TrackGameCommand}"
+                    Classes="Primary" />
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <!-- Tracked Games -->
+      <Border Classes="Card" Padding="16" IsVisible="{Binding TrackedGames.Count, Converter={StaticResource CountToBoolConverter}}">
+        <StackPanel Spacing="12">
+          <TextBlock Text="📋 Tracked Games" Classes="Header" />
+          
+          <ItemsControl ItemsSource="{Binding TrackedGames}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:TrackedGameViewModel">
+                <Border Classes="ListItem" Padding="12" Margin="0,0,0,6">
+                  <Grid ColumnDefinitions="*, Auto">
+                    <StackPanel Grid.Column="0" Spacing="2">
+                      <TextBlock Text="{Binding GameTitle}" FontWeight="SemiBold" />
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding ServiceName, FallbackValue='Checking...'}" Classes="Caption" />
+                        <TextBlock Text="•" Classes="Caption" />
+                        <TextBlock Text="{Binding StatusText}" Classes="Caption" />
+                      </StackPanel>
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Mugen.Models.DreamLogic;
+using SaveState.Core.Common.Services;
+
 namespace SaveState.Application.Mugen.Services.DreamLogic;
 
 /// <summary>
@@ -8,11 +10,13 @@ namespace SaveState.Application.Mugen.Services.DreamLogic;
 public class SurrealEngine
 {
     private readonly ILogger<SurrealEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Random _random = new();
 
-    public SurrealEngine(ILogger<SurrealEngine> logger)
+    public SurrealEngine(ILogger<SurrealEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public Task<SurrealElement> GenerateSurrealElementAsync(SurrealElementType type, System.Numerics.Vector3 position, CancellationToken ct = default)
@@ -26,7 +30,7 @@ public class SurrealEngine
             Position = position,
             Intensity = _random.NextSingle(),
             Duration = TimeSpan.FromMinutes(_random.Next(1, 10)),
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = _timeProvider.UtcNow
         };
 
         return Task.FromResult(element);
@@ -42,7 +46,7 @@ public class SurrealEngine
             EventType = eventType,
             Effects = GenerateEffectsForEvent(eventType, intensity),
             Probability = intensity,
-            GeneratedAt = DateTime.UtcNow
+            GeneratedAt = _timeProvider.UtcNow
         };
 
         return Task.FromResult(surrealEvent);
@@ -66,7 +70,7 @@ public class SurrealEngine
             Effects = GenerateEffectsForEvent(trigger.EventType, trigger.Intensity),
             Duration = TimeSpan.FromSeconds(30),
             Intensity = trigger.Intensity,
-            TriggeredAt = DateTime.UtcNow
+            TriggeredAt = _timeProvider.UtcNow
         };
 
         return Task.FromResult(physics);
@@ -159,5 +163,5 @@ public class SurrealEngine
 /// </summary>
 public class DreamLogicArenaServiceSurrealEngine : SurrealEngine
 {
-    public DreamLogicArenaServiceSurrealEngine(ILogger<SurrealEngine> logger) : base(logger) { }
+    public DreamLogicArenaServiceSurrealEngine(ILogger<SurrealEngine> logger, ITimeProvider timeProvider) : base(logger, timeProvider) { }
 }

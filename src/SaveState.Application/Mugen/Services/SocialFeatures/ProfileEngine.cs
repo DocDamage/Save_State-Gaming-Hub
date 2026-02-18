@@ -1,6 +1,7 @@
 using SaveState.Application.Mugen.Models.NetworkFeatures;
 using SaveState.Application.Mugen.Models.SocialFeatures;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using Microsoft.Extensions.Logging;
 
 namespace SaveState.Application.Mugen.Services.SocialFeatures;
@@ -11,10 +12,12 @@ namespace SaveState.Application.Mugen.Services.SocialFeatures;
 public sealed class ProfileEngine
 {
     private readonly ILogger<ProfileEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public ProfileEngine(ILogger<ProfileEngine> logger)
+    public ProfileEngine(ILogger<ProfileEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -73,7 +76,7 @@ public sealed class ProfileEngine
                 PlayerId = p.PlayerId,
                 PlayerName = p.PlayerName,
                 CurrentActivity = p.CurrentActivity,
-                LastSeen = DateTime.UtcNow
+                LastSeen = _timeProvider.UtcNow
             })
             .ToList();
 
@@ -96,7 +99,7 @@ public sealed class ProfileEngine
             Rank: "Rookie",
             Achievements: new List<Achievement>(),
             Stats: new PlayerStats(0, 0, 0, 0, TimeSpan.Zero, new Dictionary<string, CharacterSpecificStats>()),
-            Reputation: new Reputation(1000, ReputationTier.Neutral, new List<string>(), DateTime.UtcNow),
+            Reputation: new Reputation(1000, ReputationTier.Neutral, new List<string>(), _timeProvider.UtcNow),
             FavoriteCharacters: Array.Empty<string>(),
             StatusMessage: "Ready to fight!",
             AvatarUrl: null,

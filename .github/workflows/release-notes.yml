@@ -1,0 +1,80 @@
+name: Generate Release Notes
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 2.4.0)'
+        required: true
+      from_tag:
+        description: 'Previous version tag (e.g., v2.3.0)'
+        required: true
+
+jobs:
+  generate-release-notes:
+    name: Generate Release Notes
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for changelog
+        
+    - name: Setup PowerShell
+      uses: actions/setup-powershell@v1
+      
+    - name: Generate Release Notes
+      shell: pwsh
+      run: |
+        $version = "${{ github.event.inputs.version }}"
+        $fromTag = "${{ github.event.inputs.from_tag }}"
+        
+        # If triggered by tag push, extract version from tag
+        if ($env:GITHUB_REF -and $env:GITHUB_REF.StartsWith("refs/tags/v")) {
+          $version = $env:GITHUB_REF -replace "refs/tags/v", ""
+          
+          # Get previous tag
+          $tags = git tag --sort=-creatordate | Select-Object -First 2
+          if ($tags.Count -ge 2) {
+            $fromTag = $tags[1]
+          } else {
+            $fromTag = "HEAD~20"
+          }
+        }
+        
+        Write-Host "Generating release notes for v$version from $fromTag"
+        
+        ./scripts/release/generate-release-notes.ps1 `
+          -Version $version `
+          -FromTag $fromTag `
+          -OutputPath "RELEASE_NOTES.md"
+          
+    - name: Upload Release Notes
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-notes
+        path: RELEASE_NOTES.md
+        
+    - name: Create GitHub Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v1
+      with:
+        body_path: RELEASE_NOTES.md
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Post Summary
+      shell: pwsh
+      run: |
+        $notes = Get-Content -Path "RELEASE_NOTES.md" -Raw
+        
+        # Add to GitHub step summary
+        Write-Output "## Release Notes Generated" >> $env:GITHUB_STEP_SUMMARY
+        Write-Output "" >> $env:GITHUB_STEP_SUMMARY
+        Write-Output $notes.Substring(0, [Math]::Min(2000, $notes.Length)) >> $env:GITHUB_STEP_SUMMARY

@@ -14,6 +14,7 @@ public class QuantumSuperpositionService : QuantumSuperpositionServiceIQuantumSu
 {
     private readonly ILogger<QuantumSuperpositionService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, QuantumSuperpositionServiceQuantumState> _quantumStates = new();
     private readonly Dictionary<string, QuantumSuperpositionServiceQuantumEntanglement> _entanglements = new();
     private readonly QuantumSuperpositionServiceQuantumEngine _quantumEngine;
@@ -24,14 +25,16 @@ public class QuantumSuperpositionService : QuantumSuperpositionServiceIQuantumSu
     public QuantumSuperpositionService(
         ILogger<QuantumSuperpositionService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _quantumEngine = new QuantumSuperpositionServiceQuantumEngine(loggerFactory.CreateLogger<QuantumSuperpositionServiceQuantumEngine>());
-        _waveFunctionEngine = new QuantumSuperpositionServiceWaveFunctionEngine(loggerFactory.CreateLogger<QuantumSuperpositionServiceWaveFunctionEngine>());
-        _uncertaintyEngine = new QuantumSuperpositionServiceUncertaintyEngine(loggerFactory.CreateLogger<QuantumSuperpositionServiceUncertaintyEngine>());
-        _trainingEngine = new QuantumSuperpositionServiceSuperpositionTrainingEngine(loggerFactory.CreateLogger<QuantumSuperpositionServiceSuperpositionTrainingEngine>());
+        _timeProvider = timeProvider;
+        _quantumEngine = new QuantumSuperpositionServiceQuantumEngine(loggerFactory.CreateLogger<QuantumSuperpositionServiceQuantumEngine>(), timeProvider);
+        _waveFunctionEngine = new QuantumSuperpositionServiceWaveFunctionEngine(loggerFactory.CreateLogger<QuantumSuperpositionServiceWaveFunctionEngine>(), timeProvider);
+        _uncertaintyEngine = new QuantumSuperpositionServiceUncertaintyEngine(loggerFactory.CreateLogger<QuantumSuperpositionServiceUncertaintyEngine>(), timeProvider);
+        _trainingEngine = new QuantumSuperpositionServiceSuperpositionTrainingEngine(loggerFactory.CreateLogger<QuantumSuperpositionServiceSuperpositionTrainingEngine>(), timeProvider);
 
         InitializeQuantumSystem();
     }
@@ -51,7 +54,7 @@ public class QuantumSuperpositionService : QuantumSuperpositionServiceIQuantumSu
                 EntanglementId = request.EntanglementPartner,
                 UncertaintyLevel = CalculateUncertaintyLevel(request.BaseProperties),
                 CoherenceTime = TimeSpan.FromSeconds(5),
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 LastObserved = null
             };
 
@@ -93,7 +96,7 @@ public class QuantumSuperpositionService : QuantumSuperpositionServiceIQuantumSu
             var collapse = await _waveFunctionEngine.CollapseAsync(quantumState, trigger, ct);
 
             // Update quantum state
-            quantumState.LastObserved = DateTime.UtcNow;
+            quantumState.LastObserved = _timeProvider.UtcNow;
             quantumState.IsCollapsed = true;
             quantumState.CollapsedState = collapse.ResultingState;
 
@@ -128,8 +131,8 @@ public class QuantumSuperpositionService : QuantumSuperpositionServiceIQuantumSu
                 QuantumSuperpositionServiceEntanglementType = request.QuantumSuperpositionServiceEntanglementType,
                 Strength = request.Strength,
                 DecayRate = request.DecayRate,
-                CreatedAt = DateTime.UtcNow,
-                LastInteraction = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
+                LastInteraction = _timeProvider.UtcNow,
                 InteractionCount = 0
             };
 
@@ -273,7 +276,7 @@ public class QuantumSuperpositionService : QuantumSuperpositionServiceIQuantumSu
                 ProbabilityDistributions = await AnalyzeProbabilityDistributionsAsync(ct),
                 EntanglementEffects = await AnalyzeEntanglementEffectsAsync(ct),
                 QuantumSuperpositionServiceTrainingEffectiveness = await AnalyzeTrainingEffectivenessAsync(ct),
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Quantum analytics generated successfully");
@@ -352,7 +355,7 @@ public class QuantumSuperpositionService : QuantumSuperpositionServiceIQuantumSu
     {
         if (_entanglements.TryGetValue(entanglementId, out var entanglement))
         {
-            entanglement.LastInteraction = DateTime.UtcNow;
+            entanglement.LastInteraction = _timeProvider.UtcNow;
             entanglement.InteractionCount++;
 
             // Apply entanglement effects to related states
@@ -404,10 +407,12 @@ public class QuantumSuperpositionService : QuantumSuperpositionServiceIQuantumSu
 public class QuantumSuperpositionServiceQuantumEngine
 {
     private readonly ILogger<QuantumSuperpositionServiceQuantumEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public QuantumSuperpositionServiceQuantumEngine(ILogger<QuantumSuperpositionServiceQuantumEngine> logger)
+    public QuantumSuperpositionServiceQuantumEngine(ILogger<QuantumSuperpositionServiceQuantumEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<QuantumSuperpositionServiceQuantumProbability> CalculateProbabilitiesAsync(QuantumSuperpositionServiceQuantumState state, CancellationToken ct)
@@ -426,7 +431,7 @@ public class QuantumSuperpositionServiceQuantumEngine
             TotalProbability = totalProbability,
             IsNormalized = Math.Abs(totalProbability - 1.0f) < 0.01f,
             Entropy = CalculateEntropy(normalizedProbabilities.Values),
-            CalculatedAt = DateTime.UtcNow
+            CalculatedAt = _timeProvider.UtcNow
         };
     }
 
@@ -445,7 +450,7 @@ public class QuantumSuperpositionServiceQuantumEngine
             QuantumSuperpositionServiceInterferencePattern = pattern,
             ModifiedStates = modifiedStates,
             InterferenceStrength = pattern.Amplitude,
-            AppliedAt = DateTime.UtcNow
+            AppliedAt = _timeProvider.UtcNow
         };
     }
 
@@ -469,10 +474,12 @@ public class QuantumSuperpositionServiceQuantumEngine
 public class QuantumSuperpositionServiceWaveFunctionEngine
 {
     private readonly ILogger<QuantumSuperpositionServiceWaveFunctionEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public QuantumSuperpositionServiceWaveFunctionEngine(ILogger<QuantumSuperpositionServiceWaveFunctionEngine> logger)
+    public QuantumSuperpositionServiceWaveFunctionEngine(ILogger<QuantumSuperpositionServiceWaveFunctionEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<QuantumSuperpositionServiceWaveFunctionCollapse> CollapseAsync(QuantumSuperpositionServiceQuantumState state, QuantumSuperpositionServiceCollapseTrigger trigger, CancellationToken ct)
@@ -502,7 +509,7 @@ public class QuantumSuperpositionServiceWaveFunctionEngine
             Trigger = trigger,
             ResultingState = resultingState.Name,
             ResultingProperties = resultingState.Properties,
-            CollapseTime = DateTime.UtcNow,
+            CollapseTime = _timeProvider.UtcNow,
             MeasurementAccuracy = 0.95f,
             DecoherenceTime = TimeSpan.FromMilliseconds(50)
         };
@@ -515,10 +522,12 @@ public class QuantumSuperpositionServiceWaveFunctionEngine
 public class QuantumSuperpositionServiceUncertaintyEngine
 {
     private readonly ILogger<QuantumSuperpositionServiceUncertaintyEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public QuantumSuperpositionServiceUncertaintyEngine(ILogger<QuantumSuperpositionServiceUncertaintyEngine> logger)
+    public QuantumSuperpositionServiceUncertaintyEngine(ILogger<QuantumSuperpositionServiceUncertaintyEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<QuantumSuperpositionServiceUncertaintyMeasurement> MeasureAsync(QuantumSuperpositionServiceQuantumState state, QuantumSuperpositionServiceMeasurementType measurementType, CancellationToken ct)
@@ -534,7 +543,7 @@ public class QuantumSuperpositionServiceUncertaintyEngine
             MeasuredValue = CalculateMeasuredValue(state, measurementType),
             Accuracy = baseAccuracy - uncertaintyPenalty,
             Uncertainty = uncertaintyPenalty,
-            MeasuredAt = DateTime.UtcNow,
+            MeasuredAt = _timeProvider.UtcNow,
             MeasurementDevice = "QuantumSensor"
         };
     }
@@ -558,10 +567,12 @@ public class QuantumSuperpositionServiceUncertaintyEngine
 public class QuantumSuperpositionServiceSuperpositionTrainingEngine
 {
     private readonly ILogger<QuantumSuperpositionServiceSuperpositionTrainingEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public QuantumSuperpositionServiceSuperpositionTrainingEngine(ILogger<QuantumSuperpositionServiceSuperpositionTrainingEngine> logger)
+    public QuantumSuperpositionServiceSuperpositionTrainingEngine(ILogger<QuantumSuperpositionServiceSuperpositionTrainingEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<QuantumSuperpositionServiceSuperpositionTraining> StartTrainingAsync(QuantumSuperpositionServiceTrainingRequest request, CancellationToken ct)
@@ -575,7 +586,7 @@ public class QuantumSuperpositionServiceSuperpositionTrainingEngine
             TrainingMoves = GenerateTrainingMoves(request.Difficulty),
             ShowAllOutcomes = true,
             TimeLimit = TimeSpan.FromMinutes(10),
-            StartedAt = DateTime.UtcNow,
+            StartedAt = _timeProvider.UtcNow,
             Progress = new QuantumSuperpositionServiceTrainingProgress
             {
                 MovesPracticed = 0,

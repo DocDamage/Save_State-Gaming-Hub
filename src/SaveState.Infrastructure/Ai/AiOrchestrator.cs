@@ -5,6 +5,7 @@ using SaveState.Core.Ai.Knowledge;
 using SaveState.Core.Ai.Memory;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Ai.Context;
 using SaveState.Infrastructure.Ai.Knowledge;
 using SaveState.Core.Configuration;
@@ -25,6 +26,7 @@ public class AiOrchestrator : IAiOrchestrator
     private readonly IShortTermMemory _memory;
     private readonly IWebSearchService _searchService;
     private readonly IKnowledgeBaseService _kbService;
+    private readonly ITimeProvider _timeProvider;
     private long _cacheRequests;
     private long _cacheHits;
 
@@ -39,7 +41,8 @@ public class AiOrchestrator : IAiOrchestrator
         SemanticKnowledgeClient knowledgeClient,
         IShortTermMemory memory,
         IWebSearchService searchService,
-        IKnowledgeBaseService kbService)
+        IKnowledgeBaseService kbService,
+        ITimeProvider timeProvider)
     {
         _providers = providers;
         _cache = cache;
@@ -52,13 +55,14 @@ public class AiOrchestrator : IAiOrchestrator
         _memory = memory;
         _searchService = searchService;
         _kbService = kbService;
+        _timeProvider = timeProvider;
     }
 
     public async Task<AiResponse> ProcessRequestAsync(AiRequest request, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         var cacheKey = GenerateCacheKey(request);
 
         if (request.AllowCache)
@@ -73,7 +77,7 @@ public class AiOrchestrator : IAiOrchestrator
 
                 // Record cache hit metrics
                 _cacheMonitor.RecordCacheHit("AiOrchestrator");
-                _metrics.RecordAiRequest("Cache", "Hit", DateTime.UtcNow - startTime, true);
+                _metrics.RecordAiRequest("Cache", "Hit", _timeProvider.UtcNow - startTime, true);
 
                 return cached!;
             }
@@ -87,7 +91,7 @@ public class AiOrchestrator : IAiOrchestrator
         var provider = SelectProvider(request.PreferredProvider);
         if (provider is null)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordAiRequest("None", "NoProvider", duration, false);
             return new AiResponse("", "", new TokenUsage(0, 0, 0), "", "", false, "No AI providers available");
         }
@@ -103,7 +107,7 @@ public class AiOrchestrator : IAiOrchestrator
 
                 if (chatResult.IsFailure || chatResult.Value is null)
                 {
-                    var duration = DateTime.UtcNow - startTime;
+                    var duration = _timeProvider.UtcNow - startTime;
                     _metrics.RecordAiRequest(provider.ProviderName, "Chat", duration, false);
                     _metrics.RecordApiError(provider.ProviderName, chatResult.Error ?? "Unknown");
 
@@ -127,7 +131,7 @@ public class AiOrchestrator : IAiOrchestrator
 
                 if (completionResult.IsFailure || completionResult.Value is null)
                 {
-                    var duration = DateTime.UtcNow - startTime;
+                    var duration = _timeProvider.UtcNow - startTime;
                     _metrics.RecordAiRequest(provider.ProviderName, "Completion", duration, false);
                     _metrics.RecordApiError(provider.ProviderName, completionResult.Error ?? "Unknown");
 
@@ -146,7 +150,7 @@ public class AiOrchestrator : IAiOrchestrator
             }
 
             // Record successful AI request
-            var totalDuration = DateTime.UtcNow - startTime;
+            var totalDuration = _timeProvider.UtcNow - startTime;
             _metrics.RecordAiRequest(provider.ProviderName, request.Type.ToString(), totalDuration, true);
 
             if (request.AllowCache)
@@ -158,7 +162,7 @@ public class AiOrchestrator : IAiOrchestrator
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _logger.LogError(ex, "AI request failed with {Provider}", provider.ProviderName);
 
             // Record error metrics
@@ -326,7 +330,7 @@ public class AiOrchestrator : IAiOrchestrator
             await _memory.StoreAsync(new MemoryEntry(
                 Guid.NewGuid().ToString(),
                 $"User asked: {query}\nAI responded: {response.Content}",
-                DateTime.UtcNow,
+                _timeProvider.UtcNow,
                 new[] { "conversation", sessionId }), ct);
         }
 
@@ -348,9 +352,9 @@ public class AiOrchestrator : IAiOrchestrator
             var sanitizedQuery = Regex.Replace(query, @"[^a-zA-Z0-9_\-]", "_");
             if (sanitizedQuery.Length > 50) sanitizedQuery = sanitizedQuery.Substring(0, 50);
 
-            var fileName = $"Search_{DateTime.UtcNow:yyyyMMdd_HHmmss}_{sanitizedQuery}.md";
+            var fileName = $"Search_{_timeProvider.UtcNow:yyyyMMdd_HHmmss}_{sanitizedQuery}.md";
             var mdContent = $"# Web Search Result: {query}\n" +
-                           $"**Date**: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}\n" +
+                           $"**Date**: {_timeProvider.UtcNow:yyyy-MM-dd HH:mm:ss}\n" +
                            $"**Query**: {query}\n\n" +
                            $"## Summary\n{webContext}\n\n" +
                            $"---\n*This information was automatically retrieved from the internet and saved to the knowledge base.*";

@@ -22,7 +22,7 @@ public class CoachingCommands : CommandGroupBase
 
         // Analyze replay
         var analyzeCommand = new Command("analyze", "Analyze a game replay for feedback");
-        var replayPathArg = new Argument<string>("replayPath", "Path to the replay file");
+        var replayPathArg = new Argument<string>("replayPath") { Description = "Path to the replay file" };
         analyzeCommand.AddArgument(replayPathArg);
         analyzeCommand.SetHandler(async (string replayPath) =>
         {
@@ -79,7 +79,7 @@ public class CoachingCommands : CommandGroupBase
 
         // Counter-picks
         var counterCommand = new Command("counter", "Get counter-pick recommendations for an opponent");
-        var opponentIdArg = new Argument<string>("opponentId", "Opponent character ID (GUID)");
+        var opponentIdArg = new Argument<string>("opponentId") { Description = "Opponent character ID (GUID)" };
         counterCommand.AddArgument(opponentIdArg);
         counterCommand.SetHandler(async (string opponentIdStr) =>
         {
@@ -136,7 +136,7 @@ public class CoachingCommands : CommandGroupBase
 
         // Training tips
         var tipsCommand = new Command("tips", "Get general training tips");
-        var focusOption = new Option<string?>("--focus", "Focus area (combos, defense, spacing, execution)");
+        var focusOption = new Option<string?>("--focus") { Description = "Focus area (combos, defense, spacing, execution)" };
         tipsCommand.AddOption(focusOption);
         tipsCommand.SetHandler((string? focus) =>
         {
@@ -156,7 +156,7 @@ public class CoachingCommands : CommandGroupBase
 
         // Warm-up routine
         var warmupCommand = new Command("warmup", "Get a pre-session warm-up routine");
-        var durationOption = new Option<int>("--minutes", () => 10, "Warm-up duration in minutes");
+        var durationOption = new Option<int>("--minutes") { DefaultValueFactory = _ => 10, Description = "Warm-up duration in minutes" };
         warmupCommand.AddOption(durationOption);
         warmupCommand.SetHandler((int minutes) =>
         {
@@ -305,3 +305,4 @@ public class CoachingCommands : CommandGroupBase
         return routine;
     }
 }
+

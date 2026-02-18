@@ -33,7 +33,7 @@ public class AutomationCommands : CommandGroupBase
 
         // Record macro
         var recordMacroCommand = new Command("record", "Record a new macro");
-        var macroNameArg = new Argument<string>("name", "Name for the new macro");
+        var macroNameArg = new Argument<string>("name") { Description = "Name for the new macro" };
         recordMacroCommand.AddArgument(macroNameArg);
         recordMacroCommand.SetHandler((string name) =>
         {
@@ -42,8 +42,8 @@ public class AutomationCommands : CommandGroupBase
 
         // Play macro
         var playMacroCommand = new Command("play", "Play a recorded macro");
-        var playNameArg = new Argument<string>("name", "Name of the macro to play");
-        var loopOption = new Option<int>("--loop", () => 1, "Number of times to loop the macro");
+        var playNameArg = new Argument<string>("name") { Description = "Name of the macro to play" };
+        var loopOption = new Option<int>("--loop") { DefaultValueFactory = _ => 1, Description = "Number of times to loop the macro" };
         playMacroCommand.AddArgument(playNameArg);
         playMacroCommand.AddOption(loopOption);
         playMacroCommand.SetHandler((string name, int loop) =>
@@ -53,7 +53,7 @@ public class AutomationCommands : CommandGroupBase
 
         // Delete macro
         var deleteMacroCommand = new Command("delete", "Delete a macro");
-        var deleteNameArg = new Argument<string>("name", "Name of the macro to delete");
+        var deleteNameArg = new Argument<string>("name") { Description = "Name of the macro to delete" };
         deleteMacroCommand.AddArgument(deleteNameArg);
         deleteMacroCommand.SetHandler((string name) =>
         {
@@ -78,7 +78,7 @@ public class AutomationCommands : CommandGroupBase
 
         // Run workflow
         var runWorkflowCommand = new Command("run", "Execute a workflow");
-        var workflowNameArg = new Argument<string>("name", "Name of the workflow to run");
+        var workflowNameArg = new Argument<string>("name") { Description = "Name of the workflow to run" };
         runWorkflowCommand.AddArgument(workflowNameArg);
         runWorkflowCommand.SetHandler((string name) =>
         {
@@ -110,3 +110,4 @@ public class AutomationCommands : CommandGroupBase
         rootCommand.AddCommandChecked(autoCommand);
     }
 }
+

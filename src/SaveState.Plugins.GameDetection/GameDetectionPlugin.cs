@@ -80,8 +80,8 @@ public class GameDetectionPlugin : IPlugin
 
         // Detect from custom directory
         var detectDirectoryCommand = new Command("directory", "Detect games from a custom directory");
-        var directoryArgument = new Argument<string>("path", "Directory path to scan for games");
-        var recursiveOption = new Option<bool>("--recursive", () => true, "Scan subdirectories recursively");
+        var directoryArgument = new Argument<string>("path") { Description = "Directory path to scan for games" };
+        var recursiveOption = new Option<bool>("--recursive") { DefaultValueFactory = _ => true, Description = "Scan subdirectories recursively" };
         detectDirectoryCommand.AddArgument(directoryArgument);
         detectDirectoryCommand.AddOption(recursiveOption);
         detectDirectoryCommand.SetHandler(async (InvocationContext context) =>
@@ -95,7 +95,7 @@ public class GameDetectionPlugin : IPlugin
         var importCommand = new Command("import", "Import a specific game");
 
         var importSteamCommand = new Command("steam", "Import a game from Steam");
-        var steamAppIdArgument = new Argument<string>("app-id", "Steam App ID");
+        var steamAppIdArgument = new Argument<string>("app-id") { Description = "Steam App ID" };
         importSteamCommand.AddArgument(steamAppIdArgument);
         importSteamCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -104,7 +104,7 @@ public class GameDetectionPlugin : IPlugin
         });
 
         var importEpicCommand = new Command("epic", "Import a game from Epic Games Store");
-        var epicIdArgument = new Argument<string>("epic-id", "Epic Game ID");
+        var epicIdArgument = new Argument<string>("epic-id") { Description = "Epic Game ID" };
         importEpicCommand.AddArgument(epicIdArgument);
         importEpicCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -113,7 +113,7 @@ public class GameDetectionPlugin : IPlugin
         });
 
         var importGogCommand = new Command("gog", "Import a game from GOG");
-        var gogIdArgument = new Argument<string>("gog-id", "GOG Game ID");
+        var gogIdArgument = new Argument<string>("gog-id") { Description = "GOG Game ID" };
         importGogCommand.AddArgument(gogIdArgument);
         importGogCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -122,8 +122,8 @@ public class GameDetectionPlugin : IPlugin
         });
 
         var importManualCommand = new Command("manual", "Manually import a game");
-        var titleArgument = new Argument<string>("title", "Game title");
-        var descriptionOption = new Option<string?>("--description", "Game description");
+        var titleArgument = new Argument<string>("title") { Description = "Game title" };
+        var descriptionOption = new Option<string?>("--description") { Description = "Game description" };
         importManualCommand.AddArgument(titleArgument);
         importManualCommand.AddOption(descriptionOption);
         importManualCommand.SetHandler(async (InvocationContext context) =>
@@ -397,3 +397,4 @@ public class GameDetectionPlugin : IPlugin
         }
     }
 }
+

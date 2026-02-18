@@ -97,24 +97,24 @@ public sealed class UniversalSearchService : IUniversalSearchService
     }
 
     /// <inheritdoc />
-    public Task<Result<IReadOnlyList<ActionSearchResult>>> SearchActionsAsync(
+    public async Task<Result<IReadOnlyList<ActionSearchResult>>> SearchActionsAsync(
         string query,
         CancellationToken ct = default)
     {
-        return SearchActionsInternalAsync(query, ct)
-            .ContinueWith(t => Result.Success<IReadOnlyList<ActionSearchResult>>(t.Result));
+        var results = await SearchActionsInternalAsync(query, ct).ConfigureAwait(false);
+        return Result.Success<IReadOnlyList<ActionSearchResult>>(results);
     }
 
     /// <inheritdoc />
-    public Task<Result<IReadOnlyList<ContentSearchResult>>> SearchContentAsync(
+    public async Task<Result<IReadOnlyList<ContentSearchResult>>> SearchContentAsync(
         string query,
         IReadOnlyList<ContentType>? contentTypes = null,
         CancellationToken ct = default)
     {
-        return SearchContentInternalAsync(
+        var results = await SearchContentInternalAsync(
             new SearchQuery(query, 20, null, null),
-            ct)
-            .ContinueWith(t => Result.Success<IReadOnlyList<ContentSearchResult>>(t.Result));
+            ct).ConfigureAwait(false);
+        return Result.Success<IReadOnlyList<ContentSearchResult>>(results);
     }
 
     /// <inheritdoc />

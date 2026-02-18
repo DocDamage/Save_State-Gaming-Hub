@@ -14,6 +14,7 @@ public class ScreenFiltersEngine : ScreenFiltersEngineIScreenFiltersEngine
 {
     private readonly ILogger<ScreenFiltersEngine> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, ScreenFiltersEngineScreenFilterProfile> _filterProfiles = new();
     private readonly Dictionary<string, ScreenFiltersEngineCustomShader> _customShaders = new();
     private readonly ScreenFiltersEngineCRTEmulator _crtEmulator;
@@ -23,10 +24,12 @@ public class ScreenFiltersEngine : ScreenFiltersEngineIScreenFiltersEngine
     public ScreenFiltersEngine(
         ILogger<ScreenFiltersEngine> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
+        _timeProvider = timeProvider;
         _crtEmulator = new ScreenFiltersEngineCRTEmulator(loggerFactory.CreateLogger<ScreenFiltersEngineCRTEmulator>());
         _scanlineGenerator = new ScreenFiltersEngineScanlineGenerator(loggerFactory.CreateLogger<ScreenFiltersEngineScanlineGenerator>());
         _postProcessingPipeline = new ScreenFiltersEnginePostProcessingPipeline(loggerFactory.CreateLogger<ScreenFiltersEnginePostProcessingPipeline>());
@@ -54,7 +57,7 @@ public class ScreenFiltersEngine : ScreenFiltersEngineIScreenFiltersEngine
                 CustomEffects = request.CustomEffects,
                 Enabled = true,
                 Order = request.Order,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             };
 
             _filterProfiles[profile.ProfileId] = profile;
@@ -88,7 +91,7 @@ public class ScreenFiltersEngine : ScreenFiltersEngineIScreenFiltersEngine
                 Uniforms = ParseShaderUniforms(request.FragmentShader),
                 CompilationStatus = ScreenFiltersEngineShaderCompilationStatus.Success,
                 PerformanceRating = CalculatePerformanceRating(request),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             };
 
             _customShaders[shader.ShaderId] = shader;
@@ -203,7 +206,7 @@ public class ScreenFiltersEngine : ScreenFiltersEngineIScreenFiltersEngine
                 BlendModes = request.BlendModes,
                 OpacityValues = request.OpacityValues,
                 Enabled = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             };
 
             // Validate chain compatibility
@@ -241,7 +244,7 @@ public class ScreenFiltersEngine : ScreenFiltersEngineIScreenFiltersEngine
                 Tags = request.Tags,
                 IsPublic = request.IsPublic,
                 Author = request.Author,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 Downloads = 0
             };
 
@@ -270,7 +273,7 @@ public class ScreenFiltersEngine : ScreenFiltersEngineIScreenFiltersEngine
                     Category = ScreenFiltersEngineFilterCategory.CRT,
                     ThumbnailUrl = "/thumbnails/crt_classic.jpg",
                     Downloads = 15420,
-                    CreatedAt = DateTime.UtcNow.AddDays(-30)
+                    CreatedAt = _timeProvider.UtcNow.AddDays(-30)
                 },
                 new ScreenFiltersEngineFilterPreset
                 {
@@ -280,7 +283,7 @@ public class ScreenFiltersEngine : ScreenFiltersEngineIScreenFiltersEngine
                     Category = ScreenFiltersEngineFilterCategory.Arcade,
                     ThumbnailUrl = "/thumbnails/arcade_perfect.jpg",
                     Downloads = 8930,
-                    CreatedAt = DateTime.UtcNow.AddDays(-15)
+                    CreatedAt = _timeProvider.UtcNow.AddDays(-15)
                 },
                 new ScreenFiltersEngineFilterPreset
                 {
@@ -290,7 +293,7 @@ public class ScreenFiltersEngine : ScreenFiltersEngineIScreenFiltersEngine
                     Category = ScreenFiltersEngineFilterCategory.Handheld,
                     ThumbnailUrl = "/thumbnails/gameboy_dmg.jpg",
                     Downloads = 12340,
-                    CreatedAt = DateTime.UtcNow.AddDays(-45)
+                    CreatedAt = _timeProvider.UtcNow.AddDays(-45)
                 }
             };
 
@@ -327,7 +330,7 @@ public class ScreenFiltersEngine : ScreenFiltersEngineIScreenFiltersEngine
                 DrawCallsAdded = CalculateDrawCallsAdded(profile),
                 ShaderSwitches = CalculateShaderSwitches(profile),
                 Recommendations = GeneratePerformanceRecommendations(profile),
-                AnalyzedAt = DateTime.UtcNow
+                AnalyzedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Filter performance analysis completed for {ProfileId}", profileId);
@@ -362,7 +365,7 @@ public class ScreenFiltersEngine : ScreenFiltersEngineIScreenFiltersEngine
                     ColorBleeding = 0.1f
                 },
                 Enabled = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             },
             new ScreenFiltersEngineScreenFilterProfile
             {
@@ -387,7 +390,7 @@ public class ScreenFiltersEngine : ScreenFiltersEngineIScreenFiltersEngine
                     ColorTemperature = 6500
                 },
                 Enabled = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             },
             new ScreenFiltersEngineScreenFilterProfile
             {
@@ -411,7 +414,7 @@ public class ScreenFiltersEngine : ScreenFiltersEngineIScreenFiltersEngine
                     AnimationSpeed = 0.0f
                 },
                 Enabled = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow
             }
         };
 

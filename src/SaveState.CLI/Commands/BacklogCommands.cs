@@ -26,7 +26,7 @@ public class BacklogCommands : CommandGroupBase
 
         // Backlog list subcommand
         var backlogListCommand = new Command("list", "List backlog entries");
-        var backlogStatusOption = new Option<string?>("--status", "Filter by status (NotStarted, InProgress, OnHold, Completed, Abandoned, Wishlisted)");
+        var backlogStatusOption = new Option<string?>("--status") { Description = "Filter by status (NotStarted, InProgress, OnHold, Completed, Abandoned, Wishlisted)" };
         backlogListCommand.AddOption(backlogStatusOption);
         backlogListCommand.SetHandler(async (string? status) =>
         {
@@ -73,8 +73,8 @@ public class BacklogCommands : CommandGroupBase
 
         // Backlog add subcommand
         var backlogAddCommand = new Command("add", "Add game to backlog");
-        var gameIdArgument = new Argument<string>("gameId", "Game ID (GUID)");
-        var priorityOption = new Option<int>("--priority", () => 50, "Priority (1-100, higher = more important)");
+        var gameIdArgument = new Argument<string>("gameId") { Description = "Game ID (GUID)" };
+        var priorityOption = new Option<int>("--priority") { DefaultValueFactory = _ => 50, Description = "Priority (1-100, higher = more important)" };
         backlogAddCommand.AddArgument(gameIdArgument);
         backlogAddCommand.AddOption(priorityOption);
         backlogAddCommand.SetHandler(async (string gameIdStr, int priority) =>
@@ -97,11 +97,11 @@ public class BacklogCommands : CommandGroupBase
 
         // Backlog status subcommand
         var backlogStatusCommand = new Command("status", "Update backlog entry status");
-        var statusGameIdArgument = new Argument<string>("gameId", "Game ID (GUID)");
-        var statusArgument = new Argument<string>("status", "New status (NotStarted, InProgress, OnHold, Completed, Abandoned, Wishlisted)");
+        var statusGameIdArgument = new Argument<string>("gameId") { Description = "Game ID (GUID)" };
+        var statusArgument = new Argument<string>("status") { Description = "New status (NotStarted, InProgress, OnHold, Completed, Abandoned, Wishlisted)" };
         backlogStatusCommand.AddArgument(statusGameIdArgument);
         backlogStatusCommand.AddArgument(statusArgument);
-        backlogStatusCommand.SetHandler(async (gameIdStr, statusStr) =>
+        backlogStatusCommand.SetHandler(async (string gameIdStr, string statusStr) =>
         {
             if (!Guid.TryParse(gameIdStr, out var gameId))
             {
@@ -176,11 +176,11 @@ public class BacklogCommands : CommandGroupBase
 
         // Goals create subcommand
         var goalsCreateCommand = new Command("create", "Create a new goal");
-        var titleArgument = new Argument<string>("title", "Goal title");
-        var typeArgument = new Argument<string>("type", "Goal type (GamesCompleted, PlaytimeHours, PlaytimePerGame, AchievementsEarned, DailyStreak, GenreExploration, SessionsCount)");
-        var targetArgument = new Argument<int>("target", "Target value");
-        var endDateOption = new Option<string?>("--end-date", "End date (yyyy-MM-dd)");
-        var gameIdOption = new Option<string?>("--game-id", "Specific game ID for game-specific goals");
+        var titleArgument = new Argument<string>("title") { Description = "Goal title" };
+        var typeArgument = new Argument<string>("type") { Description = "Goal type (GamesCompleted, PlaytimeHours, PlaytimePerGame, AchievementsEarned, DailyStreak, GenreExploration, SessionsCount)" };
+        var targetArgument = new Argument<int>("target") { Description = "Target value" };
+        var endDateOption = new Option<string?>("--end-date") { Description = "End date (yyyy-MM-dd)" };
+        var gameIdOption = new Option<string?>("--game-id") { Description = "Specific game ID for game-specific goals" };
 
         goalsCreateCommand.AddArgument(titleArgument);
         goalsCreateCommand.AddArgument(typeArgument);
@@ -238,9 +238,9 @@ public class BacklogCommands : CommandGroupBase
 
         // Goals cancel subcommand
         var goalsCancelCommand = new Command("cancel", "Cancel a goal");
-        var cancelGoalIdArgument = new Argument<string>("goalId", "Goal ID (GUID)");
+        var cancelGoalIdArgument = new Argument<string>("goalId") { Description = "Goal ID (GUID)" };
         goalsCancelCommand.AddArgument(cancelGoalIdArgument);
-        goalsCancelCommand.SetHandler(async (goalIdStr) =>
+        goalsCancelCommand.SetHandler(async (string goalIdStr) =>
         {
             if (!Guid.TryParse(goalIdStr, out var goalId))
             {

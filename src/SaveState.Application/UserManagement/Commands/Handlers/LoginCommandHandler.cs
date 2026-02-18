@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using SaveState.Application.UserManagement.Commands;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.UserManagement.Services;
 
 namespace SaveState.Application.UserManagement.Commands.Handlers;
@@ -10,13 +11,16 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<LoginRes
 {
     private readonly IAuthenticationService _authenticationService;
     private readonly ILogger<LoginCommandHandler> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public LoginCommandHandler(
         IAuthenticationService authenticationService,
-        ILogger<LoginCommandHandler> logger)
+        ILogger<LoginCommandHandler> logger,
+        ITimeProvider timeProvider)
     {
         _authenticationService = authenticationService;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<LoginResponse>> Handle(LoginCommand request, CancellationToken ct)
@@ -48,8 +52,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<LoginRes
                 Email = user.Email,
                 AccessToken = authResult.AccessToken!,
                 RefreshToken = authResult.RefreshToken!,
-                AccessTokenExpiresAt = DateTimeOffset.UtcNow.AddHours(1), // Should come from config
-                RefreshTokenExpiresAt = DateTimeOffset.UtcNow.AddDays(7), // Should come from config
+                AccessTokenExpiresAt = _timeProvider.UtcNow.AddHours(1), // Should come from config
+                RefreshTokenExpiresAt = _timeProvider.UtcNow.AddDays(7), // Should come from config
                 Roles = roles
             };
 

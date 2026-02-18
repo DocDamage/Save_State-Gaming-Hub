@@ -76,8 +76,8 @@ public class RomCommands : CommandGroupBase
 
         // Add ROM directory
         var addDirCommand = new Command("add-dir", "Add a ROM directory");
-        var dirArgument = new Argument<string>("directory", "Path to the ROM directory");
-        var validateOption = new Option<bool>("--validate", () => true, "Validate that the directory exists");
+        var dirArgument = new Argument<string>("directory") { Description = "Path to the ROM directory" };
+        var validateOption = new Option<bool>("--validate") { DefaultValueFactory = _ => true, Description = "Validate that the directory exists" };
         addDirCommand.AddArgument(dirArgument);
         addDirCommand.AddOption(validateOption);
         addDirCommand.SetHandler(async (string directory, bool validate) =>
@@ -102,7 +102,7 @@ public class RomCommands : CommandGroupBase
 
         // Remove ROM directory
         var removeDirCommand = new Command("remove-dir", "Remove a ROM directory");
-        var removeDirArgument = new Argument<string>("directory", "Path to the ROM directory to remove");
+        var removeDirArgument = new Argument<string>("directory") { Description = "Path to the ROM directory to remove" };
         removeDirCommand.AddArgument(removeDirArgument);
         removeDirCommand.SetHandler(async (string directory) =>
         {
@@ -126,8 +126,8 @@ public class RomCommands : CommandGroupBase
 
         // Scan ROMs
         var scanCommand = new Command("scan", "Scan for ROMs in configured directories");
-        var platformOption = new Option<string?>("--platform", "Filter by platform name");
-        var recursiveOption = new Option<bool>("--recursive", () => true, "Scan subdirectories recursively");
+        var platformOption = new Option<string?>("--platform") { Description = "Filter by platform name" };
+        var recursiveOption = new Option<bool>("--recursive") { DefaultValueFactory = _ => true, Description = "Scan subdirectories recursively" };
         scanCommand.AddOption(platformOption);
         scanCommand.AddOption(recursiveOption);
         scanCommand.SetHandler(async (string? platform, bool recursive) =>
@@ -289,3 +289,4 @@ public class RomCommands : CommandGroupBase
         rootCommand.AddCommandChecked(romCommand);
     }
 }
+

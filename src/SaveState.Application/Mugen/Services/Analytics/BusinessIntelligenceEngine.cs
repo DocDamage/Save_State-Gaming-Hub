@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Mugen.Models.Analytics;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Application.Mugen.Services.Analytics;
 
@@ -9,10 +10,12 @@ namespace SaveState.Application.Mugen.Services.Analytics;
 public class BusinessIntelligenceEngine
 {
     private readonly ILogger<BusinessIntelligenceEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public BusinessIntelligenceEngine(ILogger<BusinessIntelligenceEngine> logger)
+    public BusinessIntelligenceEngine(ILogger<BusinessIntelligenceEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public Task<BusinessIntelligenceReport> GenerateBIReportAsync(BIReportRequest request, CancellationToken ct)
@@ -56,7 +59,7 @@ public class BusinessIntelligenceEngine
                     MitigationStrategies = new List<string> { "Improve onboarding" }
                 }
             },
-            GeneratedAt = DateTime.UtcNow
+            GeneratedAt = _timeProvider.UtcNow
         });
     }
 
@@ -87,7 +90,7 @@ public class BusinessIntelligenceEngine
                 }
             },
             RefreshInterval = request.TimeRange,
-            GeneratedAt = DateTime.UtcNow
+            GeneratedAt = _timeProvider.UtcNow
         });
     }
 }
@@ -97,5 +100,5 @@ public class BusinessIntelligenceEngine
 /// </summary>
 public class AdvancedAnalyticsServiceBusinessIntelligenceEngine : BusinessIntelligenceEngine
 {
-    public AdvancedAnalyticsServiceBusinessIntelligenceEngine(ILogger<BusinessIntelligenceEngine> logger) : base(logger) { }
+    public AdvancedAnalyticsServiceBusinessIntelligenceEngine(ILogger<BusinessIntelligenceEngine> logger, ITimeProvider timeProvider) : base(logger, timeProvider) { }
 }

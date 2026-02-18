@@ -15,6 +15,7 @@ public class AdvancedAnalyticsService
 {
     private readonly ILogger<AdvancedAnalyticsService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, BusinessAnalyticsReport> _reports = new();
     private readonly Dictionary<string, PredictiveModel> _models = new();
     private readonly DataAggregator _dataAggregator;
@@ -25,14 +26,16 @@ public class AdvancedAnalyticsService
     public AdvancedAnalyticsService(
         ILogger<AdvancedAnalyticsService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _dataAggregator = new DataAggregator(loggerFactory.CreateLogger<DataAggregator>());
-        _predictiveAnalyzer = new PredictiveAnalyzer(loggerFactory.CreateLogger<PredictiveAnalyzer>());
-        _biEngine = new BusinessIntelligenceEngine(loggerFactory.CreateLogger<BusinessIntelligenceEngine>());
-        _realTimeProcessor = new RealTimeAnalyticsProcessor(loggerFactory.CreateLogger<RealTimeAnalyticsProcessor>());
+        _timeProvider = timeProvider;
+        _dataAggregator = new DataAggregator(loggerFactory.CreateLogger<DataAggregator>(), _timeProvider);
+        _predictiveAnalyzer = new PredictiveAnalyzer(loggerFactory.CreateLogger<PredictiveAnalyzer>(), _timeProvider);
+        _biEngine = new BusinessIntelligenceEngine(loggerFactory.CreateLogger<BusinessIntelligenceEngine>(), _timeProvider);
+        _realTimeProcessor = new RealTimeAnalyticsProcessor(loggerFactory.CreateLogger<RealTimeAnalyticsProcessor>(), _timeProvider);
 
         InitializeAnalyticsModels();
     }
@@ -246,14 +249,15 @@ public class AdvancedAnalyticsService
     private void InitializeAnalyticsModels()
     {
         // Initialize default predictive models
+        var now = _timeProvider.UtcNow;
         var churnModel = new PredictiveModel
         {
             ModelId = "churn_prediction_v1",
             ModelType = ModelType.ChurnPrediction,
             Algorithm = "RandomForest",
             Accuracy = 0.85,
-            CreatedAt = DateTime.UtcNow,
-            LastTrained = DateTime.UtcNow,
+            CreatedAt = now,
+            LastTrained = now,
             Status = ModelStatus.Active
         };
 

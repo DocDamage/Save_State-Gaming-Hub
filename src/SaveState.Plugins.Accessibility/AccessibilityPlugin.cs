@@ -181,7 +181,7 @@ public class AccessibilityPlugin : IPlugin, ITheme
         screenreaderDisableCommand.SetHandler(async (InvocationContext context) => await HandleScreenReaderDisableAsync());
 
         var screenreaderSpeakCommand = new Command("speak", "Speak text or UI element");
-        var textArgument = new Argument<string>("text", "Text to speak");
+        var textArgument = new Argument<string>("text") { Description = "Text to speak" };
         screenreaderSpeakCommand.AddArgument(textArgument);
         screenreaderSpeakCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -197,7 +197,7 @@ public class AccessibilityPlugin : IPlugin, ITheme
         var uiCommand = new Command("ui", "User interface accessibility");
 
         var uiScaleCommand = new Command("scale", "Set UI scale factor");
-        var scaleArgument = new Argument<double>("factor", "Scale factor (0.5 to 2.0)");
+        var scaleArgument = new Argument<double>("factor") { Description = "Scale factor (0.5 to 2.0)" };
         uiScaleCommand.AddArgument(scaleArgument);
         uiScaleCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -206,7 +206,7 @@ public class AccessibilityPlugin : IPlugin, ITheme
         });
 
         var uiContrastCommand = new Command("contrast", "Toggle high contrast mode");
-        var enableOption = new Option<bool>("--enable", () => true, "Enable or disable high contrast");
+        var enableOption = new Option<bool>("--enable") { DefaultValueFactory = _ => true, Description = "Enable or disable high contrast" };
         uiContrastCommand.AddOption(enableOption);
         uiContrastCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -215,7 +215,7 @@ public class AccessibilityPlugin : IPlugin, ITheme
         });
 
         var uiThemeCommand = new Command("theme", "Change accessibility theme");
-        var themeArgument = new Argument<string>("theme-name", "Theme name (high-contrast, large-text, colorblind)");
+        var themeArgument = new Argument<string>("theme-name") { Description = "Theme name (high-contrast, large-text, colorblind)" };
         uiThemeCommand.AddArgument(themeArgument);
         uiThemeCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -234,8 +234,8 @@ public class AccessibilityPlugin : IPlugin, ITheme
         keyboardShortcutsCommand.SetHandler(async (InvocationContext context) => await HandleKeyboardShortcutsAsync());
 
         var keyboardNavigationCommand = new Command("navigation", "Configure keyboard navigation");
-        var stickyKeysOption = new Option<bool>("--sticky-keys", "Enable sticky keys");
-        var slowKeysOption = new Option<bool>("--slow-keys", "Enable slow keys");
+        var stickyKeysOption = new Option<bool>("--sticky-keys") { Description = "Enable sticky keys" };
+        var slowKeysOption = new Option<bool>("--slow-keys") { Description = "Enable slow keys" };
         keyboardNavigationCommand.AddOption(stickyKeysOption);
         keyboardNavigationCommand.AddOption(slowKeysOption);
         keyboardNavigationCommand.SetHandler(async (InvocationContext context) =>
@@ -252,9 +252,9 @@ public class AccessibilityPlugin : IPlugin, ITheme
         var audioCommand = new Command("audio", "Audio cues and feedback");
 
         var audioCuesCommand = new Command("cues", "Configure audio cues");
-        var buttonClicksOption = new Option<bool>("--button-clicks", () => true, "Enable button click sounds");
-        var navigationOption = new Option<bool>("--navigation", () => true, "Enable navigation sounds");
-        var notificationsOption = new Option<bool>("--notifications", () => true, "Enable notification sounds");
+        var buttonClicksOption = new Option<bool>("--button-clicks") { DefaultValueFactory = _ => true, Description = "Enable button click sounds" };
+        var navigationOption = new Option<bool>("--navigation") { DefaultValueFactory = _ => true, Description = "Enable navigation sounds" };
+        var notificationsOption = new Option<bool>("--notifications") { DefaultValueFactory = _ => true, Description = "Enable notification sounds" };
         audioCuesCommand.AddOption(buttonClicksOption);
         audioCuesCommand.AddOption(navigationOption);
         audioCuesCommand.AddOption(notificationsOption);

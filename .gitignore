@@ -39,6 +39,11 @@ TestResults/
 data/
 downloads/
 engines/
+# Allow source-controlled C# under engine folders (while keeping non-code artifacts ignored)
+!src/**/Engines/
+!src/**/Engines/**/*.cs
+!src/**/engines/
+!src/**/engines/**/*.cs
 
 # User secrets
 secrets.json

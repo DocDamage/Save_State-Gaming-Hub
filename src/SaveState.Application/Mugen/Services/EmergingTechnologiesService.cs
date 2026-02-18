@@ -17,6 +17,7 @@ public class EmergingTechnologiesService
 {
     private readonly ILogger<EmergingTechnologiesService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, MotionController> _motionControllers = new();
     private readonly Dictionary<string, HapticDevice> _hapticDevices = new();
     private readonly Dictionary<string, GestureProfile> _gestureProfiles = new();
@@ -28,14 +29,16 @@ public class EmergingTechnologiesService
     public EmergingTechnologiesService(
         ILogger<EmergingTechnologiesService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _motionEngine = new MotionTrackingEngine(loggerFactory.CreateLogger<MotionTrackingEngine>());
+        _timeProvider = timeProvider;
+        _motionEngine = new MotionTrackingEngine(loggerFactory.CreateLogger<MotionTrackingEngine>(), _timeProvider);
         _hapticEngine = new HapticFeedbackEngine(loggerFactory.CreateLogger<HapticFeedbackEngine>());
-        _gestureEngine = new GestureRecognitionEngine(loggerFactory.CreateLogger<GestureRecognitionEngine>());
-        _biometricEngine = new BiometricEngine(loggerFactory.CreateLogger<BiometricEngine>());
+        _gestureEngine = new GestureRecognitionEngine(loggerFactory.CreateLogger<GestureRecognitionEngine>(), _timeProvider);
+        _biometricEngine = new BiometricEngine(loggerFactory.CreateLogger<BiometricEngine>(), _timeProvider);
 
         InitializeEmergingTechnologies();
     }
@@ -66,7 +69,7 @@ public class EmergingTechnologiesService
                     AccelerometerBias = new Vector3(0, 0, 0),
                     GyroscopeBias = new Vector3(0, 0, 0),
                     MagnetometerBias = new Vector3(0, 0, 0),
-                    CalibrationDate = DateTime.UtcNow
+                    CalibrationDate = _timeProvider.UtcNow
                 },
                 Sensitivity = new MotionSensitivity
                 {
@@ -75,8 +78,8 @@ public class EmergingTechnologiesService
                     SpeedThreshold = 0.2f
                 },
                 IsActive = true,
-                RegisteredAt = DateTime.UtcNow,
-                LastUsed = DateTime.UtcNow,
+                RegisteredAt = _timeProvider.UtcNow,
+                LastUsed = _timeProvider.UtcNow,
                 FirmwareVersion = request.FirmwareVersion
             };
 
@@ -105,7 +108,7 @@ public class EmergingTechnologiesService
 
             var processedData = await _motionEngine.ProcessMotionDataAsync(controller, rawData, ct);
 
-            controller.LastUsed = DateTime.UtcNow;
+            controller.LastUsed = _timeProvider.UtcNow;
 
             return Result.Success(processedData);
         }
@@ -168,7 +171,7 @@ public class EmergingTechnologiesService
                     })
                     .ToList(),
                 IsActive = true,
-                RegisteredAt = DateTime.UtcNow,
+                RegisteredAt = _timeProvider.UtcNow,
                 FirmwareVersion = request.FirmwareVersion
             };
 
@@ -248,8 +251,8 @@ public class EmergingTechnologiesService
                     ActionBinding = g.ActionBinding
                 }).ToList(),
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                LastModified = DateTime.UtcNow
+                CreatedAt = _timeProvider.UtcNow,
+                LastModified = _timeProvider.UtcNow
             };
 
             _gestureProfiles[profile.ProfileId] = profile;

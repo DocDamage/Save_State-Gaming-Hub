@@ -5,7 +5,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <NoWarn>$(NoWarn);CA1822;CA2007;CS1591</NoWarn>
+    <NoWarn>$(NoWarn);CA2007;CS1591</NoWarn>
     <!-- Enable XML documentation -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- Native AOT Configuration - Disabled for development/run to support EF Core reflection -->
@@ -48,8 +48,7 @@
     <PackageReference Include="Serilog.Settings.Configuration" />
     <PackageReference Include="Spectre.Console" />
     <PackageReference Include="System.CommandLine" />
-    <PackageReference Include="Avalonia.Xaml.Behaviors" />
+    <PackageReference Include="Xaml.Behaviors.Avalonia" />
   </ItemGroup>
 
 </Project>
-

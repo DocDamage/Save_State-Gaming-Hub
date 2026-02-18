@@ -29,8 +29,8 @@ public class MainWindowAccessibilityTests
         const int minWidth = 800;
         const int minHeight = 600;
 
-        minWidth.Should().BeGreaterOrEqualTo(800);
-        minHeight.Should().BeGreaterOrEqualTo(600);
+        minWidth.Should().BeGreaterThanOrEqualTo(800);
+        minHeight.Should().BeGreaterThanOrEqualTo(600);
     }
 
     [Fact]

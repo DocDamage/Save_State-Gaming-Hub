@@ -78,7 +78,7 @@ public class ConversationContextServiceTests
         var count = _sut.GetActiveSessionCount();
 
         // Assert
-        count.Should().BeGreaterOrEqualTo(2);
+        count.Should().BeGreaterThanOrEqualTo(2);
     }
 
     [Theory]

@@ -1,0 +1,318 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.SmartLauncher"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="SaveState.Presentation.Views.SmartLauncher.SmartLauncherView"
+             x:DataType="vm:SmartLauncherViewModel">
+
+  <Grid ColumnDefinitions="*, 380">
+    <!-- Main Content -->
+    <ScrollViewer Grid.Column="0" Margin="10">
+      <StackPanel Spacing="15">
+        <!-- Header -->
+        <Border Classes="Card" Padding="20">
+          <StackPanel Spacing="10">
+            <TextBlock Text="🚀 Smart Launcher" Classes="Title" FontSize="24" />
+            <TextBlock Text="Optimize your system for gaming. Launch games with custom profiles and performance tweaks!"
+                       Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Status Bar -->
+        <Border Classes="Card" 
+                Background="{StaticResource AccentBrush}" 
+                Padding="15"
+                IsVisible="{Binding StatusMessage, Converter={StaticResource StringNotEmptyConverter}}">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <ProgressBar IsIndeterminate="True" 
+                         Width="20" 
+                         Height="20"
+                         IsVisible="{Binding IsLaunching}" />
+            <TextBlock Text="{Binding StatusMessage}" 
+                       Classes="Body" 
+                       Foreground="White" 
+                       VerticalAlignment="Center" />
+          </StackPanel>
+        </Border>
+
+        <!-- Active Session -->
+        <Border Classes="Card" 
+                Background="{StaticResource SuccessBrush}"
+                Padding="15"
+                IsVisible="{Binding ActiveSession, Converter={StaticResource NullToBoolConverter}}">
+          <Grid ColumnDefinitions="*, Auto">
+            <StackPanel Grid.Column="0" Spacing="5">
+              <TextBlock Text="🎮 Game Running" Classes="Header" Foreground="White" />
+              <TextBlock Text="{Binding ActiveSession.GameName}" 
+                         Classes="Body" 
+                         Foreground="White" 
+                         FontWeight="Bold" />
+              <TextBlock Text="{Binding ActiveSession.DurationText}" 
+                         Classes="Caption" 
+                         Foreground="White" />
+            </StackPanel>
+            <Button Grid.Column="1"
+                    Content="⏹️ Stop Game"
+                    Command="{Binding StopGameCommand}"
+                    Classes="Secondary"
+                    VerticalAlignment="Center" />
+          </Grid>
+        </Border>
+
+        <!-- Games List -->
+        <Border Classes="Card" Padding="15">
+          <StackPanel Spacing="15">
+            <TextBlock Text="🎮 Your Games" Classes="Header" />
+            
+            <ItemsControl ItemsSource="{Binding Games}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:GameLaunchViewModel">
+                  <Border Classes="Card" 
+                          Width="200" 
+                          Margin="6" 
+                          Padding="12"
+                          Cursor="Hand"
+                          Background="{StaticResource CardBackgroundBrush}">
+                    <StackPanel Spacing="8">
+                      <!-- Game Cover -->
+                      <Border Background="{StaticResource BackgroundSecondaryBrush}"
+                              CornerRadius="8"
+                              Height="100"
+                              ClipToBounds="True">
+                        <Grid>
+                          <Image Source="{Binding CoverImagePath}" 
+                                 Stretch="UniformToFill"
+                                 IsVisible="{Binding CoverImagePath, Converter={StaticResource StringNotEmptyConverter}}" />
+                          <TextBlock Text="🎮"
+                                     FontSize="48"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center"
+                                     IsVisible="{Binding CoverImagePath, Converter={StaticResource StringEmptyConverter}}" />
+                        </Grid>
+                      </Border>
+
+                      <!-- Game Info -->
+                      <TextBlock Text="{Binding Title}" 
+                                 FontWeight="SemiBold"
+                                 FontSize="14"
+                                 TextTrimming="CharacterEllipsis" />
+                      
+                      <TextBlock Text="{Binding PlayTimeText}" 
+                                 Classes="Caption"
+                                 Foreground="{StaticResource TextSecondaryBrush}" />
+                      
+                      <TextBlock Text="{Binding LastPlayedText}" 
+                                 Classes="Caption"
+                                 Foreground="{StaticResource TextSecondaryBrush}" />
+
+                      <!-- Action Buttons -->
+                      <Button Content="🚀 Launch"
+                              Command="{Binding $parent[UserControl].((vm:SmartLauncherViewModel)DataContext).LaunchGameCommand}"
+                              CommandParameter="{Binding}"
+                              Classes="Primary"
+                              HorizontalAlignment="Stretch"
+                              IsEnabled="{Binding $parent[UserControl].((vm:SmartLauncherViewModel)DataContext).IsLaunching, Converter={StaticResource InverseBoolConverter}}" />
+                      
+                      <Button Content="⚙️ Configure"
+                              Command="{Binding $parent[UserControl].((vm:SmartLauncherViewModel)DataContext).ConfigureGameExecutableCommand}"
+                              CommandParameter="{Binding}"
+                              Classes="Ghost"
+                              FontSize="12"
+                              HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Text="No games in your library. Add some games first!" 
+                       Classes="Body"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       HorizontalAlignment="Center"
+                       IsVisible="{Binding Games.Count, Converter={StaticResource CountToInvertedBoolConverter}}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Recent Sessions -->
+        <Border Classes="Card" Padding="15" IsVisible="{Binding RecentSessions.Count, Converter={StaticResource CountToBoolConverter}}">
+          <StackPanel Spacing="10">
+            <TextBlock Text="📊 Recent Sessions" Classes="Header" />
+            
+            <ItemsControl ItemsSource="{Binding RecentSessions}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:LaunchSessionViewModel">
+                  <Border Classes="ListItem" Padding="10" Margin="0,0,0,6">
+                    <Grid ColumnDefinitions="Auto, *, Auto">
+                      <TextBlock Grid.Column="0" 
+                                 Text="{Binding StatusIcon}" 
+                                 FontSize="20"
+                                 Margin="0,0,10,0" />
+                      <StackPanel Grid.Column="1" Spacing="2">
+                        <TextBlock Text="{Binding GameName}" 
+                                   FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding StartedAt, StringFormat='{}{0:MMM dd, HH:mm}'}" 
+                                   Classes="Caption"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="2" 
+                                 Text="{Binding DurationText}" 
+                                 Classes="Body"
+                                 VerticalAlignment="Center" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Sidebar - Profiles & Optimization -->
+    <ScrollViewer Grid.Column="1" Margin="0,10,10,10">
+      <StackPanel Spacing="15">
+        <!-- Profile Selection -->
+        <Border Classes="Card" Padding="15">
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*, Auto">
+              <TextBlock Grid.Column="0" Text="⚙️ Launch Profiles" Classes="Header" />
+              <Button Grid.Column="1" 
+                      Content="+ New"
+                      Command="{Binding CreateProfileCommand}"
+                      Classes="Secondary"
+                      FontSize="12" />
+            </Grid>
+            
+            <ItemsControl ItemsSource="{Binding Profiles}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:LaunchProfileViewModel">
+                  <RadioButton GroupName="Profiles"
+                               IsChecked="{Binding $parent[UserControl].((vm:SmartLauncherViewModel)DataContext).SelectedProfile, Converter={StaticResource ReferenceEqualityConverter}, ConverterParameter={Binding}}"
+                               Classes="CardRadio"
+                               Margin="0,0,0,8">
+                    <Grid ColumnDefinitions="Auto, *, Auto">
+                      <TextBlock Grid.Column="0" 
+                                 Text="{Binding PriorityIcon}" 
+                                 FontSize="16"
+                                 Margin="0,0,8,0"
+                                 VerticalAlignment="Center" />
+                      <StackPanel Grid.Column="1" Spacing="2">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding Description}" 
+                                   Classes="Caption"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Priority}" 
+                                   Classes="Caption"
+                                   Foreground="{StaticResource AccentBrush}" />
+                      </StackPanel>
+                      <StackPanel Grid.Column="2" 
+                                  Spacing="2"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Center">
+                        <Border Background="{StaticResource SuccessBrush}"
+                                CornerRadius="4"
+                                Padding="4,2"
+                                IsVisible="{Binding EstimatedPerformanceGain, Converter={StaticResource NullToBoolConverter}}">
+                          <TextBlock Text="{Binding PerformanceGainText}" 
+                                     Classes="Caption"
+                                     Foreground="White"
+                                     FontWeight="Bold" />
+                        </Border>
+                        <TextBlock Text="★ Default" 
+                                   Classes="Caption"
+                                   Foreground="{StaticResource WarningBrush}"
+                                   IsVisible="{Binding IsDefault}" />
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                          <Button Content="✏️"
+                                  Command="{Binding $parent[UserControl].((vm:SmartLauncherViewModel)DataContext).EditProfileCommand}"
+                                  CommandParameter="{Binding}"
+                                  Classes="Ghost"
+                                  FontSize="12"
+                                  ToolTip.Tip="Edit Profile" />
+                          <Button Content="🗑️"
+                                  Command="{Binding $parent[UserControl].((vm:SmartLauncherViewModel)DataContext).DeleteProfileCommand}"
+                                  CommandParameter="{Binding}"
+                                  Classes="Ghost"
+                                  FontSize="12"
+                                  ToolTip.Tip="Delete Profile" />
+                        </StackPanel>
+                      </StackPanel>
+                    </Grid>
+                  </RadioButton>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Text="No profiles yet. Create one to get started!" 
+                       Classes="Caption"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       HorizontalAlignment="Center"
+                       IsVisible="{Binding Profiles.Count, Converter={StaticResource CountToInvertedBoolConverter}}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Optimization Preview -->
+        <Border Classes="Card" Padding="15">
+          <StackPanel Spacing="12">
+            <TextBlock Text="🔧 Optimizations Preview" Classes="Header" />
+            
+            <ItemsControl ItemsSource="{Binding PreviewOptimizations}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,6">
+                    <TextBlock Text="✓" Foreground="{StaticResource SuccessBrush}" />
+                    <TextBlock Text="{Binding}" Classes="Body" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Text="Select a profile to see optimizations" 
+                       Classes="Caption"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       HorizontalAlignment="Center"
+                       IsVisible="{Binding PreviewOptimizations.Count, Converter={StaticResource CountToInvertedBoolConverter}}" />
+
+            <Button Content="🔄 Refresh Preview"
+                    Command="{Binding PreviewOptimizationsCommand}"
+                    Classes="Ghost"
+                    HorizontalAlignment="Center"
+                    IsVisible="{Binding SelectedProfile, Converter={StaticResource NullToBoolConverter}}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Quick Tips -->
+        <Border Classes="Card" Padding="15">
+          <StackPanel Spacing="8">
+            <TextBlock Text="💡 Tips" Classes="Header" />
+            <TextBlock Text="• Use 'Maximum Performance' for competitive gaming" Classes="Caption" />
+            <TextBlock Text="• 'Balanced' is best for most single-player games" Classes="Caption" />
+            <TextBlock Text="• 'Power Saver' extends battery life on laptops" Classes="Caption" />
+            <TextBlock Text="• Profiles automatically restore system settings after gaming" Classes="Caption" />
+          </StackPanel>
+        </Border>
+
+        <!-- System Info -->
+        <Border Classes="Card" Padding="15">
+          <StackPanel Spacing="8">
+            <TextBlock Text="💻 System Status" Classes="Header" />
+            <TextBlock Text="Smart Launcher optimizes:" Classes="Caption" />
+            <TextBlock Text="• Process priority" Classes="Caption" />
+            <TextBlock Text="• Background processes" Classes="Caption" />
+            <TextBlock Text="• Memory usage" Classes="Caption" />
+            <TextBlock Text="• Power plan" Classes="Caption" />
+            <TextBlock Text="• Windows visual effects" Classes="Caption" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

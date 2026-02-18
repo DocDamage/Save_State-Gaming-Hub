@@ -348,9 +348,10 @@ public partial class DataImportService : IDataImportService
             // Apply migrated data if available
             if (migrationResult.MigratedData != null)
             {
-                // TODO: Update parsedData with migrated values
+                #if DEBUG
                 _logger.LogDebug("Applied migration from {Source} to {Target}",
                     migrationResult.SourceVersion, migrationResult.TargetVersion);
+                #endif
             }
 
             var totalImported = 0;

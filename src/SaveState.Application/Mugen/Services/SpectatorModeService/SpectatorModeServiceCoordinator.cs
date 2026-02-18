@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Application.Mugen.Services.SpectatorModeService.Engines;
 using Microsoft.Extensions.Logging;
 
@@ -12,6 +13,7 @@ namespace SaveState.Application.Mugen.Services.SpectatorModeService;
 public class SpectatorModeService : ISpectatorModeService, SpectatorModeServiceISpectatorModeService
 {
     private readonly ILogger<SpectatorModeService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly ISessionEngine _sessionEngine;
     private readonly ICameraEngine _cameraEngine;
     private readonly IOverlayEngine _overlayEngine;
@@ -20,14 +22,16 @@ public class SpectatorModeService : ISpectatorModeService, SpectatorModeServiceI
 
     public SpectatorModeService(
         ILogger<SpectatorModeService> logger,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
-        _sessionEngine = new SessionEngine(loggerFactory.CreateLogger<SessionEngine>());
-        _cameraEngine = new CameraEngine(loggerFactory.CreateLogger<CameraEngine>());
+        _timeProvider = timeProvider;
+        _sessionEngine = new SessionEngine(loggerFactory.CreateLogger<SessionEngine>(), timeProvider);
+        _cameraEngine = new CameraEngine(loggerFactory.CreateLogger<CameraEngine>(), timeProvider);
         _overlayEngine = new OverlayEngine(loggerFactory.CreateLogger<OverlayEngine>());
-        _chatEngine = new ChatEngine(loggerFactory.CreateLogger<ChatEngine>());
-        _highlightEngine = new HighlightEngine(loggerFactory.CreateLogger<HighlightEngine>());
+        _chatEngine = new ChatEngine(loggerFactory.CreateLogger<ChatEngine>(), timeProvider);
+        _highlightEngine = new HighlightEngine(loggerFactory.CreateLogger<HighlightEngine>(), timeProvider);
     }
 
     public async Task<Result<SpectatorSession>> StartSpectatingAsync(string matchId, CancellationToken ct = default)

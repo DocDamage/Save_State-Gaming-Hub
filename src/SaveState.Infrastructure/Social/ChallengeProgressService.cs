@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.Social.Entities;
 using SaveState.Core.Social.Repositories;
@@ -17,15 +18,18 @@ public class ChallengeProgressService : IChallengeProgressService
     private readonly SaveStateDbContext _context;
     private readonly ICommunityRepository _communityRepository;
     private readonly ILogger<ChallengeProgressService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public ChallengeProgressService(
         SaveStateDbContext context,
         ICommunityRepository communityRepository,
-        ILogger<ChallengeProgressService> logger)
+        ILogger<ChallengeProgressService> logger,
+        ITimeProvider timeProvider)
     {
         _context = context;
         _communityRepository = communityRepository;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result> UpdateProgressOnGameSessionAsync(
@@ -49,13 +53,13 @@ public class ChallengeProgressService : IChallengeProgressService
                     {
                         // Update progress (convert TimeSpan to hours)
                         participant.CurrentProgress += sessionDuration.TotalHours;
-                        participant.LastUpdatedAt = DateTime.UtcNow;
+                        participant.LastUpdatedAt = _timeProvider.UtcNow;
 
                         // Check if challenge is completed
                         if (participant.CurrentProgress >= requirement.TargetValue && !participant.IsCompleted)
                         {
                             participant.IsCompleted = true;
-                            participant.CompletedAt = DateTime.UtcNow;
+                            participant.CompletedAt = _timeProvider.UtcNow;
                             _logger.LogInformation("User {UserId} completed challenge {ChallengeId}", userId, challenge.Id);
                         }
                     }
@@ -93,13 +97,13 @@ public class ChallengeProgressService : IChallengeProgressService
                     {
                         // Increment achievement count
                         participant.CurrentProgress += 1;
-                        participant.LastUpdatedAt = DateTime.UtcNow;
+                        participant.LastUpdatedAt = _timeProvider.UtcNow;
 
                         // Check if challenge is completed
                         if (participant.CurrentProgress >= requirement.TargetValue && !participant.IsCompleted)
                         {
                             participant.IsCompleted = true;
-                            participant.CompletedAt = DateTime.UtcNow;
+                            participant.CompletedAt = _timeProvider.UtcNow;
                             _logger.LogInformation("User {UserId} completed achievement challenge {ChallengeId}", userId, challenge.Id);
                         }
                     }
@@ -146,7 +150,7 @@ public class ChallengeProgressService : IChallengeProgressService
                                 if (numericValue > participant.CurrentProgress)
                                 {
                                     participant.CurrentProgress = numericValue;
-                                    participant.LastUpdatedAt = DateTime.UtcNow;
+                                    participant.LastUpdatedAt = _timeProvider.UtcNow;
                                 }
                             }
                             // For speedrun challenges, take the minimum (faster time)
@@ -155,7 +159,7 @@ public class ChallengeProgressService : IChallengeProgressService
                                 if (participant.CurrentProgress == 0 || numericValue < participant.CurrentProgress)
                                 {
                                     participant.CurrentProgress = numericValue;
-                                    participant.LastUpdatedAt = DateTime.UtcNow;
+                                    participant.LastUpdatedAt = _timeProvider.UtcNow;
                                 }
                             }
 
@@ -163,7 +167,7 @@ public class ChallengeProgressService : IChallengeProgressService
                             if (participant.CurrentProgress >= requirement.TargetValue && !participant.IsCompleted)
                             {
                                 participant.IsCompleted = true;
-                                participant.CompletedAt = DateTime.UtcNow;
+                                participant.CompletedAt = _timeProvider.UtcNow;
                                 _logger.LogInformation("User {UserId} completed stats challenge {ChallengeId}", userId, challenge.Id);
                             }
                         }
@@ -332,14 +336,14 @@ public class ChallengeProgressService : IChallengeProgressService
         if (participant.CurrentProgress >= requirement.TargetValue && !participant.IsCompleted)
         {
             participant.IsCompleted = true;
-            participant.CompletedAt = DateTime.UtcNow;
+            participant.CompletedAt = _timeProvider.UtcNow;
             newlyCompleted = true;
             _logger.LogInformation(
                 "User {UserId} completed challenge {ChallengeId} '{ChallengeName}' during recalculation",
                 userId, challenge.Id, challenge.Name);
         }
 
-        participant.LastUpdatedAt = DateTime.UtcNow;
+        participant.LastUpdatedAt = _timeProvider.UtcNow;
 
         var wasUpdated = Math.Abs(previousProgress - participant.CurrentProgress) > 0.001 || wasCompleted != participant.IsCompleted;
 
@@ -355,7 +359,7 @@ public class ChallengeProgressService : IChallengeProgressService
 
     private async Task<List<Challenge>> GetUserActiveChallengesAsync(Guid userId, CancellationToken cancellationToken)
     {
-        var now = DateTime.UtcNow;
+        var now = _timeProvider.UtcNow;
 
         return await _context.Challenges
             .Include(c => c.Participants)

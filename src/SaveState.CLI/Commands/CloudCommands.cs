@@ -29,7 +29,7 @@ public class CloudCommands : CommandGroupBase
 
         // Cloud sync subcommand
         var syncCommand = new Command("sync", "Synchronize with cloud storage");
-        var forceOption = new Option<bool>("--force", "Force full synchronization");
+        var forceOption = new Option<bool>("--force") { Description = "Force full synchronization" };
         syncCommand.AddOption(forceOption);
         syncCommand.SetHandler((bool force) =>
         {
@@ -39,7 +39,7 @@ public class CloudCommands : CommandGroupBase
 
         // Cloud backup subcommand
         var backupCommand = new Command("backup", "Create a cloud backup");
-        var descriptionOption = new Option<string?>("--description", "Backup description");
+        var descriptionOption = new Option<string?>("--description") { Description = "Backup description" };
         backupCommand.AddOption(descriptionOption);
         backupCommand.SetHandler((string? description) =>
         {
@@ -49,7 +49,7 @@ public class CloudCommands : CommandGroupBase
 
         // Cloud restore subcommand
         var restoreCommand = new Command("restore", "Restore from a cloud backup");
-        var backupIdArgument = new Argument<string>("backupId", "Backup ID to restore");
+        var backupIdArgument = new Argument<string>("backupId") { Description = "Backup ID to restore" };
         restoreCommand.AddArgument(backupIdArgument);
         restoreCommand.SetHandler((string backupId) =>
         {
@@ -67,7 +67,7 @@ public class CloudCommands : CommandGroupBase
 
         // Cloud configure subcommand
         var configureCommand = new Command("configure", "Configure cloud sync provider");
-        var providerArgument = new Argument<string>("provider", "Cloud provider (OneDrive, GoogleDrive, Dropbox, Custom)");
+        var providerArgument = new Argument<string>("provider") { Description = "Cloud provider (OneDrive, GoogleDrive, Dropbox, Custom)" };
         configureCommand.AddArgument(providerArgument);
         configureCommand.SetHandler((string provider) =>
         {
@@ -87,3 +87,4 @@ public class CloudCommands : CommandGroupBase
         rootCommand.AddCommandChecked(cloudCommand);
     }
 }
+

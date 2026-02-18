@@ -10,6 +10,7 @@ using SaveState.Core.RomManagement.Entities;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.ValueObjects;
+using SaveState.Core.Common.Services;
 
 public class LiveSyncServiceTests : IDisposable
 {
@@ -29,7 +30,8 @@ public class LiveSyncServiceTests : IDisposable
             _mockPlatformRepository.Object,
             _mockExtensionRegistry.Object,
             _mockLogger.Object,
-            _mockMetrics.Object);
+            _mockMetrics.Object,
+            new SystemTimeProvider());
     }
 
     public void Dispose()

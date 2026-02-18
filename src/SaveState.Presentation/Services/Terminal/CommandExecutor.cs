@@ -59,7 +59,7 @@ public class CommandExecutor : ICommandExecutor
             var args = ParseArguments(command);
 
             // Execute the command
-            await rootCommand.InvokeAsync(args.ToArray()).ConfigureAwait(false);
+            await rootCommand.Parse(args.ToArray()).InvokeAsync().ConfigureAwait(false);
 
             // Return captured output
             return writer.ToString();

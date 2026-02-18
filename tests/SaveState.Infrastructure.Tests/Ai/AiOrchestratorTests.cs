@@ -6,6 +6,7 @@ using Moq;
 using SaveState.Core.Ai.Context;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Configuration;
 using SaveState.Core.Monitoring;
 using SaveState.Infrastructure.Ai;
@@ -46,7 +47,7 @@ public class AiOrchestratorInfrastructureTest
             var kbService = new Mock<IKnowledgeBaseService>().Object;
             var memory = new Mock<IShortTermMemory>().Object;
             var search = new Mock<IWebSearchService>().Object;
-            var orchestrator = new AiOrchestrator(providers, cacheService, options, logger, metrics, cacheMonitor, contextService, null!, memory, search, kbService);
+            var orchestrator = new AiOrchestrator(providers, cacheService, options, logger, metrics, cacheMonitor, contextService, null!, memory, search, kbService, new SystemTimeProvider());
         });
 
         exception.Should().BeNull();
@@ -99,7 +100,8 @@ public class AiOrchestratorTests
             null!, // SemanticKnowledgeClient
             _memoryMock.Object,
             _searchServiceMock.Object,
-            _kbServiceMock.Object);
+            _kbServiceMock.Object,
+            new SystemTimeProvider());
     }
 
     [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
@@ -126,7 +128,8 @@ public class AiOrchestratorTests
             null!, // SemanticKnowledgeClient
             _memoryMock.Object,
             _searchServiceMock.Object,
-            _kbServiceMock.Object);
+            _kbServiceMock.Object,
+            new SystemTimeProvider());
 
         // Act
         var result = await orchestrator.ProcessRequestAsync(request);
@@ -166,7 +169,8 @@ public class AiOrchestratorTests
             null!, // SemanticKnowledgeClient
             _memoryMock.Object,
             _searchServiceMock.Object,
-            _kbServiceMock.Object);
+            _kbServiceMock.Object,
+            new SystemTimeProvider());
 
         var request = new AiRequest(AiRequestType.Completion, Prompt: "Test prompt", AllowCache: false);
 

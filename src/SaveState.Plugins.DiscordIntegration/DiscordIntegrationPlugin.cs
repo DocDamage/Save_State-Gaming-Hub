@@ -154,9 +154,9 @@ public class DiscordIntegrationPlugin : IPlugin
         // Rich Presence commands
         var presenceCommand = new Command("presence", "Rich Presence management");
         var presenceSetCommand = new Command("set", "Set custom rich presence");
-        var gameTitleArgument = new Argument<string>("game-title", "Game title to display");
-        var detailsOption = new Option<string?>("--details", "Additional details");
-        var stateOption = new Option<string?>("--state", "Current game state");
+        var gameTitleArgument = new Argument<string>("game-title") { Description = "Game title to display" };
+        var detailsOption = new Option<string?>("--details") { Description = "Additional details" };
+        var stateOption = new Option<string?>("--state") { Description = "Current game state" };
 
         presenceSetCommand.AddArgument(gameTitleArgument);
         presenceSetCommand.AddOption(detailsOption);
@@ -178,7 +178,7 @@ public class DiscordIntegrationPlugin : IPlugin
         // Matchmaking commands
         var matchmakingCommand = new Command("matchmaking", "Game matchmaking through Discord");
         var matchmakingStartCommand = new Command("start", "Start looking for game matches");
-        var gameTypeArgument = new Argument<string>("game-type", "Type of game to matchmake for");
+        var gameTypeArgument = new Argument<string>("game-type") { Description = "Type of game to matchmake for" };
 
         matchmakingStartCommand.AddArgument(gameTypeArgument);
         matchmakingStartCommand.SetHandler(async (InvocationContext context) =>
@@ -200,7 +200,7 @@ public class DiscordIntegrationPlugin : IPlugin
         // Activity sharing
         var shareCommand = new Command("share", "Share activities and achievements");
         var shareAchievementCommand = new Command("achievement", "Share an achievement");
-        var achievementIdArgument = new Argument<string>("achievement-id", "Achievement to share");
+        var achievementIdArgument = new Argument<string>("achievement-id") { Description = "Achievement to share" };
 
         shareAchievementCommand.AddArgument(achievementIdArgument);
         shareAchievementCommand.SetHandler(async (InvocationContext context) =>
@@ -218,7 +218,7 @@ public class DiscordIntegrationPlugin : IPlugin
         // Voice channel commands
         var voiceCommand = new Command("voice", "Voice channel management");
         var voiceCreateCommand = new Command("create", "Create a gaming voice channel");
-        var channelNameArgument = new Argument<string>("name", "Channel name");
+        var channelNameArgument = new Argument<string>("name") { Description = "Channel name" };
 
         voiceCreateCommand.AddArgument(channelNameArgument);
         voiceCreateCommand.SetHandler(async (InvocationContext context) =>
@@ -228,7 +228,7 @@ public class DiscordIntegrationPlugin : IPlugin
         });
 
         var voiceInviteCommand = new Command("invite", "Invite friends to voice channel");
-        var friendsOption = new Option<string[]>("--friends", "Friend IDs to invite") { AllowMultipleArgumentsPerToken = true };
+        var friendsOption = new Option<string[]>("--friends") { Description = "Friend IDs to invite",  AllowMultipleArgumentsPerToken = true };
         voiceInviteCommand.AddOption(friendsOption);
         voiceInviteCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -752,3 +752,4 @@ public class DiscordIntegrationOptions
     public bool EnableVoiceChannels { get; set; } = true;
     public bool EnableActivitySharing { get; set; } = true;
 }
+

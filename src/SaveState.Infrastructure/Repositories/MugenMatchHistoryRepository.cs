@@ -5,6 +5,7 @@ using SaveState.Core.Common;
 using SaveState.Core.Mugen;
 using SaveState.Core.Mugen.Entities;
 using SaveState.Core.Monitoring;
+using SaveState.Core.Common.Services;
 using SaveState.Infrastructure.Persistence;
 
 /// <summary>
@@ -14,23 +15,25 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
 {
     private readonly SaveStateDbContext _context;
     private readonly IApplicationMetrics _metrics;
+    private readonly ITimeProvider _timeProvider;
 
-    public MugenMatchHistoryRepository(SaveStateDbContext context, IApplicationMetrics metrics)
+    public MugenMatchHistoryRepository(SaveStateDbContext context, IApplicationMetrics metrics, ITimeProvider timeProvider)
     {
         _context = context;
         _metrics = metrics;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<MugenMatchHistory>> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             var matchHistory = await _context.MugenMatchHistories
                 .FirstOrDefaultAsync(m => m.Id == id, ct)
                 .ConfigureAwait(false);
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.GetByIdAsync", duration);
 
             if (matchHistory == null)
@@ -42,7 +45,7 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.GetByIdAsync", duration);
             _metrics.RecordDatabaseError("MugenMatchHistoryRepository.GetByIdAsync", ex.GetType().Name);
             throw;
@@ -51,7 +54,7 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
 
     public async Task<IReadOnlyList<MugenMatchHistory>> GetAllAsync(CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             var matchHistories = await _context.MugenMatchHistories
@@ -59,14 +62,14 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
                 .ToListAsync(ct)
                 .ConfigureAwait(false);
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.GetAllAsync", duration);
 
             return matchHistories.AsReadOnly();
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.GetAllAsync", duration);
             _metrics.RecordDatabaseError("MugenMatchHistoryRepository.GetAllAsync", ex.GetType().Name);
             throw;
@@ -80,7 +83,7 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
         GameMode? gameMode = null,
         CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             var query = _context.MugenMatchHistories.AsQueryable();
@@ -108,7 +111,7 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
                 .ToListAsync(ct)
                 .ConfigureAwait(false);
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.GetMatchHistoriesAsync", duration);
 
             return new PagedResult<MugenMatchHistory>(
@@ -119,7 +122,7 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.GetMatchHistoriesAsync", duration);
             _metrics.RecordDatabaseError("MugenMatchHistoryRepository.GetMatchHistoriesAsync", ex.GetType().Name);
             throw;
@@ -128,7 +131,7 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
 
     public async Task<IReadOnlyList<MugenMatchHistory>> GetByCharacterAsync(Guid characterId, int limit = 100, CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             var matchHistories = await _context.MugenMatchHistories
@@ -139,14 +142,14 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
                 .ToListAsync(ct)
                 .ConfigureAwait(false);
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.GetByCharacterAsync", duration);
 
             return matchHistories.AsReadOnly();
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.GetByCharacterAsync", duration);
             _metrics.RecordDatabaseError("MugenMatchHistoryRepository.GetByCharacterAsync", ex.GetType().Name);
             throw;
@@ -155,7 +158,7 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
 
     public async Task<Result<MugenMatchupStats>> GetMatchupStatsAsync(Guid character1Id, Guid character2Id, CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             // Ensure consistent ordering (smaller ID first)
@@ -179,14 +182,14 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
                 await _context.SaveChangesAsync(ct).ConfigureAwait(false);
             }
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.GetMatchupStatsAsync", duration);
 
             return Result.Success<MugenMatchupStats>(matchupStats);
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.GetMatchupStatsAsync", duration);
             _metrics.RecordDatabaseError("MugenMatchHistoryRepository.GetMatchupStatsAsync", ex.GetType().Name);
             return Result.Failure<MugenMatchupStats>($"Failed to get matchup stats: {ex.Message}", ErrorType.Internal);
@@ -195,7 +198,7 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
 
     public async Task<Result<MugenMatchHistory>> RecordMatchAsync(MugenMatchHistory match, CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             await _context.MugenMatchHistories.AddAsync(match, ct).ConfigureAwait(false);
@@ -214,14 +217,14 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
 
             await _context.SaveChangesAsync(ct).ConfigureAwait(false);
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.RecordMatchAsync", duration);
 
             return Result.Success<MugenMatchHistory>(match);
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.RecordMatchAsync", duration);
             _metrics.RecordDatabaseError("MugenMatchHistoryRepository.RecordMatchAsync", ex.GetType().Name);
             return Result.Failure<MugenMatchHistory>($"Failed to record match: {ex.Message}", ErrorType.Internal);
@@ -230,7 +233,7 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
 
     public async Task<int> CountAsync(Guid? characterId = null, GameMode? gameMode = null, CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             var query = _context.MugenMatchHistories.AsQueryable();
@@ -247,14 +250,14 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
 
             var count = await query.CountAsync(ct).ConfigureAwait(false);
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.CountAsync", duration);
 
             return count;
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.CountAsync", duration);
             _metrics.RecordDatabaseError("MugenMatchHistoryRepository.CountAsync", ex.GetType().Name);
             throw;
@@ -263,18 +266,18 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
 
     public async Task AddAsync(MugenMatchHistory matchHistory, CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             await _context.MugenMatchHistories.AddAsync(matchHistory, ct).ConfigureAwait(false);
             await _context.SaveChangesAsync(ct).ConfigureAwait(false);
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.AddAsync", duration);
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.AddAsync", duration);
             _metrics.RecordDatabaseError("MugenMatchHistoryRepository.AddAsync", ex.GetType().Name);
             throw;
@@ -283,18 +286,18 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
 
     public async Task UpdateAsync(MugenMatchHistory matchHistory, CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             _context.MugenMatchHistories.Update(matchHistory);
             await _context.SaveChangesAsync(ct).ConfigureAwait(false);
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.UpdateAsync", duration);
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.UpdateAsync", duration);
             _metrics.RecordDatabaseError("MugenMatchHistoryRepository.UpdateAsync", ex.GetType().Name);
             throw;
@@ -303,22 +306,23 @@ public class MugenMatchHistoryRepository : IMugenMatchHistoryRepository
 
     public async Task DeleteAsync(MugenMatchHistory matchHistory, CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             _context.MugenMatchHistories.Remove(matchHistory);
             await _context.SaveChangesAsync(ct).ConfigureAwait(false);
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.DeleteAsync", duration);
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenMatchHistoryRepository.DeleteAsync", duration);
             _metrics.RecordDatabaseError("MugenMatchHistoryRepository.DeleteAsync", ex.GetType().Name);
             throw;
         }
     }
 }
+
 

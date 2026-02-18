@@ -8,6 +8,7 @@
 using SaveState.Application.Mugen.Models.LiveSync;
 using SaveState.Application.Mugen.Services.LiveSync;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Mugen.Services.LiveSync.Engines;
 
@@ -26,8 +27,9 @@ public class CrossPlatformSyncService : LiveSyncService
     public CrossPlatformSyncService(
         ILogger<LiveSyncService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
-        : base(logger, loggerFactory, cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
+        : base(logger, loggerFactory, cache, timeProvider)
     {
     }
 }
@@ -236,7 +238,7 @@ public class CrossPlatformSyncServiceBackupData : AccountBackup
 [Obsolete("Use SyncEngine from SaveState.Application.Mugen.Services.LiveSync.Engines instead")]
 public class CrossPlatformSyncServiceSyncEngine : SyncEngine
 {
-    public CrossPlatformSyncServiceSyncEngine(ILogger<SyncEngine> logger) : base(logger)
+    public CrossPlatformSyncServiceSyncEngine(ILogger<SyncEngine> logger, ITimeProvider timeProvider) : base(logger, timeProvider)
     {
     }
 }

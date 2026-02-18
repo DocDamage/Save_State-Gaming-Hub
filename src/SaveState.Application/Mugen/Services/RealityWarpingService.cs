@@ -15,6 +15,7 @@ public class RealityWarpingService : IRealityWarpingService
 {
     private readonly ILogger<RealityWarpingService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     
     private readonly Dictionary<string, GravityWell> _gravityWells = new();
     private readonly Dictionary<string, TimeDilationZone> _timeZones = new();
@@ -30,14 +31,16 @@ public class RealityWarpingService : IRealityWarpingService
     public RealityWarpingService(
         ILogger<RealityWarpingService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
+        _timeProvider = timeProvider;
         
-        _realityEngine = new RealityEngine(loggerFactory.CreateLogger<RealityEngine>());
+        _realityEngine = new RealityEngine(loggerFactory.CreateLogger<RealityEngine>(), _timeProvider);
         _physicsEngine = new PhysicsEngine(loggerFactory.CreateLogger<PhysicsEngine>());
-        _temporalEngine = new TemporalEngine(loggerFactory.CreateLogger<TemporalEngine>());
+        _temporalEngine = new TemporalEngine(loggerFactory.CreateLogger<TemporalEngine>(), _timeProvider);
         _environmentalEngine = new EnvironmentalEngine(loggerFactory.CreateLogger<EnvironmentalEngine>());
         _distortionEngine = new DistortionEngine(loggerFactory.CreateLogger<DistortionEngine>());
 
@@ -63,7 +66,7 @@ public class RealityWarpingService : IRealityWarpingService
                 Duration = request.Duration,
                 WellType = request.WellType,
                 AffectedEntities = new List<string>(),
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 Active = true,
                 GravitationalPull = _physicsEngine.CalculateGravitationalPull(request.Strength, request.Radius),
                 OrbitalMechanics = request.WellType == WellType.Orbital
@@ -99,7 +102,7 @@ public class RealityWarpingService : IRealityWarpingService
                 Duration = request.Duration,
                 ZoneType = request.ZoneType,
                 AffectedEntities = new List<string>(),
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 Active = true,
                 TemporalDistortion = _temporalEngine.CalculateTemporalDistortion(request.TimeScale),
                 CausalityEffects = request.TimeScale < 1.0f
@@ -137,7 +140,7 @@ public class RealityWarpingService : IRealityWarpingService
                 RiftType = request.RiftType,
                 Size = request.Size,
                 Duration = request.Duration,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 Active = true,
                 Stability = _environmentalEngine.CalculateRiftStability(request.Size, request.Duration),
                 EnergySignature = _distortionEngine.GenerateEnergySignature(request.RiftType)
@@ -169,7 +172,7 @@ public class RealityWarpingService : IRealityWarpingService
                 PhasingType = request.PhasingType,
                 Duration = request.Duration,
                 Intangible = request.PhasingType == PhasingType.Intangible,
-                AppliedAt = DateTime.UtcNow
+                AppliedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Matter phasing applied: {PhasingType} for {Duration}", 
@@ -203,7 +206,7 @@ public class RealityWarpingService : IRealityWarpingService
                 AffectedArea = request.AffectedArea,
                 Intensity = request.Intensity,
                 Duration = request.Duration,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 Active = true,
                 RealityDistortion = distortion,
                 StabilityIndex = stability
@@ -311,7 +314,7 @@ public class RealityWarpingService : IRealityWarpingService
                 DimensionalIntegrity = _physicsEngine.CalculateDimensionalIntegrity(
                     _dimensionalRifts.Count, _dimensionalRifts.Values.Count(r => r.Stability < 0.7f)),
                 CausalityViolationCount = await _temporalEngine.CountCausalityViolationsAsync(period, ct),
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Reality warping analytics generated successfully");

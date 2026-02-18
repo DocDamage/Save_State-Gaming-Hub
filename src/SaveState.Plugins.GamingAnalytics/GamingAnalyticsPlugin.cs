@@ -24,11 +24,11 @@ public class GamingAnalyticsPlugin : IPlugin
     private readonly List<PerformanceSession> _sessions = new();
     private readonly Dictionary<string, GamingPattern> _patterns = new();
 
-    public string Id => "savestate.gaming.analytics";
-    public string Name => "Advanced Gaming Analytics";
-    public string Version => "1.0.0";
-    public string Author => "SaveState Team";
-    public string? Description => "Deep performance analytics, pattern recognition, and gaming insights";
+    public string Id => GamingAnalyticsStrings.PluginId;
+    public string Name => GamingAnalyticsStrings.PluginName;
+    public string Version => GamingAnalyticsStrings.PluginVersion;
+    public string Author => GamingAnalyticsStrings.PluginAuthor;
+    public string? Description => GamingAnalyticsStrings.PluginDescription;
     public PluginCapabilities Capabilities => PluginCapabilities.PerformanceMonitor | PluginCapabilities.UIExtension;
 
     public GamingAnalyticsPlugin()
@@ -41,14 +41,14 @@ public class GamingAnalyticsPlugin : IPlugin
         _context = context;
         _logger = context.Logger;
 
-        _logger.LogInformation("Initializing Advanced Gaming Analytics plugin");
+        _logger.LogInformation(GamingAnalyticsStrings.LogInitializing);
 
         // Get existing performance monitor
         _performanceMonitor = context.Services.GetService(typeof(IPerformanceMonitor)) as IPerformanceMonitor;
 
         if (_performanceMonitor == null)
         {
-            _logger.LogWarning("IPerformanceMonitor not available - performance features will be limited");
+            _logger.LogWarning(GamingAnalyticsStrings.LogMonitorNotAvailable);
         }
 
         // Register menu items
@@ -63,12 +63,12 @@ public class GamingAnalyticsPlugin : IPlugin
         // Initialize pattern recognition
         InitializePatterns();
 
-        _logger.LogInformation("Advanced Gaming Analytics plugin initialized");
+        _logger.LogInformation(GamingAnalyticsStrings.LogInitialized);
     }
 
     public async Task ShutdownAsync(CancellationToken ct = default)
     {
-        _logger?.LogInformation("Shutting down Advanced Gaming Analytics plugin");
+        _logger?.LogInformation(GamingAnalyticsStrings.LogShuttingDown);
 
         // Save analytics data
         await SaveAnalyticsDataAsync();
@@ -78,41 +78,41 @@ public class GamingAnalyticsPlugin : IPlugin
     {
         // Analytics dashboard
         var dashboardItem = new PluginMenuItem(
-            Id: "analytics.dashboard",
-            Label: "Analytics Dashboard",
-            Icon: "📊",
+            Id: GamingAnalyticsStrings.MenuDashboardId,
+            Label: GamingAnalyticsStrings.MenuDashboardLabel,
+            Icon: GamingAnalyticsStrings.MenuDashboardIcon,
             SortOrder: 500,
             Action: () => ShowAnalyticsDashboardAsync());
 
         // Performance analysis
         var performanceAnalysisItem = new PluginMenuItem(
-            Id: "analytics.performance",
-            Label: "Performance Analysis",
-            Icon: "⚡",
+            Id: GamingAnalyticsStrings.MenuPerformanceId,
+            Label: GamingAnalyticsStrings.MenuPerformanceLabel,
+            Icon: GamingAnalyticsStrings.MenuPerformanceIcon,
             SortOrder: 501,
             Action: () => ShowPerformanceAnalysisAsync());
 
         // Pattern recognition
         var patternsItem = new PluginMenuItem(
-            Id: "analytics.patterns",
-            Label: "Gaming Patterns",
-            Icon: "🔍",
+            Id: GamingAnalyticsStrings.MenuPatternsId,
+            Label: GamingAnalyticsStrings.MenuPatternsLabel,
+            Icon: GamingAnalyticsStrings.MenuPatternsIcon,
             SortOrder: 502,
             Action: () => ShowPatternsAnalysisAsync());
 
         // Recommendations
         var recommendationsItem = new PluginMenuItem(
-            Id: "analytics.recommendations",
-            Label: "Gaming Recommendations",
-            Icon: "💡",
+            Id: GamingAnalyticsStrings.MenuRecommendationsId,
+            Label: GamingAnalyticsStrings.MenuRecommendationsLabel,
+            Icon: GamingAnalyticsStrings.MenuRecommendationsIcon,
             SortOrder: 503,
             Action: () => ShowRecommendationsAsync());
 
         // Hardware insights
         var hardwareItem = new PluginMenuItem(
-            Id: "analytics.hardware",
-            Label: "Hardware Insights",
-            Icon: "🖥️",
+            Id: GamingAnalyticsStrings.MenuHardwareId,
+            Label: GamingAnalyticsStrings.MenuHardwareLabel,
+            Icon: GamingAnalyticsStrings.MenuHardwareIcon,
             SortOrder: 504,
             Action: () => ShowHardwareInsightsAsync());
 
@@ -126,18 +126,18 @@ public class GamingAnalyticsPlugin : IPlugin
     private async Task RegisterCliCommandsAsync(IPluginContext context)
     {
         // Main analytics command
-        var analyticsCommand = new Command("analytics", "Advanced gaming analytics and insights");
+        var analyticsCommand = new Command("analytics", GamingAnalyticsStrings.CliAnalyticsDescription);
 
         // Dashboard command
-        var dashboardCommand = new Command("dashboard", "Show analytics dashboard");
+        var dashboardCommand = new Command("dashboard", GamingAnalyticsStrings.CliDashboardDescription);
         dashboardCommand.SetHandler(async (InvocationContext context) => await HandleDashboardAsync());
 
         // Performance analysis
-        var performanceCommand = new Command("performance", "Performance analysis commands");
+        var performanceCommand = new Command("performance", GamingAnalyticsStrings.CliPerformanceDescription);
 
-        var analyzeCommand = new Command("analyze", "Analyze performance for a game");
-        var gameIdArgument = new Argument<string>("game-id", "Game ID to analyze");
-        var sessionCountOption = new Option<int>("--sessions", () => 5, "Number of recent sessions to analyze");
+        var analyzeCommand = new Command("analyze", GamingAnalyticsStrings.CliAnalyzeDescription);
+        var gameIdArgument = new Argument<string>("game-id") { Description = GamingAnalyticsStrings.CliAnalyzeGameIdDescription };
+        var sessionCountOption = new Option<int>("--sessions") { DefaultValueFactory = _ => GamingAnalyticsStrings.DefaultSessionCount, Description = GamingAnalyticsStrings.CliAnalyzeSessionsDescription };
 
         analyzeCommand.AddArgument(gameIdArgument);
         analyzeCommand.AddOption(sessionCountOption);
@@ -148,9 +148,9 @@ public class GamingAnalyticsPlugin : IPlugin
             await HandlePerformanceAnalyzeAsync(gameId, sessionCount);
         });
 
-        var compareCommand = new Command("compare", "Compare performance between sessions");
-        var session1Argument = new Argument<string>("session1", "First session ID");
-        var session2Argument = new Argument<string>("session2", "Second session ID");
+        var compareCommand = new Command("compare", GamingAnalyticsStrings.CliCompareDescription);
+        var session1Argument = new Argument<string>("session1") { Description = GamingAnalyticsStrings.CliCompareSession1Description };
+        var session2Argument = new Argument<string>("session2") { Description = GamingAnalyticsStrings.CliCompareSession2Description };
 
         compareCommand.AddArgument(session1Argument);
         compareCommand.AddArgument(session2Argument);
@@ -165,13 +165,13 @@ public class GamingAnalyticsPlugin : IPlugin
         performanceCommand.AddCommand(compareCommand);
 
         // Pattern analysis
-        var patternsCommand = new Command("patterns", "Gaming pattern recognition");
+        var patternsCommand = new Command("patterns", GamingAnalyticsStrings.CliPatternsDescription);
 
-        var detectCommand = new Command("detect", "Detect patterns in gaming data");
+        var detectCommand = new Command("detect", GamingAnalyticsStrings.CliDetectDescription);
         detectCommand.SetHandler(async (InvocationContext context) => await HandlePatternsDetectAsync());
 
-        var showCommand = new Command("show", "Show detected patterns");
-        var patternTypeOption = new Option<string>("--type", "Pattern type to show (all, performance, behavior, hardware)");
+        var showCommand = new Command("show", GamingAnalyticsStrings.CliShowDescription);
+        var patternTypeOption = new Option<string>("--type") { Description = GamingAnalyticsStrings.CliShowTypeDescription };
         showCommand.AddOption(patternTypeOption);
         showCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -183,8 +183,8 @@ public class GamingAnalyticsPlugin : IPlugin
         patternsCommand.AddCommand(showCommand);
 
         // Recommendations
-        var recommendationsCommand = new Command("recommendations", "Get gaming recommendations");
-        var categoryOption = new Option<string>("--category", () => "all", "Category (performance, hardware, settings)");
+        var recommendationsCommand = new Command("recommendations", GamingAnalyticsStrings.CliRecommendationsDescription);
+        var categoryOption = new Option<string>("--category") { DefaultValueFactory = _ => GamingAnalyticsStrings.ValueDefaultCategory, Description = GamingAnalyticsStrings.CliCategoryDescription };
         recommendationsCommand.AddOption(categoryOption);
         recommendationsCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -193,19 +193,19 @@ public class GamingAnalyticsPlugin : IPlugin
         });
 
         // Hardware insights
-        var hardwareCommand = new Command("hardware", "Hardware utilization insights");
-        var hardwareAnalyzeCommand = new Command("analyze", "Analyze hardware utilization");
+        var hardwareCommand = new Command("hardware", GamingAnalyticsStrings.CliHardwareDescription);
+        var hardwareAnalyzeCommand = new Command("analyze", GamingAnalyticsStrings.CliHardwareAnalyzeDescription);
         hardwareAnalyzeCommand.SetHandler(async (InvocationContext context) => await HandleHardwareAnalyzeAsync());
 
-        var hardwareOptimizeCommand = new Command("optimize", "Get hardware optimization suggestions");
+        var hardwareOptimizeCommand = new Command("optimize", GamingAnalyticsStrings.CliHardwareOptimizeDescription);
         hardwareOptimizeCommand.SetHandler(async (InvocationContext context) => await HandleHardwareOptimizeAsync());
 
         hardwareCommand.AddCommand(hardwareAnalyzeCommand);
         hardwareCommand.AddCommand(hardwareOptimizeCommand);
 
         // Trends
-        var trendsCommand = new Command("trends", "Gaming trend analysis");
-        var periodOption = new Option<string>("--period", () => "30d", "Time period (7d, 30d, 90d, 1y)");
+        var trendsCommand = new Command("trends", GamingAnalyticsStrings.CliTrendsDescription);
+        var periodOption = new Option<string>("--period") { DefaultValueFactory = _ => GamingAnalyticsStrings.ValueDefaultPeriod, Description = GamingAnalyticsStrings.CliPeriodDescription };
         trendsCommand.AddOption(periodOption);
         trendsCommand.SetHandler(async (InvocationContext context) =>
         {
@@ -221,52 +221,52 @@ public class GamingAnalyticsPlugin : IPlugin
         analyticsCommand.AddCommand(hardwareCommand);
         analyticsCommand.AddCommand(trendsCommand);
 
-        _logger?.LogInformation("Gaming Analytics CLI commands registered");
+        _logger?.LogInformation(GamingAnalyticsStrings.LogCliCommandsRegistered);
     }
 
     private void InitializePatterns()
     {
         // Initialize common gaming patterns for recognition
-        _patterns["performance_dip"] = new GamingPattern
+        _patterns[GamingAnalyticsStrings.PatternPerformanceDipId] = new GamingPattern
         {
-            Name = "Performance Dip",
-            Description = "Sudden drop in FPS during gameplay",
+            Name = GamingAnalyticsStrings.PatternPerformanceDipName,
+            Description = GamingAnalyticsStrings.PatternPerformanceDipDescription,
             Type = PatternType.Performance,
-            Threshold = 0.15f, // 15% drop
+            Threshold = GamingAnalyticsStrings.ThresholdPerformanceDip,
             Duration = TimeSpan.FromSeconds(5)
         };
 
-        _patterns["memory_leak"] = new GamingPattern
+        _patterns[GamingAnalyticsStrings.PatternMemoryLeakId] = new GamingPattern
         {
-            Name = "Memory Leak",
-            Description = "Gradual increase in RAM usage over time",
+            Name = GamingAnalyticsStrings.PatternMemoryLeakName,
+            Description = GamingAnalyticsStrings.PatternMemoryLeakDescription,
             Type = PatternType.Performance,
-            Threshold = 100f, // 100MB increase
+            Threshold = GamingAnalyticsStrings.ThresholdMemoryLeak,
             Duration = TimeSpan.FromMinutes(30)
         };
 
-        _patterns["cpu_bottleneck"] = new GamingPattern
+        _patterns[GamingAnalyticsStrings.PatternCpuBottleneckId] = new GamingPattern
         {
-            Name = "CPU Bottleneck",
-            Description = "CPU usage consistently high while GPU is underutilized",
+            Name = GamingAnalyticsStrings.PatternCpuBottleneckName,
+            Description = GamingAnalyticsStrings.PatternCpuBottleneckDescription,
             Type = PatternType.Hardware,
-            Threshold = 80f, // 80% CPU usage
+            Threshold = GamingAnalyticsStrings.ThresholdCpuBottleneck,
             Duration = TimeSpan.FromMinutes(10)
         };
 
-        _patterns["gaming_session"] = new GamingPattern
+        _patterns[GamingAnalyticsStrings.PatternGamingSessionId] = new GamingPattern
         {
-            Name = "Gaming Session",
-            Description = "Active gaming session with stable performance",
+            Name = GamingAnalyticsStrings.PatternGamingSessionName,
+            Description = GamingAnalyticsStrings.PatternGamingSessionDescription,
             Type = PatternType.Behavior,
-            Threshold = 30f, // 30 FPS minimum
+            Threshold = GamingAnalyticsStrings.ThresholdGamingSession,
             Duration = TimeSpan.FromMinutes(15)
         };
     }
 
     private async Task ShowAnalyticsDashboardAsync()
     {
-        _logger?.LogInformation("📊 === Gaming Analytics Dashboard ===");
+        _logger?.LogInformation(GamingAnalyticsStrings.LogDashboardShown);
 
         // Show overview statistics
         var totalSessions = _sessions.Count;
@@ -274,27 +274,27 @@ public class GamingAnalyticsPlugin : IPlugin
         var avgFps = _sessions.Where(s => s.AverageFps > 0).Average(s => s.AverageFps);
         var patternsDetected = _patterns.Count;
 
-        _logger?.LogInformation($"Total Sessions: {totalSessions}");
-        _logger?.LogInformation($"Total Play Time: {totalPlayTime.TotalHours:F1} hours");
-        _logger?.LogInformation($"Average FPS: {avgFps:F1}");
-        _logger?.LogInformation($"Patterns Detected: {patternsDetected}");
+        _logger?.LogInformation(string.Format(GamingAnalyticsStrings.LogTotalSessions, totalSessions));
+        _logger?.LogInformation(string.Format(GamingAnalyticsStrings.LogTotalPlayTime, totalPlayTime.TotalHours));
+        _logger?.LogInformation(string.Format(GamingAnalyticsStrings.LogAverageFps, avgFps));
+        _logger?.LogInformation(string.Format(GamingAnalyticsStrings.LogPatternsDetected, patternsDetected));
 
         // Show recent insights
-        _logger?.LogInformation("🔍 Recent Insights:");
-        _logger?.LogInformation("- Performance trending: Stable");
-        _logger?.LogInformation("- Most played game: Analysis needed");
-        _logger?.LogInformation("- Hardware utilization: Optimal");
+        _logger?.LogInformation(GamingAnalyticsStrings.LogRecentInsights);
+        _logger?.LogInformation(GamingAnalyticsStrings.LogPerformanceTrending);
+        _logger?.LogInformation(GamingAnalyticsStrings.LogMostPlayedGame);
+        _logger?.LogInformation(GamingAnalyticsStrings.LogHardwareUtilization);
 
-        _logger?.LogInformation("💡 Recommendations:");
-        _logger?.LogInformation("- Consider updating graphics drivers");
-        _logger?.LogInformation("- Enable V-Sync for smoother gameplay");
+        _logger?.LogInformation(GamingAnalyticsStrings.LogRecommendations);
+        _logger?.LogInformation(GamingAnalyticsStrings.LogUpdateDrivers);
+        _logger?.LogInformation(GamingAnalyticsStrings.LogEnableVSync);
     }
 
     private async Task ShowPerformanceAnalysisAsync()
     {
         if (_performanceMonitor == null)
         {
-            _logger?.LogError("Performance monitor not available");
+            _logger?.LogError(GamingAnalyticsStrings.LogPerformanceMonitorNotAvailable);
             return;
         }
 
@@ -767,3 +767,4 @@ public class AnalyticsData
     public List<PerformanceSession> Sessions { get; set; } = new();
     public DateTime LastUpdated { get; set; }
 }
+

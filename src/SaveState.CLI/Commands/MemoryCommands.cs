@@ -23,7 +23,7 @@ public class MemoryCommands : CommandGroupBase
 
         // Attach to process
         var attachCommand = new Command("attach", "Attach to a game process for memory reading");
-        var processIdArg = new Argument<int>("processId", "Process ID to attach to");
+        var processIdArg = new Argument<int>("processId") { Description = "Process ID to attach to" };
         attachCommand.AddArgument(processIdArg);
         attachCommand.SetHandler(async (int processId) =>
         {
@@ -228,3 +228,4 @@ public class MemoryCommands : CommandGroupBase
         rootCommand.AddCommandChecked(memoryCommand);
     }
 }
+

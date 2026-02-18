@@ -24,9 +24,9 @@ public class SaveStateCommands : CommandGroupBase
 
         // Save States list subcommand
         var saveStatesListCommand = new Command("list", "List save states for a game");
-        var saveStatesGameIdArgument = new Argument<string>("gameId", "Game ID (GUID)");
+        var saveStatesGameIdArgument = new Argument<string>("gameId") { Description = "Game ID (GUID)" };
         saveStatesListCommand.AddArgument(saveStatesGameIdArgument);
-        saveStatesListCommand.SetHandler(async (gameIdStr) =>
+        saveStatesListCommand.SetHandler(async (string gameIdStr) =>
         {
             if (!Guid.TryParse(gameIdStr, out var gameId))
             {
@@ -73,9 +73,9 @@ public class SaveStateCommands : CommandGroupBase
 
         // Save States create subcommand
         var saveStatesCreateCommand = new Command("create", "Create a new save state");
-        var createSsGameIdArgument = new Argument<string>("gameId", "Game ID (GUID)");
-        var createSsDescriptionOption = new Option<string?>("--description", "Save state description");
-        var createSsScreenshotOption = new Option<bool>("--screenshot", () => true, "Capture screenshot");
+        var createSsGameIdArgument = new Argument<string>("gameId") { Description = "Game ID (GUID)" };
+        var createSsDescriptionOption = new Option<string?>("--description") { Description = "Save state description" };
+        var createSsScreenshotOption = new Option<bool>("--screenshot") { DefaultValueFactory = _ => true, Description = "Capture screenshot" };
         saveStatesCreateCommand.AddArgument(createSsGameIdArgument);
         saveStatesCreateCommand.AddOption(createSsDescriptionOption);
         saveStatesCreateCommand.AddOption(createSsScreenshotOption);
@@ -101,9 +101,9 @@ public class SaveStateCommands : CommandGroupBase
 
         // Save States restore subcommand
         var saveStatesRestoreCommand = new Command("restore", "Restore a save state");
-        var restoreSsIdArgument = new Argument<string>("saveStateId", "Save State ID (GUID)");
+        var restoreSsIdArgument = new Argument<string>("saveStateId") { Description = "Save State ID (GUID)" };
         saveStatesRestoreCommand.AddArgument(restoreSsIdArgument);
-        saveStatesRestoreCommand.SetHandler(async (saveStateIdStr) =>
+        saveStatesRestoreCommand.SetHandler(async (string saveStateIdStr) =>
         {
             if (!Guid.TryParse(saveStateIdStr, out var saveStateId))
             {
@@ -125,9 +125,9 @@ public class SaveStateCommands : CommandGroupBase
 
         // Save States delete subcommand
         var saveStatesDeleteCommand = new Command("delete", "Delete a save state");
-        var deleteSsIdArgument = new Argument<string>("saveStateId", "Save State ID (GUID)");
+        var deleteSsIdArgument = new Argument<string>("saveStateId") { Description = "Save State ID (GUID)" };
         saveStatesDeleteCommand.AddArgument(deleteSsIdArgument);
-        saveStatesDeleteCommand.SetHandler(async (saveStateIdStr) =>
+        saveStatesDeleteCommand.SetHandler(async (string saveStateIdStr) =>
         {
             if (!Guid.TryParse(saveStateIdStr, out var saveStateId))
             {
@@ -149,9 +149,9 @@ public class SaveStateCommands : CommandGroupBase
 
         // Save States timeline subcommand
         var saveStatesTimelineCommand = new Command("timeline", "Show save state timeline for a game");
-        var timelineGameIdArgument = new Argument<string>("gameId", "Game ID (GUID)");
+        var timelineGameIdArgument = new Argument<string>("gameId") { Description = "Game ID (GUID)" };
         saveStatesTimelineCommand.AddArgument(timelineGameIdArgument);
-        saveStatesTimelineCommand.SetHandler(async (gameIdStr) =>
+        saveStatesTimelineCommand.SetHandler(async (string gameIdStr) =>
         {
             if (!Guid.TryParse(gameIdStr, out var gameId))
             {
@@ -203,10 +203,10 @@ public class SaveStateCommands : CommandGroupBase
         var autosaveDisableCommand = new Command("disable", "Disable auto-save for a game");
 
         // Autosave configure subcommand
-        var autosaveConfigureGameArgument = new Argument<string>("game-id", "Game ID (GUID)");
-        var autosaveConfigureIntervalOption = new Option<TimeSpan?>("--interval", "Auto-save interval (e.g. 00:05:00 for 5 minutes)");
-        var autosaveConfigureMaxSavesOption = new Option<int>("--max-saves", () => 10, "Maximum number of auto-saves to keep");
-        var autosaveConfigureTriggersOption = new Option<string[]>("--triggers", "Enabled triggers (TimeInterval, SessionStart, SessionEnd, SignificantProgress)") { AllowMultipleArgumentsPerToken = true };
+        var autosaveConfigureGameArgument = new Argument<string>("game-id") { Description = "Game ID (GUID)" };
+        var autosaveConfigureIntervalOption = new Option<TimeSpan?>("--interval") { Description = "Auto-save interval (e.g. 00:05:00 for 5 minutes)" };
+        var autosaveConfigureMaxSavesOption = new Option<int>("--max-saves") { DefaultValueFactory = _ => 10, Description = "Maximum number of auto-saves to keep" };
+        var autosaveConfigureTriggersOption = new Option<string[]>("--triggers") { Description = "Enabled triggers (TimeInterval, SessionStart, SessionEnd, SignificantProgress)",  AllowMultipleArgumentsPerToken = true };
         autosaveConfigureCommand.AddArgument(autosaveConfigureGameArgument);
         autosaveConfigureCommand.AddOption(autosaveConfigureIntervalOption);
         autosaveConfigureCommand.AddOption(autosaveConfigureMaxSavesOption);
@@ -237,9 +237,9 @@ public class SaveStateCommands : CommandGroupBase
         }, autosaveConfigureGameArgument, autosaveConfigureIntervalOption, autosaveConfigureMaxSavesOption, autosaveConfigureTriggersOption);
 
         // Autosave status subcommand
-        var autosaveStatusGameArgument = new Argument<string>("game-id", "Game ID (GUID)");
+        var autosaveStatusGameArgument = new Argument<string>("game-id") { Description = "Game ID (GUID)" };
         autosaveStatusCommand.AddArgument(autosaveStatusGameArgument);
-        autosaveStatusCommand.SetHandler(async (gameIdStr) =>
+        autosaveStatusCommand.SetHandler(async (string gameIdStr) =>
         {
             if (!Guid.TryParse(gameIdStr, out var gameId))
             {
@@ -252,9 +252,9 @@ public class SaveStateCommands : CommandGroupBase
         }, autosaveStatusGameArgument);
 
         // Autosave enable subcommand
-        var autosaveEnableGameArgument = new Argument<string>("game-id", "Game ID (GUID)");
+        var autosaveEnableGameArgument = new Argument<string>("game-id") { Description = "Game ID (GUID)" };
         autosaveEnableCommand.AddArgument(autosaveEnableGameArgument);
-        autosaveEnableCommand.SetHandler(async (gameIdStr) =>
+        autosaveEnableCommand.SetHandler(async (string gameIdStr) =>
         {
             if (!Guid.TryParse(gameIdStr, out var gameId))
             {
@@ -267,9 +267,9 @@ public class SaveStateCommands : CommandGroupBase
         }, autosaveEnableGameArgument);
 
         // Autosave disable subcommand
-        var autosaveDisableGameArgument = new Argument<string>("game-id", "Game ID (GUID)");
+        var autosaveDisableGameArgument = new Argument<string>("game-id") { Description = "Game ID (GUID)" };
         autosaveDisableCommand.AddArgument(autosaveDisableGameArgument);
-        autosaveDisableCommand.SetHandler(async (gameIdStr) =>
+        autosaveDisableCommand.SetHandler(async (string gameIdStr) =>
         {
             if (!Guid.TryParse(gameIdStr, out var gameId))
             {
@@ -299,3 +299,4 @@ public class SaveStateCommands : CommandGroupBase
         rootCommand.AddCommandChecked(saveStatesCommand);
     }
 }
+

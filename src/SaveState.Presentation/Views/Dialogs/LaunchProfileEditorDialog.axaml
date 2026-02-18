@@ -1,0 +1,96 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="600"
+        x:Class="SaveState.Presentation.Views.Dialogs.LaunchProfileEditorDialog"
+        Title="Edit Launch Profile"
+        Width="500" Height="600"
+        WindowStartupLocation="CenterOwner">
+
+  <ScrollViewer Margin="20">
+    <StackPanel Spacing="15">
+      <!-- Header -->
+      <TextBlock Text="⚙️ Edit Launch Profile" Classes="Title" FontSize="20" />
+
+      <!-- Basic Info -->
+      <Border Classes="Card" Padding="15">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Basic Information" Classes="Header" />
+          <TextBox x:Name="ProfileNameTextBox" Watermark="Profile Name" />
+          <TextBox x:Name="ProfileDescriptionTextBox" Watermark="Description" AcceptsReturn="True" Height="60" />
+        </StackPanel>
+      </Border>
+
+      <!-- Priority Settings -->
+      <Border Classes="Card" Padding="15">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Process Priority" Classes="Header" />
+          <ComboBox x:Name="PriorityComboBox" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="🔴 Real Time (Highest)" Tag="RealTime" />
+            <ComboBoxItem Content="🟠 High" Tag="High" />
+            <ComboBoxItem Content="🟡 Above Normal" Tag="AboveNormal" />
+            <ComboBoxItem Content="⚪ Normal" Tag="Normal" />
+            <ComboBoxItem Content="⚪ Below Normal" Tag="BelowNormal" />
+            <ComboBoxItem Content="⚪ Low" Tag="Low" />
+          </ComboBox>
+        </StackPanel>
+      </Border>
+
+      <!-- Performance Settings -->
+      <Border Classes="Card" Padding="15">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Performance Optimizations" Classes="Header" />
+          
+          <CheckBox x:Name="EnableMemoryOptimizationCheckBox" 
+                    Content="Enable memory optimization" 
+                    IsChecked="True" />
+          
+          <CheckBox x:Name="ClearStandbyListCheckBox" 
+                    Content="Clear standby memory list before launch" />
+          
+          <CheckBox x:Name="DisableVisualEffectsCheckBox" 
+                    Content="Disable Windows visual effects during gameplay" />
+          
+          <CheckBox x:Name="DisableFullscreenOptimizationsCheckBox" 
+                    Content="Disable fullscreen optimizations"
+                    IsChecked="True" />
+          
+          <CheckBox x:Name="RunAsAdministratorCheckBox" 
+                    Content="Run game as administrator" />
+        </StackPanel>
+      </Border>
+
+      <!-- Process Management -->
+      <Border Classes="Card" Padding="15">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Background Processes to Suspend" Classes="Header" />
+          <TextBlock Text="Enter process names (one per line):" Classes="Caption" />
+          <TextBox x:Name="ProcessesTextBox" 
+                   AcceptsReturn="True" 
+                   Height="100"
+                   Watermark="chrome&#10;discord&#10;spotify" />
+        </StackPanel>
+      </Border>
+
+      <!-- Power Plan -->
+      <Border Classes="Card" Padding="15">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Power Plan" Classes="Header" />
+          <ComboBox x:Name="PowerPlanComboBox" HorizontalAlignment="Stretch">
+            <ComboBoxItem Content="No change" Tag="" IsSelected="True" />
+            <ComboBoxItem Content="High Performance" Tag="8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c" />
+            <ComboBoxItem Content="Balanced" Tag="381b4222-f694-41f0-9685-ff5bb260df2e" />
+            <ComboBoxItem Content="Power Saver" Tag="a1841308-3541-4fab-bc81-f71556f20b4a" />
+          </ComboBox>
+        </StackPanel>
+      </Border>
+
+      <!-- Actions -->
+      <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+        <Button x:Name="CancelButton" Content="Cancel" Classes="Secondary" Click="OnCancelClick" />
+        <Button x:Name="SaveButton" Content="Save Profile" Classes="Primary" Click="OnSaveClick" />
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</Window>

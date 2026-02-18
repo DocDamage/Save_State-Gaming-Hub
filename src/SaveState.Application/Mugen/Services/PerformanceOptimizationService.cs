@@ -19,6 +19,7 @@ public class PerformanceOptimizationService : IPerformanceOptimizationService
     private readonly ILogger<PerformanceOptimizationService> _logger;
     private readonly ICacheService _cache;
     private readonly IServiceProvider _serviceProvider;
+    private readonly ITimeProvider _timeProvider;
 
     // Engines
     private readonly ProfilingEngine _profilingEngine;
@@ -40,11 +41,13 @@ public class PerformanceOptimizationService : IPerformanceOptimizationService
         ILogger<PerformanceOptimizationService> logger,
         ILoggerFactory loggerFactory,
         ICacheService cache,
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
         _serviceProvider = serviceProvider;
+        _timeProvider = timeProvider;
 
         _thresholds = InitializeThresholds();
         _strategies = InitializeStrategies();
@@ -53,17 +56,20 @@ public class PerformanceOptimizationService : IPerformanceOptimizationService
         _profilingEngine = new ProfilingEngine(
             loggerFactory.CreateLogger<ProfilingEngine>(),
             _metrics,
-            _thresholds);
+            _thresholds,
+            _timeProvider);
 
         _bottleneckEngine = new BottleneckDetectionEngine(
             loggerFactory.CreateLogger<BottleneckDetectionEngine>(),
             _thresholds);
 
         _cachingEngine = new CachingEngine(
-            loggerFactory.CreateLogger<CachingEngine>());
+            loggerFactory.CreateLogger<CachingEngine>(),
+            _timeProvider);
 
         _optimizationEngine = new OptimizationEngine(
-            loggerFactory.CreateLogger<OptimizationEngine>());
+            loggerFactory.CreateLogger<OptimizationEngine>(),
+            _timeProvider);
 
         _resourceEngine = new ResourceMonitoringEngine(
             loggerFactory.CreateLogger<ResourceMonitoringEngine>(),
@@ -89,7 +95,7 @@ public class PerformanceOptimizationService : IPerformanceOptimizationService
                 metrics,
                 _bottleneckEngine.IdentifyBottlenecks(metrics),
                 _profilingEngine.GenerateSuggestions(metrics),
-                DateTime.UtcNow,
+                _timeProvider.UtcNow,
                 _profilingEngine.CalculateHealthScore(metrics)
             );
 
@@ -127,7 +133,7 @@ public class PerformanceOptimizationService : IPerformanceOptimizationService
                 results.Count,
                 results.Count(r => r.Success),
                 _optimizationEngine.CalculateImprovement(results),
-                DateTime.UtcNow
+                _timeProvider.UtcNow
             );
 
             _logger.LogInformation("Optimizations applied: {Successful}/{Total}, {Improvement:F1}% improvement",
@@ -181,7 +187,7 @@ public class PerformanceOptimizationService : IPerformanceOptimizationService
                 batchResults.Sum(r => r.BatchSize),
                 batchResults.Sum(r => r.NetworkCallsSaved),
                 _optimizationEngine.CalculateLatencyReduction(batchResults),
-                DateTime.UtcNow
+                _timeProvider.UtcNow
             );
 
             _logger.LogInformation("Batching optimized: {Operations} batched, {Calls} network calls reduced",
@@ -212,7 +218,7 @@ public class PerformanceOptimizationService : IPerformanceOptimizationService
                 memoryAnalysis.CurrentUsage - memoryResults.Sum(r => r.MemorySaved),
                 memoryResults.Sum(r => r.MemorySaved),
                 memoryResults.Sum(r => r.GcCyclesSaved),
-                DateTime.UtcNow
+                _timeProvider.UtcNow
             );
 
             _logger.LogInformation("Memory optimized: {Reduction}MB saved, {GcCycles} GC cycles reduced",
@@ -243,7 +249,7 @@ public class PerformanceOptimizationService : IPerformanceOptimizationService
                 _optimizationEngine.CalculateBalancedVariance(balancingResults),
                 balancingResults.Count,
                 balancingResults.Any(r => r.CpuBalanced),
-                DateTime.UtcNow
+                _timeProvider.UtcNow
             );
 
             _logger.LogInformation("Load balanced: Variance reduced from {Before:F2} to {After:F2}",
@@ -281,7 +287,7 @@ public class PerformanceOptimizationService : IPerformanceOptimizationService
                 memoryOpt.Value,
                 loadBalance.Value,
                 _profilingEngine.CalculateOverallScore(analysis.Value, cacheOpt.Value, batchOpt.Value, memoryOpt.Value, loadBalance.Value),
-                DateTime.UtcNow
+                _timeProvider.UtcNow
             );
 
             _logger.LogInformation("Performance report generated: Overall score {Score:F2}", report.OverallScore);
@@ -356,7 +362,7 @@ public class PerformanceOptimizationService : IPerformanceOptimizationService
             sessionId =>
             {
                 var initial = new OptimizationPerformanceMetrics(
-                    sessionId, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0.0f, DateTime.UtcNow
+                    sessionId, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0.0f, _timeProvider.UtcNow
                 );
                 return _profilingEngine.ApplyEvent(initial, performanceEvent);
             },

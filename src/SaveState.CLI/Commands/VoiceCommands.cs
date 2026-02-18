@@ -61,7 +61,7 @@ public class VoiceCommands : CommandGroupBase
 
         // Test command
         var testCommand = new Command("test", "Test voice command recognition");
-        var phraseArg = new Argument<string>("phrase", "The phrase to process as a voice command");
+        var phraseArg = new Argument<string>("phrase") { Description = "The phrase to process as a voice command" };
         testCommand.AddArgument(phraseArg);
         testCommand.SetHandler((string phrase) =>
         {
@@ -71,8 +71,7 @@ public class VoiceCommands : CommandGroupBase
 
         // Train
         var trainCommand = new Command("train", "Train voice recognition with custom phrases");
-        var phrasesOption = new Option<string[]>("--phrases", "Phrases to train (can specify multiple)")
-        {
+        var phrasesOption = new Option<string[]>("--phrases") { Description = "Phrases to train (can specify multiple)", 
             AllowMultipleArgumentsPerToken = true
         };
         trainCommand.AddOption(phrasesOption);
@@ -99,3 +98,4 @@ public class VoiceCommands : CommandGroupBase
         rootCommand.AddCommandChecked(voiceCommand);
     }
 }
+

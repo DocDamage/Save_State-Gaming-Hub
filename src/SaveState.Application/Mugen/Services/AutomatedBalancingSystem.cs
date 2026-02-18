@@ -14,6 +14,7 @@ public class AutomatedBalancingSystem : AutomatedBalancingSystemIAutomatedBalanc
 {
     private readonly ILogger<AutomatedBalancingSystem> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly AutomatedBalancingSystemBalanceAnalyzer _balanceAnalyzer;
     private readonly AutomatedBalancingSystemAdjustmentEngine _adjustmentEngine;
     private readonly AutomatedBalancingSystemGameStateMonitor _gameStateMonitor;
@@ -22,12 +23,14 @@ public class AutomatedBalancingSystem : AutomatedBalancingSystemIAutomatedBalanc
     public AutomatedBalancingSystem(
         ILogger<AutomatedBalancingSystem> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
+        _timeProvider = timeProvider;
         _balanceAnalyzer = new AutomatedBalancingSystemBalanceAnalyzer(loggerFactory.CreateLogger<AutomatedBalancingSystemBalanceAnalyzer>());
-        _adjustmentEngine = new AutomatedBalancingSystemAdjustmentEngine(loggerFactory.CreateLogger<AutomatedBalancingSystemAdjustmentEngine>());
+        _adjustmentEngine = new AutomatedBalancingSystemAdjustmentEngine(loggerFactory.CreateLogger<AutomatedBalancingSystemAdjustmentEngine>(), timeProvider);
         _gameStateMonitor = new AutomatedBalancingSystemGameStateMonitor(loggerFactory.CreateLogger<AutomatedBalancingSystemGameStateMonitor>());
         _balancePredictor = new AutomatedBalancingSystemBalancePredictor(loggerFactory.CreateLogger<AutomatedBalancingSystemBalancePredictor>());
     }
@@ -61,7 +64,7 @@ public class AutomatedBalancingSystem : AutomatedBalancingSystemIAutomatedBalanc
                 BalanceIssues = IdentifyBalanceIssues(matchupAnalysis, moveAnalysis, viabilityAnalysis),
                 SuggestedAdjustments = await GenerateBalanceSuggestionsAsync(characterId, matchupAnalysis, moveAnalysis, ct),
                 ConfidenceLevel = CalculateAnalysisConfidence(gameplayData),
-                AnalyzedAt = DateTime.UtcNow,
+                AnalyzedAt = _timeProvider.UtcNow,
                 DataPoints = gameplayData.TotalMatches
             };
 
@@ -139,14 +142,14 @@ public class AutomatedBalancingSystem : AutomatedBalancingSystemIAutomatedBalanc
             var patch = new AutomatedBalancingSystemBalancePatch
             {
                 PatchId = Guid.NewGuid().ToString(),
-                Name = $"Balance Patch {DateTime.UtcNow:yyyy-MM-dd}",
+                Name = $"Balance Patch {_timeProvider.UtcNow:yyyy-MM-dd}",
                 Description = GeneratePatchDescription(adjustments),
                 Adjustments = adjustments,
                 EstimatedImpact = await CalculatePatchImpactAsync(adjustments, ct),
                 RiskAssessment = await AssessPatchRiskAsync(adjustments, ct),
                 TestResults = new List<AutomatedBalancingSystemPatchTestResult>(),
                 Status = AutomatedBalancingSystemPatchStatus.Created,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 AppliedAt = null
             };
 
@@ -204,7 +207,7 @@ public class AutomatedBalancingSystem : AutomatedBalancingSystemIAutomatedBalanc
                 ProblematicElements = await IdentifyProblematicElementsAsync(period, ct),
                 RecommendedActions = await GenerateRecommendedActionsAsync(period, ct),
                 OverallHealthScore = await CalculateGameHealthScoreAsync(period, ct),
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Game balance report generated: Health score {Score:F2}", report.OverallHealthScore);
@@ -503,7 +506,7 @@ public class AutomatedBalancingSystem : AutomatedBalancingSystemIAutomatedBalanc
             AdjustmentId = adjustment.AdjustmentId,
             CharacterId = adjustment.CharacterId,
             Changes = adjustment,
-            Timestamp = DateTime.UtcNow,
+            Timestamp = _timeProvider.UtcNow,
             AppliedBy = "AutomatedBalancingSystem"
         };
 
@@ -558,7 +561,7 @@ public class AutomatedBalancingSystem : AutomatedBalancingSystemIAutomatedBalanc
             NewBrokenElements = new List<string>(),
             FixedElements = new List<string> { "Previously overpowered move" },
             OverallStability = 0.88,
-            CompletedAt = DateTime.UtcNow
+            CompletedAt = _timeProvider.UtcNow
         };
     }
 
@@ -693,10 +696,12 @@ public class AutomatedBalancingSystemBalanceAnalyzer
 public class AutomatedBalancingSystemAdjustmentEngine
 {
     private readonly ILogger<AutomatedBalancingSystemAdjustmentEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public AutomatedBalancingSystemAdjustmentEngine(ILogger<AutomatedBalancingSystemAdjustmentEngine> logger)
+    public AutomatedBalancingSystemAdjustmentEngine(ILogger<AutomatedBalancingSystemAdjustmentEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<AutomatedBalancingSystemBalanceAdjustment> GenerateAdjustmentAsync(string characterId, AutomatedBalancingSystemBalanceAnalysis analysis, CancellationToken ct = default)
@@ -718,7 +723,7 @@ public class AutomatedBalancingSystemAdjustmentEngine
             StatAdjustments = new List<AutomatedBalancingSystemStatAdjustment>(),
             ExpectedImpact = analysis.SuggestedAdjustments.Sum(s => s.ExpectedImpact),
             AutomatedBalancingSystemBalancingRiskLevel = AutomatedBalancingSystemBalancingRiskLevel.Medium,
-            GeneratedAt = DateTime.UtcNow
+            GeneratedAt = _timeProvider.UtcNow
         };
     }
 

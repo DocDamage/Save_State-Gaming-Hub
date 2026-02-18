@@ -14,6 +14,7 @@ public class ApiIntegrationService : ApiIntegrationServiceIApiIntegrationService
 {
     private readonly ILogger<ApiIntegrationService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, ApiIntegrationServiceApiKey> _apiKeys = new();
     private readonly Dictionary<string, ApiIntegrationServiceWebhook> _webhooks = new();
     private readonly Dictionary<string, ApiIntegrationServiceIntegration> _integrations = new();
@@ -26,12 +27,14 @@ public class ApiIntegrationService : ApiIntegrationServiceIApiIntegrationService
     public ApiIntegrationService(
         ILogger<ApiIntegrationService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _apiGateway = new ApiIntegrationServiceApiGateway(loggerFactory.CreateLogger<ApiIntegrationServiceApiGateway>());
-        _webhookManager = new ApiIntegrationServiceWebhookManager(loggerFactory.CreateLogger<ApiIntegrationServiceWebhookManager>());
+        _timeProvider = timeProvider;
+        _apiGateway = new ApiIntegrationServiceApiGateway(loggerFactory.CreateLogger<ApiIntegrationServiceApiGateway>(), timeProvider);
+        _webhookManager = new ApiIntegrationServiceWebhookManager(loggerFactory.CreateLogger<ApiIntegrationServiceWebhookManager>(), timeProvider);
         _integrationHub = new ApiIntegrationServiceIntegrationHub(loggerFactory.CreateLogger<ApiIntegrationServiceIntegrationHub>());
         _rateLimiter = new ApiIntegrationServiceRateLimiter(loggerFactory.CreateLogger<ApiIntegrationServiceRateLimiter>());
     }
@@ -49,7 +52,7 @@ public class ApiIntegrationService : ApiIntegrationServiceIApiIntegrationService
                 Name = request.Name,
                 Permissions = request.Permissions,
                 KeyValue = GenerateSecureKey(),
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 ExpiresAt = request.ExpiresAt,
                 IsActive = true,
                 LastUsed = null,
@@ -100,7 +103,7 @@ public class ApiIntegrationService : ApiIntegrationServiceIApiIntegrationService
             // Update API key usage
             if (_apiKeys.TryGetValue(keyValidation.KeyId, out var apiKey))
             {
-                apiKey.LastUsed = DateTime.UtcNow;
+                apiKey.LastUsed = _timeProvider.UtcNow;
                 apiKey.UsageCount++;
             }
 
@@ -132,7 +135,7 @@ public class ApiIntegrationService : ApiIntegrationServiceIApiIntegrationService
                 Events = request.Events,
                 Secret = GenerateWebhookSecret(),
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 LastTriggered = null,
                 TriggerCount = 0,
                 FailureCount = 0,
@@ -196,7 +199,7 @@ public class ApiIntegrationService : ApiIntegrationServiceIApiIntegrationService
                 Name = request.Name,
                 Config = request.Config,
                 Status = ApiIntegrationServiceIntegrationStatus.Configuring,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 LastSync = null,
                 SyncCount = 0,
                 ErrorCount = 0,
@@ -231,7 +234,7 @@ public class ApiIntegrationService : ApiIntegrationServiceIApiIntegrationService
 
             await _integrationHub.SyncIntegrationAsync(integration, ct);
 
-            integration.LastSync = DateTime.UtcNow;
+            integration.LastSync = _timeProvider.UtcNow;
             integration.SyncCount++;
 
             _logger.LogInformation("ApiIntegrationServiceIntegration synced successfully");
@@ -280,7 +283,7 @@ public class ApiIntegrationService : ApiIntegrationServiceIApiIntegrationService
                     ["Asia"] = 30000,
                     ["Other"] = 15000
                 },
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("API analytics generated successfully");
@@ -356,11 +359,11 @@ public class ApiIntegrationService : ApiIntegrationServiceIApiIntegrationService
                     new ApiIntegrationServiceApiChangelog
                     {
                         Version = "1.0.0",
-                        Date = DateTime.UtcNow,
+                        Date = _timeProvider.UtcNow,
                         Changes = new[] { "Initial API release" }
                     }
                 },
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("API documentation generated successfully");
@@ -397,7 +400,7 @@ public class ApiIntegrationService : ApiIntegrationServiceIApiIntegrationService
         }
 
         // Check expiration
-        if (key.ExpiresAt.HasValue && key.ExpiresAt.Value < DateTime.UtcNow)
+        if (key.ExpiresAt.HasValue && key.ExpiresAt.Value < _timeProvider.UtcNow)
         {
             return new ApiIntegrationServiceApiKeyValidation { IsValid = false, KeyId = key.KeyId };
         }
@@ -416,7 +419,7 @@ public class ApiIntegrationService : ApiIntegrationServiceIApiIntegrationService
             Endpoint = request.Endpoint,
             StatusCode = response.StatusCode,
             ResponseTime = response.ResponseTime,
-            Timestamp = DateTime.UtcNow,
+            Timestamp = _timeProvider.UtcNow,
             IpAddress = "unknown", // Would be populated from request context
             UserAgent = "unknown"
         };
@@ -433,21 +436,23 @@ public class ApiIntegrationService : ApiIntegrationServiceIApiIntegrationService
 public class ApiIntegrationServiceApiGateway
 {
     private readonly ILogger<ApiIntegrationServiceApiGateway> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public ApiIntegrationServiceApiGateway(ILogger<ApiIntegrationServiceApiGateway> logger)
+    public ApiIntegrationServiceApiGateway(ILogger<ApiIntegrationServiceApiGateway> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<ApiIntegrationServiceApiResponse> ProcessRequestAsync(ApiIntegrationServiceApiRequest request, CancellationToken ct)
     {
         // Process API request through gateway
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
 
         // Simulate request processing
         await Task.Delay(50, ct);
 
-        var responseTime = DateTime.UtcNow - startTime;
+        var responseTime = _timeProvider.UtcNow - startTime;
 
         return new ApiIntegrationServiceApiResponse
         {
@@ -465,10 +470,12 @@ public class ApiIntegrationServiceApiGateway
 public class ApiIntegrationServiceWebhookManager
 {
     private readonly ILogger<ApiIntegrationServiceWebhookManager> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public ApiIntegrationServiceWebhookManager(ILogger<ApiIntegrationServiceWebhookManager> logger)
+    public ApiIntegrationServiceWebhookManager(ILogger<ApiIntegrationServiceWebhookManager> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task TriggerWebhookAsync(ApiIntegrationServiceWebhook webhook, string eventType, object eventData, CancellationToken ct)
@@ -479,14 +486,14 @@ public class ApiIntegrationServiceWebhookManager
             WebhookId = webhook.WebhookId,
             EventType = eventType,
             EventData = eventData,
-            Timestamp = DateTime.UtcNow,
+            Timestamp = _timeProvider.UtcNow,
             Signature = GenerateSignature(JsonSerializer.Serialize(eventData), webhook.Secret)
         };
 
         // Send webhook with retries
         await SendWebhookWithRetryAsync(webhook, payload, ct);
 
-        webhook.LastTriggered = DateTime.UtcNow;
+        webhook.LastTriggered = _timeProvider.UtcNow;
         webhook.TriggerCount++;
     }
 

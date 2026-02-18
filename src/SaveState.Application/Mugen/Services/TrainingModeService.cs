@@ -16,6 +16,7 @@ public class TrainingModeService : ITrainingModeService
 {
     private readonly ILogger<TrainingModeService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
 
     // Core engines
     private readonly SessionManager _sessionManager;
@@ -31,24 +32,27 @@ public class TrainingModeService : ITrainingModeService
     public TrainingModeService(
         ILogger<TrainingModeService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
+        _timeProvider = timeProvider;
 
         // Initialize engines
-        _reflexTrainer = new ReflexTrainer(loggerFactory.CreateLogger<ReflexTrainer>());
+        _reflexTrainer = new ReflexTrainer(loggerFactory.CreateLogger<ReflexTrainer>(), timeProvider);
         _patternEngine = new TrainingPatternEngine(loggerFactory.CreateLogger<TrainingPatternEngine>());
         _comboLab = new ComboLabEngine(loggerFactory.CreateLogger<ComboLabEngine>());
-        _sessionManager = new SessionManager(loggerFactory.CreateLogger<SessionManager>());
+        _sessionManager = new SessionManager(loggerFactory.CreateLogger<SessionManager>(), timeProvider);
         _inputRouter = new InputRouter(
             loggerFactory.CreateLogger<InputRouter>(),
             _reflexTrainer,
             _patternEngine,
-            _comboLab);
-        _skillAssessor = new SkillAssessor(loggerFactory.CreateLogger<SkillAssessor>());
-        _challengeEngine = new ChallengeEngine(loggerFactory.CreateLogger<ChallengeEngine>());
-        _recordingEngine = new RecordingEngine(loggerFactory.CreateLogger<RecordingEngine>());
+            _comboLab,
+            timeProvider);
+        _skillAssessor = new SkillAssessor(loggerFactory.CreateLogger<SkillAssessor>(), timeProvider);
+        _challengeEngine = new ChallengeEngine(loggerFactory.CreateLogger<ChallengeEngine>(), timeProvider);
+        _recordingEngine = new RecordingEngine(loggerFactory.CreateLogger<RecordingEngine>(), timeProvider);
         _dummyEngine = new AiDummyEngine(loggerFactory.CreateLogger<AiDummyEngine>());
     }
 
@@ -237,7 +241,7 @@ public class TrainingModeService : ITrainingModeService
                 Difficulty = difficulty,
                 Duration = duration,
                 Status = SessionStatus.Active,
-                StartedAt = DateTime.UtcNow,
+                StartedAt = _timeProvider.UtcNow,
                 Progress = new TrainingTypes.TrainingProgressData(0, 10, 0, 0, TimeSpan.Zero, TimeSpan.MaxValue)
             };
 

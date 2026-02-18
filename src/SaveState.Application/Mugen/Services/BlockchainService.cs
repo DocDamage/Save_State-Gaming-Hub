@@ -15,6 +15,7 @@ public class BlockchainService : BlockchainServiceIBlockchainService
 {
     private readonly ILogger<BlockchainService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, BlockchainServiceNftCollection> _nftCollections = new();
     private readonly Dictionary<string, BlockchainServiceNftAsset> _blockchainAssets = new();
     private readonly Dictionary<string, BlockchainServiceBlockchainTransaction> _transactions = new();
@@ -26,14 +27,16 @@ public class BlockchainService : BlockchainServiceIBlockchainService
     public BlockchainService(
         ILogger<BlockchainService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _nftEngine = new BlockchainServiceNftEngine(loggerFactory.CreateLogger<BlockchainServiceNftEngine>());
-        _decentralizedStorage = new BlockchainServiceDecentralizedStorage(loggerFactory.CreateLogger<BlockchainServiceDecentralizedStorage>());
-        _walletEngine = new BlockchainServiceCryptoWalletEngine(loggerFactory.CreateLogger<BlockchainServiceCryptoWalletEngine>());
-        _marketplaceEngine = new BlockchainServiceMarketplaceEngine(loggerFactory.CreateLogger<BlockchainServiceMarketplaceEngine>());
+        _timeProvider = timeProvider;
+        _nftEngine = new BlockchainServiceNftEngine(loggerFactory.CreateLogger<BlockchainServiceNftEngine>(), _timeProvider);
+        _decentralizedStorage = new BlockchainServiceDecentralizedStorage(loggerFactory.CreateLogger<BlockchainServiceDecentralizedStorage>(), _timeProvider);
+        _walletEngine = new BlockchainServiceCryptoWalletEngine(loggerFactory.CreateLogger<BlockchainServiceCryptoWalletEngine>(), _timeProvider);
+        _marketplaceEngine = new BlockchainServiceMarketplaceEngine(loggerFactory.CreateLogger<BlockchainServiceMarketplaceEngine>(), _timeProvider);
 
         InitializeBlockchainFeatures();
     }
@@ -56,7 +59,7 @@ public class BlockchainService : BlockchainServiceIBlockchainService
                 Attributes = request.Attributes,
                 ExternalUrl = request.ExternalUrl,
                 AnimationUrl = request.AnimationUrl,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 Creator = request.UserId
             };
 
@@ -75,7 +78,7 @@ public class BlockchainService : BlockchainServiceIBlockchainService
                 MetadataUri = metadataUri,
                 TokenStandard = BlockchainServiceNftStandard.ERC721,
                 Blockchain = BlockchainServiceBlockchainType.Ethereum,
-                MintedAt = DateTime.UtcNow,
+                MintedAt = _timeProvider.UtcNow,
                 TransactionHash = mintResult.TransactionHash,
                 Status = BlockchainServiceNftStatus.Minted
             };
@@ -133,7 +136,7 @@ public class BlockchainService : BlockchainServiceIBlockchainService
             if (_blockchainAssets.TryGetValue(tokenId, out var asset))
             {
                 asset.Owner = toAddress;
-                asset.LastTransferred = DateTime.UtcNow;
+                asset.LastTransferred = _timeProvider.UtcNow;
             }
 
             var transaction = new BlockchainServiceBlockchainTransaction
@@ -149,7 +152,7 @@ public class BlockchainService : BlockchainServiceIBlockchainService
                 GasPrice = transferResult.GasPrice,
                 Status = BlockchainServiceTransactionStatus.Confirmed,
                 BlockNumber = transferResult.BlockNumber,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = _timeProvider.UtcNow,
                 Confirmations = 1
             };
 
@@ -186,7 +189,7 @@ public class BlockchainService : BlockchainServiceIBlockchainService
                 RoyaltyPercentage = request.RoyaltyPercentage,
                 BaseUri = request.BaseUri,
                 Attributes = request.Attributes,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 Status = BlockchainServiceCollectionStatus.Active,
                 Blockchain = BlockchainServiceBlockchainType.Ethereum,
                 TransactionHash = contractResult.TransactionHash
@@ -244,7 +247,7 @@ public class BlockchainService : BlockchainServiceIBlockchainService
                 GasPrice = purchaseResult.GasPrice,
                 Status = BlockchainServiceTransactionStatus.Confirmed,
                 BlockNumber = purchaseResult.BlockNumber,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = _timeProvider.UtcNow,
                 Confirmations = 1
             };
 
@@ -395,13 +398,13 @@ public class BlockchainService : BlockchainServiceIBlockchainService
                 },
                 TransactionTrends = new Dictionary<DateTime, int>(),
                 NftPriceTrends = new Dictionary<string, decimal>(),
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             // Populate trend data into a mutable dictionary then assign to the read-only property
             var trends = new Dictionary<DateTime, int>();
-            var startDate = DateTime.UtcNow.Subtract(period);
-            for (var date = startDate; date <= DateTime.UtcNow; date = date.AddDays(1))
+            var startDate = _timeProvider.UtcNow.Subtract(period);
+            for (var date = startDate; date <= _timeProvider.UtcNow; date = date.AddDays(1))
             {
                 trends[date.Date] = new Random().Next(50, 200);
             }
@@ -432,7 +435,7 @@ public class BlockchainService : BlockchainServiceIBlockchainService
             TotalSupply = 0,
             MaxSupply = 10000,
             RoyaltyPercentage = 5.0,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
             Status = BlockchainServiceCollectionStatus.Active,
             Blockchain = BlockchainServiceBlockchainType.Ethereum
         };
@@ -447,7 +450,7 @@ public class BlockchainService : BlockchainServiceIBlockchainService
             TotalSupply = 0,
             MaxSupply = 50000,
             RoyaltyPercentage = 2.5,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
             Status = BlockchainServiceCollectionStatus.Active,
             Blockchain = BlockchainServiceBlockchainType.Ethereum
         };
@@ -471,10 +474,12 @@ public class BlockchainService : BlockchainServiceIBlockchainService
 public class BlockchainServiceNftEngine
 {
     private readonly ILogger<BlockchainServiceNftEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public BlockchainServiceNftEngine(ILogger<BlockchainServiceNftEngine> logger)
+    public BlockchainServiceNftEngine(ILogger<BlockchainServiceNftEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<BlockchainServiceNftMintResult> MintNftAsync(string tokenId, string metadataUri, string owner, CancellationToken ct)
@@ -544,7 +549,7 @@ public class BlockchainServiceNftEngine
                 ["unlocked_at"] = achievement.UnlockedAt,
                 ["category"] = achievement.Category
             },
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
             Creator = "MUGEN"
         };
 
@@ -554,7 +559,7 @@ public class BlockchainServiceNftEngine
             AchievementId = achievement.Id,
             Owner = recipientAddress,
             Metadata = metadata,
-            MintedAt = DateTime.UtcNow,
+            MintedAt = _timeProvider.UtcNow,
             Rarity = achievement.Rarity,
             Category = achievement.Category
         };
@@ -577,7 +582,7 @@ public class BlockchainServiceNftEngine
                 ["strength"] = character.Strength,
                 ["special_moves"] = character.SpecialMoves.Count
             },
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
             Creator = character.Author
         };
 
@@ -587,7 +592,7 @@ public class BlockchainServiceNftEngine
             CharacterId = character.Id,
             Owner = recipientAddress,
             Metadata = metadata,
-            MintedAt = DateTime.UtcNow,
+            MintedAt = _timeProvider.UtcNow,
             Stats = new BlockchainServiceCharacterStats
             {
                 Health = character.Health,
@@ -605,10 +610,12 @@ public class BlockchainServiceNftEngine
 public class BlockchainServiceDecentralizedStorage
 {
     private readonly ILogger<BlockchainServiceDecentralizedStorage> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public BlockchainServiceDecentralizedStorage(ILogger<BlockchainServiceDecentralizedStorage> logger)
+    public BlockchainServiceDecentralizedStorage(ILogger<BlockchainServiceDecentralizedStorage> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<string> StoreMetadataAsync(BlockchainServiceNftMetadata metadata, CancellationToken ct)
@@ -629,7 +636,7 @@ public class BlockchainServiceDecentralizedStorage
         {
             ContentId = contentId,
             Size = data.Length,
-            StoredAt = DateTime.UtcNow,
+            StoredAt = _timeProvider.UtcNow,
             ReplicationFactor = options.ReplicationFactor,
             EncryptionEnabled = options.EncryptData
         };
@@ -649,10 +656,12 @@ public class BlockchainServiceDecentralizedStorage
 public class BlockchainServiceCryptoWalletEngine
 {
     private readonly ILogger<BlockchainServiceCryptoWalletEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public BlockchainServiceCryptoWalletEngine(ILogger<BlockchainServiceCryptoWalletEngine> logger)
+    public BlockchainServiceCryptoWalletEngine(ILogger<BlockchainServiceCryptoWalletEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<BlockchainServiceCryptoWallet> CreateWalletAsync(BlockchainServiceWalletCreationRequest request, CancellationToken ct)
@@ -667,8 +676,8 @@ public class BlockchainServiceCryptoWalletEngine
             UserId = request.UserId,
             Address = address,
             EncryptedPrivateKey = EncryptPrivateKey(privateKey, request.Password),
-            CreatedAt = DateTime.UtcNow,
-            LastUsed = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
+            LastUsed = _timeProvider.UtcNow,
             Networks = new[] { BlockchainServiceBlockchainType.Ethereum, BlockchainServiceBlockchainType.Polygon }
         };
     }
@@ -688,7 +697,7 @@ public class BlockchainServiceCryptoWalletEngine
                 ["USDC"] = 250.0m
             },
             NftCount = 12,
-            LastUpdated = DateTime.UtcNow
+            LastUpdated = _timeProvider.UtcNow
         };
     }
 
@@ -717,10 +726,12 @@ public class BlockchainServiceCryptoWalletEngine
 public class BlockchainServiceMarketplaceEngine
 {
     private readonly ILogger<BlockchainServiceMarketplaceEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public BlockchainServiceMarketplaceEngine(ILogger<BlockchainServiceMarketplaceEngine> logger)
+    public BlockchainServiceMarketplaceEngine(ILogger<BlockchainServiceMarketplaceEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<BlockchainServiceMarketplaceListing> CreateListingAsync(BlockchainServiceListingCreationRequest request, CancellationToken ct)
@@ -733,7 +744,7 @@ public class BlockchainServiceMarketplaceEngine
             SellerAddress = request.SellerAddress,
             Price = request.Price,
             Currency = request.Currency,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
             ExpiresAt = request.ExpiresAt,
             Status = BlockchainServiceListingStatus.Active,
             BlockchainServiceAuctionType = request.BlockchainServiceAuctionType

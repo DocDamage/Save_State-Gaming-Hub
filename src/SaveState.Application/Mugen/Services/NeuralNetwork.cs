@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Mugen.Entities;
 using SaveState.Core.Mugen.Services;
 using SaveState.Core.Mugen.ValueObjects;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Application.Mugen.Services;
 
@@ -202,11 +203,13 @@ public class NeuralNetwork
 public class NeuralNetworkAdaptiveAiEngine
 {
     private readonly ILogger<NeuralNetworkAdaptiveAiEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, NeuralNetworkAiProfile> _aiProfiles = new();
 
-    public NeuralNetworkAdaptiveAiEngine(ILogger<NeuralNetworkAdaptiveAiEngine> logger)
+    public NeuralNetworkAdaptiveAiEngine(ILogger<NeuralNetworkAdaptiveAiEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         InitializeAiProfiles();
     }
 
@@ -369,7 +372,7 @@ public class NeuralNetworkAdaptiveAiEngine
         // Update profile based on recent performance
         profile.AdaptationCount++;
         profile.LastPerformance = performance;
-        profile.LastUpdate = DateTime.UtcNow;
+        profile.LastUpdate = _timeProvider.UtcNow;
 
         // Adjust base characteristics
         if (performance.WinRate > 0.6)

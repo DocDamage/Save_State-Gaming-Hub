@@ -15,6 +15,7 @@ public class AdvancedPhysicsCombatService : AdvancedPhysicsCombatServiceIAdvance
 {
     private readonly ILogger<AdvancedPhysicsCombatService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, AdvancedPhysicsCombatServiceHitDetectionState> _hitDetectionStates = new();
     private readonly Dictionary<string, AdvancedPhysicsCombatServiceJuggleDecayState> _juggleDecayStates = new();
     private readonly Dictionary<string, AdvancedPhysicsCombatServiceCharacterGravity> _characterGravities = new();
@@ -29,15 +30,17 @@ public class AdvancedPhysicsCombatService : AdvancedPhysicsCombatServiceIAdvance
     public AdvancedPhysicsCombatService(
         ILogger<AdvancedPhysicsCombatService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _hitDetectionEngine = new AdvancedPhysicsCombatServiceHitDetectionEngine(loggerFactory.CreateLogger<AdvancedPhysicsCombatServiceHitDetectionEngine>());
-        _juggleDecayEngine = new AdvancedPhysicsCombatServiceJuggleDecayEngine(loggerFactory.CreateLogger<AdvancedPhysicsCombatServiceJuggleDecayEngine>());
-        _characterGravityEngine = new AdvancedPhysicsCombatServiceCharacterGravityEngine(loggerFactory.CreateLogger<AdvancedPhysicsCombatServiceCharacterGravityEngine>());
-        _wallSplatEngine = new AdvancedPhysicsCombatServiceWallSplatEngine(loggerFactory.CreateLogger<AdvancedPhysicsCombatServiceWallSplatEngine>());
-        _destructionEngine = new AdvancedPhysicsCombatServiceDestructionEngine(loggerFactory.CreateLogger<AdvancedPhysicsCombatServiceDestructionEngine>());
+        _timeProvider = timeProvider;
+        _hitDetectionEngine = new AdvancedPhysicsCombatServiceHitDetectionEngine(loggerFactory.CreateLogger<AdvancedPhysicsCombatServiceHitDetectionEngine>(), _timeProvider);
+        _juggleDecayEngine = new AdvancedPhysicsCombatServiceJuggleDecayEngine(loggerFactory.CreateLogger<AdvancedPhysicsCombatServiceJuggleDecayEngine>(), _timeProvider);
+        _characterGravityEngine = new AdvancedPhysicsCombatServiceCharacterGravityEngine(loggerFactory.CreateLogger<AdvancedPhysicsCombatServiceCharacterGravityEngine>(), _timeProvider);
+        _wallSplatEngine = new AdvancedPhysicsCombatServiceWallSplatEngine(loggerFactory.CreateLogger<AdvancedPhysicsCombatServiceWallSplatEngine>(), _timeProvider);
+        _destructionEngine = new AdvancedPhysicsCombatServiceDestructionEngine(loggerFactory.CreateLogger<AdvancedPhysicsCombatServiceDestructionEngine>(), _timeProvider);
 
         InitializeAdvancedPhysics();
     }
@@ -231,7 +234,7 @@ public class AdvancedPhysicsCombatService : AdvancedPhysicsCombatServiceIAdvance
                 AdvancedPhysicsCombatServiceWallSplatAnalysis = await AnalyzeWallSplatsAsync(sessionId, ct),
                 AdvancedPhysicsCombatServiceDestructionEvents = await AnalyzeDestructionEventsAsync(sessionId, ct),
                 OverallPhysicsScore = CalculateOverallPhysicsScore(sessionId),
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Physics combat report generated successfully");
@@ -265,14 +268,14 @@ public class AdvancedPhysicsCombatService : AdvancedPhysicsCombatServiceIAdvance
                 TotalHits = 0,
                 TotalCrossUps = 0,
                 TotalBlocks = 0,
-                LastUpdate = DateTime.UtcNow
+                LastUpdate = _timeProvider.UtcNow
             };
         }
 
         state.TotalHits++;
         if (result.IsCrossUp) state.TotalCrossUps++;
         if (result.WasBlocked) state.TotalBlocks++;
-        state.LastUpdate = DateTime.UtcNow;
+        state.LastUpdate = _timeProvider.UtcNow;
 
         _hitDetectionStates[stateKey] = state;
     }
@@ -287,13 +290,13 @@ public class AdvancedPhysicsCombatService : AdvancedPhysicsCombatServiceIAdvance
                 CharacterId = characterId,
                 TotalSplats = 0,
                 TotalDamage = 0,
-                LastSplatTime = DateTime.UtcNow
+                LastSplatTime = _timeProvider.UtcNow
             };
         }
 
         state.TotalSplats++;
         state.TotalDamage += result.Damage;
-        state.LastSplatTime = DateTime.UtcNow;
+        state.LastSplatTime = _timeProvider.UtcNow;
 
         _wallStates[characterId] = state;
     }
@@ -308,13 +311,13 @@ public class AdvancedPhysicsCombatService : AdvancedPhysicsCombatServiceIAdvance
                 StageId = stageId,
                 TotalBreaks = 0,
                 TotalHazards = 0,
-                LastBreakTime = DateTime.UtcNow
+                LastBreakTime = _timeProvider.UtcNow
             };
         }
 
         state.TotalBreaks++;
         state.TotalHazards += result.HazardLevel;
-        state.LastBreakTime = DateTime.UtcNow;
+        state.LastBreakTime = _timeProvider.UtcNow;
 
         _destructionStates[stageId] = state;
     }
@@ -412,10 +415,12 @@ public class AdvancedPhysicsCombatService : AdvancedPhysicsCombatServiceIAdvance
 public class AdvancedPhysicsCombatServiceHitDetectionEngine
 {
     private readonly ILogger<AdvancedPhysicsCombatServiceHitDetectionEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public AdvancedPhysicsCombatServiceHitDetectionEngine(ILogger<AdvancedPhysicsCombatServiceHitDetectionEngine> logger)
+    public AdvancedPhysicsCombatServiceHitDetectionEngine(ILogger<AdvancedPhysicsCombatServiceHitDetectionEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<AdvancedPhysicsCombatServiceHitDetectionResult> ProcessHitAsync(string attackerId, string defenderId, AdvancedPhysicsCombatServiceHitRequest request, CancellationToken ct)
@@ -435,7 +440,7 @@ public class AdvancedPhysicsCombatServiceHitDetectionEngine
             HitAngle = request.AttackAngle,
             DepthBonus = depthDamage,
             AngleBonus = angleMultiplier,
-            ProcessedAt = DateTime.UtcNow
+            ProcessedAt = _timeProvider.UtcNow
         };
 
         return result;
@@ -450,7 +455,7 @@ public class AdvancedPhysicsCombatServiceHitDetectionEngine
             CurrentZPosition = 0.0f,
             OptimalAttackRange = new Vector3(50, 0, 20),
             CrossUpOpportunities = new[] { new Vector3(-30, 0, 15) },
-            MeasuredAt = DateTime.UtcNow
+            MeasuredAt = _timeProvider.UtcNow
         };
     }
 
@@ -482,10 +487,12 @@ public class AdvancedPhysicsCombatServiceHitDetectionEngine
 public class AdvancedPhysicsCombatServiceJuggleDecayEngine
 {
     private readonly ILogger<AdvancedPhysicsCombatServiceJuggleDecayEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public AdvancedPhysicsCombatServiceJuggleDecayEngine(ILogger<AdvancedPhysicsCombatServiceJuggleDecayEngine> logger)
+    public AdvancedPhysicsCombatServiceJuggleDecayEngine(ILogger<AdvancedPhysicsCombatServiceJuggleDecayEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<AdvancedPhysicsCombatServiceJuggleDecayState> ApplyDecayAsync(string characterId, AdvancedPhysicsCombatServiceJuggleHit hit, CancellationToken ct)
@@ -503,7 +510,7 @@ public class AdvancedPhysicsCombatServiceJuggleDecayEngine
             MomentumLoss = momentumLoss,
             BreakPointReached = hit.ComboLength >= 15, // Hard cap at 15 hits
             BreakPointTriggers = hit.ComboLength >= 15 ? 1 : 0,
-            LastHitTime = DateTime.UtcNow
+            LastHitTime = _timeProvider.UtcNow
         };
 
         return state;
@@ -519,7 +526,7 @@ public class AdvancedPhysicsCombatServiceJuggleDecayEngine
             MaxComboLength = 15,
             DecayEfficiency = 0.85f,
             BreakPointFrequency = 0.1f,
-            MeasuredAt = DateTime.UtcNow
+            MeasuredAt = _timeProvider.UtcNow
         };
     }
 }
@@ -530,10 +537,12 @@ public class AdvancedPhysicsCombatServiceJuggleDecayEngine
 public class AdvancedPhysicsCombatServiceCharacterGravityEngine
 {
     private readonly ILogger<AdvancedPhysicsCombatServiceCharacterGravityEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public AdvancedPhysicsCombatServiceCharacterGravityEngine(ILogger<AdvancedPhysicsCombatServiceCharacterGravityEngine> logger)
+    public AdvancedPhysicsCombatServiceCharacterGravityEngine(ILogger<AdvancedPhysicsCombatServiceCharacterGravityEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<AdvancedPhysicsCombatServiceCharacterGravity> CalculateGravityAsync(string characterId, AdvancedPhysicsCombatServiceGravityCalculationRequest request, CancellationToken ct)
@@ -550,7 +559,7 @@ public class AdvancedPhysicsCombatServiceCharacterGravityEngine
             AirControl = 1.0f / characterMultiplier, // Lower gravity = more control
             DashSpeed = 8.0f * characterMultiplier,
             TerminalVelocity = 15.0f * characterMultiplier,
-            CalculatedAt = DateTime.UtcNow
+            CalculatedAt = _timeProvider.UtcNow
         };
     }
 
@@ -573,10 +582,12 @@ public class AdvancedPhysicsCombatServiceCharacterGravityEngine
 public class AdvancedPhysicsCombatServiceWallSplatEngine
 {
     private readonly ILogger<AdvancedPhysicsCombatServiceWallSplatEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public AdvancedPhysicsCombatServiceWallSplatEngine(ILogger<AdvancedPhysicsCombatServiceWallSplatEngine> logger)
+    public AdvancedPhysicsCombatServiceWallSplatEngine(ILogger<AdvancedPhysicsCombatServiceWallSplatEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<AdvancedPhysicsCombatServiceWallSplatResult> ProcessSplatAsync(string characterId, AdvancedPhysicsCombatServiceWallCollision collision, CancellationToken ct)
@@ -599,7 +610,7 @@ public class AdvancedPhysicsCombatServiceWallSplatEngine
             StunDuration = TimeSpan.FromMilliseconds(damage * 10),
             RecoveryWindow = TimeSpan.FromSeconds(2),
             ComboExtensionPossible = damage < 50, // Low damage allows combo extension
-            ProcessedAt = DateTime.UtcNow
+            ProcessedAt = _timeProvider.UtcNow
         };
     }
 
@@ -613,7 +624,7 @@ public class AdvancedPhysicsCombatServiceWallSplatEngine
             AverageDamage = 35.5f,
             BounceEfficiency = 0.75f,
             ComboExtensionRate = 0.6f,
-            MeasuredAt = DateTime.UtcNow
+            MeasuredAt = _timeProvider.UtcNow
         };
     }
 
@@ -639,10 +650,12 @@ public class AdvancedPhysicsCombatServiceWallSplatEngine
 public class AdvancedPhysicsCombatServiceDestructionEngine
 {
     private readonly ILogger<AdvancedPhysicsCombatServiceDestructionEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public AdvancedPhysicsCombatServiceDestructionEngine(ILogger<AdvancedPhysicsCombatServiceDestructionEngine> logger)
+    public AdvancedPhysicsCombatServiceDestructionEngine(ILogger<AdvancedPhysicsCombatServiceDestructionEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<AdvancedPhysicsCombatServiceDestructionResult> ProcessDestructionAsync(string stageId, AdvancedPhysicsCombatServiceDestructionRequest request, CancellationToken ct)
@@ -662,7 +675,7 @@ public class AdvancedPhysicsCombatServiceDestructionEngine
                 AffectedArea = CalculateAffectedArea(request.ImpactLocation),
                 DebrisCount = new Random().Next(5, 15),
                 StageTransformation = true,
-                ProcessedAt = DateTime.UtcNow
+                ProcessedAt = _timeProvider.UtcNow
             };
         }
 
@@ -675,7 +688,7 @@ public class AdvancedPhysicsCombatServiceDestructionEngine
             AffectedArea = new Vector3(0, 0, 0),
             DebrisCount = 0,
             StageTransformation = false,
-            ProcessedAt = DateTime.UtcNow
+            ProcessedAt = _timeProvider.UtcNow
         };
     }
 
@@ -689,7 +702,7 @@ public class AdvancedPhysicsCombatServiceDestructionEngine
             HazardLevelSum = 25,
             AverageAffectedArea = 150.0f,
             TransformationEvents = 3,
-            MeasuredAt = DateTime.UtcNow
+            MeasuredAt = _timeProvider.UtcNow
         };
     }
 

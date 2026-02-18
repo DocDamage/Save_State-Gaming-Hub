@@ -14,6 +14,7 @@ public class AdvancedReportingService : AdvancedReportingServiceIAdvancedReporti
 {
     private readonly ILogger<AdvancedReportingService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, AdvancedReportingServiceReportTemplate> _reportTemplates = new();
     private readonly Dictionary<string, AdvancedReportingServiceDashboard> _dashboards = new();
     private readonly Dictionary<string, AdvancedReportingServiceScheduledReport> _scheduledReports = new();
@@ -25,13 +26,15 @@ public class AdvancedReportingService : AdvancedReportingServiceIAdvancedReporti
     public AdvancedReportingService(
         ILogger<AdvancedReportingService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _reportEngine = new AdvancedReportingServiceReportEngine(loggerFactory.CreateLogger<AdvancedReportingServiceReportEngine>());
-        _dashboardBuilder = new AdvancedReportingServiceDashboardBuilder(loggerFactory.CreateLogger<AdvancedReportingServiceDashboardBuilder>());
-        _visualizationEngine = new AdvancedReportingServiceDataVisualizationEngine(loggerFactory.CreateLogger<AdvancedReportingServiceDataVisualizationEngine>());
+        _timeProvider = timeProvider;
+        _reportEngine = new AdvancedReportingServiceReportEngine(loggerFactory.CreateLogger<AdvancedReportingServiceReportEngine>(), timeProvider);
+        _dashboardBuilder = new AdvancedReportingServiceDashboardBuilder(loggerFactory.CreateLogger<AdvancedReportingServiceDashboardBuilder>(), timeProvider);
+        _visualizationEngine = new AdvancedReportingServiceDataVisualizationEngine(loggerFactory.CreateLogger<AdvancedReportingServiceDataVisualizationEngine>(), timeProvider);
         _reportScheduler = new AdvancedReportingServiceReportScheduler(loggerFactory.CreateLogger<AdvancedReportingServiceReportScheduler>());
 
         InitializeReportTemplates();
@@ -132,8 +135,8 @@ public class AdvancedReportingService : AdvancedReportingServiceIAdvancedReporti
                 Sections = request.Sections,
                 Parameters = request.Parameters,
                 CreatedBy = request.CreatedBy,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
+                UpdatedAt = _timeProvider.UtcNow,
                 IsPublic = request.IsPublic,
                 Tags = request.Tags
             };
@@ -168,7 +171,7 @@ public class AdvancedReportingService : AdvancedReportingServiceIAdvancedReporti
                 Parameters = request.Parameters,
                 IsActive = true,
                 CreatedBy = request.CreatedBy,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 LastRun = null,
                 NextRun = CalculateNextRun(request.AdvancedReportingServiceScheduleType, request.ScheduleConfig),
                 RunCount = 0
@@ -230,13 +233,13 @@ public class AdvancedReportingService : AdvancedReportingServiceIAdvancedReporti
                     ["dashboard_interactions"] = 0.65,
                     ["export_actions"] = 0.45
                 },
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             // Populate trends data into a mutable dictionary then assign to the read-only property
             var trends = new Dictionary<DateTime, int>();
-            var startDate = DateTime.UtcNow.Subtract(period);
-            for (var date = startDate; date <= DateTime.UtcNow; date = date.AddDays(1))
+            var startDate = _timeProvider.UtcNow.Subtract(period);
+            for (var date = startDate; date <= _timeProvider.UtcNow; date = date.AddDays(1))
             {
                 trends[date.Date] = new Random().Next(10, 50);
             }
@@ -267,8 +270,8 @@ public class AdvancedReportingService : AdvancedReportingServiceIAdvancedReporti
                 WidgetTemplates = request.WidgetTemplates,
                 AdvancedReportingServiceLayoutTemplate = request.AdvancedReportingServiceLayoutTemplate,
                 CreatedBy = request.CreatedBy,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
+                UpdatedAt = _timeProvider.UtcNow,
                 IsPublic = request.IsPublic,
                 UsageCount = 0,
                 Tags = request.Tags
@@ -299,7 +302,7 @@ public class AdvancedReportingService : AdvancedReportingServiceIAdvancedReporti
                 Recipients = request.Recipients,
                 Permissions = request.Permissions,
                 ExpiresAt = request.ExpiresAt,
-                SharedAt = DateTime.UtcNow,
+                SharedAt = _timeProvider.UtcNow,
                 AccessCount = 0,
                 LastAccessed = null
             };
@@ -356,8 +359,8 @@ public class AdvancedReportingService : AdvancedReportingServiceIAdvancedReporti
                 ["date_range"] = "last_30_days"
             },
             CreatedBy = "system",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
+            UpdatedAt = _timeProvider.UtcNow,
             IsPublic = true,
             Tags = new[] { "analytics", "users", "engagement" }
         };
@@ -369,10 +372,10 @@ public class AdvancedReportingService : AdvancedReportingServiceIAdvancedReporti
     {
         return scheduleType switch
         {
-            AdvancedReportingServiceScheduleType.Daily => DateTime.UtcNow.AddDays(1),
-            AdvancedReportingServiceScheduleType.Weekly => DateTime.UtcNow.AddDays(7),
-            AdvancedReportingServiceScheduleType.Monthly => DateTime.UtcNow.AddMonths(1),
-            _ => DateTime.UtcNow.AddHours(1)
+            AdvancedReportingServiceScheduleType.Daily => _timeProvider.UtcNow.AddDays(1),
+            AdvancedReportingServiceScheduleType.Weekly => _timeProvider.UtcNow.AddDays(7),
+            AdvancedReportingServiceScheduleType.Monthly => _timeProvider.UtcNow.AddMonths(1),
+            _ => _timeProvider.UtcNow.AddHours(1)
         };
     }
 
@@ -385,10 +388,12 @@ public class AdvancedReportingService : AdvancedReportingServiceIAdvancedReporti
 public class AdvancedReportingServiceReportEngine
 {
     private readonly ILogger<AdvancedReportingServiceReportEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public AdvancedReportingServiceReportEngine(ILogger<AdvancedReportingServiceReportEngine> logger)
+    public AdvancedReportingServiceReportEngine(ILogger<AdvancedReportingServiceReportEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<AdvancedReportingServiceReport> GenerateReportAsync(AdvancedReportingServiceReportRequest request, CancellationToken ct)
@@ -403,7 +408,7 @@ public class AdvancedReportingServiceReportEngine
                 Content = new Dictionary<string, object>
                 {
                     ["title"] = "MUGEN Analytics AdvancedReportingServiceReport",
-                    ["generated_date"] = DateTime.UtcNow,
+                    ["generated_date"] = _timeProvider.UtcNow,
                     ["period"] = $"{request.StartDate:d} - {request.EndDate:d}"
                 },
                 Charts = new List<AdvancedReportingServiceChartData>(),
@@ -431,7 +436,7 @@ public class AdvancedReportingServiceReportEngine
                             new AdvancedReportingServiceDataPoint { X = "Feb", Y = 1250 },
                             new AdvancedReportingServiceDataPoint { X = "Mar", Y = 1500 }
                         },
-                        GeneratedAt = DateTime.UtcNow
+                        GeneratedAt = _timeProvider.UtcNow
                     }
                 },
                 Tables = new List<AdvancedReportingServiceTableData>
@@ -460,7 +465,7 @@ public class AdvancedReportingServiceReportEngine
             StartDate = request.StartDate,
             EndDate = request.EndDate,
             GeneratedBy = "system",
-            GeneratedAt = DateTime.UtcNow,
+            GeneratedAt = _timeProvider.UtcNow,
             Pages = pages,
             Metadata = new Dictionary<string, object>
             {
@@ -480,10 +485,10 @@ public class AdvancedReportingServiceReportEngine
             ReportId = reportId,
             ReportType = AdvancedReportingServiceReportingReportType.UserAnalytics,
             Title = "Exported AdvancedReportingServiceReport",
-            StartDate = DateTime.UtcNow.AddDays(-30),
-            EndDate = DateTime.UtcNow,
+            StartDate = _timeProvider.UtcNow.AddDays(-30),
+            EndDate = _timeProvider.UtcNow,
             GeneratedBy = "system",
-            GeneratedAt = DateTime.UtcNow,
+            GeneratedAt = _timeProvider.UtcNow,
             Pages = new List<AdvancedReportingServiceReportPage>(),
             Metadata = new Dictionary<string, object>
             {
@@ -500,10 +505,12 @@ public class AdvancedReportingServiceReportEngine
 public class AdvancedReportingServiceDashboardBuilder
 {
     private readonly ILogger<AdvancedReportingServiceDashboardBuilder> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public AdvancedReportingServiceDashboardBuilder(ILogger<AdvancedReportingServiceDashboardBuilder> logger)
+    public AdvancedReportingServiceDashboardBuilder(ILogger<AdvancedReportingServiceDashboardBuilder> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<AdvancedReportingServiceDashboard> CreateDashboardAsync(AdvancedReportingServiceDashboardRequest request, CancellationToken ct)
@@ -553,8 +560,8 @@ public class AdvancedReportingServiceDashboardBuilder
                 Margin = new[] { 10, 10 },
                 ContainerPadding = new[] { 10, 10 }
             },
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
+            UpdatedAt = _timeProvider.UtcNow,
             IsPublic = request.IsPublic,
             Tags = request.Tags,
             RefreshInterval = TimeSpan.FromMinutes(5)
@@ -577,9 +584,9 @@ public class AdvancedReportingServiceDashboardBuilder
                 {
                     ["value"] = new Random().Next(1000, 50000),
                     ["change"] = new Random().Next(-10, 20),
-                    ["timestamp"] = DateTime.UtcNow
+                    ["timestamp"] = _timeProvider.UtcNow
                 },
-                LastUpdated = DateTime.UtcNow
+                LastUpdated = _timeProvider.UtcNow
             };
 
             widgets.Add(widgetData);
@@ -589,7 +596,7 @@ public class AdvancedReportingServiceDashboardBuilder
         {
             DashboardId = dashboard.DashboardId,
             Widgets = widgets,
-            GeneratedAt = DateTime.UtcNow,
+            GeneratedAt = _timeProvider.UtcNow,
             CacheExpiry = TimeSpan.FromMinutes(5)
         };
     }
@@ -601,10 +608,12 @@ public class AdvancedReportingServiceDashboardBuilder
 public class AdvancedReportingServiceDataVisualizationEngine
 {
     private readonly ILogger<AdvancedReportingServiceDataVisualizationEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public AdvancedReportingServiceDataVisualizationEngine(ILogger<AdvancedReportingServiceDataVisualizationEngine> logger)
+    public AdvancedReportingServiceDataVisualizationEngine(ILogger<AdvancedReportingServiceDataVisualizationEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<AdvancedReportingServiceChartData> GenerateChartAsync(AdvancedReportingServiceChartRequest request, CancellationToken ct)
@@ -617,7 +626,7 @@ public class AdvancedReportingServiceDataVisualizationEngine
         {
             dataPoints.Add(new AdvancedReportingServiceDataPoint
             {
-                X = DateTime.UtcNow.AddDays(-30 + i).ToString("yyyy-MM-dd"),
+                X = _timeProvider.UtcNow.AddDays(-30 + i).ToString("yyyy-MM-dd"),
                 Y = new Random().Next(100, 1000)
             });
         }
@@ -630,7 +639,7 @@ public class AdvancedReportingServiceDataVisualizationEngine
             DataPoints = dataPoints,
             XAxisLabel = "Date",
             YAxisLabel = request.Metric,
-            GeneratedAt = DateTime.UtcNow
+            GeneratedAt = _timeProvider.UtcNow
         };
     }
 }

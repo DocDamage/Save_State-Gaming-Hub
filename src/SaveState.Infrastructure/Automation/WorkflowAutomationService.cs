@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Automation.Services;
 using SaveState.Core.Automation.Services.DTOs;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using System.Collections.Concurrent;
 
 namespace SaveState.Infrastructure.Automation;
@@ -14,6 +15,7 @@ namespace SaveState.Infrastructure.Automation;
 public class WorkflowAutomationService : IWorkflowAutomationService
 {
     private readonly ILogger<WorkflowAutomationService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly ConcurrentDictionary<Guid, Workflow> _workflows = new();
     private readonly ConcurrentDictionary<Guid, List<WorkflowExecutionResult>> _executionHistory = new();
 
@@ -21,9 +23,10 @@ public class WorkflowAutomationService : IWorkflowAutomationService
     public event EventHandler<WorkflowExecutionCompletedEventArgs>? WorkflowExecutionCompleted;
     public event EventHandler<WorkflowStepExecutedEventArgs>? WorkflowStepExecuted;
 
-    public WorkflowAutomationService(ILogger<WorkflowAutomationService> logger)
+    public WorkflowAutomationService(ILogger<WorkflowAutomationService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public Task<Result<Workflow>> CreateWorkflowAsync(WorkflowConfig config, CancellationToken ct = default)
@@ -32,12 +35,12 @@ public class WorkflowAutomationService : IWorkflowAutomationService
         {
             var workflow = new Workflow(
                 Id: Guid.NewGuid(),
-                Name: $"Workflow_{DateTime.UtcNow:yyyyMMddHHmmss}",
+                Name: $"Workflow_{_timeProvider.UtcNow:yyyyMMddHHmmss}",
                 Description: $"Automated workflow with {config.Steps.Count} steps",
                 Config: config,
                 IsEnabled: true,
-                CreatedAt: DateTime.UtcNow,
-                LastModified: DateTime.UtcNow);
+                CreatedAt: _timeProvider.UtcNow,
+                LastModified: _timeProvider.UtcNow);
 
             _workflows[workflow.Id] = workflow;
             _executionHistory[workflow.Id] = new List<WorkflowExecutionResult>();
@@ -65,7 +68,7 @@ public class WorkflowAutomationService : IWorkflowAutomationService
             }
 
             var executionId = Guid.NewGuid();
-            var startedAt = DateTime.UtcNow;
+            var startedAt = _timeProvider.UtcNow;
 
             // Simulate step execution
             var stepResults = new List<WorkflowStepResult>();
@@ -79,11 +82,11 @@ public class WorkflowAutomationService : IWorkflowAutomationService
                 WorkflowId: workflowId,
                 ExecutionId: executionId,
                 StartedAt: startedAt,
-                CompletedAt: DateTime.UtcNow,
+                CompletedAt: _timeProvider.UtcNow,
                 Success: true,
                 StepsExecuted: stepResults.Count,
                 StepsSkipped: 0,
-                Duration: DateTime.UtcNow - startedAt,
+                Duration: _timeProvider.UtcNow - startedAt,
                 StepResults: stepResults);
 
             _executionHistory[workflowId].Add(result);
@@ -117,7 +120,7 @@ public class WorkflowAutomationService : IWorkflowAutomationService
             return Task.FromResult(Result.Failure($"Workflow not found: {workflowId}"));
         }
 
-        _workflows[workflowId] = workflow with { Config = config, LastModified = DateTime.UtcNow };
+        _workflows[workflowId] = workflow with { Config = config, LastModified = _timeProvider.UtcNow };
         return Task.FromResult(Result.Success());
     }
 
@@ -166,7 +169,7 @@ public class WorkflowAutomationService : IWorkflowAutomationService
             return Task.FromResult(Result.Failure($"Workflow not found: {workflowId}"));
         }
 
-        _workflows[workflowId] = workflow with { IsEnabled = enabled, LastModified = DateTime.UtcNow };
+        _workflows[workflowId] = workflow with { IsEnabled = enabled, LastModified = _timeProvider.UtcNow };
         return Task.FromResult(Result.Success());
     }
 

@@ -46,6 +46,7 @@ public class NetworkFeaturesService : INetworkFeaturesService
     private readonly ILogger<NetworkFeaturesService> _logger;
     private readonly IMugenEloService _eloService;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly MatchmakingEngine _matchmakingEngine;
     private readonly LobbyEngine _lobbyEngine;
     private readonly SpectatorEngine _spectatorEngine;
@@ -61,15 +62,17 @@ public class NetworkFeaturesService : INetworkFeaturesService
         ILogger<NetworkFeaturesService> logger,
         ILoggerFactory loggerFactory,
         IMugenEloService eloService,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _eloService = eloService;
         _cache = cache;
+        _timeProvider = timeProvider;
 
         // Initialize engines
-        _matchmakingEngine = new MatchmakingEngine(loggerFactory.CreateLogger<MatchmakingEngine>());
-        _lobbyEngine = new LobbyEngine(loggerFactory.CreateLogger<LobbyEngine>());
+        _matchmakingEngine = new MatchmakingEngine(loggerFactory.CreateLogger<MatchmakingEngine>(), _timeProvider);
+        _lobbyEngine = new LobbyEngine(loggerFactory.CreateLogger<LobbyEngine>(), _timeProvider);
         _spectatorEngine = new SpectatorEngine(loggerFactory.CreateLogger<SpectatorEngine>());
         _networkQualityEngine = new NetworkQualityEngine(loggerFactory.CreateLogger<NetworkQualityEngine>());
         _relayServerEngine = new RelayServerEngine(loggerFactory.CreateLogger<RelayServerEngine>());
@@ -107,7 +110,7 @@ public class NetworkFeaturesService : INetworkFeaturesService
                     request.Preferences.AllowCrossplay,
                     request.Preferences.Region),
                 PlayerStats = playerStats.Value,
-                StartTime = DateTime.UtcNow,
+                StartTime = _timeProvider.UtcNow,
                 Timeout = request.Timeout
             };
 
@@ -314,7 +317,7 @@ public class NetworkFeaturesService : INetworkFeaturesService
                 ReportedPlayerId = playerId,
                 Reason = (Models.NetworkFeatures.ReportReason)(int)reason,
                 Description = description,
-                SubmittedAt = DateTime.UtcNow,
+                SubmittedAt = _timeProvider.UtcNow,
                 Status = ReportStatus.Pending
             };
 
@@ -391,7 +394,7 @@ public class NetworkFeaturesService : INetworkFeaturesService
                 SenderName: "Player",
                 Message: message,
                 Channel: channel,
-                Timestamp: DateTime.UtcNow,
+                Timestamp: _timeProvider.UtcNow,
                 TargetId: targetId
             );
 
@@ -494,9 +497,9 @@ public class NetworkFeaturesService : INetworkFeaturesService
     private async Task<Result<CoreMatchmakingResult>> WaitForMatchAsync(MatchmakingSession session, CancellationToken ct)
     {
         await Task.CompletedTask;
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
 
-        while (!ct.IsCancellationRequested && DateTime.UtcNow - startTime < session.Timeout)
+        while (!ct.IsCancellationRequested && _timeProvider.UtcNow - startTime < session.Timeout)
         {
             if (session.MatchFound)
             {
@@ -505,7 +508,7 @@ public class NetworkFeaturesService : INetworkFeaturesService
                     MatchId: session.MatchId!,
                     OpponentId: session.OpponentId!,
                     OpponentName: session.OpponentName!,
-                    WaitTime: DateTime.UtcNow - startTime,
+                    WaitTime: _timeProvider.UtcNow - startTime,
                     ErrorMessage: null
                 ));
             }
@@ -584,8 +587,8 @@ public class NetworkFeaturesService : INetworkFeaturesService
             Rank: "Gold II",
             Achievements: new List<CoreAchievement>
             {
-                new CoreAchievement("First Victory", "Won your first match", DateTime.UtcNow.AddMonths(-6), CoreAchievementRarity.Common),
-                new CoreAchievement("Combo Master", "Executed a 10+ hit combo", DateTime.UtcNow.AddMonths(-3), CoreAchievementRarity.Rare)
+                new CoreAchievement("First Victory", "Won your first match", _timeProvider.UtcNow.AddMonths(-6), CoreAchievementRarity.Common),
+                new CoreAchievement("Combo Master", "Executed a 10+ hit combo", _timeProvider.UtcNow.AddMonths(-3), CoreAchievementRarity.Rare)
             },
             Stats: new CorePlayerStats(
                 TotalMatches: 247,
@@ -620,9 +623,9 @@ public class NetworkFeaturesService : INetworkFeaturesService
         await Task.CompletedTask;
         return new List<CoreFriendInfo>
         {
-            new CoreFriendInfo("friend1", "StreetFighterFan", CoreFriendshipStatus.Accepted, DateTime.UtcNow.AddMonths(-6), true, "Playing Ranked Match"),
-            new CoreFriendInfo("friend2", "CharacterCreator", CoreFriendshipStatus.Accepted, DateTime.UtcNow.AddMonths(-4), false, null),
-            new CoreFriendInfo("friend3", "ComboMaster", CoreFriendshipStatus.Accepted, DateTime.UtcNow.AddMonths(-2), true, "Training Mode")
+            new CoreFriendInfo("friend1", "StreetFighterFan", CoreFriendshipStatus.Accepted, _timeProvider.UtcNow.AddMonths(-6), true, "Playing Ranked Match"),
+            new CoreFriendInfo("friend2", "CharacterCreator", CoreFriendshipStatus.Accepted, _timeProvider.UtcNow.AddMonths(-4), false, null),
+            new CoreFriendInfo("friend3", "ComboMaster", CoreFriendshipStatus.Accepted, _timeProvider.UtcNow.AddMonths(-2), true, "Training Mode")
         };
     }
 
@@ -637,9 +640,9 @@ public class NetworkFeaturesService : INetworkFeaturesService
         await Task.CompletedTask;
         return new List<CoreChatMessage>
         {
-            new CoreChatMessage(Guid.NewGuid().ToString(), "player1", "Player1", "GG everyone!", channel, DateTime.UtcNow.AddMinutes(-5), null),
-            new CoreChatMessage(Guid.NewGuid().ToString(), "player2", "Player2", "Tournament starting soon", channel, DateTime.UtcNow.AddMinutes(-3), null),
-            new CoreChatMessage(Guid.NewGuid().ToString(), "player3", "Player3", "Anyone want to play casual?", channel, DateTime.UtcNow.AddMinutes(-1), null)
+            new CoreChatMessage(Guid.NewGuid().ToString(), "player1", "Player1", "GG everyone!", channel, _timeProvider.UtcNow.AddMinutes(-5), null),
+            new CoreChatMessage(Guid.NewGuid().ToString(), "player2", "Player2", "Tournament starting soon", channel, _timeProvider.UtcNow.AddMinutes(-3), null),
+            new CoreChatMessage(Guid.NewGuid().ToString(), "player3", "Player3", "Anyone want to play casual?", channel, _timeProvider.UtcNow.AddMinutes(-1), null)
         }.Take(count).ToList();
     }
 
@@ -654,7 +657,7 @@ public class NetworkFeaturesService : INetworkFeaturesService
             Player1Character: "Ryu",
             Player2Character: "Ken",
             Data: new byte[1024],
-            RecordedAt: DateTime.UtcNow.AddHours(-1),
+            RecordedAt: _timeProvider.UtcNow.AddHours(-1),
             Duration: TimeSpan.FromMinutes(3)
         );
     }

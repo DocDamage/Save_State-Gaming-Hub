@@ -14,6 +14,7 @@ public class ProgressiveWebAppService : ProgressiveWebAppServiceIProgressiveWebA
 {
     private readonly ILogger<ProgressiveWebAppService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, ProgressiveWebAppServiceWebGameSession> _activeSessions = new();
     private readonly Dictionary<string, ProgressiveWebAppServicePWAUser> _pwaUsers = new();
     private readonly ProgressiveWebAppServiceWebGameEngine _webGameEngine;
@@ -23,13 +24,15 @@ public class ProgressiveWebAppService : ProgressiveWebAppServiceIProgressiveWebA
     public ProgressiveWebAppService(
         ILogger<ProgressiveWebAppService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _webGameEngine = new ProgressiveWebAppServiceWebGameEngine(loggerFactory.CreateLogger<ProgressiveWebAppServiceWebGameEngine>());
+        _timeProvider = timeProvider;
+        _webGameEngine = new ProgressiveWebAppServiceWebGameEngine(loggerFactory.CreateLogger<ProgressiveWebAppServiceWebGameEngine>(), timeProvider);
         _resourceManager = new ProgressiveWebAppServicePWAResourceManager(loggerFactory.CreateLogger<ProgressiveWebAppServicePWAResourceManager>());
-        _offlineSyncManager = new ProgressiveWebAppServiceOfflineSyncManager(loggerFactory.CreateLogger<ProgressiveWebAppServiceOfflineSyncManager>());
+        _offlineSyncManager = new ProgressiveWebAppServiceOfflineSyncManager(loggerFactory.CreateLogger<ProgressiveWebAppServiceOfflineSyncManager>(), timeProvider);
     }
 
     public async Task<Result<ProgressiveWebAppServiceWebGameSession>> InitializeWebSessionAsync(ProgressiveWebAppServiceWebSessionRequest request, CancellationToken ct = default)
@@ -69,8 +72,8 @@ public class ProgressiveWebAppService : ProgressiveWebAppServiceIProgressiveWebA
                     ProgressiveWebAppServiceNetworkStatus = ProgressiveWebAppServiceNetworkStatus.Online
                 },
                 ResourcesLoaded = new List<string>(),
-                StartTime = DateTime.UtcNow,
-                LastActivity = DateTime.UtcNow,
+                StartTime = _timeProvider.UtcNow,
+                LastActivity = _timeProvider.UtcNow,
                 IsOfflineCapable = compatibility.Capabilities.OfflineSupport
             };
 
@@ -82,8 +85,8 @@ public class ProgressiveWebAppService : ProgressiveWebAppServiceIProgressiveWebA
                 _pwaUsers[request.UserId] = new ProgressiveWebAppServicePWAUser
                 {
                     UserId = request.UserId,
-                    InstallDate = DateTime.UtcNow,
-                    LastLogin = DateTime.UtcNow,
+                    InstallDate = _timeProvider.UtcNow,
+                    LastLogin = _timeProvider.UtcNow,
                     SessionsPlayed = 0,
                     TotalPlayTime = TimeSpan.Zero,
                     PreferredDevice = request.ProgressiveWebAppServiceDeviceType,
@@ -124,7 +127,7 @@ public class ProgressiveWebAppService : ProgressiveWebAppServiceIProgressiveWebA
             var update = await _webGameEngine.ProcessInputAsync(session, input, ct);
 
             // Update session activity
-            session.LastActivity = DateTime.UtcNow;
+            session.LastActivity = _timeProvider.UtcNow;
 
             // Update performance metrics
             await UpdatePerformanceMetricsAsync(session, ct);
@@ -220,7 +223,7 @@ public class ProgressiveWebAppService : ProgressiveWebAppServiceIProgressiveWebA
             {
                 pwaUser.SessionsPlayed++;
                 pwaUser.TotalPlayTime += progressData.PlayTime;
-                pwaUser.LastLogin = DateTime.UtcNow;
+                pwaUser.LastLogin = _timeProvider.UtcNow;
             }
 
             _logger.LogInformation("Offline progress synced successfully");
@@ -268,7 +271,7 @@ public class ProgressiveWebAppService : ProgressiveWebAppServiceIProgressiveWebA
                 {
                     new ProgressiveWebAppServicePWARelatedApps { Platform = "windows", Url = "https://store.microsoft.com/store/apps/9N1234567890" }
                 },
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("PWA install manifest generated");
@@ -318,7 +321,7 @@ public class ProgressiveWebAppService : ProgressiveWebAppServiceIProgressiveWebA
                 UserId = userId,
                 Format = format,
                 Data = await GatherUserDataAsync(userId, format, ct),
-                ExportedAt = DateTime.UtcNow,
+                ExportedAt = _timeProvider.UtcNow,
                 Version = "1.0.0",
                 CompatiblePlatforms = new[] { "web", "desktop", "mobile" }
             };
@@ -463,10 +466,12 @@ public class ProgressiveWebAppService : ProgressiveWebAppServiceIProgressiveWebA
 public class ProgressiveWebAppServiceWebGameEngine
 {
     private readonly ILogger<ProgressiveWebAppServiceWebGameEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public ProgressiveWebAppServiceWebGameEngine(ILogger<ProgressiveWebAppServiceWebGameEngine> logger)
+    public ProgressiveWebAppServiceWebGameEngine(ILogger<ProgressiveWebAppServiceWebGameEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<ProgressiveWebAppServiceGameUpdate> ProcessInputAsync(ProgressiveWebAppServiceWebGameSession session, ProgressiveWebAppServiceGameInput input, CancellationToken ct)
@@ -475,7 +480,7 @@ public class ProgressiveWebAppServiceWebGameEngine
         return new ProgressiveWebAppServiceGameUpdate
         {
             SessionId = session.SessionId,
-            Timestamp = DateTime.UtcNow,
+            Timestamp = _timeProvider.UtcNow,
             GameStateChanges = new Dictionary<string, object>
             {
                 ["playerPosition"] = new { x = 100, y = 200 },
@@ -519,10 +524,12 @@ public class ProgressiveWebAppServicePWAResourceManager
 public class ProgressiveWebAppServiceOfflineSyncManager
 {
     private readonly ILogger<ProgressiveWebAppServiceOfflineSyncManager> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public ProgressiveWebAppServiceOfflineSyncManager(ILogger<ProgressiveWebAppServiceOfflineSyncManager> logger)
+    public ProgressiveWebAppServiceOfflineSyncManager(ILogger<ProgressiveWebAppServiceOfflineSyncManager> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<ProgressiveWebAppServiceOfflineGameData> PrepareOfflineGameAsync(string userId, ProgressiveWebAppServiceOfflineGameRequest request, CancellationToken ct)
@@ -537,7 +544,7 @@ public class ProgressiveWebAppServiceOfflineSyncManager
             },
             CachedResources = new[] { "game_engine.js", "characters.zip" },
             SyncToken = Guid.NewGuid().ToString(),
-            ExpiresAt = DateTime.UtcNow.AddDays(7)
+            ExpiresAt = _timeProvider.UtcNow.AddDays(7)
         };
     }
 

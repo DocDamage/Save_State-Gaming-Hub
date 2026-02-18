@@ -14,6 +14,7 @@ public class MugenPrizePoolService : MugenPrizePoolServiceIMugenPrizePoolService
 {
     private readonly ILogger<MugenPrizePoolService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, MugenPrizePoolServicePrizePool> _activePrizePools = new();
     private readonly Dictionary<string, MugenPrizePoolServiceTournamentEntry> _tournamentEntries = new();
     private readonly MugenPrizePoolServicePaymentProcessor _paymentProcessor;
@@ -22,12 +23,14 @@ public class MugenPrizePoolService : MugenPrizePoolServiceIMugenPrizePoolService
     public MugenPrizePoolService(
         ILogger<MugenPrizePoolService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _paymentProcessor = new MugenPrizePoolServicePaymentProcessor(loggerFactory.CreateLogger<MugenPrizePoolServicePaymentProcessor>());
-        _distributionEngine = new MugenPrizePoolServicePrizeDistributionEngine(loggerFactory.CreateLogger<MugenPrizePoolServicePrizeDistributionEngine>());
+        _timeProvider = timeProvider;
+        _paymentProcessor = new MugenPrizePoolServicePaymentProcessor(loggerFactory.CreateLogger<MugenPrizePoolServicePaymentProcessor>(), timeProvider);
+        _distributionEngine = new MugenPrizePoolServicePrizeDistributionEngine(loggerFactory.CreateLogger<MugenPrizePoolServicePrizeDistributionEngine>(), timeProvider);
     }
 
     public async Task<Result<MugenPrizePoolServicePrizePool>> CreatePrizePoolAsync(MugenPrizePoolServicePrizePoolCreationRequest request, CancellationToken ct = default)
@@ -50,7 +53,7 @@ public class MugenPrizePoolService : MugenPrizePoolServiceIMugenPrizePoolService
                 MugenPrizePoolServicePrizeDistribution = request.MugenPrizePoolServicePrizeDistribution,
                 Sponsors = new List<MugenPrizePoolServiceSponsorContribution>(),
                 Status = MugenPrizePoolServicePrizePoolStatus.Open,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 EntryDeadline = request.EntryDeadline,
                 Funds = new MugenPrizePoolServicePrizePoolFunds
                 {
@@ -74,7 +77,7 @@ public class MugenPrizePoolService : MugenPrizePoolServiceIMugenPrizePoolService
                     Type = MugenPrizePoolServiceTransactionType.HouseContribution,
                     Amount = request.GuaranteedPrize,
                     Description = "Guaranteed prize pool contribution",
-                    Timestamp = DateTime.UtcNow,
+                    Timestamp = _timeProvider.UtcNow,
                     Processed = true
                 };
 
@@ -146,7 +149,7 @@ public class MugenPrizePoolService : MugenPrizePoolServiceIMugenPrizePoolService
                 PrizePoolId = request.PrizePoolId,
                 PlayerId = request.PlayerId,
                 EntryFee = prizePool.EntryFee,
-                EntryTime = DateTime.UtcNow,
+                EntryTime = _timeProvider.UtcNow,
                 PaymentId = paymentValue.TransactionId,
                 Status = MugenPrizePoolServiceEntryStatus.Confirmed
             };
@@ -163,7 +166,7 @@ public class MugenPrizePoolService : MugenPrizePoolServiceIMugenPrizePoolService
                 Type = MugenPrizePoolServiceTransactionType.EntryFee,
                 Amount = prizePool.EntryFee,
                 Description = $"Entry fee from {request.PlayerId}",
-                Timestamp = DateTime.UtcNow,
+                Timestamp = _timeProvider.UtcNow,
                 Processed = true,
                 PlayerId = request.PlayerId
             };
@@ -216,9 +219,9 @@ public class MugenPrizePoolService : MugenPrizePoolServiceIMugenPrizePoolService
                 SponsorId = request.SponsorId,
                 SponsorName = request.SponsorName,
                 Amount = request.Amount,
-                AgreedAt = DateTime.UtcNow,
+                AgreedAt = _timeProvider.UtcNow,
                 PaymentId = paymentValue.TransactionId,
-                ContributionDate = DateTime.UtcNow,
+                ContributionDate = _timeProvider.UtcNow,
                 LogoUrl = request.LogoUrl,
                 WebsiteUrl = request.WebsiteUrl,
                 VisibilityLevel = request.VisibilityLevel
@@ -235,7 +238,7 @@ public class MugenPrizePoolService : MugenPrizePoolServiceIMugenPrizePoolService
                 Type = MugenPrizePoolServiceTransactionType.Sponsorship,
                 Amount = request.Amount,
                 Description = $"Sponsorship from {request.SponsorName}",
-                Timestamp = DateTime.UtcNow,
+                Timestamp = _timeProvider.UtcNow,
                 Processed = true,
                 SponsorId = request.SponsorId
             };
@@ -323,7 +326,7 @@ public class MugenPrizePoolService : MugenPrizePoolServiceIMugenPrizePoolService
                         Type = MugenPrizePoolServiceTransactionType.PrizePayout,
                         Amount = -prizeAmount, // Negative for payouts
                         Description = $"{result.Placement} place prize to {result.PlayerId}",
-                        Timestamp = DateTime.UtcNow,
+                        Timestamp = _timeProvider.UtcNow,
                         Processed = true,
                         PlayerId = result.PlayerId
                     };
@@ -334,7 +337,7 @@ public class MugenPrizePoolService : MugenPrizePoolServiceIMugenPrizePoolService
 
             // Close prize pool
             prizePool.Status = MugenPrizePoolServicePrizePoolStatus.Distributed;
-            prizePool.DistributedAt = DateTime.UtcNow;
+            prizePool.DistributedAt = _timeProvider.UtcNow;
 
             await UpdatePrizePoolCacheAsync(prizePool, ct);
 
@@ -447,11 +450,13 @@ public class MugenPrizePoolService : MugenPrizePoolServiceIMugenPrizePoolService
 public class MugenPrizePoolServicePaymentProcessor
 {
     private readonly ILogger<MugenPrizePoolServicePaymentProcessor> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, MugenPrizePoolServicePaymentTransaction> _transactions = new();
 
-    public MugenPrizePoolServicePaymentProcessor(ILogger<MugenPrizePoolServicePaymentProcessor> logger)
+    public MugenPrizePoolServicePaymentProcessor(ILogger<MugenPrizePoolServicePaymentProcessor> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<MugenPrizePoolServicePaymentResult>> ProcessPaymentAsync(
@@ -476,7 +481,7 @@ public class MugenPrizePoolServicePaymentProcessor
                 Amount = amount,
                 Method = method,
                 Description = description,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = _timeProvider.UtcNow,
                 Status = MugenPrizePoolServicePaymentStatus.Completed
             };
 
@@ -487,7 +492,7 @@ public class MugenPrizePoolServicePaymentProcessor
                 TransactionId = transactionId,
                 Amount = amount,
                 Status = MugenPrizePoolServicePaymentStatus.Completed,
-                ProcessedAt = DateTime.UtcNow
+                ProcessedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Payment processed: {TransactionId}", transactionId);
@@ -518,7 +523,7 @@ public class MugenPrizePoolServicePaymentProcessor
                 RecipientId = recipientId,
                 Amount = amount,
                 Status = MugenPrizePoolServicePayoutStatus.Completed,
-                ProcessedAt = DateTime.UtcNow,
+                ProcessedAt = _timeProvider.UtcNow,
                 TransactionId = Guid.NewGuid().ToString()
             };
 
@@ -539,10 +544,12 @@ public class MugenPrizePoolServicePaymentProcessor
 public class MugenPrizePoolServicePrizeDistributionEngine
 {
     private readonly ILogger<MugenPrizePoolServicePrizeDistributionEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public MugenPrizePoolServicePrizeDistributionEngine(ILogger<MugenPrizePoolServicePrizeDistributionEngine> logger)
+    public MugenPrizePoolServicePrizeDistributionEngine(ILogger<MugenPrizePoolServicePrizeDistributionEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<MugenPrizePoolServicePrizeDistribution>> CalculateDistributionAsync(MugenPrizePoolServicePrizePool prizePool, CancellationToken ct = default)
@@ -556,7 +563,7 @@ public class MugenPrizePoolServicePrizeDistributionEngine
                 TotalPool = prizePool.Funds.TotalAvailable,
                 HouseCut = prizePool.Funds.TotalAvailable * prizePool.HousePercentage,
                 Prizes = new List<MugenPrizePoolServicePrizeTier>(),
-                CalculatedAt = DateTime.UtcNow
+                CalculatedAt = _timeProvider.UtcNow
             };
 
             var distributableAmount = prizePool.Funds.TotalAvailable - distribution.HouseCut;

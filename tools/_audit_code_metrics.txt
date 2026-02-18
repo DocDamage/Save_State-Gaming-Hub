@@ -1,0 +1,168 @@
+TIME_METRICS utc=964 now=2 itimeprovider=271
+TIME_NOW_SAMPLE
+src\SaveState.Plugins.GameBackupManager\GameBackupManagerPlugin.cs:58:            //     var zipPath = Path.Combine(_backupRoot, $"{gameTitle}_{DateTime.Now:yyyyMMddHHmmss}.zip");
+src\SaveState.Core\Common\Services\ITimeProvider.cs:55:    public DateTime Now => DateTime.Now;
+TIME_UTC_SAMPLE
+src\SaveState.Infrastructure\Blockchain\DecentralizedSaveStateNetwork.cs:85:                (g.ExpiresAt == null || g.ExpiresAt > DateTime.UtcNow));
+src\SaveState.Infrastructure\Blockchain\DecentralizedSaveStateNetwork.cs:224:            (g.ExpiresAt == null || g.ExpiresAt > DateTime.UtcNow));
+src\SaveState.Infrastructure\Blockchain\DecentralizedSaveStateNetwork.cs:303:            ConfirmedAt = DateTime.UtcNow.AddMinutes(-10)
+src\SaveState.Infrastructure\Blockchain\BlockchainAchievementRegistry.cs:124:            MintedAt = DateTime.UtcNow
+src\SaveState.Infrastructure\Blockchain\BlockchainAchievementRegistry.cs:179:            ConfirmedAt = DateTime.UtcNow.AddMinutes(-5)
+src\SaveState.Plugins.GamingAnalytics\GamingAnalyticsPlugin.cs:556:        var startDate = DateTime.UtcNow.AddDays(-days);
+src\SaveState.Plugins.GamingAnalytics\GamingAnalyticsPlugin.cs:616:                LastUpdated = DateTime.UtcNow
+src\SaveState.Plugins.DiscordRPC\DiscordRPCPlugin.cs:95:        _sessionStartTime = DateTime.UtcNow;
+src\SaveState.Core\Ai\Services\DTOs\SpeechRecognitionResult.cs:53:    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+src\SaveState.Core\Ai\Services\DTOs\SpeechRecognitionResult.cs:63:    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+src\SaveState.Plugins.DiscordIntegration\DiscordIntegrationPlugin.cs:512:                startTimestamp: DateTime.UtcNow);
+src\SaveState.Infrastructure\Automation\MacroService.cs:91:                    StartedAt: DateTime.UtcNow,
+src\SaveState.Infrastructure\Automation\MacroService.cs:141:                UpdatedAt: DateTime.UtcNow);
+src\SaveState.Infrastructure\Automation\MacroService.cs:194:                StartedAt: DateTime.UtcNow,
+src\SaveState.Infrastructure\Automation\MacroService.cs:195:                CompletedAt: DateTime.UtcNow,
+src\SaveState.Infrastructure\Automation\MacroService.cs:263:        _macros[macroId] = macro with { Name = name, Description = description, UpdatedAt = DateTime.UtcNow };
+src\SaveState.Infrastructure\UserManagement\JwtTokenService.cs:37:            expires: DateTime.UtcNow.AddMinutes(_options.AccessTokenExpirationMinutes),
+src\SaveState.Infrastructure\UserManagement\JwtTokenService.cs:60:            expires: DateTime.UtcNow.AddDays(_options.RefreshTokenExpirationDays),
+src\SaveState.Core\Ai\Knowledge\KnowledgeRecord.cs:24:        IndexedAt = DateTime.UtcNow;
+src\SaveState.Core\Ai\Knowledge\KnowledgeRecord.cs:45:        LastAccessedAt = DateTime.UtcNow;
+ASYNC_METRICS getawaiter_getresult=0 wait_calls=0 raw_result_wait_getawaiter=60
+ASYNC_GETRESULT_MATCHES
+ASYNC_WAIT_MATCHES
+ASYNC_RAW_SAMPLE
+src\SaveState.CLI\Handlers\Mugen\BattleHandler.cs:49:                match.Result.ToString(),
+src\SaveState.Presentation\ViewModels\Shell\VoiceControlViewModel.cs:336:        LastRecognizedText = e.Result.RecognizedText;
+src\SaveState.Presentation\ViewModels\Shell\VoiceControlViewModel.cs:337:        StatusMessage = $"Recognized: {e.Result.RecognizedText}";
+src\SaveState.Presentation\ViewModels\Shell\VoiceControlViewModel.cs:343:        RecentTranscriptions.Add($"{_timeProvider.Now:HH:mm:ss} - {e.Result.RecognizedText}");
+src\SaveState.Presentation\ViewModels\Shell\VoiceControlViewModel.cs:354:        LastRecognizedText = e.Result.RecognizedText;
+src\SaveState.Presentation\ViewModels\Shell\VoiceControlViewModel.cs:355:        LastConfidence = e.Result.Confidence;
+src\SaveState.Presentation\ViewModels\Shell\VoiceControlViewModel.cs:358:        var confidencePercent = e.Result.Confidence * 100;
+src\SaveState.Presentation\ViewModels\Shell\VoiceControlViewModel.cs:361:        if (e.Result.Confidence >= 0.8f)
+src\SaveState.Presentation\ViewModels\Shell\VoiceControlViewModel.cs:365:        else if (e.Result.Confidence >= 0.5f)
+src\SaveState.Presentation\ViewModels\Shell\VoiceControlViewModel.cs:374:                e.Result.Confidence, e.Result.RecognizedText);
+src\SaveState.Presentation\ViewModels\Shell\VoiceControlViewModel.cs:376:                $"Low confidence result ({confidencePercent:F0}%): \"{e.Result.RecognizedText}\"",
+src\SaveState.Presentation\ViewModels\Shell\VoiceControlViewModel.cs:384:        RecentTranscriptions.Add($"{_timeProvider.Now:HH:mm:ss} [{ConfidenceQuality}] - {e.Result.RecognizedText}");
+src\SaveState.Presentation\ViewModels\Shell\MugenHubViewModel.Statistics.cs:59:                        match.Result,
+src\SaveState.Presentation\ViewModels\Shell\MugenHubViewModel.Statistics.cs:179:                UpdateRecord(stats, match.Player1CharacterId, match.Result == MatchResult.Player1Win);
+src\SaveState.Presentation\ViewModels\Shell\MugenHubViewModel.Statistics.cs:180:                UpdateRecord(stats, match.Player2CharacterId, match.Result == MatchResult.Player2Win);
+src\SaveState.Presentation\Views\Dialogs\WorkflowCreationDialog.axaml.cs:19:            Close(vm.Result);
+src\SaveState.Presentation\Views\Dialogs\TaskCreationDialog.axaml.cs:19:            Close(vm.Result);
+src\SaveState.Presentation\Views\Dialogs\MacroRecorderDialog.axaml.cs:19:            Close(vm.Result);
+src\SaveState.Presentation\Views\Dialogs\ConflictResolutionDialog.axaml.cs:20:            Close(viewModel.Result);
+src\SaveState.Presentation\ViewModels\Shell\Mugen\MugenMiscViewModels.cs:122:                        match.Result,
+src\SaveState.Presentation\ViewModels\Shell\Mugen\MugenMiscViewModels.cs:144:                UpdateLocalRecord(stats, match.Player1CharacterId, match.Result == MatchResult.Player1Win);
+src\SaveState.Presentation\ViewModels\Shell\Mugen\MugenMiscViewModels.cs:145:                UpdateLocalRecord(stats, match.Player2CharacterId, match.Result == MatchResult.Player2Win);
+src\SaveState.Presentation\ViewModels\Shell\Mugen\MugenMiscViewModels.cs:366:                 MatchTitle = $"P1 vs P2 - {match.Result}",
+src\SaveState.Presentation\Views\Dialogs\CloudProviderConfigDialog.axaml.cs:20:            Close(viewModel.Result);
+src\SaveState.Presentation\ViewModels\Shell\AiAssistantViewModel.cs:130:        if (!string.IsNullOrEmpty(e.Result.RecognizedText))
+src\SaveState.Presentation\ViewModels\Shell\AiAssistantViewModel.cs:136:            InputText = (InputText + " " + e.Result.RecognizedText).Trim();
+src\SaveState.Infrastructure\Repositories\MugenMatchHistoryRepository.cs:211:                var character1Won = match.Result == MatchResult.Player1Win;
+src\SaveState.Infrastructure\Repositories\MugenMatchHistoryRepository.cs:212:                var wasDraw = match.Result == MatchResult.Draw || match.Result == MatchResult.Timeout;
+src\SaveState.Infrastructure\Mugen\MugenStatsService.cs:38:            var wins = matches.Count(m => m.Result == MatchResult.Player1Win || m.Result == MatchResult.Player2Win); // Total wins is just total matches if no draws
+src\SaveState.Infrastructure\Mugen\MugenStatsService.cs:39:            var totalWins = matches.Count(m => m.Result == MatchResult.Player1Win); // Just a heuristic
+src\SaveState.Infrastructure\Mugen\MugenStatsService.cs:59:                    (Id: m.Player1CharacterId, Win: m.Result == MatchResult.Player1Win),
+src\SaveState.Infrastructure\Mugen\MugenStatsService.cs:60:                    (Id: m.Player2CharacterId, Win: m.Result == MatchResult.Player2Win) })
+src\SaveState.Infrastructure\Mugen\MugenStatsService.cs:102:                (m.Player1CharacterId == characterId && m.Result == MatchResult.Player1Win) ||
+src\SaveState.Infrastructure\Mugen\MugenStatsService.cs:103:                (m.Player2CharacterId == characterId && m.Result == MatchResult.Player2Win));
+src\SaveState.Infrastructure\Mugen\MugenStatsService.cs:117:                        (m.Player1CharacterId == characterId && m.Result == MatchResult.Player1Win) ||
+src\SaveState.Infrastructure\Mugen\MugenStatsService.cs:118:                        (m.Player2CharacterId == characterId && m.Result == MatchResult.Player2Win))
+src\SaveState.Infrastructure\Mugen\MugenStatsService.cs:175:                        (m.Player1CharacterId == characterId && m.Result == MatchResult.Player1Win) ||
+src\SaveState.Infrastructure\Mugen\MugenStatsService.cs:176:                        (m.Player2CharacterId == characterId && m.Result == MatchResult.Player2Win));
+src\SaveState.Infrastructure\Mugen\MugenEloService.cs:51:                var score1 = GetScore(match.Result, true);
+src\SaveState.Infrastructure\Mugen\MugenEloService.cs:52:                var score2 = GetScore(match.Result, false);
+src\SaveState.Infrastructure\Mugen\MatchPredictionEngine.cs:97:                actualResult.Result);
+src\SaveState.Infrastructure\Intelligence\Search\UniversalSearchService.cs:105:            .ContinueWith(t => Result.Success<IReadOnlyList<ActionSearchResult>>(t.Result));
+src\SaveState.Infrastructure\Intelligence\Search\UniversalSearchService.cs:117:            .ContinueWith(t => Result.Success<IReadOnlyList<ContentSearchResult>>(t.Result));
+src\SaveState.Infrastructure\Input\VoiceCommandService.cs:561:        if (e.Result.IsFinal)
+src\SaveState.Infrastructure\Input\VoiceCommandService.cs:564:            _ = ProcessVoiceCommandAsync(e.Result.RecognizedText);
+src\SaveState.Presentation\Services\Performance\VirtualizedCollection.cs:83:        var awaiter = task.GetAwaiter();
+src\SaveState.Core\Common\Services\IAccessibilityService.cs:115:    Task<Core.Common.Result<AccessibilitySettings>> GetCurrentSettingsAsync(CancellationToken ct = default);
+src\SaveState.Infrastructure\Services\AccessibilityService.cs:463:    public async Task<SaveState.Core.Common.Result<AccessibilitySettings>> GetCurrentSettingsAsync(CancellationToken ct = default)
+src\SaveState.Infrastructure\Services\AccessibilityService.cs:476:            return await Task.FromResult(SaveState.Core.Common.Result.Success<AccessibilitySettings>(settings));
+src\SaveState.Infrastructure\Services\AccessibilityService.cs:481:            return await Task.FromResult(SaveState.Core.Common.Result.Failure<AccessibilitySettings>(
+src\SaveState.Infrastructure\Persistence\Configurations\MugenMatchHistoryConfiguration.cs:24:        builder.Property(m => m.Result)
+src\SaveState.Application\Mugen\Services\AdvancedAiService.cs:592:        var winnerId = result.Result == MatchResult.Player1Win ? result.Player1CharacterId : result.Player2CharacterId;
+src\SaveState.Application\Mugen\Services\AdvancedAiService.cs:593:        var loserId = result.Result == MatchResult.Player1Win ? result.Player2CharacterId : result.Player1CharacterId;
+src\SaveState.Application\Mugen\Services\NeuralNetwork.cs:75:            var actualOutcome = result.Result == MatchResult.Player1Win ? 1.0 : 0.0;
+src\SaveState.Application\Mugen\Services\PredictiveAnalyticsEngine.cs:363:            (m.Player1Id == playerId && m.Result == MatchResult.Player1Win) ||
+src\SaveState.Application\Mugen\Services\PredictiveAnalyticsEngine.cs:364:            (m.Player2Id == playerId && m.Result == MatchResult.Player2Win));
+src\SaveState.Application\Mugen\Services\PredictiveAnalyticsEngine.cs:372:                (m.Player1Id == playerId && m.Result == MatchResult.Player1Win) ||
+src\SaveState.Application\Mugen\Services\PredictiveAnalyticsEngine.cs:373:                (m.Player2Id == playerId && m.Result == MatchResult.Player2Win)) / (double)recentMatches.Count : 0.5;
+src\SaveState.Application\Mugen\Services\PredictiveAnalyticsEngine.cs:478:                    (m.Player1Id == playerId && m.Result == MatchResult.Player1Win) ||
+src\SaveState.Application\Mugen\Services\PredictiveAnalyticsEngine.cs:479:                    (m.Player2Id == playerId && m.Result == MatchResult.Player2Win));
+SUPPRESSION_METRICS nowarn_entries=36 nowarn_projects=26 pragma_disable=8
+NOWARN_PROJECTS
+src\SaveState.Application\SaveState.Application.csproj
+src\SaveState.CLI\SaveState.CLI.csproj
+src\SaveState.Core\SaveState.Core.csproj
+src\SaveState.Infrastructure\SaveState.Infrastructure.csproj
+src\SaveState.Plugins.Accessibility\SaveState.Plugins.Accessibility.csproj
+src\SaveState.Plugins.DiscordIntegration\SaveState.Plugins.DiscordIntegration.csproj
+src\SaveState.Plugins.Example\SaveState.Plugins.Example.csproj
+src\SaveState.Plugins.GameDetection\SaveState.Plugins.GameDetection.csproj
+src\SaveState.Plugins.GamingAnalytics\SaveState.Plugins.GamingAnalytics.csproj
+src\SaveState.Plugins.GoogleDriveSync\SaveState.Plugins.GoogleDriveSync.csproj
+src\SaveState.Plugins.HealthWellness\SaveState.Plugins.HealthWellness.csproj
+src\SaveState.Plugins.Itch\SaveState.Plugins.Itch.csproj
+src\SaveState.Plugins.MugenAchievements\SaveState.Plugins.MugenAchievements.csproj
+src\SaveState.Plugins.MugenFusion\SaveState.Plugins.MugenFusion.csproj
+src\SaveState.Plugins.MugenManager\SaveState.Plugins.MugenManager.csproj
+src\SaveState.Plugins.MugenNetwork\SaveState.Plugins.MugenNetwork.csproj
+src\SaveState.Plugins.MugenReplay\SaveState.Plugins.MugenReplay.csproj
+src\SaveState.Plugins.MugenTraining\SaveState.Plugins.MugenTraining.csproj
+src\SaveState.Plugins.PlayniteImporter\SaveState.Plugins.PlayniteImporter.csproj
+src\SaveState.Plugins.ScreenshotCapture\SaveState.Plugins.ScreenshotCapture.csproj
+src\SaveState.Plugins.Themes\SaveState.Plugins.Themes.csproj
+src\SaveState.Plugins.TwitchStreaming\SaveState.Plugins.TwitchStreaming.csproj
+src\SaveState.Presentation\SaveState.Presentation.csproj
+tests\SaveState.EndToEndTests\SaveState.EndToEndTests.csproj
+tests\SaveState.Presentation.UITests\SaveState.Presentation.UITests.csproj
+tools\SaveState.Benchmarks\SaveState.Benchmarks.csproj
+NOWARN_RULE_COUNTS
+$(NoWarn)|25
+CS1591|21
+CA2007|19
+CA1822|7
+CA1505|1
+CA1502|1
+PRAGMA_MATCHES
+src\SaveState.Infrastructure\Persistence\Migrations\SaveStateDbContextModelSnapshot.cs:17:#pragma warning disable 612, 618
+src\SaveState.Infrastructure\Persistence\Migrations\20260116010730_OpenMKProgressAndMatchState.Designer.cs:20:#pragma warning disable 612, 618
+src\SaveState.Infrastructure\Persistence\Migrations\20260116010730_OpenMKProgressAndMatchState.cs:4:#pragma warning disable CA1505
+src\SaveState.Application\Mugen\Services\LiveSync\TypeAliases.cs:15:#pragma warning disable CS0618 // Type or member is obsolete
+src\SaveState.Infrastructure\OpenMK\TypeAliases.cs:8:#pragma warning disable CS0618 // Type or member is obsolete
+src\SaveState.Infrastructure\Common\MemoryCacheService.cs:54:#pragma warning disable CS8603 // Possible null reference return - Expected for nullable types in cache operations
+tests\SaveState.LoadTests\DatabaseLoadTests.cs:1:#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
+src\SaveState.Presentation\Services\Performance\VirtualizedCollection.cs:43:                #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
+SIZE_METRICS csharp_files_total=2272 files_ge_500=70 files_ge_1000=10
+SIZE_TOP15
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Infrastructure\Persistence\Migrations\20260116010730_OpenMKProgressAndMatchState.Designer.cs|2445
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Infrastructure\Persistence\Migrations\SaveStateDbContextModelSnapshot.cs|2442
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Infrastructure\Persistence\Migrations\20260116010730_OpenMKProgressAndMatchState.cs|2220
+C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Presentation.Tests\ViewModels\CloudSyncViewModelConflictResolutionTests.cs|1174
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Presentation\ViewModels\Shell\CloudSyncViewModel.cs|1135
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\Mugen\Services\PredictiveAnalyticsEngine.cs|1042
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\Mugen\Services\AutomatedBalancingSystem.cs|1032
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\Mugen\Services\AdvancedGraphicsEngine.cs|1026
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\Mugen\Services\BlockchainService.cs|1019
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\Mugen\Services\SoundDesignStudio.cs|1002
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Infrastructure\Mugen\Coaching\ReplayAnalyzer.cs|980
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\Mugen\Services\AdvancedReportingService.cs|959
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\Mugen\Services\SymbioticPartnerService.cs|959
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\Mugen\Services\CinematicCameraSystem.cs|949
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\Mugen\Services\ScreenFiltersEngine.cs|947
+TODO_METRICS matches=6
+TODO_SAMPLE
+tests\SaveState.EndToEndTests\SaveState.EndToEndTests.csproj:11:  <!-- TODO: These tests need updating to match new interface/DTO changes -->
+tests\SaveState.Presentation.Tests\ViewModels\ViewModelTests.cs:67:    // TODO: Add full LibraryViewModel tests once DI factory is available
+src\SaveState.Infrastructure\DataPortability\DataImportService.cs:351:                // TODO: Update parsedData with migrated values
+src\SaveState.Application\Mugen\Services\NetworkFeatures\Engines\SpectatorEngine.cs:65:        // TODO: Check if the match allows spectators (would need access to match data)
+src\SaveState.Application\Mugen\Services\NetworkFeatures\Engines\SpectatorEngine.cs:66:        // TODO: Check if viewer is blocked by any players in the match
+src\SaveState.Application\Mugen\Services\NetworkFeatures\Engines\SpectatorEngine.cs:67:        // TODO: Check if match is in a spectatable state (not in menus, etc.)
+TFM_METRICS csproj_total=169 distinct_tfm=5
+TFM_COUNTS
+net8.0|80
+net9.0|45
+net10.0|41
+netcoreapp2.1|2
+net9.0-windows|1
+TFM_LEGACY_COUNTS
+net8.0|80
+netcoreapp2.1|2

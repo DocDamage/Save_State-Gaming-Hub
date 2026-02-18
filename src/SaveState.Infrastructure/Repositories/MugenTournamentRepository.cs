@@ -5,6 +5,7 @@ using SaveState.Core.Common;
 using SaveState.Core.Mugen;
 using SaveState.Core.Mugen.Entities;
 using SaveState.Core.Monitoring;
+using SaveState.Core.Common.Services;
 using SaveState.Infrastructure.Persistence;
 
 /// <summary>
@@ -14,16 +15,18 @@ public class MugenTournamentRepository : IMugenTournamentRepository
 {
     private readonly SaveStateDbContext _context;
     private readonly IApplicationMetrics _metrics;
+    private readonly ITimeProvider _timeProvider;
 
-    public MugenTournamentRepository(SaveStateDbContext context, IApplicationMetrics metrics)
+    public MugenTournamentRepository(SaveStateDbContext context, IApplicationMetrics metrics, ITimeProvider timeProvider)
     {
         _context = context;
         _metrics = metrics;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<MugenTournament>> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             var tournament = await _context.MugenTournaments
@@ -33,7 +36,7 @@ public class MugenTournamentRepository : IMugenTournamentRepository
                 .FirstOrDefaultAsync(t => t.Id == id, ct)
                 .ConfigureAwait(false);
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenTournamentRepository.GetByIdAsync", duration);
 
             if (tournament == null)
@@ -45,7 +48,7 @@ public class MugenTournamentRepository : IMugenTournamentRepository
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenTournamentRepository.GetByIdAsync", duration);
             _metrics.RecordDatabaseError("MugenTournamentRepository.GetByIdAsync", ex.GetType().Name);
             throw;
@@ -54,7 +57,7 @@ public class MugenTournamentRepository : IMugenTournamentRepository
 
     public async Task<IReadOnlyList<MugenTournament>> GetAllAsync(CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             var tournaments = await _context.MugenTournaments
@@ -65,14 +68,14 @@ public class MugenTournamentRepository : IMugenTournamentRepository
                 .ToListAsync(ct)
                 .ConfigureAwait(false);
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenTournamentRepository.GetAllAsync", duration);
 
             return tournaments.AsReadOnly();
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenTournamentRepository.GetAllAsync", duration);
             _metrics.RecordDatabaseError("MugenTournamentRepository.GetAllAsync", ex.GetType().Name);
             throw;
@@ -85,7 +88,7 @@ public class MugenTournamentRepository : IMugenTournamentRepository
         TournamentStatus? statusFilter = null,
         CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             var query = _context.MugenTournaments.AsQueryable();
@@ -111,7 +114,7 @@ public class MugenTournamentRepository : IMugenTournamentRepository
                 .ToListAsync(ct)
                 .ConfigureAwait(false);
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenTournamentRepository.GetTournamentsAsync", duration);
 
             return new PagedResult<MugenTournament>(
@@ -122,7 +125,7 @@ public class MugenTournamentRepository : IMugenTournamentRepository
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenTournamentRepository.GetTournamentsAsync", duration);
             _metrics.RecordDatabaseError("MugenTournamentRepository.GetTournamentsAsync", ex.GetType().Name);
             throw;
@@ -131,7 +134,7 @@ public class MugenTournamentRepository : IMugenTournamentRepository
 
     public async Task<int> CountAsync(TournamentStatus? statusFilter = null, CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             var query = _context.MugenTournaments.AsQueryable();
@@ -143,14 +146,14 @@ public class MugenTournamentRepository : IMugenTournamentRepository
 
             var count = await query.CountAsync(ct).ConfigureAwait(false);
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenTournamentRepository.CountAsync", duration);
 
             return count;
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenTournamentRepository.CountAsync", duration);
             _metrics.RecordDatabaseError("MugenTournamentRepository.CountAsync", ex.GetType().Name);
             throw;
@@ -159,7 +162,7 @@ public class MugenTournamentRepository : IMugenTournamentRepository
 
     public async Task<IReadOnlyList<MugenTournament>> GetByStatusAsync(TournamentStatus status, CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             var tournaments = await _context.MugenTournaments
@@ -171,14 +174,14 @@ public class MugenTournamentRepository : IMugenTournamentRepository
                 .ToListAsync(ct)
                 .ConfigureAwait(false);
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenTournamentRepository.GetByStatusAsync", duration);
 
             return tournaments.AsReadOnly();
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenTournamentRepository.GetByStatusAsync", duration);
             _metrics.RecordDatabaseError("MugenTournamentRepository.GetByStatusAsync", ex.GetType().Name);
             throw;
@@ -187,18 +190,18 @@ public class MugenTournamentRepository : IMugenTournamentRepository
 
     public async Task AddAsync(MugenTournament tournament, CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             await _context.MugenTournaments.AddAsync(tournament, ct).ConfigureAwait(false);
             await _context.SaveChangesAsync(ct).ConfigureAwait(false);
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenTournamentRepository.AddAsync", duration);
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenTournamentRepository.AddAsync", duration);
             _metrics.RecordDatabaseError("MugenTournamentRepository.AddAsync", ex.GetType().Name);
             throw;
@@ -207,18 +210,18 @@ public class MugenTournamentRepository : IMugenTournamentRepository
 
     public async Task UpdateAsync(MugenTournament tournament, CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             _context.MugenTournaments.Update(tournament);
             await _context.SaveChangesAsync(ct).ConfigureAwait(false);
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenTournamentRepository.UpdateAsync", duration);
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenTournamentRepository.UpdateAsync", duration);
             _metrics.RecordDatabaseError("MugenTournamentRepository.UpdateAsync", ex.GetType().Name);
             throw;
@@ -227,22 +230,23 @@ public class MugenTournamentRepository : IMugenTournamentRepository
 
     public async Task DeleteAsync(MugenTournament tournament, CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             _context.MugenTournaments.Remove(tournament);
             await _context.SaveChangesAsync(ct).ConfigureAwait(false);
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenTournamentRepository.DeleteAsync", duration);
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("MugenTournamentRepository.DeleteAsync", duration);
             _metrics.RecordDatabaseError("MugenTournamentRepository.DeleteAsync", ex.GetType().Name);
             throw;
         }
     }
 }
+
 

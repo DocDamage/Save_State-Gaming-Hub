@@ -6,6 +6,7 @@ using Moq;
 using SaveState.Core.Ai.Context;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Configuration;
 using SaveState.Core.Monitoring;
 using SaveState.Infrastructure.Ai;
@@ -82,7 +83,8 @@ public class AiOrchestratorContextTests
             _knowledgeClient,
             _memoryMock.Object,
             _webSearchMock.Object,
-            _knowledgeBaseMock.Object);
+            _knowledgeBaseMock.Object,
+            new SystemTimeProvider());
     }
 
     [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]

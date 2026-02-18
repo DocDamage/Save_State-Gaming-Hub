@@ -17,6 +17,7 @@ public class BeginnerPathwaysService : BeginnerPathwaysServiceIBeginnerPathwaysS
 {
     private readonly ILogger<BeginnerPathwaysService> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, BeginnerPathwaysServicePathwayLearningPath> _learningPaths = new();
     private readonly Dictionary<string, BeginnerPathwaysServiceUserPathProgress> _userProgress = new();
     private readonly BeginnerPathwaysServicePathGenerator _pathGenerator;
@@ -27,13 +28,15 @@ public class BeginnerPathwaysService : BeginnerPathwaysServiceIBeginnerPathwaysS
     public BeginnerPathwaysService(
         ILogger<BeginnerPathwaysService> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
-        _pathGenerator = new BeginnerPathwaysServicePathGenerator(loggerFactory.CreateLogger<BeginnerPathwaysServicePathGenerator>());
+        _timeProvider = timeProvider;
+        _pathGenerator = new BeginnerPathwaysServicePathGenerator(loggerFactory.CreateLogger<BeginnerPathwaysServicePathGenerator>(), _timeProvider);
         _progressEvaluator = new BeginnerPathwaysServiceProgressEvaluator(loggerFactory.CreateLogger<BeginnerPathwaysServiceProgressEvaluator>());
-        _adaptiveDifficulty = new BeginnerPathwaysServiceAdaptiveDifficulty(loggerFactory.CreateLogger<BeginnerPathwaysServiceAdaptiveDifficulty>());
+        _adaptiveDifficulty = new BeginnerPathwaysServiceAdaptiveDifficulty(loggerFactory.CreateLogger<BeginnerPathwaysServiceAdaptiveDifficulty>(), _timeProvider);
         _achievementTracker = new BeginnerPathwaysServiceAchievementTracker(loggerFactory.CreateLogger<BeginnerPathwaysServiceAchievementTracker>());
 
         InitializeDefaultPaths();
@@ -54,7 +57,7 @@ public class BeginnerPathwaysService : BeginnerPathwaysServiceIBeginnerPathwaysS
             {
                 UserId = userId,
                 PathId = path.PathId,
-                StartedAt = DateTime.UtcNow,
+                StartedAt = _timeProvider.UtcNow,
                 CurrentModule = 0,
                 CurrentLesson = 0,
                 CompletedLessons = new List<string>(),
@@ -65,7 +68,7 @@ public class BeginnerPathwaysService : BeginnerPathwaysServiceIBeginnerPathwaysS
                 LongestStreak = 0,
                 SkillProgression = new Dictionary<string, double>(),
                 BeginnerPathwaysServiceAdaptiveDifficulty = 1.0,
-                LastActivity = DateTime.UtcNow,
+                LastActivity = _timeProvider.UtcNow,
                 Status = BeginnerPathwaysServicePathStatus.Active
             };
 
@@ -188,7 +191,7 @@ public class BeginnerPathwaysService : BeginnerPathwaysServiceIBeginnerPathwaysS
             var lessonProgress = new BeginnerPathwaysServiceLessonProgress
             {
                 LessonId = lessonId,
-                StartedAt = DateTime.UtcNow,
+                StartedAt = _timeProvider.UtcNow,
                 CurrentStep = 0,
                 TotalSteps = lesson.Steps.Count,
                 CorrectAnswers = 0,
@@ -351,7 +354,7 @@ public class BeginnerPathwaysService : BeginnerPathwaysServiceIBeginnerPathwaysS
                     [DifficultyLevel.Intermediate] = 0.35,
                     [DifficultyLevel.Advanced] = 0.20
                 },
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Path analytics generated successfully");
@@ -379,7 +382,7 @@ public class BeginnerPathwaysService : BeginnerPathwaysServiceIBeginnerPathwaysS
             TargetSkills = new[] { "Basic Controls", "Movement", "Simple Combos" },
             Prerequisites = new string[0],
             Modules = CreateBeginnerModules(),
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
             TotalEnrollments = 0,
             AverageRating = 0.0,
             SuccessRate = 0.0
@@ -506,7 +509,7 @@ public class BeginnerPathwaysService : BeginnerPathwaysServiceIBeginnerPathwaysS
             PreferredLearningStyle = BeginnerPathwaysServiceLearningStyle.Interactive,
             BeginnerPathwaysServiceTimeCommitment = BeginnerPathwaysServiceTimeCommitment.Moderate,
             BeginnerPathwaysServiceGamingExperience = BeginnerPathwaysServiceGamingExperience.Limited,
-            AssessedAt = DateTime.UtcNow
+            AssessedAt = _timeProvider.UtcNow
         };
     }
 
@@ -535,7 +538,7 @@ public class BeginnerPathwaysService : BeginnerPathwaysServiceIBeginnerPathwaysS
             Name = "First Steps",
             Description = "Completed your first lesson",
             IconUrl = "/achievements/first-steps.png",
-            UnlockedAt = DateTime.UtcNow
+            UnlockedAt = _timeProvider.UtcNow
         };
     }
 
@@ -558,7 +561,7 @@ public class BeginnerPathwaysService : BeginnerPathwaysServiceIBeginnerPathwaysS
                 progress.CurrentStreak = 0;
             }
 
-            progress.LastActivity = DateTime.UtcNow;
+            progress.LastActivity = _timeProvider.UtcNow;
         }
     }
 
@@ -572,7 +575,7 @@ public class BeginnerPathwaysService : BeginnerPathwaysServiceIBeginnerPathwaysS
                 Title = "Complete First Module",
                 Description = "Finish the Getting Started module",
                 IsCompleted = progress.CompletedModules.Contains("module-1"),
-                CompletionDate = progress.CompletedModules.Contains("module-1") ? DateTime.UtcNow.AddDays(-2) : null,
+                CompletionDate = progress.CompletedModules.Contains("module-1") ? _timeProvider.UtcNow.AddDays(-2) : null,
                 Reward = new BeginnerPathwaysServiceMilestoneReward { Type = BeginnerPathwaysServiceRewardType.Achievement, Value = "First Module Master" }
             },
             new BeginnerPathwaysServicePathMilestone
@@ -581,7 +584,7 @@ public class BeginnerPathwaysService : BeginnerPathwaysServiceIBeginnerPathwaysS
                 Title = "7-Day Learning Streak",
                 Description = "Learn for 7 consecutive days",
                 IsCompleted = progress.CurrentStreak >= 7,
-                CompletionDate = progress.CurrentStreak >= 7 ? DateTime.UtcNow : null,
+                CompletionDate = progress.CurrentStreak >= 7 ? _timeProvider.UtcNow : null,
                 Reward = new BeginnerPathwaysServiceMilestoneReward { Type = BeginnerPathwaysServiceRewardType.Badge, Value = "Dedicated Learner" }
             }
         };
@@ -615,10 +618,12 @@ public class BeginnerPathwaysService : BeginnerPathwaysServiceIBeginnerPathwaysS
 public class BeginnerPathwaysServicePathGenerator
 {
     private readonly ILogger<BeginnerPathwaysServicePathGenerator> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public BeginnerPathwaysServicePathGenerator(ILogger<BeginnerPathwaysServicePathGenerator> logger)
+    public BeginnerPathwaysServicePathGenerator(ILogger<BeginnerPathwaysServicePathGenerator> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<BeginnerPathwaysServicePathwayLearningPath> GeneratePersonalizedPathAsync(string userId, BeginnerPathwaysServiceUserAssessment assessment, CancellationToken ct)
@@ -640,7 +645,7 @@ public class BeginnerPathwaysServicePathGenerator
                 assessment.Weaknesses : new[] { "General Improvement" },
             Prerequisites = new string[0],
             Modules = await GeneratePersonalizedModulesAsync(assessment, ct),
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
             TotalEnrollments = 1,
             AverageRating = 0.0,
             SuccessRate = 0.0
@@ -691,10 +696,12 @@ public class BeginnerPathwaysServiceProgressEvaluator
 public class BeginnerPathwaysServiceAdaptiveDifficulty
 {
     private readonly ILogger<BeginnerPathwaysServiceAdaptiveDifficulty> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public BeginnerPathwaysServiceAdaptiveDifficulty(ILogger<BeginnerPathwaysServiceAdaptiveDifficulty> logger)
+    public BeginnerPathwaysServiceAdaptiveDifficulty(ILogger<BeginnerPathwaysServiceAdaptiveDifficulty> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<BeginnerPathwaysServiceAdaptiveAdjustment> CalculateAdjustmentAsync(BeginnerPathwaysServiceUserPathProgress progress, CancellationToken ct)
@@ -706,7 +713,7 @@ public class BeginnerPathwaysServiceAdaptiveDifficulty
             DifficultyMultiplier = progress.AverageScore > 80 ? 1.2 : 1.0,
             Reasoning = "Based on recent performance and learning streak",
             SuggestedActions = new[] { "Try more challenging exercises", "Review weak areas" },
-            NextReviewDate = DateTime.UtcNow.AddDays(7)
+            NextReviewDate = _timeProvider.UtcNow.AddDays(7)
         };
     }
 }
