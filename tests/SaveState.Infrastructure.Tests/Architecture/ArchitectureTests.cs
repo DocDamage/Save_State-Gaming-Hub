@@ -171,10 +171,10 @@ public class ArchitectureTests
             _testOutputHelper.WriteLine($"  - {cls.Type.Name}: ~{cls.LineCount} lines");
         }
         
-        // Baseline budget ratcheted: 5 large non-migration classes (2026-02-19, Session 13).
+        // Baseline budget ratcheted: 1 large non-migration class (2026-02-19, Session 15).
         // Keep a tight cap to detect regressions while class-splitting remediation proceeds.
-        largeClasses.Count.Should().BeLessThanOrEqualTo(5, 
-            $"{largeClasses.Count} classes exceed 1000 lines. Baseline allows 5. Top: " +
+        largeClasses.Count.Should().BeLessThanOrEqualTo(1, 
+            $"{largeClasses.Count} classes exceed 1000 lines. Baseline allows 1. Top: " +
             string.Join(", ", largeClasses.OrderByDescending(c => c.LineCount).Take(3).Select(c => $"{c.Type.Name}({c.LineCount})")));
     }
 

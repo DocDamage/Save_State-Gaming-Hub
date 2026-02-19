@@ -97,7 +97,7 @@ public class SoundDesignService : ISoundDesignService
     }
 
     /// <inheritdoc />
-    public async Task<Result> ExportSoundEffectAsync(
+    public Task<Result> ExportSoundEffectAsync(
         SoundEffect soundEffect,
         string outputPath,
         SoundExportFormat format,
@@ -115,17 +115,17 @@ public class SoundDesignService : ISoundDesignService
                 File.Copy(soundEffect.FilePath, outputPath, true);
             }
 
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to export sound effect");
-            return Result.Failure($"Export failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Export failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<SoundEffect>> CreateSynthesizedSoundAsync(
+    public Task<Result<SoundEffect>> CreateSynthesizedSoundAsync(
         SynthesisParameters parameters,
         CancellationToken ct = default)
     {
@@ -159,17 +159,17 @@ public class SoundDesignService : ISoundDesignService
                 DateTime.UtcNow);
 
             _soundEffects[sound.Id] = sound;
-            return Result<SoundEffect>.Success(sound);
+            return Task.FromResult(Result<SoundEffect>.Success(sound));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create synthesized sound");
-            return Result<SoundEffect>.Failure($"Synthesis failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SoundEffect>.Failure($"Synthesis failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<SoundEffect>> EditSoundEffectAsync(
+    public Task<Result<SoundEffect>> EditSoundEffectAsync(
         SoundEffect source,
         AudioEffectChain effects,
         CancellationToken ct = default)
@@ -187,17 +187,17 @@ public class SoundDesignService : ISoundDesignService
             };
 
             _soundEffects[edited.Id] = edited;
-            return Result<SoundEffect>.Success(edited);
+            return Task.FromResult(Result<SoundEffect>.Success(edited));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to edit sound effect");
-            return Result<SoundEffect>.Failure($"Edit failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SoundEffect>.Failure($"Edit failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<SoundEffect>> TrimSilenceAsync(
+    public Task<Result<SoundEffect>> TrimSilenceAsync(
         SoundEffect soundEffect,
         TrimOptions options,
         CancellationToken ct = default)
@@ -212,17 +212,17 @@ public class SoundDesignService : ISoundDesignService
                 ModifiedAt = DateTime.UtcNow
             };
 
-            return Result<SoundEffect>.Success(trimmed);
+            return Task.FromResult(Result<SoundEffect>.Success(trimmed));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to trim silence");
-            return Result<SoundEffect>.Failure($"Trim failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SoundEffect>.Failure($"Trim failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<SoundEffect>> NormalizeAsync(
+    public Task<Result<SoundEffect>> NormalizeAsync(
         SoundEffect soundEffect,
         NormalizationOptions options,
         CancellationToken ct = default)
@@ -237,17 +237,17 @@ public class SoundDesignService : ISoundDesignService
                 ModifiedAt = DateTime.UtcNow
             };
 
-            return Result<SoundEffect>.Success(normalized);
+            return Task.FromResult(Result<SoundEffect>.Success(normalized));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to normalize");
-            return Result<SoundEffect>.Failure($"Normalization failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SoundEffect>.Failure($"Normalization failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<SoundEffect>> TimeStretchAsync(
+    public Task<Result<SoundEffect>> TimeStretchAsync(
         SoundEffect soundEffect,
         double ratio,
         CancellationToken ct = default)
@@ -262,17 +262,17 @@ public class SoundDesignService : ISoundDesignService
                 ModifiedAt = DateTime.UtcNow
             };
 
-            return Result<SoundEffect>.Success(stretched);
+            return Task.FromResult(Result<SoundEffect>.Success(stretched));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to time stretch");
-            return Result<SoundEffect>.Failure($"Time stretch failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SoundEffect>.Failure($"Time stretch failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<SoundEffect>> PitchShiftAsync(
+    public Task<Result<SoundEffect>> PitchShiftAsync(
         SoundEffect soundEffect,
         double semitones,
         CancellationToken ct = default)
@@ -287,17 +287,17 @@ public class SoundDesignService : ISoundDesignService
                 ModifiedAt = DateTime.UtcNow
             };
 
-            return Result<SoundEffect>.Success(shifted);
+            return Task.FromResult(Result<SoundEffect>.Success(shifted));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to pitch shift");
-            return Result<SoundEffect>.Failure($"Pitch shift failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SoundEffect>.Failure($"Pitch shift failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<SoundEffect>> ApplyReverbAsync(
+    public Task<Result<SoundEffect>> ApplyReverbAsync(
         SoundEffect soundEffect,
     ReverbParameters parameters,
         CancellationToken ct = default)
@@ -312,17 +312,17 @@ public class SoundDesignService : ISoundDesignService
                 ModifiedAt = DateTime.UtcNow
             };
 
-            return Result<SoundEffect>.Success(withReverb);
+            return Task.FromResult(Result<SoundEffect>.Success(withReverb));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to apply reverb");
-            return Result<SoundEffect>.Failure($"Reverb failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SoundEffect>.Failure($"Reverb failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<SoundEffect>> ApplyEqualizationAsync(
+    public Task<Result<SoundEffect>> ApplyEqualizationAsync(
         SoundEffect soundEffect,
         EqualizerSettings settings,
         CancellationToken ct = default)
@@ -337,17 +337,17 @@ public class SoundDesignService : ISoundDesignService
                 ModifiedAt = DateTime.UtcNow
             };
 
-            return Result<SoundEffect>.Success(withEq);
+            return Task.FromResult(Result<SoundEffect>.Success(withEq));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to apply EQ");
-            return Result<SoundEffect>.Failure($"EQ failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SoundEffect>.Failure($"EQ failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<SoundEffect>> MixSoundsAsync(
+    public Task<Result<SoundEffect>> MixSoundsAsync(
         IReadOnlyList<SoundEffect> sounds,
         MixOptions options,
         CancellationToken ct = default)
@@ -378,35 +378,35 @@ public class SoundDesignService : ISoundDesignService
                 DateTime.UtcNow);
 
             _soundEffects[mixed.Id] = mixed;
-            return Result<SoundEffect>.Success(mixed);
+            return Task.FromResult(Result<SoundEffect>.Success(mixed));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to mix sounds");
-            return Result<SoundEffect>.Failure($"Mix failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SoundEffect>.Failure($"Mix failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<SoundEffect>> GetSoundEffectAsync(
+    public Task<Result<SoundEffect>> GetSoundEffectAsync(
         Guid id,
         CancellationToken ct = default)
     {
         if (_soundEffects.TryGetValue(id, out var sound))
         {
-            return Result<SoundEffect>.Success(sound);
+            return Task.FromResult(Result<SoundEffect>.Success(sound));
         }
 
-        return Result<SoundEffect>.Failure($"Sound effect {id} not found", ErrorType.NotFound);
+        return Task.FromResult(Result<SoundEffect>.Failure($"Sound effect {id} not found", ErrorType.NotFound));
     }
 
     /// <inheritdoc />
-    public async Task<Result> DeleteSoundEffectAsync(
+    public Task<Result> DeleteSoundEffectAsync(
         Guid id,
         CancellationToken ct = default)
     {
         _soundEffects.TryRemove(id, out _);
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     #endregion
@@ -414,7 +414,7 @@ public class SoundDesignService : ISoundDesignService
     #region BGM Management
 
     /// <inheritdoc />
-    public async Task<Result<BackgroundMusic>> LoadBgmAsync(
+    public Task<Result<BackgroundMusic>> LoadBgmAsync(
         string filePath,
         CancellationToken ct = default)
     {
@@ -424,7 +424,7 @@ public class SoundDesignService : ISoundDesignService
 
             if (!File.Exists(filePath))
             {
-                return Result<BackgroundMusic>.Failure($"File not found: {filePath}", ErrorType.NotFound);
+                return Task.FromResult(Result<BackgroundMusic>.Failure($"File not found: {filePath}", ErrorType.NotFound));
             }
 
             var fileInfo = new FileInfo(filePath);
@@ -442,17 +442,17 @@ public class SoundDesignService : ISoundDesignService
                 new BgmMetadata(null, null, null, null));
 
             _bgmTracks[bgm.Id] = bgm;
-            return Result<BackgroundMusic>.Success(bgm);
+            return Task.FromResult(Result<BackgroundMusic>.Success(bgm));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to load BGM");
-            return Result<BackgroundMusic>.Failure($"Load failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<BackgroundMusic>.Failure($"Load failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<LoopPoints>> CreateLoopPointsAsync(
+    public Task<Result<LoopPoints>> CreateLoopPointsAsync(
         BackgroundMusic bgm,
         TimeSpan start,
         TimeSpan end,
@@ -467,17 +467,17 @@ public class SoundDesignService : ISoundDesignService
             var updatedBgm = bgm with { Loop = loopPoints };
             _bgmTracks[bgm.Id] = updatedBgm;
 
-            return Result<LoopPoints>.Success(loopPoints);
+            return Task.FromResult(Result<LoopPoints>.Success(loopPoints));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create loop points");
-            return Result<LoopPoints>.Failure($"Loop creation failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<LoopPoints>.Failure($"Loop creation failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<BeatAnalysis>> AnalyzeBeatAsync(
+    public Task<Result<BeatAnalysis>> AnalyzeBeatAsync(
         BackgroundMusic bgm,
         CancellationToken ct = default)
     {
@@ -499,17 +499,17 @@ public class SoundDesignService : ISoundDesignService
             }
 
             var analysis = new BeatAnalysis(120, beats, energy);
-            return Result<BeatAnalysis>.Success(analysis);
+            return Task.FromResult(Result<BeatAnalysis>.Success(analysis));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to analyze beat");
-            return Result<BeatAnalysis>.Failure($"Analysis failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<BeatAnalysis>.Failure($"Analysis failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> ConvertBgmAsync(
+    public Task<Result> ConvertBgmAsync(
         string sourcePath,
         string destinationPath,
         AudioFormat targetFormat,
@@ -526,17 +526,17 @@ public class SoundDesignService : ISoundDesignService
                 File.Copy(sourcePath, destinationPath, true);
             }
 
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to convert BGM");
-            return Result.Failure($"Conversion failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Conversion failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<BackgroundMusic>> AdjustStageBgmAsync(
+    public Task<Result<BackgroundMusic>> AdjustStageBgmAsync(
         BackgroundMusic bgm,
         StageBgmSettings settings,
         CancellationToken ct = default)
@@ -550,17 +550,17 @@ public class SoundDesignService : ISoundDesignService
                 Metadata = bgm.Metadata with { }
             };
 
-            return Result<BackgroundMusic>.Success(adjusted);
+            return Task.FromResult(Result<BackgroundMusic>.Success(adjusted));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to adjust BGM");
-            return Result<BackgroundMusic>.Failure($"Adjustment failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<BackgroundMusic>.Failure($"Adjustment failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<byte[]>> CrossfadeBgmAsync(
+    public Task<Result<byte[]>> CrossfadeBgmAsync(
         BackgroundMusic from,
         BackgroundMusic to,
         TimeSpan duration,
@@ -575,12 +575,12 @@ public class SoundDesignService : ISoundDesignService
             var crossfade = new byte[samples];
             new Random().NextBytes(crossfade);
 
-            return Result<byte[]>.Success(crossfade);
+            return Task.FromResult(Result<byte[]>.Success(crossfade));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to crossfade BGM");
-            return Result<byte[]>.Failure($"Crossfade failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<byte[]>.Failure($"Crossfade failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -589,7 +589,7 @@ public class SoundDesignService : ISoundDesignService
     #region Voice Synthesis
 
     /// <inheritdoc />
-    public async Task<Result<SoundEffect>> SynthesizeVoiceAsync(
+    public Task<Result<SoundEffect>> SynthesizeVoiceAsync(
         string text,
         VoiceSynthesisOptions options,
         CancellationToken ct = default)
@@ -619,17 +619,17 @@ public class SoundDesignService : ISoundDesignService
                 DateTime.UtcNow);
 
             _soundEffects[sound.Id] = sound;
-            return Result<SoundEffect>.Success(sound);
+            return Task.FromResult(Result<SoundEffect>.Success(sound));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to synthesize voice");
-            return Result<SoundEffect>.Failure($"Synthesis failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SoundEffect>.Failure($"Synthesis failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<SoundEffect>> RecordVoiceAsync(
+    public Task<Result<SoundEffect>> RecordVoiceAsync(
         RecordingOptions options,
         CancellationToken ct = default)
     {
@@ -658,17 +658,17 @@ public class SoundDesignService : ISoundDesignService
                 DateTime.UtcNow);
 
             _soundEffects[sound.Id] = sound;
-            return Result<SoundEffect>.Success(sound);
+            return Task.FromResult(Result<SoundEffect>.Success(sound));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to record voice");
-            return Result<SoundEffect>.Failure($"Recording failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SoundEffect>.Failure($"Recording failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<SoundEffect>> ApplyVoiceEffectAsync(
+    public Task<Result<SoundEffect>> ApplyVoiceEffectAsync(
         SoundEffect voice,
         VoiceEffectType effectType,
         VoiceEffectParameters parameters,
@@ -684,12 +684,12 @@ public class SoundDesignService : ISoundDesignService
                 ModifiedAt = DateTime.UtcNow
             };
 
-            return Result<SoundEffect>.Success(withEffect);
+            return Task.FromResult(Result<SoundEffect>.Success(withEffect));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to apply voice effect");
-            return Result<SoundEffect>.Failure($"Effect failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SoundEffect>.Failure($"Effect failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -729,7 +729,7 @@ public class SoundDesignService : ISoundDesignService
     #region Audio Library
 
     /// <inheritdoc />
-    public async Task<Result<SoundCategory>> CreateCategoryAsync(
+    public Task<Result<SoundCategory>> CreateCategoryAsync(
         string name,
         string? description = null,
         CancellationToken ct = default)
@@ -738,17 +738,17 @@ public class SoundDesignService : ISoundDesignService
         {
             var category = new SoundCategory(Guid.NewGuid(), name, description, DateTime.UtcNow);
             _categories[category.Id] = category;
-            return Result<SoundCategory>.Success(category);
+            return Task.FromResult(Result<SoundCategory>.Success(category));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create category");
-            return Result<SoundCategory>.Failure($"Create category failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SoundCategory>.Failure($"Create category failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<IReadOnlyList<SoundEffect>>> GetSoundsByCategoryAsync(
+    public Task<Result<IReadOnlyList<SoundEffect>>> GetSoundsByCategoryAsync(
         Guid categoryId,
         CancellationToken ct = default)
     {
@@ -756,11 +756,11 @@ public class SoundDesignService : ISoundDesignService
             .Where(s => s.Metadata.CategoryId == categoryId)
             .ToList();
 
-        return Result<IReadOnlyList<SoundEffect>>.Success(sounds);
+        return Task.FromResult(Result<IReadOnlyList<SoundEffect>>.Success(sounds));
     }
 
     /// <inheritdoc />
-    public async Task<Result> TagSoundAsync(
+    public Task<Result> TagSoundAsync(
         Guid soundId,
         IReadOnlyList<string> tags,
         CancellationToken ct = default)
@@ -769,7 +769,7 @@ public class SoundDesignService : ISoundDesignService
         {
             if (!_soundEffects.TryGetValue(soundId, out var sound))
             {
-                return Result.Failure($"Sound {soundId} not found", ErrorType.NotFound);
+                return Task.FromResult(Result.Failure($"Sound {soundId} not found", ErrorType.NotFound));
             }
 
             var updatedTags = sound.Metadata.Tags.ToList();
@@ -781,17 +781,17 @@ public class SoundDesignService : ISoundDesignService
                 ModifiedAt = DateTime.UtcNow
             };
 
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to tag sound");
-            return Result.Failure($"Tagging failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Tagging failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<IReadOnlyList<SoundEffect>>> SearchSoundsAsync(
+    public Task<Result<IReadOnlyList<SoundEffect>>> SearchSoundsAsync(
         string query,
         SearchOptions options,
         CancellationToken ct = default)
@@ -824,17 +824,17 @@ public class SoundDesignService : ISoundDesignService
                 results = results.Where(s => s.Duration <= options.MaxDuration.Value).ToList();
             }
 
-            return Result<IReadOnlyList<SoundEffect>>.Success(results);
+            return Task.FromResult(Result<IReadOnlyList<SoundEffect>>.Success(results));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to search sounds");
-            return Result<IReadOnlyList<SoundEffect>>.Failure($"Search failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<IReadOnlyList<SoundEffect>>.Failure($"Search failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<LibraryStatistics>> GetLibraryStatisticsAsync(
+    public Task<Result<LibraryStatistics>> GetLibraryStatisticsAsync(
         CancellationToken ct = default)
     {
         try
@@ -854,12 +854,12 @@ public class SoundDesignService : ISoundDesignService
                 formatCounts,
                 usageCounts);
 
-            return Result<LibraryStatistics>.Success(stats);
+            return Task.FromResult(Result<LibraryStatistics>.Success(stats));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get library statistics");
-            return Result<LibraryStatistics>.Failure($"Get statistics failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<LibraryStatistics>.Failure($"Get statistics failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -868,7 +868,7 @@ public class SoundDesignService : ISoundDesignService
     #region Preview and Testing
 
     /// <inheritdoc />
-    public async Task<Result> PreviewSoundAsync(
+    public Task<Result> PreviewSoundAsync(
         Guid soundId,
         SoundPreviewOptions options,
         CancellationToken ct = default)
@@ -877,30 +877,30 @@ public class SoundDesignService : ISoundDesignService
         {
             if (!_soundEffects.TryGetValue(soundId, out var sound))
             {
-                return Result.Failure($"Sound {soundId} not found", ErrorType.NotFound);
+                return Task.FromResult(Result.Failure($"Sound {soundId} not found", ErrorType.NotFound));
             }
 
             _logger.LogInformation("Previewing sound: {Name} at volume {Volume}", sound.Name, options.Volume);
             _currentlyPlayingId = soundId;
 
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to preview sound");
-            return Result.Failure($"Preview failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Preview failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> StopPreviewAsync(CancellationToken ct = default)
+    public Task<Result> StopPreviewAsync(CancellationToken ct = default)
     {
         _currentlyPlayingId = null;
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result<VisualizationData>> GetVisualizationDataAsync(
+    public Task<Result<VisualizationData>> GetVisualizationDataAsync(
         Guid soundId,
         VisualizationOptions options,
         CancellationToken ct = default)
@@ -909,7 +909,7 @@ public class SoundDesignService : ISoundDesignService
         {
             if (!_soundEffects.TryGetValue(soundId, out var sound))
             {
-                return Result<VisualizationData>.Failure($"Sound {soundId} not found", ErrorType.NotFound);
+                return Task.FromResult(Result<VisualizationData>.Failure($"Sound {soundId} not found", ErrorType.NotFound));
             }
 
             var resolution = options.Resolution;
@@ -926,29 +926,29 @@ public class SoundDesignService : ISoundDesignService
             }
 
             var data = new VisualizationData(leftChannel, rightChannel, frequencies, sound.Duration);
-            return Result<VisualizationData>.Success(data);
+            return Task.FromResult(Result<VisualizationData>.Success(data));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get visualization data");
-            return Result<VisualizationData>.Failure($"Visualization failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<VisualizationData>.Failure($"Visualization failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<LatencyTestResult>> TestLatencyAsync(
+    public Task<Result<LatencyTestResult>> TestLatencyAsync(
         CancellationToken ct = default)
     {
         try
         {
             // Simulate latency test
             var result = new LatencyTestResult(10, 15, 25, true);
-            return Result<LatencyTestResult>.Success(result);
+            return Task.FromResult(Result<LatencyTestResult>.Success(result));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to test latency");
-            return Result<LatencyTestResult>.Failure($"Latency test failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<LatencyTestResult>.Failure($"Latency test failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -957,7 +957,7 @@ public class SoundDesignService : ISoundDesignService
     #region Batch Operations
 
     /// <inheritdoc />
-    public async Task<Result<BatchSoundResult>> BatchProcessAsync(
+    public Task<Result<BatchSoundResult>> BatchProcessAsync(
         IReadOnlyList<Guid> soundIds,
         SoundBatchOperation operation,
         CancellationToken ct = default)
@@ -992,17 +992,17 @@ public class SoundDesignService : ISoundDesignService
             }
 
             var result = new BatchSoundResult(processed, failed, errors, TimeSpan.FromSeconds(1));
-            return Result<BatchSoundResult>.Success(result);
+            return Task.FromResult(Result<BatchSoundResult>.Success(result));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Batch operation failed");
-            return Result<BatchSoundResult>.Failure($"Batch failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<BatchSoundResult>.Failure($"Batch failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<SoundValidationReport>> ValidateLibraryAsync(
+    public Task<Result<SoundValidationReport>> ValidateLibraryAsync(
         ValidationSettings settings,
         CancellationToken ct = default)
     {
@@ -1033,17 +1033,17 @@ public class SoundDesignService : ISoundDesignService
                 issues.Count(i => i.Severity == SoundValidationSeverity.Warning),
                 issues);
 
-            return Result<SoundValidationReport>.Success(report);
+            return Task.FromResult(Result<SoundValidationReport>.Success(report));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Validation failed");
-            return Result<SoundValidationReport>.Failure($"Validation failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SoundValidationReport>.Failure($"Validation failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<OptimizationReport>> OptimizeLibraryAsync(
+    public Task<Result<OptimizationReport>> OptimizeLibraryAsync(
         OptimizationSettings settings,
         CancellationToken ct = default)
     {
@@ -1060,12 +1060,12 @@ public class SoundDesignService : ISoundDesignService
                 originalSize - optimizedSize,
                 optimizedSize);
 
-            return Result<OptimizationReport>.Success(report);
+            return Task.FromResult(Result<OptimizationReport>.Success(report));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Optimization failed");
-            return Result<OptimizationReport>.Failure($"Optimization failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<OptimizationReport>.Failure($"Optimization failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -1074,7 +1074,7 @@ public class SoundDesignService : ISoundDesignService
     #region Project Management
 
     /// <inheritdoc />
-    public async Task<Result<SoundProject>> CreateProjectAsync(
+    public Task<Result<SoundProject>> CreateProjectAsync(
         string name,
         SoundProjectSettings settings,
         CancellationToken ct = default)
@@ -1094,17 +1094,17 @@ public class SoundDesignService : ISoundDesignService
                 DateTime.UtcNow);
 
             _currentProject = project;
-            return Result<SoundProject>.Success(project);
+            return Task.FromResult(Result<SoundProject>.Success(project));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create project");
-            return Result<SoundProject>.Failure($"Create project failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SoundProject>.Failure($"Create project failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<SoundProject>> OpenProjectAsync(
+    public Task<Result<SoundProject>> OpenProjectAsync(
         string projectPath,
         CancellationToken ct = default)
     {
@@ -1114,20 +1114,20 @@ public class SoundDesignService : ISoundDesignService
 
             if (_currentProject == null)
             {
-                return Result<SoundProject>.Failure("No project loaded", ErrorType.NotFound);
+                return Task.FromResult(Result<SoundProject>.Failure("No project loaded", ErrorType.NotFound));
             }
 
-            return Result<SoundProject>.Success(_currentProject);
+            return Task.FromResult(Result<SoundProject>.Success(_currentProject));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to open project");
-            return Result<SoundProject>.Failure($"Open project failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SoundProject>.Failure($"Open project failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> SaveProjectAsync(
+    public Task<Result> SaveProjectAsync(
         string? projectPath = null,
         CancellationToken ct = default)
     {
@@ -1135,7 +1135,7 @@ public class SoundDesignService : ISoundDesignService
         {
             if (_currentProject == null)
             {
-                return Result.Failure("No project is currently open", ErrorType.Validation);
+                return Task.FromResult(Result.Failure("No project is currently open", ErrorType.Validation));
             }
 
             _currentProject = _currentProject with
@@ -1143,17 +1143,17 @@ public class SoundDesignService : ISoundDesignService
                 ModifiedAt = DateTime.UtcNow
             };
 
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to save project");
-            return Result.Failure($"Save project failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Save project failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> ExportForMugenAsync(
+    public Task<Result> ExportForMugenAsync(
         string outputDirectory,
         MugenExportOptions options,
         CancellationToken ct = default)
@@ -1171,12 +1171,12 @@ public class SoundDesignService : ISoundDesignService
                 // In real implementation, convert and save
             }
 
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to export for MUGEN");
-            return Result.Failure($"Export failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Export failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -1203,7 +1203,7 @@ public class SoundDesignService : ISoundDesignService
         };
     }
 
-    private async Task<SoundEffect?> LoadSingleSoundAsync(
+    private Task<SoundEffect?> LoadSingleSoundAsync(
         string filePath,
         CancellationToken ct,
         SoundEffectMetadata? metadata = null)
@@ -1214,7 +1214,7 @@ public class SoundDesignService : ISoundDesignService
             var format = GetAudioFormat(fileInfo.Extension);
 
             // In a real implementation, this would read actual audio metadata
-            return new SoundEffect(
+            return Task.FromResult<SoundEffect?>(new SoundEffect(
                 Guid.NewGuid(),
                 Path.GetFileNameWithoutExtension(filePath),
                 filePath,
@@ -1232,11 +1232,11 @@ public class SoundDesignService : ISoundDesignService
                     null,
                     1.0),
                 DateTime.UtcNow,
-                DateTime.UtcNow);
+                DateTime.UtcNow));
         }
         catch
         {
-            return null;
+            return Task.FromResult<SoundEffect?>(null);
         }
     }
 

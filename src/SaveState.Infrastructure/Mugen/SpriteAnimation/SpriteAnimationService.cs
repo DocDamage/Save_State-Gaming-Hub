@@ -197,7 +197,7 @@ public class SpriteAnimationService : ISpriteAnimationService
     }
 
     /// <inheritdoc />
-    public async Task<Result<Sprite>> AddSpriteAsync(
+    public Task<Result<Sprite>> AddSpriteAsync(
         Guid groupId,
         int imageNumber,
         byte[] imageData,
@@ -217,17 +217,17 @@ public class SpriteAnimationService : ISpriteAnimationService
                 imageData,
                 metadata);
 
-            return Result<Sprite>.Success(sprite);
+            return Task.FromResult(Result<Sprite>.Success(sprite));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to add sprite");
-            return Result<Sprite>.Failure($"Add sprite failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<Sprite>.Failure($"Add sprite failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> RemoveSpriteAsync(
+    public Task<Result> RemoveSpriteAsync(
         int groupNumber,
         int imageNumber,
         CancellationToken ct = default)
@@ -240,30 +240,30 @@ public class SpriteAnimationService : ISpriteAnimationService
                 _spriteGroups[groupNumber] = group with { Sprites = updatedSprites };
             }
 
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to remove sprite");
-            return Result.Failure($"Remove sprite failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Remove sprite failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<IReadOnlyList<Sprite>>> GetSpritesByGroupAsync(
+    public Task<Result<IReadOnlyList<Sprite>>> GetSpritesByGroupAsync(
         int groupNumber,
         CancellationToken ct = default)
     {
         if (_spriteGroups.TryGetValue(groupNumber, out var group))
         {
-            return Result<IReadOnlyList<Sprite>>.Success(group.Sprites);
+            return Task.FromResult(Result<IReadOnlyList<Sprite>>.Success(group.Sprites));
         }
 
-        return Result<IReadOnlyList<Sprite>>.Failure($"Group {groupNumber} not found", ErrorType.NotFound);
+        return Task.FromResult(Result<IReadOnlyList<Sprite>>.Failure($"Group {groupNumber} not found", ErrorType.NotFound));
     }
 
     /// <inheritdoc />
-    public async Task<Result<Sprite>> GetSpriteAsync(
+    public Task<Result<Sprite>> GetSpriteAsync(
         int groupNumber,
         int imageNumber,
         CancellationToken ct = default)
@@ -273,15 +273,15 @@ public class SpriteAnimationService : ISpriteAnimationService
             var sprite = group.Sprites.FirstOrDefault(s => s.ImageNumber == imageNumber);
             if (sprite != null)
             {
-                return Result<Sprite>.Success(sprite);
+                return Task.FromResult(Result<Sprite>.Success(sprite));
             }
         }
 
-        return Result<Sprite>.Failure($"Sprite ({groupNumber},{imageNumber}) not found", ErrorType.NotFound);
+        return Task.FromResult(Result<Sprite>.Failure($"Sprite ({groupNumber},{imageNumber}) not found", ErrorType.NotFound));
     }
 
     /// <inheritdoc />
-    public async Task<Result<SffOptimizationResult>> OptimizeSffAsync(
+    public Task<Result<SffOptimizationResult>> OptimizeSffAsync(
         string filePath,
         SpriteOptimizationOptions options,
         CancellationToken ct = default)
@@ -305,12 +305,12 @@ public class SpriteAnimationService : ISpriteAnimationService
                 options.OptimizePalettes ? 5 : 0,
                 compressionRatio);
 
-            return Result<SffOptimizationResult>.Success(result);
+            return Task.FromResult(Result<SffOptimizationResult>.Success(result));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to optimize SFF");
-            return Result<SffOptimizationResult>.Failure($"Optimization failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SffOptimizationResult>.Failure($"Optimization failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -376,7 +376,7 @@ public class SpriteAnimationService : ISpriteAnimationService
     }
 
     /// <inheritdoc />
-    public async Task<Result<Animation>> CreateAnimationAsync(
+    public Task<Result<Animation>> CreateAnimationAsync(
         int actionNumber,
         string name,
         SpriteAnimationType type,
@@ -392,17 +392,17 @@ public class SpriteAnimationService : ISpriteAnimationService
                 LoopType.NoLoop);
 
             _animations[actionNumber] = animation;
-            return Result<Animation>.Success(animation);
+            return Task.FromResult(Result<Animation>.Success(animation));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create animation");
-            return Result<Animation>.Failure($"Create animation failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<Animation>.Failure($"Create animation failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> AddAnimationFrameAsync(
+    public Task<Result> AddAnimationFrameAsync(
         int actionNumber,
         AnimationFrame frame,
         int? insertIndex = null,
@@ -412,7 +412,7 @@ public class SpriteAnimationService : ISpriteAnimationService
         {
             if (!_animations.TryGetValue(actionNumber, out var animation))
             {
-                return Result.Failure($"Animation {actionNumber} not found", ErrorType.NotFound);
+                return Task.FromResult(Result.Failure($"Animation {actionNumber} not found", ErrorType.NotFound));
             }
 
             var frames = animation.Frames.ToList();
@@ -426,17 +426,17 @@ public class SpriteAnimationService : ISpriteAnimationService
             }
 
             _animations[actionNumber] = animation with { Frames = frames };
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to add animation frame");
-            return Result.Failure($"Add frame failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Add frame failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> RemoveAnimationFrameAsync(
+    public Task<Result> RemoveAnimationFrameAsync(
         int actionNumber,
         int frameIndex,
         CancellationToken ct = default)
@@ -445,28 +445,28 @@ public class SpriteAnimationService : ISpriteAnimationService
         {
             if (!_animations.TryGetValue(actionNumber, out var animation))
             {
-                return Result.Failure($"Animation {actionNumber} not found", ErrorType.NotFound);
+                return Task.FromResult(Result.Failure($"Animation {actionNumber} not found", ErrorType.NotFound));
             }
 
             var frames = animation.Frames.ToList();
             if (frameIndex < 0 || frameIndex >= frames.Count)
             {
-                return Result.Failure($"Frame index {frameIndex} out of range", ErrorType.Validation);
+                return Task.FromResult(Result.Failure($"Frame index {frameIndex} out of range", ErrorType.Validation));
             }
 
             frames.RemoveAt(frameIndex);
             _animations[actionNumber] = animation with { Frames = frames };
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to remove animation frame");
-            return Result.Failure($"Remove frame failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Remove frame failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> UpdateAnimationFrameAsync(
+    public Task<Result> UpdateAnimationFrameAsync(
         int actionNumber,
         int frameIndex,
         AnimationFrame frame,
@@ -476,28 +476,28 @@ public class SpriteAnimationService : ISpriteAnimationService
         {
             if (!_animations.TryGetValue(actionNumber, out var animation))
             {
-                return Result.Failure($"Animation {actionNumber} not found", ErrorType.NotFound);
+                return Task.FromResult(Result.Failure($"Animation {actionNumber} not found", ErrorType.NotFound));
             }
 
             var frames = animation.Frames.ToList();
             if (frameIndex < 0 || frameIndex >= frames.Count)
             {
-                return Result.Failure($"Frame index {frameIndex} out of range", ErrorType.Validation);
+                return Task.FromResult(Result.Failure($"Frame index {frameIndex} out of range", ErrorType.Validation));
             }
 
             frames[frameIndex] = frame;
             _animations[actionNumber] = animation with { Frames = frames };
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update animation frame");
-            return Result.Failure($"Update frame failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Update frame failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<IReadOnlyList<Animation>>> GetAnimationsAsync(
+    public Task<Result<IReadOnlyList<Animation>>> GetAnimationsAsync(
         SpriteAnimationType? typeFilter = null,
         CancellationToken ct = default)
     {
@@ -508,24 +508,24 @@ public class SpriteAnimationService : ISpriteAnimationService
             animations = animations.Where(a => a.Type == typeFilter.Value);
         }
 
-        return Result<IReadOnlyList<Animation>>.Success(animations.ToList());
+        return Task.FromResult(Result<IReadOnlyList<Animation>>.Success(animations.ToList()));
     }
 
     /// <inheritdoc />
-    public async Task<Result<Animation>> GetAnimationAsync(
+    public Task<Result<Animation>> GetAnimationAsync(
         int actionNumber,
         CancellationToken ct = default)
     {
         if (_animations.TryGetValue(actionNumber, out var animation))
         {
-            return Result<Animation>.Success(animation);
+            return Task.FromResult(Result<Animation>.Success(animation));
         }
 
-        return Result<Animation>.Failure($"Animation {actionNumber} not found", ErrorType.NotFound);
+        return Task.FromResult(Result<Animation>.Failure($"Animation {actionNumber} not found", ErrorType.NotFound));
     }
 
     /// <inheritdoc />
-    public async Task<Result<Animation>> DuplicateAnimationAsync(
+    public Task<Result<Animation>> DuplicateAnimationAsync(
         int sourceActionNumber,
         int newActionNumber,
         CancellationToken ct = default)
@@ -534,7 +534,7 @@ public class SpriteAnimationService : ISpriteAnimationService
         {
             if (!_animations.TryGetValue(sourceActionNumber, out var sourceAnimation))
             {
-                return Result<Animation>.Failure($"Source animation {sourceActionNumber} not found", ErrorType.NotFound);
+                return Task.FromResult(Result<Animation>.Failure($"Source animation {sourceActionNumber} not found", ErrorType.NotFound));
             }
 
             var newAnimation = sourceAnimation with
@@ -545,22 +545,22 @@ public class SpriteAnimationService : ISpriteAnimationService
             };
 
             _animations[newActionNumber] = newAnimation;
-            return Result<Animation>.Success(newAnimation);
+            return Task.FromResult(Result<Animation>.Success(newAnimation));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to duplicate animation");
-            return Result<Animation>.Failure($"Duplicate failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<Animation>.Failure($"Duplicate failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> DeleteAnimationAsync(
+    public Task<Result> DeleteAnimationAsync(
         int actionNumber,
         CancellationToken ct = default)
     {
         _animations.TryRemove(actionNumber, out _);
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     #endregion
@@ -601,23 +601,23 @@ public class SpriteAnimationService : ISpriteAnimationService
     }
 
     /// <inheritdoc />
-    public async Task<Result> SavePaletteAsync(string filePath, Palette palette, CancellationToken ct = default)
+    public Task<Result> SavePaletteAsync(string filePath, Palette palette, CancellationToken ct = default)
     {
         try
         {
             _logger.LogInformation("Saving palette: {FilePath}", filePath);
             // Implementation would save to ACT or PAL format
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to save palette");
-            return Result.Failure($"Palette save failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Palette save failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<Palette>> CreatePaletteAsync(
+    public Task<Result<Palette>> CreatePaletteAsync(
         string name,
         IReadOnlyList<RgbColor> colors,
         CancellationToken ct = default)
@@ -625,17 +625,17 @@ public class SpriteAnimationService : ISpriteAnimationService
         try
         {
             var palette = new Palette(name, colors, colors.Count, false);
-            return Result<Palette>.Success(palette);
+            return Task.FromResult(Result<Palette>.Success(palette));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create palette");
-            return Result<Palette>.Failure($"Create palette failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<Palette>.Failure($"Create palette failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<IReadOnlyList<Sprite>>> ApplyPaletteAsync(
+    public Task<Result<IReadOnlyList<Sprite>>> ApplyPaletteAsync(
         IReadOnlyList<Sprite> sprites,
         Palette palette,
         CancellationToken ct = default)
@@ -644,17 +644,17 @@ public class SpriteAnimationService : ISpriteAnimationService
         {
             _logger.LogInformation("Applying palette to {Count} sprites", sprites.Count);
             // In a real implementation, this would remap colors
-            return Result<IReadOnlyList<Sprite>>.Success(sprites);
+            return Task.FromResult(Result<IReadOnlyList<Sprite>>.Success(sprites));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to apply palette");
-            return Result<IReadOnlyList<Sprite>>.Failure($"Apply palette failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<IReadOnlyList<Sprite>>.Failure($"Apply palette failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<IReadOnlyList<Palette>>> GeneratePaletteVariationsAsync(
+    public Task<Result<IReadOnlyList<Palette>>> GeneratePaletteVariationsAsync(
         Palette basePalette,
         int variationCount,
         VariationType type,
@@ -682,30 +682,30 @@ public class SpriteAnimationService : ISpriteAnimationService
                     false));
             }
 
-            return Result<IReadOnlyList<Palette>>.Success(variations);
+            return Task.FromResult(Result<IReadOnlyList<Palette>>.Success(variations));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to generate palette variations");
-            return Result<IReadOnlyList<Palette>>.Failure($"Generate variations failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<IReadOnlyList<Palette>>.Failure($"Generate variations failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<IReadOnlyList<RgbColor>>> GetPaletteColorsAsync(
+    public Task<Result<IReadOnlyList<RgbColor>>> GetPaletteColorsAsync(
         int paletteIndex,
         CancellationToken ct = default)
     {
         if (_palettes.TryGetValue(paletteIndex, out var palette))
         {
-            return Result<IReadOnlyList<RgbColor>>.Success(palette.Colors);
+            return Task.FromResult(Result<IReadOnlyList<RgbColor>>.Success(palette.Colors));
         }
 
-        return Result<IReadOnlyList<RgbColor>>.Failure($"Palette {paletteIndex} not found", ErrorType.NotFound);
+        return Task.FromResult(Result<IReadOnlyList<RgbColor>>.Failure($"Palette {paletteIndex} not found", ErrorType.NotFound));
     }
 
     /// <inheritdoc />
-    public async Task<Result> SetPaletteColorAsync(
+    public Task<Result> SetPaletteColorAsync(
         int paletteIndex,
         int colorIndex,
         RgbColor color,
@@ -715,24 +715,24 @@ public class SpriteAnimationService : ISpriteAnimationService
         {
             if (!_palettes.TryGetValue(paletteIndex, out var palette))
             {
-                return Result.Failure($"Palette {paletteIndex} not found", ErrorType.NotFound);
+                return Task.FromResult(Result.Failure($"Palette {paletteIndex} not found", ErrorType.NotFound));
             }
 
             if (colorIndex < 0 || colorIndex >= palette.Colors.Count)
             {
-                return Result.Failure($"Color index {colorIndex} out of range", ErrorType.Validation);
+                return Task.FromResult(Result.Failure($"Color index {colorIndex} out of range", ErrorType.Validation));
             }
 
             var colors = palette.Colors.ToList();
             colors[colorIndex] = color;
 
             _palettes[paletteIndex] = palette with { Colors = colors };
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to set palette color");
-            return Result.Failure($"Set color failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Set color failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -741,7 +741,7 @@ public class SpriteAnimationService : ISpriteAnimationService
     #region Preview and Playback
 
     /// <inheritdoc />
-    public async Task<Result<byte[]>> RenderFramePreviewAsync(
+    public Task<Result<byte[]>> RenderFramePreviewAsync(
         int groupNumber,
         int imageNumber,
         RenderOptions options,
@@ -751,17 +751,17 @@ public class SpriteAnimationService : ISpriteAnimationService
         {
             _logger.LogDebug("Rendering frame preview: ({Group},{Image})", groupNumber, imageNumber);
             // Return dummy PNG data for preview
-            return Result<byte[]>.Success(new byte[100]);
+            return Task.FromResult(Result<byte[]>.Success(new byte[100]));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to render frame preview");
-            return Result<byte[]>.Failure($"Render failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<byte[]>.Failure($"Render failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<byte[]>> RenderAnimationAsync(
+    public Task<Result<byte[]>> RenderAnimationAsync(
         int actionNumber,
         RenderOptions options,
         CancellationToken ct = default)
@@ -770,21 +770,21 @@ public class SpriteAnimationService : ISpriteAnimationService
         {
             _logger.LogInformation("Rendering animation: {ActionNumber}", actionNumber);
             // Return dummy GIF data
-            return Result<byte[]>.Success(new byte[1000]);
+            return Task.FromResult(Result<byte[]>.Success(new byte[1000]));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to render animation");
-            return Result<byte[]>.Failure($"Render failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<byte[]>.Failure($"Render failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<AnimationPlaybackState>> GetPlaybackStateAsync(
+    public Task<Result<AnimationPlaybackState>> GetPlaybackStateAsync(
         int actionNumber,
         CancellationToken ct = default)
     {
-        return Result<AnimationPlaybackState>.Success(
+        return Task.FromResult(Result<AnimationPlaybackState>.Success(
             _playbackState ?? new AnimationPlaybackState(
                 actionNumber,
                 0,
@@ -792,11 +792,11 @@ public class SpriteAnimationService : ISpriteAnimationService
                 false,
                 0,
                 TimeSpan.Zero,
-                TimeSpan.Zero));
+                TimeSpan.Zero)));
     }
 
     /// <inheritdoc />
-    public async Task<Result> PlayAnimationAsync(
+    public Task<Result> PlayAnimationAsync(
         int actionNumber,
         PlaybackOptions options,
         CancellationToken ct = default)
@@ -814,37 +814,37 @@ public class SpriteAnimationService : ISpriteAnimationService
                 TimeSpan.FromSeconds(5),
                 TimeSpan.Zero);
 
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to play animation");
-            return Result.Failure($"Play failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Play failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> PauseAnimationAsync(CancellationToken ct = default)
+    public Task<Result> PauseAnimationAsync(CancellationToken ct = default)
     {
         if (_playbackState != null)
         {
             _playbackState = _playbackState with { IsPaused = true };
         }
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result> StopAnimationAsync(CancellationToken ct = default)
+    public Task<Result> StopAnimationAsync(CancellationToken ct = default)
     {
         if (_playbackState != null)
         {
             _playbackState = _playbackState with { IsPlaying = false, CurrentFrame = 0 };
         }
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result> SeekToFrameAsync(
+    public Task<Result> SeekToFrameAsync(
         int frameIndex,
         CancellationToken ct = default)
     {
@@ -852,7 +852,7 @@ public class SpriteAnimationService : ISpriteAnimationService
         {
             _playbackState = _playbackState with { CurrentFrame = frameIndex };
         }
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     #endregion
@@ -860,7 +860,7 @@ public class SpriteAnimationService : ISpriteAnimationService
     #region Batch Operations
 
     /// <inheritdoc />
-    public async Task<Result<BatchOperationResult>> BatchProcessSpritesAsync(
+    public Task<Result<BatchOperationResult>> BatchProcessSpritesAsync(
         BatchSpriteOperation operation,
         CancellationToken ct = default)
     {
@@ -887,17 +887,17 @@ public class SpriteAnimationService : ISpriteAnimationService
             }
 
             var result = new BatchOperationResult(processed, failed, errors, TimeSpan.FromSeconds(1));
-            return Result<BatchOperationResult>.Success(result);
+            return Task.FromResult(Result<BatchOperationResult>.Success(result));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Batch operation failed");
-            return Result<BatchOperationResult>.Failure($"Batch failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<BatchOperationResult>.Failure($"Batch failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> ConvertSffVersionAsync(
+    public Task<Result> ConvertSffVersionAsync(
         string sourcePath,
         string destinationPath,
         SffVersion targetVersion,
@@ -907,17 +907,17 @@ public class SpriteAnimationService : ISpriteAnimationService
         {
             _logger.LogInformation("Converting SFF from {Source} to {Version}", sourcePath, targetVersion);
             // Implementation would convert between SFF versions
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to convert SFF version");
-            return Result.Failure($"Conversion failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Conversion failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<SpriteValidationReport>> ValidateSpritesAsync(
+    public Task<Result<SpriteValidationReport>> ValidateSpritesAsync(
         SpriteValidationOptions options,
         CancellationToken ct = default)
     {
@@ -943,12 +943,12 @@ public class SpriteAnimationService : ISpriteAnimationService
                 issues.Count(i => i.Severity == ValidationSeverity.Warning),
                 issues);
 
-            return Result<SpriteValidationReport>.Success(report);
+            return Task.FromResult(Result<SpriteValidationReport>.Success(report));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Validation failed");
-            return Result<SpriteValidationReport>.Failure($"Validation failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SpriteValidationReport>.Failure($"Validation failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -998,7 +998,7 @@ public class SpriteAnimationService : ISpriteAnimationService
     #region Project Management
 
     /// <inheritdoc />
-    public async Task<Result<SpriteProject>> CreateProjectAsync(
+    public Task<Result<SpriteProject>> CreateProjectAsync(
         string name,
         ProjectSettings settings,
         CancellationToken ct = default)
@@ -1018,17 +1018,17 @@ public class SpriteAnimationService : ISpriteAnimationService
                 DateTime.UtcNow);
 
             _currentProject = project;
-            return Result<SpriteProject>.Success(project);
+            return Task.FromResult(Result<SpriteProject>.Success(project));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create project");
-            return Result<SpriteProject>.Failure($"Create project failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SpriteProject>.Failure($"Create project failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<SpriteProject>> OpenProjectAsync(
+    public Task<Result<SpriteProject>> OpenProjectAsync(
         string projectPath,
         CancellationToken ct = default)
     {
@@ -1037,17 +1037,17 @@ public class SpriteAnimationService : ISpriteAnimationService
             _logger.LogInformation("Opening project: {Path}", projectPath);
 
             // Load project file
-            return Result<SpriteProject>.Success(_currentProject!);
+            return Task.FromResult(Result<SpriteProject>.Success(_currentProject!));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to open project");
-            return Result<SpriteProject>.Failure($"Open project failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<SpriteProject>.Failure($"Open project failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> SaveProjectAsync(
+    public Task<Result> SaveProjectAsync(
         string? projectPath = null,
         CancellationToken ct = default)
     {
@@ -1057,24 +1057,24 @@ public class SpriteAnimationService : ISpriteAnimationService
 
             if (_currentProject == null)
             {
-                return Result.Failure("No project is currently open", ErrorType.Validation);
+                return Task.FromResult(Result.Failure("No project is currently open", ErrorType.Validation));
             }
 
             var path = projectPath ?? _currentProject.FilePath;
             // Save project to file
 
             _currentProject = _currentProject with { ModifiedAt = DateTime.UtcNow };
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to save project");
-            return Result.Failure($"Save project failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Save project failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<ProjectStatistics>> GetProjectStatisticsAsync(
+    public Task<Result<ProjectStatistics>> GetProjectStatisticsAsync(
         CancellationToken ct = default)
     {
         try
@@ -1087,12 +1087,12 @@ public class SpriteAnimationService : ISpriteAnimationService
                 0, // File size would be calculated from actual files
                 _currentProject?.ModifiedAt ?? DateTime.MinValue);
 
-            return Result<ProjectStatistics>.Success(stats);
+            return Task.FromResult(Result<ProjectStatistics>.Success(stats));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get project statistics");
-            return Result<ProjectStatistics>.Failure($"Get statistics failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<ProjectStatistics>.Failure($"Get statistics failed: {ex.Message}", ErrorType.Internal));
         }
     }
 

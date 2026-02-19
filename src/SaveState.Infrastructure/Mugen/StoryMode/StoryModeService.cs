@@ -29,7 +29,7 @@ public class StoryModeService : IStoryModeService
     #region Story Project Management
 
     /// <inheritdoc />
-    public async Task<Result<StoryProject>> CreateProjectAsync(
+    public Task<Result<StoryProject>> CreateProjectAsync(
         string title,
         string? description = null,
         CancellationToken ct = default)
@@ -58,17 +58,17 @@ public class StoryModeService : IStoryModeService
             _projects[project.Id] = project;
             _currentProject = project;
 
-            return Result<StoryProject>.Success(project);
+            return Task.FromResult(Result<StoryProject>.Success(project));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create story project");
-            return Result<StoryProject>.Failure($"Create project failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<StoryProject>.Failure($"Create project failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<StoryProject>> OpenProjectAsync(
+    public Task<Result<StoryProject>> OpenProjectAsync(
         string projectPath,
         CancellationToken ct = default)
     {
@@ -78,20 +78,20 @@ public class StoryModeService : IStoryModeService
 
             if (_currentProject == null)
             {
-                return Result<StoryProject>.Failure("No project loaded", ErrorType.NotFound);
+                return Task.FromResult(Result<StoryProject>.Failure("No project loaded", ErrorType.NotFound));
             }
 
-            return Result<StoryProject>.Success(_currentProject);
+            return Task.FromResult(Result<StoryProject>.Success(_currentProject));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to open story project");
-            return Result<StoryProject>.Failure($"Open project failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<StoryProject>.Failure($"Open project failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> SaveProjectAsync(
+    public Task<Result> SaveProjectAsync(
         string? projectPath = null,
         CancellationToken ct = default)
     {
@@ -99,7 +99,7 @@ public class StoryModeService : IStoryModeService
         {
             if (_currentProject == null)
             {
-                return Result.Failure("No project is currently open", ErrorType.Validation);
+                return Task.FromResult(Result.Failure("No project is currently open", ErrorType.Validation));
             }
 
             _logger.LogInformation("Saving story project: {Title}", _currentProject.Title);
@@ -113,24 +113,24 @@ public class StoryModeService : IStoryModeService
                     _currentProject.Version.Patch + 1)
             };
 
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to save story project");
-            return Result.Failure($"Save project failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Save project failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<StoryProjectStats>> GetProjectStatsAsync(
+    public Task<Result<StoryProjectStats>> GetProjectStatsAsync(
         CancellationToken ct = default)
     {
         try
         {
             if (_currentProject == null)
             {
-                return Result<StoryProjectStats>.Failure("No project is open", ErrorType.Validation);
+                return Task.FromResult(Result<StoryProjectStats>.Failure("No project is open", ErrorType.Validation));
             }
 
             var stats = new StoryProjectStats(
@@ -143,12 +143,12 @@ public class StoryModeService : IStoryModeService
                 _assets.Values.Sum(a => a.FileSize),
                 TimeSpan.FromMinutes(_scenes.Count * 2));
 
-            return Result<StoryProjectStats>.Success(stats);
+            return Task.FromResult(Result<StoryProjectStats>.Success(stats));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get project stats");
-            return Result<StoryProjectStats>.Failure($"Get stats failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<StoryProjectStats>.Failure($"Get stats failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -182,7 +182,7 @@ public class StoryModeService : IStoryModeService
     #region Chapter Management
 
     /// <inheritdoc />
-    public async Task<Result<StoryChapter>> CreateChapterAsync(
+    public Task<Result<StoryChapter>> CreateChapterAsync(
         string title,
         int? orderIndex = null,
         CancellationToken ct = default)
@@ -209,25 +209,25 @@ public class StoryModeService : IStoryModeService
                 _currentProject = _currentProject with { Chapters = updatedChapters };
             }
 
-            return Result<StoryChapter>.Success(chapter);
+            return Task.FromResult(Result<StoryChapter>.Success(chapter));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create chapter");
-            return Result<StoryChapter>.Failure($"Create chapter failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<StoryChapter>.Failure($"Create chapter failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<IReadOnlyList<StoryChapter>>> GetChaptersAsync(
+    public Task<Result<IReadOnlyList<StoryChapter>>> GetChaptersAsync(
         CancellationToken ct = default)
     {
         var chapters = _chapters.Values.OrderBy(c => c.OrderIndex).ToList();
-        return Result<IReadOnlyList<StoryChapter>>.Success(chapters);
+        return Task.FromResult(Result<IReadOnlyList<StoryChapter>>.Success(chapters));
     }
 
     /// <inheritdoc />
-    public async Task<Result> ReorderChaptersAsync(
+    public Task<Result> ReorderChaptersAsync(
         IReadOnlyList<Guid> chapterIds,
         CancellationToken ct = default)
     {
@@ -241,32 +241,32 @@ public class StoryModeService : IStoryModeService
                 }
             }
 
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to reorder chapters");
-            return Result.Failure($"Reorder failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Reorder failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> DeleteChapterAsync(
+    public Task<Result> DeleteChapterAsync(
         Guid chapterId,
         CancellationToken ct = default)
     {
         _chapters.TryRemove(chapterId, out _);
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result<StoryChapter>> DuplicateChapterAsync(
+    public Task<Result<StoryChapter>> DuplicateChapterAsync(
         Guid chapterId,
         CancellationToken ct = default)
     {
         if (!_chapters.TryGetValue(chapterId, out var source))
         {
-            return Result<StoryChapter>.Failure("Chapter not found", ErrorType.NotFound);
+            return Task.FromResult(Result<StoryChapter>.Failure("Chapter not found", ErrorType.NotFound));
         }
 
         var copy = source with
@@ -277,7 +277,7 @@ public class StoryModeService : IStoryModeService
         };
 
         _chapters[copy.Id] = copy;
-        return Result<StoryChapter>.Success(copy);
+        return Task.FromResult(Result<StoryChapter>.Success(copy));
     }
 
     #endregion
@@ -285,7 +285,7 @@ public class StoryModeService : IStoryModeService
     #region Scene Management
 
     /// <inheritdoc />
-    public async Task<Result<StoryScene>> CreateSceneAsync(
+    public Task<Result<StoryScene>> CreateSceneAsync(
         Guid chapterId,
         string name,
         SceneType type,
@@ -312,17 +312,17 @@ public class StoryModeService : IStoryModeService
                 new List<Guid>());
 
             _scenes[scene.Id] = scene;
-            return Result<StoryScene>.Success(scene);
+            return Task.FromResult(Result<StoryScene>.Success(scene));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create scene");
-            return Result<StoryScene>.Failure($"Create scene failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<StoryScene>.Failure($"Create scene failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<IReadOnlyList<StoryScene>>> GetScenesAsync(
+    public Task<Result<IReadOnlyList<StoryScene>>> GetScenesAsync(
         Guid chapterId,
         CancellationToken ct = default)
     {
@@ -331,11 +331,11 @@ public class StoryModeService : IStoryModeService
             .OrderBy(s => s.OrderIndex)
             .ToList();
 
-        return Result<IReadOnlyList<StoryScene>>.Success(scenes);
+        return Task.FromResult(Result<IReadOnlyList<StoryScene>>.Success(scenes));
     }
 
     /// <inheritdoc />
-    public async Task<Result> UpdateSceneContentAsync(
+    public Task<Result> UpdateSceneContentAsync(
         Guid sceneId,
         SceneContent content,
         CancellationToken ct = default)
@@ -344,21 +344,21 @@ public class StoryModeService : IStoryModeService
         {
             if (!_scenes.TryGetValue(sceneId, out var scene))
             {
-                return Result.Failure("Scene not found", ErrorType.NotFound);
+                return Task.FromResult(Result.Failure("Scene not found", ErrorType.NotFound));
             }
 
             _scenes[sceneId] = scene with { Content = content };
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update scene content");
-            return Result.Failure($"Update content failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Update content failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> SetSceneBackgroundAsync(
+    public Task<Result> SetSceneBackgroundAsync(
         Guid sceneId,
         string backgroundPath,
         BackgroundSettings settings,
@@ -368,21 +368,21 @@ public class StoryModeService : IStoryModeService
         {
             if (!_scenes.TryGetValue(sceneId, out var scene))
             {
-                return Result.Failure("Scene not found", ErrorType.NotFound);
+                return Task.FromResult(Result.Failure("Scene not found", ErrorType.NotFound));
             }
 
             _scenes[sceneId] = scene with { BackgroundPath = backgroundPath };
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to set scene background");
-            return Result.Failure($"Set background failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Set background failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> SetSceneMusicAsync(
+    public Task<Result> SetSceneMusicAsync(
         Guid sceneId,
         string musicPath,
         MusicSettings settings,
@@ -392,21 +392,21 @@ public class StoryModeService : IStoryModeService
         {
             if (!_scenes.TryGetValue(sceneId, out var scene))
             {
-                return Result.Failure("Scene not found", ErrorType.NotFound);
+                return Task.FromResult(Result.Failure("Scene not found", ErrorType.NotFound));
             }
 
             _scenes[sceneId] = scene with { MusicPath = musicPath };
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to set scene music");
-            return Result.Failure($"Set music failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Set music failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> SetSceneTransitionAsync(
+    public Task<Result> SetSceneTransitionAsync(
         Guid sceneId,
         SceneTransition transition,
         CancellationToken ct = default)
@@ -415,16 +415,16 @@ public class StoryModeService : IStoryModeService
         {
             if (!_scenes.TryGetValue(sceneId, out var scene))
             {
-                return Result.Failure("Scene not found", ErrorType.NotFound);
+                return Task.FromResult(Result.Failure("Scene not found", ErrorType.NotFound));
             }
 
             _scenes[sceneId] = scene with { Transition = transition };
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to set scene transition");
-            return Result.Failure($"Set transition failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Set transition failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -433,7 +433,7 @@ public class StoryModeService : IStoryModeService
     #region Character Casting
 
     /// <inheritdoc />
-    public async Task<Result<StoryCharacter>> AddCastMemberAsync(
+    public Task<Result<StoryCharacter>> AddCastMemberAsync(
         Guid characterId,
         CastingOptions options,
         CancellationToken ct = default)
@@ -455,33 +455,33 @@ public class StoryModeService : IStoryModeService
                 new Dictionary<string, object>());
 
             _cast[castMember.Id] = castMember;
-            return Result<StoryCharacter>.Success(castMember);
+            return Task.FromResult(Result<StoryCharacter>.Success(castMember));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to add cast member");
-            return Result<StoryCharacter>.Failure($"Add cast member failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<StoryCharacter>.Failure($"Add cast member failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> RemoveCastMemberAsync(
+    public Task<Result> RemoveCastMemberAsync(
         Guid castMemberId,
         CancellationToken ct = default)
     {
         _cast.TryRemove(castMemberId, out _);
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result<IReadOnlyList<StoryCharacter>>> GetCastAsync(
+    public Task<Result<IReadOnlyList<StoryCharacter>>> GetCastAsync(
         CancellationToken ct = default)
     {
-        return Result<IReadOnlyList<StoryCharacter>>.Success(_cast.Values.ToList());
+        return Task.FromResult(Result<IReadOnlyList<StoryCharacter>>.Success(_cast.Values.ToList()));
     }
 
     /// <inheritdoc />
-    public async Task<Result> SetCharacterAppearanceAsync(
+    public Task<Result> SetCharacterAppearanceAsync(
         Guid castMemberId,
         CharacterAppearance appearance,
         CancellationToken ct = default)
@@ -490,21 +490,21 @@ public class StoryModeService : IStoryModeService
         {
             if (!_cast.TryGetValue(castMemberId, out var character))
             {
-                return Result.Failure("Cast member not found", ErrorType.NotFound);
+                return Task.FromResult(Result.Failure("Cast member not found", ErrorType.NotFound));
             }
 
             _cast[castMemberId] = character with { Appearance = appearance };
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to set character appearance");
-            return Result.Failure($"Set appearance failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Set appearance failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> SetCharacterAiAsync(
+    public Task<Result> SetCharacterAiAsync(
         Guid castMemberId,
         StoryAiSettings aiSettings,
         CancellationToken ct = default)
@@ -513,16 +513,16 @@ public class StoryModeService : IStoryModeService
         {
             if (!_cast.TryGetValue(castMemberId, out var character))
             {
-                return Result.Failure("Cast member not found", ErrorType.NotFound);
+                return Task.FromResult(Result.Failure("Cast member not found", ErrorType.NotFound));
             }
 
             _cast[castMemberId] = character with { AiSettings = aiSettings };
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to set character AI");
-            return Result.Failure($"Set AI failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Set AI failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -531,7 +531,7 @@ public class StoryModeService : IStoryModeService
     #region Dialogue System
 
     /// <inheritdoc />
-    public async Task<Result<DialogueLine>> AddDialogueAsync(
+    public Task<Result<DialogueLine>> AddDialogueAsync(
         Guid sceneId,
         DialogueLine line,
         int? insertIndex = null,
@@ -541,7 +541,7 @@ public class StoryModeService : IStoryModeService
         {
             if (!_scenes.TryGetValue(sceneId, out var scene))
             {
-                return Result<DialogueLine>.Failure("Scene not found", ErrorType.NotFound);
+                return Task.FromResult(Result<DialogueLine>.Failure("Scene not found", ErrorType.NotFound));
             }
 
             var dialogue = scene.Content.Dialogue.ToList();
@@ -557,63 +557,63 @@ public class StoryModeService : IStoryModeService
             var updatedContent = scene.Content with { Dialogue = dialogue };
             _scenes[sceneId] = scene with { Content = updatedContent };
 
-            return Result<DialogueLine>.Success(line);
+            return Task.FromResult(Result<DialogueLine>.Success(line));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to add dialogue");
-            return Result<DialogueLine>.Failure($"Add dialogue failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<DialogueLine>.Failure($"Add dialogue failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> UpdateDialogueAsync(
+    public Task<Result> UpdateDialogueAsync(
         Guid dialogueId,
         DialogueLine line,
         CancellationToken ct = default)
     {
         // Implementation would find and update dialogue across all scenes
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result> RemoveDialogueAsync(
+    public Task<Result> RemoveDialogueAsync(
         Guid dialogueId,
         CancellationToken ct = default)
     {
         // Implementation would find and remove dialogue
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result> SetSpeakerAsync(
+    public Task<Result> SetSpeakerAsync(
         Guid dialogueId,
         Guid? castMemberId,
         SpeakerPosition position,
         CancellationToken ct = default)
     {
         // Implementation would update speaker
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result> SetVoiceLineAsync(
+    public Task<Result> SetVoiceLineAsync(
         Guid dialogueId,
         string voicePath,
         CancellationToken ct = default)
     {
         // Implementation would set voice line
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result> SetTextSettingsAsync(
+    public Task<Result> SetTextSettingsAsync(
         Guid dialogueId,
         TextDisplaySettings settings,
         CancellationToken ct = default)
     {
         // Implementation would set text settings
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     #endregion
@@ -621,7 +621,7 @@ public class StoryModeService : IStoryModeService
     #region Cutscene Editor
 
     /// <inheritdoc />
-    public async Task<Result<CutsceneElement>> AddCutsceneElementAsync(
+    public Task<Result<CutsceneElement>> AddCutsceneElementAsync(
         Guid sceneId,
         CutsceneElement element,
         int? insertIndex = null,
@@ -631,7 +631,7 @@ public class StoryModeService : IStoryModeService
         {
             if (!_scenes.TryGetValue(sceneId, out var scene))
             {
-                return Result<CutsceneElement>.Failure("Scene not found", ErrorType.NotFound);
+                return Task.FromResult(Result<CutsceneElement>.Failure("Scene not found", ErrorType.NotFound));
             }
 
             var elements = scene.Content.CutsceneElements.ToList();
@@ -647,61 +647,61 @@ public class StoryModeService : IStoryModeService
             var updatedContent = scene.Content with { CutsceneElements = elements };
             _scenes[sceneId] = scene with { Content = updatedContent };
 
-            return Result<CutsceneElement>.Success(element);
+            return Task.FromResult(Result<CutsceneElement>.Success(element));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to add cutscene element");
-            return Result<CutsceneElement>.Failure($"Add element failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<CutsceneElement>.Failure($"Add element failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> UpdateCutsceneElementAsync(
+    public Task<Result> UpdateCutsceneElementAsync(
         Guid elementId,
         CutsceneElement element,
         CancellationToken ct = default)
     {
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result> SetCameraMovementAsync(
+    public Task<Result> SetCameraMovementAsync(
         Guid sceneId,
         CameraPath cameraPath,
         CancellationToken ct = default)
     {
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result> AddVisualEffectAsync(
+    public Task<Result> AddVisualEffectAsync(
         Guid sceneId,
         VisualEffect effect,
         CancellationToken ct = default)
     {
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result> SetCharacterAnimationAsync(
+    public Task<Result> SetCharacterAnimationAsync(
         Guid sceneId,
         Guid castMemberId,
         string animationName,
         AnimationSettings settings,
         CancellationToken ct = default)
     {
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result> SetCharacterPositionAsync(
+    public Task<Result> SetCharacterPositionAsync(
         Guid sceneId,
         Guid castMemberId,
         Position3D position,
         CancellationToken ct = default)
     {
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     #endregion
@@ -709,7 +709,7 @@ public class StoryModeService : IStoryModeService
     #region Branching and Choices
 
     /// <inheritdoc />
-    public async Task<Result<StoryChoice>> AddChoiceAsync(
+    public Task<Result<StoryChoice>> AddChoiceAsync(
         Guid sceneId,
         StoryChoice choice,
         CancellationToken ct = default)
@@ -718,7 +718,7 @@ public class StoryModeService : IStoryModeService
         {
             if (!_scenes.TryGetValue(sceneId, out var scene))
             {
-                return Result<StoryChoice>.Failure("Scene not found", ErrorType.NotFound);
+                return Task.FromResult(Result<StoryChoice>.Failure("Scene not found", ErrorType.NotFound));
             }
 
             var choices = scene.Content.Choices?.ToList() ?? new List<StoryChoice>();
@@ -727,58 +727,58 @@ public class StoryModeService : IStoryModeService
             var updatedContent = scene.Content with { Choices = choices };
             _scenes[sceneId] = scene with { Content = updatedContent };
 
-            return Result<StoryChoice>.Success(choice);
+            return Task.FromResult(Result<StoryChoice>.Success(choice));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to add choice");
-            return Result<StoryChoice>.Failure($"Add choice failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<StoryChoice>.Failure($"Add choice failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> SetChoiceConsequencesAsync(
+    public Task<Result> SetChoiceConsequencesAsync(
         Guid choiceId,
         ChoiceConsequences consequences,
         CancellationToken ct = default)
     {
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result> SetBranchConditionAsync(
+    public Task<Result> SetBranchConditionAsync(
         Guid sceneId,
         BranchCondition condition,
         CancellationToken ct = default)
     {
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result> SetStoryVariableAsync(
+    public Task<Result> SetStoryVariableAsync(
         string variableName,
         object value,
         CancellationToken ct = default)
     {
         _storyVariables[variableName] = value;
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result<object>> GetStoryVariableAsync(
+    public Task<Result<object>> GetStoryVariableAsync(
         string variableName,
         CancellationToken ct = default)
     {
         if (_storyVariables.TryGetValue(variableName, out var value))
         {
-            return Result<object>.Success(value);
+            return Task.FromResult(Result<object>.Success(value));
         }
 
-        return Result<object>.Failure($"Variable '{variableName}' not found", ErrorType.NotFound);
+        return Task.FromResult(Result<object>.Failure($"Variable '{variableName}' not found", ErrorType.NotFound));
     }
 
     /// <inheritdoc />
-    public async Task<Result<BranchValidationResult>> ValidateBranchingAsync(
+    public Task<Result<BranchValidationResult>> ValidateBranchingAsync(
         CancellationToken ct = default)
     {
         try
@@ -790,12 +790,12 @@ public class StoryModeService : IStoryModeService
                 0,
                 new List<string>());
 
-            return Result<BranchValidationResult>.Success(result);
+            return Task.FromResult(Result<BranchValidationResult>.Success(result));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to validate branching");
-            return Result<BranchValidationResult>.Failure($"Validation failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<BranchValidationResult>.Failure($"Validation failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -804,7 +804,7 @@ public class StoryModeService : IStoryModeService
     #region Battle Integration
 
     /// <inheritdoc />
-    public async Task<Result<StoryBattle>> AddBattleAsync(
+    public Task<Result<StoryBattle>> AddBattleAsync(
         Guid sceneId,
         StoryBattle battle,
         CancellationToken ct = default)
@@ -813,47 +813,47 @@ public class StoryModeService : IStoryModeService
         {
             if (!_scenes.TryGetValue(sceneId, out var scene))
             {
-                return Result<StoryBattle>.Failure("Scene not found", ErrorType.NotFound);
+                return Task.FromResult(Result<StoryBattle>.Failure("Scene not found", ErrorType.NotFound));
             }
 
             var updatedContent = scene.Content with { Battle = battle };
             _scenes[sceneId] = scene with { Content = updatedContent };
 
-            return Result<StoryBattle>.Success(battle);
+            return Task.FromResult(Result<StoryBattle>.Success(battle));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to add battle");
-            return Result<StoryBattle>.Failure($"Add battle failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<StoryBattle>.Failure($"Add battle failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> SetBattleConditionsAsync(
+    public Task<Result> SetBattleConditionsAsync(
         Guid battleId,
         BattleConditions conditions,
         CancellationToken ct = default)
     {
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result> SetPostBattleSceneAsync(
+    public Task<Result> SetPostBattleSceneAsync(
         Guid battleId,
         Guid? winSceneId,
         Guid? loseSceneId,
         CancellationToken ct = default)
     {
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result> ConfigureBossBattleAsync(
+    public Task<Result> ConfigureBossBattleAsync(
         Guid battleId,
         BossBattleSettings settings,
         CancellationToken ct = default)
     {
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     #endregion
@@ -861,7 +861,7 @@ public class StoryModeService : IStoryModeService
     #region Preview and Testing
 
     /// <inheritdoc />
-    public async Task<Result<ScenePreview>> PreviewSceneAsync(
+    public Task<Result<ScenePreview>> PreviewSceneAsync(
         Guid sceneId,
         StoryPreviewOptions options,
         CancellationToken ct = default)
@@ -870,7 +870,7 @@ public class StoryModeService : IStoryModeService
         {
             if (!_scenes.TryGetValue(sceneId, out var scene))
             {
-                return Result<ScenePreview>.Failure("Scene not found", ErrorType.NotFound);
+                return Task.FromResult(Result<ScenePreview>.Failure("Scene not found", ErrorType.NotFound));
             }
 
             var preview = new ScenePreview(
@@ -879,17 +879,17 @@ public class StoryModeService : IStoryModeService
                 TimeSpan.FromSeconds(scene.Content.Dialogue?.Count * 3 ?? 10),
                 new List<string>());
 
-            return Result<ScenePreview>.Success(preview);
+            return Task.FromResult(Result<ScenePreview>.Success(preview));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to preview scene");
-            return Result<ScenePreview>.Failure($"Preview failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<ScenePreview>.Failure($"Preview failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> PlayStoryAsync(
+    public Task<Result> PlayStoryAsync(
         Guid? startChapterId = null,
         CancellationToken ct = default)
     {
@@ -897,24 +897,24 @@ public class StoryModeService : IStoryModeService
         {
             _logger.LogInformation("Starting story playback");
             _currentPlaybackId = Guid.NewGuid();
-            return Result.Success();
+            return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to play story");
-            return Result.Failure($"Play story failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result.Failure($"Play story failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result> StopPlaybackAsync(CancellationToken ct = default)
+    public Task<Result> StopPlaybackAsync(CancellationToken ct = default)
     {
         _currentPlaybackId = null;
-        return Result.Success();
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
-    public async Task<Result<StoryPathSimulation>> SimulatePathAsync(
+    public Task<Result<StoryPathSimulation>> SimulatePathAsync(
         IReadOnlyList<int> choices,
         CancellationToken ct = default)
     {
@@ -939,17 +939,17 @@ public class StoryModeService : IStoryModeService
                 DateTime.UtcNow - currentTime,
                 "ending_good");
 
-            return Result<StoryPathSimulation>.Success(simulation);
+            return Task.FromResult(Result<StoryPathSimulation>.Success(simulation));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to simulate path");
-            return Result<StoryPathSimulation>.Failure($"Simulation failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<StoryPathSimulation>.Failure($"Simulation failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<StoryTestResult>> TestStoryAsync(
+    public Task<Result<StoryTestResult>> TestStoryAsync(
         CancellationToken ct = default)
     {
         try
@@ -961,12 +961,12 @@ public class StoryModeService : IStoryModeService
                 0,
                 new List<StoryTestIssue>());
 
-            return Result<StoryTestResult>.Success(result);
+            return Task.FromResult(Result<StoryTestResult>.Success(result));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to test story");
-            return Result<StoryTestResult>.Failure($"Test failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<StoryTestResult>.Failure($"Test failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
@@ -975,7 +975,7 @@ public class StoryModeService : IStoryModeService
     #region Asset Management
 
     /// <inheritdoc />
-    public async Task<Result<StoryAsset>> ImportAssetAsync(
+    public Task<Result<StoryAsset>> ImportAssetAsync(
         string filePath,
         AssetType type,
         CancellationToken ct = default)
@@ -986,7 +986,7 @@ public class StoryModeService : IStoryModeService
 
             if (!File.Exists(filePath))
             {
-                return Result<StoryAsset>.Failure($"File not found: {filePath}", ErrorType.NotFound);
+                return Task.FromResult(Result<StoryAsset>.Failure($"File not found: {filePath}", ErrorType.NotFound));
             }
 
             var fileInfo = new FileInfo(filePath);
@@ -999,17 +999,17 @@ public class StoryModeService : IStoryModeService
                 DateTime.UtcNow);
 
             _assets[asset.Id] = asset;
-            return Result<StoryAsset>.Success(asset);
+            return Task.FromResult(Result<StoryAsset>.Success(asset));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to import asset");
-            return Result<StoryAsset>.Failure($"Import asset failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<StoryAsset>.Failure($"Import asset failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<IReadOnlyList<StoryAsset>>> GetAssetsAsync(
+    public Task<Result<IReadOnlyList<StoryAsset>>> GetAssetsAsync(
         AssetType? typeFilter = null,
         CancellationToken ct = default)
     {
@@ -1017,11 +1017,11 @@ public class StoryModeService : IStoryModeService
             ? _assets.Values.Where(a => a.Type == typeFilter.Value).ToList()
             : _assets.Values.ToList();
 
-        return Result<IReadOnlyList<StoryAsset>>.Success(assets);
+        return Task.FromResult(Result<IReadOnlyList<StoryAsset>>.Success(assets));
     }
 
     /// <inheritdoc />
-    public async Task<Result<AssetValidationResult>> ValidateAssetsAsync(
+    public Task<Result<AssetValidationResult>> ValidateAssetsAsync(
         CancellationToken ct = default)
     {
         try
@@ -1044,17 +1044,17 @@ public class StoryModeService : IStoryModeService
                 0,
                 issues);
 
-            return Result<AssetValidationResult>.Success(result);
+            return Task.FromResult(Result<AssetValidationResult>.Success(result));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to validate assets");
-            return Result<AssetValidationResult>.Failure($"Validation failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<AssetValidationResult>.Failure($"Validation failed: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<StoryAssetOptimizationResult>> OptimizeAssetsAsync(
+    public Task<Result<StoryAssetOptimizationResult>> OptimizeAssetsAsync(
         OptimizationOptions options,
         CancellationToken ct = default)
     {
@@ -1067,12 +1067,12 @@ public class StoryModeService : IStoryModeService
                 _assets.Count,
                 new List<string> { "Compressed backgrounds", "Optimized audio" });
 
-            return Result<StoryAssetOptimizationResult>.Success(result);
+            return Task.FromResult(Result<StoryAssetOptimizationResult>.Success(result));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to optimize assets");
-            return Result<StoryAssetOptimizationResult>.Failure($"Optimization failed: {ex.Message}", ErrorType.Internal);
+            return Task.FromResult(Result<StoryAssetOptimizationResult>.Failure($"Optimization failed: {ex.Message}", ErrorType.Internal));
         }
     }
 

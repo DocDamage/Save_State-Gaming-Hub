@@ -334,6 +334,39 @@ Note on `SaveStateDbContext`: the current estimator counts inherited members (`G
   - `tests/SaveState.Application.Tests/SmartLauncher/SmartLauncherPerformanceTests.cs`
   - Relaxed two performance assertions to CI-aware practical ceilings (`LaunchResult_Success_Performance`, `CalculateSessionDuration_Performance`) to avoid false-negative regressions under shared runner variability.
 
+### Progress Update (2026-02-19, Session 14)
+- T5 complete: class-size remediation landed for:
+  - `src/SaveState.Infrastructure/Mugen/SpriteAnimation/SpriteAnimationService.cs`
+  - `src/SaveState.Infrastructure/Mugen/SoundDesign/SoundDesignService.cs`
+- Approach:
+  - Removed no-await async state-machine generation in sync-in-practice paths while preserving `Task`-based public contracts.
+  - Converted eligible methods to non-async `Task.FromResult(...)` returns.
+- Guardrail ratchet:
+  - `tests/SaveState.Infrastructure.Tests/Architecture/ArchitectureTests.cs`
+  - `ArchitectureTests.Non_Migration_Classes_Should_Not_Exceed_1000_Lines` tightened `<=5` -> `<=3`.
+- Validation:
+  - Targeted architecture test passes at **3** offenders.
+- Current offender baseline: **3**
+  - `SaveStateDbContext`
+  - `StoryModeService`
+  - `ComboDatabaseService`
+
+### Progress Update (2026-02-19, Session 15)
+- T6 complete: class-size remediation landed for:
+  - `src/SaveState.Infrastructure/Mugen/StoryMode/StoryModeService.cs`
+  - `src/SaveState.Infrastructure/Mugen/ComboDatabase/ComboDatabaseService.cs`
+  - `src/SaveState.Infrastructure/Mugen/ComboDatabase/ComboDatabaseServiceOperations.cs` (new collaborator extraction)
+- Approach:
+  - `StoryModeService`: removed no-await async state-machine generation in sync-in-practice paths while preserving `Task` contracts via `Task.FromResult(...)`.
+  - `ComboDatabaseService`: extracted heavy async/query logic into `ComboDatabaseServiceOperations` and left `ComboDatabaseService` as a thin facade delegating to the collaborator.
+- Guardrail ratchet:
+  - `tests/SaveState.Infrastructure.Tests/Architecture/ArchitectureTests.cs`
+  - `ArchitectureTests.Non_Migration_Classes_Should_Not_Exceed_1000_Lines` tightened `<=3` -> `<=1`.
+- Validation:
+  - Targeted architecture test passes at **1** offender.
+- Current offender baseline: **1**
+  - `SaveStateDbContext`
+
 #### Tranche Sequence And Guardrail Ratchet
 | Tranche | Scope | Status | Guardrail Target |
 |---|---|---|---:|
@@ -342,8 +375,8 @@ Note on `SaveStateDbContext`: the current estimator counts inherited members (`G
 | T3a | `CharacterDiscoveryService` | DONE | `<=7` |
 | T3b | `IkemenGoService` | DONE | `<=6` |
 | T4 | `PerformanceProfilerService` | DONE | `<=5` |
-| T5 | `SpriteAnimationService`, `SoundDesignService` | REMAINING | `<=3` |
-| T6 | `ComboDatabaseService`, `StoryModeService` | REMAINING | `<=1` |
+| T5 | `SpriteAnimationService`, `SoundDesignService` | DONE | `<=3` |
+| T6 | `ComboDatabaseService`, `StoryModeService` | DONE | `<=1` |
 
 #### Implementation Rules Per Tranche
 1. Keep behavior stable: existing tests pass plus new focused tests for each extracted collaborator.

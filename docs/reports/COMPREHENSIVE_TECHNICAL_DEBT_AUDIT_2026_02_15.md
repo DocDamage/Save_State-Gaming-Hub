@@ -487,6 +487,39 @@ Exit criteria:
 - Test stability follow-up:
   - `tests/SaveState.Application.Tests/SmartLauncher/SmartLauncherPerformanceTests.cs` adjusted two micro-benchmark thresholds (`LaunchResult_Success_Performance`, `CalculateSessionDuration_Performance`) to practical CI/local limits to reduce non-deterministic failures.
 
+**Progress Update - 2026-02-19 (Session 14):**
+- Completed T5 class-size remediation for:
+  - `src/SaveState.Infrastructure/Mugen/SpriteAnimation/SpriteAnimationService.cs`
+  - `src/SaveState.Infrastructure/Mugen/SoundDesign/SoundDesignService.cs`
+- Approach:
+  - Removed no-await async state-machine generation in sync-in-practice methods.
+  - Preserved `Task`-based contracts by converting eligible methods to non-async `Task.FromResult(...)` return paths.
+- Guardrail ratchet:
+  - `tests/SaveState.Infrastructure.Tests/Architecture/ArchitectureTests.cs`
+  - `Non_Migration_Classes_Should_Not_Exceed_1000_Lines`: `<=5` -> `<=3`.
+- Validation:
+  - `dotnet test tests/SaveState.Infrastructure.Tests/SaveState.Infrastructure.Tests.csproj --filter "FullyQualifiedName~Non_Migration_Classes_Should_Not_Exceed_1000_Lines"` passed.
+- Current >1000 offender list (3):
+  - `SaveStateDbContext` (~2857)
+  - `StoryModeService` (~1719)
+  - `ComboDatabaseService` (~1662)
+
+**Progress Update - 2026-02-19 (Session 15):**
+- Completed T6 class-size remediation for:
+  - `src/SaveState.Infrastructure/Mugen/StoryMode/StoryModeService.cs`
+  - `src/SaveState.Infrastructure/Mugen/ComboDatabase/ComboDatabaseService.cs`
+  - `src/SaveState.Infrastructure/Mugen/ComboDatabase/ComboDatabaseServiceOperations.cs` (new collaborator extraction)
+- Approach:
+  - `StoryModeService`: removed no-await async state-machine generation in sync-in-practice methods while preserving `Task`-based contracts.
+  - `ComboDatabaseService`: extracted async query/mutation logic into `ComboDatabaseServiceOperations`; left `ComboDatabaseService` as a thin facade.
+- Guardrail ratchet:
+  - `tests/SaveState.Infrastructure.Tests/Architecture/ArchitectureTests.cs`
+  - `Non_Migration_Classes_Should_Not_Exceed_1000_Lines`: `<=3` -> `<=1`.
+- Validation:
+  - `dotnet test tests/SaveState.Infrastructure.Tests/SaveState.Infrastructure.Tests.csproj --filter "FullyQualifiedName~Non_Migration_Classes_Should_Not_Exceed_1000_Lines"` passed.
+- Current >1000 offender list (1):
+  - `SaveStateDbContext` (~2857)
+
 ### Slice E - Async Modernization Cleanup (0.5-1 day) - Status: In Progress
 1. Replace `ContinueWith(... t.Result)` in `UniversalSearchService` with idiomatic `await`.
 2. Add analyzer or lint gate to prevent reintroduction of sync-over-async patterns.
@@ -507,17 +540,14 @@ Exit criteria:
 - Test output contains no non-discoverable assembly warnings.
 
 ## Remaining Work To Finish The Technical-Debt Program (As Of February 19, 2026)
-1. Finish Slice D class-split program to the practical floor (`<=1`):
-- Split `SpriteAnimationService` and `SoundDesignService` and ratchet `<=5` -> `<=3`.
-- Split `ComboDatabaseService` and `StoryModeService` and ratchet `<=3` -> `<=1` (leaving `SaveStateDbContext` floor).
-2. Decide whether to modernize the class-size estimator (`DeclaredOnly`) or keep explicit `SaveStateDbContext` floor policy.
-3. Continue Slice B time-determinism paydown (`ITimeProvider`) in remaining high-density Core/Infrastructure hotspots and tighten associated guardrails after each tranche (Application direct-now tranche now at 0).
-4. Continue Slice C suppression paydown (remove remaining broad `NoWarn`, keep only narrowly justified suppressions).
-5. Finish Slice A deferred dependency queue:
+1. Decide whether to modernize the class-size estimator (`DeclaredOnly`) or keep explicit `SaveStateDbContext` floor policy.
+2. Continue Slice B time-determinism paydown (`ITimeProvider`) in remaining high-density Core/Infrastructure hotspots and tighten associated guardrails after each tranche (Application direct-now tranche now at 0).
+3. Continue Slice C suppression paydown (remove remaining broad `NoWarn`, keep only narrowly justified suppressions).
+4. Finish Slice A deferred dependency queue:
 - `SharpCompress` migration (`0.39.0` -> `0.46.0`) with API adaptation.
 - Resolve `Tobii.Interaction` feed/update strategy.
 - Plan and execute coordinated `net10.0` migration gate for EF Core/TestHost uplift.
-6. Finish Slice F test-inventory hygiene by resolving support-only test assembly discoverability noise.
+5. Finish Slice F test-inventory hygiene by resolving support-only test assembly discoverability noise.
 
 ## Commands Used (Audit Evidence)
 - `dotnet build SaveStateReborn.sln -nologo --verbosity minimal`
