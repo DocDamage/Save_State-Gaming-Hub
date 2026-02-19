@@ -16,6 +16,7 @@ public class PredictiveAnalyticsEngine : PredictiveAnalyticsEngineIPredictiveAna
 {
     private readonly ILogger<PredictiveAnalyticsEngine> _logger;
     private readonly ICacheService _cache;
+    private readonly ITimeProvider _timeProvider;
     private readonly PredictiveAnalyticsEngineMachineLearningModel _predictionModel;
     private readonly PredictiveAnalyticsEnginePlayerSkillModeler _skillModeler;
     private readonly PredictiveAnalyticsEngineMatchPredictor _matchPredictor;
@@ -24,12 +25,16 @@ public class PredictiveAnalyticsEngine : PredictiveAnalyticsEngineIPredictiveAna
     public PredictiveAnalyticsEngine(
         ILogger<PredictiveAnalyticsEngine> logger,
         ILoggerFactory loggerFactory,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _cache = cache;
+        _timeProvider = timeProvider;
         _predictionModel = new PredictiveAnalyticsEngineMachineLearningModel(loggerFactory.CreateLogger<PredictiveAnalyticsEngineMachineLearningModel>());
-        _skillModeler = new PredictiveAnalyticsEnginePlayerSkillModeler(loggerFactory.CreateLogger<PredictiveAnalyticsEnginePlayerSkillModeler>());
+        _skillModeler = new PredictiveAnalyticsEnginePlayerSkillModeler(
+            loggerFactory.CreateLogger<PredictiveAnalyticsEnginePlayerSkillModeler>(),
+            _timeProvider);
         _matchPredictor = new PredictiveAnalyticsEngineMatchPredictor(loggerFactory.CreateLogger<PredictiveAnalyticsEngineMatchPredictor>());
         _performanceForecaster = new PredictiveAnalyticsEnginePerformanceForecaster(loggerFactory.CreateLogger<PredictiveAnalyticsEnginePerformanceForecaster>());
     }
@@ -84,7 +89,7 @@ public class PredictiveAnalyticsEngine : PredictiveAnalyticsEngineIPredictiveAna
                 PredictedMatchLength = prediction.PredictedMatchLength,
                 SkillDifference = Math.Abs(player1Skill.Value.Rating - player2Skill.Value.Rating),
                 MatchupAdvantage = matchupData.Advantage,
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Match prediction completed: {Winner} wins with {Prob:P1} probability",
@@ -129,7 +134,7 @@ public class PredictiveAnalyticsEngine : PredictiveAnalyticsEngineIPredictiveAna
                 Trend = performanceAnalysis.Trend,
                 ProjectedRating = await ProjectFutureRatingAsync(playerId, performanceAnalysis, ct),
                 AssessmentPeriod = TimeSpan.FromDays(30), // Last 30 days
-                AssessedAt = DateTime.UtcNow
+                AssessedAt = _timeProvider.UtcNow
             };
 
             // Cache assessment
@@ -171,7 +176,7 @@ public class PredictiveAnalyticsEngine : PredictiveAnalyticsEngineIPredictiveAna
                 PredictiveAnalyticsEngineSkillTrend = forecast.PredictiveAnalyticsEngineSkillTrend,
                 KeyInsights = forecast.KeyInsights,
                 Recommendations = forecast.Recommendations,
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Performance forecast completed for {PlayerId}: Projected rating {Rating:F0}",
@@ -257,7 +262,7 @@ public class PredictiveAnalyticsEngine : PredictiveAnalyticsEngineIPredictiveAna
                     .ToDictionary(g => g.Key, g => (IReadOnlyList<PredictiveAnalyticsEngineMatchPredictionResult>)g.ToList().AsReadOnly()),
                 KeyUpsets = IdentifyPotentialUpsets(predictions),
                 Confidence = CalculateTournamentConfidence(predictions),
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Tournament prediction completed: {Winner} wins tournament with {Prob:P1} probability",
@@ -290,7 +295,7 @@ public class PredictiveAnalyticsEngine : PredictiveAnalyticsEngineIPredictiveAna
                 PredictiveAnalyticsEngineMatchAnalytics = await GenerateMatchAnalyticsAsync(query, ct),
                 PredictiveAnalyticsEngineTrendAnalysis = await GenerateTrendAnalysisAsync(query, ct),
                 Insights = await GenerateKeyInsightsAsync(query, ct),
-                GeneratedAt = DateTime.UtcNow
+                GeneratedAt = _timeProvider.UtcNow
             };
 
             _logger.LogInformation("Analytics report generated: {ReportId}", report.ReportId);
@@ -644,11 +649,15 @@ public class PredictiveAnalyticsEngineMachineLearningModel
 public class PredictiveAnalyticsEnginePlayerSkillModeler
 {
     private readonly ILogger<PredictiveAnalyticsEnginePlayerSkillModeler> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, PredictiveAnalyticsEnginePlayerSkill> _playerSkills = new();
 
-    public PredictiveAnalyticsEnginePlayerSkillModeler(ILogger<PredictiveAnalyticsEnginePlayerSkillModeler> logger)
+    public PredictiveAnalyticsEnginePlayerSkillModeler(
+        ILogger<PredictiveAnalyticsEnginePlayerSkillModeler> logger,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<PredictiveAnalyticsEnginePlayerSkill>> GetPlayerSkillAsync(string playerId, CancellationToken ct = default)
@@ -661,7 +670,7 @@ public class PredictiveAnalyticsEnginePlayerSkillModeler
                 PlayerId = playerId,
                 Rating = 1500,
                 Volatility = 0.06,
-                LastUpdated = DateTime.UtcNow
+                LastUpdated = _timeProvider.UtcNow
             };
             _playerSkills[playerId] = skill;
         }
@@ -686,7 +695,7 @@ public class PredictiveAnalyticsEnginePlayerSkillModeler
 
         var ratingChange = 32 * (actualPerformance - expectedPerformance);
         skill.Rating += ratingChange;
-        skill.LastUpdated = DateTime.UtcNow;
+        skill.LastUpdated = _timeProvider.UtcNow;
 
         // Update volatility based on consistency
         skill.Volatility = Math.Max(0.03, skill.Volatility * (1.0 - analysis.Consistency * 0.1));
@@ -718,7 +727,7 @@ public class PredictiveAnalyticsEnginePlayerSkillModeler
                     PlayerId = data.PlayerId,
                     Rating = 1500,
                     Volatility = 0.06,
-                    LastUpdated = DateTime.UtcNow
+                    LastUpdated = _timeProvider.UtcNow
                 };
             }
         }

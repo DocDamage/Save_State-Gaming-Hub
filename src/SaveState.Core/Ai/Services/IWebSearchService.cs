@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using SaveState.Core.Common;
 
 namespace SaveState.Core.Ai.Services;
 
@@ -16,5 +17,5 @@ public interface IWebSearchService
     /// <summary>
     /// Fetches the content of a specific URL and returns it as a formatted string (typically Markdown).
     /// </summary>
-    Task<string> FetchUrlContentAsync(string url, CancellationToken ct = default);
+    Task<Result<string>> FetchUrlContentAsync(string url, CancellationToken ct = default);
 }

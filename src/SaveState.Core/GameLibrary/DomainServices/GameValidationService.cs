@@ -16,43 +16,57 @@ public class GameValidationService : IGameValidationService
 
     public async Task<bool> IsValidGameAsync(Game game, CancellationToken ct)
     {
-        var errors = await GetValidationErrorsAsync(game, ct).ConfigureAwait(false);
-        return !errors.Any();
+        var validationErrorsResult = await GetValidationErrorsAsync(game, ct).ConfigureAwait(false);
+        if (validationErrorsResult.IsFailure || validationErrorsResult.Value is null)
+        {
+            return false;
+        }
+
+        return !validationErrorsResult.Value.Any();
     }
 
-    public async Task<IReadOnlyList<string>> GetValidationErrorsAsync(Game game, CancellationToken ct)
+    public async Task<Result<IReadOnlyList<string>>> GetValidationErrorsAsync(Game game, CancellationToken ct)
     {
-        var errors = new List<string>();
-
-        // Check title
-        if (string.IsNullOrWhiteSpace(game.Title))
-            errors.Add("Game title is required");
-
-        // Check platform - either ID or navigation property is sufficient
-        if (!game.PlatformId.HasValue && game.Platform is null)
-            errors.Add("Platform is required");
-
-        // Check install path if installed
-        if (game.Status == GameStatus.Installed && string.IsNullOrWhiteSpace(game.InstallPath))
-            errors.Add("Install path is required for installed games");
-
-        // Check if install path exists
-        if (!string.IsNullOrWhiteSpace(game.InstallPath) &&
-            !await _fileSystem.DirectoryExistsAsync(game.InstallPath, ct).ConfigureAwait(false))
+        try
         {
-            errors.Add($"Install path '{game.InstallPath}' does not exist");
-        }
+            var errors = new List<string>();
 
-        // Validate files
-        foreach (var file in game.Files)
-        {
-            if (!await _fileSystem.FileExistsAsync(file.Path, ct).ConfigureAwait(false))
+            // Check title
+            if (string.IsNullOrWhiteSpace(game.Title))
+                errors.Add("Game title is required");
+
+            // Check platform - either ID or navigation property is sufficient
+            if (!game.PlatformId.HasValue && game.Platform is null)
+                errors.Add("Platform is required");
+
+            // Check install path if installed
+            if (game.Status == GameStatus.Installed && string.IsNullOrWhiteSpace(game.InstallPath))
+                errors.Add("Install path is required for installed games");
+
+            // Check if install path exists
+            if (!string.IsNullOrWhiteSpace(game.InstallPath) &&
+                !await _fileSystem.DirectoryExistsAsync(game.InstallPath, ct).ConfigureAwait(false))
             {
-                errors.Add($"Game file '{file.Path}' does not exist");
+                errors.Add($"Install path '{game.InstallPath}' does not exist");
             }
-        }
 
-        return errors;
+            // Validate files
+            foreach (var file in game.Files)
+            {
+                if (!await _fileSystem.FileExistsAsync(file.Path, ct).ConfigureAwait(false))
+                {
+                    errors.Add($"Game file '{file.Path}' does not exist");
+                }
+            }
+
+            return Result.Success<IReadOnlyList<string>>(errors);
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure<IReadOnlyList<string>>(
+                $"Failed to validate game '{game.Title}': {ex.Message}",
+                ErrorType.Internal);
+        }
     }
 
     public async Task<bool> CanLaunchGameAsync(Game game, CancellationToken ct)

@@ -296,7 +296,7 @@ public sealed class SmartLauncherService : ISmartLauncherService
             await _sessionRepository.EndSessionAsync(sessionId, null, metrics, ct);
 
             _logger.LogInformation("Session {SessionId} ended. Duration: {Duration}",
-                sessionId, DateTime.UtcNow - sessionResult.Value.StartedAt);
+                sessionId, _timeProvider.UtcNow - sessionResult.Value.StartedAt);
 
             return Result.Success();
         }

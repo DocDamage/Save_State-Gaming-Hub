@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Application.Mugen.Services.AutomatedBalancing.Engines;
 
@@ -8,10 +9,12 @@ namespace SaveState.Application.Mugen.Services.AutomatedBalancing.Engines;
 public class GameStateMonitor
 {
     private readonly ILogger<GameStateMonitor> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public GameStateMonitor(ILogger<GameStateMonitor> logger)
+    public GameStateMonitor(ILogger<GameStateMonitor> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<GameStateSnapshot> CaptureSnapshotAsync(string gameId, CancellationToken ct = default)
@@ -21,7 +24,7 @@ public class GameStateMonitor
         return new GameStateSnapshot
         {
             GameId = gameId,
-            CapturedAt = DateTime.UtcNow,
+            CapturedAt = _timeProvider.UtcNow,
             ActiveCharacters = Array.Empty<string>(),
             MatchCount = 0,
             AverageMatchDuration = TimeSpan.Zero

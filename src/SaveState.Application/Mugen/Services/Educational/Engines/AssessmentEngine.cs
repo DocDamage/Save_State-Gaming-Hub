@@ -2,16 +2,19 @@ namespace SaveState.Application.Mugen.Services.Educational.Engines;
 
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Mugen.Models.Educational;
+using SaveState.Core.Common.Services;
 
 public class AssessmentEngine
 {
     private readonly ILogger<AssessmentEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, PracticeSession> _practiceSessions;
     private readonly Dictionary<string, MatchAnalysis> _matchAnalyses;
 
-    public AssessmentEngine(ILogger<AssessmentEngine> logger)
+    public AssessmentEngine(ILogger<AssessmentEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         _practiceSessions = new Dictionary<string, PracticeSession>();
         _matchAnalyses = new Dictionary<string, MatchAnalysis>();
     }
@@ -30,7 +33,7 @@ public class AssessmentEngine
             UserId = userId,
             Topic = "General Practice",
             Difficulty = DifficultyLevel.Beginner,
-            StartedAt = DateTime.UtcNow,
+            StartedAt = _timeProvider.UtcNow,
             Status = PracticeSessionStatus.InProgress,
             Exercises = new List<PracticeExercise>
             {
@@ -97,7 +100,7 @@ public class AssessmentEngine
             Weaknesses = weaknesses,
             Suggestions = suggestions,
             SkillRatings = skillRatings,
-            AnalyzedAt = DateTime.UtcNow
+            AnalyzedAt = _timeProvider.UtcNow
         };
 
         _matchAnalyses[analysisId] = analysis;

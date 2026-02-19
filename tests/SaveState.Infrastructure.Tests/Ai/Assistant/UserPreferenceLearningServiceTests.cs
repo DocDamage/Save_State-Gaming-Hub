@@ -130,13 +130,15 @@ public class UserPreferenceLearningServiceTests : IDisposable
     public void GetLearningStatistics_WithNoData_ReturnsZeros()
     {
         // Act
-        var stats = _sut.GetLearningStatistics();
+        var statsResult = _sut.GetLearningStatistics();
 
         // Assert
-        stats.TotalFeedbackEntries.Should().Be(0);
-        stats.TotalActionsRecorded.Should().Be(0);
-        stats.HelpfulSuggestions.Should().Be(0);
-        stats.IgnoredSuggestions.Should().Be(0);
+        statsResult.IsSuccess.Should().BeTrue();
+        statsResult.Value.Should().NotBeNull();
+        statsResult.Value!.TotalFeedbackEntries.Should().Be(0);
+        statsResult.Value.TotalActionsRecorded.Should().Be(0);
+        statsResult.Value.HelpfulSuggestions.Should().Be(0);
+        statsResult.Value.IgnoredSuggestions.Should().Be(0);
     }
 
     [Fact]
@@ -152,13 +154,15 @@ public class UserPreferenceLearningServiceTests : IDisposable
         await _sut.RecordUserActionAsync(Guid.NewGuid(), UserActionType.AcceptedSuggestion);
 
         // Act
-        var stats = _sut.GetLearningStatistics();
+        var statsResult = _sut.GetLearningStatistics();
 
         // Assert
-        stats.TotalFeedbackEntries.Should().Be(3);
-        stats.HelpfulSuggestions.Should().Be(2);
-        stats.IgnoredSuggestions.Should().Be(1);
-        stats.TotalActionsRecorded.Should().Be(1);
+        statsResult.IsSuccess.Should().BeTrue();
+        statsResult.Value.Should().NotBeNull();
+        statsResult.Value!.TotalFeedbackEntries.Should().Be(3);
+        statsResult.Value.HelpfulSuggestions.Should().Be(2);
+        statsResult.Value.IgnoredSuggestions.Should().Be(1);
+        statsResult.Value.TotalActionsRecorded.Should().Be(1);
     }
 
     [Fact]
@@ -188,10 +192,11 @@ public class UserPreferenceLearningServiceTests : IDisposable
     public void GetPreferenceWeight_WithUnknownDimension_ReturnsDefault()
     {
         // Act
-        var weight = _sut.GetPreferenceWeight("UnknownDimension");
+        var weightResult = _sut.GetPreferenceWeight("UnknownDimension");
 
         // Assert
-        weight.Should().Be(0.5f);
+        weightResult.IsSuccess.Should().BeTrue();
+        weightResult.Value.Should().Be(0.5f);
     }
 
     [Fact]
@@ -202,10 +207,11 @@ public class UserPreferenceLearningServiceTests : IDisposable
             Guid.NewGuid(), SuggestionType.CoachingTip, true, null, _timeProvider.UtcNow));
 
         // Act
-        var weight = _sut.GetPreferenceWeight("CoachingTip");
+        var weightResult = _sut.GetPreferenceWeight("CoachingTip");
 
         // Assert
-        weight.Should().BeGreaterThan(0.5f);
+        weightResult.IsSuccess.Should().BeTrue();
+        weightResult.Value.Should().BeGreaterThan(0.5f);
     }
 
     [Fact]

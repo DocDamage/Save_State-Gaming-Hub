@@ -38,67 +38,79 @@ public sealed class AchievementTrackingService : IAchievementTrackingService
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<UserAchievementProgress>> GetUserAchievementsAsync(Guid userId, CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<UserAchievementProgress>>> GetUserAchievementsAsync(Guid userId, CancellationToken ct = default)
     {
         try
         {
             var cacheKey = $"achievements_user_{userId}";
             if (_cache.TryGetValue<IReadOnlyList<UserAchievementProgress>>(cacheKey, out var cached))
             {
-                return cached!;
+                if (cached is not null)
+                {
+                    return Result.Success(cached);
+                }
             }
 
             var achievements = await _achievementRepository.GetUserAchievementsAsync(userId, ct);
 
             _cache.Set(cacheKey, achievements, TimeSpan.FromMinutes(5));
-            return achievements;
+            return Result.Success<IReadOnlyList<UserAchievementProgress>>(achievements);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get user achievements for {UserId}", userId);
-            return new List<UserAchievementProgress>();
+            return Result.Failure<IReadOnlyList<UserAchievementProgress>>(
+                $"Failed to get user achievements for {userId}: {ex.Message}",
+                ErrorType.Internal);
         }
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<UserAchievementProgress>> GetGameAchievementsAsync(Guid userId, Guid gameId, CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<UserAchievementProgress>>> GetGameAchievementsAsync(Guid userId, Guid gameId, CancellationToken ct = default)
     {
         try
         {
             var achievements = await _achievementRepository.GetGameAchievementsAsync(userId, gameId, ct);
-            return achievements;
+            return Result.Success<IReadOnlyList<UserAchievementProgress>>(achievements);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get game achievements for user {UserId}, game {GameId}", userId, gameId);
-            return new List<UserAchievementProgress>();
+            return Result.Failure<IReadOnlyList<UserAchievementProgress>>(
+                $"Failed to get game achievements for user {userId}, game {gameId}: {ex.Message}",
+                ErrorType.Internal);
         }
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<UserAchievementProgress>> GetRecentAchievementsAsync(Guid userId, int count = 10, CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<UserAchievementProgress>>> GetRecentAchievementsAsync(Guid userId, int count = 10, CancellationToken ct = default)
     {
         try
         {
             var achievements = await _achievementRepository.GetRecentAchievementsAsync(userId, count, ct);
-            return achievements;
+            return Result.Success<IReadOnlyList<UserAchievementProgress>>(achievements);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get recent achievements for {UserId}", userId);
-            return new List<UserAchievementProgress>();
+            return Result.Failure<IReadOnlyList<UserAchievementProgress>>(
+                $"Failed to get recent achievements for {userId}: {ex.Message}",
+                ErrorType.Internal);
         }
     }
 
     /// <inheritdoc />
-    public async Task<AchievementStatistics> GetStatisticsAsync(Guid userId, CancellationToken ct = default)
+    public async Task<Result<AchievementStatistics>> GetStatisticsAsync(Guid userId, CancellationToken ct = default)
     {
         try
         {
             var cacheKey = $"achievement_stats_{userId}";
             if (_cache.TryGetValue<AchievementStatistics>(cacheKey, out var cached))
             {
-                return cached!;
+                if (cached is not null)
+                {
+                    return Result.Success(cached);
+                }
             }
 
             var achievements = await _achievementRepository.GetUserAchievementsAsync(userId, ct);
@@ -130,12 +142,14 @@ public sealed class AchievementTrackingService : IAchievementTrackingService
             stats.LongestStreak = CalculateLongestStreak(unlocked);
 
             _cache.Set(cacheKey, stats, TimeSpan.FromMinutes(5));
-            return stats;
+            return Result.Success(stats);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get achievement statistics for {UserId}", userId);
-            return new AchievementStatistics();
+            return Result.Failure<AchievementStatistics>(
+                $"Failed to get achievement statistics for {userId}: {ex.Message}",
+                ErrorType.Internal);
         }
     }
 
@@ -230,25 +244,28 @@ public sealed class AchievementTrackingService : IAchievementTrackingService
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<UserAchievementProgress>> GetRareAchievementsAsync(Guid userId, double maxUnlockRate = 10.0, CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<UserAchievementProgress>>> GetRareAchievementsAsync(Guid userId, double maxUnlockRate = 10.0, CancellationToken ct = default)
     {
         try
         {
             var achievements = await _achievementRepository.GetUserAchievementsAsync(userId, ct);
-            return achievements
+            var rareAchievements = achievements
                 .Where(a => a.IsUnlocked && a.RarityPercent.HasValue && a.RarityPercent.Value < maxUnlockRate)
                 .OrderBy(a => a.RarityPercent)
                 .ToList();
+            return Result.Success<IReadOnlyList<UserAchievementProgress>>(rareAchievements);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get rare achievements");
-            return new List<UserAchievementProgress>();
+            return Result.Failure<IReadOnlyList<UserAchievementProgress>>(
+                $"Failed to get rare achievements for {userId}: {ex.Message}",
+                ErrorType.Internal);
         }
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<AchievementRecommendation>> GetRecommendationsAsync(Guid userId, CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<AchievementRecommendation>>> GetRecommendationsAsync(Guid userId, CancellationToken ct = default)
     {
         try
         {
@@ -269,12 +286,14 @@ public sealed class AchievementTrackingService : IAchievementTrackingService
                 .Take(5)
                 .ToList();
 
-            return recommendations;
+            return Result.Success<IReadOnlyList<AchievementRecommendation>>(recommendations);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get achievement recommendations");
-            return new List<AchievementRecommendation>();
+            return Result.Failure<IReadOnlyList<AchievementRecommendation>>(
+                $"Failed to get achievement recommendations for {userId}: {ex.Message}",
+                ErrorType.Internal);
         }
     }
 

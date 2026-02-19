@@ -44,7 +44,7 @@ public interface IMugenRosterService
     /// <summary>
     /// Gets the path to the select.def file.
     /// </summary>
-    string? GetSelectDefPath();
+    Result<string> GetSelectDefPath();
 
     /// <summary>
     /// Saves the roster to the select.def file.

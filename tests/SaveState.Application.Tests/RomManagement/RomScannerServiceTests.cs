@@ -1,5 +1,6 @@
 namespace SaveState.Application.Tests.RomManagement;
 
+using System.Collections.Concurrent;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -91,8 +92,8 @@ public class RomScannerServiceTests
     public async Task ScanFolderAsync_ReportsProgress()
     {
         // Arrange
-        var progressReports = new List<ScanProgress>();
-        var progress = new Progress<ScanProgress>(p => progressReports.Add(p));
+        var progressReports = new ConcurrentQueue<ScanProgress>();
+        var progress = new Progress<ScanProgress>(p => progressReports.Enqueue(p));
 
         _mockPlatformRepository.Setup(r => r.GetByIdAsync(TestPlatformId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateTestPlatform("NES"));
@@ -114,8 +115,9 @@ public class RomScannerServiceTests
 
             // Assert
             result.Should().HaveCount(2);
-            progressReports.Should().NotBeEmpty();
-            progressReports.Should().AllSatisfy(p =>
+            var progressSnapshot = progressReports.ToArray();
+            progressSnapshot.Should().NotBeEmpty();
+            progressSnapshot.Should().AllSatisfy(p =>
             {
                 p.FilesScanned.Should().BeGreaterThan(0);
                 p.FilesTotal.Should().Be(2);

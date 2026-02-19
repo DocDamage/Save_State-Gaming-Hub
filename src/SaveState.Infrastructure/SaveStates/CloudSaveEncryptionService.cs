@@ -121,15 +121,15 @@ public sealed class CloudSaveEncryptionService : ICloudSaveEncryptionService
     }
 
     /// <inheritdoc />
-    public string GetKeyFingerprint(string encryptionKey)
+    public Result<string> GetKeyFingerprint(string encryptionKey)
     {
         if (string.IsNullOrWhiteSpace(encryptionKey))
         {
-            return string.Empty;
+            return Result.Failure<string>("Encryption key is required to compute fingerprint.", ErrorType.Validation);
         }
 
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(encryptionKey));
-        return Convert.ToHexString(hash.AsSpan(0, 8));
+        return Result.Success(Convert.ToHexString(hash.AsSpan(0, 8)));
     }
 
     private static void TryDelete(string path)

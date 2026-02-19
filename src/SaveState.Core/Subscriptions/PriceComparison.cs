@@ -1,6 +1,7 @@
 // Copyright (c) 2026 SaveStateReborn. All rights reserved.
 
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common;
 
 namespace SaveState.Core.Subscriptions;
 
@@ -160,7 +161,7 @@ public interface IPriceComparisonService
     /// <summary>
     /// Gets the best option for a game (subscription or purchase).
     /// </summary>
-    Task<PriceOptionBase?> GetBestOptionAsync(string gameTitle, CancellationToken ct = default);
+    Task<Result<PriceOptionBase?>> GetBestOptionAsync(string gameTitle, CancellationToken ct = default);
 
     /// <summary>
     /// Calculates break-even point for subscription vs purchase.
@@ -232,10 +233,20 @@ public class PriceComparisonService : IPriceComparisonService
         return comparison;
     }
 
-    public async Task<PriceOptionBase?> GetBestOptionAsync(string gameTitle, CancellationToken ct = default)
+    public async Task<Result<PriceOptionBase?>> GetBestOptionAsync(string gameTitle, CancellationToken ct = default)
     {
-        var comparison = await ComparePricesAsync(gameTitle, ct);
-        return comparison.BestOption;
+        try
+        {
+            var comparison = await ComparePricesAsync(gameTitle, ct);
+            return Result.Success(comparison.BestOption);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to determine best price option for {GameTitle}", gameTitle);
+            return Result.Failure<PriceOptionBase?>(
+                $"Failed to determine best option for {gameTitle}: {ex.Message}",
+                ErrorType.Internal);
+        }
     }
 
     public int CalculateBreakEvenMonths(decimal subscriptionPrice, decimal purchasePrice)

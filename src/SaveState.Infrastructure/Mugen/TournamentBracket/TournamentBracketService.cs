@@ -10,12 +10,12 @@ namespace SaveState.Infrastructure.Mugen.TournamentEvents.Services;
 /// <summary>
 /// Service for managing tournament brackets.
 /// </summary>
-public class TournamentEventService : ITournamentEventService
+internal class TournamentEventServiceOperations : ITournamentEventService
 {
     private readonly SaveStateDbContext _dbContext;
     private readonly ILogger<TournamentEventService> _logger;
 
-    public TournamentEventService(
+    public TournamentEventServiceOperations(
         SaveStateDbContext dbContext,
         ILogger<TournamentEventService> logger)
     {

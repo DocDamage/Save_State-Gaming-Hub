@@ -73,8 +73,10 @@ public class SubscriptionManagerServiceTests
             GameCount = 700
         };
 
-        _providerMocks[0].Setup(p => p.GetServiceInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(xboxInfo);
-        _providerMocks[1].Setup(p => p.GetServiceInfoAsync(It.IsAny<CancellationToken>())).ReturnsAsync(psInfo);
+        _providerMocks[0].Setup(p => p.GetServiceInfoAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success(xboxInfo));
+        _providerMocks[1].Setup(p => p.GetServiceInfoAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success(psInfo));
 
         // Act
         var result = await _service.GetAvailableServicesAsync();
@@ -116,9 +118,9 @@ public class SubscriptionManagerServiceTests
         };
 
         _providerMocks[0].Setup(p => p.GetServiceInfoAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(services[0]);
+            .ReturnsAsync(Result.Success(services[0]));
         _providerMocks[1].Setup(p => p.GetServiceInfoAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(services[1]);
+            .ReturnsAsync(Result.Success(services[1]));
 
         // Act
         var result = await _service.CompareSubscriptionsAsync();
@@ -140,9 +142,9 @@ public class SubscriptionManagerServiceTests
         };
 
         _providerMocks[0].Setup(p => p.GetServiceInfoAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(services[0]);
+            .ReturnsAsync(Result.Success(services[0]));
         _providerMocks[1].Setup(p => p.GetServiceInfoAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(services[1]);
+            .ReturnsAsync(Result.Success(services[1]));
 
         // Act
         var result = await _service.CompareSubscriptionsAsync();

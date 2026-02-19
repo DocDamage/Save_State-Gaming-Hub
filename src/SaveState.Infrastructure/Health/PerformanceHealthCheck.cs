@@ -36,7 +36,14 @@ public class PerformanceHealthCheck : IHealthCheck
     {
         try
         {
-            var snapshot = await _metrics.GetMetricsSnapshotAsync(cancellationToken);
+            var snapshotResult = await _metrics.GetMetricsSnapshotAsync(cancellationToken);
+            if (snapshotResult.IsFailure || snapshotResult.Value is null)
+            {
+                var error = snapshotResult.Error ?? "Unknown metrics retrieval failure";
+                return HealthCheckResult.Degraded($"Unable to retrieve performance metrics: {error}");
+            }
+
+            var snapshot = snapshotResult.Value;
             var results = new Dictionary<string, object>();
             var issues = new List<string>();
             var criticalIssues = new List<string>();

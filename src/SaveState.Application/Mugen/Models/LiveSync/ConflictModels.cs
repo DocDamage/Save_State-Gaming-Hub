@@ -1,3 +1,5 @@
+using SaveState.Core.Common.Services;
+
 namespace SaveState.Application.Mugen.Models.LiveSync;
 
 /// <summary>
@@ -24,7 +26,7 @@ public class ConflictResolution
     public ResolutionStrategy Strategy { get; set; }
     public IReadOnlyDictionary<string, object>? ResolvedData { get; set; }
     public string? ResolutionNotes { get; set; }
-    public DateTime ResolvedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ResolvedAt { get; set; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>
@@ -59,5 +61,5 @@ public class ConflictSummary
     public int ResolvedConflicts { get; set; }
     public int PendingConflicts { get; set; }
     public Dictionary<ConflictType, int> ConflictsByType { get; set; } = default!;
-    public DateTime GeneratedAt { get; set; } = DateTime.UtcNow;
+    public DateTime GeneratedAt { get; set; } = SystemTimeProvider.Instance.UtcNow;
 }

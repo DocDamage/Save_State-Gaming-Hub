@@ -1,3 +1,5 @@
+using SaveState.Core.Common.Services;
+
 namespace SaveState.Application.Mugen.Models.NetworkFeatures;
 
 /// <summary>
@@ -28,7 +30,7 @@ public class SpectatorStream
     public List<string> SpectatorIds { get; set; } = new();
     public int ViewerCount => SpectatorIds.Count;
     public DateTime StartedAt { get; set; }
-    public TimeSpan Duration => DateTime.UtcNow - StartedAt;
+    public TimeSpan Duration => SystemTimeProvider.Instance.UtcNow - StartedAt;
     public bool IsLive { get; set; }
     public StreamQuality Quality { get; set; }
 }

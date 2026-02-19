@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.ValueObjects;
 
 namespace SaveState.Application.Mugen.Services.Training;
@@ -66,7 +67,7 @@ public class TrainingInput
     public string InputId { get; set; } = Guid.NewGuid().ToString();
     public InputType InputType { get; set; } = InputType.ButtonPress;
     public object InputData { get; set; } = default!;
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; set; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>

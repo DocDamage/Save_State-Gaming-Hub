@@ -31,5 +31,5 @@ public interface IConversationContextService
     /// <summary>
     /// Gets the count of active sessions.
     /// </summary>
-    int GetActiveSessionCount();
+    Result<int> GetActiveSessionCount();
 }

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Application.Mugen.Services.AutomatedBalancing.Engines;
 
@@ -8,10 +9,12 @@ namespace SaveState.Application.Mugen.Services.AutomatedBalancing.Engines;
 public class BalancePredictor
 {
     private readonly ILogger<BalancePredictor> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public BalancePredictor(ILogger<BalancePredictor> logger)
+    public BalancePredictor(ILogger<BalancePredictor> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<BalancePrediction> PredictImpactAsync(BalanceAdjustment adjustment, CancellationToken ct = default)
@@ -25,7 +28,7 @@ public class BalancePredictor
             PredictedPickRateChange = adjustment.Type == AdjustmentType.Nerf ? -0.03 : 0.03,
             Confidence = 0.75,
             PotentialRisks = new[] { "Meta shift", "Secondary character impact" },
-            PredictedAt = DateTime.UtcNow
+            PredictedAt = _timeProvider.UtcNow
         };
     }
 

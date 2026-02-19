@@ -24,7 +24,7 @@ public sealed class XboxCatalogClient
     /// <summary>
     /// Gets the Xbox Game Pass catalog.
     /// </summary>
-    public async Task<IReadOnlyList<SubscriptionGame>> GetGamePassCatalogAsync(
+    public async Task<Result<IReadOnlyList<SubscriptionGame>>> GetGamePassCatalogAsync(
         string? accessToken = null,
         CancellationToken ct = default)
     {
@@ -48,39 +48,43 @@ public sealed class XboxCatalogClient
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("Failed to fetch Xbox catalog: {StatusCode}", response.StatusCode);
-                return new List<SubscriptionGame>();
+                return Result.Failure<IReadOnlyList<SubscriptionGame>>(
+                    $"Failed to fetch Xbox catalog: {response.StatusCode}",
+                    ErrorType.External);
             }
 
             var content = await response.Content.ReadAsStringAsync(ct);
-            return ParseMicrosoftStoreResponse(content);
+            return Result.Success<IReadOnlyList<SubscriptionGame>>(ParseMicrosoftStoreResponse(content));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching Xbox Game Pass catalog");
-            return new List<SubscriptionGame>();
+            return Result.Failure<IReadOnlyList<SubscriptionGame>>(
+                $"Error fetching Xbox Game Pass catalog: {ex.Message}",
+                ErrorType.External);
         }
     }
 
     /// <summary>
     /// Gets games leaving Game Pass soon.
     /// </summary>
-    public async Task<IReadOnlyList<SubscriptionGame>> GetLeavingSoonAsync(
+    public Task<Result<IReadOnlyList<SubscriptionGame>>> GetLeavingSoonAsync(
         string? accessToken = null,
         CancellationToken ct = default)
     {
         _logger.LogDebug("Fetching Xbox Game Pass leaving soon games");
-        return new List<SubscriptionGame>();
+        return Task.FromResult(Result.Success<IReadOnlyList<SubscriptionGame>>(new List<SubscriptionGame>()));
     }
 
     /// <summary>
     /// Gets new arrivals to Game Pass.
     /// </summary>
-    public async Task<IReadOnlyList<SubscriptionGame>> GetNewArrivalsAsync(
+    public Task<Result<IReadOnlyList<SubscriptionGame>>> GetNewArrivalsAsync(
         string? accessToken = null,
         CancellationToken ct = default)
     {
         _logger.LogDebug("Fetching Xbox Game Pass new arrivals");
-        return new List<SubscriptionGame>();
+        return Task.FromResult(Result.Success<IReadOnlyList<SubscriptionGame>>(new List<SubscriptionGame>()));
     }
 
     /// <summary>

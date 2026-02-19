@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Ai.Services;
+using SaveState.Core.Common;
 
 namespace SaveState.Infrastructure.Ai.Services;
 
@@ -56,7 +57,7 @@ public class WebSearchService : IWebSearchService
         }
     }
 
-    public async Task<string> FetchUrlContentAsync(string url, CancellationToken ct = default)
+    public async Task<Result<string>> FetchUrlContentAsync(string url, CancellationToken ct = default)
     {
         try
         {
@@ -64,12 +65,13 @@ public class WebSearchService : IWebSearchService
             var response = await _httpClient.GetStringAsync(url, ct);
 
             // In a real app, we'd convert HTML to Markdown here using a library like ReverseMarkdown
-            return $"[URL CONTENT FROM {url}]\n\n{response.Substring(0, Math.Min(response.Length, 2000))}...";
+            var content = $"[URL CONTENT FROM {url}]\n\n{response.Substring(0, Math.Min(response.Length, 2000))}...";
+            return Result.Success(content);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to fetch URL content: {Url}", url);
-            return $"Failed to fetch content: {ex.Message}";
+            return Result.Failure<string>($"Failed to fetch content from {url}: {ex.Message}", ErrorType.External);
         }
     }
 }

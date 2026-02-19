@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SaveState.Core.Common;
+using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.RomManagement;
 using RomFileEntity = SaveState.Core.RomManagement.Entities.RomFile;
 using SaveState.Infrastructure.Persistence;
@@ -31,6 +32,46 @@ public class RomFileRepository : IRomFileRepository
         => await _context.RomFiles
             .Include(r => r.Platform)
             .Where(r => r.PlatformId == platformId)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<RomFileEntity>> GetByIdsAsync(IEnumerable<Guid> romFileIds, CancellationToken ct = default)
+    {
+        var ids = romFileIds.ToHashSet();
+        return await _context.RomFiles
+            .Include(r => r.Platform)
+            .Where(r => ids.Contains(r.Id))
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<IReadOnlyList<RomFileEntity>> GetByPlatformIdsAsync(IEnumerable<Guid> platformIds, CancellationToken ct = default)
+    {
+        var ids = platformIds.ToHashSet();
+        return await _context.RomFiles
+            .Include(r => r.Platform)
+            .Where(r => ids.Contains(r.PlatformId))
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<IReadOnlyList<Guid>> GetIdsByPlatformAsync(Guid platformId, CancellationToken ct = default)
+        => await _context.RomFiles
+            .AsNoTracking()
+            .Where(r => r.PlatformId == platformId)
+            .Select(r => r.Id)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+    public async Task<Platform?> GetPlatformAsync(Guid platformId, CancellationToken ct = default)
+        => await _context.Platforms
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == platformId, ct)
+            .ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<Platform>> GetAllPlatformsAsync(CancellationToken ct = default)
+        => await _context.Platforms
+            .AsNoTracking()
             .ToListAsync(ct)
             .ConfigureAwait(false);
 

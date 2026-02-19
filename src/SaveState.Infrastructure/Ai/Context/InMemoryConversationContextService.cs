@@ -86,6 +86,6 @@ public sealed class InMemoryConversationContextService : IConversationContextSer
         return Task.FromResult(Result.Success());
     }
 
-    public int GetActiveSessionCount() => _activeSessions.Count;
+    public Result<int> GetActiveSessionCount() => Result.Success(_activeSessions.Count);
 }
 

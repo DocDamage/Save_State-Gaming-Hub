@@ -94,9 +94,10 @@ public class GameValidationServiceTests
             .ReturnsAsync(true);
 
         // Act
-        var errors = await _service.GetValidationErrorsAsync(game, CancellationToken.None);
+        var errorsResult = await _service.GetValidationErrorsAsync(game, CancellationToken.None);
 
         // Assert
-        errors.Should().BeEmpty();
+        errorsResult.IsSuccess.Should().BeTrue();
+        errorsResult.Value.Should().BeEmpty();
     }
 }

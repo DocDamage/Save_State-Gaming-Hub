@@ -1,5 +1,6 @@
 using SaveState.Core.Common;
 using SaveState.Core.Common.ValueObjects;
+using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.RomManagement.Entities;
 
 namespace SaveState.Core.RomManagement;
@@ -9,6 +10,11 @@ public interface IRomFileRepository
     Task<Entities.RomFile?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<IReadOnlyList<Entities.RomFile>> GetAllAsync(CancellationToken ct = default);
     Task<IReadOnlyList<Entities.RomFile>> GetByPlatformIdAsync(Guid platformId, CancellationToken ct = default);
+    Task<IReadOnlyList<Entities.RomFile>> GetByIdsAsync(IEnumerable<Guid> romFileIds, CancellationToken ct = default);
+    Task<IReadOnlyList<Entities.RomFile>> GetByPlatformIdsAsync(IEnumerable<Guid> platformIds, CancellationToken ct = default);
+    Task<IReadOnlyList<Guid>> GetIdsByPlatformAsync(Guid platformId, CancellationToken ct = default);
+    Task<Platform?> GetPlatformAsync(Guid platformId, CancellationToken ct = default);
+    Task<IReadOnlyList<Platform>> GetAllPlatformsAsync(CancellationToken ct = default);
     Task<IReadOnlyList<Entities.RomFile>> GetByFolderPathAsync(string folderPath, Guid platformId, CancellationToken ct = default);
     Task<PagedResult<Entities.RomFile>> GetRomFilesAsync(
         int pageNumber = 1,

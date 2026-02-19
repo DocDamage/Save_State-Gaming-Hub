@@ -188,16 +188,19 @@ public class DependencyHealthCheck : IHealthCheck
     {
         try
         {
-            var snapshot = await _metrics.GetMetricsSnapshotAsync(ct);
+            var snapshotResult = await _metrics.GetMetricsSnapshotAsync(ct);
 
-            if (snapshot != null)
+            if (snapshotResult.IsSuccess && snapshotResult.Value is not null)
             {
+                var snapshot = snapshotResult.Value;
                 return new HealthStatusResult(HealthStatus.Healthy,
                     $"Metrics available: {snapshot.TotalRequests} requests, {snapshot.SuccessfulApiCalls} successful API calls");
             }
             else
             {
-                return new HealthStatusResult(HealthStatus.Degraded, "Metrics snapshot is null");
+                return new HealthStatusResult(
+                    HealthStatus.Degraded,
+                    $"Metrics snapshot unavailable: {snapshotResult.Error ?? "Unknown error"}");
             }
         }
         catch (Exception ex)

@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SaveState.Core.Common;
 using SaveState.Core.Configuration;
 using SaveState.Core.GameLibrary.DTOs;
 using System.Diagnostics;
@@ -24,12 +25,12 @@ public class EpicApiClient : IEpicApiClient
         _logger = logger;
     }
 
-    public async Task<IReadOnlyList<EpicGame>> GetOwnedGamesAsync(CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<EpicGame>>> GetOwnedGamesAsync(CancellationToken ct = default)
     {
         if (string.IsNullOrEmpty(_options.AuthToken))
         {
             _logger.LogWarning("Epic Auth Token is missing. Returning empty list.");
-            return Array.Empty<EpicGame>();
+            return Result.Failure<IReadOnlyList<EpicGame>>("Epic auth token is missing", ErrorType.Validation);
         }
 
         try
@@ -40,24 +41,31 @@ public class EpicApiClient : IEpicApiClient
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _options.AuthToken);
 
             var response = await _httpClient.SendAsync(request, ct).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode) return Array.Empty<EpicGame>();
+            if (!response.IsSuccessStatusCode)
+            {
+                return Result.Failure<IReadOnlyList<EpicGame>>(
+                    $"Epic API returned status {(int)response.StatusCode}",
+                    ErrorType.External);
+            }
 
             var content = await response.Content.ReadFromJsonAsync<EpicLibraryResponse>(ct).ConfigureAwait(false);
 
-            return content?.Records?.Select(r => new EpicGame
+            var games = content?.Records?.Select(r => new EpicGame
             {
                 Id = r.CatalogItemId,
                 Title = r.Namespace // Namespace often holds the app name in some contexts, or we'd need another mapping
             }).ToList() ?? new List<EpicGame>();
+
+            return Result.Success<IReadOnlyList<EpicGame>>(games);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to fetch owned games from Epic");
-            return Array.Empty<EpicGame>();
+            return Result.Failure<IReadOnlyList<EpicGame>>($"Failed to fetch owned games from Epic: {ex.Message}", ErrorType.External);
         }
     }
 
-    public async Task<GameMetadata> GetGameDetailsAsync(string gameId, CancellationToken ct = default)
+    public async Task<Result<GameMetadata>> GetGameDetailsAsync(string gameId, CancellationToken ct = default)
     {
         try
         {
@@ -65,24 +73,32 @@ public class EpicApiClient : IEpicApiClient
             var url = $"https://catalog-public-service-prod06.ol.epicgames.com/catalog/api/shared/bulk/items?id={gameId}";
             var response = await _httpClient.GetAsync(url, ct).ConfigureAwait(false);
 
-            if (!response.IsSuccessStatusCode) return GameMetadata.Empty;
+            if (!response.IsSuccessStatusCode)
+            {
+                return Result.Failure<GameMetadata>($"Epic API returned status {(int)response.StatusCode}", ErrorType.External);
+            }
 
             var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
             using var doc = JsonDocument.Parse(json);
 
-            if (!doc.RootElement.TryGetProperty(gameId, out var gameElement)) return GameMetadata.Empty;
+            if (!doc.RootElement.TryGetProperty(gameId, out var gameElement))
+            {
+                return Result.Failure<GameMetadata>($"Game '{gameId}' was not found in Epic catalog response", ErrorType.NotFound);
+            }
 
-            return new GameMetadata
+            var metadata = new GameMetadata
             {
                 Title = gameElement.GetProperty("title").GetString() ?? string.Empty,
                 Description = gameElement.TryGetProperty("description", out var desc) ? desc.GetString() : null,
                 Developer = gameElement.TryGetProperty("developer", out var dev) ? dev.GetString() : null
             };
+
+            return Result.Success(metadata);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to fetch game details for Epic ID {GameId}", gameId);
-            return GameMetadata.Empty;
+            return Result.Failure<GameMetadata>($"Failed to fetch Epic game details: {ex.Message}", ErrorType.External);
         }
     }
 

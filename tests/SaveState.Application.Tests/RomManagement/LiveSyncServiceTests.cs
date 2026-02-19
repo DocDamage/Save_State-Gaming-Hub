@@ -84,7 +84,8 @@ public class LiveSyncServiceTests : IDisposable
         var result = await _sut.GetWatchedFoldersAsync();
 
         // Assert
-        result.Should().BeEmpty();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEmpty();
     }
 
     [Fact]
@@ -94,10 +95,11 @@ public class LiveSyncServiceTests : IDisposable
         var result = await _sut.GetSyncStatusAsync(@"C:\Unknown", default);
 
         // Assert
-        result.FolderPath.Should().Be(@"C:\Unknown");
-        result.PlatformName.Should().Be("Unknown");
-        result.IsWatching.Should().BeFalse();
-        result.LastSync.Should().Be(DateTime.MinValue);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.FolderPath.Should().Be(@"C:\Unknown");
+        result.Value.PlatformName.Should().Be("Unknown");
+        result.Value.IsWatching.Should().BeFalse();
+        result.Value.LastSync.Should().Be(DateTime.MinValue);
     }
 
     [Fact]
@@ -126,7 +128,8 @@ public class LiveSyncServiceTests : IDisposable
 
         // Assert
         var watchedFolders = await _sut.GetWatchedFoldersAsync();
-        watchedFolders.Should().BeEmpty();
+        watchedFolders.IsSuccess.Should().BeTrue();
+        watchedFolders.Value.Should().BeEmpty();
     }
 
     [Fact]

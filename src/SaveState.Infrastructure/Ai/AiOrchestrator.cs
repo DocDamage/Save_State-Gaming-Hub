@@ -287,7 +287,10 @@ public class AiOrchestrator : IAiOrchestrator
         var query = request.Prompt ?? request.Messages?.LastOrDefault()?.Content ?? "";
 
         // 1. Retrieve Contexts
-        var relevantContext = await _knowledgeClient.GetRelevantContextAsync(query, ct);
+        var relevantContextResult = await _knowledgeClient.GetRelevantContextAsync(query, ct);
+        var relevantContext = relevantContextResult.IsSuccess && relevantContextResult.Value is not null
+            ? relevantContextResult.Value
+            : string.Empty;
         var webContext = await HandleWebSearchFallbackAsync(query, relevantContext, ct);
 
         var shortTermMemories = await _memory.SearchAsync(query, 3, ct);

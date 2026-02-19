@@ -75,10 +75,11 @@ public class ConversationContextServiceTests
         await _sut.GetOrCreateContextAsync("session-b");
 
         // Act
-        var count = _sut.GetActiveSessionCount();
+        var countResult = _sut.GetActiveSessionCount();
 
         // Assert
-        count.Should().BeGreaterThanOrEqualTo(2);
+        countResult.IsSuccess.Should().BeTrue();
+        countResult.Value.Should().BeGreaterThanOrEqualTo(2);
     }
 
     [Theory]

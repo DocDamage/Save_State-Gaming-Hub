@@ -20,8 +20,7 @@ public class GetBackupHistoryQueryHandler : IRequestHandler<GetBackupHistoryQuer
     {
         try
         {
-            var history = await _backupService.GetBackupHistoryAsync(ct);
-            return Result.Success<IReadOnlyList<BackupMetadata>>(history);
+            return await _backupService.GetBackupHistoryAsync(ct);
         }
         catch (Exception ex)
         {

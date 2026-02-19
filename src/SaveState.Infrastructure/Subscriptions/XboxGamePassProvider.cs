@@ -114,9 +114,9 @@ public sealed class XboxGamePassProvider : ISubscriptionProvider
         }
     }
 
-    public Task<SubscriptionServiceInfo> GetServiceInfoAsync(CancellationToken ct = default)
+    public Task<Result<SubscriptionServiceInfo>> GetServiceInfoAsync(CancellationToken ct = default)
     {
-        return Task.FromResult(new SubscriptionServiceInfo
+        var serviceInfo = new SubscriptionServiceInfo
         {
             Type = SubscriptionServiceType.XboxGamePass,
             Name = "Xbox Game Pass",
@@ -132,7 +132,8 @@ public sealed class XboxGamePassProvider : ISubscriptionProvider
                 new() { Name = "Member Discounts", Description = "Up to 20% off game purchases", IsIncluded = true },
                 new() { Name = "EA Play", Description = "EA Play included at no extra cost", IsIncluded = true }
             }
-        });
+        };
+        return Task.FromResult(Result.Success(serviceInfo));
     }
 
     private List<SubscriptionGame> ParseGamePassCatalog(string json)

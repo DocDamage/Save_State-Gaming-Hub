@@ -1,6 +1,7 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using SaveState.Core.Common;
 using SaveState.Core.Monitoring;
 using SaveState.Infrastructure.Monitoring;
 using Xunit;
@@ -29,7 +30,7 @@ public class MetricsTests
         _metrics.RecordResponseTime("TestOperation", TimeSpan.FromMilliseconds(100));
         _metrics.RecordResponseTime("TestOperation", TimeSpan.FromMilliseconds(200));
 
-        var snapshot = await _metrics.GetMetricsSnapshotAsync();
+        var snapshot = RequireSnapshot(await _metrics.GetMetricsSnapshotAsync());
 
         // Assert
         snapshot.TotalRequests.Should().Be(2);
@@ -44,7 +45,7 @@ public class MetricsTests
         _metrics.RecordThroughput("Operation2", 3);
         _metrics.RecordThroughput("Operation1", 2);
 
-        var snapshot = await _metrics.GetMetricsSnapshotAsync();
+        var snapshot = RequireSnapshot(await _metrics.GetMetricsSnapshotAsync());
 
         // Assert
         snapshot.TotalRequests.Should().Be(10); // 5 + 3 + 2
@@ -58,7 +59,7 @@ public class MetricsTests
         _metrics.RecordDatabaseQuery("TestQuery", TimeSpan.FromMilliseconds(150));
         _metrics.RecordDatabaseQuery("OtherQuery", TimeSpan.FromMilliseconds(100));
 
-        var snapshot = await _metrics.GetMetricsSnapshotAsync();
+        var snapshot = RequireSnapshot(await _metrics.GetMetricsSnapshotAsync());
 
         // Assert
         snapshot.TotalDatabaseQueries.Should().Be(3);
@@ -73,10 +74,10 @@ public class MetricsTests
         _metrics.RecordCacheHit("TestCache");
         _metrics.RecordCacheMiss("TestCache");
 
-        var snapshot = await _metrics.GetMetricsSnapshotAsync();
+        var snapshot = RequireSnapshot(await _metrics.GetMetricsSnapshotAsync());
 
         // Assert
-        snapshot.CacheHitRatio.Should().BeApproximately(0.667, 0.001); // 2/3 ≈ 0.667
+        snapshot.CacheHitRatio.Should().BeApproximately(0.667, 0.001); // 2/3 â‰ˆ 0.667
         snapshot.TotalCacheRequests.Should().Be(3);
     }
 
@@ -88,7 +89,7 @@ public class MetricsTests
         _metrics.RecordApiCall("TestService", "endpoint2", TimeSpan.FromMilliseconds(200), false);
         _metrics.RecordApiCall("TestService", "endpoint1", TimeSpan.FromMilliseconds(50), true);
 
-        var snapshot = await _metrics.GetMetricsSnapshotAsync();
+        var snapshot = RequireSnapshot(await _metrics.GetMetricsSnapshotAsync());
 
         // Assert
         snapshot.TotalApiCalls.Should().Be(3);
@@ -104,7 +105,7 @@ public class MetricsTests
         _metrics.RecordAiRequest("OpenAI", "Chat", TimeSpan.FromMilliseconds(300), false);
         _metrics.RecordAiTokenUsage("OpenAI", 100, 50);
 
-        var snapshot = await _metrics.GetMetricsSnapshotAsync();
+        var snapshot = RequireSnapshot(await _metrics.GetMetricsSnapshotAsync());
 
         // Assert
         snapshot.TotalAiRequests.Should().Be(2);
@@ -120,7 +121,7 @@ public class MetricsTests
         _metrics.RecordException("TestSource", "ArgumentException", "Another error");
         _metrics.RecordUnhandledException("TestSource", new InvalidOperationException("Unhandled"));
 
-        var snapshot = await _metrics.GetMetricsSnapshotAsync();
+        var snapshot = RequireSnapshot(await _metrics.GetMetricsSnapshotAsync());
 
         // Assert
         snapshot.TotalExceptions.Should().Be(2);
@@ -137,7 +138,7 @@ public class MetricsTests
         _metrics.IncrementCounter("TestCounter");
         _metrics.IncrementCounter("TestCounter");
 
-        var snapshot = await _metrics.GetMetricsSnapshotAsync();
+        var snapshot = RequireSnapshot(await _metrics.GetMetricsSnapshotAsync());
 
         // Assert
         snapshot.CustomMetrics.Should().ContainKey("TestMetric");
@@ -150,7 +151,7 @@ public class MetricsTests
     public async Task GetMetricsSnapshot_IncludesTimestamp()
     {
         // Act
-        var snapshot = await _metrics.GetMetricsSnapshotAsync();
+        var snapshot = RequireSnapshot(await _metrics.GetMetricsSnapshotAsync());
 
         // Assert
         snapshot.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
@@ -181,7 +182,7 @@ public class MetricsTests
         _metrics.RecordDatabaseError("TestQuery", "TimeoutException");
         _metrics.RecordDatabaseError("TestQuery", "ConnectionException");
 
-        var snapshot = await _metrics.GetMetricsSnapshotAsync();
+        var snapshot = RequireSnapshot(await _metrics.GetMetricsSnapshotAsync());
 
         // Assert
         snapshot.DatabaseErrors.Should().Be(2);
@@ -194,7 +195,7 @@ public class MetricsTests
         _metrics.RecordApiRateLimit("TestService", TimeSpan.FromSeconds(30));
 
         // This is tracked internally but exposed through custom metrics
-        var snapshot = await _metrics.GetMetricsSnapshotAsync();
+        var snapshot = RequireSnapshot(await _metrics.GetMetricsSnapshotAsync());
 
         // Assert - The rate limit is recorded but doesn't affect main counters directly
         snapshot.Should().NotBeNull();
@@ -206,7 +207,7 @@ public class MetricsTests
         // Act
         _metrics.RecordMemoryUsage(1024 * 1024 * 100); // 100 MB
 
-        var snapshot = await _metrics.GetMetricsSnapshotAsync();
+        var snapshot = RequireSnapshot(await _metrics.GetMetricsSnapshotAsync());
 
         // Assert
         snapshot.CurrentMemoryUsage.Should().Be(1024 * 1024 * 100);
@@ -218,7 +219,7 @@ public class MetricsTests
         // Act
         _metrics.RecordCpuUsage(45.5);
 
-        var snapshot = await _metrics.GetMetricsSnapshotAsync();
+        var snapshot = RequireSnapshot(await _metrics.GetMetricsSnapshotAsync());
 
         // Assert
         snapshot.CurrentCpuUsage.Should().Be(45.5);
@@ -236,12 +237,14 @@ public class MetricsTests
         errorTracker.RecordUnhandledException("TestSource", exception);
 
         // Assert
-        var stats = errorTracker.GetErrorStatistics();
-        stats.Should().ContainKey("TestSource:InvalidOperationException");
+        var statsResult = errorTracker.GetErrorStatistics();
+        statsResult.IsSuccess.Should().BeTrue();
+        statsResult.Value.Should().ContainKey("TestSource:InvalidOperationException");
 
-        var recentErrors = errorTracker.GetRecentErrors();
-        recentErrors.Should().HaveCount(2);
-        recentErrors.Count(e => e.IsUnhandled).Should().Be(1);
+        var recentErrorsResult = errorTracker.GetRecentErrors();
+        recentErrorsResult.IsSuccess.Should().BeTrue();
+        recentErrorsResult.Value.Should().HaveCount(2);
+        recentErrorsResult.Value!.Count(e => e.IsUnhandled).Should().Be(1);
     }
 
     [Fact]
@@ -257,7 +260,15 @@ public class MetricsTests
 
         // Assert
         var stats = cacheMonitor.GetCacheStats("TestCache");
-        stats.HitRatio.Should().BeApproximately(0.667, 0.001); // 2/3 ≈ 0.667
+        stats.HitRatio.Should().BeApproximately(0.667, 0.001); // 2/3 â‰ˆ 0.667
         stats.TotalRequests.Should().Be(3);
     }
+
+    private static MetricsSnapshot RequireSnapshot(Result<MetricsSnapshot> snapshotResult)
+    {
+        snapshotResult.IsSuccess.Should().BeTrue(snapshotResult.Error);
+        snapshotResult.Value.Should().NotBeNull();
+        return snapshotResult.Value!;
+    }
 }
+

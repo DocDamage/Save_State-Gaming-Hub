@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using SaveState.Core.Sync;
 using System.Net.Http.Headers;
@@ -97,31 +98,63 @@ public class OneDriveStorageProvider : ICloudStorageProvider
         }
     }
 
-    public async Task<bool> UploadFileAsync(string localPath, string remotePath, CancellationToken ct = default)
+    public async Task<Result<bool>> UploadFileAsync(string localPath, string remotePath, CancellationToken ct = default)
     {
-        if (!IsAuthenticated) return false;
+        if (!IsAuthenticated)
+        {
+            return Result.Failure<bool>("Not authenticated", ErrorType.Unauthorized);
+        }
+
+        if (string.IsNullOrWhiteSpace(localPath) || !File.Exists(localPath))
+        {
+            return Result.Failure<bool>("Local file not found", ErrorType.NotFound);
+        }
+
+        if (string.IsNullOrWhiteSpace(remotePath))
+        {
+            return Result.Failure<bool>("Remote path is required", ErrorType.Validation);
+        }
 
         try
         {
             _logger.LogInformation("Uploading {LocalPath} to OneDrive:{RemotePath}", localPath, remotePath);
 
-            var content = new StreamContent(File.OpenRead(localPath));
+            await using var fileStream = File.OpenRead(localPath);
+            using var content = new StreamContent(fileStream);
             // Microsoft Graph API path for simple upload: /me/drive/root:/path/to/file:/content
             var url = $"v1.0/me/drive/root:/{remotePath.TrimStart('/')}:/content";
 
             var response = await _httpClient.PutAsync(url, content, ct).ConfigureAwait(false);
-            return response.IsSuccessStatusCode;
+            if (!response.IsSuccessStatusCode)
+            {
+                return Result.Failure<bool>($"OneDrive upload failed: {response.StatusCode}", ErrorType.External);
+            }
+
+            return Result.Success(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to upload to OneDrive");
-            return false;
+            return Result.Failure<bool>($"Failed to upload to OneDrive: {ex.Message}", ErrorType.External);
         }
     }
 
-    public async Task<bool> DownloadFileAsync(string remotePath, string localPath, CancellationToken ct = default)
+    public async Task<Result<bool>> DownloadFileAsync(string remotePath, string localPath, CancellationToken ct = default)
     {
-        if (!IsAuthenticated) return false;
+        if (!IsAuthenticated)
+        {
+            return Result.Failure<bool>("Not authenticated", ErrorType.Unauthorized);
+        }
+
+        if (string.IsNullOrWhiteSpace(remotePath))
+        {
+            return Result.Failure<bool>("Remote path is required", ErrorType.Validation);
+        }
+
+        if (string.IsNullOrWhiteSpace(localPath))
+        {
+            return Result.Failure<bool>("Local path is required", ErrorType.Validation);
+        }
 
         try
         {
@@ -130,7 +163,13 @@ public class OneDriveStorageProvider : ICloudStorageProvider
             var url = $"v1.0/me/drive/root:/{remotePath.TrimStart('/')}:/content";
             var response = await _httpClient.GetAsync(url, ct).ConfigureAwait(false);
 
-            if (!response.IsSuccessStatusCode) return false;
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorType = response.StatusCode == System.Net.HttpStatusCode.NotFound
+                    ? ErrorType.NotFound
+                    : ErrorType.External;
+                return Result.Failure<bool>($"OneDrive download failed: {response.StatusCode}", errorType);
+            }
 
             var directory = Path.GetDirectoryName(localPath);
             if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
@@ -139,12 +178,12 @@ public class OneDriveStorageProvider : ICloudStorageProvider
             await using var fileStream = File.Create(localPath);
             await stream.CopyToAsync(fileStream, ct).ConfigureAwait(false);
 
-            return true;
+            return Result.Success(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to download from OneDrive");
-            return false;
+            return Result.Failure<bool>($"Failed to download from OneDrive: {ex.Message}", ErrorType.External);
         }
     }
 

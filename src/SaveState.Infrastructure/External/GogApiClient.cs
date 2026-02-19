@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SaveState.Core.Common;
 using SaveState.Core.Configuration;
 using SaveState.Core.GameLibrary.DTOs;
 using System.Diagnostics;
@@ -24,12 +25,12 @@ public class GogApiClient : IGogApiClient
         _logger = logger;
     }
 
-    public async Task<IReadOnlyList<GogGame>> GetOwnedGamesAsync(CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<GogGame>>> GetOwnedGamesAsync(CancellationToken ct = default)
     {
         if (string.IsNullOrEmpty(_options.Username))
         {
             _logger.LogWarning("GOG Username is missing. Returning empty list.");
-            return Array.Empty<GogGame>();
+            return Result.Failure<IReadOnlyList<GogGame>>("GOG username is missing", ErrorType.Validation);
         }
 
         try
@@ -39,7 +40,9 @@ public class GogApiClient : IGogApiClient
 
             if (!response.IsSuccessStatusCode)
             {
-                return Array.Empty<GogGame>();
+                return Result.Failure<IReadOnlyList<GogGame>>(
+                    $"GOG API returned status {(int)response.StatusCode}",
+                    ErrorType.External);
             }
 
             var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
@@ -47,7 +50,7 @@ public class GogApiClient : IGogApiClient
 
             if (!doc.RootElement.TryGetProperty("owned", out var ownedProperty))
             {
-                return Array.Empty<GogGame>();
+                return Result.Failure<IReadOnlyList<GogGame>>("GOG API response did not include owned games", ErrorType.NotFound);
             }
 
             var games = new List<GogGame>();
@@ -60,25 +63,28 @@ public class GogApiClient : IGogApiClient
                 });
             }
 
-            return games;
+            return Result.Success<IReadOnlyList<GogGame>>(games);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to fetch owned games from GOG");
-            return Array.Empty<GogGame>();
+            return Result.Failure<IReadOnlyList<GogGame>>($"Failed to fetch owned games from GOG: {ex.Message}", ErrorType.External);
         }
     }
 
-    public async Task<GameMetadata> GetGameDetailsAsync(string gameId, CancellationToken ct = default)
+    public async Task<Result<GameMetadata>> GetGameDetailsAsync(string gameId, CancellationToken ct = default)
     {
         try
         {
             var url = $"https://api.gog.com/products/{gameId}";
             var response = await _httpClient.GetFromJsonAsync<GogProductResponse>(url, ct).ConfigureAwait(false);
 
-            if (response == null) return GameMetadata.Empty;
+            if (response == null)
+            {
+                return Result.Failure<GameMetadata>($"Game '{gameId}' was not found in GOG response", ErrorType.NotFound);
+            }
 
-            return new GameMetadata
+            var metadata = new GameMetadata
             {
                 Title = response.Title,
                 Description = response.Description,
@@ -86,11 +92,13 @@ public class GogApiClient : IGogApiClient
                 Developer = response.Developer,
                 Publisher = response.Publisher
             };
+
+            return Result.Success(metadata);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to fetch game details for GOG ID {GameId}", gameId);
-            return GameMetadata.Empty;
+            return Result.Failure<GameMetadata>($"Failed to fetch GOG game details: {ex.Message}", ErrorType.External);
         }
     }
 

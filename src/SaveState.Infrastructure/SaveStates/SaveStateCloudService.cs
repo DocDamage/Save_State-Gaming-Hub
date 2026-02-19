@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
@@ -24,11 +23,7 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
     private readonly ICloudSaveEncryptionService _encryptionService;
     private readonly ILogger<SaveStateCloudService> _logger;
     private readonly ITimeProvider _timeProvider;
-    private readonly string _versionHistoryRootPath;
-    private readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
-    {
-        WriteIndented = true
-    };
+    private readonly SaveStateCloudVersionStore _versionStore;
 
     public SaveStateCloudService(
         ISaveStateRepository saveStateRepository,
@@ -46,13 +41,19 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
         _logger = logger;
         _timeProvider = timeProvider;
 
-        _versionHistoryRootPath = versionHistoryRootPath ?? Path.Combine(
+        var resolvedVersionHistoryRootPath = versionHistoryRootPath ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "SaveState",
             "CloudSync",
             "Versions");
-
-        Directory.CreateDirectory(_versionHistoryRootPath);
+        var jsonOptions = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web)
+        {
+            WriteIndented = true
+        };
+        _versionStore = new SaveStateCloudVersionStore(
+            logger,
+            resolvedVersionHistoryRootPath,
+            jsonOptions);
     }
 
     /// <inheritdoc />
@@ -83,9 +84,14 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
 
         var localSave = localSaveResult.Value;
         var isEncrypted = !string.IsNullOrWhiteSpace(metadata.EncryptionKey);
-        var keyFingerprint = isEncrypted
-            ? _encryptionService.GetKeyFingerprint(metadata.EncryptionKey!)
-            : null;
+        var keyFingerprintResult = ResolveEncryptionKeyFingerprint(metadata.EncryptionKey);
+        if (keyFingerprintResult.IsFailure)
+        {
+            return Result.Failure<SaveStateCloudSyncStatus>(
+                keyFingerprintResult.Error ?? "Failed to compute encryption key fingerprint.",
+                keyFingerprintResult.ErrorType);
+        }
+        var keyFingerprint = keyFingerprintResult.Value;
 
         var localVersionResult = await BuildVersionAsync(
             localSave,
@@ -102,86 +108,57 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
         }
 
         var localVersion = localVersionResult.Value;
-        var cloudVersion = await GetCloudLatestVersionAsync(provider, gameId, ct).ConfigureAwait(false);
+        var cloudVersion = await _versionStore.GetCloudLatestVersionAsync(provider, gameId, ct).ConfigureAwait(false);
         var conflictType = DetermineConflictType(localVersion, cloudVersion);
-        var hasBlockingConflict = !metadata.ForceUpload &&
-                                  (conflictType == SaveStateConflictType.CloudNewer ||
-                                   conflictType == SaveStateConflictType.BothModified);
-
-        if (hasBlockingConflict)
+        if (ShouldBlockUpload(metadata, conflictType))
         {
-            var blockedStatus = new SaveStateCloudSyncStatus
-            {
-                GameId = gameId,
-                Provider = provider.ProviderName,
-                Uploaded = false,
-                Downloaded = false,
-                HasConflict = true,
-                ConflictType = conflictType,
-                SyncedAtUtc = _timeProvider.UtcNow,
-                IsEncrypted = isEncrypted,
-                Message = "Sync blocked due to conflict. Pass ForceUpload to override.",
-                LocalVersion = localVersion,
-                CloudVersion = cloudVersion
-            };
-
-            return Result.Success(blockedStatus);
+            return Result.Success(BuildBlockedSyncStatus(
+                gameId,
+                provider.ProviderName,
+                isEncrypted,
+                conflictType,
+                localVersion,
+                cloudVersion));
         }
 
         var tempFiles = new List<string>();
 
         try
         {
-            var uploadPath = localSave.FilePath;
-            if (isEncrypted)
+            var uploadPathResult = await ResolveUploadPayloadPathAsync(
+                localSave.FilePath,
+                metadata.EncryptionKey,
+                tempFiles,
+                ct).ConfigureAwait(false);
+            if (uploadPathResult.IsFailure || string.IsNullOrWhiteSpace(uploadPathResult.Value))
             {
-                var encryptionResult = await _encryptionService.EncryptFileAsync(
-                    localSave.FilePath,
-                    metadata.EncryptionKey!,
-                    ct).ConfigureAwait(false);
-
-                if (encryptionResult.IsFailure || string.IsNullOrWhiteSpace(encryptionResult.Value))
-                {
-                    return Result.Failure<SaveStateCloudSyncStatus>(
-                        encryptionResult.Error ?? "Failed to encrypt save state.",
-                        encryptionResult.ErrorType);
-                }
-
-                uploadPath = encryptionResult.Value;
-                tempFiles.Add(uploadPath);
+                return Result.Failure<SaveStateCloudSyncStatus>(
+                    uploadPathResult.Error ?? "Failed to prepare save state payload for upload.",
+                    uploadPathResult.ErrorType);
             }
 
-            var uploaded = await provider.UploadFileAsync(
-                uploadPath,
+            var uploadResult = await provider.UploadFileAsync(
+                uploadPathResult.Value,
                 localVersion.StoragePath,
                 ct).ConfigureAwait(false);
 
-            if (!uploaded)
+            if (uploadResult.IsFailure || !uploadResult.Value)
             {
                 return Result.Failure<SaveStateCloudSyncStatus>(
-                    $"Failed to upload save state to {provider.ProviderName}.",
-                    ErrorType.External);
+                    uploadResult.Error ?? $"Failed to upload save state to {provider.ProviderName}.",
+                    uploadResult.IsFailure ? uploadResult.ErrorType : ErrorType.External);
             }
 
-            await AppendVersionAsync(gameId, localVersion, ct).ConfigureAwait(false);
-            await UploadVersionMetadataAsync(provider, localVersion, ct).ConfigureAwait(false);
+            await _versionStore.AppendVersionAsync(gameId, localVersion, ct).ConfigureAwait(false);
+            await _versionStore.UploadVersionMetadataAsync(provider, localVersion, ct).ConfigureAwait(false);
 
-            var status = new SaveStateCloudSyncStatus
-            {
-                GameId = gameId,
-                Provider = provider.ProviderName,
-                Uploaded = true,
-                Downloaded = false,
-                HasConflict = conflictType != SaveStateConflictType.None,
-                ConflictType = conflictType,
-                SyncedAtUtc = _timeProvider.UtcNow,
-                IsEncrypted = isEncrypted,
-                Message = "Save state synchronized to cloud.",
-                LocalVersion = localVersion,
-                CloudVersion = cloudVersion
-            };
-
-            return Result.Success(status);
+            return Result.Success(BuildUploadedSyncStatus(
+                gameId,
+                provider.ProviderName,
+                isEncrypted,
+                conflictType,
+                localVersion,
+                cloudVersion));
         }
         catch (OperationCanceledException)
         {
@@ -205,6 +182,109 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
         }
     }
 
+    private static bool ShouldBlockUpload(SaveStateCloudMetadata metadata, SaveStateConflictType conflictType)
+    {
+        if (metadata.ForceUpload)
+        {
+            return false;
+        }
+
+        return conflictType is SaveStateConflictType.CloudNewer or SaveStateConflictType.BothModified;
+    }
+
+    private SaveStateCloudSyncStatus BuildBlockedSyncStatus(
+        Guid gameId,
+        string providerName,
+        bool isEncrypted,
+        SaveStateConflictType conflictType,
+        SaveStateCloudVersion localVersion,
+        SaveStateCloudVersion? cloudVersion)
+    {
+        return new SaveStateCloudSyncStatus
+        {
+            GameId = gameId,
+            Provider = providerName,
+            Uploaded = false,
+            Downloaded = false,
+            HasConflict = true,
+            ConflictType = conflictType,
+            SyncedAtUtc = _timeProvider.UtcNow,
+            IsEncrypted = isEncrypted,
+            Message = "Sync blocked due to conflict. Pass ForceUpload to override.",
+            LocalVersion = localVersion,
+            CloudVersion = cloudVersion
+        };
+    }
+
+    private SaveStateCloudSyncStatus BuildUploadedSyncStatus(
+        Guid gameId,
+        string providerName,
+        bool isEncrypted,
+        SaveStateConflictType conflictType,
+        SaveStateCloudVersion localVersion,
+        SaveStateCloudVersion? cloudVersion)
+    {
+        return new SaveStateCloudSyncStatus
+        {
+            GameId = gameId,
+            Provider = providerName,
+            Uploaded = true,
+            Downloaded = false,
+            HasConflict = conflictType != SaveStateConflictType.None,
+            ConflictType = conflictType,
+            SyncedAtUtc = _timeProvider.UtcNow,
+            IsEncrypted = isEncrypted,
+            Message = "Save state synchronized to cloud.",
+            LocalVersion = localVersion,
+            CloudVersion = cloudVersion
+        };
+    }
+
+    private Result<string?> ResolveEncryptionKeyFingerprint(string? encryptionKey)
+    {
+        if (string.IsNullOrWhiteSpace(encryptionKey))
+        {
+            return Result.Success<string?>(null);
+        }
+
+        var fingerprintResult = _encryptionService.GetKeyFingerprint(encryptionKey);
+        if (fingerprintResult.IsFailure)
+        {
+            return Result.Failure<string?>(
+                fingerprintResult.Error ?? "Failed to compute encryption key fingerprint.",
+                fingerprintResult.ErrorType);
+        }
+
+        return Result.Success<string?>(fingerprintResult.Value);
+    }
+
+    private async Task<Result<string>> ResolveUploadPayloadPathAsync(
+        string localSavePath,
+        string? encryptionKey,
+        ICollection<string> tempFiles,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(encryptionKey))
+        {
+            return Result.Success(localSavePath);
+        }
+
+        var encryptionResult = await _encryptionService.EncryptFileAsync(
+            localSavePath,
+            encryptionKey,
+            ct).ConfigureAwait(false);
+
+        if (encryptionResult.IsFailure || string.IsNullOrWhiteSpace(encryptionResult.Value))
+        {
+            return Result.Failure<string>(
+                encryptionResult.Error ?? "Failed to encrypt save state.",
+                encryptionResult.ErrorType);
+        }
+
+        tempFiles.Add(encryptionResult.Value);
+        return Result.Success(encryptionResult.Value);
+    }
+
     /// <inheritdoc />
     public async Task<Result<SaveStateConflictResolution>> DetectConflictsAsync(
         Guid gameId,
@@ -221,7 +301,7 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
         var provider = providerResult.Value;
 
         var localVersion = await GetLatestLocalVersionAsync(gameId, ct).ConfigureAwait(false);
-        var cloudVersion = await GetCloudLatestVersionAsync(provider, gameId, ct).ConfigureAwait(false);
+        var cloudVersion = await _versionStore.GetCloudLatestVersionAsync(provider, gameId, ct).ConfigureAwait(false);
         var conflictType = DetermineConflictType(localVersion, cloudVersion);
 
         var details = conflictType switch
@@ -281,12 +361,12 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
         }
 
         var version = localVersionResult.Value;
-        await AppendVersionAsync(gameId, version, ct).ConfigureAwait(false);
+        await _versionStore.AppendVersionAsync(gameId, version, ct).ConfigureAwait(false);
 
         var providerResult = await ResolveProviderAsync(ct).ConfigureAwait(false);
         if (providerResult.IsSuccess && providerResult.Value is not null)
         {
-            await UploadVersionMetadataAsync(providerResult.Value, version, ct).ConfigureAwait(false);
+            await _versionStore.UploadVersionMetadataAsync(providerResult.Value, version, ct).ConfigureAwait(false);
         }
 
         return Result.Success(version);
@@ -323,7 +403,7 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
         Guid gameId,
         CancellationToken ct = default)
     {
-        var versions = await LoadVersionHistoryAsync(gameId, ct).ConfigureAwait(false);
+        var versions = await _versionStore.LoadVersionHistoryAsync(gameId, ct).ConfigureAwait(false);
         return Result.Success<IReadOnlyList<SaveStateCloudVersion>>(versions);
     }
 
@@ -366,7 +446,7 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
         }
 
         var provider = providerResult.Value;
-        var cloudVersion = await GetCloudLatestVersionAsync(provider, gameId, ct).ConfigureAwait(false);
+        var cloudVersion = await _versionStore.GetCloudLatestVersionAsync(provider, gameId, ct).ConfigureAwait(false);
         if (cloudVersion is null || string.IsNullOrWhiteSpace(cloudVersion.StoragePath))
         {
             return Result.Failure<SaveStateCloudSyncStatus>(
@@ -378,122 +458,27 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
 
         try
         {
-            var downloadPath = Path.Combine(Path.GetTempPath(), $"savestate-cloud-download-{Guid.NewGuid():N}.bin");
-            tempFiles.Add(downloadPath);
-
-            var downloaded = await provider.DownloadFileAsync(
-                cloudVersion.StoragePath,
-                downloadPath,
+            var restoreResult = await RestoreCloudVersionAsync(
+                gameId,
+                provider,
+                cloudVersion,
+                metadata,
+                tempFiles,
                 ct).ConfigureAwait(false);
-
-            if (!downloaded || !File.Exists(downloadPath))
+            if (restoreResult.IsFailure || restoreResult.Value is null)
             {
                 return Result.Failure<SaveStateCloudSyncStatus>(
-                    $"Failed to download cloud save state from {provider.ProviderName}.",
-                    ErrorType.External);
+                    restoreResult.Error ?? $"Failed to restore cloud save state from {provider.ProviderName}.",
+                    restoreResult.ErrorType);
             }
+            var restore = restoreResult.Value;
 
-            var payloadPath = downloadPath;
-            if (cloudVersion.IsEncrypted)
-            {
-                if (string.IsNullOrWhiteSpace(metadata.EncryptionKey))
-                {
-                    return Result.Failure<SaveStateCloudSyncStatus>(
-                        "Encryption key is required to restore this cloud save state.",
-                        ErrorType.Validation);
-                }
-
-                if (!string.IsNullOrWhiteSpace(cloudVersion.EncryptionKeyFingerprint))
-                {
-                    var fingerprint = _encryptionService.GetKeyFingerprint(metadata.EncryptionKey);
-                    if (!string.Equals(
-                            fingerprint,
-                            cloudVersion.EncryptionKeyFingerprint,
-                            StringComparison.OrdinalIgnoreCase))
-                    {
-                        return Result.Failure<SaveStateCloudSyncStatus>(
-                            "The provided encryption key does not match the cloud save state key fingerprint.",
-                            ErrorType.Validation);
-                    }
-                }
-
-                var decryptResult = await _encryptionService.DecryptFileAsync(
-                    downloadPath,
-                    metadata.EncryptionKey!,
-                    ct).ConfigureAwait(false);
-                if (decryptResult.IsFailure || string.IsNullOrWhiteSpace(decryptResult.Value))
-                {
-                    return Result.Failure<SaveStateCloudSyncStatus>(
-                        decryptResult.Error ?? "Failed to decrypt cloud save state payload.",
-                        decryptResult.ErrorType);
-                }
-
-                payloadPath = decryptResult.Value;
-                tempFiles.Add(payloadPath);
-            }
-
-            var targetSaveState = await ResolveTrackedLocalSaveStateAsync(
+            await _versionStore.AppendVersionAsync(gameId, cloudVersion, ct).ConfigureAwait(false);
+            return Result.Success(BuildKeepCloudStatus(
                 gameId,
-                metadata.SaveStateId ?? cloudVersion.SaveStateId,
-                ct).ConfigureAwait(false);
-
-            var targetPath = string.IsNullOrWhiteSpace(targetSaveState?.FilePath)
-                ? BuildLocalRestorePath(gameId, cloudVersion)
-                : targetSaveState!.FilePath;
-
-            var directory = Path.GetDirectoryName(targetPath);
-            if (!string.IsNullOrWhiteSpace(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            File.Copy(payloadPath, targetPath, overwrite: true);
-            var fileSize = new FileInfo(targetPath).Length;
-
-            if (targetSaveState is null)
-            {
-                targetSaveState = SaveStateEntity.Create(gameId, targetPath, TimeSpan.Zero);
-                targetSaveState.SetDescription($"Restored from cloud {_timeProvider.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
-                targetSaveState.SetFileSize(fileSize);
-                await _saveStateRepository.AddAsync(targetSaveState, ct).ConfigureAwait(false);
-            }
-            else
-            {
-                targetSaveState.SetFileSize(fileSize);
-                await _saveStateRepository.UpdateAsync(targetSaveState, ct).ConfigureAwait(false);
-            }
-
-            await AppendVersionAsync(gameId, cloudVersion, ct).ConfigureAwait(false);
-
-            SaveStateCloudVersion? localVersion = null;
-            var localVersionResult = await BuildVersionAsync(
-                targetSaveState,
-                requestedVersionName: "Local Restored",
-                deviceName: metadata.DeviceName,
-                isEncrypted: false,
-                encryptionKeyFingerprint: null,
-                ct).ConfigureAwait(false);
-            if (localVersionResult.IsSuccess)
-            {
-                localVersion = localVersionResult.Value;
-            }
-
-            var status = new SaveStateCloudSyncStatus
-            {
-                GameId = gameId,
-                Provider = provider.ProviderName,
-                Uploaded = false,
-                Downloaded = true,
-                HasConflict = false,
-                ConflictType = SaveStateConflictType.None,
-                SyncedAtUtc = _timeProvider.UtcNow,
-                IsEncrypted = cloudVersion.IsEncrypted,
-                Message = "Cloud save state restored locally.",
-                LocalVersion = localVersion,
-                CloudVersion = cloudVersion
-            };
-
-            return Result.Success(status);
+                provider.ProviderName,
+                cloudVersion,
+                restore.LocalVersion));
         }
         catch (OperationCanceledException)
         {
@@ -515,6 +500,213 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
                 TryDelete(tempFile);
             }
         }
+    }
+
+    private sealed record KeepCloudRestoreResult(
+        SaveStateEntity SaveState,
+        SaveStateCloudVersion? LocalVersion);
+
+    private SaveStateCloudSyncStatus BuildKeepCloudStatus(
+        Guid gameId,
+        string providerName,
+        SaveStateCloudVersion cloudVersion,
+        SaveStateCloudVersion? localVersion)
+    {
+        return new SaveStateCloudSyncStatus
+        {
+            GameId = gameId,
+            Provider = providerName,
+            Uploaded = false,
+            Downloaded = true,
+            HasConflict = false,
+            ConflictType = SaveStateConflictType.None,
+            SyncedAtUtc = _timeProvider.UtcNow,
+            IsEncrypted = cloudVersion.IsEncrypted,
+            Message = "Cloud save state restored locally.",
+            LocalVersion = localVersion,
+            CloudVersion = cloudVersion
+        };
+    }
+
+    private async Task<Result<KeepCloudRestoreResult>> RestoreCloudVersionAsync(
+        Guid gameId,
+        ICloudStorageProvider provider,
+        SaveStateCloudVersion cloudVersion,
+        SaveStateCloudMetadata metadata,
+        ICollection<string> tempFiles,
+        CancellationToken ct)
+    {
+        var downloadPath = Path.Combine(Path.GetTempPath(), $"savestate-cloud-download-{Guid.NewGuid():N}.bin");
+        tempFiles.Add(downloadPath);
+
+        var payloadPathResult = await DownloadCloudPayloadAsync(
+            provider,
+            cloudVersion,
+            metadata,
+            downloadPath,
+            tempFiles,
+            ct).ConfigureAwait(false);
+        if (payloadPathResult.IsFailure || string.IsNullOrWhiteSpace(payloadPathResult.Value))
+        {
+            return Result.Failure<KeepCloudRestoreResult>(
+                payloadPathResult.Error ?? $"Failed to download cloud save state from {provider.ProviderName}.",
+                payloadPathResult.ErrorType);
+        }
+
+        var targetSaveState = await ResolveTrackedLocalSaveStateAsync(
+            gameId,
+            metadata.SaveStateId ?? cloudVersion.SaveStateId,
+            ct).ConfigureAwait(false);
+        var targetPath = ResolveRestoreTargetPath(gameId, cloudVersion, targetSaveState);
+        EnsureDirectoryExistsForFile(targetPath);
+
+        var persistedSaveResult = await PersistRestoredSaveStateAsync(
+            gameId,
+            targetSaveState,
+            targetPath,
+            payloadPathResult.Value,
+            ct).ConfigureAwait(false);
+        if (persistedSaveResult.IsFailure || persistedSaveResult.Value is null)
+        {
+            return Result.Failure<KeepCloudRestoreResult>(
+                persistedSaveResult.Error ?? "Failed to persist restored cloud save state locally.",
+                persistedSaveResult.ErrorType);
+        }
+
+        var localVersion = await TryBuildRestoredLocalVersionAsync(
+            persistedSaveResult.Value,
+            metadata.DeviceName,
+            ct).ConfigureAwait(false);
+        return Result.Success(new KeepCloudRestoreResult(persistedSaveResult.Value, localVersion));
+    }
+
+    private string ResolveRestoreTargetPath(
+        Guid gameId,
+        SaveStateCloudVersion cloudVersion,
+        SaveStateEntity? targetSaveState)
+    {
+        if (targetSaveState is not null && !string.IsNullOrWhiteSpace(targetSaveState.FilePath))
+        {
+            return targetSaveState.FilePath;
+        }
+
+        return BuildLocalRestorePath(gameId, cloudVersion);
+    }
+
+    private static void EnsureDirectoryExistsForFile(string filePath)
+    {
+        var directory = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrWhiteSpace(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+    }
+
+    private async Task<Result<SaveStateEntity>> PersistRestoredSaveStateAsync(
+        Guid gameId,
+        SaveStateEntity? trackedSaveState,
+        string targetPath,
+        string payloadPath,
+        CancellationToken ct)
+    {
+        File.Copy(payloadPath, targetPath, overwrite: true);
+        var fileSize = new FileInfo(targetPath).Length;
+
+        if (trackedSaveState is null)
+        {
+            var createdSaveState = SaveStateEntity.Create(gameId, targetPath, TimeSpan.Zero);
+            createdSaveState.SetDescription($"Restored from cloud {_timeProvider.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
+            createdSaveState.SetFileSize(fileSize);
+            await _saveStateRepository.AddAsync(createdSaveState, ct).ConfigureAwait(false);
+            return Result.Success(createdSaveState);
+        }
+
+        trackedSaveState.SetFileSize(fileSize);
+        await _saveStateRepository.UpdateAsync(trackedSaveState, ct).ConfigureAwait(false);
+        return Result.Success(trackedSaveState);
+    }
+
+    private async Task<SaveStateCloudVersion?> TryBuildRestoredLocalVersionAsync(
+        SaveStateEntity targetSaveState,
+        string? deviceName,
+        CancellationToken ct)
+    {
+        var localVersionResult = await BuildVersionAsync(
+            targetSaveState,
+            requestedVersionName: "Local Restored",
+            deviceName: deviceName,
+            isEncrypted: false,
+            encryptionKeyFingerprint: null,
+            ct).ConfigureAwait(false);
+        return localVersionResult.IsSuccess ? localVersionResult.Value : null;
+    }
+
+    private async Task<Result<string>> DownloadCloudPayloadAsync(
+        ICloudStorageProvider provider,
+        SaveStateCloudVersion cloudVersion,
+        SaveStateCloudMetadata metadata,
+        string downloadPath,
+        ICollection<string> tempFiles,
+        CancellationToken ct)
+    {
+        var downloadResult = await provider.DownloadFileAsync(
+            cloudVersion.StoragePath,
+            downloadPath,
+            ct).ConfigureAwait(false);
+
+        if (downloadResult.IsFailure || !downloadResult.Value || !File.Exists(downloadPath))
+        {
+            return Result.Failure<string>(
+                downloadResult.Error ?? $"Failed to download save state from {provider.ProviderName}.",
+                downloadResult.IsFailure ? downloadResult.ErrorType : ErrorType.External);
+        }
+
+        if (!cloudVersion.IsEncrypted)
+        {
+            return Result.Success(downloadPath);
+        }
+
+        if (string.IsNullOrWhiteSpace(metadata.EncryptionKey))
+        {
+            return Result.Failure<string>(
+                "Cloud save state is encrypted but no encryption key was provided.",
+                ErrorType.Validation);
+        }
+
+        if (!string.IsNullOrWhiteSpace(cloudVersion.EncryptionKeyFingerprint))
+        {
+            var fingerprintResult = _encryptionService.GetKeyFingerprint(metadata.EncryptionKey);
+            if (fingerprintResult.IsFailure || string.IsNullOrWhiteSpace(fingerprintResult.Value))
+            {
+                return Result.Failure<string>(
+                    fingerprintResult.Error ?? "Failed to validate encryption key fingerprint.",
+                    fingerprintResult.ErrorType);
+            }
+
+            if (!string.Equals(
+                    fingerprintResult.Value,
+                    cloudVersion.EncryptionKeyFingerprint,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return Result.Failure<string>(
+                    "Provided encryption key does not match cloud payload fingerprint.",
+                    ErrorType.Validation);
+            }
+        }
+
+        var decryptResult = await _encryptionService.DecryptFileAsync(
+            downloadPath,
+            metadata.EncryptionKey,
+            ct).ConfigureAwait(false);
+        if (decryptResult.IsFailure || string.IsNullOrWhiteSpace(decryptResult.Value))
+        {
+            return Result.Failure<string>(
+                decryptResult.Error ?? "Failed to decrypt cloud save state payload.",
+                decryptResult.ErrorType);
+        }
+
+        tempFiles.Add(decryptResult.Value);
+        return Result.Success(decryptResult.Value);
     }
 
     private async Task<SaveStateEntity?> ResolveTrackedLocalSaveStateAsync(
@@ -747,12 +939,6 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
         return $"{CloudRootPath}/{saveState.GameId}/{fileName}";
     }
 
-    private static string BuildCloudLatestVersionPath(Guid gameId) =>
-        $"{CloudRootPath}/{gameId}/latest.json";
-
-    private static string BuildCloudVersionPath(Guid gameId, Guid versionId) =>
-        $"{CloudRootPath}/{gameId}/versions/{versionId}.json";
-
     private SaveStateConflictType DetermineConflictType(
         SaveStateCloudVersion? localVersion,
         SaveStateCloudVersion? cloudVersion)
@@ -781,134 +967,6 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
         return localVersion.CreatedAtUtc > cloudVersion.CreatedAtUtc
             ? SaveStateConflictType.LocalNewer
             : SaveStateConflictType.CloudNewer;
-    }
-
-    private async Task<SaveStateCloudVersion?> GetCloudLatestVersionAsync(
-        ICloudStorageProvider provider,
-        Guid gameId,
-        CancellationToken ct)
-    {
-        var tempMetadataPath = Path.Combine(Path.GetTempPath(), $"savestate-cloud-latest-{Guid.NewGuid():N}.json");
-        try
-        {
-            var downloaded = await provider.DownloadFileAsync(
-                BuildCloudLatestVersionPath(gameId),
-                tempMetadataPath,
-                ct).ConfigureAwait(false);
-
-            if (!downloaded || !File.Exists(tempMetadataPath))
-            {
-                return null;
-            }
-
-            var json = await File.ReadAllTextAsync(tempMetadataPath, ct).ConfigureAwait(false);
-            return JsonSerializer.Deserialize<SaveStateCloudVersion>(json, _jsonOptions);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to load cloud latest version metadata for game {GameId}", gameId);
-            return null;
-        }
-        finally
-        {
-            TryDelete(tempMetadataPath);
-        }
-    }
-
-    private async Task UploadVersionMetadataAsync(
-        ICloudStorageProvider provider,
-        SaveStateCloudVersion version,
-        CancellationToken ct)
-    {
-        var tempMetadataPath = Path.Combine(Path.GetTempPath(), $"savestate-cloud-version-{Guid.NewGuid():N}.json");
-        try
-        {
-            var json = JsonSerializer.Serialize(version, _jsonOptions);
-            await File.WriteAllTextAsync(tempMetadataPath, json, ct).ConfigureAwait(false);
-
-            var uploadedVersionMetadata = await provider.UploadFileAsync(
-                tempMetadataPath,
-                BuildCloudVersionPath(version.GameId, version.Id),
-                ct).ConfigureAwait(false);
-
-            if (!uploadedVersionMetadata)
-            {
-                _logger.LogWarning(
-                    "Failed to upload version metadata for game {GameId}, version {VersionId}",
-                    version.GameId,
-                    version.Id);
-            }
-
-            var uploadedLatestMetadata = await provider.UploadFileAsync(
-                tempMetadataPath,
-                BuildCloudLatestVersionPath(version.GameId),
-                ct).ConfigureAwait(false);
-
-            if (!uploadedLatestMetadata)
-            {
-                _logger.LogWarning(
-                    "Failed to upload latest metadata marker for game {GameId}, version {VersionId}",
-                    version.GameId,
-                    version.Id);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to publish cloud version metadata for game {GameId}", version.GameId);
-        }
-        finally
-        {
-            TryDelete(tempMetadataPath);
-        }
-    }
-
-    private async Task AppendVersionAsync(Guid gameId, SaveStateCloudVersion version, CancellationToken ct)
-    {
-        var existing = await LoadVersionHistoryAsync(gameId, ct).ConfigureAwait(false);
-        var updated = existing
-            .Where(v => v.Id != version.Id)
-            .Append(version)
-            .OrderByDescending(v => v.CreatedAtUtc)
-            .ToList();
-
-        await SaveVersionHistoryAsync(gameId, updated, ct).ConfigureAwait(false);
-    }
-
-    private async Task<IReadOnlyList<SaveStateCloudVersion>> LoadVersionHistoryAsync(Guid gameId, CancellationToken ct)
-    {
-        var historyPath = GetVersionHistoryFilePath(gameId);
-        if (!File.Exists(historyPath))
-        {
-            return [];
-        }
-
-        try
-        {
-            var json = await File.ReadAllTextAsync(historyPath, ct).ConfigureAwait(false);
-            var items = JsonSerializer.Deserialize<List<SaveStateCloudVersion>>(json, _jsonOptions) ?? [];
-            return items.OrderByDescending(v => v.CreatedAtUtc).ToArray();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to read cloud version history for game {GameId}", gameId);
-            return [];
-        }
-    }
-
-    private async Task SaveVersionHistoryAsync(
-        Guid gameId,
-        IReadOnlyList<SaveStateCloudVersion> versions,
-        CancellationToken ct)
-    {
-        var historyPath = GetVersionHistoryFilePath(gameId);
-        var json = JsonSerializer.Serialize(versions, _jsonOptions);
-        await File.WriteAllTextAsync(historyPath, json, ct).ConfigureAwait(false);
-    }
-
-    private string GetVersionHistoryFilePath(Guid gameId)
-    {
-        Directory.CreateDirectory(_versionHistoryRootPath);
-        return Path.Combine(_versionHistoryRootPath, $"{gameId:N}.json");
     }
 
     private static void TryDelete(string path)

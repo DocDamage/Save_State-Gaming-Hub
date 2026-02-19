@@ -38,22 +38,49 @@ public class MetadataEnrichmentService : IMetadataEnrichmentService
         }
     }
 
-    public async Task<string?> GetCoverImageUrlAsync(Game game, CancellationToken ct = default)
+    public async Task<Result<string?>> GetCoverImageUrlAsync(Game game, CancellationToken ct = default)
     {
-        var metadata = await _metadataService.GetGameMetadataAsync(game.Title, ct).ConfigureAwait(false);
-        return metadata?.CoverImageUrl;
+        try
+        {
+            var metadata = await _metadataService.GetGameMetadataAsync(game.Title, ct).ConfigureAwait(false);
+            return Result.Success<string?>(metadata?.CoverImageUrl);
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure<string?>(
+                $"Failed to retrieve cover image for '{game.Title}': {ex.Message}",
+                ErrorType.External);
+        }
     }
 
-    public async Task<IEnumerable<string>> GetTagsAsync(Game game, CancellationToken ct = default)
+    public async Task<Result<IEnumerable<string>>> GetTagsAsync(Game game, CancellationToken ct = default)
     {
-        var metadata = await _metadataService.GetGameMetadataAsync(game.Title, ct).ConfigureAwait(false);
-        return metadata?.Genres ?? Enumerable.Empty<string>();
+        try
+        {
+            var metadata = await _metadataService.GetGameMetadataAsync(game.Title, ct).ConfigureAwait(false);
+            return Result.Success(metadata?.Genres ?? Enumerable.Empty<string>());
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure<IEnumerable<string>>(
+                $"Failed to retrieve tags for '{game.Title}': {ex.Message}",
+                ErrorType.External);
+        }
     }
 
-    public async Task<string?> GetDescriptionAsync(Game game, CancellationToken ct = default)
+    public async Task<Result<string?>> GetDescriptionAsync(Game game, CancellationToken ct = default)
     {
-        var metadata = await _metadataService.GetGameMetadataAsync(game.Title, ct).ConfigureAwait(false);
-        return metadata?.Description;
+        try
+        {
+            var metadata = await _metadataService.GetGameMetadataAsync(game.Title, ct).ConfigureAwait(false);
+            return Result.Success<string?>(metadata?.Description);
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure<string?>(
+                $"Failed to retrieve description for '{game.Title}': {ex.Message}",
+                ErrorType.External);
+        }
     }
 
     public async Task<Result<Platform>> DetectPlatformAsync(string gamePath, CancellationToken ct = default)

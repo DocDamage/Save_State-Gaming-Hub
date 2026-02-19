@@ -27,7 +27,7 @@ namespace SaveState.Infrastructure.InputRecording.Services;
 /// <summary>
 /// Service for managing input recording and TAS functionality.
 /// </summary>
-public class InputRecordingService : IInputRecordingService
+internal class InputRecordingServiceOperations : IInputRecordingService
 {
     private readonly SaveStateDbContext _dbContext;
     private readonly ILogger<InputRecordingService> _logger;
@@ -36,7 +36,7 @@ public class InputRecordingService : IInputRecordingService
     private readonly Dictionary<Guid, PlaybackSession> _activePlaybacks = new();
     private readonly Dictionary<Guid, List<InputFrame>> _frameBuffers = new();
 
-    public InputRecordingService(
+    public InputRecordingServiceOperations(
         SaveStateDbContext dbContext,
         ILogger<InputRecordingService> logger)
     {
@@ -807,22 +807,22 @@ public class InputRecordingService : IInputRecordingService
         }
     }
 
-    public Task<List<RecordingExportFormat>> GetSupportedImportFormatsAsync()
+    public Task<Result<List<RecordingExportFormat>>> GetSupportedImportFormatsAsync()
     {
-        return Task.FromResult(new List<RecordingExportFormat>
+        return Task.FromResult(Result.Success(new List<RecordingExportFormat>
         {
             RecordingExportFormat.Native,
             RecordingExportFormat.FM2
-        });
+        }));
     }
 
-    public Task<List<RecordingExportFormat>> GetSupportedExportFormatsAsync()
+    public Task<Result<List<RecordingExportFormat>>> GetSupportedExportFormatsAsync()
     {
-        return Task.FromResult(new List<RecordingExportFormat>
+        return Task.FromResult(Result.Success(new List<RecordingExportFormat>
         {
             RecordingExportFormat.Native,
             RecordingExportFormat.FM2
-        });
+        }));
     }
 
     // Private helper methods

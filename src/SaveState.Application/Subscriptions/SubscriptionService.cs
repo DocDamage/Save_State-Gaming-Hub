@@ -38,8 +38,18 @@ public sealed class SubscriptionManagerService : ISubscriptionService
             
             foreach (var provider in _providers)
             {
-                var info = await provider.GetServiceInfoAsync(ct);
-                services.Add(info);
+                var infoResult = await provider.GetServiceInfoAsync(ct);
+                if (infoResult.IsSuccess && infoResult.Value is not null)
+                {
+                    services.Add(infoResult.Value);
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "Failed to get service info for provider {ProviderType}: {Error}",
+                        provider.ServiceType,
+                        infoResult.Error);
+                }
             }
             
             return Result.Success<IReadOnlyList<SubscriptionServiceInfo>>(services);

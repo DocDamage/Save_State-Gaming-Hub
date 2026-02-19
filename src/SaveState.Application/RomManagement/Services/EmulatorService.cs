@@ -107,37 +107,51 @@ public class EmulatorService : IEmulatorService
         }
     }
 
-    public async Task<IReadOnlyList<EmulatorInfo>> GetAvailableEmulatorsAsync(Guid platformId, CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<EmulatorInfo>>> GetAvailableEmulatorsAsync(Guid platformId, CancellationToken ct = default)
     {
-        var targetPlatform = await _platformRepository.GetByIdAsync(platformId, ct).ConfigureAwait(false);
-        if (targetPlatform == null)
+        try
         {
-            _logger.LogWarning("Platform not found: {PlatformId}", platformId);
-            return Array.Empty<EmulatorInfo>();
+            var targetPlatform = await _platformRepository.GetByIdAsync(platformId, ct).ConfigureAwait(false);
+            if (targetPlatform == null)
+            {
+                _logger.LogWarning("Platform not found: {PlatformId}", platformId);
+                return Result.Failure<IReadOnlyList<EmulatorInfo>>(
+                    $"Platform not found: {platformId}",
+                    ErrorType.NotFound);
+            }
+
+            var allEmulators = await _emulatorRepository.GetAllAsync(ct).ConfigureAwait(false);
+
+            // Get emulators for the exact platform first
+            var exactPlatformEmulators = allEmulators
+                .Where(e => e.PlatformId == platformId && File.Exists(e.ExecutablePath.Value));
+
+            // Get emulators for platforms of the same type (compatible emulators)
+            var compatibleEmulators = allEmulators
+                .Where(e => e.PlatformId != platformId &&
+                           e.Platform?.Type == targetPlatform.Type &&
+                           File.Exists(e.ExecutablePath.Value));
+
+            var emulators = exactPlatformEmulators
+                .Concat(compatibleEmulators)
+                .Select(e => new EmulatorInfo(
+                    e.Id,
+                    e.Name,
+                    e.ExecutablePath.Value,
+                    e.Version,
+                    e.Description,
+                    true)) // Since we checked File.Exists above
+                .ToList();
+
+            return Result.Success<IReadOnlyList<EmulatorInfo>>(emulators);
         }
-
-        var allEmulators = await _emulatorRepository.GetAllAsync(ct).ConfigureAwait(false);
-
-        // Get emulators for the exact platform first
-        var exactPlatformEmulators = allEmulators
-            .Where(e => e.PlatformId == platformId && File.Exists(e.ExecutablePath.Value));
-
-        // Get emulators for platforms of the same type (compatible emulators)
-        var compatibleEmulators = allEmulators
-            .Where(e => e.PlatformId != platformId &&
-                       e.Platform?.Type == targetPlatform.Type &&
-                       File.Exists(e.ExecutablePath.Value));
-
-        return exactPlatformEmulators
-            .Concat(compatibleEmulators)
-            .Select(e => new EmulatorInfo(
-                e.Id,
-                e.Name,
-                e.ExecutablePath.Value,
-                e.Version,
-                e.Description,
-                true)) // Since we checked File.Exists above
-            .ToList();
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to retrieve available emulators for platform {PlatformId}", platformId);
+            return Result.Failure<IReadOnlyList<EmulatorInfo>>(
+                $"Failed to retrieve available emulators for platform {platformId}: {ex.Message}",
+                ErrorType.Internal);
+        }
     }
 
     public async Task<Result<EmulatorInfo>> GetDefaultEmulatorAsync(Guid platformId, CancellationToken ct = default)
@@ -237,4 +251,3 @@ public class EmulatorService : IEmulatorService
         return args;
     }
 }
-

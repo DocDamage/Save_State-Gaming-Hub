@@ -2,6 +2,7 @@
 
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common;
 using SaveState.Core.SmartLauncher;
 
 namespace SaveState.Infrastructure.SmartLauncher;
@@ -221,7 +222,7 @@ public sealed class LaunchProfileImportExportService : ILaunchProfileImportExpor
     }
 
     /// <inheritdoc />
-    public ValidationResult ValidateProfileJson(string json)
+    public Result<ValidationResult> ValidateProfileJson(string json)
     {
         var result = new ValidationResult();
 
@@ -232,13 +233,13 @@ public sealed class LaunchProfileImportExportService : ILaunchProfileImportExpor
             if (dto == null)
             {
                 result.Errors.Add("Invalid JSON structure");
-                return result;
+                return Result.Success(result);
             }
 
             if (dto.Profiles == null || !dto.Profiles.Any())
             {
                 result.Errors.Add("No profiles found in import data");
-                return result;
+                return Result.Success(result);
             }
 
             result.ProfileCount = dto.Profiles.Count;
@@ -259,12 +260,17 @@ public sealed class LaunchProfileImportExportService : ILaunchProfileImportExpor
             }
 
             result.IsValid = !result.Errors.Any();
-            return result;
+            return Result.Success(result);
         }
         catch (JsonException ex)
         {
             result.Errors.Add($"Invalid JSON: {ex.Message}");
-            return result;
+            return Result.Success(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error validating profile JSON");
+            return Result.Failure<ValidationResult>($"Failed to validate profile JSON: {ex.Message}", ErrorType.Internal);
         }
     }
 

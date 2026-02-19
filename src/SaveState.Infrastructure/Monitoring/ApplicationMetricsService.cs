@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common;
 using SaveState.Core.Monitoring;
 using SaveState.Core.Performance.Services;
 
@@ -318,9 +319,20 @@ public class ApplicationMetricsService : IApplicationMetrics, IDisposable
     }
 
     // Metrics Snapshot Implementation
-    public async Task<MetricsSnapshot> GetMetricsSnapshotAsync(CancellationToken ct = default)
+    public async Task<Result<MetricsSnapshot>> GetMetricsSnapshotAsync(CancellationToken ct = default)
     {
-        return await Task.Run(() => _storage.GetSnapshot(), ct);
+        try
+        {
+            var snapshot = await Task.Run(() => _storage.GetSnapshot(), ct);
+            return Result.Success(snapshot);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get metrics snapshot");
+            return Result.Failure<MetricsSnapshot>(
+                $"Failed to get metrics snapshot: {ex.Message}",
+                ErrorType.Internal);
+        }
     }
 
     // Helper methods for observable gauges

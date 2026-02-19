@@ -147,8 +147,9 @@ public class EmulatorServiceTests
         var result = await _sut.GetAvailableEmulatorsAsync(platformId, default);
 
         // Assert
-        result.Should().HaveCount(2);
-        result.All(e => e.IsAvailable).Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().HaveCount(2);
+        result.Value.Should().OnlyContain(e => e.IsAvailable);
     }
 
     [Fact]

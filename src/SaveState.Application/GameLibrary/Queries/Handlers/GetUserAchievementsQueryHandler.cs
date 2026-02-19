@@ -29,7 +29,13 @@ public class GetUserAchievementsQueryHandler : IRequestHandler<GetUserAchievemen
     /// <returns>A collection of user achievement DTOs.</returns>
     public async Task<IReadOnlyList<UserAchievementDto>> Handle(GetUserAchievementsQuery request, CancellationToken cancellationToken)
     {
-        var userAchievements = await _achievementService.GetUserProgressAsync(request.UserId, cancellationToken);
+        var userAchievementsResult = await _achievementService.GetUserProgressAsync(request.UserId, cancellationToken);
+        if (userAchievementsResult.IsFailure || userAchievementsResult.Value is null)
+        {
+            return Array.Empty<UserAchievementDto>();
+        }
+
+        var userAchievements = userAchievementsResult.Value;
 
         var result = userAchievements
             .Where(ua => request.IncludeLocked || ua.IsUnlocked)

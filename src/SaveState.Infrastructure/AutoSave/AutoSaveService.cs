@@ -107,18 +107,23 @@ public class AutoSaveService : IAutoSaveService
         Guid gameId,
         CancellationToken ct = default)
     {
-        return await ConfigureAutoSaveAsync(
-            new ConfigureAutoSaveRequest { GameId = gameId, IsEnabled = true }, ct)
-            .ContinueWith(t => t.Result.IsSuccess ? Result.Success() : Result.Failure(t.Result.Error!, t.Result.ErrorType));
+        var configureResult = await ConfigureAutoSaveAsync(
+            new ConfigureAutoSaveRequest { GameId = gameId, IsEnabled = true },
+            ct).ConfigureAwait(false);
+        return configureResult.IsSuccess
+            ? Result.Success()
+            : Result.Failure(configureResult.Error ?? "Failed to enable auto-save", configureResult.ErrorType);
     }
-
     public async Task<Result> DisableAutoSaveAsync(
         Guid gameId,
         CancellationToken ct = default)
     {
-        return await ConfigureAutoSaveAsync(
-            new ConfigureAutoSaveRequest { GameId = gameId, IsEnabled = false }, ct)
-            .ContinueWith(t => t.Result.IsSuccess ? Result.Success() : Result.Failure(t.Result.Error!, t.Result.ErrorType));
+        var configureResult = await ConfigureAutoSaveAsync(
+            new ConfigureAutoSaveRequest { GameId = gameId, IsEnabled = false },
+            ct).ConfigureAwait(false);
+        return configureResult.IsSuccess
+            ? Result.Success()
+            : Result.Failure(configureResult.Error ?? "Failed to disable auto-save", configureResult.ErrorType);
     }
 
     public async Task<Result<AutoSaveEntry>> TriggerAutoSaveAsync(

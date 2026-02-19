@@ -101,7 +101,7 @@ public interface ISubscriptionProvider
     /// <summary>
     /// Gets detailed service information.
     /// </summary>
-    Task<SubscriptionServiceInfo> GetServiceInfoAsync(CancellationToken ct = default);
+    Task<Result<SubscriptionServiceInfo>> GetServiceInfoAsync(CancellationToken ct = default);
 }
 
 /// <summary>

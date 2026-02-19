@@ -247,13 +247,15 @@ public class CompositeEyeTrackingProviderTests : IDisposable
 
         // Act
         var result = await sut.GetAllSnapshotsAsync();
+        var snapshots = result.Value;
 
         // Assert
-        result.Should().HaveCount(2);
-        result[0].ProviderName.Should().Be(mock1.Object.GetType().Name);
-        result[0].Snapshot.Should().NotBeNull();
-        result[1].ProviderName.Should().Be(mock2.Object.GetType().Name);
-        result[1].Snapshot.Should().BeNull();
+        result.IsSuccess.Should().BeTrue();
+        snapshots.Should().HaveCount(2);
+        snapshots![0].ProviderName.Should().Be(mock1.Object.GetType().Name);
+        snapshots[0].Snapshot.Should().NotBeNull();
+        snapshots[1].ProviderName.Should().Be(mock2.Object.GetType().Name);
+        snapshots[1].Snapshot.Should().BeNull();
     }
 
     [Fact]

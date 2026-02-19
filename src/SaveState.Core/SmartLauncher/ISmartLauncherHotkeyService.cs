@@ -2,6 +2,8 @@
 
 namespace SaveState.Core.SmartLauncher;
 
+using SaveState.Core.Common;
+
 /// <summary>
 /// Service for managing Smart Launcher keyboard shortcuts and hotkeys.
 /// </summary>
@@ -30,12 +32,12 @@ public interface ISmartLauncherHotkeyService
     /// <summary>
     /// Gets the hotkey assigned to a game.
     /// </summary>
-    Task<string?> GetGameHotkeyAsync(Guid gameId, CancellationToken ct = default);
+    Task<Result<string?>> GetGameHotkeyAsync(Guid gameId, CancellationToken ct = default);
 
     /// <summary>
     /// Gets all registered game hotkeys.
     /// </summary>
-    Task<IReadOnlyList<GameHotkeyMapping>> GetAllGameHotkeysAsync(CancellationToken ct = default);
+    Task<Result<IReadOnlyList<GameHotkeyMapping>>> GetAllGameHotkeysAsync(CancellationToken ct = default);
 
     /// <summary>
     /// Event raised when a game hotkey is pressed.

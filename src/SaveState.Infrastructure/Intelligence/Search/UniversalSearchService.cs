@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Intelligence.Search.Services;
 
 namespace SaveState.Infrastructure.Intelligence.Search;
@@ -11,14 +12,18 @@ namespace SaveState.Infrastructure.Intelligence.Search;
 public sealed class UniversalSearchService : IUniversalSearchService
 {
     private readonly ILogger<UniversalSearchService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<Guid, GameSearchIndex> _gameIndex = new();
     private readonly Dictionary<Guid, ContentIndex> _contentIndex = new();
     private readonly Dictionary<string, SearchableAction> _actionIndex = new();
     private readonly Dictionary<string, int> _searchTrends = new();
 
-    public UniversalSearchService(ILogger<UniversalSearchService> logger)
+    public UniversalSearchService(
+        ILogger<UniversalSearchService> logger,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <inheritdoc />
@@ -201,7 +206,7 @@ public sealed class UniversalSearchService : IUniversalSearchService
             .Select(kv => new TrendingSearch(
                 Query: kv.Key,
                 SearchCount: kv.Value,
-                LastSearched: DateTime.UtcNow,
+                LastSearched: _timeProvider.UtcNow,
                 PrimaryCategory: SearchCategory.Games))
             .ToList();
 

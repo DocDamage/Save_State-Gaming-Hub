@@ -2,6 +2,7 @@ namespace SaveState.Application.GameLibrary.Queries.Handlers;
 
 using MediatR;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Models.AiCoach;
 using SaveState.Core.GameLibrary.Services;
 
@@ -12,10 +13,12 @@ using SaveState.Core.GameLibrary.Services;
 public class GetCoachingFeedbackQueryHandler : IRequestHandler<GetCoachingFeedbackQuery, Result<CoachingFeedback>>
 {
     private readonly IAiCoachService _aiCoachService;
+    private readonly ITimeProvider _timeProvider;
 
-    public GetCoachingFeedbackQueryHandler(IAiCoachService aiCoachService)
+    public GetCoachingFeedbackQueryHandler(IAiCoachService aiCoachService, ITimeProvider timeProvider)
     {
         _aiCoachService = aiCoachService;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -27,7 +30,7 @@ public class GetCoachingFeedbackQueryHandler : IRequestHandler<GetCoachingFeedba
     public async Task<Result<CoachingFeedback>> Handle(GetCoachingFeedbackQuery request, CancellationToken ct)
     {
         var gameState = new GameStateSnapshot(
-            Timestamp: DateTime.UtcNow,
+            Timestamp: _timeProvider.UtcNow,
             GameMode: request.GameMode,
             PlayerScore: request.PlayerScore,
             OpponentScore: request.OpponentScore,

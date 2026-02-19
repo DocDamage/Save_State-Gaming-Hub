@@ -159,11 +159,22 @@ public sealed class UserPreferenceLearningService : IUserPreferenceLearningServi
     /// <summary>
     /// Gets the learned weight for a specific preference dimension.
     /// </summary>
-    public float GetPreferenceWeight(string dimension)
+    public Result<float> GetPreferenceWeight(string dimension)
     {
-        return _preferenceWeights.TryGetValue(dimension, out var weight)
-            ? weight.CurrentValue
-            : 0.5f;
+        try
+        {
+            var value = _preferenceWeights.TryGetValue(dimension, out var weight)
+                ? weight.CurrentValue
+                : 0.5f;
+            return Result.Success(value);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get preference weight for dimension {Dimension}", dimension);
+            return Result.Failure<float>(
+                $"Failed to get preference weight for {dimension}: {ex.Message}",
+                ErrorType.Internal);
+        }
     }
 
     /// <summary>
@@ -184,17 +195,27 @@ public sealed class UserPreferenceLearningService : IUserPreferenceLearningServi
     /// <summary>
     /// Gets statistics about the learning data.
     /// </summary>
-    public LearningStatistics GetLearningStatistics()
+    public Result<LearningStatistics> GetLearningStatistics()
     {
-        var feedbackList = _feedbackHistory.ToList();
-        
-        return new LearningStatistics(
-            TotalFeedbackEntries: feedbackList.Count,
-            TotalActionsRecorded: _actionHistory.Count,
-            HelpfulSuggestions: feedbackList.Count(f => f.WasHelpful),
-            IgnoredSuggestions: feedbackList.Count(f => !f.WasHelpful),
-            LastUpdatedAtUtc: _currentPreferences.LastUpdatedAtUtc,
-            PreferenceDimensions: _preferenceWeights.Keys.ToList().AsReadOnly());
+        try
+        {
+            var feedbackList = _feedbackHistory.ToList();
+            var statistics = new LearningStatistics(
+                TotalFeedbackEntries: feedbackList.Count,
+                TotalActionsRecorded: _actionHistory.Count,
+                HelpfulSuggestions: feedbackList.Count(f => f.WasHelpful),
+                IgnoredSuggestions: feedbackList.Count(f => !f.WasHelpful),
+                LastUpdatedAtUtc: _currentPreferences.LastUpdatedAtUtc,
+                PreferenceDimensions: _preferenceWeights.Keys.ToList().AsReadOnly());
+            return Result.Success(statistics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get learning statistics");
+            return Result.Failure<LearningStatistics>(
+                $"Failed to get learning statistics: {ex.Message}",
+                ErrorType.Internal);
+        }
     }
 
     #region Private Methods

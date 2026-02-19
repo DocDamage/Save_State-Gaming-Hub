@@ -153,9 +153,19 @@ public class StreamingService
     /// <summary>
     /// Gets active streams.
     /// </summary>
-    public List<LiveStream> GetActiveStreams()
+    public Result<IReadOnlyList<LiveStream>> GetActiveStreams()
     {
-        return _liveStreams.Values.Where(s => s.IsLive).ToList();
+        try
+        {
+            return Result.Success<IReadOnlyList<LiveStream>>(_liveStreams.Values.Where(s => s.IsLive).ToList());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get active streams");
+            return Result.Failure<IReadOnlyList<LiveStream>>(
+                $"Failed to get active streams: {ex.Message}",
+                ErrorType.Internal);
+        }
     }
 }
 

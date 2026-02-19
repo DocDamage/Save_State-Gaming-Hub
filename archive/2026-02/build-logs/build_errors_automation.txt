@@ -1,0 +1,7 @@
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Presentation\Services\DialogService.cs(635,29): error CS1513: } expected [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Presentation\SaveState.Presentation.csproj]
+
+Build FAILED.
+    1 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:04.49

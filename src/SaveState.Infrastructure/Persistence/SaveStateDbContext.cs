@@ -8,6 +8,7 @@ using SaveState.Core.Common.Events;
 using SaveState.Core.Common.Interfaces;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.RomManagement.Entities;
+using SaveState.Core.RomManagement.RomValidation;
 using SaveState.Core.AiGaming.Entities;
 using SaveState.Core.Ai.Knowledge;
 using SaveState.Core.Analytics.Entities;
@@ -41,6 +42,7 @@ using SaveState.Core.Mugen.DeathBattle;
 using SaveState.Core.Mugen.ReplayAnalysis;
 using SaveState.Core.Mugen.ComboDatabase;
 using SaveState.Core.Mugen.TournamentEvents;
+using SaveState.Core.Mugen.AiBattleAnalysis;
 using SaveState.Core.AutoSave;
 using SaveState.Infrastructure.Mugen.Services;
 
@@ -62,6 +64,8 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
     public DbSet<Developer> Developers { get; set; }
     public DbSet<Publisher> Publishers { get; set; }
     public DbSet<RomFile> RomFiles { get; set; }
+    public DbSet<RomHashInfo> RomHashInfos { get; set; }
+    public DbSet<RomValidationReport> RomValidationReports { get; set; }
     public DbSet<Emulator> Emulators { get; set; }
     public DbSet<AiModel> AiModels { get; set; }
     public DbSet<MemorySnapshot> MemorySnapshots { get; set; }
@@ -211,6 +215,7 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
         ConfigureGlobalFilters(modelBuilder);
         ConfigureConversions(modelBuilder);
         ConfigureIndexes(modelBuilder);
+        IgnoreUnkeyedNonOwnedTypes(modelBuilder);
     }
 
 
@@ -243,6 +248,91 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
                     (c1, c2) => c1 != null && c2 != null && c1.SequenceEqual(c2),
                     c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                     c => (ICollection<string>)c.ToList()));
+
+        // AiBattleAnalysis complex properties are stored as JSON payloads.
+        modelBuilder.Entity<AiBattleAnalysisModel>()
+            .Property(a => a.Stats)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<CombatStats>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new CombatStats());
+
+        modelBuilder.Entity<AiBattleAnalysisModel>()
+            .Property(a => a.Patterns)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<List<DetectedPattern>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<DetectedPattern>());
+
+        modelBuilder.Entity<AiBattleAnalysisModel>()
+            .Property(a => a.Weaknesses)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<List<PlayerWeakness>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<PlayerWeakness>());
+
+        modelBuilder.Entity<AiBattleAnalysisModel>()
+            .Property(a => a.Opportunities)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<List<ImprovementOpportunity>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<ImprovementOpportunity>());
+
+        modelBuilder.Entity<AiBattleAnalysisModel>()
+            .Property(a => a.Recommendations)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<List<CounterStrategy>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<CounterStrategy>());
+
+        modelBuilder.Entity<AiBattleAnalysisModel>()
+            .Property(a => a.Insights)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<AiInsights>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new AiInsights());
+
+        // Ignore computed GameDeal properties that are not persisted.
+        modelBuilder.Entity<Core.GameDeals.GameDeal>().Ignore(d => d.IsActive);
+        modelBuilder.Entity<Core.GameDeals.GameDeal>().Ignore(d => d.DiscountPercent);
+        modelBuilder.Entity<Core.GameDeals.GameDeal>().Ignore(d => d.FormattedPrice);
+        modelBuilder.Entity<Core.GameDeals.GameDeal>().Ignore(d => d.FormattedRegularPrice);
+        modelBuilder.Entity<Core.GameDeals.GameDeal>().Ignore(d => d.FormattedDiscount);
+        modelBuilder.Entity<Core.GameDeals.GameDeal>().Ignore(d => d.Savings);
+
+        // SmartLauncher complex settings payloads are stored as JSON.
+        modelBuilder.Entity<LaunchProfile>()
+            .Property(p => p.ProcessesToSuspend)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>());
+
+        modelBuilder.Entity<LaunchProfile>()
+            .Property(p => p.ServicesToStop)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>());
+
+        modelBuilder.Entity<LaunchProfile>()
+            .Property(p => p.DisplaySettings)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<DisplaySettings>(v, (System.Text.Json.JsonSerializerOptions?)null));
+
+        modelBuilder.Entity<LaunchProfile>()
+            .Property(p => p.PerformanceSettings)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<PerformanceSettings>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new PerformanceSettings());
+
+        modelBuilder.Entity<LaunchSession>().Ignore(s => s.Duration);
+        modelBuilder.Entity<LaunchSession>().Ignore(s => s.IsActive);
+
+        modelBuilder.Entity<LaunchSession>()
+            .Property(s => s.InitialSystemState)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<SystemState>(v, (System.Text.Json.JsonSerializerOptions?)null));
+
+        modelBuilder.Entity<LaunchSession>()
+            .Property(s => s.PerformanceMetrics)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<SessionPerformanceMetrics>(v, (System.Text.Json.JsonSerializerOptions?)null));
     }
 
     private static void ConfigureIndexes(ModelBuilder modelBuilder)
@@ -402,8 +492,8 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
             .HasDatabaseName("IX_GameDeals_CurrentPrice");
 
         modelBuilder.Entity<Core.GameDeals.GameDeal>()
-            .HasIndex(d => new { d.IsActive, d.LastUpdated })
-            .HasDatabaseName("IX_GameDeals_IsActive_LastUpdated");
+            .HasIndex(d => new { d.DealEnd, d.LastUpdated })
+            .HasDatabaseName("IX_GameDeals_DealEnd_LastUpdated");
 
         modelBuilder.Entity<Core.GameDeals.PriceHistoryEntry>()
             .HasIndex(h => new { h.GameTitle, h.StoreId })
@@ -437,6 +527,23 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
         modelBuilder.Entity<LaunchSession>()
             .HasIndex(s => s.StartedAt)
             .HasDatabaseName("IX_LaunchSessions_StartedAt");
+    }
+
+    private static void IgnoreUnkeyedNonOwnedTypes(ModelBuilder modelBuilder)
+    {
+        var transientTypes = modelBuilder.Model.GetEntityTypes()
+            .Where(entityType =>
+                entityType.FindPrimaryKey() is null &&
+                !entityType.IsOwned() &&
+                !entityType.IsKeyless)
+            .Select(entityType => entityType.ClrType)
+            .Distinct()
+            .ToList();
+
+        foreach (var clrType in transientTypes)
+        {
+            modelBuilder.Ignore(clrType);
+        }
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

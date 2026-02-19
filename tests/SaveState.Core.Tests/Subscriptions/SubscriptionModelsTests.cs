@@ -205,8 +205,8 @@ public class SubscriptionModelsTests
             LeavingDate = fixedNow.AddDays(5)
         };
 
-        // Act - calculate manually to avoid timing issues
-        var daysRemaining = (alert.LeavingDate - DateTime.UtcNow).Days;
+        // Act - calculate manually using the fixed baseline to keep test deterministic.
+        var daysRemaining = (alert.LeavingDate - fixedNow).Days;
 
         // Assert - use range to account for test execution time
         daysRemaining.Should().BeInRange(4, 5);

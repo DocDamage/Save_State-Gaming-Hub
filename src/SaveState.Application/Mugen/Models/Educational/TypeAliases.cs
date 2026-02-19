@@ -6,6 +6,7 @@ namespace SaveState.Application.Mugen.Services.Educational;
 using SaveState.Application.Mugen.Models.Educational;
 using SaveState.Application.Mugen.Services.Educational.Engines;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 // Model type aliases
 public class EducationalContentServiceTutorial : Tutorial { }
@@ -40,18 +41,20 @@ public class EducationalContentServiceContentEngine : ContentEngine
 {
     public EducationalContentServiceContentEngine(
         Microsoft.Extensions.Logging.ILogger<ContentEngine> logger,
+        ITimeProvider timeProvider,
         Dictionary<string, Tutorial> tutorials,
         Dictionary<string, StrategyGuide> strategyGuides,
         Dictionary<string, MechanicsGuide> mechanicsGuides)
-        : base(logger, tutorials, strategyGuides, mechanicsGuides) { }
+        : base(logger, timeProvider, tutorials, strategyGuides, mechanicsGuides) { }
 }
 
 public class EducationalContentServiceLearningPathEngine : LearningPathEngine
 {
     public EducationalContentServiceLearningPathEngine(
         Microsoft.Extensions.Logging.ILogger<LearningPathEngine> logger,
+        ITimeProvider timeProvider,
         Dictionary<string, LearningPath> learningPaths)
-        : base(logger, learningPaths) { }
+        : base(logger, timeProvider, learningPaths) { }
 }
 
 public class EducationalContentServiceProgressEngine : ProgressEngine
@@ -64,8 +67,9 @@ public class EducationalContentServiceProgressEngine : ProgressEngine
 public class EducationalContentServiceAssessmentEngine : AssessmentEngine
 {
     public EducationalContentServiceAssessmentEngine(
-        Microsoft.Extensions.Logging.ILogger<AssessmentEngine> logger)
-        : base(logger) { }
+        Microsoft.Extensions.Logging.ILogger<AssessmentEngine> logger,
+        ITimeProvider timeProvider)
+        : base(logger, timeProvider) { }
 }
 
 public class EducationalContentServiceRecommendationEngine : RecommendationEngine

@@ -116,7 +116,8 @@ public class MetadataEnrichmentServiceTests
         var result = await _service.GetCoverImageUrlAsync(_testGame);
 
         // Assert
-        result.Should().Be(expectedUrl);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be(expectedUrl);
     }
 
     [Fact]
@@ -131,7 +132,8 @@ public class MetadataEnrichmentServiceTests
         var result = await _service.GetCoverImageUrlAsync(_testGame);
 
         // Assert
-        result.Should().BeNull();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeNull();
     }
 
     [Fact]
@@ -149,7 +151,8 @@ public class MetadataEnrichmentServiceTests
         var result = await _service.GetTagsAsync(_testGame);
 
         // Assert
-        result.Should().BeEquivalentTo(expectedGenres);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEquivalentTo(expectedGenres);
     }
 
     [Fact]
@@ -164,7 +167,8 @@ public class MetadataEnrichmentServiceTests
         var result = await _service.GetTagsAsync(_testGame);
 
         // Assert
-        result.Should().BeEmpty();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEmpty();
     }
 
     [Fact]
@@ -182,7 +186,8 @@ public class MetadataEnrichmentServiceTests
         var result = await _service.GetDescriptionAsync(_testGame);
 
         // Assert
-        result.Should().Be(expectedDescription);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be(expectedDescription);
     }
 
     [Fact]
@@ -197,7 +202,8 @@ public class MetadataEnrichmentServiceTests
         var result = await _service.GetDescriptionAsync(_testGame);
 
         // Assert
-        result.Should().BeNull();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeNull();
     }
 
     [Fact]

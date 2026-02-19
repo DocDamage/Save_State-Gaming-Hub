@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Services;
+using SaveState.Core.Common;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
@@ -155,13 +156,13 @@ public class AccessibilityService : IAccessibilityService
     }
 
     /// <inheritdoc />
-    public AccessibilityValidationResult ValidateTextAccessibility(string text, TextAccessibilityContext context)
+    public Result<AccessibilityValidationResult> ValidateTextAccessibility(string text, TextAccessibilityContext context)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
-            return AccessibilityValidationResult.Failure(
+            return Result.Success(AccessibilityValidationResult.Failure(
                 new List<string> { "Text is empty or null" },
-                new List<string> { "Provide meaningful text content" });
+                new List<string> { "Provide meaningful text content" }));
         }
 
         var issues = new List<string>();
@@ -228,9 +229,11 @@ public class AccessibilityService : IAccessibilityService
             suggestions.Add("Reduce special characters for better screen reader compatibility");
         }
 
-        return issues.Any()
+        var validationResult = issues.Any()
             ? AccessibilityValidationResult.Failure(issues, suggestions)
             : AccessibilityValidationResult.Success();
+
+        return Result.Success(validationResult);
     }
 
     private const uint SPI_GETHIGHCONTRAST = 0x0042;

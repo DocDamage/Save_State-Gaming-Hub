@@ -260,7 +260,7 @@ public class CrossPlatformSyncServiceConflictResolver : ConflictResolutionEngine
 [Obsolete("Use MigrationEngine from SaveState.Application.Mugen.Services.LiveSync.Engines instead")]
 public class CrossPlatformSyncServiceDataMigrationManager : MigrationEngine
 {
-    public CrossPlatformSyncServiceDataMigrationManager(ILogger<MigrationEngine> logger) : base(logger)
+    public CrossPlatformSyncServiceDataMigrationManager(ILogger<MigrationEngine> logger, ITimeProvider timeProvider) : base(logger, timeProvider)
     {
     }
 }

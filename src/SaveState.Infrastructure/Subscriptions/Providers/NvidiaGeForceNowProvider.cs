@@ -35,9 +35,9 @@ public sealed class NvidiaGeForceNowProvider : ISubscriptionProvider
     }
 
     /// <inheritdoc />
-    public async Task<SubscriptionServiceInfo> GetServiceInfoAsync(CancellationToken ct = default)
+    public Task<Result<SubscriptionServiceInfo>> GetServiceInfoAsync(CancellationToken ct = default)
     {
-        return new SubscriptionServiceInfo
+        var serviceInfo = new SubscriptionServiceInfo
         {
             Id = "geforce-now",
             Type = SubscriptionServiceType.GeForceNow,
@@ -57,6 +57,7 @@ public sealed class NvidiaGeForceNowProvider : ISubscriptionProvider
                 new() { Name = "Long Sessions", Description = "Up to 8 hour sessions", IsIncluded = false }
             }
         };
+        return Task.FromResult(Result.Success(serviceInfo));
     }
 
     /// <inheritdoc />

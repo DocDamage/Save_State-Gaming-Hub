@@ -1,6 +1,7 @@
 // Copyright (c) 2026 SaveStateReborn. All rights reserved.
 
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.SmartLauncher;
 
@@ -95,7 +96,10 @@ public sealed class GameLauncherIntegrationService
     /// <summary>
     /// Gets all available launcher adapters.
     /// </summary>
-    public IReadOnlyDictionary<string, ILauncherAdapter> GetAdapters() => _adapters;
+    public Result<IReadOnlyDictionary<string, ILauncherAdapter>> GetAdapters()
+    {
+        return Result.Success<IReadOnlyDictionary<string, ILauncherAdapter>>(_adapters);
+    }
 }
 
 /// <summary>

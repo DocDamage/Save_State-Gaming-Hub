@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using SaveState.Core.Sync;
 using System.Net.Http.Headers;
@@ -91,9 +92,22 @@ public class GoogleDriveStorageProvider : ICloudStorageProvider
         }
     }
 
-    public async Task<bool> UploadFileAsync(string localPath, string remotePath, CancellationToken ct = default)
+    public async Task<Result<bool>> UploadFileAsync(string localPath, string remotePath, CancellationToken ct = default)
     {
-        if (!IsAuthenticated) return false;
+        if (!IsAuthenticated)
+        {
+            return Result.Failure<bool>("Not authenticated", ErrorType.Unauthorized);
+        }
+
+        if (string.IsNullOrWhiteSpace(localPath) || !File.Exists(localPath))
+        {
+            return Result.Failure<bool>("Local file not found", ErrorType.NotFound);
+        }
+
+        if (string.IsNullOrWhiteSpace(remotePath))
+        {
+            return Result.Failure<bool>("Remote path is required", ErrorType.Validation);
+        }
 
         try
         {
@@ -152,22 +166,35 @@ public class GoogleDriveStorageProvider : ICloudStorageProvider
                 {
                     _pathToIdMap[remotePath] = idProp.GetString() ?? string.Empty;
                 }
-                return true;
+                return Result.Success(true);
             }
 
             _logger.LogWarning("Google Drive upload failed with status {Status}", response.StatusCode);
-            return false;
+            return Result.Failure<bool>($"Google Drive upload failed: {response.StatusCode}", ErrorType.External);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to upload to Google Drive");
-            return false;
+            return Result.Failure<bool>($"Failed to upload to Google Drive: {ex.Message}", ErrorType.External);
         }
     }
 
-    public async Task<bool> DownloadFileAsync(string remotePath, string localPath, CancellationToken ct = default)
+    public async Task<Result<bool>> DownloadFileAsync(string remotePath, string localPath, CancellationToken ct = default)
     {
-        if (!IsAuthenticated) return false;
+        if (!IsAuthenticated)
+        {
+            return Result.Failure<bool>("Not authenticated", ErrorType.Unauthorized);
+        }
+
+        if (string.IsNullOrWhiteSpace(remotePath))
+        {
+            return Result.Failure<bool>("Remote path is required", ErrorType.Validation);
+        }
+
+        if (string.IsNullOrWhiteSpace(localPath))
+        {
+            return Result.Failure<bool>("Local path is required", ErrorType.Validation);
+        }
 
         try
         {
@@ -180,7 +207,7 @@ public class GoogleDriveStorageProvider : ICloudStorageProvider
             if (string.IsNullOrEmpty(fileId))
             {
                 _logger.LogWarning("Could not resolve path '{Path}' to Google Drive file ID", remotePath);
-                return false;
+                return Result.Failure<bool>("Remote file not found", ErrorType.NotFound);
             }
 
             var url = $"https://www.googleapis.com/drive/v3/files/{fileId}?alt=media";
@@ -189,7 +216,10 @@ public class GoogleDriveStorageProvider : ICloudStorageProvider
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("Google Drive download failed with status {Status}", response.StatusCode);
-                return false;
+                var errorType = response.StatusCode == System.Net.HttpStatusCode.NotFound
+                    ? ErrorType.NotFound
+                    : ErrorType.External;
+                return Result.Failure<bool>($"Google Drive download failed: {response.StatusCode}", errorType);
             }
 
             var directory = Path.GetDirectoryName(localPath);
@@ -199,12 +229,12 @@ public class GoogleDriveStorageProvider : ICloudStorageProvider
             await using var fileStream = File.Create(localPath);
             await stream.CopyToAsync(fileStream, ct).ConfigureAwait(false);
 
-            return true;
+            return Result.Success(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to download from Google Drive");
-            return false;
+            return Result.Failure<bool>($"Failed to download from Google Drive: {ex.Message}", ErrorType.External);
         }
     }
 

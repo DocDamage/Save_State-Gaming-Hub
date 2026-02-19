@@ -4,6 +4,7 @@ using SaveState.Core.RomManagement.Entities;
 using SaveState.Core.RomManagement.Enums;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.Monitoring;
+using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using System.Collections.Concurrent;
 
@@ -166,12 +167,12 @@ public class LiveSyncService : ILiveSyncService
         return Task.CompletedTask;
     }
 
-    public Task<IReadOnlyList<string>> GetWatchedFoldersAsync(CancellationToken ct = default)
+    public Task<Result<IReadOnlyList<string>>> GetWatchedFoldersAsync(CancellationToken ct = default)
     {
-        return Task.FromResult<IReadOnlyList<string>>(_watchers.Keys.ToList());
+        return Task.FromResult(Result.Success<IReadOnlyList<string>>(_watchers.Keys.ToList()));
     }
 
-    public Task<SyncStatus> GetSyncStatusAsync(string folderPath, CancellationToken ct = default)
+    public Task<Result<SyncStatus>> GetSyncStatusAsync(string folderPath, CancellationToken ct = default)
     {
         var normalizedPath = Path.GetFullPath(folderPath);
 
@@ -183,16 +184,16 @@ public class LiveSyncService : ILiveSyncService
                 uptime = context.StartTime.Elapsed;
             }
 
-            return Task.FromResult(status with { Uptime = uptime });
+            return Task.FromResult(Result.Success(status with { Uptime = uptime }));
         }
 
-        return Task.FromResult(new SyncStatus(
+        return Task.FromResult(Result.Success(new SyncStatus(
             normalizedPath,
             "Unknown",
             false,
             DateTime.MinValue,
             0,
-            TimeSpan.Zero));
+            TimeSpan.Zero)));
     }
 
     public async Task ForceSyncAsync(string folderPath, CancellationToken ct = default)

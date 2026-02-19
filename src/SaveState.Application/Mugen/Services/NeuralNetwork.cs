@@ -223,7 +223,11 @@ public class NeuralNetworkAdaptiveAiEngine
             var profileKey = $"player_{playerId}";
             if (!_aiProfiles.TryGetValue(profileKey, out var profile))
             {
-                profile = new NeuralNetworkAiProfile { PlayerId = playerId };
+                profile = new NeuralNetworkAiProfile
+                {
+                    PlayerId = playerId,
+                    LastUpdate = _timeProvider.UtcNow
+                };
                 _aiProfiles[profileKey] = profile;
             }
 
@@ -289,7 +293,8 @@ public class NeuralNetworkAdaptiveAiEngine
         {
             Aggressiveness = 0.5,
             DefenseRating = 0.5,
-            AdaptationCount = 0
+            AdaptationCount = 0,
+            LastUpdate = _timeProvider.UtcNow
         };
     }
 
@@ -467,7 +472,7 @@ public class NeuralNetworkAiProfile
     public double DefenseRating { get; set; } = 0.5;
     public int AdaptationCount { get; set; }
     public PlayerPerformance? LastPerformance { get; set; }
-    public DateTime LastUpdate { get; set; } = DateTime.UtcNow;
+    public DateTime LastUpdate { get; set; } = DateTime.UnixEpoch;
 }
 
 public record NeuralMatchPrediction(

@@ -2,6 +2,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Intelligence.Search.Services;
 using SaveState.Infrastructure.Intelligence.Search;
 
@@ -15,7 +16,7 @@ public class UniversalSearchServiceTests
     public UniversalSearchServiceTests()
     {
         _loggerMock = new Mock<ILogger<UniversalSearchService>>();
-        _service = new UniversalSearchService(_loggerMock.Object);
+        _service = new UniversalSearchService(_loggerMock.Object, SystemTimeProvider.Instance);
     }
 
     [Fact]

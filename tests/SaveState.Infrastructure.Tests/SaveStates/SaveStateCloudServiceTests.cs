@@ -206,6 +206,46 @@ public class SaveStateCloudServiceTests : IDisposable
         oneDriveProvider.UploadCalls.Should().Be(0);
     }
 
+    [Fact]
+    public async Task SyncSaveStateAsync_WhenMetadataUploadFails_ReturnsSuccessAfterPayloadUpload()
+    {
+        // Arrange
+        var gameId = Guid.NewGuid();
+        var saveState = CreateSaveState(gameId, "sync-metadata-failure.state", "state payload");
+        SetupCommonMocks(gameId, saveState);
+
+        var provider = new MetadataUploadFailingCloudStorageProvider("Cloud Provider");
+        var sut = CreateSut(provider);
+
+        // Act
+        var result = await sut.SyncSaveStateAsync(gameId, new SaveStateCloudMetadata());
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value!.Uploaded.Should().BeTrue();
+        provider.PayloadUploadCalls.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetVersionHistoryAsync_WhenHistoryJsonIsCorrupted_ReturnsEmptyList()
+    {
+        // Arrange
+        var gameId = Guid.NewGuid();
+        var historyPath = Path.Combine(_historyRoot, $"{gameId:N}.json");
+        await File.WriteAllTextAsync(historyPath, "{not-valid-json");
+
+        var sut = CreateSut();
+
+        // Act
+        var result = await sut.GetVersionHistoryAsync(gameId);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value.Should().BeEmpty();
+    }
+
     public void Dispose()
     {
         TryDeleteDirectory(_localRoot);
@@ -282,7 +322,9 @@ public class SaveStateCloudServiceTests : IDisposable
             encryptedPayloadPath = encryptResult.Value!;
             sourcePayloadPath = encryptedPayloadPath;
             remotePath += ".enc";
-            fingerprint = _encryptionService.GetKeyFingerprint(encryptionKey);
+            var fingerprintResult = _encryptionService.GetKeyFingerprint(encryptionKey);
+            fingerprintResult.IsSuccess.Should().BeTrue();
+            fingerprint = fingerprintResult.Value;
         }
 
         try
@@ -370,14 +412,57 @@ public class SaveStateCloudServiceTests : IDisposable
 
         public Task<bool> AuthenticateAsync(CancellationToken ct = default) => Task.FromResult(true);
 
-        public Task<bool> UploadFileAsync(string localPath, string remotePath, CancellationToken ct = default)
+        public Task<Result<bool>> UploadFileAsync(string localPath, string remotePath, CancellationToken ct = default)
         {
             UploadCalls++;
-            return Task.FromResult(true);
+            return Task.FromResult(Result.Success(true));
         }
 
-        public Task<bool> DownloadFileAsync(string remotePath, string localPath, CancellationToken ct = default)
+        public Task<Result<bool>> DownloadFileAsync(string remotePath, string localPath, CancellationToken ct = default)
+            => Task.FromResult(Result.Failure<bool>("Not found", ErrorType.NotFound));
+
+        public Task<bool> DeleteFileAsync(string remotePath, CancellationToken ct = default)
+            => Task.FromResult(true);
+
+        public Task<IReadOnlyList<CloudFileInfo>> ListFilesAsync(string remotePath, CancellationToken ct = default)
+            => Task.FromResult<IReadOnlyList<CloudFileInfo>>(Array.Empty<CloudFileInfo>());
+
+        public Task<Result<CloudFileInfo>> GetFileInfoAsync(string remotePath, CancellationToken ct = default)
+            => Task.FromResult(Result.Failure<CloudFileInfo>("Not found", ErrorType.NotFound));
+
+        public Task<bool> FileExistsAsync(string remotePath, CancellationToken ct = default)
             => Task.FromResult(false);
+    }
+
+    private sealed class MetadataUploadFailingCloudStorageProvider : ICloudStorageProvider
+    {
+        public MetadataUploadFailingCloudStorageProvider(string providerName)
+        {
+            ProviderName = providerName;
+        }
+
+        public string ProviderName { get; }
+
+        public bool IsAuthenticated => true;
+
+        public int PayloadUploadCalls { get; private set; }
+
+        public Task<bool> AuthenticateAsync(CancellationToken ct = default) => Task.FromResult(true);
+
+        public Task<Result<bool>> UploadFileAsync(string localPath, string remotePath, CancellationToken ct = default)
+        {
+            if (remotePath.EndsWith("latest.json", StringComparison.OrdinalIgnoreCase) ||
+                remotePath.Contains("/versions/", StringComparison.OrdinalIgnoreCase))
+            {
+                return Task.FromResult(Result.Failure<bool>("Metadata upload blocked", ErrorType.External));
+            }
+
+            PayloadUploadCalls++;
+            return Task.FromResult(Result.Success(true));
+        }
+
+        public Task<Result<bool>> DownloadFileAsync(string remotePath, string localPath, CancellationToken ct = default)
+            => Task.FromResult(Result.Failure<bool>("Not found", ErrorType.NotFound));
 
         public Task<bool> DeleteFileAsync(string remotePath, CancellationToken ct = default)
             => Task.FromResult(true);

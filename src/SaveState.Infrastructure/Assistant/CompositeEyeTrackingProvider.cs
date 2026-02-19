@@ -195,7 +195,7 @@ public sealed class CompositeEyeTrackingProvider : IEyeTrackingMonitor, IDisposa
     /// <summary>
     /// Gets snapshots from all available providers for comparison/diagnostics.
     /// </summary>
-    public async Task<IReadOnlyList<ProviderSnapshot>> GetAllSnapshotsAsync(CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<ProviderSnapshot>>> GetAllSnapshotsAsync(CancellationToken ct = default)
     {
         var snapshots = new List<ProviderSnapshot>();
 
@@ -234,7 +234,7 @@ public sealed class CompositeEyeTrackingProvider : IEyeTrackingMonitor, IDisposa
             }
         }
 
-        return snapshots.AsReadOnly();
+        return Result.Success<IReadOnlyList<ProviderSnapshot>>(snapshots.AsReadOnly());
     }
 
     /// <inheritdoc />

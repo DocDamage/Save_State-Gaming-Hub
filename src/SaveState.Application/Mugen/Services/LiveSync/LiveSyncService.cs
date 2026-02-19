@@ -42,7 +42,7 @@ public class LiveSyncService : ILiveSyncService
         _conflictEngine = new Engines.ConflictResolutionEngine(loggerFactory.CreateLogger<Engines.ConflictResolutionEngine>());
         _mergeEngine = new StateMergeEngine(loggerFactory.CreateLogger<StateMergeEngine>());
         _transportEngine = new NetworkTransportEngine(loggerFactory.CreateLogger<NetworkTransportEngine>());
-        _migrationEngine = new MigrationEngine(loggerFactory.CreateLogger<MigrationEngine>());
+        _migrationEngine = new MigrationEngine(loggerFactory.CreateLogger<MigrationEngine>(), _timeProvider);
 
         InitializePlatformDataStores();
     }

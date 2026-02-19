@@ -2,6 +2,7 @@
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SaveState.Core.Common;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.SmartLauncher;
 
@@ -128,32 +129,49 @@ public sealed class SmartLauncherHotkeyService : ISmartLauncherHotkeyService, ID
     }
 
     /// <inheritdoc />
-    public Task<string?> GetGameHotkeyAsync(Guid gameId, CancellationToken ct = default)
+    public Task<Result<string?>> GetGameHotkeyAsync(Guid gameId, CancellationToken ct = default)
     {
         _gameHotkeys.TryGetValue(gameId, out var hotkey);
-        return Task.FromResult(hotkey);
+        if (hotkey is null)
+        {
+            return Task.FromResult(Result.Failure<string?>(
+                $"No hotkey configured for game {gameId}",
+                ErrorType.NotFound));
+        }
+
+        return Task.FromResult(Result.Success<string?>(hotkey));
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<GameHotkeyMapping>> GetAllGameHotkeysAsync(CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<GameHotkeyMapping>>> GetAllGameHotkeysAsync(CancellationToken ct = default)
     {
-        var mappings = new List<GameHotkeyMapping>();
-
-        foreach (var (gameId, hotkey) in _gameHotkeys)
+        try
         {
-            var game = await _gameRepository.GetByIdAsync(
-                Core.Common.ValueObjects.GameId.From(gameId), ct);
-            
-            mappings.Add(new GameHotkeyMapping
-            {
-                GameId = gameId,
-                GameName = game?.Title ?? "Unknown",
-                Hotkey = hotkey,
-                AssignedAt = DateTime.UtcNow // Would be stored in DB
-            });
-        }
+            var mappings = new List<GameHotkeyMapping>();
 
-        return mappings;
+            foreach (var (gameId, hotkey) in _gameHotkeys)
+            {
+                var game = await _gameRepository.GetByIdAsync(
+                    Core.Common.ValueObjects.GameId.From(gameId), ct);
+
+                mappings.Add(new GameHotkeyMapping
+                {
+                    GameId = gameId,
+                    GameName = game?.Title ?? "Unknown",
+                    Hotkey = hotkey,
+                    AssignedAt = DateTime.UtcNow // Would be stored in DB
+                });
+            }
+
+            return Result.Success<IReadOnlyList<GameHotkeyMapping>>(mappings);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to retrieve game hotkey mappings");
+            return Result.Failure<IReadOnlyList<GameHotkeyMapping>>(
+                $"Failed to retrieve game hotkey mappings: {ex.Message}",
+                ErrorType.Internal);
+        }
     }
 
     private async Task RegisterNumberedHotkeysAsync(CancellationToken ct)

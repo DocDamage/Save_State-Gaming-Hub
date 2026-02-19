@@ -181,14 +181,16 @@ public class AchievementService : IAchievementService
     /// <param name="userId">The user ID.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>A collection of unlocked achievements.</returns>
-    public async Task<IReadOnlyList<Achievement>> GetUnlockedAchievementsAsync(Guid userId, CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<Achievement>>> GetUnlockedAchievementsAsync(Guid userId, CancellationToken ct = default)
     {
         var userAchievements = await _achievementRepository.GetUserAchievementsAsync(userId, ct);
 
-        return userAchievements
+        var unlocked = userAchievements
             .Where(ua => ua.IsUnlocked && ua.Achievement != null)
             .Select(ua => ua.Achievement!)
             .ToList();
+
+        return Result.Success<IReadOnlyList<Achievement>>(unlocked);
     }
 
     /// <summary>
@@ -197,9 +199,10 @@ public class AchievementService : IAchievementService
     /// <param name="userId">The user ID.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>A collection of user achievement progress.</returns>
-    public async Task<IReadOnlyList<UserAchievement>> GetUserProgressAsync(Guid userId, CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<UserAchievement>>> GetUserProgressAsync(Guid userId, CancellationToken ct = default)
     {
-        return await _achievementRepository.GetUserAchievementsAsync(userId, ct);
+        var progress = await _achievementRepository.GetUserAchievementsAsync(userId, ct);
+        return Result.Success<IReadOnlyList<UserAchievement>>(progress);
     }
 
     /// <summary>

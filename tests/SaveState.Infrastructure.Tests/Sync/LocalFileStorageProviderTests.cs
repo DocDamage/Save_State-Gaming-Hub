@@ -32,7 +32,8 @@ public class LocalFileStorageProviderTests : IDisposable
         var result = await _sut.UploadFileAsync(localFile, testPath);
 
         // Assert
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeTrue();
         var fullPath = Path.Combine(_tempDirectory, testPath);
         File.Exists(fullPath).Should().BeTrue();
         var fileContent = await File.ReadAllTextAsync(fullPath);
@@ -54,7 +55,8 @@ public class LocalFileStorageProviderTests : IDisposable
         var result = await _sut.DownloadFileAsync(remotePath, localFile);
 
         // Assert
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeTrue();
         File.Exists(localFile).Should().BeTrue();
         var downloadedContent = await File.ReadAllTextAsync(localFile);
         downloadedContent.Should().Be(content);
@@ -68,7 +70,7 @@ public class LocalFileStorageProviderTests : IDisposable
         var result = await _sut.DownloadFileAsync("nonexistent/file.txt", localFile);
 
         // Assert
-        result.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
     }
 
     [Fact]

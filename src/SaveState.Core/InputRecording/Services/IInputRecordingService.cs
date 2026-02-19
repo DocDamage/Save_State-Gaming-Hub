@@ -170,10 +170,10 @@ public interface IInputRecordingService
     /// <summary>
     /// Gets supported import formats.
     /// </summary>
-    Task<List<RecordingExportFormat>> GetSupportedImportFormatsAsync();
+    Task<Result<List<RecordingExportFormat>>> GetSupportedImportFormatsAsync();
     
     /// <summary>
     /// Gets supported export formats.
     /// </summary>
-    Task<List<RecordingExportFormat>> GetSupportedExportFormatsAsync();
+    Task<Result<List<RecordingExportFormat>>> GetSupportedExportFormatsAsync();
 }

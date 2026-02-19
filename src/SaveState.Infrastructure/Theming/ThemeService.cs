@@ -27,12 +27,18 @@ public class ThemeService
     /// <summary>
     /// Gets the current active theme.
     /// </summary>
-    public ThemeDefinition GetCurrentTheme() => _currentTheme;
+    public Result<ThemeDefinition> GetCurrentTheme()
+    {
+        return Result.Success(_currentTheme);
+    }
 
     /// <summary>
     /// Gets all available themes.
     /// </summary>
-    public List<ThemeDefinition> GetAvailableThemes() => _themes.Values.ToList();
+    public Result<IReadOnlyList<ThemeDefinition>> GetAvailableThemes()
+    {
+        return Result.Success<IReadOnlyList<ThemeDefinition>>(_themes.Values.ToList());
+    }
 
     /// <summary>
     /// Switches to a specific theme.

@@ -22,7 +22,14 @@ public class GogProvider : IGameProvider
     {
         try
         {
-            var gogGames = await _apiClient.GetOwnedGamesAsync(ct).ConfigureAwait(false);
+            var gogGamesResult = await _apiClient.GetOwnedGamesAsync(ct).ConfigureAwait(false);
+            if (gogGamesResult.IsFailure || gogGamesResult.Value is null)
+            {
+                _logger.LogWarning("Failed to get GOG owned games: {Error}", gogGamesResult.Error);
+                return Array.Empty<GameInfo>();
+            }
+
+            var gogGames = gogGamesResult.Value;
             return gogGames.Select(g => new GameInfo
             {
                 Source = "GOG",
@@ -41,8 +48,17 @@ public class GogProvider : IGameProvider
         }
     }
 
-    public Task<GameMetadata> GetGameMetadataAsync(string gameId, CancellationToken ct = default)
-        => _apiClient.GetGameDetailsAsync(gameId, ct);
+    public async Task<GameMetadata> GetGameMetadataAsync(string gameId, CancellationToken ct = default)
+    {
+        var metadataResult = await _apiClient.GetGameDetailsAsync(gameId, ct).ConfigureAwait(false);
+        if (metadataResult.IsFailure || metadataResult.Value is null)
+        {
+            _logger.LogWarning("Failed to get GOG metadata for {GameId}: {Error}", gameId, metadataResult.Error);
+            return GameMetadata.Empty;
+        }
+
+        return metadataResult.Value;
+    }
 
     public Task<bool> LaunchGameAsync(string gameId, CancellationToken ct = default)
         => _apiClient.LaunchGameAsync(gameId, ct);

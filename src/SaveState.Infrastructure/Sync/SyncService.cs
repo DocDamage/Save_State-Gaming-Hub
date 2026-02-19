@@ -199,7 +199,8 @@ public class SyncService : ISyncService
                 if (status == FileSyncStatus.LocalNewer)
                 {
                     var fileSize = new FileInfo(localPath).Length;
-                    if (await _provider.UploadFileAsync(localPath, remotePath, ct).ConfigureAwait(false))
+                    var uploadResult = await _provider.UploadFileAsync(localPath, remotePath, ct).ConfigureAwait(false);
+                    if (uploadResult.IsSuccess && uploadResult.Value)
                     {
                         filesUploaded++;
                         _processedBytes += fileSize;
@@ -207,7 +208,7 @@ public class SyncService : ISyncService
                     }
                     else
                     {
-                        errors.Add($"Failed to upload: {remotePath}");
+                        errors.Add(uploadResult.Error ?? $"Failed to upload: {remotePath}");
                     }
                 }
                 else if (status == FileSyncStatus.Conflict)
@@ -289,7 +290,8 @@ public class SyncService : ISyncService
 
                 if (localStatus == FileSyncStatus.RemoteNewer || localStatus == FileSyncStatus.NotTracked)
                 {
-                    if (await _provider.DownloadFileAsync(remoteFile.Path, localPath, ct).ConfigureAwait(false))
+                    var downloadResult = await _provider.DownloadFileAsync(remoteFile.Path, localPath, ct).ConfigureAwait(false);
+                    if (downloadResult.IsSuccess && downloadResult.Value)
                     {
                         filesDownloaded++;
                         _processedBytes += remoteFile.SizeBytes;
@@ -297,7 +299,7 @@ public class SyncService : ISyncService
                     }
                     else
                     {
-                        errors.Add($"Failed to download: {remoteFile.Path}");
+                        errors.Add(downloadResult.Error ?? $"Failed to download: {remoteFile.Path}");
                     }
                 }
                 else if (localStatus == FileSyncStatus.Conflict)
@@ -412,11 +414,13 @@ public class SyncService : ISyncService
             {
                 case "Keep Local":
                     // Upload local version to override remote
-                    return await _provider.UploadFileAsync(localPath, remotePath, ct).ConfigureAwait(false);
+                    var uploadResult = await _provider.UploadFileAsync(localPath, remotePath, ct).ConfigureAwait(false);
+                    return uploadResult.IsSuccess && uploadResult.Value;
 
                 case "Keep Cloud":
                     // Download cloud version to override local
-                    return await _provider.DownloadFileAsync(remotePath, localPath, ct).ConfigureAwait(false);
+                    var downloadResult = await _provider.DownloadFileAsync(remotePath, localPath, ct).ConfigureAwait(false);
+                    return downloadResult.IsSuccess && downloadResult.Value;
 
                 case "Keep Both":
                     // Rename local and download cloud
@@ -426,7 +430,8 @@ public class SyncService : ISyncService
                     {
                         File.Move(localPath, newLocalPath);
                     }
-                    return await _provider.DownloadFileAsync(remotePath, localPath, ct).ConfigureAwait(false);
+                    var keepBothResult = await _provider.DownloadFileAsync(remotePath, localPath, ct).ConfigureAwait(false);
+                    return keepBothResult.IsSuccess && keepBothResult.Value;
 
                 case "Skip":
                 default:

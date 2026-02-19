@@ -327,7 +327,7 @@ public class AdvancedAiService : IMachineLearningService, IMatchPredictionEngine
             Id = Guid.NewGuid(),
             Name = configuration.ModelName,
             CharacterName = null,
-            TrainedAt = DateTime.UtcNow,
+            TrainedAt = _timeProvider.UtcNow,
             Accuracy = 0.0,
             SampleCount = 0,
             IsActive = false,
@@ -598,12 +598,20 @@ public class AdvancedAiService : IMachineLearningService, IMatchPredictionEngine
         // Update Elo ratings (simplified)
         if (!_playerSkillModels.ContainsKey(winnerId.ToString()))
         {
-            _playerSkillModels[winnerId.ToString()] = new AdvancedAiServicePlayerSkillModel { Rating = 1500 };
+            _playerSkillModels[winnerId.ToString()] = new AdvancedAiServicePlayerSkillModel
+            {
+                Rating = 1500,
+                LastUpdated = _timeProvider.UtcNow
+            };
         }
 
         if (!_playerSkillModels.ContainsKey(loserId.ToString()))
         {
-            _playerSkillModels[loserId.ToString()] = new AdvancedAiServicePlayerSkillModel { Rating = 1500 };
+            _playerSkillModels[loserId.ToString()] = new AdvancedAiServicePlayerSkillModel
+            {
+                Rating = 1500,
+                LastUpdated = _timeProvider.UtcNow
+            };
         }
 
         // Simple Elo update
@@ -615,6 +623,8 @@ public class AdvancedAiService : IMachineLearningService, IMatchPredictionEngine
 
         winner.Rating += 32 * (1.0 - expectedWinner);
         loser.Rating += 32 * (0.0 - expectedLoser);
+        winner.LastUpdated = _timeProvider.UtcNow;
+        loser.LastUpdated = _timeProvider.UtcNow;
     }
 
     #endregion
@@ -639,5 +649,5 @@ public class AdvancedAiServicePlayerSkillModel
     public double Rating { get; set; }
     public double Volatility { get; set; } = 0.06;
     public IReadOnlyDictionary<string, double> CharacterRatings { get; set; } = new Dictionary<string, double>();
-    public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
+    public DateTime LastUpdated { get; set; } = DateTime.UnixEpoch;
 }

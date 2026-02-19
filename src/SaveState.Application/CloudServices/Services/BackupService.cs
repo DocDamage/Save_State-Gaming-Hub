@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.Common.Enums;
+using SaveState.Core.Common;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
 using System.Text.Json;
@@ -220,14 +221,14 @@ public class BackupService : IBackupService
 
         return settingsJson.Length;
     }
-    public async Task<IReadOnlyList<BackupMetadata>> GetBackupHistoryAsync(CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<BackupMetadata>>> GetBackupHistoryAsync(CancellationToken ct = default)
     {
         var history = new List<BackupMetadata>();
         var basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Backups");
 
         if (!Directory.Exists(basePath))
         {
-            return history;
+            return Result.Success<IReadOnlyList<BackupMetadata>>(history);
         }
 
         try
@@ -255,8 +256,9 @@ public class BackupService : IBackupService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to load backup history");
+            return Result.Failure<IReadOnlyList<BackupMetadata>>($"Failed to load backup history: {ex.Message}", ErrorType.Internal);
         }
 
-        return history.OrderByDescending(b => b.CreatedAt).ToList();
+        return Result.Success<IReadOnlyList<BackupMetadata>>(history.OrderByDescending(b => b.CreatedAt).ToList());
     }
 }

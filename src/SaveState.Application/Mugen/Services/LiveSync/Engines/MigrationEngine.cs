@@ -2,6 +2,7 @@ namespace SaveState.Application.Mugen.Services.LiveSync.Engines;
 
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Mugen.Models.LiveSync;
+using SaveState.Core.Common.Services;
 using System.Diagnostics;
 
 /// <summary>
@@ -10,14 +11,16 @@ using System.Diagnostics;
 public class MigrationEngine
 {
     private readonly ILogger<MigrationEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MigrationEngine"/> class.
     /// </summary>
     /// <param name="logger">The logger instance.</param>
-    public MigrationEngine(ILogger<MigrationEngine> logger)
+    public MigrationEngine(ILogger<MigrationEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -57,7 +60,7 @@ public class MigrationEngine
             {
                 AccountId = sourceData.AccountId,
                 Platform = targetPlatform,
-                LastUpdated = DateTime.UtcNow,
+                LastUpdated = _timeProvider.UtcNow,
                 Version = sourceData.Version
             };
 

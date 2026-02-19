@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common;
 using SaveState.Core.Monitoring;
 
 namespace SaveState.Infrastructure.Monitoring;
@@ -203,17 +204,37 @@ public class ErrorTrackingService : IDisposable
     /// <summary>
     /// Gets error statistics for monitoring and alerting.
     /// </summary>
-    public IReadOnlyDictionary<string, ErrorStats> GetErrorStatistics()
+    public Result<IReadOnlyDictionary<string, ErrorStats>> GetErrorStatistics()
     {
-        return new Dictionary<string, ErrorStats>(_errorStatistics);
+        try
+        {
+            return Result.Success<IReadOnlyDictionary<string, ErrorStats>>(new Dictionary<string, ErrorStats>(_errorStatistics));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to retrieve error statistics");
+            return Result.Failure<IReadOnlyDictionary<string, ErrorStats>>(
+                $"Failed to retrieve error statistics: {ex.Message}",
+                ErrorType.Internal);
+        }
     }
 
     /// <summary>
     /// Gets recent errors for analysis.
     /// </summary>
-    public IReadOnlyList<ErrorEvent> GetRecentErrors(int count = 100)
+    public Result<IReadOnlyList<ErrorEvent>> GetRecentErrors(int count = 100)
     {
-        return _recentErrors.ToList().TakeLast(count).ToList();
+        try
+        {
+            return Result.Success<IReadOnlyList<ErrorEvent>>(_recentErrors.ToList().TakeLast(count).ToList());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to retrieve recent errors");
+            return Result.Failure<IReadOnlyList<ErrorEvent>>(
+                $"Failed to retrieve recent errors: {ex.Message}",
+                ErrorType.Internal);
+        }
     }
 
     public void Dispose()

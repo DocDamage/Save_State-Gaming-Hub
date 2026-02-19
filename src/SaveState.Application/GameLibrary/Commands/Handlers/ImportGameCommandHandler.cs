@@ -99,8 +99,14 @@ public class ImportGameCommandHandler : IRequestHandler<ImportGameCommand, Resul
             // Validate game before saving
             if (!await _validationService.IsValidGameAsync(game, ct).ConfigureAwait(false))
             {
-                var errors = await _validationService.GetValidationErrorsAsync(game, ct).ConfigureAwait(false);
-                return Result.Failure<GameId>($"Validation failed: {string.Join(", ", errors)}");
+                var errorsResult = await _validationService.GetValidationErrorsAsync(game, ct).ConfigureAwait(false);
+                if (errorsResult.IsFailure || errorsResult.Value is null)
+                {
+                    return Result.Failure<GameId>(
+                        $"Validation failed: {errorsResult.Error ?? "Unknown validation error"}");
+                }
+
+                return Result.Failure<GameId>($"Validation failed: {string.Join(", ", errorsResult.Value)}");
             }
 
             await _gameRepository.AddAsync(game, ct).ConfigureAwait(false);

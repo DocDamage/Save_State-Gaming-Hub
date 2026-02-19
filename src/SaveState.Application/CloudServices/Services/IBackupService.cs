@@ -1,5 +1,6 @@
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.Common.Enums;
+using SaveState.Core.Common;
 
 namespace SaveState.Application.CloudServices.Services;
 
@@ -12,7 +13,7 @@ public interface IBackupService
         bool includeSettings,
         CancellationToken ct = default);
 
-    Task<IReadOnlyList<BackupMetadata>> GetBackupHistoryAsync(CancellationToken ct = default);
+    Task<Result<IReadOnlyList<BackupMetadata>>> GetBackupHistoryAsync(CancellationToken ct = default);
 }
 
 public record BackupMetadata(

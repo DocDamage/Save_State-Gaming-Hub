@@ -50,14 +50,38 @@ public sealed partial class SmartLauncherStatisticsViewModel : ObservableObject
         IsLoading = true;
         try
         {
-            OverallStats = await _statisticsService.GetOverallStatisticsAsync();
-            PerformanceComparison = await _statisticsService.GetPerformanceComparisonAsync();
-
-            var mostPlayed = await _statisticsService.GetMostPlayedGamesAsync(10);
-            MostPlayedGames.Clear();
-            foreach (var game in mostPlayed)
+            var overallStatsResult = await _statisticsService.GetOverallStatisticsAsync();
+            if (overallStatsResult.IsSuccess && overallStatsResult.Value is not null)
             {
-                MostPlayedGames.Add(new MostPlayedGameViewModel(game));
+                OverallStats = overallStatsResult.Value;
+            }
+            else
+            {
+                _logger.LogWarning("Failed to load overall launcher statistics: {Error}", overallStatsResult.Error);
+            }
+
+            var comparisonResult = await _statisticsService.GetPerformanceComparisonAsync();
+            if (comparisonResult.IsSuccess && comparisonResult.Value is not null)
+            {
+                PerformanceComparison = comparisonResult.Value;
+            }
+            else
+            {
+                _logger.LogWarning("Failed to load performance comparison: {Error}", comparisonResult.Error);
+            }
+
+            var mostPlayedResult = await _statisticsService.GetMostPlayedGamesAsync(10);
+            MostPlayedGames.Clear();
+            if (mostPlayedResult.IsSuccess && mostPlayedResult.Value is not null)
+            {
+                foreach (var game in mostPlayedResult.Value)
+                {
+                    MostPlayedGames.Add(new MostPlayedGameViewModel(game));
+                }
+            }
+            else
+            {
+                _logger.LogWarning("Failed to load most played games: {Error}", mostPlayedResult.Error);
             }
 
             // Format display text

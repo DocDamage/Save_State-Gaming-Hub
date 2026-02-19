@@ -44,6 +44,36 @@ public class FileSystem : IFileSystem
         }
     }
 
+    public async Task<string> ReadAllTextAsync(string path, CancellationToken ct = default)
+    {
+        EnsurePath(path);
+        ct.ThrowIfCancellationRequested();
+
+        try
+        {
+            return await File.ReadAllTextAsync(path, ct).ConfigureAwait(false);
+        }
+        catch (TaskCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw new OperationCanceledException(ct);
+        }
+    }
+
+    public async Task WriteAllTextAsync(string path, string content, CancellationToken ct = default)
+    {
+        EnsurePath(path);
+        ct.ThrowIfCancellationRequested();
+
+        try
+        {
+            await File.WriteAllTextAsync(path, content, ct).ConfigureAwait(false);
+        }
+        catch (TaskCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw new OperationCanceledException(ct);
+        }
+    }
+
     private static void EnsurePath(string? path)
     {
         if (string.IsNullOrEmpty(path))

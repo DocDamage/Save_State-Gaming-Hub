@@ -127,15 +127,20 @@ public class AchievementService : IAchievementService
         return true;
     }
 
-    public async Task<IReadOnlyList<Achievement>> GetUnlockedAchievementsAsync(Guid userId, CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<Achievement>>> GetUnlockedAchievementsAsync(Guid userId, CancellationToken ct = default)
     {
         var userAchievements = await _achievementRepository.GetUserAchievementsAsync(userId, ct);
-        return userAchievements.Where(ua => ua.IsUnlocked && ua.Achievement != null).Select(ua => ua.Achievement!).ToList();
+        var unlocked = userAchievements
+            .Where(ua => ua.IsUnlocked && ua.Achievement != null)
+            .Select(ua => ua.Achievement!)
+            .ToList();
+        return Result.Success<IReadOnlyList<Achievement>>(unlocked);
     }
 
-    public async Task<IReadOnlyList<UserAchievement>> GetUserProgressAsync(Guid userId, CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<UserAchievement>>> GetUserProgressAsync(Guid userId, CancellationToken ct = default)
     {
-        return await _achievementRepository.GetUserAchievementsAsync(userId, ct);
+        var progress = await _achievementRepository.GetUserAchievementsAsync(userId, ct);
+        return Result.Success<IReadOnlyList<UserAchievement>>(progress);
     }
 
     public async Task ResetUserProgressAsync(Guid userId, CancellationToken ct = default)

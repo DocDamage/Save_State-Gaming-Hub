@@ -2,6 +2,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common;
 using SaveState.Core.SmartLauncher;
 using SaveState.Infrastructure.Persistence;
 
@@ -24,7 +25,7 @@ public sealed class SmartLauncherStatisticsService : ISmartLauncherStatisticsSer
     }
 
     /// <inheritdoc />
-    public async Task<SmartLauncherStatistics> GetOverallStatisticsAsync(CancellationToken ct = default)
+    public async Task<Result<SmartLauncherStatistics>> GetOverallStatisticsAsync(CancellationToken ct = default)
     {
         try
         {
@@ -49,7 +50,7 @@ public sealed class SmartLauncherStatisticsService : ISmartLauncherStatisticsSer
                 .Distinct()
                 .Count();
 
-            return new SmartLauncherStatistics
+            var statistics = new SmartLauncherStatistics
             {
                 TotalSessions = sessions.Count,
                 TotalGamingTime = TimeSpan.FromMinutes(totalDuration),
@@ -65,16 +66,19 @@ public sealed class SmartLauncherStatisticsService : ISmartLauncherStatisticsSer
                 TotalProcessesSuspended = await CalculateTotalProcessesSuspendedAsync(ct),
                 TotalTimeSaved = CalculateTimeSaved(optimizedSessions)
             };
+            return Result.Success(statistics);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get overall statistics");
-            return new SmartLauncherStatistics();
+            return Result.Failure<SmartLauncherStatistics>(
+                $"Failed to get overall statistics: {ex.Message}",
+                ErrorType.Internal);
         }
     }
 
     /// <inheritdoc />
-    public async Task<GameLaunchStatistics> GetGameStatisticsAsync(Guid gameId, CancellationToken ct = default)
+    public async Task<Result<GameLaunchStatistics>> GetGameStatisticsAsync(Guid gameId, CancellationToken ct = default)
     {
         try
         {
@@ -85,7 +89,7 @@ public sealed class SmartLauncherStatisticsService : ISmartLauncherStatisticsSer
 
             if (!sessions.Any())
             {
-                return new GameLaunchStatistics { GameId = gameId };
+                return Result.Success(new GameLaunchStatistics { GameId = gameId });
             }
 
             var gameName = sessions.First().GameName;
@@ -132,7 +136,7 @@ public sealed class SmartLauncherStatisticsService : ISmartLauncherStatisticsSer
                 };
             }
 
-            return new GameLaunchStatistics
+            var gameStatistics = new GameLaunchStatistics
             {
                 GameId = gameId,
                 GameName = gameName,
@@ -148,16 +152,19 @@ public sealed class SmartLauncherStatisticsService : ISmartLauncherStatisticsSer
                 BestPerformance = bestPerformance,
                 AveragePerformance = avgPerformance
             };
+            return Result.Success(gameStatistics);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get game statistics for {GameId}", gameId);
-            return new GameLaunchStatistics { GameId = gameId };
+            return Result.Failure<GameLaunchStatistics>(
+                $"Failed to get game statistics for {gameId}: {ex.Message}",
+                ErrorType.Internal);
         }
     }
 
     /// <inheritdoc />
-    public async Task<ProfileUsageStatistics> GetProfileStatisticsAsync(Guid profileId, CancellationToken ct = default)
+    public async Task<Result<ProfileUsageStatistics>> GetProfileStatisticsAsync(Guid profileId, CancellationToken ct = default)
     {
         try
         {
@@ -172,7 +179,7 @@ public sealed class SmartLauncherStatisticsService : ISmartLauncherStatisticsSer
 
             if (profile == null || !sessions.Any())
             {
-                return new ProfileUsageStatistics { ProfileId = profileId };
+                return Result.Success(new ProfileUsageStatistics { ProfileId = profileId });
             }
 
             var totalDuration = sessions
@@ -189,7 +196,7 @@ public sealed class SmartLauncherStatisticsService : ISmartLauncherStatisticsSer
                 })
                 .ToList();
 
-            return new ProfileUsageStatistics
+            var profileStatistics = new ProfileUsageStatistics
             {
                 ProfileId = profileId,
                 ProfileName = profile.Name,
@@ -201,16 +208,19 @@ public sealed class SmartLauncherStatisticsService : ISmartLauncherStatisticsSer
                 GameUsage = gameUsage,
                 AveragePerformanceGain = profile.EstimatedPerformanceGain ?? 0
             };
+            return Result.Success(profileStatistics);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get profile statistics for {ProfileId}", profileId);
-            return new ProfileUsageStatistics { ProfileId = profileId };
+            return Result.Failure<ProfileUsageStatistics>(
+                $"Failed to get profile statistics for {profileId}: {ex.Message}",
+                ErrorType.Internal);
         }
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<MostPlayedGame>> GetMostPlayedGamesAsync(int count = 10, CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<MostPlayedGame>>> GetMostPlayedGamesAsync(int count = 10, CancellationToken ct = default)
     {
         try
         {
@@ -231,17 +241,19 @@ public sealed class SmartLauncherStatisticsService : ISmartLauncherStatisticsSer
                 .Take(count)
                 .ToListAsync(ct);
 
-            return games;
+            return Result.Success<IReadOnlyList<MostPlayedGame>>(games);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get most played games");
-            return new List<MostPlayedGame>();
+            return Result.Failure<IReadOnlyList<MostPlayedGame>>(
+                $"Failed to get most played games: {ex.Message}",
+                ErrorType.Internal);
         }
     }
 
     /// <inheritdoc />
-    public async Task<PerformanceComparison> GetPerformanceComparisonAsync(CancellationToken ct = default)
+    public async Task<Result<PerformanceComparison>> GetPerformanceComparisonAsync(CancellationToken ct = default)
     {
         try
         {
@@ -267,17 +279,20 @@ public sealed class SmartLauncherStatisticsService : ISmartLauncherStatisticsSer
                     / nonOptimizedStats.AverageFPS.Value * 100;
             }
 
-            return new PerformanceComparison
+            var comparison = new PerformanceComparison
             {
                 Optimized = optimizedStats,
                 NonOptimized = nonOptimizedStats,
                 PerformanceImprovementPercentage = improvementPercentage
             };
+            return Result.Success(comparison);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get performance comparison");
-            return new PerformanceComparison();
+            return Result.Failure<PerformanceComparison>(
+                $"Failed to get performance comparison: {ex.Message}",
+                ErrorType.Internal);
         }
     }
 

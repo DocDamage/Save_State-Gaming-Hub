@@ -36,9 +36,9 @@ public sealed class XboxGamePassProvider : ISubscriptionProvider
     }
 
     /// <inheritdoc />
-    public async Task<SubscriptionServiceInfo> GetServiceInfoAsync(CancellationToken ct = default)
+    public Task<Result<SubscriptionServiceInfo>> GetServiceInfoAsync(CancellationToken ct = default)
     {
-        return new SubscriptionServiceInfo
+        var serviceInfo = new SubscriptionServiceInfo
         {
             Id = "xbox-game-pass",
             Type = SubscriptionServiceType.XboxGamePass,
@@ -58,6 +58,7 @@ public sealed class XboxGamePassProvider : ISubscriptionProvider
                 new() { Name = "Day One Releases", Description = "New games on release day", IsIncluded = true }
             }
         };
+        return Task.FromResult(Result.Success(serviceInfo));
     }
 
     /// <inheritdoc />

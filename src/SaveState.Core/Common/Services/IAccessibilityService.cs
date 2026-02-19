@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using SaveState.Core.Common;
 
 namespace SaveState.Core.Common.Services;
 
@@ -41,7 +42,7 @@ public interface IAccessibilityService
     /// </summary>
     /// <param name="text">Text to validate.</param>
     /// <param name="context">Context where the text is used.</param>
-    AccessibilityValidationResult ValidateTextAccessibility(string text, TextAccessibilityContext context);
+    Result<AccessibilityValidationResult> ValidateTextAccessibility(string text, TextAccessibilityContext context);
 
     /// <summary>
     /// Enables screen reader support.

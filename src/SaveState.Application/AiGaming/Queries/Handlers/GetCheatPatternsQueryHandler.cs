@@ -3,6 +3,7 @@ using SaveState.Application.AiGaming.DTOs;
 using SaveState.Application.Common;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Enums;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Application.AiGaming.Queries.Handlers;
 
@@ -12,6 +13,13 @@ namespace SaveState.Application.AiGaming.Queries.Handlers;
 /// </summary>
 public class GetCheatPatternsQueryHandler : IRequestHandler<GetCheatPatternsQuery, Result<IReadOnlyList<CheatPatternDto>>>
 {
+    private readonly ITimeProvider _timeProvider;
+
+    public GetCheatPatternsQueryHandler(ITimeProvider timeProvider)
+    {
+        _timeProvider = timeProvider;
+    }
+
     /// <summary>
     /// Handles the request to get cheat patterns for a game.
     /// </summary>
@@ -22,6 +30,7 @@ public class GetCheatPatternsQueryHandler : IRequestHandler<GetCheatPatternsQuer
     {
         // Mock implementation - in a real system, this would query a database of known cheat patterns
         var patterns = new List<CheatPatternDto>();
+        var now = _timeProvider.UtcNow;
 
         // Add some mock patterns
         if (string.IsNullOrEmpty(request.GameTitle) || request.GameTitle.Contains("Test", StringComparison.OrdinalIgnoreCase))
@@ -34,7 +43,7 @@ public class GetCheatPatternsQueryHandler : IRequestHandler<GetCheatPatternsQuer
                 Description = "Detects when game speed is modified",
                 AffectedAddresses = new[] { 0x1000L, 0x2000L },
                 DetectionThreshold = 0.8,
-                LastDetected = DateTime.UtcNow.AddDays(-1),
+                LastDetected = now.AddDays(-1),
                 DetectionCount = 15
             });
 
@@ -46,7 +55,7 @@ public class GetCheatPatternsQueryHandler : IRequestHandler<GetCheatPatternsQuer
                 Description = "Detects infinite ammunition cheats",
                 AffectedAddresses = new[] { 0x3000L, 0x4000L },
                 DetectionThreshold = 0.9,
-                LastDetected = DateTime.UtcNow.AddHours(-2),
+                LastDetected = now.AddHours(-2),
                 DetectionCount = 8
             });
         }

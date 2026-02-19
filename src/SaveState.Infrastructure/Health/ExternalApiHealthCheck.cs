@@ -166,11 +166,15 @@ public class ExternalApiHealthCheck : IHealthCheck
         try
         {
             // Try to get game details (using a sample ID for connectivity test)
-            var metadata = await _gogClient.GetGameDetailsAsync("sample-game-id", ct);
+            var metadataResult = await _gogClient.GetGameDetailsAsync("sample-game-id", ct);
 
-            if (metadata != null && !string.IsNullOrEmpty(metadata.Title))
+            if (metadataResult.IsSuccess && metadataResult.Value != null && !string.IsNullOrEmpty(metadataResult.Value.Title))
             {
-                return new HealthStatusResult(HealthStatus.Healthy, $"GOG API is responding - retrieved: {metadata.Title}");
+                return new HealthStatusResult(HealthStatus.Healthy, $"GOG API is responding - retrieved: {metadataResult.Value.Title}");
+            }
+            else if (metadataResult.IsFailure)
+            {
+                return new HealthStatusResult(HealthStatus.Degraded, $"GOG API returned failure: {metadataResult.Error}");
             }
             else
             {
@@ -190,11 +194,15 @@ public class ExternalApiHealthCheck : IHealthCheck
         try
         {
             // Try to get game details (using a sample ID for connectivity test)
-            var metadata = await _epicClient.GetGameDetailsAsync("sample-game-id", ct);
+            var metadataResult = await _epicClient.GetGameDetailsAsync("sample-game-id", ct);
 
-            if (metadata != null && !string.IsNullOrEmpty(metadata.Title))
+            if (metadataResult.IsSuccess && metadataResult.Value != null && !string.IsNullOrEmpty(metadataResult.Value.Title))
             {
-                return new HealthStatusResult(HealthStatus.Healthy, $"Epic API is responding - retrieved: {metadata.Title}");
+                return new HealthStatusResult(HealthStatus.Healthy, $"Epic API is responding - retrieved: {metadataResult.Value.Title}");
+            }
+            else if (metadataResult.IsFailure)
+            {
+                return new HealthStatusResult(HealthStatus.Degraded, $"Epic API returned failure: {metadataResult.Error}");
             }
             else
             {

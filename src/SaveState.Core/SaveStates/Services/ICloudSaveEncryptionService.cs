@@ -28,5 +28,5 @@ public interface ICloudSaveEncryptionService
     /// <summary>
     /// Computes a non-reversible fingerprint for the key.
     /// </summary>
-    string GetKeyFingerprint(string encryptionKey);
+    Result<string> GetKeyFingerprint(string encryptionKey);
 }

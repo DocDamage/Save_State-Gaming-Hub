@@ -99,7 +99,7 @@ public class IgdbApiClient : IIgdbApiClient
         }
     }
 
-    public async Task<GameMetadata> GetGameDetailsAsync(string gameId, CancellationToken ct = default)
+    public async Task<Result<GameMetadata>> GetGameDetailsAsync(string gameId, CancellationToken ct = default)
     {
         try
         {
@@ -112,14 +112,20 @@ public class IgdbApiClient : IIgdbApiClient
             };
 
             var response = await _httpClient.SendAsync(request, ct).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode) return GameMetadata.Empty;
+            if (!response.IsSuccessStatusCode)
+            {
+                return Result.Failure<GameMetadata>($"IGDB API returned status {(int)response.StatusCode}", ErrorType.External);
+            }
 
             var games = await response.Content.ReadFromJsonAsync<List<IgdbGame>>(ct).ConfigureAwait(false);
             var game = games?.FirstOrDefault();
 
-            if (game == null) return GameMetadata.Empty;
+            if (game == null)
+            {
+                return Result.Failure<GameMetadata>($"Game '{gameId}' was not found in IGDB response", ErrorType.NotFound);
+            }
 
-            return new GameMetadata
+            var metadata = new GameMetadata
             {
                 Title = game.Name,
                 Description = game.Summary,
@@ -127,11 +133,13 @@ public class IgdbApiClient : IIgdbApiClient
                 Genres = game.Genres?.Select(g => g.Name).ToArray(),
                 CoverImageUrl = game.Cover?.Url
             };
+
+            return Result.Success(metadata);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get game details for IGDB ID {GameId}", gameId);
-            return GameMetadata.Empty;
+            return Result.Failure<GameMetadata>($"Failed to get IGDB game details: {ex.Message}", ErrorType.External);
         }
     }
 

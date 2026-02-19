@@ -45,7 +45,7 @@ public class SemanticKnowledgeClient
         }
     }
 
-    public async Task<string> GetRelevantContextAsync(string query, CancellationToken ct)
+    public async Task<Result<string>> GetRelevantContextAsync(string query, CancellationToken ct)
     {
         try
         {
@@ -55,19 +55,23 @@ public class SemanticKnowledgeClient
             if (embeddingResult.IsFailure || embeddingResult.Value is null)
             {
                 _logger.LogError("Failed to generate embeddings for query: {Error}", embeddingResult.Error);
-                return string.Empty;
+                return Result.Failure<string>(
+                    $"Failed to generate embeddings for query: {embeddingResult.Error}",
+                    ErrorType.External);
             }
 
             var hits = await _store.SearchAsync(embeddingResult.Value.Embedding, 3, 0.75f, ct).ConfigureAwait(false);
 
             var context = string.Join("\n---\n", hits.Select(h => h.Content));
 
-            return context;
+            return Result.Success(context);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to retrieve relevant context for query");
-            return string.Empty;
+            return Result.Failure<string>(
+                $"Failed to retrieve relevant context for query: {ex.Message}",
+                ErrorType.Internal);
         }
     }
 

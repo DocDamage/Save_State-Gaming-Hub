@@ -35,9 +35,9 @@ public sealed class EaPlayProvider : ISubscriptionProvider
     }
 
     /// <inheritdoc />
-    public async Task<SubscriptionServiceInfo> GetServiceInfoAsync(CancellationToken ct = default)
+    public Task<Result<SubscriptionServiceInfo>> GetServiceInfoAsync(CancellationToken ct = default)
     {
-        return new SubscriptionServiceInfo
+        var serviceInfo = new SubscriptionServiceInfo
         {
             Id = "ea-play",
             Type = SubscriptionServiceType.EAPlay,
@@ -57,6 +57,7 @@ public sealed class EaPlayProvider : ISubscriptionProvider
                 new() { Name = "Early Trials", Description = "Play new games early", IsIncluded = true }
             }
         };
+        return Task.FromResult(Result.Success(serviceInfo));
     }
 
     /// <inheritdoc />

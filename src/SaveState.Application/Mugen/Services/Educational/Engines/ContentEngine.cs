@@ -2,21 +2,25 @@ namespace SaveState.Application.Mugen.Services.Educational.Engines;
 
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Mugen.Models.Educational;
+using SaveState.Core.Common.Services;
 
 public class ContentEngine
 {
     private readonly ILogger<ContentEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, Tutorial> _tutorials;
     private readonly Dictionary<string, StrategyGuide> _strategyGuides;
     private readonly Dictionary<string, MechanicsGuide> _mechanicsGuides;
 
     public ContentEngine(
         ILogger<ContentEngine> logger,
+        ITimeProvider timeProvider,
         Dictionary<string, Tutorial> tutorials,
         Dictionary<string, StrategyGuide> strategyGuides,
         Dictionary<string, MechanicsGuide> mechanicsGuides)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         _tutorials = tutorials;
         _strategyGuides = strategyGuides;
         _mechanicsGuides = mechanicsGuides;
@@ -108,6 +112,8 @@ public class ContentEngine
     /// </summary>
     public Tutorial CreateTutorial(TutorialCreationRequest request)
     {
+        var now = _timeProvider.UtcNow;
+
         var tutorial = new Tutorial
         {
             TutorialId = Guid.NewGuid().ToString(),
@@ -120,8 +126,8 @@ public class ContentEngine
             Prerequisites = request.Prerequisites,
             Steps = request.Steps,
             AuthorId = request.AuthorId,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = now,
+            UpdatedAt = now,
             ViewCount = 0,
             CompletionCount = 0,
             AverageRating = 0,

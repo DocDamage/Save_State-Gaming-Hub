@@ -1,3 +1,5 @@
+using SaveState.Core.Common;
+
 // Copyright (c) 2026 SaveStateReborn. All rights reserved.
 
 namespace SaveState.Core.SmartLauncher;
@@ -30,7 +32,7 @@ public interface ILaunchProfileImportExportService
     /// <summary>
     /// Validates a profile JSON without importing.
     /// </summary>
-    ValidationResult ValidateProfileJson(string json);
+    Result<ValidationResult> ValidateProfileJson(string json);
 }
 
 /// <summary>

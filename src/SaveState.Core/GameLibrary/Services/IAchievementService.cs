@@ -1,6 +1,7 @@
 namespace SaveState.Core.GameLibrary.Services;
 
 using SaveState.Core.GameLibrary.Entities;
+using SaveState.Core.Common;
 
 /// <summary>
 /// Service interface for managing achievements and tracking user progress.
@@ -46,7 +47,7 @@ public interface IAchievementService
     /// <param name="userId">The user ID.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>A collection of unlocked achievements.</returns>
-    Task<IReadOnlyList<Achievement>> GetUnlockedAchievementsAsync(Guid userId, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<Achievement>>> GetUnlockedAchievementsAsync(Guid userId, CancellationToken ct = default);
 
     /// <summary>
     /// Gets user achievement progress including locked achievements.
@@ -54,7 +55,7 @@ public interface IAchievementService
     /// <param name="userId">The user ID.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>A collection of user achievement progress.</returns>
-    Task<IReadOnlyList<UserAchievement>> GetUserProgressAsync(Guid userId, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<UserAchievement>>> GetUserProgressAsync(Guid userId, CancellationToken ct = default);
 
     /// <summary>
     /// Resets all user achievement progress (for testing/debugging).

@@ -13,12 +13,18 @@ public class RateLimitingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequ
     where TRequest : IRequest<TResponse>
 {
     private readonly IRateLimiter _rateLimiter;
+    private readonly ITimeProvider _timeProvider;
     private readonly ILogger<RateLimitingBehavior<TRequest, TResponse>> _logger;
     private readonly RateLimitingOptions _options;
 
-    public RateLimitingBehavior(IRateLimiter rateLimiter, ILogger<RateLimitingBehavior<TRequest, TResponse>> logger, IOptions<RateLimitingOptions> options)
+    public RateLimitingBehavior(
+        IRateLimiter rateLimiter,
+        ITimeProvider timeProvider,
+        ILogger<RateLimitingBehavior<TRequest, TResponse>> logger,
+        IOptions<RateLimitingOptions> options)
     {
         _rateLimiter = rateLimiter;
+        _timeProvider = timeProvider;
         _logger = logger;
         _options = options.Value;
     }
@@ -45,7 +51,9 @@ public class RateLimitingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequ
             var resetTimeResult = await _rateLimiter.GetResetTimeAsync(rateLimitKey, operationName, cancellationToken);
             var remaining = await _rateLimiter.GetRemainingOperationsAsync(rateLimitKey, operationName, cancellationToken);
 
-            var resetTime = resetTimeResult.IsSuccess ? resetTimeResult.Value : DateTimeOffset.UtcNow.AddMinutes(1);
+            var resetTime = resetTimeResult.IsSuccess
+                ? resetTimeResult.Value
+                : new DateTimeOffset(_timeProvider.UtcNow, TimeSpan.Zero).AddMinutes(1);
 
             _logger.LogWarning("Rate limit exceeded for operation {Operation} with key {Key}. Reset time: {ResetTime}, Remaining: {Remaining}",
                 operationName, rateLimitKey, resetTime, remaining);

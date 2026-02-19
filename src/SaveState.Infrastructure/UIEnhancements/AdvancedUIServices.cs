@@ -93,17 +93,27 @@ public class ResponsiveDesignService
     /// <summary>
     /// Gets responsive layout for viewport size.
     /// </summary>
-    public ResponsiveLayoutDefinition GetResponsiveLayout(double viewportWidth, double viewportHeight)
+    public Result<ResponsiveLayoutDefinition> GetResponsiveLayout(double viewportWidth, double viewportHeight)
     {
-        _logger.LogDebug("Calculating responsive layout for viewport: {Width}x{Height}", viewportWidth, viewportHeight);
+        try
+        {
+            _logger.LogDebug("Calculating responsive layout for viewport: {Width}x{Height}", viewportWidth, viewportHeight);
 
-        var breakpoint = DetermineBreakpoint(viewportWidth);
-        
-        return new ResponsiveLayoutDefinition(
-            Breakpoint: breakpoint,
-            GridColumns: GetGridColumns(breakpoint),
-            FontScale: GetFontScale(breakpoint),
-            Spacing: GetSpacing(breakpoint));
+            var breakpoint = DetermineBreakpoint(viewportWidth);
+
+            return Result.Success(new ResponsiveLayoutDefinition(
+                Breakpoint: breakpoint,
+                GridColumns: GetGridColumns(breakpoint),
+                FontScale: GetFontScale(breakpoint),
+                Spacing: GetSpacing(breakpoint)));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to calculate responsive layout");
+            return Result.Failure<ResponsiveLayoutDefinition>(
+                $"Failed to calculate responsive layout: {ex.Message}",
+                ErrorType.Internal);
+        }
     }
 
     private void InitializeBreakpoints()

@@ -35,9 +35,9 @@ public sealed class PlayStationPlusProvider : ISubscriptionProvider
     }
 
     /// <inheritdoc />
-    public async Task<SubscriptionServiceInfo> GetServiceInfoAsync(CancellationToken ct = default)
+    public Task<Result<SubscriptionServiceInfo>> GetServiceInfoAsync(CancellationToken ct = default)
     {
-        return new SubscriptionServiceInfo
+        var serviceInfo = new SubscriptionServiceInfo
         {
             Id = "playstation-plus",
             Type = SubscriptionServiceType.PlayStationPlus,
@@ -57,6 +57,7 @@ public sealed class PlayStationPlusProvider : ISubscriptionProvider
                 new() { Name = "Game Catalog", Description = "Access to 400+ games", IsIncluded = false }
             }
         };
+        return Task.FromResult(Result.Success(serviceInfo));
     }
 
     /// <inheritdoc />

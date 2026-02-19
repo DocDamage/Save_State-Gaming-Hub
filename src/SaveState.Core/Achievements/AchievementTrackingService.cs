@@ -1,6 +1,7 @@
 // Copyright (c) 2026 SaveStateReborn. All rights reserved.
 
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Entities;
 
@@ -14,22 +15,22 @@ public interface IAchievementTrackingService
     /// <summary>
     /// Gets all achievements for a user.
     /// </summary>
-    Task<IReadOnlyList<UserAchievementProgress>> GetUserAchievementsAsync(Guid userId, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<UserAchievementProgress>>> GetUserAchievementsAsync(Guid userId, CancellationToken ct = default);
 
     /// <summary>
     /// Gets achievements for a specific game.
     /// </summary>
-    Task<IReadOnlyList<UserAchievementProgress>> GetGameAchievementsAsync(Guid userId, Guid gameId, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<UserAchievementProgress>>> GetGameAchievementsAsync(Guid userId, Guid gameId, CancellationToken ct = default);
 
     /// <summary>
     /// Gets recent achievements earned by the user.
     /// </summary>
-    Task<IReadOnlyList<UserAchievementProgress>> GetRecentAchievementsAsync(Guid userId, int count = 10, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<UserAchievementProgress>>> GetRecentAchievementsAsync(Guid userId, int count = 10, CancellationToken ct = default);
 
     /// <summary>
     /// Gets achievement statistics for the user.
     /// </summary>
-    Task<AchievementStatistics> GetStatisticsAsync(Guid userId, CancellationToken ct = default);
+    Task<Result<AchievementStatistics>> GetStatisticsAsync(Guid userId, CancellationToken ct = default);
 
     /// <summary>
     /// Tracks achievement progress.
@@ -49,12 +50,12 @@ public interface IAchievementTrackingService
     /// <summary>
     /// Gets rare achievements (less than X% of users have unlocked).
     /// </summary>
-    Task<IReadOnlyList<UserAchievementProgress>> GetRareAchievementsAsync(Guid userId, double maxUnlockRate = 10.0, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<UserAchievementProgress>>> GetRareAchievementsAsync(Guid userId, double maxUnlockRate = 10.0, CancellationToken ct = default);
 
     /// <summary>
     /// Gets the next recommended achievements to pursue.
     /// </summary>
-    Task<IReadOnlyList<AchievementRecommendation>> GetRecommendationsAsync(Guid userId, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<AchievementRecommendation>>> GetRecommendationsAsync(Guid userId, CancellationToken ct = default);
 }
 
 /// <summary>

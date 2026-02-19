@@ -1,4 +1,5 @@
 using SaveState.Core.RomManagement.Entities;
+using SaveState.Core.Common;
 
 namespace SaveState.Application.RomManagement.Services;
 
@@ -6,8 +7,8 @@ public interface ILiveSyncService : IAsyncDisposable
 {
     Task StartWatchingAsync(string folderPath, string platformName, CancellationToken ct = default);
     Task StopWatchingAsync(string folderPath, CancellationToken ct = default);
-    Task<IReadOnlyList<string>> GetWatchedFoldersAsync(CancellationToken ct = default);
-    Task<SyncStatus> GetSyncStatusAsync(string folderPath, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<string>>> GetWatchedFoldersAsync(CancellationToken ct = default);
+    Task<Result<SyncStatus>> GetSyncStatusAsync(string folderPath, CancellationToken ct = default);
     Task ForceSyncAsync(string folderPath, CancellationToken ct = default);
     Task ClearAllWatchersAsync(CancellationToken ct = default);
 

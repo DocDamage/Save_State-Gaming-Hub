@@ -396,7 +396,14 @@ public partial class TaskSchedulerViewModel : ObservableObject
             BackupHistory.Clear();
 
             // Load backup history from the service (persisted on disk)
-            var history = await _backupService.GetBackupHistoryAsync();
+            var historyResult = await _backupService.GetBackupHistoryAsync();
+            if (historyResult.IsFailure || historyResult.Value is null)
+            {
+                _notificationService.ShowError(historyResult.Error ?? "Failed to load backup history");
+                return;
+            }
+
+            var history = historyResult.Value;
 
             foreach (var metadata in history.OrderByDescending(h => h.CreatedAt).Take(50))
             {

@@ -178,14 +178,20 @@ public partial class MugenRosterViewModel : MugenSectionViewModelBase
                 _rosterHeaderLines = Array.Empty<string>();
                 _rosterFooterLines = Array.Empty<string>();
                 StatusMessage = result.Error ?? "Failed to load roster.";
-                RosterFilePath = _rosterService.GetSelectDefPath() ?? "select.def not found";
+                var missingPathResult = _rosterService.GetSelectDefPath();
+                RosterFilePath = missingPathResult.IsSuccess && !string.IsNullOrWhiteSpace(missingPathResult.Value)
+                    ? missingPathResult.Value
+                    : "select.def not found";
                 return;
             }
 
             var roster = result.Value;
             _rosterHeaderLines = roster.HeaderLines;
             _rosterFooterLines = roster.FooterLines;
-            RosterFilePath = _rosterService.GetSelectDefPath() ?? "Unknown path";
+            var rosterPathResult = _rosterService.GetSelectDefPath();
+            RosterFilePath = rosterPathResult.IsSuccess && !string.IsNullOrWhiteSpace(rosterPathResult.Value)
+                ? rosterPathResult.Value
+                : "Unknown path";
 
             RosterEntries.Clear();
             SelectedRosterEntry = null;

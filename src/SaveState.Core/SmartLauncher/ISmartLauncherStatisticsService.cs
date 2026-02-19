@@ -2,6 +2,8 @@
 
 namespace SaveState.Core.SmartLauncher;
 
+using SaveState.Core.Common;
+
 /// <summary>
 /// Service for tracking and analyzing Smart Launcher usage statistics.
 /// </summary>
@@ -10,27 +12,27 @@ public interface ISmartLauncherStatisticsService
     /// <summary>
     /// Gets overall usage statistics.
     /// </summary>
-    Task<SmartLauncherStatistics> GetOverallStatisticsAsync(CancellationToken ct = default);
+    Task<Result<SmartLauncherStatistics>> GetOverallStatisticsAsync(CancellationToken ct = default);
 
     /// <summary>
     /// Gets statistics for a specific game.
     /// </summary>
-    Task<GameLaunchStatistics> GetGameStatisticsAsync(Guid gameId, CancellationToken ct = default);
+    Task<Result<GameLaunchStatistics>> GetGameStatisticsAsync(Guid gameId, CancellationToken ct = default);
 
     /// <summary>
     /// Gets statistics for a specific profile.
     /// </summary>
-    Task<ProfileUsageStatistics> GetProfileStatisticsAsync(Guid profileId, CancellationToken ct = default);
+    Task<Result<ProfileUsageStatistics>> GetProfileStatisticsAsync(Guid profileId, CancellationToken ct = default);
 
     /// <summary>
     /// Gets the most played games.
     /// </summary>
-    Task<IReadOnlyList<MostPlayedGame>> GetMostPlayedGamesAsync(int count = 10, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<MostPlayedGame>>> GetMostPlayedGamesAsync(int count = 10, CancellationToken ct = default);
 
     /// <summary>
     /// Gets performance comparison between optimized and non-optimized launches.
     /// </summary>
-    Task<PerformanceComparison> GetPerformanceComparisonAsync(CancellationToken ct = default);
+    Task<Result<PerformanceComparison>> GetPerformanceComparisonAsync(CancellationToken ct = default);
 
     /// <summary>
     /// Records a launch event for analytics.

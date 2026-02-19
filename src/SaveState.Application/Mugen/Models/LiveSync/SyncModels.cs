@@ -1,3 +1,5 @@
+using SaveState.Core.Common.Services;
+
 namespace SaveState.Application.Mugen.Models.LiveSync;
 
 /// <summary>
@@ -35,7 +37,7 @@ public class SyncOperation
     public PlatformType SourcePlatform { get; set; }
     public IReadOnlyList<PlatformType> TargetPlatforms { get; set; } = default!;
     public SyncMode Mode { get; set; }
-    public DateTime RequestedAt { get; set; } = DateTime.UtcNow;
+    public DateTime RequestedAt { get; set; } = SystemTimeProvider.Instance.UtcNow;
     public SyncPriority Priority { get; set; } = SyncPriority.Normal;
 }
 

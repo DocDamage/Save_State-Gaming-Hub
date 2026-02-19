@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common;
 using SaveState.Core.Sync;
 
 namespace SaveState.Infrastructure.Sync;
@@ -56,8 +57,18 @@ public class LocalFileStorageProvider : ICloudStorageProvider
     /// <param name="remotePath">The remote storage path where the file will be stored.</param>
     /// <param name="ct">Cancellation token for the operation.</param>
     /// <returns>True if the upload succeeded, false otherwise.</returns>
-    public async Task<bool> UploadFileAsync(string localPath, string remotePath, CancellationToken ct = default)
+    public async Task<Result<bool>> UploadFileAsync(string localPath, string remotePath, CancellationToken ct = default)
     {
+        if (string.IsNullOrWhiteSpace(localPath) || !File.Exists(localPath))
+        {
+            return Result.Failure<bool>("Local file not found", ErrorType.NotFound);
+        }
+
+        if (string.IsNullOrWhiteSpace(remotePath))
+        {
+            return Result.Failure<bool>("Remote path is required", ErrorType.Validation);
+        }
+
         try
         {
             var targetPath = GetFullPath(remotePath);
@@ -73,12 +84,12 @@ public class LocalFileStorageProvider : ICloudStorageProvider
             await source.CopyToAsync(target, ct).ConfigureAwait(false);
 
             _logger.LogDebug("Uploaded {LocalPath} to {RemotePath}", localPath, remotePath);
-            return true;
+            return Result.Success(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to upload {LocalPath}", localPath);
-            return false;
+            return Result.Failure<bool>($"Failed to upload file: {ex.Message}", ErrorType.External);
         }
     }
 
@@ -89,15 +100,25 @@ public class LocalFileStorageProvider : ICloudStorageProvider
     /// <param name="localPath">The local path where the file will be saved.</param>
     /// <param name="ct">Cancellation token for the operation.</param>
     /// <returns>True if the download succeeded, false otherwise.</returns>
-    public async Task<bool> DownloadFileAsync(string remotePath, string localPath, CancellationToken ct = default)
+    public async Task<Result<bool>> DownloadFileAsync(string remotePath, string localPath, CancellationToken ct = default)
     {
+        if (string.IsNullOrWhiteSpace(remotePath))
+        {
+            return Result.Failure<bool>("Remote path is required", ErrorType.Validation);
+        }
+
+        if (string.IsNullOrWhiteSpace(localPath))
+        {
+            return Result.Failure<bool>("Local path is required", ErrorType.Validation);
+        }
+
         try
         {
             var sourcePath = GetFullPath(remotePath);
             if (!File.Exists(sourcePath))
             {
                 _logger.LogWarning("Remote file not found: {RemotePath}", remotePath);
-                return false;
+                return Result.Failure<bool>("Remote file not found", ErrorType.NotFound);
             }
 
             var targetDir = Path.GetDirectoryName(localPath);
@@ -111,12 +132,12 @@ public class LocalFileStorageProvider : ICloudStorageProvider
             await source.CopyToAsync(target, ct).ConfigureAwait(false);
 
             _logger.LogDebug("Downloaded {RemotePath} to {LocalPath}", remotePath, localPath);
-            return true;
+            return Result.Success(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to download {RemotePath}", remotePath);
-            return false;
+            return Result.Failure<bool>($"Failed to download file: {ex.Message}", ErrorType.External);
         }
     }
 

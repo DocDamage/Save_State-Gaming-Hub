@@ -73,39 +73,74 @@ public sealed partial class AchievementHubViewModel : ObservableObject
             var userId = Guid.NewGuid(); // Placeholder
 
             // Load statistics
-            var stats = await _achievementService.GetStatisticsAsync(userId);
-            Statistics = new AchievementStatisticsViewModel(stats);
+            var statsResult = await _achievementService.GetStatisticsAsync(userId);
+            if (statsResult.IsSuccess && statsResult.Value is not null)
+            {
+                Statistics = new AchievementStatisticsViewModel(statsResult.Value);
+            }
+            else
+            {
+                _logger.LogWarning("Failed to load achievement statistics: {Error}", statsResult.Error);
+            }
 
             // Load achievements
-            var achievements = await _achievementService.GetUserAchievementsAsync(userId);
+            var achievementsResult = await _achievementService.GetUserAchievementsAsync(userId);
             Achievements.Clear();
-            foreach (var a in achievements)
+            if (achievementsResult.IsSuccess && achievementsResult.Value is not null)
             {
-                Achievements.Add(new AchievementViewModel(a));
+                foreach (var a in achievementsResult.Value)
+                {
+                    Achievements.Add(new AchievementViewModel(a));
+                }
+            }
+            else
+            {
+                _logger.LogWarning("Failed to load achievements: {Error}", achievementsResult.Error);
             }
 
             // Load recent
-            var recent = await _achievementService.GetRecentAchievementsAsync(userId, 5);
+            var recentResult = await _achievementService.GetRecentAchievementsAsync(userId, 5);
             RecentAchievements.Clear();
-            foreach (var a in recent)
+            if (recentResult.IsSuccess && recentResult.Value is not null)
             {
-                RecentAchievements.Add(new AchievementViewModel(a));
+                foreach (var a in recentResult.Value)
+                {
+                    RecentAchievements.Add(new AchievementViewModel(a));
+                }
+            }
+            else
+            {
+                _logger.LogWarning("Failed to load recent achievements: {Error}", recentResult.Error);
             }
 
             // Load rare
-            var rare = await _achievementService.GetRareAchievementsAsync(userId);
+            var rareResult = await _achievementService.GetRareAchievementsAsync(userId);
             RareAchievements.Clear();
-            foreach (var a in rare)
+            if (rareResult.IsSuccess && rareResult.Value is not null)
             {
-                RareAchievements.Add(new AchievementViewModel(a));
+                foreach (var a in rareResult.Value)
+                {
+                    RareAchievements.Add(new AchievementViewModel(a));
+                }
+            }
+            else
+            {
+                _logger.LogWarning("Failed to load rare achievements: {Error}", rareResult.Error);
             }
 
             // Load recommendations
-            var recommendations = await _achievementService.GetRecommendationsAsync(userId);
+            var recommendationsResult = await _achievementService.GetRecommendationsAsync(userId);
             Recommendations.Clear();
-            foreach (var r in recommendations)
+            if (recommendationsResult.IsSuccess && recommendationsResult.Value is not null)
             {
-                Recommendations.Add(new AchievementRecommendationViewModel(r));
+                foreach (var r in recommendationsResult.Value)
+                {
+                    Recommendations.Add(new AchievementRecommendationViewModel(r));
+                }
+            }
+            else
+            {
+                _logger.LogWarning("Failed to load achievement recommendations: {Error}", recommendationsResult.Error);
             }
         }
         catch (Exception ex)

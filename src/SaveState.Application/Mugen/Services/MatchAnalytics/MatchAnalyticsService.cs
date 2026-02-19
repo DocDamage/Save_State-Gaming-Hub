@@ -33,7 +33,7 @@ public class MatchAnalyticsService : IMatchAnalyticsService
 
         // Initialize engines
         _matchDataEngine = new MatchDataEngine(loggerFactory.CreateLogger<MatchDataEngine>());
-        _statisticEngine = new StatisticEngine(loggerFactory.CreateLogger<StatisticEngine>());
+        _statisticEngine = new StatisticEngine(loggerFactory.CreateLogger<StatisticEngine>(), _timeProvider);
         _patternEngine = new PatternEngine(loggerFactory.CreateLogger<PatternEngine>());
         _visualizationEngine = new VisualizationEngine(loggerFactory.CreateLogger<VisualizationEngine>());
         _reportingEngine = new ReportingEngine(

@@ -87,11 +87,11 @@ public class SyncServiceTests
             return Task.FromResult(true);
         }
 
-        public Task<bool> UploadFileAsync(string localPath, string remotePath, CancellationToken ct = default)
-            => Task.FromResult(true);
+        public Task<Result<bool>> UploadFileAsync(string localPath, string remotePath, CancellationToken ct = default)
+            => Task.FromResult(Result.Success(true));
 
-        public Task<bool> DownloadFileAsync(string remotePath, string localPath, CancellationToken ct = default)
-            => Task.FromResult(true);
+        public Task<Result<bool>> DownloadFileAsync(string remotePath, string localPath, CancellationToken ct = default)
+            => Task.FromResult(Result.Success(true));
 
         public Task<bool> DeleteFileAsync(string remotePath, CancellationToken ct = default)
             => Task.FromResult(true);

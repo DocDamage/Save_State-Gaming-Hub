@@ -275,9 +275,10 @@ public class MultiplayerService
     /// <summary>
     /// Gets active sessions.
     /// </summary>
-    public List<MultiplayerSession> GetActiveSessions()
+    public Result<List<MultiplayerSession>> GetActiveSessions()
     {
-        return _sessions.Values.Where(s => s.IsActive).ToList();
+        var sessions = _sessions.Values.Where(s => s.IsActive).ToList();
+        return Result.Success(sessions);
     }
 }
 

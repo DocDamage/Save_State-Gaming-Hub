@@ -1,3 +1,5 @@
+using SaveState.Core.Common.Services;
+
 namespace SaveState.Application.Mugen.DTOs;
 
 /// <summary>
@@ -16,5 +18,5 @@ public sealed class MugenNetplayLobby
     public bool HasPassword { get; set; }
     public string Description { get; set; } = string.Empty;
     public List<string> Characters { get; set; } = new();
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = SystemTimeProvider.Instance.UtcNow;
 }

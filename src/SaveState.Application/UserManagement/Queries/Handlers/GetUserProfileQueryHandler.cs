@@ -2,6 +2,7 @@ using MediatR;
 using SaveState.Application.Common;
 using SaveState.Core.Common;
 using SaveState.Application.UserManagement.DTOs;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 
 namespace SaveState.Application.UserManagement.Queries.Handlers;
@@ -12,6 +13,13 @@ namespace SaveState.Application.UserManagement.Queries.Handlers;
 /// </summary>
 public class GetUserProfileQueryHandler : IRequestHandler<GetUserProfileQuery, Result<UserProfileDto>>
 {
+    private readonly ITimeProvider _timeProvider;
+
+    public GetUserProfileQueryHandler(ITimeProvider timeProvider)
+    {
+        _timeProvider = timeProvider;
+    }
+
     /// <summary>
     /// Handles the request to get a user's profile information.
     /// </summary>
@@ -20,6 +28,8 @@ public class GetUserProfileQueryHandler : IRequestHandler<GetUserProfileQuery, R
     /// <returns>A result containing the user profile or an error.</returns>
     public Task<Result<UserProfileDto>> Handle(GetUserProfileQuery request, CancellationToken ct)
     {
+        var now = _timeProvider.UtcNow;
+
         // Mock implementation - in a real system, this would query user data from database
         var mockUser = new UserProfileDto
         {
@@ -28,8 +38,8 @@ public class GetUserProfileQueryHandler : IRequestHandler<GetUserProfileQuery, R
             Email = $"user_{request.UserId.Value}@example.com",
             DisplayName = $"User {request.UserId.Value}",
             AvatarUrl = $"/avatars/user_{request.UserId.Value}.png",
-            CreatedAt = DateTime.UtcNow.AddDays(-30),
-            LastLoginAt = DateTime.UtcNow.AddHours(-2),
+            CreatedAt = now.AddDays(-30),
+            LastLoginAt = now.AddHours(-2),
             IsActive = true
         };
 

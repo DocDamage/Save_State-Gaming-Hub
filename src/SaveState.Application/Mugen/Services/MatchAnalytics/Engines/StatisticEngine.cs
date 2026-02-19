@@ -1,6 +1,7 @@
 namespace SaveState.Application.Mugen.Services.MatchAnalytics.Engines;
 
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 
 /// <summary>
 /// Engine for calculating player statistics from match data.
@@ -8,10 +9,12 @@ using Microsoft.Extensions.Logging;
 public class StatisticEngine
 {
     private readonly ILogger<StatisticEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public StatisticEngine(ILogger<StatisticEngine> logger)
+    public StatisticEngine(ILogger<StatisticEngine> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -253,7 +256,7 @@ public class StatisticEngine
             achievements.Add(new AchievementData(
                 Name: "Combo Master",
                 Description: "Execute a 10+ hit combo",
-                UnlockedAt: DateTime.UtcNow, // Use current time as we don't track exact moment
+                UnlockedAt: _timeProvider.UtcNow, // Use current time as we don't track exact moment
                 Rarity: AchievementRarity.Rare
             ));
         }
@@ -269,7 +272,7 @@ public class StatisticEngine
             achievements.Add(new AchievementData(
                 Name: "Flawless Victory",
                 Description: "Win a round without taking damage",
-                UnlockedAt: DateTime.UtcNow,
+                UnlockedAt: _timeProvider.UtcNow,
                 Rarity: AchievementRarity.Epic
             ));
         }
@@ -287,7 +290,7 @@ public class StatisticEngine
             achievements.Add(new AchievementData(
                 Name: "Never Give Up",
                 Description: "Win a match after losing 2+ rounds",
-                UnlockedAt: DateTime.UtcNow,
+                UnlockedAt: _timeProvider.UtcNow,
                 Rarity: AchievementRarity.Epic
             ));
         }

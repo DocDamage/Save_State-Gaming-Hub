@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using SaveState.Application.Common;
 using SaveState.Application.Common.Events;
+using SaveState.Core.Common;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.DomainServices;
@@ -138,7 +139,7 @@ public class ImportGameCommandHandlerTests
         _validationServiceMock.Setup(v => v.IsValidGameAsync(It.IsAny<Game>(), default))
             .ReturnsAsync(false);
         _validationServiceMock.Setup(v => v.GetValidationErrorsAsync(It.IsAny<Game>(), default))
-            .ReturnsAsync(new[] { "Title is required" });
+            .ReturnsAsync(Result.Success<IReadOnlyList<string>>(new[] { "Title is required" }));
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);

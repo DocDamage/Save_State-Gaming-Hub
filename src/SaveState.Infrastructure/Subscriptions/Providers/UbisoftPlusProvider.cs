@@ -35,9 +35,9 @@ public sealed class UbisoftPlusProvider : ISubscriptionProvider
     }
 
     /// <inheritdoc />
-    public async Task<SubscriptionServiceInfo> GetServiceInfoAsync(CancellationToken ct = default)
+    public Task<Result<SubscriptionServiceInfo>> GetServiceInfoAsync(CancellationToken ct = default)
     {
-        return new SubscriptionServiceInfo
+        var serviceInfo = new SubscriptionServiceInfo
         {
             Id = "ubisoft-plus",
             Type = SubscriptionServiceType.UbisoftPlus,
@@ -57,6 +57,7 @@ public sealed class UbisoftPlusProvider : ISubscriptionProvider
                 new() { Name = "Cloud Gaming", Description = "Via Amazon Luna", IsIncluded = true }
             }
         };
+        return Task.FromResult(Result.Success(serviceInfo));
     }
 
     /// <inheritdoc />

@@ -10,6 +10,7 @@ using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.ValueObjects;
 using SaveState.Core.GameLibrary.DomainServices;
 using SaveState.Application.Common.Events;
+using SaveState.Core.Common;
 using SaveState.Core.Common.ValueObjects;
 using Xunit;
 
@@ -235,7 +236,7 @@ public class EdgeCaseTests
         _validationServiceMock.Setup(v => v.IsValidGameAsync(It.IsAny<Game>(), default))
             .ReturnsAsync(false);
         _validationServiceMock.Setup(v => v.GetValidationErrorsAsync(It.IsAny<Game>(), default))
-            .ReturnsAsync(new[] { "Invalid game title", "Missing required metadata" });
+            .ReturnsAsync(Result.Success<IReadOnlyList<string>>(new[] { "Invalid game title", "Missing required metadata" }));
 
         var handler = new SaveState.Application.GameLibrary.Commands.Handlers.ImportGameCommandHandler(
             _gameRepositoryMock.Object,

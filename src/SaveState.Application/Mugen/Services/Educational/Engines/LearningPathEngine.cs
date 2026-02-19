@@ -2,17 +2,21 @@ namespace SaveState.Application.Mugen.Services.Educational.Engines;
 
 using Microsoft.Extensions.Logging;
 using SaveState.Application.Mugen.Models.Educational;
+using SaveState.Core.Common.Services;
 
 public class LearningPathEngine
 {
     private readonly ILogger<LearningPathEngine> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, LearningPath> _learningPaths;
 
     public LearningPathEngine(
         ILogger<LearningPathEngine> logger,
+        ITimeProvider timeProvider,
         Dictionary<string, LearningPath> learningPaths)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         _learningPaths = learningPaths;
     }
 
@@ -40,6 +44,7 @@ public class LearningPathEngine
     public void InitializeDefaultLearningPaths()
     {
         _logger.LogInformation("Initializing default learning paths");
+        var now = _timeProvider.UtcNow;
 
         var beginnerPath = new LearningPath
         {
@@ -74,8 +79,8 @@ public class LearningPathEngine
             Prerequisites = new List<string>().AsReadOnly(),
             SkillsCovered = new List<string> { "Movement", "Basic Attacks", "Blocking", "Defense" }.AsReadOnly(),
             AuthorId = "system",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = now,
+            UpdatedAt = now,
             EnrollmentCount = 0,
             CompletionRate = 0
         };
@@ -113,8 +118,8 @@ public class LearningPathEngine
             Prerequisites = new List<string> { "beginner-fundamentals" }.AsReadOnly(),
             SkillsCovered = new List<string> { "Combo Execution", "Timing", "Cancel Techniques" }.AsReadOnly(),
             AuthorId = "system",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = now,
+            UpdatedAt = now,
             EnrollmentCount = 0,
             CompletionRate = 0
         };
@@ -152,8 +157,8 @@ public class LearningPathEngine
             Prerequisites = new List<string> { "intermediate-combos" }.AsReadOnly(),
             SkillsCovered = new List<string> { "Matchup Knowledge", "Mind Games", "Frame Traps" }.AsReadOnly(),
             AuthorId = "system",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = now,
+            UpdatedAt = now,
             EnrollmentCount = 0,
             CompletionRate = 0
         };

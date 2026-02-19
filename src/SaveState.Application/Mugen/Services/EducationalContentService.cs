@@ -45,19 +45,22 @@ public class EducationalContentService : IEducationalContentService
         // Initialize engines
         _contentEngine = new ContentEngine(
             loggerFactory.CreateLogger<ContentEngine>(),
+            _timeProvider,
             _tutorials,
             _strategyGuides,
             _mechanicsGuides);
 
         _learningPathEngine = new LearningPathEngine(
             loggerFactory.CreateLogger<LearningPathEngine>(),
+            _timeProvider,
             _learningPaths);
 
         _progressEngine = new ProgressEngine(
             loggerFactory.CreateLogger<ProgressEngine>());
 
         _assessmentEngine = new AssessmentEngine(
-            loggerFactory.CreateLogger<AssessmentEngine>());
+            loggerFactory.CreateLogger<AssessmentEngine>(),
+            _timeProvider);
 
         _recommendationEngine = new RecommendationEngine(
             loggerFactory.CreateLogger<RecommendationEngine>(),

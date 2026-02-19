@@ -18,10 +18,10 @@ public class MugenRosterService : IMugenRosterService
         _options = options.Value;
     }
 
-    public string? GetSelectDefPath()
+    public Result<string> GetSelectDefPath()
     {
         if (!string.IsNullOrWhiteSpace(_options.SelectDefPath) && File.Exists(_options.SelectDefPath))
-            return _options.SelectDefPath;
+            return Result.Success(_options.SelectDefPath);
 
         var candidates = new[]
         {
@@ -29,14 +29,19 @@ public class MugenRosterService : IMugenRosterService
             Path.Combine("engines", "ikemen", "data", "select.def")
         };
 
-        return candidates.FirstOrDefault(File.Exists);
+        var path = candidates.FirstOrDefault(File.Exists);
+        return string.IsNullOrWhiteSpace(path)
+            ? Result.Failure<string>("select.def not found", ErrorType.NotFound)
+            : Result.Success(path);
     }
 
     public Task<Result<MugenRoster>> LoadRosterAsync(CancellationToken ct = default)
     {
-        var path = GetSelectDefPath();
-        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
-            return Task.FromResult(Result.Failure<MugenRoster>("select.def not found"));
+        var pathResult = GetSelectDefPath();
+        if (pathResult.IsFailure || string.IsNullOrWhiteSpace(pathResult.Value) || !File.Exists(pathResult.Value))
+            return Task.FromResult(Result.Failure<MugenRoster>(pathResult.Error ?? "select.def not found", pathResult.ErrorType));
+
+        var path = pathResult.Value;
 
         var lines = File.ReadAllLines(path);
         var headerLines = new List<string>();
@@ -116,9 +121,11 @@ public class MugenRosterService : IMugenRosterService
 
     public Task<Result> SaveRosterAsync(MugenRoster roster, CancellationToken ct = default)
     {
-        var path = GetSelectDefPath();
-        if (string.IsNullOrWhiteSpace(path))
-            return Task.FromResult(Result.Failure("select.def not found"));
+        var pathResult = GetSelectDefPath();
+        if (pathResult.IsFailure || string.IsNullOrWhiteSpace(pathResult.Value))
+            return Task.FromResult(Result.Failure(pathResult.Error ?? "select.def not found", pathResult.ErrorType));
+
+        var path = pathResult.Value;
 
         var output = new List<string>();
         if (roster.HeaderLines.Count > 0)

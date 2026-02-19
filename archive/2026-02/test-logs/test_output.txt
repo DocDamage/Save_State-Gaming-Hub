@@ -1,0 +1,13 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+C:\Program Files\dotnet\sdk\10.0.100-rc.1.25451.107\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Infrastructure.Tests\SaveState.Infrastructure.Tests.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-rc.1.25451.107\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Tests.Fakes\SaveState.Tests.Fakes.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-rc.1.25451.107\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Sdk\SaveState.Sdk.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-rc.1.25451.107\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\SaveState.Core.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-rc.1.25451.107\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\SaveState.Application.csproj]
+  SaveState.Sdk -> C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Sdk\bin\Debug\net9.0\SaveState.Sdk.dll
+  SaveState.Core -> C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Core\bin\Debug\net9.0\SaveState.Core.dll
+  SaveState.Application -> C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\bin\Debug\net9.0\SaveState.Application.dll
+  SaveState.Infrastructure -> C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Infrastructure\bin\Debug\net9.0\SaveState.Infrastructure.dll
+  SaveState.Tests.Fakes -> C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Tests.Fakes\bin\Debug\net9.0\SaveState.Tests.Fakes.dll
+C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Infrastructure.Tests\Ai\NaturalLanguageGameSearchTests.cs(4,25): error CS0234: The type or namespace name 'Models' does not exist in the namespace 'SaveState.Core.Ai' (are you missing an assembly reference?) [C:\Users\Doc\Desktop\SaveStateReborn\tests\SaveState.Infrastructure.Tests\SaveState.Infrastructure.Tests.csproj]

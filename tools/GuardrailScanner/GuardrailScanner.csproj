@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);CA1502</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\SaveState.Core\SaveState.Core.csproj" />
+    <ProjectReference Include="..\..\src\SaveState.Application\SaveState.Application.csproj" />
+    <ProjectReference Include="..\..\src\SaveState.Infrastructure\SaveState.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

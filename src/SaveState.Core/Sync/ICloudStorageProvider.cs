@@ -25,7 +25,7 @@ public interface ICloudStorageProvider
     /// <summary>
     /// Uploads a file to the cloud storage.
     /// </summary>
-    Task<bool> UploadFileAsync(
+    Task<Result<bool>> UploadFileAsync(
         string localPath,
         string remotePath,
         CancellationToken ct = default);
@@ -33,7 +33,7 @@ public interface ICloudStorageProvider
     /// <summary>
     /// Downloads a file from cloud storage.
     /// </summary>
-    Task<bool> DownloadFileAsync(
+    Task<Result<bool>> DownloadFileAsync(
         string remotePath,
         string localPath,
         CancellationToken ct = default);

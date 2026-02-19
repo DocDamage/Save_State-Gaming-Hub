@@ -25,7 +25,14 @@ public class MetricsHealthCheck : IHealthCheck
     {
         try
         {
-            var snapshot = await _metrics.GetMetricsSnapshotAsync(cancellationToken).ConfigureAwait(false);
+            var snapshotResult = await _metrics.GetMetricsSnapshotAsync(cancellationToken).ConfigureAwait(false);
+            if (snapshotResult.IsFailure || snapshotResult.Value is null)
+            {
+                return HealthCheckResult.Degraded(
+                    $"Failed to retrieve metrics snapshot: {snapshotResult.Error ?? "Unknown error"}");
+            }
+
+            var snapshot = snapshotResult.Value;
 
             // Define health thresholds
             var healthStatus = DetermineOverallHealth(snapshot);

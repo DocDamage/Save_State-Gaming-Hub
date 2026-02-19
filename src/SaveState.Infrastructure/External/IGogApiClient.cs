@@ -1,11 +1,12 @@
 using SaveState.Core.GameLibrary.DTOs;
+using SaveState.Core.Common;
 
 namespace SaveState.Infrastructure.External;
 
 public interface IGogApiClient
 {
-    Task<IReadOnlyList<GogGame>> GetOwnedGamesAsync(CancellationToken ct = default);
-    Task<GameMetadata> GetGameDetailsAsync(string gameId, CancellationToken ct = default);
+    Task<Result<IReadOnlyList<GogGame>>> GetOwnedGamesAsync(CancellationToken ct = default);
+    Task<Result<GameMetadata>> GetGameDetailsAsync(string gameId, CancellationToken ct = default);
     Task<bool> LaunchGameAsync(string gameId, CancellationToken ct = default);
 }
 
