@@ -39,12 +39,12 @@ public interface IShortcutService
     /// <summary>
     /// Loads user-customized shortcuts from storage.
     /// </summary>
-    Task LoadUserCustomizations();
+    Task LoadUserCustomizationsAsync();
 
     /// <summary>
     /// Saves user-customized shortcuts to storage.
     /// </summary>
-    Task SaveUserCustomizations();
+    Task SaveUserCustomizationsAsync();
 
     /// <summary>
     /// Gets the context-specific shortcuts for the given context.

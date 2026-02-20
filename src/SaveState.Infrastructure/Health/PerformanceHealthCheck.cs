@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Monitoring;
 
 namespace SaveState.Infrastructure.Health;
@@ -12,6 +13,7 @@ public class PerformanceHealthCheck : IHealthCheck
 {
     private readonly IApplicationMetrics _metrics;
     private readonly ILogger<PerformanceHealthCheck> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     // Performance thresholds
     private const double MaxAverageResponseTimeSeconds = 5.0;
@@ -24,10 +26,11 @@ public class PerformanceHealthCheck : IHealthCheck
     private static readonly Dictionary<string, PerformanceHistory> _performanceHistory = new();
     private static readonly object _historyLock = new();
 
-    public PerformanceHealthCheck(IApplicationMetrics metrics, ILogger<PerformanceHealthCheck> logger)
+    public PerformanceHealthCheck(IApplicationMetrics metrics, ILogger<PerformanceHealthCheck> logger, ITimeProvider timeProvider)
     {
         _metrics = metrics;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<HealthCheckResult> CheckHealthAsync(
@@ -49,13 +52,13 @@ public class PerformanceHealthCheck : IHealthCheck
             var criticalIssues = new List<string>();
 
             // Evaluate current performance metrics
-            EvaluateCurrentPerformance(snapshot, results, issues, criticalIssues);
+            EvaluateCurrentPerformance(snapshot, results, issues, criticalIssues, _timeProvider);
 
             // Analyze performance trends
             AnalyzePerformanceTrends(snapshot, results, issues, criticalIssues);
 
             // Evaluate system performance
-            EvaluateSystemPerformance(snapshot, results, issues, criticalIssues);
+            EvaluateSystemPerformance(snapshot, results, issues, criticalIssues, _timeProvider);
 
             // Store current metrics for trend analysis
             UpdatePerformanceHistory(snapshot);
@@ -88,7 +91,8 @@ public class PerformanceHealthCheck : IHealthCheck
         MetricsSnapshot snapshot,
         Dictionary<string, object> results,
         List<string> issues,
-        List<string> criticalIssues)
+        List<string> criticalIssues,
+        ITimeProvider timeProvider)
     {
         // Response time check
         var avgResponseTime = snapshot.AverageResponseTime.TotalSeconds;
@@ -132,7 +136,7 @@ public class PerformanceHealthCheck : IHealthCheck
         if (snapshot.TotalRequests >= MinSampleSize)
         {
             // Calculate approximate uptime based on timestamp (assuming metrics are collected regularly)
-            var uptime = DateTime.UtcNow - snapshot.Timestamp;
+            var uptime = timeProvider.UtcNow - snapshot.Timestamp;
             var throughputPerMinute = uptime.TotalMinutes > 0
                 ? snapshot.TotalRequests / uptime.TotalMinutes
                 : snapshot.TotalRequests;
@@ -219,7 +223,8 @@ public class PerformanceHealthCheck : IHealthCheck
         MetricsSnapshot snapshot,
         Dictionary<string, object> results,
         List<string> issues,
-        List<string> criticalIssues)
+        List<string> criticalIssues,
+        ITimeProvider timeProvider)
     {
         // Database performance check
         var avgDbTime = snapshot.AverageDatabaseQueryTime.TotalMilliseconds;

@@ -4,21 +4,25 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Ai.Knowledge;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 public class SemanticKnowledgeClient
 {
     private readonly ILlmProvider _embeddingProvider;
     private readonly IKnowledgeStore _store;
     private readonly ILogger<SemanticKnowledgeClient> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public SemanticKnowledgeClient(
         ILlmProvider embeddingProvider,
         IKnowledgeStore store,
-        ILogger<SemanticKnowledgeClient> logger)
+        ILogger<SemanticKnowledgeClient> logger,
+        ITimeProvider timeProvider)
     {
         _embeddingProvider = embeddingProvider;
         _store = store;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task IndexDocumentAsync(string id, string content, CancellationToken ct)
@@ -34,7 +38,7 @@ public class SemanticKnowledgeClient
                 throw new InvalidOperationException($"Embedding generation failed: {embeddingResult.Error}");
             }
 
-            await _store.UpsertAsync(id, embeddingResult.Value.Embedding, content, new { Source = "Manual", IndexedAt = DateTime.UtcNow }, ct).ConfigureAwait(false);
+            await _store.UpsertAsync(id, embeddingResult.Value.Embedding, content, new { Source = "Manual", IndexedAt = _timeProvider.UtcNow }, ct).ConfigureAwait(false);
 
             _logger.LogInformation("Indexed document {Id} with {DimensionCount} dimensions", id, embeddingResult.Value.Embedding.Length);
         }

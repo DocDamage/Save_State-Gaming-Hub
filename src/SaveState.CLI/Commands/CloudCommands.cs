@@ -6,7 +6,6 @@ namespace SaveState.CLI.Commands;
 
 /// <summary>
 /// Commands for cloud synchronization and backup management.
-/// Note: Full implementation pending service updates.
 /// </summary>
 public class CloudCommands : CommandGroupBase
 {

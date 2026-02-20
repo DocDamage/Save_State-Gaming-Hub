@@ -391,7 +391,7 @@ public partial class GameListItemViewModel : ObservableObject
     {
         if (_navigationService != null)
         {
-            await _navigationService.NavigateTo("Library", GameId);
+            await _navigationService.NavigateToAsync("Library", GameId);
             _logger.LogInformation("Navigating to game detail: {Title} ({GameId})", Title, GameId);
         }
         else

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.Recommendations.DTOs;
 using SaveState.Core.Recommendations.Services;
@@ -16,13 +17,16 @@ public class GameRecommendationService : IGameRecommendationService
 {
     private readonly SaveStateDbContext _context;
     private readonly ILogger<GameRecommendationService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public GameRecommendationService(
         SaveStateDbContext context,
-        ILogger<GameRecommendationService> logger)
+        ILogger<GameRecommendationService> logger,
+        ITimeProvider timeProvider)
     {
         _context = context;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<IReadOnlyList<SmartGameRecommendation>>> GetRecommendationsAsync(
@@ -264,7 +268,7 @@ public class GameRecommendationService : IGameRecommendationService
         priority += entry.Priority * 0.3f;
 
         // Boost for older items
-        var daysInBacklog = (DateTime.UtcNow - entry.AddedAt).Days;
+        var daysInBacklog = (_timeProvider.UtcNow - entry.AddedAt).Days;
         priority += Math.Min(daysInBacklog / 30.0f, 20);
 
         // Boost for shorter games
@@ -297,7 +301,7 @@ public class GameRecommendationService : IGameRecommendationService
 
     private string GenerateBacklogReason(BacklogEntry entry)
     {
-        var daysInBacklog = (DateTime.UtcNow - entry.AddedAt).Days;
+        var daysInBacklog = (_timeProvider.UtcNow - entry.AddedAt).Days;
 
         if (daysInBacklog > 90)
         {

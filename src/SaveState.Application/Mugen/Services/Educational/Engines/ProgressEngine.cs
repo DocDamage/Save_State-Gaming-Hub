@@ -61,7 +61,7 @@ public class ProgressEngine
     /// <summary>
     /// Calculates progress percentage for a specific category.
     /// </summary>
-    public Task<decimal> CalculateCategoryProgress(string userId, string category)
+    public Task<decimal> CalculateCategoryProgressAsync(string userId, string category)
     {
         _logger.LogDebug("Calculating category progress for user {UserId}, category {Category}", userId, category);
 

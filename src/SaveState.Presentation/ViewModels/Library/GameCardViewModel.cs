@@ -96,7 +96,7 @@ public partial class GameCardViewModel : ObservableObject
     private async Task OpenGame()
     {
         // Navigate to game detail view
-        await _navigationService.NavigateTo("Library", GameId);
+        await _navigationService.NavigateToAsync("Library", GameId);
         _logger.LogInformation("Navigating to game detail: {Title} ({GameId})", Title, GameId);
     }
 

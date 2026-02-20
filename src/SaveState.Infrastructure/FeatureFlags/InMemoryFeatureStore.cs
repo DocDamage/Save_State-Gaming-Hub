@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Caching.Memory;
+using SaveState.Core.Common.Services;
 using SaveState.Core.FeatureFlags;
 
 namespace SaveState.Infrastructure.FeatureFlags;
@@ -10,10 +11,12 @@ public class InMemoryFeatureStore : IFeatureStore
 {
     private readonly Dictionary<string, FeatureState> _features = new();
     private readonly IMemoryCache _cache;
+    private readonly ITimeProvider _timeProvider;
 
-    public InMemoryFeatureStore(IMemoryCache cache)
+    public InMemoryFeatureStore(IMemoryCache cache, ITimeProvider timeProvider)
     {
         _cache = cache;
+        _timeProvider = timeProvider;
         
         // Seed with default features
         SeedDefaultFeatures();
@@ -60,10 +63,10 @@ public class InMemoryFeatureStore : IFeatureStore
         if (_features.TryGetValue(featureName, out var feature))
         {
             // Check date restrictions
-            if (feature.StartDate.HasValue && feature.StartDate.Value > DateTime.UtcNow)
+            if (feature.StartDate.HasValue && feature.StartDate.Value > _timeProvider.UtcNow)
                 return Task.FromResult(false);
             
-            if (feature.EndDate.HasValue && feature.EndDate.Value < DateTime.UtcNow)
+            if (feature.EndDate.HasValue && feature.EndDate.Value < _timeProvider.UtcNow)
                 return Task.FromResult(false);
             
             return Task.FromResult(feature.Enabled);

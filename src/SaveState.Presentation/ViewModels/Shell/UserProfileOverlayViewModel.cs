@@ -63,7 +63,7 @@ public partial class UserProfileOverlayViewModel : ObservableObject
     private async Task OpenSettings()
     {
         _overlayService.HideUserProfileOverlay();
-        await _navigationService.NavigateTo("Settings");
+        await _navigationService.NavigateToAsync("Settings");
     }
 
     [RelayCommand]

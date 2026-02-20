@@ -62,7 +62,8 @@ public class AiOrchestratorContextTests
         _knowledgeClient = new SemanticKnowledgeClient(
             _embeddingProviderMock.Object,
             _knowledgeStoreMock.Object,
-            NullLogger<SemanticKnowledgeClient>.Instance);
+            NullLogger<SemanticKnowledgeClient>.Instance,
+            new SystemTimeProvider());
 
         _memoryMock = new Mock<IShortTermMemory>();
         _memoryMock

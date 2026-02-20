@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Configuration;
 using SaveState.Core.Monitoring;
 using SaveState.Infrastructure.Persistence;
@@ -20,6 +21,7 @@ public class DependencyHealthCheck : IHealthCheck
     private readonly ICacheService _cache;
     private readonly IApplicationMetrics _metrics;
     private readonly ILogger<DependencyHealthCheck> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly OpenAiOptions _openAiOptions;
     private readonly GroqOptions _groqOptions;
 
@@ -29,7 +31,8 @@ public class DependencyHealthCheck : IHealthCheck
         IApplicationMetrics metrics,
         ILogger<DependencyHealthCheck> logger,
         IOptions<OpenAiOptions> openAiOptions,
-        IOptions<GroqOptions> groqOptions)
+        IOptions<GroqOptions> groqOptions,
+        ITimeProvider timeProvider)
     {
         _dbContext = dbContext;
         _cache = cache;
@@ -37,6 +40,7 @@ public class DependencyHealthCheck : IHealthCheck
         _logger = logger;
         _openAiOptions = openAiOptions.Value;
         _groqOptions = groqOptions.Value;
+        _timeProvider = timeProvider;
     }
 
     public async Task<HealthCheckResult> CheckHealthAsync(
@@ -160,7 +164,7 @@ public class DependencyHealthCheck : IHealthCheck
         try
         {
             var testKey = $"health-check-{Guid.NewGuid()}";
-            var testValue = $"test-value-{DateTime.UtcNow.Ticks}";
+            var testValue = $"test-value-{_timeProvider.UtcNow.Ticks}";
 
             // Test set operation
             _cache.Set(testKey, testValue, TimeSpan.FromMinutes(1));

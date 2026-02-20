@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Configuration;
 using SaveState.Core.GameLibrary.DTOs;
 
@@ -14,6 +15,7 @@ public class IgdbApiClient : IIgdbApiClient
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IgdbOptions _options;
     private readonly ILogger<IgdbApiClient> _logger;
+    private readonly ITimeProvider _timeProvider;
     private string? _accessToken;
     private DateTime _tokenExpiry = DateTime.MinValue;
 
@@ -21,17 +23,19 @@ public class IgdbApiClient : IIgdbApiClient
         HttpClient httpClient,
         IHttpClientFactory httpClientFactory,
         IOptions<IgdbOptions> options,
-        ILogger<IgdbApiClient> logger)
+        ILogger<IgdbApiClient> logger,
+        ITimeProvider timeProvider)
     {
         _httpClient = httpClient;
         _httpClientFactory = httpClientFactory;
         _options = options.Value;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     private async Task EnsureAccessTokenAsync(CancellationToken ct)
     {
-        if (_accessToken != null && DateTime.UtcNow < _tokenExpiry)
+        if (_accessToken != null && _timeProvider.UtcNow < _tokenExpiry)
         {
             return;
         }
@@ -51,7 +55,7 @@ public class IgdbApiClient : IIgdbApiClient
 
             var json = await response.Content.ReadFromJsonAsync<TwitchAuthResponse>(ct).ConfigureAwait(false);
             _accessToken = json?.AccessToken;
-            _tokenExpiry = DateTime.UtcNow.AddSeconds(json?.ExpiresIn ?? 0).AddMinutes(-5); // Buffer
+            _tokenExpiry = _timeProvider.UtcNow.AddSeconds(json?.ExpiresIn ?? 0).AddMinutes(-5); // Buffer
 
             _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.Add("Client-ID", _options.ClientId);

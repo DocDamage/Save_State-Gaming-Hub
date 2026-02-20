@@ -35,8 +35,11 @@ public class EpicApiClient : IEpicApiClient
 
         try
         {
-            // Note: Epic API endpoints are complex. This is a simplified implementation
-            // showing where the logic would go for a real OAuth-based client.
+            // Note: Epic API requires OAuth 2.0 with PKCE for authentication. This implementation
+            // uses pre-configured tokens. A full implementation would include:
+            // - Device code flow for initial authentication
+            // - Token refresh handling with automatic retry on 401 responses
+            // - Epic's exchange code flow for account linking
             var request = new HttpRequestMessage(HttpMethod.Get, $"https://library-service.live.epicgames.com/library/api/public/items?accountId={_options.AccountId}");
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _options.AuthToken);
 

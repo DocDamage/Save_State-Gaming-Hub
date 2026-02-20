@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Subscriptions;
 
 namespace SaveState.Infrastructure.Subscriptions;
@@ -12,15 +13,17 @@ public sealed class XboxGamePassProvider : ISubscriptionProvider
 {
     private readonly ILogger<XboxGamePassProvider> _logger;
     private readonly HttpClient _httpClient;
+    private readonly ITimeProvider _timeProvider;
     private const string GamePassApiBaseUrl = "https://catalog.gamepass.com/sigls/v2";
     private const string XboxCatalogUrl = "https://displaycatalog.mp.microsoft.com/v7.0/products";
 
     public SubscriptionServiceType ServiceType => SubscriptionServiceType.XboxGamePass;
 
-    public XboxGamePassProvider(ILogger<XboxGamePassProvider> logger, HttpClient httpClient)
+    public XboxGamePassProvider(ILogger<XboxGamePassProvider> logger, HttpClient httpClient, ITimeProvider timeProvider)
     {
         _logger = logger;
         _httpClient = httpClient;
+        _timeProvider = timeProvider;
     }
 
     public Task<bool> IsSubscribedAsync(CancellationToken ct = default)
@@ -73,7 +76,7 @@ public sealed class XboxGamePassProvider : ISubscriptionProvider
             // Mark as leaving soon (typically 14 days)
             foreach (var game in games)
             {
-                game.LeavingSoonDate = DateTime.UtcNow.AddDays(14);
+                game.LeavingSoonDate = _timeProvider.UtcNow.AddDays(14);
             }
             
             return Result.Success<IReadOnlyList<SubscriptionGame>>(games);
@@ -102,7 +105,7 @@ public sealed class XboxGamePassProvider : ISubscriptionProvider
             // Mark as new arrivals
             foreach (var game in games)
             {
-                game.AddedDate = DateTime.UtcNow.AddDays(-new Random().Next(1, 30));
+                game.AddedDate = _timeProvider.UtcNow.AddDays(-new Random().Next(1, 30));
             }
             
             return Result.Success<IReadOnlyList<SubscriptionGame>>(games);

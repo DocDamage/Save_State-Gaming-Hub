@@ -1,6 +1,7 @@
 using SaveState.Core.Mugen.Services;
 using SaveState.Core.Mugen.ValueObjects;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -16,16 +17,19 @@ public class MugenSoundDesignStudio : IMugenSoundDesignStudio
 {
     private readonly ILogger<MugenSoundDesignStudio> _logger;
     private readonly MugenOptions _options;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, AudioPreset> _presets = new();
     private SoundStudioStatus _currentStatus;
     private bool _isInitialized;
 
     public MugenSoundDesignStudio(
         ILogger<MugenSoundDesignStudio> logger,
-        IOptions<MugenOptions> options)
+        IOptions<MugenOptions> options,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _options = options.Value;
+        _timeProvider = timeProvider;
         _currentStatus = new SoundStudioStatus();
     }
 
@@ -420,7 +424,7 @@ public class MugenSoundDesignStudio : IMugenSoundDesignStudio
             {
                 CurrentStatus = _currentStatus,
                 Presets = _presets.Values.ToList(),
-                ExportedAt = DateTime.UtcNow
+                ExportedAt = _timeProvider.UtcNow
             };
 
             var json = JsonSerializer.Serialize(config, new JsonSerializerOptions

@@ -52,7 +52,7 @@ public partial class VoiceCommandViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task StartListening()
+    public async Task StartListeningAsync()
     {
         try
         {
@@ -77,7 +77,7 @@ public partial class VoiceCommandViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task StopListening()
+    public async Task StopListeningAsync()
     {
         try
         {
@@ -102,7 +102,7 @@ public partial class VoiceCommandViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task RegisterCommand(VoiceCommandDefinition command)
+    public async Task RegisterCommandAsync(VoiceCommandDefinition command)
     {
         try
         {
@@ -124,7 +124,7 @@ public partial class VoiceCommandViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task UnregisterCommand(string commandPhrase)
+    public async Task UnregisterCommandAsync(string commandPhrase)
     {
         try
         {
@@ -146,7 +146,7 @@ public partial class VoiceCommandViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task ClearHistory()
+    public async Task ClearHistoryAsync()
     {
         CommandHistory.Clear();
         await _notificationService.ShowNotificationAsync("Command history cleared", "Success");

@@ -82,7 +82,7 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
         // Subscribe to natural language search requests
         WeakReferenceMessenger.Default.Register<SaveState.Presentation.Messages.NaturalLanguageSearchRequestedMessage>(this, (r, m) =>
         {
-            _ = ExecuteNaturalLanguageSearch(m.Value);
+            _ = ExecuteNaturalLanguageSearchAsync(m.Value);
         });
 
         // Set default view
@@ -111,7 +111,7 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
         LibraryViewModel = null!;
     }
 
-    public async Task ExecuteNaturalLanguageSearch(string query)
+    public async Task ExecuteNaturalLanguageSearchAsync(string query)
     {
          _logger.LogInformation("Executing natural language search: {Query}", query);
          try
@@ -135,7 +135,7 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
     }
 
     // INavigationAware implementation
-    public async Task OnNavigatedTo(object? parameter)
+    public async Task OnNavigatedToAsync(object? parameter)
     {
         if (parameter is GameId gameId)
         {
@@ -149,7 +149,7 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
         }
     }
 
-    public Task OnNavigatedFrom()
+    public Task OnNavigatedFromAsync()
     {
         // Cleanup if needed
         return Task.CompletedTask;

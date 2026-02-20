@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.CharacterFrameAnalysis;
 using SaveState.Core.Mugen.CharacterFrameAnalysis.Services;
 using SaveState.Infrastructure.Persistence;
@@ -17,17 +18,20 @@ public class FrameDataService : IFrameDataService
     private readonly IMemoryCache _cache;
     private readonly ILogger<FrameDataService> _logger;
     private readonly FrameDataAnalyzer _analyzer;
+    private readonly ITimeProvider _timeProvider;
     private readonly TimeSpan _cacheDuration = TimeSpan.FromHours(1);
 
     public FrameDataService(
         SaveStateDbContext dbContext,
         IMemoryCache cache,
-        ILogger<FrameDataService> logger)
+        ILogger<FrameDataService> logger,
+        ITimeProvider timeProvider)
     {
         _dbContext = dbContext;
         _cache = cache;
         _logger = logger;
         _analyzer = new FrameDataAnalyzer();
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<CharacterFrameData>> LoadFrameDataAsync(string characterPath, CancellationToken ct = default)
@@ -95,7 +99,7 @@ public class FrameDataService : IFrameDataService
             if (existing != null)
             {
                 // Update existing
-                existing.LastUpdated = DateTime.UtcNow;
+                existing.LastUpdated = _timeProvider.UtcNow;
                 existing.Health = frameData.Health;
                 existing.WalkSpeed = frameData.WalkSpeed;
                 existing.BackWalkSpeed = frameData.BackWalkSpeed;
@@ -114,7 +118,7 @@ public class FrameDataService : IFrameDataService
                 {
                     CharacterName = frameData.CharacterName,
                     Version = frameData.Version,
-                    LastUpdated = DateTime.UtcNow,
+                    LastUpdated = _timeProvider.UtcNow,
                     Health = frameData.Health,
                     WalkSpeed = frameData.WalkSpeed,
                     BackWalkSpeed = frameData.BackWalkSpeed,

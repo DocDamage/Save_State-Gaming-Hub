@@ -1,5 +1,6 @@
 using Avalonia.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Presentation.Services;
 
@@ -9,12 +10,14 @@ namespace SaveState.Presentation.Services;
 public class ShortcutService : IShortcutService
 {
     private readonly ILogger<ShortcutService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<KeyGesture, ShortcutBinding> _globalShortcuts = new();
     private readonly Dictionary<string, Dictionary<KeyGesture, ShortcutBinding>> _contextualShortcuts = new();
 
-    public ShortcutService(ILogger<ShortcutService> logger)
+    public ShortcutService(ILogger<ShortcutService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <inheritdoc />
@@ -87,7 +90,7 @@ public class ShortcutService : IShortcutService
     }
 
     /// <inheritdoc />
-    public async Task LoadUserCustomizations()
+    public async Task LoadUserCustomizationsAsync()
     {
         try
         {
@@ -135,7 +138,7 @@ public class ShortcutService : IShortcutService
     }
 
     /// <inheritdoc />
-    public async Task SaveUserCustomizations()
+    public async Task SaveUserCustomizationsAsync()
     {
         try
         {
@@ -148,7 +151,7 @@ public class ShortcutService : IShortcutService
                     Context = kvp.Value.Context,
                     CustomKeyGesture = kvp.Key.ToString() // Store current gesture
                 }).ToList(),
-                LastModified = DateTime.UtcNow
+                LastModified = _timeProvider.UtcNow
             };
 
             var json = System.Text.Json.JsonSerializer.Serialize(customizations, new System.Text.Json.JsonSerializerOptions

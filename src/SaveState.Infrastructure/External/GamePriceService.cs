@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using System.Text.Json;
 
 namespace SaveState.Infrastructure.External;
@@ -35,6 +36,7 @@ public sealed partial class GamePriceService : IGamePriceService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<GamePriceService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly string? _apiKey;
     private readonly Dictionary<string, (GamePriceData Data, DateTime Cached)> _priceCache = new();
     private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(6);
@@ -43,10 +45,12 @@ public sealed partial class GamePriceService : IGamePriceService
 
     public GamePriceService(
         HttpClient httpClient,
-        ILogger<GamePriceService> logger)
+        ILogger<GamePriceService> logger,
+        ITimeProvider timeProvider)
     {
         _httpClient = httpClient;
         _logger = logger;
+        _timeProvider = timeProvider;
 
         // Get API key from environment variable
         _apiKey = Environment.GetEnvironmentVariable("ITAD_API_KEY");
@@ -70,7 +74,7 @@ public sealed partial class GamePriceService : IGamePriceService
             // Check cache
             var cacheKey = gameTitle.ToLowerInvariant().Trim();
             if (_priceCache.TryGetValue(cacheKey, out var cached) &&
-                DateTime.UtcNow - cached.Cached < CacheDuration)
+                _timeProvider.UtcNow - cached.Cached < CacheDuration)
             {
                 LogCacheHit(_logger, gameTitle);
                 return Result.Success(cached.Data);
@@ -111,7 +115,7 @@ public sealed partial class GamePriceService : IGamePriceService
             }
 
             // Cache the result
-            _priceCache[cacheKey] = (priceData, DateTime.UtcNow);
+            _priceCache[cacheKey] = (priceData, _timeProvider.UtcNow);
 
             LogPriceFound(_logger, gameTitle, priceData.CurrentPrice, priceData.StoreName);
             return Result.Success(priceData);

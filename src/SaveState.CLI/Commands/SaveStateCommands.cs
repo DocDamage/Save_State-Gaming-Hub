@@ -229,7 +229,7 @@ public class SaveStateCommands : CommandGroupBase
                 }
             }
 
-            // Note: Auto-save configuration would need to be implemented in the application layer
+
             AnsiConsole.MarkupLine($"[green]Auto-save configured for game {gameId} (placeholder)[/]");
             AnsiConsole.MarkupLine($"[dim]Interval: {interval?.ToString() ?? "default"}[/]");
             AnsiConsole.MarkupLine($"[dim]Max saves: {maxSaves}[/]");
@@ -247,7 +247,7 @@ public class SaveStateCommands : CommandGroupBase
                 return;
             }
 
-            // Note: Auto-save status would need to be implemented in the application layer
+
             AnsiConsole.MarkupLine($"[yellow]Auto-save status for game {gameId}: Feature not yet implemented[/]");
         }, autosaveStatusGameArgument);
 
@@ -262,7 +262,7 @@ public class SaveStateCommands : CommandGroupBase
                 return;
             }
 
-            // Note: Auto-save enable would need to be implemented in the application layer
+
             AnsiConsole.MarkupLine($"[green]Auto-save enabled for game {gameId} (placeholder)[/]");
         }, autosaveEnableGameArgument);
 
@@ -277,7 +277,7 @@ public class SaveStateCommands : CommandGroupBase
                 return;
             }
 
-            // Note: Auto-save disable would need to be implemented in the application layer
+
             AnsiConsole.MarkupLine($"[green]Auto-save disabled for game {gameId} (placeholder)[/]");
         }, autosaveDisableGameArgument);
 

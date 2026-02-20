@@ -6,7 +6,6 @@ namespace SaveState.CLI.Commands;
 
 /// <summary>
 /// Commands for social features, friends, and leaderboards.
-/// Note: Full implementation pending service updates.
 /// </summary>
 public class SocialCommands : CommandGroupBase
 {

@@ -81,7 +81,7 @@ public partial class AdvancedAnalyticsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task RefreshAnalytics()
+    public async Task RefreshAnalyticsAsync()
     {
         try
         {
@@ -104,14 +104,14 @@ public partial class AdvancedAnalyticsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task ChangeYear(int year)
+    public async Task ChangeYearAsync(int year)
     {
         SelectedYear = year;
         await LoadHeatmapAsync();
     }
 
     [RelayCommand]
-    public async Task ExportAnalytics()
+    public async Task ExportAnalyticsAsync()
     {
         try
         {

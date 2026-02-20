@@ -56,11 +56,6 @@ public sealed class UpdateSaveStateMetadataCommandHandler : IRequestHandler<Upda
             saveState.MarkAsCurrent(request.IsCurrent.Value);
         }
 
-        // Note: The 'Notes' property isn't explicitly on the SaveState entity but was in the dialog result.
-        // For now, we update description if notes are provided but description is null, or just ignore if not in entity.
-        // Looking at SaveState.cs, it has Description but no dedicated Notes field. We can append to description or ignore.
-        // Since we want "No Placeholders", let's check SaveState.cs again for any other field.
-
         await _repository.UpdateAsync(saveState, ct);
         return Result.Success();
     }

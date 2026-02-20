@@ -4,6 +4,7 @@ using System.Xml.Linq;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Interfaces;
+using SaveState.Core.Common.Services;
 using SaveState.Core.RomManagement;
 using SaveState.Core.RomManagement.Entities;
 using SaveState.Core.RomManagement.RomValidation;
@@ -22,19 +23,22 @@ public class RomValidationService : IRomValidationService
     private readonly IRomHashInfoRepository _hashRepository;
     private readonly IRomValidationReportRepository _reportRepository;
     private readonly ILogger<RomValidationService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public RomValidationService(
         IFileSystem fileSystem,
         IRomFileRepository romRepository,
         IRomHashInfoRepository hashRepository,
         IRomValidationReportRepository reportRepository,
-        ILogger<RomValidationService> logger)
+        ILogger<RomValidationService> logger,
+        ITimeProvider timeProvider)
     {
         _fileSystem = fileSystem;
         _romRepository = romRepository;
         _hashRepository = hashRepository;
         _reportRepository = reportRepository;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <inheritdoc />
@@ -288,7 +292,7 @@ public class RomValidationService : IRomValidationService
             _logger.LogInformation("Starting batch validation job: {JobName}", job.Name);
 
             job.Status = JobStatus.Running;
-            job.StartedAt = DateTime.UtcNow;
+            job.StartedAt = _timeProvider.UtcNow;
 
             IEnumerable<RomFile> roms;
             if (job.RomFileIds.Any())
@@ -347,7 +351,7 @@ public class RomValidationService : IRomValidationService
             }
 
             job.Status = JobStatus.Completed;
-            job.CompletedAt = DateTime.UtcNow;
+            job.CompletedAt = _timeProvider.UtcNow;
 
             _logger.LogInformation(
                 "Batch validation job completed: {Processed}/{Total} ROMs validated",

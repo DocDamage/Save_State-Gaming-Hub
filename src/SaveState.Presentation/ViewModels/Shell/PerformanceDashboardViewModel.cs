@@ -126,7 +126,7 @@ public partial class PerformanceDashboardViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task ForceGarbageCollection()
+    public async Task ForceGarbageCollectionAsync()
     {
         try
         {
@@ -182,7 +182,7 @@ public partial class PerformanceDashboardViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task ExportMetrics()
+    public async Task ExportMetricsAsync()
     {
         try
         {

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Automation.Services;
 using SaveState.Core.Automation.Services.DTOs;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Core.Sync;
 using Microsoft.Extensions.Options;
@@ -20,18 +21,21 @@ public class AutomationWorker : BackgroundService
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<AutomationWorker> _logger;
     private readonly ISessionTrackingService _sessionTracking;
+    private readonly ITimeProvider _timeProvider;
     private readonly CloudSyncOptions _options;
 
     public AutomationWorker(
         IServiceProvider serviceProvider,
         ILogger<AutomationWorker> logger,
         IOptions<CloudSyncOptions> options,
-        ISessionTrackingService sessionTracking)
+        ISessionTrackingService sessionTracking,
+        ITimeProvider timeProvider)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
         _options = options.Value;
         _sessionTracking = sessionTracking;
+        _timeProvider = timeProvider;
 
         _sessionTracking.SessionEnded += OnSessionEnded;
     }
@@ -104,7 +108,7 @@ public class AutomationWorker : BackgroundService
         var allSchedules = await scheduler.GetAllSchedulesAsync(ct).ConfigureAwait(false);
         if (!allSchedules.IsSuccess) return;
 
-        var now = DateTime.UtcNow;
+        var now = _timeProvider.UtcNow;
 
         foreach (var schedule in allSchedules.Value.Where(s => s.IsEnabled))
         {

@@ -3,6 +3,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.SmartLauncher;
 
@@ -16,6 +17,7 @@ public sealed class SmartLauncherHotkeyService : ISmartLauncherHotkeyService, ID
     private readonly IGameRepository _gameRepository;
     private readonly IOptions<SmartLauncherHotkeyConfig> _config;
     private readonly ILogger<SmartLauncherHotkeyService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<Guid, string> _gameHotkeys = new();
     private readonly Dictionary<string, Guid> _hotkeyToGame = new();
     private bool _isDisposed;
@@ -23,11 +25,13 @@ public sealed class SmartLauncherHotkeyService : ISmartLauncherHotkeyService, ID
     public SmartLauncherHotkeyService(
         IGameRepository gameRepository,
         IOptions<SmartLauncherHotkeyConfig> config,
-        ILogger<SmartLauncherHotkeyService> logger)
+        ILogger<SmartLauncherHotkeyService> logger,
+        ITimeProvider timeProvider)
     {
         _gameRepository = gameRepository ?? throw new ArgumentNullException(nameof(gameRepository));
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     /// <inheritdoc />
@@ -159,7 +163,7 @@ public sealed class SmartLauncherHotkeyService : ISmartLauncherHotkeyService, ID
                     GameId = gameId,
                     GameName = game?.Title ?? "Unknown",
                     Hotkey = hotkey,
-                    AssignedAt = DateTime.UtcNow // Would be stored in DB
+                    AssignedAt = _timeProvider.UtcNow // Would be stored in DB
                 });
             }
 

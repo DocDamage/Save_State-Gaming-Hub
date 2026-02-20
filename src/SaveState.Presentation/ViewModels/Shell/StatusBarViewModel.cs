@@ -195,18 +195,18 @@ public partial class StatusBarViewModel : ObservableObject, IDisposable
     /// Navigates to the library tab.
     /// </summary>
     [RelayCommand]
-    public async Task NavigateToLibrary()
+    public async Task NavigateToLibraryAsync()
     {
-        await _navigationService.NavigateTo("Library");
+        await _navigationService.NavigateToAsync("Library");
     }
 
     /// <summary>
     /// Navigates to the analytics tab.
     /// </summary>
     [RelayCommand]
-    public async Task NavigateToAnalytics()
+    public async Task NavigateToAnalyticsAsync()
     {
-        await _navigationService.NavigateTo("Analytics");
+        await _navigationService.NavigateToAsync("Analytics");
     }
 
     /// <summary>

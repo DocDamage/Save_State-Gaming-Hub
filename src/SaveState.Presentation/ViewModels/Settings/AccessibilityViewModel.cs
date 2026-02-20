@@ -101,7 +101,7 @@ public partial class AccessibilityViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task ToggleScreenReader()
+    public async Task ToggleScreenReaderAsync()
     {
         try
         {
@@ -124,7 +124,7 @@ public partial class AccessibilityViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task ToggleTextToSpeech()
+    public async Task ToggleTextToSpeechAsync()
     {
         try
         {
@@ -147,7 +147,7 @@ public partial class AccessibilityViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task ToggleHighContrast()
+    public async Task ToggleHighContrastAsync()
     {
         try
         {
@@ -170,7 +170,7 @@ public partial class AccessibilityViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task ApplyColorBlindMode()
+    public async Task ApplyColorBlindModeAsync()
     {
         try
         {
@@ -192,7 +192,7 @@ public partial class AccessibilityViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task ApplyUIScale()
+    public async Task ApplyUIScaleAsync()
     {
         try
         {
@@ -206,7 +206,7 @@ public partial class AccessibilityViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task ApplyFontSize()
+    public async Task ApplyFontSizeAsync()
     {
         try
         {
@@ -220,7 +220,7 @@ public partial class AccessibilityViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task ToggleReduceMotion()
+    public async Task ToggleReduceMotionAsync()
     {
         try
         {
@@ -243,7 +243,7 @@ public partial class AccessibilityViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task ResetToDefaults()
+    public async Task ResetToDefaultsAsync()
     {
         try
         {

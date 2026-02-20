@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Performance.Services;
 using System.Diagnostics;
 using System.Management;
@@ -13,6 +14,7 @@ namespace SaveState.Infrastructure.Performance;
 public class SystemResourceManager : ISystemResourceManager
 {
     private readonly ILogger<SystemResourceManager> _logger;
+    private readonly ITimeProvider _timeProvider;
     private OptimizationState _currentState = OptimizationState.Normal;
     private OptimizationProfile? _appliedProfile;
     private readonly List<ProcessRestoreInfo> _closedProcesses = new();
@@ -57,9 +59,10 @@ public class SystemResourceManager : ISystemResourceManager
         }
     }
 
-    public SystemResourceManager(ILogger<SystemResourceManager> logger)
+    public SystemResourceManager(ILogger<SystemResourceManager> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<SystemAnalysis>> AnalyzeSystemAsync(CancellationToken ct = default)
@@ -463,12 +466,12 @@ public class SystemResourceManager : ISystemResourceManager
     {
         try
         {
-            var startTime = DateTime.UtcNow;
+            var startTime = _timeProvider.UtcNow;
             var startCpu = Process.GetCurrentProcess().TotalProcessorTime;
 
             await Task.Delay(100, ct);
 
-            var endTime = DateTime.UtcNow;
+            var endTime = _timeProvider.UtcNow;
             var endCpu = Process.GetCurrentProcess().TotalProcessorTime;
 
             var cpuUsed = (endCpu - startCpu).TotalMilliseconds;

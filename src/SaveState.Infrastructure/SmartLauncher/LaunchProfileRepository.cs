@@ -3,6 +3,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.SmartLauncher;
 using SaveState.Infrastructure.Persistence;
 
@@ -15,11 +16,13 @@ public sealed class LaunchProfileRepository : ILaunchProfileRepository
 {
     private readonly SaveStateDbContext _dbContext;
     private readonly ILogger<LaunchProfileRepository> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public LaunchProfileRepository(SaveStateDbContext dbContext, ILogger<LaunchProfileRepository> logger)
+    public LaunchProfileRepository(SaveStateDbContext dbContext, ILogger<LaunchProfileRepository> logger, ITimeProvider timeProvider)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     /// <inheritdoc />
@@ -142,7 +145,7 @@ public sealed class LaunchProfileRepository : ILaunchProfileRepository
             if (profile != null)
             {
                 profile.IsActive = false;
-                profile.ModifiedAt = DateTime.UtcNow;
+                profile.ModifiedAt = _timeProvider.UtcNow;
                 await _dbContext.SaveChangesAsync(ct);
                 _logger.LogInformation("Deleted launch profile {ProfileId}", profileId);
             }

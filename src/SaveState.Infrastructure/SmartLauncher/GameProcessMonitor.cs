@@ -2,6 +2,7 @@
 
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.SmartLauncher;
 
 namespace SaveState.Infrastructure.SmartLauncher;
@@ -12,6 +13,7 @@ namespace SaveState.Infrastructure.SmartLauncher;
 public sealed class GameProcessMonitor : IGameProcessMonitor, IDisposable
 {
     private readonly ILogger<GameProcessMonitor> _logger;
+    private readonly ITimeProvider _timeProvider;
     private Process? _gameProcess;
     private Guid _sessionId;
     private readonly List<double> _cpuReadings = new();
@@ -22,9 +24,10 @@ public sealed class GameProcessMonitor : IGameProcessMonitor, IDisposable
 
     public event EventHandler<GameProcessExitedEventArgs>? ProcessExited;
 
-    public GameProcessMonitor(ILogger<GameProcessMonitor> logger)
+    public GameProcessMonitor(ILogger<GameProcessMonitor> logger, ITimeProvider timeProvider)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         _metricsTimer = new System.Timers.Timer(1000); // 1 second interval
         _metricsTimer.Elapsed += async (s, e) => await CollectMetricsAsync();
     }
@@ -36,7 +39,7 @@ public sealed class GameProcessMonitor : IGameProcessMonitor, IDisposable
         {
             _gameProcess = Process.GetProcessById(processId);
             _sessionId = sessionId;
-            _monitoringStartTime = DateTime.UtcNow;
+            _monitoringStartTime = _timeProvider.UtcNow;
             _isMonitoring = true;
 
             // Enable performance counters
@@ -133,7 +136,7 @@ public sealed class GameProcessMonitor : IGameProcessMonitor, IDisposable
                 SessionId = _sessionId,
                 ProcessId = _gameProcess?.Id ?? 0,
                 ExitCode = exitCode,
-                ExitTime = DateTime.UtcNow
+                ExitTime = _timeProvider.UtcNow
             });
 
             _logger.LogInformation("Game process exited with code {ExitCode} for session {SessionId}",

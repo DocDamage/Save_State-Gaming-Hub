@@ -394,7 +394,7 @@ public partial class CommandPaletteViewModel : ObservableObject
         }
 
         ct.ThrowIfCancellationRequested();
-        await _navigationService.NavigateTo(tabName);
+        await _navigationService.NavigateToAsync(tabName);
         return Result.Success();
     }
 

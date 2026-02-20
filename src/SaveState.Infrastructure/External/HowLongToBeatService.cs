@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -27,6 +28,7 @@ public sealed partial class HowLongToBeatService : IHowLongToBeatService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<HowLongToBeatService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, HowLongToBeatData> _cache = new();
     private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(24);
     private readonly Dictionary<string, DateTime> _cacheTimestamps = new();
@@ -36,10 +38,12 @@ public sealed partial class HowLongToBeatService : IHowLongToBeatService
 
     public HowLongToBeatService(
         HttpClient httpClient,
-        ILogger<HowLongToBeatService> logger)
+        ILogger<HowLongToBeatService> logger,
+        ITimeProvider timeProvider)
     {
         _httpClient = httpClient;
         _logger = logger;
+        _timeProvider = timeProvider;
 
         // Set up headers to mimic browser request
         _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
@@ -55,7 +59,7 @@ public sealed partial class HowLongToBeatService : IHowLongToBeatService
             var cacheKey = gameTitle.ToLowerInvariant().Trim();
             if (_cache.TryGetValue(cacheKey, out var cached) &&
                 _cacheTimestamps.TryGetValue(cacheKey, out var timestamp) &&
-                DateTime.UtcNow - timestamp < CacheDuration)
+                _timeProvider.UtcNow - timestamp < CacheDuration)
             {
                 LogCacheHit(_logger, gameTitle);
                 return Result.Success(cached);
@@ -126,7 +130,7 @@ public sealed partial class HowLongToBeatService : IHowLongToBeatService
 
             // Cache the result
             _cache[cacheKey] = result;
-            _cacheTimestamps[cacheKey] = DateTime.UtcNow;
+            _cacheTimestamps[cacheKey] = _timeProvider.UtcNow;
 
             LogSearchSuccess(_logger, gameTitle, result.Title);
             return Result.Success(result);

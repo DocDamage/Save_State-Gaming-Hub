@@ -216,7 +216,7 @@ public class ContentEngine
     /// <summary>
     /// Gets a strategy guide by ID.
     /// </summary>
-    public Task<StrategyGuide?> GetStrategyGuide(string guideId, CancellationToken ct = default)
+    public Task<StrategyGuide?> GetStrategyGuideAsync(string guideId, CancellationToken ct = default)
     {
         _logger.LogDebug("Getting strategy guide {GuideId}", guideId);
         _strategyGuides.TryGetValue(guideId, out var guide);
@@ -226,7 +226,7 @@ public class ContentEngine
     /// <summary>
     /// Gets a mechanics guide by topic.
     /// </summary>
-    public Task<MechanicsGuide?> GetMechanicsGuide(string topic, CancellationToken ct = default)
+    public Task<MechanicsGuide?> GetMechanicsGuideAsync(string topic, CancellationToken ct = default)
     {
         _logger.LogDebug("Getting mechanics guide for topic {Topic}", topic);
         _mechanicsGuides.TryGetValue(topic, out var guide);

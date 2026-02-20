@@ -1,9 +1,17 @@
 using SaveState.Core.Common.Interfaces;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Infrastructure.Services;
 
 public class ProcessLauncher : IProcessLauncher
 {
+    private readonly ITimeProvider _timeProvider;
+
+    public ProcessLauncher(ITimeProvider timeProvider)
+    {
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
+    }
+
     public async Task<ProcessInfo> LaunchAsync(LaunchConfiguration config, CancellationToken ct = default)
     {
         var startInfo = new System.Diagnostics.ProcessStartInfo
@@ -27,7 +35,7 @@ public class ProcessLauncher : IProcessLauncher
         {
             ProcessId = process.Id,
             ProcessName = process.ProcessName,
-            StartedAt = DateTime.UtcNow,
+            StartedAt = _timeProvider.UtcNow,
             ExecutablePath = config.ExecutablePath,
             Arguments = string.IsNullOrEmpty(config.Arguments) ? Array.Empty<string>() : config.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries)
         };

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Monitoring;
 using SaveState.Core.Performance.Services;
 using System.Diagnostics;
@@ -13,6 +14,7 @@ public class PerformanceMonitor : IPerformanceMonitor
     private readonly ILogger<PerformanceMonitor> _logger;
     private readonly IApplicationMetrics _metrics;
     private readonly ICachePerformanceMonitor _cacheMonitor;
+    private readonly ITimeProvider _timeProvider;
 
     private Process? _monitoredProcess;
     private Timer? _monitoringTimer;
@@ -30,11 +32,13 @@ public class PerformanceMonitor : IPerformanceMonitor
     public PerformanceMonitor(
         ILogger<PerformanceMonitor> logger,
         IApplicationMetrics metrics,
-        ICachePerformanceMonitor cacheMonitor)
+        ICachePerformanceMonitor cacheMonitor,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _metrics = metrics;
         _cacheMonitor = cacheMonitor;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result> StartMonitoringAsync(int processId, CancellationToken ct = default)
@@ -165,7 +169,7 @@ public class PerformanceMonitor : IPerformanceMonitor
             }
 
             // Gather performance metrics
-            var timestamp = DateTime.UtcNow;
+            var timestamp = _timeProvider.UtcNow;
 
             // FPS calculation (placeholder - would integrate with game overlay)
             var fps = await GetCurrentFpsAsync(ct);
@@ -282,7 +286,7 @@ public class PerformanceMonitor : IPerformanceMonitor
             if (_monitoredProcess == null || _monitoredProcess.HasExited) return 0;
 
             _monitoredProcess.Refresh();
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.UtcNow;
             var totalProcessorTime = _monitoredProcess.TotalProcessorTime;
 
             if (_lastCpuSampleTime == null || _lastCpuTotalProcessorTime == null)

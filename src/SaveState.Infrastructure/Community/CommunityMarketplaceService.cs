@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using System.Collections.Generic;
 
 namespace SaveState.Infrastructure.Community;
@@ -11,12 +12,14 @@ namespace SaveState.Infrastructure.Community;
 public class CommunityMarketplaceService
 {
     private readonly ILogger<CommunityMarketplaceService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, MarketplaceItem> _items = new();
     private readonly Dictionary<string, UserReview> _reviews = new();
 
-    public CommunityMarketplaceService(ILogger<CommunityMarketplaceService> logger)
+    public CommunityMarketplaceService(ILogger<CommunityMarketplaceService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -82,7 +85,7 @@ public class CommunityMarketplaceService
                 description: description,
                 category: category,
                 fileUrl: fileUrl,
-                uploadedAt: DateTime.UtcNow,
+                uploadedAt: _timeProvider.UtcNow,
                 downloads: 0,
                 rating: 0,
                 reviewCount: 0);
@@ -160,7 +163,7 @@ public class CommunityMarketplaceService
                 UserId: userId,
                 Rating: rating,
                 Comment: comment,
-                SubmittedAt: DateTime.UtcNow);
+                SubmittedAt: _timeProvider.UtcNow);
 
             _reviews[review.Id] = review;
 

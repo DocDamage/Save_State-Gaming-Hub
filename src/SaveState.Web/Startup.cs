@@ -138,7 +138,7 @@ public class GameHub : Hub
     /// <summary>
     /// Notifies clients when a game is launched.
     /// </summary>
-    public async Task NotifyGameLaunched(string gameId, string gameName)
+    public async Task NotifyGameLaunchedAsync(string gameId, string gameName)
     {
         await Clients.All.SendAsync("GameLaunched", gameId, gameName);
     }
@@ -146,7 +146,7 @@ public class GameHub : Hub
     /// <summary>
     /// Notifies clients of achievement unlocked.
     /// </summary>
-    public async Task NotifyAchievementUnlocked(string achievementId, string achievementName)
+    public async Task NotifyAchievementUnlockedAsync(string achievementId, string achievementName)
     {
         await Clients.All.SendAsync("AchievementUnlocked", achievementId, achievementName);
     }
@@ -154,7 +154,7 @@ public class GameHub : Hub
     /// <summary>
     /// Notifies clients of save state created.
     /// </summary>
-    public async Task NotifySaveStateCreated(string gameId, string slotNumber)
+    public async Task NotifySaveStateCreatedAsync(string gameId, string slotNumber)
     {
         await Clients.All.SendAsync("SaveStateCreated", gameId, slotNumber);
     }
@@ -168,7 +168,7 @@ public class SyncHub : Hub
     /// <summary>
     /// Starts cloud sync operation.
     /// </summary>
-    public async Task StartSync(string userId)
+    public async Task StartSyncAsync(string userId)
     {
         await Clients.User(userId).SendAsync("SyncStarted");
     }
@@ -176,7 +176,7 @@ public class SyncHub : Hub
     /// <summary>
     /// Reports sync progress.
     /// </summary>
-    public async Task ReportProgress(string userId, double progress)
+    public async Task ReportProgressAsync(string userId, double progress)
     {
         await Clients.User(userId).SendAsync("SyncProgress", progress);
     }
@@ -184,7 +184,7 @@ public class SyncHub : Hub
     /// <summary>
     /// Completes sync operation.
     /// </summary>
-    public async Task CompleteSync(string userId)
+    public async Task CompleteSyncAsync(string userId)
     {
         await Clients.User(userId).SendAsync("SyncCompleted");
     }

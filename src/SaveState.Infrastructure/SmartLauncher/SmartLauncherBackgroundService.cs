@@ -3,6 +3,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.SmartLauncher;
 
 namespace SaveState.Infrastructure.SmartLauncher;
@@ -14,14 +15,17 @@ public sealed class SmartLauncherBackgroundService : BackgroundService
 {
     private readonly ILogger<SmartLauncherBackgroundService> _logger;
     private readonly IServiceProvider _serviceProvider;
+    private readonly ITimeProvider _timeProvider;
     private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(30);
 
     public SmartLauncherBackgroundService(
         ILogger<SmartLauncherBackgroundService> logger,
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        ITimeProvider timeProvider)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -62,7 +66,7 @@ public sealed class SmartLauncherBackgroundService : BackgroundService
         var activeSession = activeSessionResult.Value;
 
         // Check if session has been running too long (4 hours warning, 8 hours auto-cleanup)
-        var sessionDuration = DateTime.UtcNow - activeSession.StartedAt;
+        var sessionDuration = _timeProvider.UtcNow - activeSession.StartedAt;
 
         if (sessionDuration > TimeSpan.FromHours(8))
         {

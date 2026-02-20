@@ -282,7 +282,7 @@ public class EducationalContentService : IEducationalContentService
         await Task.CompletedTask;
         try
         {
-            var guide = await _contentEngine.GetStrategyGuide(guideId, ct);
+            var guide = await _contentEngine.GetStrategyGuideAsync(guideId, ct);
             return guide is null
                 ? Result.Failure<StrategyGuide>("Strategy guide not found")
                 : Result.Success(guide);
@@ -299,7 +299,7 @@ public class EducationalContentService : IEducationalContentService
         await Task.CompletedTask;
         try
         {
-            var guide = await _contentEngine.GetMechanicsGuide(topic, ct);
+            var guide = await _contentEngine.GetMechanicsGuideAsync(topic, ct);
             return guide is null
                 ? Result.Failure<MechanicsGuide>("Mechanics guide not found")
                 : Result.Success(guide);
@@ -353,7 +353,7 @@ public class EducationalContentService : IEducationalContentService
     public async Task<Result<decimal>> CalculateLearningProgressAsync(string userId, string category, CancellationToken ct = default)
     {
         await Task.CompletedTask;
-        var progress = await _progressEngine.CalculateCategoryProgress(userId, category);
+        var progress = await _progressEngine.CalculateCategoryProgressAsync(userId, category);
         return Result.Success(progress);
     }
 

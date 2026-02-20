@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.OpenMK.Entities;
 using SaveState.Core.OpenMK.Services;
 using SaveState.Core.OpenMK.ValueObjects;
@@ -12,10 +13,12 @@ namespace SaveState.Infrastructure.OpenMK;
 public partial class OpenMKStoryService : IOpenMKStoryService
 {
     private readonly ILogger<OpenMKStoryService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public OpenMKStoryService(ILogger<OpenMKStoryService> logger)
+    public OpenMKStoryService(ILogger<OpenMKStoryService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<OpenMKStoryCampaign>> StartCampaignAsync(Guid userId, Guid selectedCharacterId, CancellationToken ct = default)
@@ -28,7 +31,7 @@ public partial class OpenMKStoryService : IOpenMKStoryService
                 SelectedCharacterId: selectedCharacterId,
                 CharacterName: "Liu Kang", // Would be fetched from character service
                 Difficulty: OpenMKCampaignDifficulty.Medium,
-                StartedAt: DateTime.UtcNow,
+                StartedAt: _timeProvider.UtcNow,
                 CurrentChapter: 1,
                 TotalChapters: 10,
                 ProgressPercentage: 0,

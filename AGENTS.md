@@ -2,8 +2,8 @@
 
 **Project:** SaveState Reborn  
 **Description:** A comprehensive gaming management platform with AI-powered features, cross-platform cloud gaming, voice controls, and extensive plugin system.  
-**Version:** 2.5.0  
-**Last Updated:** February 18, 2026  
+**Version:** 2.5.1  
+**Last Updated:** February 20, 2026  
 
 ---
 
@@ -733,6 +733,131 @@ See `docs/architecture/adrs/007-result-pattern.md` and `TECHNICAL_DEBT_REMEDIATI
 
 ---
 
+## 🏗️ Service Refactoring: Manager Pattern
+
+### ✅ COMPLETED: February 20, 2026
+
+Three major services have been refactored using the **Manager Pattern** to improve maintainability and adhere to Single Responsibility Principle.
+
+### Completed Refactorings
+
+| Service | Before | After | Status |
+|---------|--------|-------|--------|
+| **IkemenGoService** | 1,486 lines | 150 lines + 8 managers | ✅ Complete |
+| **CharacterDiscoveryService** | 1,109 lines | 180 lines + 6 managers | ✅ Complete |
+| **AutomatedBalancingSystem** | 1,176 lines | 120 lines + 4 engines | ✅ Complete |
+| **TOTAL** | **3,771 lines** | **~450 lines + 18 components** | ✅ **88% reduction** |
+
+### Manager Pattern Structure
+
+```
+Service (Coordinator)
+├── Manager 1 (Single Responsibility)
+├── Manager 2 (Single Responsibility)
+├── Manager 3 (Single Responsibility)
+└── Manager N (Single Responsibility)
+```
+
+### Example: Coordinator Service
+
+```csharp
+public class IkemenGoService : IIkemenGoService
+{
+    private readonly IkemenGoInstallationManager _installationManager;
+    private readonly IkemenGoConfigurationManager _configurationManager;
+    private readonly IkemenGoLaunchManager _launchManager;
+    // ... etc
+
+    public IkemenGoService(
+        IkemenGoInstallationManager installationManager,
+        IkemenGoConfigurationManager configurationManager,
+        IkemenGoLaunchManager launchManager,
+        // ... etc
+    {
+        _installationManager = installationManager;
+        _configurationManager = configurationManager;
+        _launchManager = launchManager;
+    }
+
+    // Delegate to managers
+    public Task<Result<IkemenGoConfig>> LoadConfigAsync(string path, CancellationToken ct)
+        => _configurationManager.LoadConfigAsync(path, ct);
+}
+```
+
+### When to Use Manager Pattern
+
+Use this pattern when a service:
+- Exceeds **1,000 lines** of code
+- Has **multiple distinct responsibilities** (detection, configuration, launch, etc.)
+- Has **40+ public methods**
+- Is **difficult to unit test** due to complexity
+
+### Manager Creation Checklist
+
+- [ ] Identify responsibility boundaries in the service
+- [ ] Create one manager per responsibility
+- [ ] Move relevant methods and state to each manager
+- [ ] Keep coordinator thin (~150 lines)
+- [ ] Register all managers in DI container
+- [ ] Update unit tests to test managers independently
+
+### New Manager Classes
+
+**IKEMEN GO Managers (8):**
+- `IkemenGoInstallationManager` - Installation detection, version checking
+- `IkemenGoMigrationManager` - MUGEN to IKEMEN content migration
+- `IkemenGoConfigurationManager` - Config.json management
+- `IkemenGoNetworkManager` - Online play, rollback netcode
+- `IkemenGoModuleManager` - Lua module lifecycle
+- `IkemenGoLaunchManager` - Process management
+- `IkemenGoReplayManager` - Replay handling, export
+- `IkemenGoAnalyticsManager` - Stats and analytics
+
+**Character Discovery Managers (6):**
+- `CharacterSearchManager` - Search, recommendations, trending
+- `CharacterDetailsManager` - Details, reviews, showcases
+- `UserInteractionManager` - Favorites, ratings, reports
+- `CollectionsManager` - Collection management
+- `CharacterComparisonManager` - Comparisons, compatibility
+- `DiscoveryAnalyticsManager` - Statistics and trends
+
+See individual refactoring plans in `docs/plans/` for complete details.
+
+### Manager Pattern Guidelines (Established)
+
+When a service exceeds 1,000 lines of code, refactor using the Manager Pattern:
+
+**Structure:**
+```
+Service (Coordinator - ~200 lines)
+├── Manager 1 (Single Responsibility)
+├── Manager 2 (Single Responsibility)
+└── Manager N (Single Responsibility)
+```
+
+**Example Services Using Manager Pattern:**
+- SpriteAnimationService (6 managers)
+- PredictiveAnalyticsEngine (5 managers)
+- BlockchainService (4 managers)
+- AdvancedGraphicsEngine (5 managers)
+- ComboDatabaseService (8 managers)
+- SoundDesignStudio (7 managers)
+- StoryModeService (8 managers)
+- PerformanceProfilerService (6 managers)
+- SymbioticPartnerService (6 managers)
+- ReplayAnalysisService (6 managers)
+
+**Manager Creation Checklist:**
+- [ ] Identify responsibility boundaries in the service
+- [ ] Create one manager per responsibility
+- [ ] Move relevant methods and state to each manager
+- [ ] Keep coordinator thin (~200 lines)
+- [ ] Register all managers in DI container
+- [ ] Update unit tests to test managers independently
+
+---
+
 ## ✅ Pre-Commit Checklist
 
 Before committing code, ensure:
@@ -742,7 +867,7 @@ Before committing code, ensure:
 - [ ] `ITimeProvider` used instead of `DateTime.Now`
 - [ ] Result pattern used for **public API** failure-prone operations (NO `return null`)
 - [ ] Proper null checks (no unnecessary `!` operators)
-- [ ] Async methods named with `Async` suffix
+- [ ] Async methods named with `Async` suffix (except MediatR Handle methods)
 - [ ] No `.Result` or `.Wait()` blocking calls
 - [ ] No `async void` (except event handlers)
 - [ ] XML documentation for public APIs

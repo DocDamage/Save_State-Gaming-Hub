@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Services;
 using SaveState.Core.Mugen.ValueObjects;
 using SaveState.Core.Mugen.Entities;
@@ -17,6 +18,7 @@ public class SimpleMachineLearningService : IMachineLearningService
 {
     private readonly ILogger<SimpleMachineLearningService> _logger;
     private readonly ICharacterDataRepository _characterDataRepository;
+    private readonly ITimeProvider _timeProvider;
     private readonly Random _random = new();
 
     // Simple ML models (in production, these would be trained models)
@@ -25,10 +27,12 @@ public class SimpleMachineLearningService : IMachineLearningService
 
     public SimpleMachineLearningService(
         ILogger<SimpleMachineLearningService> logger,
-        ICharacterDataRepository characterDataRepository)
+        ICharacterDataRepository characterDataRepository,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _characterDataRepository = characterDataRepository;
+        _timeProvider = timeProvider;
 
         // Initialize with sample data (in production, this would be loaded from trained models)
         _characterStats = InitializeCharacterStats();
@@ -803,7 +807,7 @@ public class SimpleMachineLearningService : IMachineLearningService
             Id = Guid.NewGuid(),
             Name = configuration.ModelName,
             CharacterName = null,
-            TrainedAt = DateTime.UtcNow,
+            TrainedAt = _timeProvider.UtcNow,
             Accuracy = 0.0,
             SampleCount = 0,
             IsActive = false,

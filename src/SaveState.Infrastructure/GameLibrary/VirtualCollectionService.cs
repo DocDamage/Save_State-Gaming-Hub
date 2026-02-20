@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.Enums;
@@ -16,15 +17,18 @@ public class VirtualCollectionService : IVirtualCollectionService
     private readonly IVirtualCollectionRepository _collectionRepository;
     private readonly IGameRepository _gameRepository;
     private readonly ILogger<VirtualCollectionService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public VirtualCollectionService(
         IVirtualCollectionRepository collectionRepository,
         IGameRepository gameRepository,
-        ILogger<VirtualCollectionService> logger)
+        ILogger<VirtualCollectionService> logger,
+        ITimeProvider timeProvider)
     {
         _collectionRepository = collectionRepository;
         _gameRepository = gameRepository;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -322,7 +326,7 @@ public class VirtualCollectionService : IVirtualCollectionService
 
         if (filter.MaxDaysSinceLastPlayed.HasValue)
         {
-            var cutoffDate = DateTime.UtcNow.AddDays(-filter.MaxDaysSinceLastPlayed.Value);
+            var cutoffDate = _timeProvider.UtcNow.AddDays(-filter.MaxDaysSinceLastPlayed.Value);
             filtered = filtered.Where(g => g.LastPlayedAt >= cutoffDate || g.LastPlayedAt == null);
         }
 

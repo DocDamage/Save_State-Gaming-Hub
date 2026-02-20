@@ -63,7 +63,7 @@ public class AutoSaveService : IAutoSaveService
                 if (request.SaveOnCheckpoint.HasValue) config.SaveOnCheckpoint = request.SaveOnCheckpoint.Value;
                 if (!string.IsNullOrEmpty(request.NamingPattern)) config.NamingPattern = request.NamingPattern;
                 if (request.Tags != null) config.Tags = request.Tags;
-                config.UpdatedAt = DateTime.UtcNow;
+                config.UpdatedAt = _timeProvider.UtcNow;
             }
 
             await _dbContext.SaveChangesAsync(ct);
@@ -189,7 +189,7 @@ public class AutoSaveService : IAutoSaveService
             var session = new AutoSaveSession
             {
                 GameId = gameId,
-                StartedAt = DateTime.UtcNow,
+                StartedAt = _timeProvider.UtcNow,
                 IsActive = true
             };
 

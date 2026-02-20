@@ -8,10 +8,18 @@ namespace SaveState.Infrastructure.Tests.Mugen;
 
 public class CharacterDiscoveryServiceFacadeTests
 {
+    private static CharacterDiscoveryService CreateService()
+    {
+        return new CharacterDiscoveryService(
+            NullLogger<CharacterDiscoveryService>.Instance,
+            NullLoggerFactory.Instance,
+            SystemTimeProvider.Instance);
+    }
+
     [Fact]
     public async Task SearchCharactersAsync_WithNameTerm_ReturnsMatchingCharacters()
     {
-        var sut = new CharacterDiscoveryService(NullLogger<CharacterDiscoveryService>.Instance, SystemTimeProvider.Instance);
+        var sut = CreateService();
 
         var result = await sut.SearchCharactersAsync(
             new CharacterSearchQuery(SearchTerm: "Ryu", SortBy: "name", SortDescending: false));
@@ -25,7 +33,7 @@ public class CharacterDiscoveryServiceFacadeTests
     [Fact]
     public async Task FavoritesRoundTrip_AddThenRemove_UpdatesFavoritesList()
     {
-        var sut = new CharacterDiscoveryService(NullLogger<CharacterDiscoveryService>.Instance, SystemTimeProvider.Instance);
+        var sut = CreateService();
         var recentResult = await sut.GetRecentlyAddedAsync(limit: 1);
         var characterId = recentResult.Value!.Single().Id;
 
@@ -45,7 +53,7 @@ public class CharacterDiscoveryServiceFacadeTests
     [Fact]
     public async Task CreateCollectionAsync_ThenAddToCollection_ReturnsSuccess()
     {
-        var sut = new CharacterDiscoveryService(NullLogger<CharacterDiscoveryService>.Instance, SystemTimeProvider.Instance);
+        var sut = CreateService();
         var recentResult = await sut.GetRecentlyAddedAsync(limit: 1);
         var characterId = recentResult.Value!.Single().Id;
 

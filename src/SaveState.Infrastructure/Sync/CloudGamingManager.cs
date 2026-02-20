@@ -5,6 +5,7 @@ using SaveState.Core.Common.Constants;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.Configuration;
 using SaveState.Core.GameLibrary;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Sync.Services;
 using SaveState.Core.Sync.Services.DTOs;
 
@@ -19,6 +20,7 @@ public class CloudGamingManager : ICloudGamingManager
     private readonly INetworkQualityMonitor _networkQualityMonitor;
     private readonly ICloudCatalogService _cloudCatalogService;
     private readonly ILogger<CloudGamingManager> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly CloudGamingOptions _options;
 
     // In-memory storage for active sessions (can be replaced with repository)
@@ -41,13 +43,15 @@ public class CloudGamingManager : ICloudGamingManager
         INetworkQualityMonitor networkQualityMonitor,
         ICloudCatalogService cloudCatalogService,
         IOptions<CloudGamingOptions> options,
-        ILogger<CloudGamingManager> logger)
+        ILogger<CloudGamingManager> logger,
+        ITimeProvider timeProvider)
     {
         _gameRepository = gameRepository;
         _networkQualityMonitor = networkQualityMonitor;
         _cloudCatalogService = cloudCatalogService;
         _options = options.Value;
         _logger = logger;
+        _timeProvider = timeProvider;
 
         // Log configuration status on initialization
         LogConfigurationStatus();
@@ -290,7 +294,7 @@ public class CloudGamingManager : ICloudGamingManager
                 Id: Guid.NewGuid(),
                 GameId: gameId,
                 Provider: provider,
-                StartedAt: DateTime.UtcNow,
+                StartedAt: _timeProvider.UtcNow,
                 InitialQuality: networkQuality.Value);
 
             // Store session
@@ -339,7 +343,7 @@ public class CloudGamingManager : ICloudGamingManager
             // Remove from active sessions
             _activeSessions.Remove(sessionId);
 
-            var duration = DateTime.UtcNow - session.StartedAt;
+            var duration = _timeProvider.UtcNow - session.StartedAt;
             _logger.LogInformation("Ended cloud gaming session {SessionId} after {Duration}",
                 sessionId, duration);
 

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using System.Collections.Generic;
 
 namespace SaveState.Infrastructure.Plugins;
@@ -11,12 +12,14 @@ namespace SaveState.Infrastructure.Plugins;
 public class PluginService
 {
     private readonly ILogger<PluginService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, PluginMetadata> _plugins = new();
     private readonly Dictionary<string, PluginInstance> _loadedPlugins = new();
 
-    public PluginService(ILogger<PluginService> logger)
+    public PluginService(ILogger<PluginService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -39,7 +42,7 @@ public class PluginService
                 version: version,
                 author: author,
                 description: description,
-                registeredAt: DateTime.UtcNow,
+                registeredAt: _timeProvider.UtcNow,
                 isEnabled: true,
                 minimumVersion: "1.0.0");
 
@@ -76,7 +79,7 @@ public class PluginService
             var instance = new PluginInstance(
                 id: Guid.NewGuid().ToString(),
                 metadata: metadata,
-                loadedAt: DateTime.UtcNow,
+                loadedAt: _timeProvider.UtcNow,
                 isRunning: true);
 
             _loadedPlugins[pluginName] = instance;

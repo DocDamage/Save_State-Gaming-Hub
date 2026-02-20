@@ -70,18 +70,18 @@ public partial class QuickActionsWidget : WidgetBase
             if (lastSession != null)
             {
                  var gameId = SaveState.Core.Common.ValueObjects.GameId.From(lastSession.GameId);
-                 await _navigationService.NavigateTo("Library", gameId);
+                 await _navigationService.NavigateToAsync("Library", gameId);
             }
             else
             {
                  // No recent games, just go to library
-                 await _navigationService.NavigateTo("Library");
+                 await _navigationService.NavigateToAsync("Library");
             }
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to navigate to last played game");
-            await _navigationService.NavigateTo("Library");
+            await _navigationService.NavigateToAsync("Library");
         }
     }
 
@@ -108,17 +108,17 @@ public partial class QuickActionsWidget : WidgetBase
             {
                 var random = new Random();
                 var game = allGames[random.Next(allGames.Count)];
-                await _navigationService.NavigateTo("Library", SaveState.Core.Common.ValueObjects.GameId.From(game.Id));
+                await _navigationService.NavigateToAsync("Library", SaveState.Core.Common.ValueObjects.GameId.From(game.Id));
             }
             else
             {
-                await _navigationService.NavigateTo("Library");
+                await _navigationService.NavigateToAsync("Library");
             }
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to pick random game");
-            await _navigationService.NavigateTo("Library");
+            await _navigationService.NavigateToAsync("Library");
         }
     }
 

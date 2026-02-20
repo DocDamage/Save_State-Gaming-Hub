@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Blockchain.Models;
 using SaveState.Core.Blockchain.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Infrastructure.Blockchain;
 
@@ -12,14 +13,16 @@ namespace SaveState.Infrastructure.Blockchain;
 public sealed class BlockchainAchievementRegistry : IBlockchainAchievementRegistry
 {
     private readonly ILogger<BlockchainAchievementRegistry> _logger;
+    private readonly ITimeProvider _timeProvider;
     private BlockchainConfiguration? _configuration;
     private readonly Dictionary<string, WalletConnection> _walletConnections = new();
     private readonly Dictionary<string, BlockchainAchievement> _achievements = new();
     private readonly Dictionary<string, MintedAchievement> _mintedAchievements = new();
 
-    public BlockchainAchievementRegistry(ILogger<BlockchainAchievementRegistry> logger)
+    public BlockchainAchievementRegistry(ILogger<BlockchainAchievementRegistry> logger, ITimeProvider timeProvider)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     /// <inheritdoc />
@@ -121,7 +124,7 @@ public sealed class BlockchainAchievementRegistry : IBlockchainAchievementRegist
             Network = request.Network,
             ContractAddress = $"0x{Guid.NewGuid().ToString("N")[..40]}",
             TokenId = new Random().Next(1, 1000000),
-            MintedAt = DateTime.UtcNow
+            MintedAt = _timeProvider.UtcNow
         };
         
         _mintedAchievements[minted.Id] = minted;
@@ -176,7 +179,7 @@ public sealed class BlockchainAchievementRegistry : IBlockchainAchievementRegist
             Status = TransactionStatus.Confirmed,
             Confirmations = 12,
             BlockNumber = "12345678",
-            ConfirmedAt = DateTime.UtcNow.AddMinutes(-5)
+            ConfirmedAt = _timeProvider.UtcNow.AddMinutes(-5)
         };
         
         return Task.FromResult(Result.Success(transaction));

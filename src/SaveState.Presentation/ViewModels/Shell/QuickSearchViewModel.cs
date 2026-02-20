@@ -137,7 +137,7 @@ public partial class QuickSearchViewModel : ObservableObject
         _overlayService.HideQuickSearchOverlay();
         var gameId = GameId.From(result.GameId);
         _gameContextService.SetSelectedGame(gameId);
-        await _navigationService.NavigateTo("Library", gameId);
+        await _navigationService.NavigateToAsync("Library", gameId);
     }
 
     /// <summary>

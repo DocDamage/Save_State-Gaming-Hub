@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.TournamentManagement.Models;
 using SaveState.Core.TournamentManagement.Services;
 
@@ -12,11 +13,13 @@ namespace SaveState.Infrastructure.TournamentManagement;
 public sealed class TournamentManagementService : ITournamentManagementService
 {
     private readonly ILogger<TournamentManagementService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, Tournament> _tournaments = new();
 
-    public TournamentManagementService(ILogger<TournamentManagementService> logger)
+    public TournamentManagementService(ILogger<TournamentManagementService> logger, ITimeProvider timeProvider)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     /// <inheritdoc />
@@ -240,7 +243,7 @@ public sealed class TournamentManagementService : ITournamentManagementService
     /// <inheritdoc />
     public Task<Result<TournamentSchedule>> GetScheduleAsync(string tournamentId, CancellationToken ct = default)
     {
-        return GenerateScheduleAsync(tournamentId, DateTime.UtcNow, TimeSpan.FromMinutes(30), ct);
+        return GenerateScheduleAsync(tournamentId, _timeProvider.UtcNow, TimeSpan.FromMinutes(30), ct);
     }
 
     /// <inheritdoc />
@@ -333,7 +336,7 @@ public sealed class TournamentManagementService : ITournamentManagementService
         _tournaments[tournamentId] = tournament with
         {
             Status = TournamentStatus.Completed,
-            TournamentEnd = DateTime.UtcNow
+            TournamentEnd = _timeProvider.UtcNow
         };
         
         return Task.FromResult(Result.Success());

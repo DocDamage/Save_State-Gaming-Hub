@@ -86,7 +86,7 @@ public partial class RecentlyAddedWidget : WidgetBase
     [RelayCommand]
     private async Task NavigateToLibrary()
     {
-        await _navigationService.NavigateTo("Library");
+        await _navigationService.NavigateToAsync("Library");
     }
 
     /// <summary>
@@ -99,7 +99,7 @@ public partial class RecentlyAddedWidget : WidgetBase
         {
             var gameId = GameId.From(game.Id);
             await _gameContextService.SetCurrentGameAsync(game);
-            await _navigationService.NavigateTo("Library", gameId);
+            await _navigationService.NavigateToAsync("Library", gameId);
         }
     }
 }

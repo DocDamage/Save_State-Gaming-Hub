@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Constants;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Social.Services;
 using SaveState.Core.Social.Entities;
 
@@ -12,6 +13,7 @@ namespace SaveState.Infrastructure.Social.Services;
 public class SocialService : ISocialService
 {
     private readonly ILogger<SocialService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<Guid, Friend> _friends = new();
     private readonly Dictionary<LeaderboardType, List<LeaderboardEntry>> _leaderboards = new();
 
@@ -19,9 +21,11 @@ public class SocialService : ISocialService
     /// Initializes a new instance of the <see cref="SocialService"/> class.
     /// </summary>
     /// <param name="logger">Logger for diagnostic information.</param>
-    public SocialService(ILogger<SocialService> logger)
+    /// <param name="timeProvider">Time provider for testable time operations.</param>
+    public SocialService(ILogger<SocialService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         InitializeSampleData();
     }
 
@@ -177,7 +181,7 @@ public class SocialService : ISocialService
                     ["games_played"] = random.Next(10, 200),
                     ["win_rate"] = random.Next(30, 95)
                 },
-                LastUpdated: DateTime.UtcNow.AddMinutes(-random.Next(0, 1440))));
+                LastUpdated: _timeProvider.UtcNow.AddMinutes(-random.Next(0, 1440))));
         }
 
         return entries.OrderByDescending(e => e.Score).ToList();

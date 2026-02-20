@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using System.Collections.Generic;
 
 namespace SaveState.Infrastructure.Analytics;
@@ -11,11 +12,13 @@ namespace SaveState.Infrastructure.Analytics;
 public class RealTimeAnalyticsDashboardService
 {
     private readonly ILogger<RealTimeAnalyticsDashboardService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, DashboardWidget> _widgets = new();
 
-    public RealTimeAnalyticsDashboardService(ILogger<RealTimeAnalyticsDashboardService> logger)
+    public RealTimeAnalyticsDashboardService(ILogger<RealTimeAnalyticsDashboardService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -64,7 +67,7 @@ public class RealTimeAnalyticsDashboardService
                 Name: widgetName,
                 Type: widgetType,
                 Configuration: config,
-                CreatedAt: DateTime.UtcNow);
+                CreatedAt: _timeProvider.UtcNow);
 
             _widgets[widgetName] = widget;
 
@@ -117,10 +120,12 @@ public class RealTimeAnalyticsDashboardService
 public class AnalyticsQueryBuilderService
 {
     private readonly ILogger<AnalyticsQueryBuilderService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public AnalyticsQueryBuilderService(ILogger<AnalyticsQueryBuilderService> logger)
+    public AnalyticsQueryBuilderService(ILogger<AnalyticsQueryBuilderService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -137,7 +142,7 @@ public class AnalyticsQueryBuilderService
             var results = new AnalyticsQueryResult(
                 QueryId: Guid.NewGuid().ToString(),
                 Rows: new List<Dictionary<string, object>>(),
-                ExecutedAt: DateTime.UtcNow,
+                ExecutedAt: _timeProvider.UtcNow,
                 ExecutionTime: TimeSpan.FromMilliseconds(150));
 
             return Result.Success(results);

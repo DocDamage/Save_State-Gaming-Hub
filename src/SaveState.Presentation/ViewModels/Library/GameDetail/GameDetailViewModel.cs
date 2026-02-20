@@ -268,7 +268,7 @@ public partial class GameDetailViewModel : ObservableObject
     private async Task NavigateBack()
     {
         _gameContextService.SetSelectedGame((Game?)null);
-        await _navigationService.NavigateTo("Library");
+        await _navigationService.NavigateToAsync("Library");
     }
 
     [RelayCommand]
@@ -528,7 +528,7 @@ public partial class GameDetailViewModel : ObservableObject
         try
         {
             _logger.LogInformation("Navigating to analytics for game {GameId}", GameId);
-            _navigationService.NavigateTo("Analytics", new { gameId = GameId });
+            _navigationService.NavigateToAsync("Analytics", new { gameId = GameId });
             _notificationService.ShowInfo("Analytics", $"Viewing analytics for {GameTitle}");
         }
         catch (Exception ex)

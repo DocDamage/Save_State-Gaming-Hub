@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
@@ -18,17 +19,20 @@ public class GameBriefingService : IGameBriefingService
     private readonly IAiOrchestrator _aiOrchestrator;
     private readonly ISessionTrackingService _sessionTrackingService;
     private readonly ILogger<GameBriefingService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public GameBriefingService(
         IGameRepository gameRepository,
         IAiOrchestrator aiOrchestrator,
         ISessionTrackingService sessionTrackingService,
-        ILogger<GameBriefingService> logger)
+        ILogger<GameBriefingService> logger,
+        ITimeProvider timeProvider)
     {
         _gameRepository = gameRepository;
         _aiOrchestrator = aiOrchestrator;
         _sessionTrackingService = sessionTrackingService;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -316,10 +320,10 @@ public class GameBriefingService : IGameBriefingService
         }
     }
 
-    private static TimeSpan CalculateTimeSinceLastPlayed(DateTime? lastPlayedAt)
+    private TimeSpan CalculateTimeSinceLastPlayed(DateTime? lastPlayedAt)
     {
         return lastPlayedAt.HasValue
-            ? DateTime.UtcNow - lastPlayedAt.Value
+            ? _timeProvider.UtcNow - lastPlayedAt.Value
             : TimeSpan.MaxValue; // Indicate never played
     }
 }

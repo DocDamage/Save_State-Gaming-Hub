@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Intelligence.AiContent.Services;
 
 namespace SaveState.Infrastructure.Intelligence.AiContent;
@@ -10,11 +11,13 @@ namespace SaveState.Infrastructure.Intelligence.AiContent;
 public sealed class NaturalLanguageSaveSearch : INaturalLanguageSaveSearch
 {
     private readonly ILogger<NaturalLanguageSaveSearch> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<Guid, SaveStateContext> _indexedSaves = new();
 
-    public NaturalLanguageSaveSearch(ILogger<NaturalLanguageSaveSearch> logger)
+    public NaturalLanguageSaveSearch(ILogger<NaturalLanguageSaveSearch> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <inheritdoc />
@@ -48,7 +51,7 @@ public sealed class NaturalLanguageSaveSearch : INaturalLanguageSaveSearch
                     GameTitle: context.GameTitle ?? "Unknown",
                     Description: context.PlayerNotes,
                     RelevanceScore: relevanceScore,
-                    CreatedAt: DateTime.UtcNow.AddDays(-new Random(saveId.GetHashCode()).Next(1, 30)),
+                    CreatedAt: _timeProvider.UtcNow.AddDays(-new Random(saveId.GetHashCode()).Next(1, 30)),
                     PreviewImageUrl: null));
             }
         }

@@ -3,125 +3,176 @@ using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.ComboDatabase;
 using SaveState.Core.Mugen.ComboDatabase.Services;
-using SaveState.Infrastructure.Persistence;
+using SaveState.Infrastructure.Mugen.ComboDatabase.Managers;
 
-namespace SaveState.Infrastructure.Mugen.ComboDatabaseServices;
+namespace SaveState.Infrastructure.Mugen.ComboDatabase;
 
 /// <summary>
-/// Thin facade for combo database operations.
+/// Service for managing the combo database and discovery.
 /// </summary>
 public class ComboDatabaseService : IComboDatabaseService
 {
-    private readonly SaveStateDbContext _dbContext;
-    private readonly ILogger<ComboDatabaseService> _logger;
-    private readonly ITimeProvider _timeProvider;
+    private readonly ComboCrudManager _crudManager;
+    private readonly ComboSearchManager _searchManager;
+    private readonly ComboRatingManager _ratingManager;
+    private readonly ComboPracticeManager _practiceManager;
+    private readonly ComboSubmissionManager _submissionManager;
+    private readonly ComboCollectionManager _collectionManager;
+    private readonly ComboImportExportManager _importExportManager;
+    private readonly ComboAnalysisManager _analysisManager;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ComboDatabaseService"/> class.
+    /// </summary>
     public ComboDatabaseService(
-        SaveStateDbContext dbContext,
-        ILogger<ComboDatabaseService> logger,
-        ITimeProvider timeProvider)
+        ComboCrudManager crudManager,
+        ComboSearchManager searchManager,
+        ComboRatingManager ratingManager,
+        ComboPracticeManager practiceManager,
+        ComboSubmissionManager submissionManager,
+        ComboCollectionManager collectionManager,
+        ComboImportExportManager importExportManager,
+        ComboAnalysisManager analysisManager)
     {
-        _dbContext = dbContext;
-        _logger = logger;
-        _timeProvider = timeProvider;
+        _crudManager = crudManager;
+        _searchManager = searchManager;
+        _ratingManager = ratingManager;
+        _practiceManager = practiceManager;
+        _submissionManager = submissionManager;
+        _collectionManager = collectionManager;
+        _importExportManager = importExportManager;
+        _analysisManager = analysisManager;
     }
 
-    public Task<Result<ComboEntry>> AddComboAsync(AddComboRequest request,  CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.AddComboAsync(_dbContext, _logger, _timeProvider, request, ct);
+    /// <inheritdoc />
+    public Task<Result<ComboEntry>> AddComboAsync(AddComboRequest request, CancellationToken ct = default)
+        => _crudManager.AddComboAsync(request, ct);
 
-    public Task<Result<ComboEntry>> UpdateComboAsync(Guid comboId,  UpdateComboRequest request, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.UpdateComboAsync(_dbContext, _logger, _timeProvider, comboId, request, ct);
+    /// <inheritdoc />
+    public Task<Result<ComboEntry>> UpdateComboAsync(Guid comboId, UpdateComboRequest request, CancellationToken ct = default)
+        => _crudManager.UpdateComboAsync(comboId, request, ct);
 
-    public Task<Result<ComboEntry>> GetComboAsync(Guid comboId,  CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.GetComboAsync(_dbContext, _logger, comboId, ct);
+    /// <inheritdoc />
+    public Task<Result<ComboEntry>> GetComboAsync(Guid comboId, CancellationToken ct = default)
+        => _crudManager.GetComboAsync(comboId, ct);
 
-    public Task<Result> DeleteComboAsync(Guid comboId,  CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.DeleteComboAsync(_dbContext, _logger, comboId, ct);
+    /// <inheritdoc />
+    public Task<Result> DeleteComboAsync(Guid comboId, CancellationToken ct = default)
+        => _crudManager.DeleteComboAsync(comboId, ct);
 
-    public Task<Result<List<ComboEntry>>> SearchCombosAsync(ComboFilter filter,  int page = 1,  int pageSize = 20, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.SearchCombosAsync(_dbContext, _logger, filter, page, pageSize, ct);
+    /// <inheritdoc />
+    public Task<Result<List<ComboEntry>>> SearchCombosAsync(ComboFilter filter, int page = 1, int pageSize = 20, CancellationToken ct = default)
+        => _searchManager.SearchCombosAsync(filter, page, pageSize, ct);
 
-    public Task<Result<CharacterComboDatabase>> GetCharacterCombosAsync(string characterName,  CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.GetCharacterCombosAsync(_dbContext, _logger, characterName, ct);
+    /// <inheritdoc />
+    public Task<Result<CharacterComboDatabase>> GetCharacterCombosAsync(string characterName, CancellationToken ct = default)
+        => _searchManager.GetCharacterCombosAsync(characterName, ct);
 
-    public Task<Result<List<ComboEntry>>> GetCombosByDifficultyAsync(string characterName,  ComboDifficulty difficulty, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.GetCombosByDifficultyAsync(_dbContext, _logger, characterName, difficulty, ct);
+    /// <inheritdoc />
+    public Task<Result<List<ComboEntry>>> GetCombosByDifficultyAsync(string characterName, ComboDifficulty difficulty, CancellationToken ct = default)
+        => _searchManager.GetCombosByDifficultyAsync(characterName, difficulty, ct);
 
-    public Task<Result<List<ComboEntry>>> GetOptimalCombosAsync(string characterName,  string? startingPosition = null, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.GetOptimalCombosAsync(_dbContext, _logger, characterName, startingPosition, ct);
+    /// <inheritdoc />
+    public Task<Result<List<ComboEntry>>> GetOptimalCombosAsync(string characterName, string? startingPosition = null, CancellationToken ct = default)
+        => _searchManager.GetOptimalCombosAsync(characterName, startingPosition, ct);
 
-    public Task<Result<List<ComboEntry>>> GetTouchOfDeathCombosAsync(string? characterName = null, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.GetTouchOfDeathCombosAsync(_dbContext, _logger, characterName, ct);
+    /// <inheritdoc />
+    public Task<Result<List<ComboEntry>>> GetTouchOfDeathCombosAsync(string? characterName = null, CancellationToken ct = default)
+        => _searchManager.GetTouchOfDeathCombosAsync(characterName, ct);
 
-    public Task<Result<List<ComboEntry>>> GetCombosByTagAsync(string tag,  string? characterName = null, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.GetCombosByTagAsync(_dbContext, _logger, tag, characterName, ct);
+    /// <inheritdoc />
+    public Task<Result<List<ComboEntry>>> GetCombosByTagAsync(string tag, string? characterName = null, CancellationToken ct = default)
+        => _searchManager.GetCombosByTagAsync(tag, characterName, ct);
 
-    public Task<Result<ComboMatchupInfo>> GetMatchupCombosAsync(string characterName,  string opponentName, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.GetMatchupCombosAsync(_dbContext, _logger, characterName, opponentName, ct);
+    /// <inheritdoc />
+    public Task<Result<ComboMatchupInfo>> GetMatchupCombosAsync(string characterName, string opponentName, CancellationToken ct = default)
+        => _searchManager.GetMatchupCombosAsync(characterName, opponentName, ct);
 
-    public Task<Result> RecordComboUsageAsync(Guid comboId,  bool successful, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.RecordComboUsageAsync(_dbContext, _logger, comboId, successful, ct);
+    /// <inheritdoc />
+    public Task<Result> RecordComboUsageAsync(Guid comboId, bool successful, CancellationToken ct = default)
+        => _ratingManager.RecordComboUsageAsync(comboId, successful, ct);
 
-    public Task<Result> RateComboAsync(Guid comboId,  int rating,  string? userId = null, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.RateComboAsync(_dbContext, _logger, comboId, rating, userId, ct);
+    /// <inheritdoc />
+    public Task<Result> RateComboAsync(Guid comboId, int rating, string? userId = null, CancellationToken ct = default)
+        => _ratingManager.RateComboAsync(comboId, rating, userId, ct);
 
-    public Task<Result> UpvoteComboAsync(Guid comboId,  CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.UpvoteComboAsync(_dbContext, _logger, comboId, ct);
+    /// <inheritdoc />
+    public Task<Result> UpvoteComboAsync(Guid comboId, CancellationToken ct = default)
+        => _ratingManager.UpvoteComboAsync(comboId, ct);
 
-    public Task<Result> DownvoteComboAsync(Guid comboId,  CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.DownvoteComboAsync(_dbContext, _logger, comboId, ct);
+    /// <inheritdoc />
+    public Task<Result> DownvoteComboAsync(Guid comboId, CancellationToken ct = default)
+        => _ratingManager.DownvoteComboAsync(comboId, ct);
 
-    public Task<Result<ComboPracticeSession>> StartPracticeSessionAsync(Guid comboId,  CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.StartPracticeSessionAsync(_dbContext, _logger, _timeProvider, comboId, ct);
+    /// <inheritdoc />
+    public Task<Result<ComboPracticeSession>> StartPracticeSessionAsync(Guid comboId, CancellationToken ct = default)
+        => _practiceManager.StartPracticeSessionAsync(comboId, ct);
 
-    public Task<Result> RecordPracticeAttemptAsync(Guid sessionId,  PracticeAttempt attempt, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.RecordPracticeAttemptAsync(_dbContext, _logger, sessionId, attempt, ct);
+    /// <inheritdoc />
+    public Task<Result> RecordPracticeAttemptAsync(Guid sessionId, PracticeAttempt attempt, CancellationToken ct = default)
+        => _practiceManager.RecordPracticeAttemptAsync(sessionId, attempt, ct);
 
-    public Task<Result<ComboPracticeSession>> CompletePracticeSessionAsync(Guid sessionId,  CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.CompletePracticeSessionAsync(_dbContext, _logger, _timeProvider, sessionId, ct);
+    /// <inheritdoc />
+    public Task<Result<ComboPracticeSession>> CompletePracticeSessionAsync(Guid sessionId, CancellationToken ct = default)
+        => _practiceManager.CompletePracticeSessionAsync(sessionId, ct);
 
-    public Task<Result<ComboSubmission>> SubmitComboAsync(Guid comboId,  string submitterName, string? submitterId = null, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.SubmitComboAsync(_dbContext, _logger, _timeProvider, comboId, submitterName, submitterId, ct);
+    /// <inheritdoc />
+    public Task<Result<ComboSubmission>> SubmitComboAsync(Guid comboId, string submitterName, string? submitterId = null, CancellationToken ct = default)
+        => _submissionManager.SubmitComboAsync(comboId, submitterName, submitterId, ct);
 
-    public Task<Result> ReviewSubmissionAsync(Guid submissionId,  SubmissionStatus status,  string? reviewerNotes = null, string? reviewedBy = null, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.ReviewSubmissionAsync(_dbContext, _logger, _timeProvider, submissionId, status, reviewerNotes, reviewedBy, ct);
+    /// <inheritdoc />
+    public Task<Result> ReviewSubmissionAsync(Guid submissionId, SubmissionStatus status, string? reviewerNotes = null, string? reviewedBy = null, CancellationToken ct = default)
+        => _submissionManager.ReviewSubmissionAsync(submissionId, status, reviewerNotes, reviewedBy, ct);
 
-    public Task<Result<List<ComboSubmission>>> GetPendingSubmissionsAsync(int page = 1,  int pageSize = 20, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.GetPendingSubmissionsAsync(_dbContext, _logger, page, pageSize, ct);
+    /// <inheritdoc />
+    public Task<Result<List<ComboSubmission>>> GetPendingSubmissionsAsync(int page = 1, int pageSize = 20, CancellationToken ct = default)
+        => _submissionManager.GetPendingSubmissionsAsync(page, pageSize, ct);
 
-    public Task<Result<ComboCollection>> CreateCollectionAsync(string name,  string? description,  string? characterName, string creator, bool isPublic = true, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.CreateCollectionAsync(_dbContext, _logger, _timeProvider, name, description, characterName, creator, isPublic, ct);
+    /// <inheritdoc />
+    public Task<Result<ComboCollection>> CreateCollectionAsync(string name, string? description, string? characterName, string creator, bool isPublic = true, CancellationToken ct = default)
+        => _collectionManager.CreateCollectionAsync(name, description, characterName, creator, isPublic, ct);
 
-    public Task<Result> AddToCollectionAsync(Guid collectionId,  Guid comboId, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.AddToCollectionAsync(_dbContext, _logger, _timeProvider, collectionId, comboId, ct);
+    /// <inheritdoc />
+    public Task<Result> AddToCollectionAsync(Guid collectionId, Guid comboId, CancellationToken ct = default)
+        => _collectionManager.AddToCollectionAsync(collectionId, comboId, ct);
 
-    public Task<Result<ComboCollection>> GetCollectionAsync(Guid collectionId,  CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.GetCollectionAsync(_dbContext, _logger, collectionId, ct);
+    /// <inheritdoc />
+    public Task<Result<ComboCollection>> GetCollectionAsync(Guid collectionId, CancellationToken ct = default)
+        => _collectionManager.GetCollectionAsync(collectionId, ct);
 
-    public Task<Result<List<ComboCollection>>> GetCharacterCollectionsAsync(string characterName,  bool includePrivate = false, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.GetCharacterCollectionsAsync(_dbContext, _logger, characterName, includePrivate, ct);
+    /// <inheritdoc />
+    public Task<Result<List<ComboCollection>>> GetCharacterCollectionsAsync(string characterName, bool includePrivate = false, CancellationToken ct = default)
+        => _collectionManager.GetCharacterCollectionsAsync(characterName, includePrivate, ct);
 
-    public Task<Result<List<ComboEntry>>> DiscoverCombosFromReplayAsync(Guid replayAnalysisId, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.DiscoverCombosFromReplayAsync(_dbContext, _logger, replayAnalysisId, ct);
+    /// <inheritdoc />
+    public Task<Result<List<ComboEntry>>> DiscoverCombosFromReplayAsync(Guid replayAnalysisId, CancellationToken ct = default)
+        => _importExportManager.DiscoverCombosFromReplayAsync(replayAnalysisId, ct);
 
-    public Task<Result<int>> ImportCombosAsync(string source,  string data, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.ImportCombosAsync(_dbContext, _logger, _timeProvider, source, data, ct);
+    /// <inheritdoc />
+    public Task<Result<int>> ImportCombosAsync(string source, string data, CancellationToken ct = default)
+        => _importExportManager.ImportCombosAsync(source, data, ct);
 
-    public Task<Result<string>> ExportCombosAsync(string characterName,  ExportFormat format = ExportFormat.Json, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.ExportCombosAsync(_dbContext, _logger, characterName, format, ct);
+    /// <inheritdoc />
+    public Task<Result<string>> ExportCombosAsync(string characterName, ExportFormat format = ExportFormat.Json, CancellationToken ct = default)
+        => _importExportManager.ExportCombosAsync(characterName, format, ct);
 
-    public Task<Result<List<DamageOptimizationSuggestion>>> GetOptimizationSuggestionsAsync(Guid comboId, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.GetOptimizationSuggestionsAsync(_dbContext, _logger, comboId, ct);
+    /// <inheritdoc />
+    public Task<Result<List<DamageOptimizationSuggestion>>> GetOptimizationSuggestionsAsync(Guid comboId, CancellationToken ct = default)
+        => _analysisManager.GetOptimizationSuggestionsAsync(comboId, ct);
 
-    public Task<Result<DamageOptimizationSuggestion>> SuggestImprovementAsync(Guid comboId,  string suggestion,  int potentialDamage, string method, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.SuggestImprovementAsync(_dbContext, _logger, comboId, suggestion, potentialDamage, method, ct);
+    /// <inheritdoc />
+    public Task<Result<DamageOptimizationSuggestion>> SuggestImprovementAsync(Guid comboId, string suggestion, int potentialDamage, string method, CancellationToken ct = default)
+        => _analysisManager.SuggestImprovementAsync(comboId, suggestion, potentialDamage, method, ct);
 
-    public Task<Result<List<ComboEntry>>> FindSimilarCombosAsync(Guid comboId,  int maxResults = 10, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.FindSimilarCombosAsync(_dbContext, _logger, comboId, maxResults, ct);
+    /// <inheritdoc />
+    public Task<Result<List<ComboEntry>>> FindSimilarCombosAsync(Guid comboId, int maxResults = 10, CancellationToken ct = default)
+        => _analysisManager.FindSimilarCombosAsync(comboId, maxResults, ct);
 
-    public Task<Result<ComboRoutesAnalysis>> GetComboRoutesAsync(string characterName, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.GetComboRoutesAsync(_dbContext, _logger, characterName, ct);
+    /// <inheritdoc />
+    public Task<Result<ComboRoutesAnalysis>> GetComboRoutesAsync(string characterName, CancellationToken ct = default)
+        => _analysisManager.GetComboRoutesAsync(characterName, ct);
 
-    public Task<Result> LinkRelatedCombosAsync(Guid comboId1,  Guid comboId2, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.LinkRelatedCombosAsync(_dbContext, _logger, comboId1, comboId2, ct);
+    /// <inheritdoc />
+    public Task<Result> LinkRelatedCombosAsync(Guid comboId1, Guid comboId2, CancellationToken ct = default)
+        => _analysisManager.LinkRelatedCombosAsync(comboId1, comboId2, ct);
 }

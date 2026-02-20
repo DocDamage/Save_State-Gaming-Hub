@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.OpenMK.Entities;
 using SaveState.Core.OpenMK.Repositories;
 using SaveState.Core.OpenMK.Services;
@@ -16,14 +17,17 @@ public partial class OpenMKMatchService : IOpenMKMatchService
 {
     private readonly ILogger<OpenMKMatchService> _logger;
     private readonly IOpenMKMatchStateRepository _matchStateRepository;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<Guid, OpenMKMatch> _activeMatches = new();
 
     public OpenMKMatchService(
         IOpenMKMatchStateRepository matchStateRepository,
-        ILogger<OpenMKMatchService> logger)
+        ILogger<OpenMKMatchService> logger,
+        ITimeProvider timeProvider)
     {
         _matchStateRepository = matchStateRepository;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<OpenMKMatch>> StartMatchAsync(
@@ -40,7 +44,7 @@ public partial class OpenMKMatchService : IOpenMKMatchService
                 Player1Character: player1Character,
                 Player2Character: player2Character,
                 MatchType: matchType,
-                StartedAt: DateTime.UtcNow,
+                StartedAt: _timeProvider.UtcNow,
                 CurrentState: new MatchStateRecord(
                     RoundNumber: 1,
                     Player1Health: 100,
@@ -279,7 +283,7 @@ public partial class OpenMKMatchService : IOpenMKMatchService
                 LoserCharacterId: loserId,
                 WinnerRoundsWon: 2,
                 LoserRoundsWon: 0,
-                TotalMatchDuration: DateTime.UtcNow - match.StartedAt,
+                TotalMatchDuration: _timeProvider.UtcNow - match.StartedAt,
                 Rounds: new List<OpenMKRoundResult>(),
                 Statistics: new List<OpenMKMatchStats>());
 

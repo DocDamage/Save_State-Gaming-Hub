@@ -97,7 +97,7 @@ public partial class EmulatorStatusWidget : WidgetBase
     [RelayCommand]
     private async Task NavigateToSettings()
     {
-        await _navigationService.NavigateTo("Settings");
+        await _navigationService.NavigateToAsync("Settings");
     }
 }
 

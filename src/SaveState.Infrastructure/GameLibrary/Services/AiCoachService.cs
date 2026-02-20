@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Models.AiCoach;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Infrastructure.GameLibrary.Services.AiCoach.Engines;
@@ -19,6 +20,7 @@ public sealed class AiCoachService : IAiCoachService
     private readonly ITipGenerationEngine _tipGenerationEngine;
     private readonly IFeedbackEngine _feedbackEngine;
     private readonly ILogger<AiCoachService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public AiCoachService(
         ICoachingEngine coachingEngine,
@@ -26,7 +28,8 @@ public sealed class AiCoachService : IAiCoachService
         IAiRecommendationEngine recommendationEngine,
         ITipGenerationEngine tipGenerationEngine,
         IFeedbackEngine feedbackEngine,
-        ILogger<AiCoachService> logger)
+        ILogger<AiCoachService> logger,
+        ITimeProvider timeProvider)
     {
         _coachingEngine = coachingEngine;
         _analysisEngine = analysisEngine;
@@ -34,6 +37,7 @@ public sealed class AiCoachService : IAiCoachService
         _tipGenerationEngine = tipGenerationEngine;
         _feedbackEngine = feedbackEngine;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <inheritdoc />
@@ -127,7 +131,7 @@ public sealed class AiCoachService : IAiCoachService
             var metrics = new SessionMetrics(
                 session.Id,
                 session.StartedAt,
-                DateTime.UtcNow - session.StartedAt,
+                _timeProvider.UtcNow - session.StartedAt,
                 0, 0, 0, 0.5);
 
             return await _feedbackEngine.GenerateRealTimeFeedbackAsync(

@@ -364,7 +364,7 @@ public class SaveStateManager : ISaveStateManager
                         
                         // Create a placeholder file that indicates a save state operation was requested
                         // The emulator integration can populate this later
-                        var metadata = $"SaveState:{saveState.Id},Game:{saveState.GameId},Playtime:{saveState.PlaytimeAtSave},Timestamp:{DateTime.UtcNow:O},Status:Pending";
+                        var metadata = $"SaveState:{saveState.Id},Game:{saveState.GameId},Playtime:{saveState.PlaytimeAtSave},Timestamp:{_timeProvider.UtcNow:O},Status:Pending";
                         await File.WriteAllTextAsync(saveState.FilePath, metadata, ct);
                         
                         var fileInfo = new FileInfo(saveState.FilePath);
@@ -379,7 +379,7 @@ public class SaveStateManager : ISaveStateManager
 
             // No emulator integration available - create a basic save state file
             _logger.LogInformation("Creating basic save state file (no emulator integration active)");
-            var basicData = $"SaveState:{saveState.Id},Game:{saveState.GameId},Playtime:{saveState.PlaytimeAtSave},Created:{DateTime.UtcNow:O}";
+            var basicData = $"SaveState:{saveState.Id},Game:{saveState.GameId},Playtime:{saveState.PlaytimeAtSave},Created:{_timeProvider.UtcNow:O}";
             await File.WriteAllTextAsync(saveState.FilePath, basicData, ct);
 
             var basicFileInfo = new FileInfo(saveState.FilePath);

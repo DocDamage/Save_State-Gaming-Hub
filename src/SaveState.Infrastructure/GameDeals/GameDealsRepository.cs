@@ -1,6 +1,7 @@
 // Copyright (c) 2026 SaveStateReborn. All rights reserved.
 
 using Microsoft.EntityFrameworkCore;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameDeals;
 using SaveState.Infrastructure.Persistence;
 
@@ -12,10 +13,12 @@ namespace SaveState.Infrastructure.GameDeals;
 public sealed class GameDealsRepository : IGameDealsRepository
 {
     private readonly SaveStateDbContext _dbContext;
+    private readonly ITimeProvider _timeProvider;
 
-    public GameDealsRepository(SaveStateDbContext dbContext)
+    public GameDealsRepository(SaveStateDbContext dbContext, ITimeProvider timeProvider)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     /// <inheritdoc />
@@ -164,7 +167,7 @@ public sealed class GameDealsRepository : IGameDealsRepository
         var alert = await _dbContext.PriceAlerts.FindAsync(new object[] { alertId }, ct);
         if (alert != null)
         {
-            alert.LastTriggeredAt = DateTime.UtcNow;
+            alert.LastTriggeredAt = _timeProvider.UtcNow;
             await _dbContext.SaveChangesAsync(ct);
         }
     }
@@ -172,7 +175,7 @@ public sealed class GameDealsRepository : IGameDealsRepository
     /// <inheritdoc />
     public async Task ClearOldDealsAsync(TimeSpan maxAge, CancellationToken ct = default)
     {
-        var cutoff = DateTime.UtcNow - maxAge;
+        var cutoff = _timeProvider.UtcNow - maxAge;
         var oldDeals = await _dbContext.GameDeals
             .Where(d => d.LastUpdated < cutoff)
             .ToListAsync(ct);

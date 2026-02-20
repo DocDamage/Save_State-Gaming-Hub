@@ -7,6 +7,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Configuration;
 using SaveState.Core.Mugen;
 using SaveState.Core.Mugen.Entities;
@@ -26,19 +27,22 @@ public class MugenDeathMatchService : IMugenDeathMatchService
     private readonly IMugenMatchHistoryRepository _matchHistoryRepository;
     private readonly MugenOptions _options;
     private readonly ILogger<MugenDeathMatchService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public MugenDeathMatchService(
         IMugenLauncher launcher,
         IMugenCharacterRepository characterRepository,
         IMugenMatchHistoryRepository matchHistoryRepository,
         IOptions<MugenOptions> options,
-        ILogger<MugenDeathMatchService> logger)
+        ILogger<MugenDeathMatchService> logger,
+        ITimeProvider timeProvider)
     {
         _launcher = launcher;
         _characterRepository = characterRepository;
         _matchHistoryRepository = matchHistoryRepository;
         _options = options.Value;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<DeathMatchResult>> RunDeathMatchAsync(
@@ -194,7 +198,7 @@ public class MugenDeathMatchService : IMugenDeathMatchService
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
     }
 
-    private static async Task<string?> WaitForReplayAsync(
+    private async Task<string?> WaitForReplayAsync(
         string? replayDirectory,
         HashSet<string> baseline,
         TimeSpan timeout,
@@ -203,8 +207,8 @@ public class MugenDeathMatchService : IMugenDeathMatchService
         if (string.IsNullOrWhiteSpace(replayDirectory) || !Directory.Exists(replayDirectory))
             return null;
 
-        var deadline = DateTime.UtcNow.Add(timeout);
-        while (DateTime.UtcNow < deadline)
+        var deadline = _timeProvider.UtcNow.Add(timeout);
+        while (_timeProvider.UtcNow < deadline)
         {
             ct.ThrowIfCancellationRequested();
             var candidate = FindNewestReplay(replayDirectory, baseline);

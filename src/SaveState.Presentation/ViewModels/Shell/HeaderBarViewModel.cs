@@ -113,7 +113,7 @@ public partial class HeaderBarViewModel : ObservableObject
     [RelayCommand]
     private async Task OpenSettings()
     {
-        await _navigationService.NavigateTo("Settings");
+        await _navigationService.NavigateToAsync("Settings");
     }
 
     /// <summary>
@@ -192,6 +192,6 @@ public partial class TabButtonViewModel : ObservableObject
     [RelayCommand]
     private async Task Navigate()
     {
-        await _navigationService.NavigateTo(Name);
+        await _navigationService.NavigateToAsync(Name);
     }
 }

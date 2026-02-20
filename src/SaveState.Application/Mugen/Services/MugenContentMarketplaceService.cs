@@ -168,7 +168,7 @@ public class MugenContentMarketplaceService : IMugenContentMarketplaceService
     }
 
     public Task<bool> VerifyContentAccessAsync(string contentId, string userId, CancellationToken ct = default)
-        => _purchaseEngine.VerifyContentAccess(contentId, userId, ct);
+        => _purchaseEngine.VerifyContentAccessAsync(contentId, userId, ct);
 
     #endregion
 

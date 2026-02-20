@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using System.Collections.ObjectModel;
 using Splat;
 
@@ -12,6 +13,7 @@ public class NavigationService : ObservableObject, INavigationService
 {
     private readonly ILogger<NavigationService> _logger;
     private readonly IServiceProvider _serviceProvider;
+    private readonly ITimeProvider _timeProvider;
     private readonly ObservableCollection<NavigationEntry> _history = new();
     private readonly Dictionary<Type, ObservableObject> _viewModelCache = new();
 
@@ -22,11 +24,13 @@ public class NavigationService : ObservableObject, INavigationService
 
     public NavigationService(
         ILogger<NavigationService> logger,
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        ITimeProvider timeProvider)
     {
         _logger.LogDebug("NavigationService constructor starting");
         _logger = logger;
         _serviceProvider = serviceProvider;
+        _timeProvider = timeProvider;
 
         // Don't resolve ViewModels here - defer until first actual navigation
         // This avoids blocking during DI resolution chain
@@ -39,7 +43,7 @@ public class NavigationService : ObservableObject, INavigationService
 
         _logger.LogDebug("NavigationService initializing Dashboard");
         _currentViewModel = GetOrCreateViewModel(TabRegistry.Tabs["Dashboard"].ViewModelType);
-        _currentEntry = new NavigationEntry("Dashboard", _currentViewModel.GetType(), null, DateTime.UtcNow);
+        _currentEntry = new NavigationEntry("Dashboard", _currentViewModel.GetType(), null, _timeProvider.UtcNow);
         _isInitialized = true;
         _logger.LogDebug("NavigationService initialization complete");
     }
@@ -73,19 +77,19 @@ public class NavigationService : ObservableObject, INavigationService
     public bool CanGoBack => _history.Count > 0;
 
     /// <inheritdoc />
-    public async Task NavigateTo<TViewModel>() where TViewModel : ObservableObject
+    public async Task NavigateToAsync<TViewModel>() where TViewModel : ObservableObject
     {
-        await NavigateTo(typeof(TViewModel), null);
+        await NavigateToAsync(typeof(TViewModel), null);
     }
 
     /// <inheritdoc />
-    public async Task NavigateTo(string tabName)
+    public async Task NavigateToAsync(string tabName)
     {
-        await NavigateTo(tabName, null);
+        await NavigateToAsync(tabName, null);
     }
 
     /// <inheritdoc />
-    public async Task NavigateTo(string tabName, object parameter)
+    public async Task NavigateToAsync(string tabName, object parameter)
     {
         var tab = TabRegistry.GetTab(tabName);
         if (tab == null)
@@ -102,7 +106,7 @@ public class NavigationService : ObservableObject, INavigationService
 
         // Create new entry
         var viewModel = GetOrCreateViewModel(tab.ViewModelType);
-        var entry = new NavigationEntry(tabName, tab.ViewModelType, parameter, DateTime.UtcNow);
+        var entry = new NavigationEntry(tabName, tab.ViewModelType, parameter, _timeProvider.UtcNow);
 
         // Update state
         CurrentTab = tabName;
@@ -112,7 +116,7 @@ public class NavigationService : ObservableObject, INavigationService
         // Notify the view model if it implements INavigationAware
         if (viewModel is INavigationAware navigationAware)
         {
-            await navigationAware.OnNavigatedTo(parameter);
+            await navigationAware.OnNavigatedToAsync(parameter);
         }
 
         _logger.LogInformation("Navigated to tab: {TabName}", tabName);
@@ -148,13 +152,13 @@ public class NavigationService : ObservableObject, INavigationService
     /// <inheritdoc />
     public event EventHandler<NavigationEventArgs>? Navigated;
 
-    private async Task NavigateTo(Type viewModelType, object? parameter)
+    private async Task NavigateToAsync(Type viewModelType, object? parameter)
     {
         // Find tab that matches this view model type
         var tab = TabRegistry.Tabs.FirstOrDefault(t => t.Value.ViewModelType == viewModelType);
         if (tab.Value != null)
         {
-            await NavigateTo(tab.Key, parameter);
+            await NavigateToAsync(tab.Key, parameter);
         }
         else
         {

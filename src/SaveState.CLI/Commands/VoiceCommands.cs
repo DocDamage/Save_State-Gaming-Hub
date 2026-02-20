@@ -6,7 +6,6 @@ namespace SaveState.CLI.Commands;
 
 /// <summary>
 /// Commands for voice control and recognition.
-/// Note: Full implementation pending service updates.
 /// </summary>
 public class VoiceCommands : CommandGroupBase
 {

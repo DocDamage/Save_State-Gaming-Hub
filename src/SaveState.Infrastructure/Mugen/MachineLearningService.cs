@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Services;
 using SaveState.Core.Mugen.ValueObjects;
 using SaveState.Core.Mugen.DTOs;
@@ -14,6 +15,12 @@ namespace SaveState.Infrastructure.Mugen;
 public class MachineLearningService : IMachineLearningService
 {
     private readonly List<TrainingModel> _trainedModels = new();
+    private readonly ITimeProvider _timeProvider;
+
+    public MachineLearningService(ITimeProvider timeProvider)
+    {
+        _timeProvider = timeProvider;
+    }
 
     public Task<Result<MatchupPrediction>> AnalyzeCharacterMatchupAsync(string characterA, string characterB, CancellationToken cancellationToken = default)
     {
@@ -99,7 +106,7 @@ public class MachineLearningService : IMachineLearningService
             Name = configuration.ModelName,
             Algorithm = configuration.Algorithm,
             Accuracy = 0.89,
-            TrainedAt = DateTime.UtcNow,
+            TrainedAt = _timeProvider.UtcNow,
             TotalEpochs = configuration.TotalEpochs,
             ModelSize = 1024 * 1024 * 5 // 5 MB
         };

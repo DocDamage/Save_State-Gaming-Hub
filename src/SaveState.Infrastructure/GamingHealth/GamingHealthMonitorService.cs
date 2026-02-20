@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GamingHealth.Models;
 using SaveState.Core.GamingHealth.Services;
 
@@ -12,14 +13,16 @@ namespace SaveState.Infrastructure.GamingHealth;
 public sealed class GamingHealthMonitorService : IGamingHealthMonitorService
 {
     private readonly ILogger<GamingHealthMonitorService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private GamingHealthConfiguration? _configuration;
     private readonly Dictionary<string, GamingHealthSession> _sessions = new();
     private string? _currentSessionId;
     private bool _heartRateDeviceConnected;
 
-    public GamingHealthMonitorService(ILogger<GamingHealthMonitorService> logger)
+    public GamingHealthMonitorService(ILogger<GamingHealthMonitorService> logger, ITimeProvider timeProvider)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     /// <inheritdoc />
@@ -39,7 +42,7 @@ public sealed class GamingHealthMonitorService : IGamingHealthMonitorService
         {
             Id = Guid.NewGuid().ToString(),
             UserId = userId,
-            StartedAt = DateTime.UtcNow
+            StartedAt = _timeProvider.UtcNow
         };
         
         _sessions[session.Id] = session;
@@ -60,7 +63,7 @@ public sealed class GamingHealthMonitorService : IGamingHealthMonitorService
         
         var summary = new SessionHealthSummary
         {
-            TotalDuration = DateTime.UtcNow - session.StartedAt,
+            TotalDuration = _timeProvider.UtcNow - session.StartedAt,
             AlertCount = session.Alerts.Count,
             OverallStatus = HealthStatus.Good,
             Recommendations = new List<string> { "Take regular breaks", "Maintain good posture" }

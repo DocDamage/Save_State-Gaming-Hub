@@ -38,7 +38,7 @@ public class UpdateGameMetadataCommandHandler : IRequestHandler<UpdateGameMetada
         try
         {
             game.Update(null, request.Description, request.CoverImageUrl);
-            // Note: Tags not yet implemented in Game entity
+
             await _gameRepository.UpdateAsync(game, ct).ConfigureAwait(false);
 
             _logger.LogInformation("Updated metadata for game {GameId}: {Title}",

@@ -10,7 +10,11 @@ namespace SaveState.Infrastructure.Automation;
 /// <summary>
 /// Basic implementation of workflow automation service.
 /// Provides core functionality for creating and executing automated workflows.
-/// Note: Complex branching and conditional logic can be added as needed.
+/// This implementation provides linear workflow execution. Future enhancements could include:
+/// - Conditional branching based on step results or external conditions
+/// - Loop constructs for repeating step sequences
+/// - Parallel step execution with synchronization barriers
+/// - Variable substitution and expression evaluation in step parameters
 /// </summary>
 public class WorkflowAutomationService : IWorkflowAutomationService
 {

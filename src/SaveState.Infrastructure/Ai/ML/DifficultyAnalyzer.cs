@@ -116,7 +116,7 @@ public sealed class DifficultyAnalyzer : IDifficultyAnalyzer, IDisposable
             Recall: 0.83f,
             F1Score: 0.84f,
             TrainingSampleCount: 1250,
-            LastTrainedAtUtc: _model.ModelVersion ?? DateTime.UtcNow.AddDays(-7),
+            LastTrainedAtUtc: _model.ModelVersion ?? _timeProvider.UtcNow.AddDays(-7),
             ModelVersion: _model.ModelVersion?.ToString("yyyyMMdd") ?? "1.0.0");
 
         return Task.FromResult(Result.Success(metrics));

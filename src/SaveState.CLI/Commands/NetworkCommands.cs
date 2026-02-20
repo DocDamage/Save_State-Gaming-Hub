@@ -6,7 +6,6 @@ namespace SaveState.CLI.Commands;
 
 /// <summary>
 /// Commands for network diagnostics and quality monitoring.
-/// Note: Full implementation pending service updates.
 /// </summary>
 public class NetworkCommands : CommandGroupBase
 {

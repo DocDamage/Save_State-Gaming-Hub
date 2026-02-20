@@ -31,7 +31,7 @@ public class PerformanceProfiler : IPerformanceProfiler, IDisposable
         _logger = logger;
         _memoryReader = memoryReader;
         _timeProvider = timeProvider;
-        _metricsCollector = new PerformanceMetricsCollector(logger);
+        _metricsCollector = new PerformanceMetricsCollector(logger, timeProvider);
 
         // Collect metrics every 100ms for smooth monitoring
         _profilingTimer = new Timer(CollectMetrics, null, Timeout.Infinite, Timeout.Infinite);

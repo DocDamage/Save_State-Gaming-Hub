@@ -110,6 +110,6 @@ public partial class TodaysStatsWidget : WidgetBase
     [RelayCommand]
     private async Task NavigateToAnalytics()
     {
-        await _navigationService.NavigateTo("Analytics");
+        await _navigationService.NavigateToAsync("Analytics");
     }
 }

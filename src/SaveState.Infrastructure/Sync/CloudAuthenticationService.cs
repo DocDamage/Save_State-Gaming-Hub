@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Sync;
 using System.Diagnostics;
 using System.Text;
@@ -17,11 +18,13 @@ public class CloudAuthenticationService : ICloudAuthenticationService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<CloudAuthenticationService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public CloudAuthenticationService(HttpClient httpClient, ILogger<CloudAuthenticationService> logger)
+    public CloudAuthenticationService(HttpClient httpClient, ILogger<CloudAuthenticationService> logger, ITimeProvider timeProvider)
     {
         _httpClient = httpClient;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<OAuth2TokenResponse>> AuthenticateAsync(
@@ -122,7 +125,7 @@ public class CloudAuthenticationService : ICloudAuthenticationService
             return Result.Success(new OAuth2TokenResponse(
                 data.access_token,
                 data.refresh_token ?? refreshToken,
-                DateTime.UtcNow.AddSeconds(data.expires_in),
+                _timeProvider.UtcNow.AddSeconds(data.expires_in),
                 data.scope?.Split(' ') ?? Array.Empty<string>()));
         }
         catch (OperationCanceledException)
@@ -169,7 +172,7 @@ public class CloudAuthenticationService : ICloudAuthenticationService
         return Result.Success(new OAuth2TokenResponse(
             data.access_token,
             data.refresh_token,
-            DateTime.UtcNow.AddSeconds(data.expires_in),
+            _timeProvider.UtcNow.AddSeconds(data.expires_in),
             data.scope?.Split(' ') ?? Array.Empty<string>()));
     }
 

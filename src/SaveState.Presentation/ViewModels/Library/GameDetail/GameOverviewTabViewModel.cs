@@ -329,7 +329,7 @@ public partial class GameOverviewTabViewModel : ObservableObject
     {
         if (_currentGameId != null)
         {
-             _navigationService.NavigateTo("Analytics", new { gameId = _currentGameId });
+             _navigationService.NavigateToAsync("Analytics", new { gameId = _currentGameId });
         }
     }
 

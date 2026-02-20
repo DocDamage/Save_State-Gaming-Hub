@@ -23,14 +23,14 @@ public partial class StatusBarView : UserControl
     {
         // Navigate to Library tab
         var viewModel = DataContext as ViewModels.Shell.StatusBarViewModel;
-        viewModel?.NavigateToLibrary();
+        viewModel?.NavigateToLibraryAsync();
     }
 
     private void OnPlaytimePressed(object? sender, PointerPressedEventArgs e)
     {
         // Navigate to Analytics tab
         var viewModel = DataContext as ViewModels.Shell.StatusBarViewModel;
-        viewModel?.NavigateToAnalytics();
+        viewModel?.NavigateToAnalyticsAsync();
     }
 
     private void OnSyncStatusPressed(object? sender, PointerPressedEventArgs e)

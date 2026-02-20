@@ -321,7 +321,7 @@ public class AnalyticsService : IAnalyticsService
         };
     }
 
-    private static Dictionary<DateOnly, DailyActivity> BuildDailyActivities(IReadOnlyList<GameSession> sessions)
+    private Dictionary<DateOnly, DailyActivity> BuildDailyActivities(IReadOnlyList<GameSession> sessions)
     {
         var activities = new Dictionary<DateOnly, DailyActivity>();
 
@@ -329,7 +329,7 @@ public class AnalyticsService : IAnalyticsService
         {
             var date = sessionGroup.Key;
             var sessionList = sessionGroup.ToList();
-            var dailyPlaytime = TimeSpan.FromTicks(sessionList.Sum(s => s.GetDuration(DateTime.UtcNow).Ticks));
+            var dailyPlaytime = TimeSpan.FromTicks(sessionList.Sum(s => s.GetDuration(_timeProvider.UtcNow).Ticks));
             var gamesPlayed = sessionList
                 .Select(s => s.Game.Title)
                 .Where(title => !string.IsNullOrWhiteSpace(title))

@@ -6,7 +6,6 @@ namespace SaveState.CLI.Commands;
 
 /// <summary>
 /// Commands for automation, macros, and workflow management.
-/// Note: Full implementation pending service updates.
 /// </summary>
 public class AutomationCommands : CommandGroupBase
 {

@@ -113,7 +113,7 @@ public class CharacterFusionService : ICharacterFusionService
                 Stats = CalculateFusionStats(parent1, parent2, request.FusionType, request.Customization),
                 Moves = FuseMoves(parent1, parent2, request.Customization),
                 Appearance = GenerateAppearance(parent1, parent2, request.Customization),
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 CompatibilityScore = compatibility,
                 Tags = new List<string> { "fusion", $"tier-{(compatibility >= 70 ? "high" : "standard")}" }
             };
@@ -429,7 +429,7 @@ public class CharacterFusionService : ICharacterFusionService
                 Moves = importedFusion.Moves,
                 Appearance = importedFusion.Appearance,
                 CreatedBy = userId,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 BattleCount = 0,
                 WinRate = 0
             };

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.DTOs;
@@ -20,6 +21,7 @@ public class SessionTrackingService : ISessionTrackingService
     private readonly IGameRepository _gameRepository;
     private readonly ILogger<SessionTrackingService> _logger;
     private readonly IRealTimeNotificationService _notificationService;
+    private readonly ITimeProvider _timeProvider;
 
     public event EventHandler<GameSessionEventArgs>? SessionStarted;
     public event EventHandler<GameSessionEventArgs>? SessionEnded;
@@ -34,12 +36,14 @@ public class SessionTrackingService : ISessionTrackingService
         IGameSessionRepository sessionRepository,
         IGameRepository gameRepository,
         ILogger<SessionTrackingService> logger,
-        IRealTimeNotificationService notificationService)
+        IRealTimeNotificationService notificationService,
+        ITimeProvider timeProvider)
     {
         _sessionRepository = sessionRepository;
         _gameRepository = gameRepository;
         _logger = logger;
         _notificationService = notificationService;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -302,7 +306,7 @@ public class SessionTrackingService : ISessionTrackingService
             var firstSession = await _sessionRepository.GetFirstSessionAsync(gameId, ct).ConfigureAwait(false);
             var longestSession = await _sessionRepository.GetLongestSessionAsync(gameId, ct).ConfigureAwait(false);
 
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.UtcNow;
             var weekAgo = now.AddDays(-7);
             var monthAgo = now.AddDays(-30);
 

@@ -1,9 +1,5 @@
 // Type aliases for backward compatibility with existing code.
 // These aliases map the old naming convention to the new clean names.
-// 
-// NOTE: These aliases are deprecated. New code should use the types from:
-// - SaveState.Application.Mugen.Models.LiveSync (for models)
-// - SaveState.Application.Mugen.Services.LiveSync (for service interface)
 
 using SaveState.Application.Mugen.Models.LiveSync;
 using SaveState.Application.Mugen.Services.LiveSync;

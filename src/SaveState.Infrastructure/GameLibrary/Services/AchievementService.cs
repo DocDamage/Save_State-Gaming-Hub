@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
@@ -14,17 +15,20 @@ public class AchievementService : IAchievementService
     private readonly IGameRepository _gameRepository;
     private readonly IGameSessionRepository _sessionRepository;
     private readonly ILogger<AchievementService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public AchievementService(
         IAchievementRepository achievementRepository,
         IGameRepository gameRepository,
         IGameSessionRepository sessionRepository,
-        ILogger<AchievementService> logger)
+        ILogger<AchievementService> logger,
+        ITimeProvider timeProvider)
     {
         _achievementRepository = achievementRepository;
         _gameRepository = gameRepository;
         _sessionRepository = sessionRepository;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<IReadOnlyList<Achievement>> CheckForUnlockedAchievementsAsync(Guid userId, CancellationToken ct = default)
@@ -383,7 +387,7 @@ public class AchievementService : IAchievementService
         var sessionsInLastDays = 0;
         if (recentDays.HasValue && recentDays.Value > 0)
         {
-            var cutoff = DateTime.UtcNow.AddDays(-recentDays.Value);
+            var cutoff = _timeProvider.UtcNow.AddDays(-recentDays.Value);
             sessionsInLastDays = sessions.Count(s => s.StartedAt >= cutoff);
         }
 

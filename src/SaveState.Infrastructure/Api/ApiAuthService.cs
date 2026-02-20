@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Api.Entities;
 using SaveState.Core.Api.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Infrastructure.Persistence;
 
 namespace SaveState.Infrastructure.Api;
@@ -15,11 +16,13 @@ public partial class ApiAuthService : IApiAuthService
 {
     private readonly SaveStateDbContext _dbContext;
     private readonly ILogger<ApiAuthService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public ApiAuthService(SaveStateDbContext dbContext, ILogger<ApiAuthService> logger)
+    public ApiAuthService(SaveStateDbContext dbContext, ILogger<ApiAuthService> logger, ITimeProvider timeProvider)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<string>> GenerateApiKeyAsync(string appName, string[] scopes, CancellationToken ct = default)
@@ -32,7 +35,7 @@ public partial class ApiAuthService : IApiAuthService
             var keyString = GenerateSecureApiKey();
 
             // Set expiration to 1 year from now by default
-            var expiresAt = DateTime.UtcNow.AddYears(1);
+            var expiresAt = _timeProvider.UtcNow.AddYears(1);
 
             // Create ApiKey entity
             var apiKey = ApiKey.Create(keyString, appName, scopes, expiresAt);
@@ -132,7 +135,7 @@ public partial class ApiAuthService : IApiAuthService
             LogGettingActiveApiKeys(_logger);
 
             var keys = await _dbContext.ExternalApiKeys
-                .Where(k => k.IsActive && (k.ExpiresAt == null || k.ExpiresAt > DateTime.UtcNow))
+                .Where(k => k.IsActive && (k.ExpiresAt == null || k.ExpiresAt > _timeProvider.UtcNow))
                 .Select(k => new ApiKeyInfo(
                     k.Key,
                     k.AppName,

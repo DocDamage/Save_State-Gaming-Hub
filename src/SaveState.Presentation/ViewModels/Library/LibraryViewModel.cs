@@ -331,7 +331,7 @@ public partial class LibraryViewModel : ObservableObject, IRecipient<SaveState.P
     [RelayCommand]
     private async Task OpenSettings()
     {
-        await _navigationService.NavigateTo("Settings");
+        await _navigationService.NavigateToAsync("Settings");
     }
 
     [RelayCommand]

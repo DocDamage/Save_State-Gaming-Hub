@@ -127,7 +127,7 @@ public class PurchaseEngine
     {
         try
         {
-            if (!HasPurchased(contentId, userId) && !await VerifyContentAccess(contentId, userId, cancellationToken).ConfigureAwait(false))
+            if (!HasPurchased(contentId, userId) && !await VerifyContentAccessAsync(contentId, userId, cancellationToken).ConfigureAwait(false))
             {
                 return Result.Failure<DownloadResult>("Access denied. Content not purchased.", ErrorType.Forbidden);
             }
@@ -179,7 +179,7 @@ public class PurchaseEngine
     /// <param name="userId">The user ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>True if access is granted.</returns>
-    public async Task<bool> VerifyContentAccess(string contentId, string userId, CancellationToken cancellationToken = default)
+    public async Task<bool> VerifyContentAccessAsync(string contentId, string userId, CancellationToken cancellationToken = default)
     {
         if (_licenseManager != null)
         {

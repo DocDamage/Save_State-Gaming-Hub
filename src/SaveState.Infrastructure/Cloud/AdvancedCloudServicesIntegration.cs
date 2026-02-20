@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Infrastructure.Cloud;
 
@@ -10,11 +11,13 @@ namespace SaveState.Infrastructure.Cloud;
 public class AzureBlobStorageService
 {
     private readonly ILogger<AzureBlobStorageService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly string _connectionString;
 
-    public AzureBlobStorageService(ILogger<AzureBlobStorageService> logger, string connectionString)
+    public AzureBlobStorageService(ILogger<AzureBlobStorageService> logger, ITimeProvider timeProvider, string connectionString)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         _connectionString = connectionString;
     }
 
@@ -111,11 +114,13 @@ public class AzureBlobStorageService
 public class GoogleCloudMLEngineService
 {
     private readonly ILogger<GoogleCloudMLEngineService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly string _apiKey;
 
-    public GoogleCloudMLEngineService(ILogger<GoogleCloudMLEngineService> logger, string apiKey)
+    public GoogleCloudMLEngineService(ILogger<GoogleCloudMLEngineService> logger, ITimeProvider timeProvider, string apiKey)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         _apiKey = apiKey;
     }
 
@@ -155,7 +160,7 @@ public class GoogleCloudMLEngineService
                 JobId: jobId,
                 State: "RUNNING",
                 Progress: 45.5,
-                StartTime: DateTime.UtcNow.AddHours(-1),
+                StartTime: _timeProvider.UtcNow.AddHours(-1),
                 CompletionTime: null);
 
             return Result.Success(status);

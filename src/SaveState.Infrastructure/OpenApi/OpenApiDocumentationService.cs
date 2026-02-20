@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -12,11 +13,13 @@ namespace SaveState.Infrastructure.OpenApi;
 public class OpenApiDocumentationService
 {
     private readonly ILogger<OpenApiDocumentationService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, XDocument> _xmlDocs = new();
 
-    public OpenApiDocumentationService(ILogger<OpenApiDocumentationService> logger)
+    public OpenApiDocumentationService(ILogger<OpenApiDocumentationService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         LoadXmlDocumentation();
     }
 
@@ -30,7 +33,7 @@ public class OpenApiDocumentationService
             Title = "SaveStateReborn API",
             Version = GetAssemblyVersion(assembly),
             Description = "Gaming management platform API",
-            GeneratedAt = DateTime.UtcNow
+            GeneratedAt = _timeProvider.UtcNow
         };
 
         var serviceTypes = assembly.GetTypes()

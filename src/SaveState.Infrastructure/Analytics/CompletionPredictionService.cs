@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Analytics.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary.Enums;
 using SaveState.Infrastructure.External;
@@ -21,6 +22,7 @@ public sealed class CompletionPredictionService : ICompletionPredictionService
     private readonly IAiOrchestrator _aiOrchestrator;
     private readonly IHowLongToBeatService _hltbService;
     private readonly ILogger<CompletionPredictionService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private static readonly Dictionary<GameId, CompletionMetrics> _completionHistory = new();
     private static readonly Dictionary<string, HowLongToBeatData> _hltbCache = new();
 
@@ -28,12 +30,14 @@ public sealed class CompletionPredictionService : ICompletionPredictionService
         SaveStateDbContext dbContext,
         IAiOrchestrator aiOrchestrator,
         IHowLongToBeatService hltbService,
-        ILogger<CompletionPredictionService> logger)
+        ILogger<CompletionPredictionService> logger,
+        ITimeProvider timeProvider)
     {
         _dbContext = dbContext;
         _aiOrchestrator = aiOrchestrator;
         _hltbService = hltbService;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<IReadOnlyList<GameCompletionPrediction>>> GetPredictionsAsync(
@@ -145,7 +149,7 @@ public sealed class CompletionPredictionService : ICompletionPredictionService
         {
             _completionHistory[gameId] = new CompletionMetrics(
                 actualTimeToComplete,
-                DateTime.UtcNow);
+                _timeProvider.UtcNow);
 
             _logger.LogInformation(
                 "Recorded completion for game {GameId}: {Time} hours",

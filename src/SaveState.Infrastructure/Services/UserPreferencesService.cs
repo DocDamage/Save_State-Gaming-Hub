@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -14,12 +15,14 @@ public class UserPreferencesService : SaveState.Core.Common.Services.IUserPrefer
     private const int MaxBackgroundAlertCooldownSeconds = 600;
 
     private readonly ILogger<UserPreferencesService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly string _preferencesFilePath;
     private UserPreferences? _cachedPreferences;
 
-    public UserPreferencesService(ILogger<UserPreferencesService> logger)
+    public UserPreferencesService(ILogger<UserPreferencesService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         var appFolder = Path.Combine(appDataPath, "SaveStateReborn");
         Directory.CreateDirectory(appFolder);
@@ -46,7 +49,7 @@ public class UserPreferencesService : SaveState.Core.Common.Services.IUserPrefer
         {
             var preferences = await LoadPreferencesAsync(cancellationToken).ConfigureAwait(false);
             preferences.OnboardingCompleted = true;
-            preferences.OnboardingCompletedAt = DateTime.UtcNow;
+            preferences.OnboardingCompletedAt = _timeProvider.UtcNow;
             await SavePreferencesAsync(preferences, cancellationToken).ConfigureAwait(false);
             _cachedPreferences = preferences;
         }

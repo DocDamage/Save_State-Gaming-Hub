@@ -2,6 +2,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using SaveState.Core.Common.Interfaces;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.RomManagement;
 using SaveState.Core.RomManagement.Entities;
@@ -19,6 +20,7 @@ public class RomValidationServiceTests
     private readonly Mock<IRomHashInfoRepository> _mockHashRepository = new();
     private readonly Mock<IRomValidationReportRepository> _mockReportRepository = new();
     private readonly Mock<ILogger<RomValidationService>> _mockLogger = new();
+    private readonly Mock<ITimeProvider> _mockTimeProvider = new();
     private readonly RomValidationService _sut;
 
     public RomValidationServiceTests()
@@ -28,7 +30,8 @@ public class RomValidationServiceTests
             _mockRomRepository.Object,
             _mockHashRepository.Object,
             _mockReportRepository.Object,
-            _mockLogger.Object);
+            _mockLogger.Object,
+            _mockTimeProvider.Object);
     }
 
     [Fact]

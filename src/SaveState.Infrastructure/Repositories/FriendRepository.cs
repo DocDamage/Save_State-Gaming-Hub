@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Social;
 using SaveState.Core.Social.Entities;
 using SaveState.Infrastructure.Persistence;
@@ -12,10 +13,12 @@ namespace SaveState.Infrastructure.Repositories;
 public class FriendRepository : IFriendRepository
 {
     private readonly SaveStateDbContext _context;
+    private readonly ITimeProvider _timeProvider;
 
-    public FriendRepository(SaveStateDbContext context)
+    public FriendRepository(SaveStateDbContext context, ITimeProvider timeProvider)
     {
         _context = context;
+        _timeProvider = timeProvider;
     }
 
     // Friend operations
@@ -147,7 +150,7 @@ public class FriendRepository : IFriendRepository
 
     public async Task<int> CleanupOldActivitiesAsync(int daysToKeep = 30, CancellationToken ct = default)
     {
-        var cutoffDate = DateTime.UtcNow.AddDays(-daysToKeep);
+        var cutoffDate = _timeProvider.UtcNow.AddDays(-daysToKeep);
         var oldActivities = await _context.FriendActivities
             .Where(a => a.Timestamp < cutoffDate)
             .ToListAsync(ct)

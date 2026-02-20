@@ -112,9 +112,22 @@ public sealed class XboxCatalogClient
                 return Result.Failure<SubscriptionGame>("Failed to search Xbox catalog", ErrorType.External);
             }
 
-            // TODO: Implement actual search response parsing
-            // For now, return not found as the implementation is incomplete
-            return Result.Failure<SubscriptionGame>($"Game '{title}' not found in Xbox catalog", ErrorType.NotFound);
+            var content = await response.Content.ReadAsStringAsync(ct);
+            var games = ParseMicrosoftStoreResponse(content);
+
+            // Find best match by exact or case-insensitive title match
+            var game = games.FirstOrDefault(g =>
+                g.Title.Equals(title, StringComparison.OrdinalIgnoreCase)) ??
+                games.FirstOrDefault();
+
+            if (game == null)
+            {
+                return Result.Failure<SubscriptionGame>(
+                    $"Game '{title}' not found in Xbox catalog",
+                    ErrorType.NotFound);
+            }
+
+            return Result.Success(game);
         }
         catch (Exception ex)
         {

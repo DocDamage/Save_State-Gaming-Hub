@@ -11,10 +11,10 @@ public interface INavigationAware
     /// Called when the ViewModel is navigated to.
     /// </summary>
     /// <param name="parameter">Optional navigation parameter.</param>
-    Task OnNavigatedTo(object? parameter);
+    Task OnNavigatedToAsync(object? parameter);
 
     /// <summary>
     /// Called when the ViewModel is navigated away from.
     /// </summary>
-    Task OnNavigatedFrom();
+    Task OnNavigatedFromAsync();
 }

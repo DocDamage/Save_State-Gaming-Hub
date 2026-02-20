@@ -176,7 +176,7 @@ public class TouchController : ITouchController
             BottomRight: new Point(1920, 1080),
             Center: new Point(960, 540),
             CalibrationAccuracy: 0.95,
-            CalibratedAt: DateTime.UtcNow);
+            CalibratedAt: _timeProvider.UtcNow);
     }
 
     // Method to process touch input and detect gestures

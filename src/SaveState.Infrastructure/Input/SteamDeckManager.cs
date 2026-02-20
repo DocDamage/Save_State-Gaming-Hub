@@ -156,7 +156,7 @@ public class SteamDeckManager : ISteamDeckManager
                 Id: Guid.NewGuid(),
                 Name: $"Steam Deck Profile {_timeProvider.Now:yyyy-MM-dd}",
                 Config: config,
-                CreatedAt: DateTime.UtcNow,
+                CreatedAt: _timeProvider.UtcNow,
                 IsActive: false);
 
             return Result.Success<SteamDeckProfile>(profile);

@@ -106,7 +106,7 @@ public partial class AudioOptimizationViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task ApplyCurrentSettings()
+    public async Task ApplyCurrentSettingsAsync()
     {
         try
         {
@@ -143,7 +143,7 @@ public partial class AudioOptimizationViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task OptimizeForGame(Guid gameId)
+    public async Task OptimizeForGameAsync(Guid gameId)
     {
         try
         {
@@ -181,7 +181,7 @@ public partial class AudioOptimizationViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task SaveProfile(string profileName)
+    public async Task SaveProfileAsync(string profileName)
     {
         try
         {
@@ -223,7 +223,7 @@ public partial class AudioOptimizationViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task LoadProfile(string profileName)
+    public async Task LoadProfileAsync(string profileName)
     {
         try
         {
@@ -243,7 +243,7 @@ public partial class AudioOptimizationViewModel : ObservableObject
             SelectedLatencyMode = MapToViewModelLatencyMode(profile.Settings.LatencyMode);
 
             SelectedProfileName = profileName;
-            await ApplyCurrentSettings();
+            await ApplyCurrentSettingsAsync();
         }
         catch (Exception ex)
         {
@@ -252,7 +252,7 @@ public partial class AudioOptimizationViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task DeleteProfile(string profileName)
+    public async Task DeleteProfileAsync(string profileName)
     {
         try
         {
@@ -274,7 +274,7 @@ public partial class AudioOptimizationViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task ResetToDefaults()
+    public async Task ResetToDefaultsAsync()
     {
         try
         {
@@ -291,7 +291,7 @@ public partial class AudioOptimizationViewModel : ObservableObject
             DialogueVolume = 100.0f;
             EqEnabled = false;
 
-            await ApplyCurrentSettings();
+            await ApplyCurrentSettingsAsync();
         }
         catch (Exception ex)
         {

@@ -110,7 +110,7 @@ public partial class ActivityFeedWidget : WidgetBase
             Activities.Clear();
             Activities.Add(new ActivityItem(
                 "📊 No recent activity found",
-                DateTime.UtcNow,
+                _timeProvider.UtcNow,
                 ActivityType.Update));
         }
     }

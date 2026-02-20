@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Recommendations.Services;
 using SaveState.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,7 @@ public class DeepRecommendationModel : IDeepRecommendationModel
 {
     private readonly SaveStateDbContext _context;
     private readonly ILogger<DeepRecommendationModel> _logger;
+    private readonly ITimeProvider _timeProvider;
     private const int EmbeddingDimensions = 128;
 
     // In-memory cache for embeddings (in production, use Redis or similar)
@@ -22,10 +24,12 @@ public class DeepRecommendationModel : IDeepRecommendationModel
 
     public DeepRecommendationModel(
         SaveStateDbContext context,
-        ILogger<DeepRecommendationModel> logger)
+        ILogger<DeepRecommendationModel> logger,
+        ITimeProvider timeProvider)
     {
         _context = context;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<float[]>> GetGameEmbeddingAsync(Guid gameId, CancellationToken ct = default)
@@ -87,14 +91,14 @@ public class DeepRecommendationModel : IDeepRecommendationModel
 
             // Aggregate game embeddings weighted by playtime
             var userEmbedding = new float[EmbeddingDimensions];
-            var totalPlaytime = sessions.Sum(s => s.GetDuration(DateTime.UtcNow).TotalHours);
+            var totalPlaytime = sessions.Sum(s => s.GetDuration(_timeProvider.UtcNow).TotalHours);
 
             foreach (var session in sessions)
             {
                 var gameEmbeddingResult = await GetGameEmbeddingAsync(session.GameId, ct);
                 if (gameEmbeddingResult.IsSuccess)
                 {
-                    var weight = (float)(session.GetDuration(DateTime.UtcNow).TotalHours / totalPlaytime);
+                    var weight = (float)(session.GetDuration(_timeProvider.UtcNow).TotalHours / totalPlaytime);
                     var gameEmbedding = gameEmbeddingResult.Value;
 
                     for (int i = 0; i < EmbeddingDimensions; i++)

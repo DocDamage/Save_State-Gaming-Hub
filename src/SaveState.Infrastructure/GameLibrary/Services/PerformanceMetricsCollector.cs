@@ -4,6 +4,7 @@ using System.Management;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Services;
 
 namespace SaveState.Infrastructure.GameLibrary.Services;
@@ -11,13 +12,15 @@ namespace SaveState.Infrastructure.GameLibrary.Services;
 public class PerformanceMetricsCollector
 {
     private readonly ILogger _logger;
+    private readonly ITimeProvider _timeProvider;
     private PerformanceCounter? _cpuCounter;
     private PerformanceCounter? _gpuCounter;
     private PerformanceCounter? _memoryCounter;
 
-    public PerformanceMetricsCollector(ILogger logger)
+    public PerformanceMetricsCollector(ILogger logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         InitializePerformanceCounters();
     }
 
@@ -43,7 +46,7 @@ public class PerformanceMetricsCollector
             var subsystemResult = await subsystemTask;
 
             return new PerformanceMetrics(
-                Timestamp: DateTime.UtcNow,
+                Timestamp: _timeProvider.UtcNow,
                 Fps: fpsResult.fps,
                 FrameTimeMs: fpsResult.frameTime,
                 CpuUsagePercent: cpuResult.cpuUsage,
@@ -58,7 +61,7 @@ public class PerformanceMetricsCollector
             _logger.LogError(ex, "Error collecting performance metrics");
             // Return zero metrics on error
             return new PerformanceMetrics(
-                DateTime.UtcNow, 0, 0, 0, 0, 0, 0, 0, Array.Empty<SubsystemMetrics>());
+                _timeProvider.UtcNow, 0, 0, 0, 0, 0, 0, 0, Array.Empty<SubsystemMetrics>());
         }
     }
 
