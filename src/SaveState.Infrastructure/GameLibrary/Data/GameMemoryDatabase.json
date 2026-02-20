@@ -1,0 +1,6128 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-02-20",
+  "games": [
+    {
+      "id": "celeste",
+      "title": "Celeste",
+      "platform": "PC",
+      "processNames": [
+        "Celeste.exe",
+        "Celeste.bin"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current health (strawberries)",
+          "validated": false
+        },
+        {
+          "name": "DashCount",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Remaining air dashes",
+          "validated": false
+        },
+        {
+          "name": "Strawberries",
+          "category": "Collectible",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Total strawberries collected",
+          "validated": false
+        },
+        {
+          "name": "DeathCount",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Total death count",
+          "validated": false
+        },
+        {
+          "name": "ChapterTime",
+          "category": "Progress",
+          "pattern": "F3 0F 11 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current chapter timer",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "hollow-knight",
+      "title": "Hollow Knight",
+      "platform": "PC",
+      "processNames": [
+        "Hollow Knight.exe",
+        "hollow_knight.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current mask health",
+          "validated": false
+        },
+        {
+          "name": "Soul",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current soul amount",
+          "validated": false
+        },
+        {
+          "name": "Geo",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Current geo (money)",
+          "validated": false
+        },
+        {
+          "name": "NailDamage",
+          "category": "Combat",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Current nail damage level",
+          "validated": false
+        },
+        {
+          "name": "Charms",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 8B 4D ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Equipped charm notches",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "hades",
+      "title": "Hades",
+      "platform": "PC",
+      "processNames": [
+        "Hades.exe",
+        "Hades.bin"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health points",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health points",
+          "validated": false
+        },
+        {
+          "name": "Darkness",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Darkness currency",
+          "validated": false
+        },
+        {
+          "name": "Keys",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Chthonic Keys",
+          "validated": false
+        },
+        {
+          "name": "Gemstones",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Gemstones for upgrades",
+          "validated": false
+        },
+        {
+          "name": "Heat",
+          "category": "Progress",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Current heat level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "hades-2",
+      "title": "Hades II",
+      "platform": "PC",
+      "processNames": [
+        "Hades2.exe",
+        "HadesII.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health points",
+          "validated": false
+        },
+        {
+          "name": "Magick",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current magick points",
+          "validated": false
+        },
+        {
+          "name": "Ash",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Ash currency",
+          "validated": false
+        },
+        {
+          "name": "Psyche",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Psyche currency",
+          "validated": false
+        },
+        {
+          "name": "Nightmare",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Nightmare heat level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "dead-cells",
+      "title": "Dead Cells",
+      "platform": "PC",
+      "processNames": [
+        "deadcells.exe",
+        "DeadCells.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Cells",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Cell currency for upgrades",
+          "validated": false
+        },
+        {
+          "name": "Gold",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current gold",
+          "validated": false
+        },
+        {
+          "name": "BossCells",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Boss Stem Cells unlocked",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "slay-the-spire",
+      "title": "Slay the Spire",
+      "platform": "PC",
+      "processNames": [
+        "SlayTheSpire.exe",
+        "SlayTheSpire.bin"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Gold",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Current gold",
+          "validated": false
+        },
+        {
+          "name": "Energy",
+          "category": "Combat",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Current turn energy",
+          "validated": false
+        },
+        {
+          "name": "Ascension",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 8B 4D ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current ascension level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "binding-of-isaac",
+      "title": "The Binding of Isaac: Repentance",
+      "platform": "PC",
+      "processNames": [
+        "isaac-ng.exe",
+        "Isaac.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current red heart containers",
+          "validated": false
+        },
+        {
+          "name": "SoulHearts",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current soul hearts",
+          "validated": false
+        },
+        {
+          "name": "Coins",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Current coins",
+          "validated": false
+        },
+        {
+          "name": "Bombs",
+          "category": "Combat",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Current bombs",
+          "validated": false
+        },
+        {
+          "name": "Keys",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 8B 4D ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current keys",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "vampire-survivors",
+      "title": "Vampire Survivors",
+      "platform": "PC",
+      "processNames": [
+        "VampireSurvivors.exe",
+        "Vampire.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current character level",
+          "validated": false
+        },
+        {
+          "name": "Gold",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current gold collected",
+          "validated": false
+        },
+        {
+          "name": "Time",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "float",
+          "description": "Survival time in seconds",
+          "validated": false
+        },
+        {
+          "name": "Kills",
+          "category": "Combat",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Total enemies killed",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "brotato",
+      "title": "Brotato",
+      "platform": "PC",
+      "processNames": [
+        "Brotato.exe",
+        "brotato.bin"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Materials",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Material currency",
+          "validated": false
+        },
+        {
+          "name": "Wave",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current wave number",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Character level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "stardew-valley",
+      "title": "Stardew Valley",
+      "platform": "PC",
+      "processNames": [
+        "Stardew Valley.exe",
+        "StardewValley.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Energy",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current energy",
+          "validated": false
+        },
+        {
+          "name": "Money",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Current money",
+          "validated": false
+        },
+        {
+          "name": "Day",
+          "category": "Progress",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Current day number",
+          "validated": false
+        },
+        {
+          "name": "Time",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 8B 4D ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Time of day (in-game)",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "terraria",
+      "title": "Terraria",
+      "platform": "PC",
+      "processNames": [
+        "Terraria.exe",
+        "Terraria.bin"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Mana",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Current mana",
+          "validated": false
+        },
+        {
+          "name": "Coins",
+          "category": "Currency",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Current coins",
+          "validated": false
+        },
+        {
+          "name": "LifeCrystals",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 8B 4D ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Life crystals used",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "factorio",
+      "title": "Factorio",
+      "platform": "PC",
+      "processNames": [
+        "factorio.exe",
+        "Factorio.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Player health",
+          "validated": false
+        },
+        {
+          "name": "ResearchProgress",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current research progress",
+          "validated": false
+        },
+        {
+          "name": "PlayTime",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "double",
+          "description": "Total play time in seconds",
+          "validated": false
+        },
+        {
+          "name": "Pollution",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "float",
+          "description": "Total pollution emitted",
+          "validated": false
+        },
+        {
+          "name": "Evolution",
+          "category": "Combat",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "float",
+          "description": "Enemy evolution factor",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "satisfactory",
+      "title": "Satisfactory",
+      "platform": "PC",
+      "processNames": [
+        "FactoryGame-Win64-Shipping.exe",
+        "Satisfactory.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Player health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Tickets",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "FICSIT Coupons",
+          "validated": false
+        },
+        {
+          "name": "Power",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current power capacity",
+          "validated": false
+        },
+        {
+          "name": "Milestones",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Completed milestones",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "oxygen-not-included",
+      "title": "Oxygen Not Included",
+      "platform": "PC",
+      "processNames": [
+        "OxygenNotIncluded.exe",
+        "Oxygen Not Included.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Cycle",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current cycle number",
+          "validated": false
+        },
+        {
+          "name": "Calories",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Total colony calories",
+          "validated": false
+        },
+        {
+          "name": "DuplicantCount",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Number of duplicants",
+          "validated": false
+        },
+        {
+          "name": "Oxygen",
+          "category": "Progress",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "float",
+          "description": "Total oxygen produced",
+          "validated": false
+        },
+        {
+          "name": "Stress",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 8B 4D ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Average duplicant stress",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "rimworld",
+      "title": "RimWorld",
+      "platform": "PC",
+      "processNames": [
+        "RimWorldWin64.exe",
+        "RimWorld.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Silver",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Silver amount",
+          "validated": false
+        },
+        {
+          "name": "Colonists",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Colonist count",
+          "validated": false
+        },
+        {
+          "name": "Days",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Days since landing",
+          "validated": false
+        },
+        {
+          "name": "Research",
+          "category": "Progress",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "float",
+          "description": "Research points",
+          "validated": false
+        },
+        {
+          "name": "Wealth",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 8B 4D ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Colony wealth",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "dwarf-fortress",
+      "title": "Dwarf Fortress",
+      "platform": "PC",
+      "processNames": [
+        "Dwarf Fortress.exe",
+        "DwarfFortress.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Population",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Fortress population",
+          "validated": false
+        },
+        {
+          "name": "Wealth",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int64",
+          "description": "Created wealth",
+          "validated": false
+        },
+        {
+          "name": "Year",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Current year",
+          "validated": false
+        },
+        {
+          "name": "FPS",
+          "category": "Performance",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Current FPS",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "undertale",
+      "title": "Undertale",
+      "platform": "PC",
+      "processNames": [
+        "UNDERTALE.exe",
+        "Undertale.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current HP",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Maximum HP",
+          "validated": false
+        },
+        {
+          "name": "Gold",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Current gold",
+          "validated": false
+        },
+        {
+          "name": "EXP",
+          "category": "Progress",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Experience points",
+          "validated": false
+        },
+        {
+          "name": "LOVE",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 8B 4D ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Level of Violence",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "deltarune",
+      "title": "Deltarune",
+      "platform": "PC",
+      "processNames": [
+        "DELTARUNE.exe",
+        "Deltarune.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current HP",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Maximum HP",
+          "validated": false
+        },
+        {
+          "name": "TP",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Tension Points",
+          "validated": false
+        },
+        {
+          "name": "DarkDollars",
+          "category": "Currency",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Dark Dollars",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "shovel-knight",
+      "title": "Shovel Knight: Treasure Trove",
+      "platform": "PC",
+      "processNames": [
+        "ShovelKnight.exe",
+        "ShovelKnight.bin"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Gold",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current gold",
+          "validated": false
+        },
+        {
+          "name": "Mana",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Current mana",
+          "validated": false
+        },
+        {
+          "name": "Checkpoints",
+          "category": "Progress",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Checkpoints activated",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "enter-the-gungeon",
+      "title": "Enter the Gungeon",
+      "platform": "PC",
+      "processNames": [
+        "EnterTheGungeon.exe",
+        "Gungeon.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Armor",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current armor",
+          "validated": false
+        },
+        {
+          "name": "Blanks",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Remaining blanks",
+          "validated": false
+        },
+        {
+          "name": "Casings",
+          "category": "Currency",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Current casings",
+          "validated": false
+        },
+        {
+          "name": "Keys",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 8B 4D ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current keys",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "nuclear-throne",
+      "title": "Nuclear Throne",
+      "platform": "PC",
+      "processNames": [
+        "NuclearThrone.exe",
+        "nuclearthrone.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Rads",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Radiation (experience)",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Character level",
+          "validated": false
+        },
+        {
+          "name": "Loop",
+          "category": "Progress",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Current loop number",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "monster-train",
+      "title": "Monster Train",
+      "platform": "PC",
+      "processNames": [
+        "MonsterTrain.exe",
+        "MonsterTrain.bin"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Pyre health",
+          "validated": false
+        },
+        {
+          "name": "Gold",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current gold",
+          "validated": false
+        },
+        {
+          "name": "Ember",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Current ember (energy)",
+          "validated": false
+        },
+        {
+          "name": "WinStreak",
+          "category": "Progress",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Current win streak",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "baba-is-you",
+      "title": "Baba Is You",
+      "platform": "PC",
+      "processNames": [
+        "baba.exe",
+        "BabaIsYou.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Moves",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Moves taken",
+          "validated": false
+        },
+        {
+          "name": "Undos",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Undos used",
+          "validated": false
+        },
+        {
+          "name": "LevelID",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Current level ID",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "hotline-miami",
+      "title": "Hotline Miami",
+      "platform": "PC",
+      "processNames": [
+        "hotlinegl.exe",
+        "HotlineMiami.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Score",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current level score",
+          "validated": false
+        },
+        {
+          "name": "Combo",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current kill combo",
+          "validated": false
+        },
+        {
+          "name": "Kills",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Kills in level",
+          "validated": false
+        },
+        {
+          "name": "Time",
+          "category": "Progress",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "float",
+          "description": "Level timer",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "katana-zero",
+      "title": "Katana ZERO",
+      "platform": "PC",
+      "processNames": [
+        "Katana_ZERO.exe",
+        "KatanaZero.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Lives remaining",
+          "validated": false
+        },
+        {
+          "name": "Chronos",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Chronos slow time meter",
+          "validated": false
+        },
+        {
+          "name": "Kills",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Total kills",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "spelunky-2",
+      "title": "Spelunky 2",
+      "platform": "PC",
+      "processNames": [
+        "Spel2.exe",
+        "Spelunky2.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Bombs",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Remaining bombs",
+          "validated": false
+        },
+        {
+          "name": "Ropes",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Remaining ropes",
+          "validated": false
+        },
+        {
+          "name": "Gold",
+          "category": "Currency",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Collected gold",
+          "validated": false
+        },
+        {
+          "name": "World",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 8B 4D ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current world",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "rogue-legacy-2",
+      "title": "Rogue Legacy 2",
+      "platform": "PC",
+      "processNames": [
+        "Rogue Legacy 2.exe",
+        "RogueLegacy2.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Mana",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current mana",
+          "validated": false
+        },
+        {
+          "name": "Gold",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current gold",
+          "validated": false
+        },
+        {
+          "name": "Souls",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Souls for upgrades",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "blasphemous",
+      "title": "Blasphemous",
+      "platform": "PC",
+      "processNames": [
+        "Blasphemous.exe",
+        "Blasphemous.bin"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Fervor",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current fervor (mana)",
+          "validated": false
+        },
+        {
+          "name": "Tears",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Tears of Atonement",
+          "validated": false
+        },
+        {
+          "name": "Flasks",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Biliary Flasks",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "bloodstained",
+      "title": "Bloodstained: Ritual of the Night",
+      "platform": "PC",
+      "processNames": [
+        "BloodstainedRotN.exe",
+        "Bloodstained.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current HP",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum HP",
+          "validated": false
+        },
+        {
+          "name": "Mana",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current MP",
+          "validated": false
+        },
+        {
+          "name": "Gold",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current gold",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Character level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "guacamelee-2",
+      "title": "Guacamelee! 2",
+      "platform": "PC",
+      "processNames": [
+        "Guacamelee2.exe",
+        "Guac2.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health orbs",
+          "validated": false
+        },
+        {
+          "name": "Stamina",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current stamina",
+          "validated": false
+        },
+        {
+          "name": "Silver",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Silver coins",
+          "validated": false
+        },
+        {
+          "name": "Gold",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Gold coins",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "axiom-verge",
+      "title": "Axiom Verge",
+      "platform": "PC",
+      "processNames": [
+        "AxiomVerge.exe",
+        "Axiom.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current health nodes",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Maximum health nodes",
+          "validated": false
+        },
+        {
+          "name": "WeaponPower",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Weapon power level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "timespinner",
+      "title": "Timespinner",
+      "platform": "PC",
+      "processNames": [
+        "Timespinner.exe",
+        "timespinner.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current HP",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum HP",
+          "validated": false
+        },
+        {
+          "name": "Sand",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Temporal Sand",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Character level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "sonic-mania",
+      "title": "Sonic Mania",
+      "platform": "PC",
+      "processNames": [
+        "SonicMania.exe",
+        "Sonic.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Rings",
+          "category": "Collectible",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current rings",
+          "validated": false
+        },
+        {
+          "name": "Score",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current score",
+          "validated": false
+        },
+        {
+          "name": "Lives",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Extra lives",
+          "validated": false
+        },
+        {
+          "name": "Time",
+          "category": "Progress",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Act timer",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "noita",
+      "title": "Noita",
+      "platform": "PC",
+      "processNames": [
+        "noita.exe",
+        "Noita.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Gold",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current gold nuggets",
+          "validated": false
+        },
+        {
+          "name": "WandSlots",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Available wand slots",
+          "validated": false
+        },
+        {
+          "name": "Spells",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Spells collected",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "risk-of-rain-returns",
+      "title": "Risk of Rain Returns",
+      "platform": "PC",
+      "processNames": [
+        "Risk of Rain Returns.exe",
+        "RoRReturns.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Money",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current money",
+          "validated": false
+        },
+        {
+          "name": "Time",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Game timer",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Current level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "loop-hero",
+      "title": "Loop Hero",
+      "platform": "PC",
+      "processNames": [
+        "Loop Hero.exe",
+        "LoopHero.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current HP",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum HP",
+          "validated": false
+        },
+        {
+          "name": "Loop",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current loop number",
+          "validated": false
+        },
+        {
+          "name": "Resources",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Total resources",
+          "validated": false
+        },
+        {
+          "name": "KillCount",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Enemies killed",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "dicey-dungeons",
+      "title": "Dicey Dungeons",
+      "platform": "PC",
+      "processNames": [
+        "DiceyDungeons.exe",
+        "dicey.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current HP",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Maximum HP",
+          "validated": false
+        },
+        {
+          "name": "Gold",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Current gold",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Character level",
+          "validated": false
+        },
+        {
+          "name": "LimitBreak",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 8B 4D ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Limit Break charge",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "a-hat-in-time",
+      "title": "A Hat in Time",
+      "platform": "PC",
+      "processNames": [
+        "HatinTimeGame.exe",
+        "AHatInTime.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current health pons",
+          "validated": false
+        },
+        {
+          "name": "Yarn",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Yarn collected",
+          "validated": false
+        },
+        {
+          "name": "TimePieces",
+          "category": "Collectible",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Time Pieces collected",
+          "validated": false
+        },
+        {
+          "name": "DeathWishStamps",
+          "category": "Collectible",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Death Wish stamps",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "psychonauts",
+      "title": "Psychonauts",
+      "platform": "PC",
+      "processNames": [
+        "Psychonauts.exe",
+        "Psychonauts.bin"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current mental health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum mental health",
+          "validated": false
+        },
+        {
+          "name": "Arrowheads",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Arrowheads currency",
+          "validated": false
+        },
+        {
+          "name": "PSIChallenge",
+          "category": "Collectible",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "PSI Challenge markers",
+          "validated": false
+        },
+        {
+          "name": "PSICores",
+          "category": "Collectible",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "PSI Cores collected",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "psychonauts-2",
+      "title": "Psychonauts 2",
+      "platform": "PC",
+      "processNames": [
+        "Psychonauts2-Win64-Shipping.exe",
+        "Psychonauts2.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current mental health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum mental health",
+          "validated": false
+        },
+        {
+          "name": "PSI",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "PSI energy",
+          "validated": false
+        },
+        {
+          "name": "InternCredits",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Intern Credits",
+          "validated": false
+        },
+        {
+          "name": "Nuggets",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "PSI Challenge Nuggets",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "curse-of-the-dead-gods",
+      "title": "Curse of the Dead Gods",
+      "platform": "PC",
+      "processNames": [
+        "Curse of the Dead Gods.exe",
+        "CurseDeadGods.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Stamina",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current stamina",
+          "validated": false
+        },
+        {
+          "name": "Gold",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Gold collected",
+          "validated": false
+        },
+        {
+          "name": "Corruption",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "float",
+          "description": "Curse corruption level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "dyson-sphere-program",
+      "title": "Dyson Sphere Program",
+      "platform": "PC",
+      "processNames": [
+        "DSPGAME.exe",
+        "DysonSphereProgram.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Power",
+          "category": "Progress",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "double",
+          "description": "Total power generation",
+          "validated": false
+        },
+        {
+          "name": "SailCount",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Solar sail count",
+          "validated": false
+        },
+        {
+          "name": "Research",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int64",
+          "description": "Hash rate for research",
+          "validated": false
+        },
+        {
+          "name": "MechaEnergy",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "float",
+          "description": "Mecha core energy",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "core-keeper",
+      "title": "Core Keeper",
+      "platform": "PC",
+      "processNames": [
+        "CoreKeeper.exe",
+        "CoreKeeper.bin"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Stamina",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current stamina",
+          "validated": false
+        },
+        {
+          "name": "Coins",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Ancient coins",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "starbound",
+      "title": "Starbound",
+      "platform": "PC",
+      "processNames": [
+        "starbound.exe",
+        "Starbound.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Energy",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current energy",
+          "validated": false
+        },
+        {
+          "name": "Pixels",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Pixel currency",
+          "validated": false
+        },
+        {
+          "name": "TechPoints",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Tech points available",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "ftl",
+      "title": "FTL: Faster Than Light",
+      "platform": "PC",
+      "processNames": [
+        "FTLGame.exe",
+        "FTL.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Hull",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Ship hull integrity",
+          "validated": false
+        },
+        {
+          "name": "MaxHull",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Maximum hull",
+          "validated": false
+        },
+        {
+          "name": "Scrap",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Scrap (money)",
+          "validated": false
+        },
+        {
+          "name": "Fuel",
+          "category": "Progress",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Fuel reserves",
+          "validated": false
+        },
+        {
+          "name": "Missiles",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 8B 4D ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Missile count",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "into-the-breach",
+      "title": "Into the Breach",
+      "platform": "PC",
+      "processNames": [
+        "IntoTheBreach.exe",
+        "Breach.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "GridPower",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Grid power remaining",
+          "validated": false
+        },
+        {
+          "name": "Reputation",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Corporate reputation",
+          "validated": false
+        },
+        {
+          "name": "Science",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Science points",
+          "validated": false
+        },
+        {
+          "name": "Islands",
+          "category": "Progress",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Islands saved",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "slipstream",
+      "title": "Slipstream",
+      "platform": "PC",
+      "processNames": [
+        "slipstream.exe",
+        "Slipstream.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Position",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Race position (1st, 2nd...)",
+          "validated": false
+        },
+        {
+          "name": "Lap",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current lap",
+          "validated": false
+        },
+        {
+          "name": "Time",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "float",
+          "description": "Current lap time",
+          "validated": false
+        },
+        {
+          "name": "Speed",
+          "category": "Combat",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "float",
+          "description": "Current speed km/h",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "witness",
+      "title": "The Witness",
+      "platform": "PC",
+      "processNames": [
+        "witness64.exe",
+        "witness32.exe",
+        "TheWitness.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "PanelsSolved",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Total panels solved",
+          "validated": false
+        },
+        {
+          "name": "LaserCount",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Lasers activated",
+          "validated": false
+        },
+        {
+          "name": "AudioLogs",
+          "category": "Collectible",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Audio logs found",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "stephens-sausage-roll",
+      "title": "Stephen's Sausage Roll",
+      "platform": "PC",
+      "processNames": [
+        "StephensSausageRoll.exe",
+        "SausageRoll.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "LevelsCompleted",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Levels completed",
+          "validated": false
+        },
+        {
+          "name": "SausagesCooked",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Perfect sausages cooked",
+          "validated": false
+        },
+        {
+          "name": "Moves",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Total moves taken",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "griftlands",
+      "title": "Griftlands",
+      "platform": "PC",
+      "processNames": [
+        "Griftlands.exe",
+        "Griftlands.bin"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current resolve (health)",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Maximum resolve",
+          "validated": false
+        },
+        {
+          "name": "Shills",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Shills (money)",
+          "validated": false
+        },
+        {
+          "name": "Actions",
+          "category": "Combat",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Actions remaining",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "holocure",
+      "title": "HoloCure",
+      "platform": "PC",
+      "processNames": [
+        "HoloCure.exe",
+        "holocure.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Character level",
+          "validated": false
+        },
+        {
+          "name": "Holocoins",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Holocoins collected",
+          "validated": false
+        },
+        {
+          "name": "Kills",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Enemies defeated",
+          "validated": false
+        },
+        {
+          "name": "Time",
+          "category": "Progress",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Survival time",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "oneshot",
+      "title": "OneShot",
+      "platform": "PC",
+      "processNames": [
+        "OneShot.exe",
+        "oneshot.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Progress",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Game progress flag",
+          "validated": false
+        },
+        {
+          "name": "Solves",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Puzzles solved",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "freedom-planet",
+      "title": "Freedom Planet",
+      "platform": "PC",
+      "processNames": [
+        "FreedomPlanet.exe",
+        "FP.exe"
+      ],
+      "category": "Indie",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current health petals",
+          "validated": false
+        },
+        {
+          "name": "Score",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Total score",
+          "validated": false
+        },
+        {
+          "name": "Lives",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Extra lives",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "gta-v",
+      "title": "Grand Theft Auto V",
+      "platform": "PC",
+      "processNames": [
+        "GTA5.exe",
+        "GTAV.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Armor",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current armor",
+          "validated": false
+        },
+        {
+          "name": "Money",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current money",
+          "validated": false
+        },
+        {
+          "name": "WantedLevel",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current wanted level (0-5)",
+          "validated": false
+        },
+        {
+          "name": "Stamina",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "float",
+          "description": "Stamina level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "rdr2",
+      "title": "Red Dead Redemption 2",
+      "platform": "PC",
+      "processNames": [
+        "RDR2.exe",
+        "RedDeadRedemption2.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health core",
+          "validated": false
+        },
+        {
+          "name": "Stamina",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current stamina core",
+          "validated": false
+        },
+        {
+          "name": "DeadEye",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Dead Eye meter",
+          "validated": false
+        },
+        {
+          "name": "Money",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current money",
+          "validated": false
+        },
+        {
+          "name": "Honor",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "float",
+          "description": "Honor level (-100 to +100)",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "cyberpunk-2077",
+      "title": "Cyberpunk 2077",
+      "platform": "PC",
+      "processNames": [
+        "Cyberpunk2077.exe",
+        "Cyberpunk.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Money",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Eurodollars (eddies)",
+          "validated": false
+        },
+        {
+          "name": "StreetCred",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Street Cred XP",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Character level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "witcher-3",
+      "title": "The Witcher 3: Wild Hunt",
+      "platform": "PC",
+      "processNames": [
+        "witcher3.exe",
+        "witcher3.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Toxicity",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Potion toxicity",
+          "validated": false
+        },
+        {
+          "name": "Crowns",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Crowns (money)",
+          "validated": false
+        },
+        {
+          "name": "Experience",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current XP",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Character level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "elden-ring",
+      "title": "Elden Ring",
+      "platform": "PC",
+      "processNames": [
+        "eldenring.exe",
+        "EldenRing.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current HP",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum HP",
+          "validated": false
+        },
+        {
+          "name": "FP",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current FP (mana)",
+          "validated": false
+        },
+        {
+          "name": "Stamina",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current stamina",
+          "validated": false
+        },
+        {
+          "name": "Runes",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Runes (souls)",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "dark-souls-3",
+      "title": "Dark Souls III",
+      "platform": "PC",
+      "processNames": [
+        "DarkSoulsIII.exe",
+        "DarkSouls3.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current HP",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum HP",
+          "validated": false
+        },
+        {
+          "name": "FP",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current FP",
+          "validated": false
+        },
+        {
+          "name": "Stamina",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current stamina",
+          "validated": false
+        },
+        {
+          "name": "Souls",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Souls collected",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "dark-souls-remastered",
+      "title": "Dark Souls: Remastered",
+      "platform": "PC",
+      "processNames": [
+        "DarkSoulsRemastered.exe",
+        "DSR.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current HP",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Maximum HP",
+          "validated": false
+        },
+        {
+          "name": "Stamina",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Current stamina",
+          "validated": false
+        },
+        {
+          "name": "Humanity",
+          "category": "Combat",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Soft humanity count",
+          "validated": false
+        },
+        {
+          "name": "Souls",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 8B 4D ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Souls collected",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "sekiro",
+      "title": "Sekiro: Shadows Die Twice",
+      "platform": "PC",
+      "processNames": [
+        "sekiro.exe",
+        "Sekiro.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current HP",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum HP",
+          "validated": false
+        },
+        {
+          "name": "Posture",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current posture",
+          "validated": false
+        },
+        {
+          "name": "Sen",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Sen (money)",
+          "validated": false
+        },
+        {
+          "name": "SkillPoints",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Skill points available",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "ac-valhalla",
+      "title": "Assassin's Creed Valhalla",
+      "platform": "PC",
+      "processNames": [
+        "ACValhalla.exe",
+        "AssassinsCreedValhalla.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Adrenaline",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Adrenaline bar",
+          "validated": false
+        },
+        {
+          "name": "Silver",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Silver (money)",
+          "validated": false
+        },
+        {
+          "name": "Experience",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current XP",
+          "validated": false
+        },
+        {
+          "name": "Power",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Power level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "ac-odyssey",
+      "title": "Assassin's Creed Odyssey",
+      "platform": "PC",
+      "processNames": [
+        "ACOdyssey.exe",
+        "AssassinsCreedOdyssey.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Adrenaline",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Adrenaline segments",
+          "validated": false
+        },
+        {
+          "name": "Drachmae",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Drachmae (money)",
+          "validated": false
+        },
+        {
+          "name": "Orichalcum",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Orichalcum ore",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Character level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "cod-mw3",
+      "title": "Call of Duty: Modern Warfare III",
+      "platform": "PC",
+      "processNames": [
+        "cod.exe",
+        "ModernWarfareIII.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Ammo",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current magazine ammo",
+          "validated": false
+        },
+        {
+          "name": "ReserveAmmo",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Reserve ammo",
+          "validated": false
+        },
+        {
+          "name": "Kills",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Match kills",
+          "validated": false
+        },
+        {
+          "name": "Score",
+          "category": "Combat",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Current score",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "cod-warzone",
+      "title": "Call of Duty: Warzone",
+      "platform": "PC",
+      "processNames": [
+        "cod.exe",
+        "Warzone.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health (100-250)",
+          "validated": false
+        },
+        {
+          "name": "Armor",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Armor plates (0-150)",
+          "validated": false
+        },
+        {
+          "name": "Cash",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current cash",
+          "validated": false
+        },
+        {
+          "name": "Kills",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Match kills",
+          "validated": false
+        },
+        {
+          "name": "PlayersAlive",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Players remaining",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "bf-2042",
+      "title": "Battlefield 2042",
+      "platform": "PC",
+      "processNames": [
+        "BF2042.exe",
+        "Battlefield2042.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Ammo",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current ammo",
+          "validated": false
+        },
+        {
+          "name": "Kills",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Match kills",
+          "validated": false
+        },
+        {
+          "name": "Score",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Match score",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "halo-infinite",
+      "title": "Halo Infinite",
+      "platform": "PC",
+      "processNames": [
+        "HaloInfinite.exe",
+        "HaloInfinite.bin"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Shields",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current shield",
+          "validated": false
+        },
+        {
+          "name": "Ammo",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current weapon ammo",
+          "validated": false
+        },
+        {
+          "name": "Grenades",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Grenade count",
+          "validated": false
+        },
+        {
+          "name": "Kills",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Match kills",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "doom-eternal",
+      "title": "DOOM Eternal",
+      "platform": "PC",
+      "processNames": [
+        "DOOMEternalx64vk.exe",
+        "DOOMEternal.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Armor",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current armor",
+          "validated": false
+        },
+        {
+          "name": "Ammo",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current ammo",
+          "validated": false
+        },
+        {
+          "name": "FlameBelch",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Flame Belch fuel",
+          "validated": false
+        },
+        {
+          "name": "BloodPunch",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Blood Punch charges",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "re4-remake",
+      "title": "Resident Evil 4 (Remake)",
+      "platform": "PC",
+      "processNames": [
+        "re4.exe",
+        "RE4.exe",
+        "bior4.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Pesetas",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Pesetas (money)",
+          "validated": false
+        },
+        {
+          "name": "Ammo",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current weapon ammo",
+          "validated": false
+        },
+        {
+          "name": "Treasures",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Treasures collected",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "re2-remake",
+      "title": "Resident Evil 2 (Remake)",
+      "platform": "PC",
+      "processNames": [
+        "re2.exe",
+        "RE2.exe",
+        "bior2.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Ammo",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current weapon ammo",
+          "validated": false
+        },
+        {
+          "name": "InkRibbons",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Ink ribbons (hardcore)",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "ff7-remake",
+      "title": "Final Fantasy VII Remake",
+      "platform": "PC",
+      "processNames": [
+        "ff7remake.exe",
+        "FF7Remake.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current HP",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum HP",
+          "validated": false
+        },
+        {
+          "name": "MP",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current MP",
+          "validated": false
+        },
+        {
+          "name": "Gil",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Gil (money)",
+          "validated": false
+        },
+        {
+          "name": "Limit",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "float",
+          "description": "Limit Break gauge",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "ff16",
+      "title": "Final Fantasy XVI",
+      "platform": "PC",
+      "processNames": [
+        "ff16.exe",
+        "FF16.exe",
+        "FinalFantasy16.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current HP",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum HP",
+          "validated": false
+        },
+        {
+          "name": "Gil",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Gil (money)",
+          "validated": false
+        },
+        {
+          "name": "Experience",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Ability points",
+          "validated": false
+        },
+        {
+          "name": "LimitBreak",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "float",
+          "description": "Limit Break gauge",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "starfield",
+      "title": "Starfield",
+      "platform": "PC",
+      "processNames": [
+        "Starfield.exe",
+        "Starfield.bin"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "O2",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Oxygen level",
+          "validated": false
+        },
+        {
+          "name": "Credits",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Credits (money)",
+          "validated": false
+        },
+        {
+          "name": "XP",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Experience points",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Character level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "bg3",
+      "title": "Baldur's Gate 3",
+      "platform": "PC",
+      "processNames": [
+        "bg3.exe",
+        "BaldursGate3.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current HP",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum HP",
+          "validated": false
+        },
+        {
+          "name": "Gold",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Party gold",
+          "validated": false
+        },
+        {
+          "name": "XP",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Experience points",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Character level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "spider-man",
+      "title": "Marvel's Spider-Man Remastered",
+      "platform": "PC",
+      "processNames": [
+        "Spider-Man.exe",
+        "SpiderMan.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Focus",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Focus bar for finishers",
+          "validated": false
+        },
+        {
+          "name": "Tokens",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Base tokens",
+          "validated": false
+        },
+        {
+          "name": "XP",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Experience points",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Hero level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "god-of-war",
+      "title": "God of War",
+      "platform": "PC",
+      "processNames": [
+        "GoW.exe",
+        "GodOfWar.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Rage",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Spartan Rage meter",
+          "validated": false
+        },
+        {
+          "name": "Hacksilver",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Hacksilver (money)",
+          "validated": false
+        },
+        {
+          "name": "XP",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Experience points",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "horizon-zero-dawn",
+      "title": "Horizon Zero Dawn",
+      "platform": "PC",
+      "processNames": [
+        "HorizonZeroDawn.exe",
+        "HorizonZeroDawn.bin"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Shards",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Metal Shards",
+          "validated": false
+        },
+        {
+          "name": "XP",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Skill points",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Character level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "ghost-of-tsushima",
+      "title": "Ghost of Tsushima",
+      "platform": "PC",
+      "processNames": [
+        "GhostOfTsushima.exe",
+        "Ghost.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Resolve",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Resolve for healing",
+          "validated": false
+        },
+        {
+          "name": "Supplies",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Supplies (money)",
+          "validated": false
+        },
+        {
+          "name": "Legend",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Legend XP",
+          "validated": false
+        },
+        {
+          "name": "TechniquePoints",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Technique points",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "last-of-us-1",
+      "title": "The Last of Us Part I",
+      "platform": "PC",
+      "processNames": [
+        "tlou-i.exe",
+        "TLOU.exe",
+        "TheLastOfUs.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Ammo",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current weapon ammo",
+          "validated": false
+        },
+        {
+          "name": "Parts",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Parts for crafting",
+          "validated": false
+        },
+        {
+          "name": "Supplements",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Supplements for upgrades",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "uncharted-4",
+      "title": "Uncharted 4: A Thief's End",
+      "platform": "PC",
+      "processNames": [
+        "U4.exe",
+        "Uncharted4.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Ammo",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current weapon ammo",
+          "validated": false
+        },
+        {
+          "name": "Treasures",
+          "category": "Collectible",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Treasures collected",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "death-stranding",
+      "title": "Death Stranding",
+      "platform": "PC",
+      "processNames": [
+        "DeathStranding.exe",
+        "DS.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Stamina",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current stamina",
+          "validated": false
+        },
+        {
+          "name": "BBStress",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "BB autotoxemia",
+          "validated": false
+        },
+        {
+          "name": "Likes",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Social strand likes",
+          "validated": false
+        },
+        {
+          "name": "ChiralBandwidth",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Chiral network bandwidth",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "metal-gear-solid-5",
+      "title": "Metal Gear Solid V: The Phantom Pain",
+      "platform": "PC",
+      "processNames": [
+        "mgsvtpp.exe",
+        "MGS5.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Stamina",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current stamina",
+          "validated": false
+        },
+        {
+          "name": "GMP",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Gross Military Product",
+          "validated": false
+        },
+        {
+          "name": "Heroism",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Heroism points",
+          "validated": false
+        },
+        {
+          "name": "DemonPoints",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Demon points",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "armored-core-6",
+      "title": "ARMORED CORE VI FIRES OF RUBICON",
+      "platform": "PC",
+      "processNames": [
+        "armoredcore6.exe",
+        "AC6.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "AP",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Armor Points (health)",
+          "validated": false
+        },
+        {
+          "name": "MaxAP",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum AP",
+          "validated": false
+        },
+        {
+          "name": "Energy",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "EN (energy)",
+          "validated": false
+        },
+        {
+          "name": "Ammo",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current weapon ammo",
+          "validated": false
+        },
+        {
+          "name": "COAM",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Coral Obsidian Acquisition Money",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "jedi-fallen-order",
+      "title": "Star Wars Jedi: Fallen Order",
+      "platform": "PC",
+      "processNames": [
+        "starwarsjedifallenorder.exe",
+        "SWJFO.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Force",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Force meter",
+          "validated": false
+        },
+        {
+          "name": "XP",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Skill points",
+          "validated": false
+        },
+        {
+          "name": "StimCanisters",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Stim canister charges",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "jedi-survivor",
+      "title": "Star Wars Jedi: Survivor",
+      "platform": "PC",
+      "processNames": [
+        "starwarsjedisurvivor.exe",
+        "SWJS.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Force",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Force meter",
+          "validated": false
+        },
+        {
+          "name": "XP",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Skill points",
+          "validated": false
+        },
+        {
+          "name": "StimCanisters",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Stim canister charges",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "hogwarts-legacy",
+      "title": "Hogwarts Legacy",
+      "platform": "PC",
+      "processNames": [
+        "HogwartsLegacy.exe",
+        "Hogwarts.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "AncientMagic",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Ancient Magic meter",
+          "validated": false
+        },
+        {
+          "name": "Gold",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Galleons (money)",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Character level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "diablo-4",
+      "title": "Diablo IV",
+      "platform": "PC",
+      "processNames": [
+        "Diablo IV.exe",
+        "DiabloIV.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current HP",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum HP",
+          "validated": false
+        },
+        {
+          "name": "Resource",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Class resource (mana/fury/etc)",
+          "validated": false
+        },
+        {
+          "name": "Gold",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Gold amount",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Character level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "path-of-exile-2",
+      "title": "Path of Exile 2",
+      "platform": "PC",
+      "processNames": [
+        "PathOfExile2.exe",
+        "PathOfExile2x64.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current life",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum life",
+          "validated": false
+        },
+        {
+          "name": "Mana",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current mana",
+          "validated": false
+        },
+        {
+          "name": "EnergyShield",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Energy shield",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Character level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "avatar-frontiers",
+      "title": "Avatar: Frontiers of Pandora",
+      "platform": "PC",
+      "processNames": [
+        "Avatar.exe",
+        "AvatarFrontiers.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Energy",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Energy for abilities",
+          "validated": false
+        },
+        {
+          "name": "ClanFavor",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Clan favor",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Character level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "ac-mirage",
+      "title": "Assassin's Creed Mirage",
+      "platform": "PC",
+      "processNames": [
+        "ACMirage.exe",
+        "AssassinsCreedMirage.exe"
+      ],
+      "category": "AAA",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Focus",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Focus segments",
+          "validated": false
+        },
+        {
+          "name": "Dirham",
+          "category": "Currency",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Dirham (money)",
+          "validated": false
+        },
+        {
+          "name": "SkillPoints",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Skill points available",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "valorant",
+      "title": "Valorant",
+      "platform": "PC",
+      "processNames": [
+        "VALORANT-Win64-Shipping.exe",
+        "VALORANT.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health (0-150)",
+          "validated": false
+        },
+        {
+          "name": "Shield",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current shield (0-150)",
+          "validated": false
+        },
+        {
+          "name": "Ammo",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current magazine ammo",
+          "validated": false
+        },
+        {
+          "name": "Kills",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Match kills",
+          "validated": false
+        },
+        {
+          "name": "Ultimate",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "float",
+          "description": "Ultimate ability charge",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "cs2",
+      "title": "Counter-Strike 2",
+      "platform": "PC",
+      "processNames": [
+        "cs2.exe",
+        "Counter-Strike2.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health (0-100)",
+          "validated": false
+        },
+        {
+          "name": "Armor",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current armor (0-100)",
+          "validated": false
+        },
+        {
+          "name": "Ammo",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current weapon ammo",
+          "validated": false
+        },
+        {
+          "name": "Money",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Current money",
+          "validated": false
+        },
+        {
+          "name": "Kills",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Match kills",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "overwatch-2",
+      "title": "Overwatch 2",
+      "platform": "PC",
+      "processNames": [
+        "Overwatch.exe",
+        "Overwatch2.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Ammo",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current weapon ammo",
+          "validated": false
+        },
+        {
+          "name": "Ultimate",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Ultimate charge",
+          "validated": false
+        },
+        {
+          "name": "Eliminations",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Match eliminations",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "apex-legends",
+      "title": "Apex Legends",
+      "platform": "PC",
+      "processNames": [
+        "r5apex.exe",
+        "Apex Legends.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health (0-100)",
+          "validated": false
+        },
+        {
+          "name": "Shield",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current shield (0-125)",
+          "validated": false
+        },
+        {
+          "name": "Ammo",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current weapon ammo",
+          "validated": false
+        },
+        {
+          "name": "Kills",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Match kills",
+          "validated": false
+        },
+        {
+          "name": "SquadRemaining",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Squads remaining",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "fortnite",
+      "title": "Fortnite",
+      "platform": "PC",
+      "processNames": [
+        "FortniteClient-Win64-Shipping.exe",
+        "Fortnite.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Shield",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current shield",
+          "validated": false
+        },
+        {
+          "name": "Ammo",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current weapon ammo",
+          "validated": false
+        },
+        {
+          "name": "Materials",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Building materials",
+          "validated": false
+        },
+        {
+          "name": "Kills",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Match kills",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "pubg",
+      "title": "PUBG: BATTLEGROUNDS",
+      "platform": "PC",
+      "processNames": [
+        "TslGame.exe",
+        "PUBG.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Boost",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Boost energy",
+          "validated": false
+        },
+        {
+          "name": "Ammo",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current weapon ammo",
+          "validated": false
+        },
+        {
+          "name": "Kills",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Match kills",
+          "validated": false
+        },
+        {
+          "name": "PlayersAlive",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Players alive",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "lol",
+      "title": "League of Legends",
+      "platform": "PC",
+      "processNames": [
+        "League of Legends.exe",
+        "LeagueClient.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Mana",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current mana/energy",
+          "validated": false
+        },
+        {
+          "name": "Gold",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current gold",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Champion level (1-18)",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "dota-2",
+      "title": "Dota 2",
+      "platform": "PC",
+      "processNames": [
+        "dota2.exe",
+        "Dota.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Mana",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current mana",
+          "validated": false
+        },
+        {
+          "name": "Gold",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Reliable gold",
+          "validated": false
+        },
+        {
+          "name": "Level",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Hero level (1-30)",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "rocket-league",
+      "title": "Rocket League",
+      "platform": "PC",
+      "processNames": [
+        "RocketLeague.exe",
+        "RocketLeague.bin"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Score",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Team score",
+          "validated": false
+        },
+        {
+          "name": "Time",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Match timer",
+          "validated": false
+        },
+        {
+          "name": "Boost",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "float",
+          "description": "Current boost (0-100)",
+          "validated": false
+        },
+        {
+          "name": "Goals",
+          "category": "Combat",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Player goals",
+          "validated": false
+        },
+        {
+          "name": "Saves",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 8B 4D ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Player saves",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "fall-guys",
+      "title": "Fall Guys",
+      "platform": "PC",
+      "processNames": [
+        "FallGuys_client_game.exe",
+        "FallGuys.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Position",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current position",
+          "validated": false
+        },
+        {
+          "name": "Crowns",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Crowns (premium currency)",
+          "validated": false
+        },
+        {
+          "name": "Kudos",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Kudos (regular currency)",
+          "validated": false
+        },
+        {
+          "name": "Wins",
+          "category": "Progress",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Total wins",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "among-us",
+      "title": "Among Us",
+      "platform": "PC",
+      "processNames": [
+        "Among Us.exe",
+        "AmongUs.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Role",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Player role (0=Crewmate, 1=Impostor)",
+          "validated": false
+        },
+        {
+          "name": "TasksCompleted",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Tasks completed",
+          "validated": false
+        },
+        {
+          "name": "Kills",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Impostor kills",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "minecraft-java",
+      "title": "Minecraft (Java)",
+      "platform": "PC",
+      "processNames": [
+        "java.exe",
+        "javaw.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health (0-20)",
+          "validated": false
+        },
+        {
+          "name": "Hunger",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Hunger level (0-20)",
+          "validated": false
+        },
+        {
+          "name": "XP",
+          "category": "Progress",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Experience level",
+          "validated": false
+        },
+        {
+          "name": "XPProgress",
+          "category": "Progress",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "XP progress bar",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "destiny-2",
+      "title": "Destiny 2",
+      "platform": "PC",
+      "processNames": [
+        "destiny2.exe",
+        "Destiny2.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Shield",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current shield",
+          "validated": false
+        },
+        {
+          "name": "AmmoPrimary",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Primary weapon ammo",
+          "validated": false
+        },
+        {
+          "name": "AmmoSpecial",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Special weapon ammo",
+          "validated": false
+        },
+        {
+          "name": "AmmoHeavy",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Heavy weapon ammo",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "warframe",
+      "title": "Warframe",
+      "platform": "PC",
+      "processNames": [
+        "Warframe.x64.exe",
+        "Warframe.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Shield",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current shield",
+          "validated": false
+        },
+        {
+          "name": "Energy",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Warframe energy",
+          "validated": false
+        },
+        {
+          "name": "Credits",
+          "category": "Currency",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Credits",
+          "validated": false
+        },
+        {
+          "name": "Platinum",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Platinum (premium)",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "rainbow-six-siege",
+      "title": "Tom Clancy's Rainbow Six Siege",
+      "platform": "PC",
+      "processNames": [
+        "RainbowSix.exe",
+        "RainbowSixSiege.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health (0-130)",
+          "validated": false
+        },
+        {
+          "name": "Ammo",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current magazine ammo",
+          "validated": false
+        },
+        {
+          "name": "ReserveAmmo",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Reserve ammo",
+          "validated": false
+        },
+        {
+          "name": "Gadgets",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Gadget charges",
+          "validated": false
+        },
+        {
+          "name": "Kills",
+          "category": "Combat",
+          "pattern": "F3 0F 10 05 ?? ?? ?? ??",
+          "offset": 16,
+          "valueType": "int32",
+          "description": "Round kills",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "valheim",
+      "title": "Valheim",
+      "platform": "PC",
+      "processNames": [
+        "valheim.exe",
+        "Valheim.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Stamina",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current stamina",
+          "validated": false
+        },
+        {
+          "name": "Food1",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "First food timer",
+          "validated": false
+        },
+        {
+          "name": "Food2",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "float",
+          "description": "Second food timer",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "rust",
+      "title": "Rust",
+      "platform": "PC",
+      "processNames": [
+        "RustClient.exe",
+        "Rust.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Calories",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Food calories",
+          "validated": false
+        },
+        {
+          "name": "Hydration",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Water level",
+          "validated": false
+        },
+        {
+          "name": "Radiation",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "float",
+          "description": "Radiation exposure",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "escape-from-tarkov",
+      "title": "Escape from Tarkov",
+      "platform": "PC",
+      "processNames": [
+        "EscapeFromTarkov.exe",
+        "EFT.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "HealthHead",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Head health",
+          "validated": false
+        },
+        {
+          "name": "HealthChest",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Chest health",
+          "validated": false
+        },
+        {
+          "name": "HealthStomach",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Stomach health",
+          "validated": false
+        },
+        {
+          "name": "Energy",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Energy level",
+          "validated": false
+        },
+        {
+          "name": "Hydration",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "float",
+          "description": "Hydration level",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "team-fortress-2",
+      "title": "Team Fortress 2",
+      "platform": "PC",
+      "processNames": [
+        "hl2.exe",
+        "TF2.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Ammo",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Current weapon ammo",
+          "validated": false
+        },
+        {
+          "name": "Metal",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Engineer metal",
+          "validated": false
+        },
+        {
+          "name": "UberCharge",
+          "category": "Combat",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "float",
+          "description": "Medic ubercharge",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "palworld",
+      "title": "Palworld",
+      "platform": "PC",
+      "processNames": [
+        "Palworld-Win64-Shipping.exe",
+        "Palworld.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "Stamina",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current stamina",
+          "validated": false
+        },
+        {
+          "name": "Hunger",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Hunger level",
+          "validated": false
+        },
+        {
+          "name": "Weight",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current weight",
+          "validated": false
+        },
+        {
+          "name": "PalsCaptured",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Pals captured",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "enshrouded",
+      "title": "Enshrouded",
+      "platform": "PC",
+      "processNames": [
+        "enshrouded.exe",
+        "Enshrouded.exe"
+      ],
+      "category": "Multiplayer",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "F3 0F 10 45 ?? F3",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current health",
+          "validated": false
+        },
+        {
+          "name": "MaxHealth",
+          "category": "Combat",
+          "pattern": "F3 0F 10 4D ?? F3",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Maximum health",
+          "validated": false
+        },
+        {
+          "name": "Stamina",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "float",
+          "description": "Current stamina",
+          "validated": false
+        },
+        {
+          "name": "Mana",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Current mana",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "snes9x",
+      "title": "Snes9x (SNES Emulator)",
+      "platform": "PC",
+      "processNames": [
+        "snes9x-x64.exe",
+        "snes9x.exe"
+      ],
+      "category": "Retro",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int8",
+          "description": "Generic health byte",
+          "validated": false
+        },
+        {
+          "name": "Lives",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int8",
+          "description": "Generic lives counter",
+          "validated": false
+        },
+        {
+          "name": "Score",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Generic score (BCD)",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "mgba",
+      "title": "mGBA (GBA Emulator)",
+      "platform": "PC",
+      "processNames": [
+        "mgba.exe",
+        "mgba-sdl.exe"
+      ],
+      "category": "Retro",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int8",
+          "description": "Generic GBA health byte",
+          "validated": false
+        },
+        {
+          "name": "Lives",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int8",
+          "description": "Generic lives counter",
+          "validated": false
+        },
+        {
+          "name": "Rupees",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int16",
+          "description": "Generic currency (Zelda-like)",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "dolphin",
+      "title": "Dolphin (GameCube/Wii)",
+      "platform": "PC",
+      "processNames": [
+        "Dolphin.exe",
+        "DolphinQt2.exe"
+      ],
+      "category": "Retro",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "float",
+          "description": "Generic float health",
+          "validated": false
+        },
+        {
+          "name": "Lives",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Generic lives counter",
+          "validated": false
+        },
+        {
+          "name": "Coins",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Generic coins",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "pcsx2",
+      "title": "PCSX2 (PS2 Emulator)",
+      "platform": "PC",
+      "processNames": [
+        "pcsx2.exe",
+        "pcsx2-qt.exe"
+      ],
+      "category": "Retro",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int32",
+          "description": "Generic PS2 health",
+          "validated": false
+        },
+        {
+          "name": "Mana",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int32",
+          "description": "Generic PS2 mana",
+          "validated": false
+        },
+        {
+          "name": "Gil",
+          "category": "Currency",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Generic PS2 currency",
+          "validated": false
+        }
+      ]
+    },
+    {
+      "id": "retroarch",
+      "title": "RetroArch",
+      "platform": "PC",
+      "processNames": [
+        "retroarch.exe",
+        "retroarch_debug.exe"
+      ],
+      "category": "Retro",
+      "signatures": [
+        {
+          "name": "Health",
+          "category": "Combat",
+          "pattern": "A1 ?? ?? ?? ?? 8B",
+          "offset": 12,
+          "valueType": "int8",
+          "description": "Core health byte",
+          "validated": false
+        },
+        {
+          "name": "Lives",
+          "category": "Combat",
+          "pattern": "8B 45 ?? 89 45 ??",
+          "offset": 8,
+          "valueType": "int8",
+          "description": "Core lives byte",
+          "validated": false
+        },
+        {
+          "name": "Score",
+          "category": "Progress",
+          "pattern": "89 45 ?? 8B 45 ??",
+          "offset": 4,
+          "valueType": "int32",
+          "description": "Core score bytes",
+          "validated": false
+        }
+      ]
+    }
+  ]
+}
