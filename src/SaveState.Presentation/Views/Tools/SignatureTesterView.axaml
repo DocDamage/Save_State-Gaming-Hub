@@ -1,0 +1,446 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Tools"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="SaveState.Presentation.Views.Tools.SignatureTesterView"
+             x:DataType="vm:SignatureTesterViewModel">
+
+  <Design.DataContext>
+    <vm:SignatureTesterViewModel />
+  </Design.DataContext>
+
+  <Grid Margin="16">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <!-- Header -->
+    <Grid Grid.Row="0" Margin="0,0,0,16">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+
+      <StackPanel Grid.Column="0">
+        <TextBlock Text="Signature Verification &amp; Testing"
+                   FontSize="24"
+                   FontWeight="Bold"/>
+        <TextBlock Text="Verify memory signatures against real game processes"
+                   Opacity="0.7"
+                   Margin="0,4,0,0"/>
+      </StackPanel>
+
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+        <Button Content="Attach to Process"
+                Command="{Binding AttachToProcessCommand}"
+                IsEnabled="{Binding !IsProcessAttached}"/>
+        <Button Content="Detach"
+                Command="{Binding DetachFromProcessCommand}"
+                IsEnabled="{Binding IsProcessAttached}"/>
+        <Border Background="{DynamicResource SystemAccentColor}"
+                CornerRadius="4"
+                Padding="12,6"
+                IsVisible="{Binding IsProcessAttached}">
+          <TextBlock Text="{Binding SelectedProcessId, StringFormat='Attached to Process #{0}'}"
+                     Foreground="White"/>
+        </Border>
+      </StackPanel>
+    </Grid>
+
+    <!-- Configuration Bar -->
+    <Border Grid.Row="1"
+            Background="{DynamicResource CardBackgroundBrush}"
+            CornerRadius="8"
+            Padding="16"
+            Margin="0,0,0,16">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Game Selection -->
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+          <TextBlock Text="Game:" VerticalAlignment="Center"/>
+          <ComboBox Width="250"
+                    ItemsSource="{Binding AvailableGames}"
+                    SelectedItem="{Binding SelectedGameTitle}"
+                    PlaceholderText="Select a game...">
+            <Interaction.Behaviors>
+              <EventTriggerBehavior EventName="SelectionChanged">
+                <InvokeCommandAction Command="{Binding SelectGameCommand}"
+                                     CommandParameter="{Binding SelectedGameTitle}"/>
+              </EventTriggerBehavior>
+            </Interaction.Behaviors>
+          </ComboBox>
+          <TextBlock Text="{Binding CurrentTestStatus}"
+                     VerticalAlignment="Center"
+                     Opacity="0.7"
+                     Margin="16,0,0,0"/>
+        </StackPanel>
+
+        <!-- Test Options -->
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16" Margin="16,0">
+          <CheckBox Content="Skip Dynamic Tests"
+                    IsChecked="{Binding SkipDynamicTests}"
+                    ToolTip.Tip="Skip tests that require user interaction"/>
+          <CheckBox Content="Parallel Execution"
+                    IsChecked="{Binding RunInParallel}"
+                    ToolTip.Tip="Run tests in parallel for faster results"/>
+        </StackPanel>
+
+        <!-- Actions -->
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+          <Button Content="Select All"
+                  Command="{Binding SelectAllSignaturesCommand}"
+                  IsEnabled="{Binding AvailableSignatures.Count}"/>
+          <Button Content="Deselect All"
+                  Command="{Binding DeselectAllSignaturesCommand}"
+                  IsEnabled="{Binding AvailableSignatures.Count}"/>
+        </StackPanel>
+
+        <Button Grid.Column="3"
+                Content="Run Tests"
+                Command="{Binding RunTestsCommand}"
+                IsEnabled="{Binding !IsTesting}"
+                Classes="accent"
+                HorizontalAlignment="Right"/>
+      </Grid>
+    </Border>
+
+    <!-- Progress Bar -->
+    <ProgressBar Grid.Row="2"
+                 Value="{Binding TestProgress}"
+                 Maximum="100"
+                 IsVisible="{Binding IsTesting}"
+                 Margin="0,0,0,16"/>
+
+    <!-- Main Content -->
+    <Grid Grid.Row="3" ColumnDefinitions="*,16,400">
+      <!-- Left Panel: Signatures List -->
+      <Border Background="{DynamicResource CardBackgroundBrush}"
+              CornerRadius="8"
+              Grid.Column="0">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+
+          <!-- Header -->
+          <Border Grid.Row="0"
+                  Background="{DynamicResource SystemAccentColor}"
+                  CornerRadius="8,8,0,0"
+                  Padding="16,12">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="40"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="100"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Text="✓" FontWeight="Bold" Foreground="White"/>
+              <TextBlock Grid.Column="1" Text="Signature Name" FontWeight="Bold" Foreground="White"/>
+              <TextBlock Grid.Column="2" Text="Health" FontWeight="Bold" Foreground="White"/>
+              <TextBlock Grid.Column="3" Text="Last Verified" FontWeight="Bold" Foreground="White"/>
+            </Grid>
+          </Border>
+
+          <!-- Filter -->
+          <TextBox Grid.Row="1"
+                   Text="{Binding SearchFilter}"
+                   Watermark="Filter signatures..."
+                   Margin="16,8"
+                   x:Name="FilterTextBox"/>
+
+          <!-- Signatures List -->
+          <ScrollViewer Grid.Row="2">
+            <ItemsControl ItemsSource="{Binding FilteredSignatures}"
+                         Margin="0,0,0,16">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:SelectableSignatureViewModel">
+                  <Border Classes="list-item"
+                         Background="Transparent"
+                         Padding="16,8">
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+
+                      <CheckBox Grid.Column="0"
+                               IsChecked="{Binding IsSelected}"
+                               VerticalAlignment="Center"/>
+
+                      <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Signature.Name}"
+                                  FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding Signature.Description}"
+                                  Opacity="0.6"
+                                  FontSize="11"
+                                  TextTrimming="CharacterEllipsis"
+                                  IsVisible="{Binding Signature.Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                      </StackPanel>
+
+                      <TextBlock Grid.Column="2"
+                                Text="{Binding HealthScore}"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"/>
+
+                      <TextBlock Grid.Column="3"
+                                Text="{Binding LastVerified}"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                FontSize="11"/>
+
+                      <Button Grid.Column="4"
+                             Content="Test"
+                             Command="{Binding DataContext.TestSingleSignatureCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                             CommandParameter="{Binding Signature}"
+                             IsEnabled="{Binding DataContext.IsProcessAttached, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+
+          <!-- Empty State -->
+          <Border Grid.Row="2"
+                 IsVisible="{Binding !AvailableSignatures.Count}"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center">
+            <StackPanel HorizontalAlignment="Center">
+              <TextBlock Text="No signatures loaded"
+                        FontSize="16"
+                        Opacity="0.5"/>
+              <TextBlock Text="Select a game to load its memory signatures"
+                        Opacity="0.4"
+                        Margin="0,4,0,0"/>
+            </StackPanel>
+          </Border>
+        </Grid>
+      </Border>
+
+      <!-- Right Panel: Test Results -->
+      <Border Grid.Column="2"
+              Background="{DynamicResource CardBackgroundBrush}"
+              CornerRadius="8">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+
+          <!-- Results Header -->
+          <Border Grid.Row="0"
+                  Background="{DynamicResource SystemAccentColor}"
+                  CornerRadius="8,8,0,0"
+                  Padding="16,12">
+            <TextBlock Text="Test Results"
+                      FontWeight="Bold"
+                      Foreground="White"/>
+          </Border>
+
+          <!-- Results List -->
+          <ScrollViewer Grid.Row="1"
+                       IsVisible="{Binding HasTestResults}"
+                       Margin="0,8">
+            <ItemsControl ItemsSource="{Binding TestResults}"
+                         Margin="8,0">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:SignatureTestResultViewModel">
+                  <Border Classes="card"
+                         Margin="0,4"
+                         Padding="12"
+                         Background="{DynamicResource ControlFillColorDefaultBrush}"
+                         CornerRadius="4"
+                         x:Name="ResultItemBorder">
+                    <Grid>
+                      <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                      </Grid.RowDefinitions>
+
+                      <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="Auto"/>
+                          <ColumnDefinition Width="*"/>
+                          <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0"
+                                  Text="{Binding Status}"
+                                  FontSize="16"
+                                  Margin="0,0,8,0"/>
+                        <TextBlock Grid.Column="1"
+                                  Text="{Binding SignatureName}"
+                                  FontWeight="SemiBold"/>
+                        <TextBlock Grid.Column="2"
+                                  Text="{Binding ConfidenceText}"
+                                  FontSize="11"
+                                  Opacity="0.7"/>
+                      </Grid>
+
+                      <TextBlock Grid.Row="1"
+                                Text="{Binding FailureReason}"
+                                TextWrapping="Wrap"
+                                FontSize="11"
+                                Foreground="{DynamicResource SystemErrorTextColor}"
+                                IsVisible="{Binding FailureReason, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                      <Grid Grid.Row="2" Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="*"/>
+                          <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4">
+                          <TextBlock Text="Health:" FontSize="11" Opacity="0.6"/>
+                          <TextBlock Text="{Binding HealthScore}"
+                                    FontSize="11"
+                                    Foreground="{Binding HealthRatingColor}"/>
+                          <TextBlock Text="{Binding HealthRating}"
+                                    FontSize="11"
+                                    Foreground="{Binding HealthRatingColor}"/>
+                        </StackPanel>
+
+                        <TextBlock Grid.Column="1"
+                                  Text="{Binding DurationText}"
+                                  FontSize="11"
+                                  Opacity="0.6"
+                                  HorizontalAlignment="Right"/>
+                      </Grid>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+
+          <!-- Empty Results State -->
+          <Border Grid.Row="1"
+                 IsVisible="{Binding !HasTestResults}"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center">
+            <StackPanel HorizontalAlignment="Center">
+              <TextBlock Text="No test results"
+                        FontSize="16"
+                        Opacity="0.5"/>
+              <TextBlock Text="Run tests to see results"
+                        Opacity="0.4"
+                        Margin="0,4,0,0"/>
+            </StackPanel>
+          </Border>
+
+          <!-- Actions -->
+          <StackPanel Grid.Row="2"
+                     Orientation="Horizontal"
+                     Spacing="8"
+                     Margin="16"
+                     HorizontalAlignment="Right">
+            <Button Content="Export Results"
+                   Command="{Binding ExportResultsCommand}"
+                   IsEnabled="{Binding HasTestResults}"/>
+          </StackPanel>
+        </Grid>
+      </Border>
+    </Grid>
+
+    <!-- Summary Footer -->
+    <Border Grid.Row="4"
+            Background="{DynamicResource CardBackgroundBrush}"
+            CornerRadius="8"
+            Padding="16"
+            Margin="0,16,0,0"
+            IsVisible="{Binding HasTestResults}">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Column="0"
+                  Text="Summary:"
+                  FontWeight="Bold"
+                  VerticalAlignment="Center"/>
+
+        <TextBlock Grid.Column="1"
+                  Text="{Binding SummaryStats.TotalTested, StringFormat='Total: {0}'}"
+                  Margin="16,0,0,0"
+                  VerticalAlignment="Center"/>
+
+        <TextBlock Grid.Column="2"
+                  Text="{Binding SummaryStats.PassedCount, StringFormat='Passed: {0}'}"
+                  Foreground="#4CAF50"
+                  Margin="16,0,0,0"
+                  VerticalAlignment="Center"/>
+
+        <TextBlock Grid.Column="3"
+                  Text="{Binding SummaryStats.FailedCount, StringFormat='Failed: {0}'}"
+                  Foreground="#F44336"
+                  Margin="16,0,0,0"
+                  VerticalAlignment="Center"/>
+
+        <TextBlock Grid.Column="4"
+                  Text="{Binding SummaryStats.SuccessRateText, StringFormat='Success: {0}'}"
+                  Margin="16,0,0,0"
+                  VerticalAlignment="Center"/>
+
+        <TextBlock Grid.Column="5"
+                  Text="{Binding SummaryStats.DurationText, StringFormat='Duration: {0}'}"
+                  Margin="16,0,0,0"
+                  VerticalAlignment="Center"/>
+
+        <StackPanel Grid.Column="6"
+                   Orientation="Horizontal"
+                   Spacing="4"
+                   HorizontalAlignment="Right">
+          <TextBlock Text="Excellent:"
+                    Opacity="0.7"/>
+          <TextBlock Text="{Binding SummaryStats.ExcellentCount}"
+                    Foreground="#4CAF50"/>
+          <TextBlock Text="Good:"
+                    Opacity="0.7"
+                    Margin="8,0,0,0"/>
+          <TextBlock Text="{Binding SummaryStats.GoodCount}"
+                    Foreground="#8BC34A"/>
+          <TextBlock Text="Fair:"
+                    Opacity="0.7"
+                    Margin="8,0,0,0"/>
+          <TextBlock Text="{Binding SummaryStats.FairCount}"
+                    Foreground="#FFC107"/>
+          <TextBlock Text="Poor:"
+                    Opacity="0.7"
+                    Margin="8,0,0,0"/>
+          <TextBlock Text="{Binding SummaryStats.PoorCount}"
+                    Foreground="#FF9800"/>
+          <TextBlock Text="Broken:"
+                    Opacity="0.7"
+                    Margin="8,0,0,0"/>
+          <TextBlock Text="{Binding SummaryStats.BrokenCount}"
+                    Foreground="#F44336"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

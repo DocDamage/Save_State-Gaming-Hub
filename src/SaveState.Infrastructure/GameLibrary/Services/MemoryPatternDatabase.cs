@@ -931,4 +931,30 @@ public class MemoryPatternDatabase : IMemoryPatternDatabase
         _logger.LogInformation("Initialized memory pattern database with {Count} game signatures covering {Games} games",
             Count, _gameSignatures.Count);
     }
+
+    #region Async Methods
+
+    /// <inheritdoc />
+    public Task<Result<IReadOnlyList<GameMemorySignature>>> GetSignaturesForGameAsync(
+        string gameTitle,
+        CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        var result = GetSignaturesForGame(gameTitle);
+        return Task.FromResult(result);
+    }
+
+    /// <inheritdoc />
+    public Task<Result<IReadOnlyList<string>>> GetAllGamesWithSignaturesAsync(
+        CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        var games = _gameSignatures.Keys
+            .Where(k => k != "*") // Exclude universal patterns
+            .OrderBy(k => k)
+            .ToList();
+        return Task.FromResult(Result.Success<IReadOnlyList<string>>(games));
+    }
+
+    #endregion
 }

@@ -67,16 +67,44 @@ public sealed class AutoDiscoveryEngine : IAutoDiscoveryEngine, IDisposable
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
 
-        // Initialize all heuristics
+        // Initialize all heuristics (7 original + 17 new = 24 total)
         _heuristics = new List<IValueHeuristic>
         {
+            // Original 7 heuristics
             new HealthHeuristic(),
             new CurrencyHeuristic(),
             new PositionHeuristic(),
             new AmmoHeuristic(),
             new ExperienceHeuristic(),
             new ScoreHeuristic(),
-            new TimerHeuristic()
+            new TimerHeuristic(),
+
+            // Movement & Physics (4)
+            new SpeedHeuristic(),
+            new VelocityHeuristic(),
+            new JumpHeightHeuristic(),
+            new GravityHeuristic(),
+
+            // Combat Mechanics (4)
+            new CooldownHeuristic(),
+            new DamageHeuristic(),
+            new CriticalChanceHeuristic(),
+            new ArmorRatingHeuristic(),
+
+            // RPG Progression (3)
+            new SkillPointsHeuristic(),
+            new ReputationHeuristic(),
+            new CarryWeightHeuristic(),
+
+            // Resource Management (3)
+            new ManaHeuristic(),
+            new DurabilityHeuristic(),
+            new ResourceCountHeuristic(),
+
+            // Game State (3)
+            new DifficultyHeuristic(),
+            new GameTimeHeuristic(),
+            new CompletionHeuristic()
         };
 
         _logger.LogInformation("AutoDiscoveryEngine initialized with {Count} heuristics", _heuristics.Count);

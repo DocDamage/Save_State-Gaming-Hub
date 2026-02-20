@@ -84,4 +84,18 @@ public interface IMemoryPatternDatabase
     /// Gets the total count of signatures.
     /// </summary>
     int Count { get; }
+
+    #region Async Methods
+
+    /// <summary>
+    /// Gets all memory signatures for a specific game title asynchronously.
+    /// </summary>
+    Task<Result<IReadOnlyList<GameMemorySignature>>> GetSignaturesForGameAsync(string gameTitle, CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets all games that have signatures asynchronously.
+    /// </summary>
+    Task<Result<IReadOnlyList<string>>> GetAllGamesWithSignaturesAsync(CancellationToken ct = default);
+
+    #endregion
 }
