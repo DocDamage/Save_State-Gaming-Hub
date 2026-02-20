@@ -1,0 +1,35 @@
+name: Linux Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev
+      
+      - name: Restore
+        run: dotnet restore src/SaveState.Presentation/SaveState.Presentation.csproj
+      
+      - name: Build
+        run: dotnet build src/SaveState.Presentation/SaveState.Presentation.csproj -c Release
+      
+      - name: Test (Linux-compatible)
+        run: |
+          # Run tests that don't require Windows-specific APIs
+          dotnet test tests/SaveState.Core.Tests --verbosity normal
+          dotnet test tests/SaveState.Application.Tests --verbosity normal
