@@ -1,0 +1,44 @@
+name: Nightly Build
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # 2 AM UTC daily
+  workflow_dispatch:
+
+jobs:
+  full-build:
+    name: Full Solution Build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: Restore All Solutions
+        run: |
+          dotnet restore SaveStateReborn.sln
+          dotnet restore SaveStateReborn.Core.sln
+          dotnet restore SaveStateReborn.All.sln
+      
+      - name: Build All Solutions
+        run: |
+          dotnet build SaveStateReborn.sln --configuration Release --warnaserror
+          dotnet build SaveStateReborn.Core.sln --configuration Release --warnaserror
+      
+      - name: Run All Tests
+        run: dotnet test SaveStateReborn.Core.sln --verbosity normal
+      
+      - name: Notify on Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 Nightly Build Failed - ${new Date().toISOString().split('T')[0]}`,
+              body: `The nightly build failed. Please check the logs: ${context.payload.repository.html_url}/actions/runs/${context.runId}`
+            })

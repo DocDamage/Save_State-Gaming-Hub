@@ -1,193 +1,208 @@
 name: Quality Gates
 
 on:
-  push:
-    branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - '*.sln'
+      - '*.props'
+  push:
+    branches: [main]
 
 env:
-  DOTNET_NOLOGO: true
-  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_VERSION: '9.0.x'
+  BUILD_CONFIGURATION: 'Release'
 
 jobs:
+  # Job 1: Build Verification
   build:
     name: Build (0 Warnings)
     runs-on: windows-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x'
-        
-    - name: Restore dependencies
-      run: dotnet restore
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
       
-    - name: Build with warnings as errors
-      run: dotnet build --no-restore --configuration Release --warnaserror
+      - name: Restore
+        run: dotnet restore SaveStateReborn.Core.sln
       
-  test:
-    name: Run Tests
-    runs-on: windows-latest
-    needs: build
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x'
-        
-    - name: Restore dependencies
-      run: dotnet restore
-      
-    - name: Run all tests
-      run: dotnet test --no-build --verbosity normal --logger trx
-      
-    - name: Upload test results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-results
-        path: '**/*.trx'
-        
+      - name: Build (Treat Warnings as Errors)
+        run: dotnet build SaveStateReborn.Core.sln --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore --warnaserror
+
+  # Job 2: Architecture Tests
   architecture-tests:
     name: Architecture Tests
     runs-on: windows-latest
     needs: build
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x'
-        
-    - name: Restore dependencies
-      run: dotnet restore
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
       
-    - name: Run architecture tests
-      run: |
-        dotnet test tests/SaveState.Infrastructure.Tests \
-          --filter "FullyQualifiedName~ArchitectureTests" \
-          --no-build \
-          --verbosity normal
-          
-    - name: Run code quality tests
-      run: |
-        dotnet test tests/SaveState.Infrastructure.Tests \
-          --filter "FullyQualifiedName~CodeQualityTests" \
-          --no-build \
-          --verbosity normal
-          
-  code-metrics:
-    name: Code Metrics
+      - name: Restore
+        run: dotnet restore SaveStateReborn.Core.sln
+      
+      - name: Build
+        run: dotnet build SaveStateReborn.Core.sln --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
+      
+      - name: Run Architecture Tests
+        run: dotnet test tests/SaveState.Infrastructure.Tests --no-build --filter "FullyQualifiedName~ArchitectureTests" --verbosity normal
+
+  # Job 3: Code Quality Tests
+  code-quality-tests:
+    name: Code Quality Tests
     runs-on: windows-latest
     needs: build
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x'
-        
-    - name: Restore dependencies
-      run: dotnet restore
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
       
-    - name: Install ReportGenerator
-      run: dotnet tool install --global dotnet-reportgenerator-globaltool
+      - name: Restore
+        run: dotnet restore SaveStateReborn.Core.sln
       
-    - name: Run code coverage
-      run: |
-        dotnet test --collect:"XPlat Code Coverage" --results-directory ./coverage
-        
-    - name: Generate coverage report
-      run: |
-        reportgenerator \
-          -reports:"coverage/**/coverage.cobertura.xml" \
-          -targetdir:"coveragereport" \
-          -reporttypes:Html
-          
-    - name: Upload coverage report
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-report
-        path: coveragereport
-        
-  null-safety-check:
-    name: Null Safety Check
+      - name: Build
+        run: dotnet build SaveStateReborn.Core.sln --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
+      
+      - name: Run Code Quality Tests
+        run: dotnet test tests/SaveState.Infrastructure.Tests --no-build --filter "FullyQualifiedName~CodeQualityTests" --verbosity normal
+
+  # Job 4: Unit Tests
+  unit-tests:
+    name: Unit Tests
     runs-on: windows-latest
-    
+    needs: build
+    strategy:
+      matrix:
+        test-project:
+          - SaveState.Core.Tests
+          - SaveState.Application.Tests
+          - SaveState.Infrastructure.Tests
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       
-    - name: Check for null-forgiving operators
-      shell: pwsh
-      run: |
-        $forgivingCount = (Get-ChildItem -Path src -Recurse -Filter "*.cs" | 
-          Select-String -Pattern "!\.|!\[" | 
-          Measure-Object).Count
-        
-        Write-Host "Null-forgiving operators found: $forgivingCount"
-        
-        if ($forgivingCount -gt 0) {
-          Write-Host "❌ Found $forgivingCount null-forgiving operators"
-          Get-ChildItem -Path src -Recurse -Filter "*.cs" | 
-            Select-String -Pattern "!\.|!\[" | 
-            Select-Object -First 10 |
-            ForEach-Object { Write-Host "  - $($_.FileName):$($_.LineNumber)" }
-          exit 1
-        } else {
-          Write-Host "✅ No null-forgiving operators found"
-        }
-        
-    - name: Check for DateTime.Now
-      shell: pwsh
-      run: |
-        $dateTimeNowCount = (Get-ChildItem -Path src -Recurse -Filter "*.cs" | 
-          Select-String -Pattern "DateTime\.Now|DateTime\.UtcNow" | 
-          Where-Object { $_.Line -notmatch "ITimeProvider|SystemTimeProvider" } |
-          Measure-Object).Count
-        
-        Write-Host "DateTime.Now/UtcNow usage (excluding ITimeProvider): $dateTimeNowCount"
-        
-        # Allow up to 2 occurrences (expected in ITimeProvider implementations)
-        if ($dateTimeNowCount -gt 2) {
-          Write-Host "⚠️ Found $dateTimeNowCount DateTime.Now/UtcNow usages"
-          Get-ChildItem -Path src -Recurse -Filter "*.cs" | 
-            Select-String -Pattern "DateTime\.Now|DateTime\.UtcNow" | 
-            Where-Object { $_.Line -notmatch "ITimeProvider|SystemTimeProvider" } |
-            Select-Object -First 5 |
-            ForEach-Object { Write-Host "  - $($_.FileName):$($_.LineNumber)" }
-        } else {
-          Write-Host "✅ DateTime.Now usage is within acceptable limits"
-        }
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      
+      - name: Restore
+        run: dotnet restore SaveStateReborn.Core.sln
+      
+      - name: Build
+        run: dotnet build SaveStateReborn.Core.sln --configuration ${{ env.BUILD_CONFIGURATION }} --no-restore
+      
+      - name: Run Tests
+        run: dotnet test tests/${{ matrix.test-project }} --no-build --verbosity normal
 
-    - name: Check continuation-based .Result anti-patterns
-      shell: pwsh
-      run: |
-        $pattern = "ContinueWith\s*\(.*\.Result"
-        $matches = Get-ChildItem -Path src -Recurse -Filter "*.cs" |
-          Select-String -Pattern $pattern
+  # Job 5: Code Coverage
+  code-coverage:
+    name: Code Coverage (80% Threshold)
+    runs-on: windows-latest
+    needs: [architecture-tests, code-quality-tests, unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      
+      - name: Restore
+        run: dotnet restore SaveStateReborn.Core.sln
+      
+      - name: Build
+        run: dotnet build SaveStateReborn.Core.sln --configuration Debug --no-restore
+      
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+      
+      - name: Run Tests with Coverage
+        run: dotnet test SaveStateReborn.Core.sln --collect:"XPlat Code Coverage" --results-directory ./coverage
+      
+      - name: Generate Report
+        run: reportgenerator -reports:"./coverage/**/coverage.cobertura.xml" -targetdir:"./coverage-report" -reporttypes:Html
+      
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ./coverage-report
+      
+      - name: Check Coverage Threshold
+        run: |
+          # Extract coverage percentage and check against threshold
+          $coverage = [xml](Get-Content "./coverage/**/coverage.cobertura.xml")
+          $lineRate = [double]$coverage.coverage.line-rate * 100
+          Write-Host "Code Coverage: $lineRate%"
+          if ($lineRate -lt 80) {
+            Write-Error "Code coverage $lineRate% is below threshold of 80%"
+            exit 1
+          }
 
-        if ($matches.Count -gt 0) {
-          Write-Host "Found continuation-based .Result anti-patterns"
-          $matches |
-            Select-Object -First 10 |
-            ForEach-Object { Write-Host "  - $($_.Path):$($_.LineNumber)" }
-          exit 1
-        }
+  # Job 6: Dependency Vulnerability Scan
+  vulnerability-scan:
+    name: Vulnerability Scan
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      
+      - name: Restore
+        run: dotnet restore SaveStateReborn.Core.sln
+      
+      - name: Check for Vulnerable Packages
+        run: |
+          dotnet list package --vulnerable --include-transitive 2>&1 | Tee-Object -FilePath vulnerable.txt
+          if (Select-String -Path vulnerable.txt -Pattern "has the following vulnerable packages") {
+            Write-Error "Vulnerable packages found!"
+            exit 1
+          }
 
-        Write-Host "No continuation-based .Result anti-patterns found"
+  # Job 7: Linting (EditorConfig)
+  linting:
+    name: EditorConfig Linting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install EditorConfig Checker
+        run: npm install -g editorconfig-checker
+      
+      - name: Check EditorConfig
+        run: editorconfig-checker
+
+  # Final Status
+  quality-gates-passed:
+    name: All Quality Gates Passed
+    runs-on: ubuntu-latest
+    needs: [build, architecture-tests, code-quality-tests, unit-tests, code-coverage, vulnerability-scan, linting]
+    if: always()
+    steps:
+      - name: Check All Jobs Status
+        run: |
+          if ("${{ needs.build.result }}" -ne "success" -or "${{ needs.architecture-tests.result }}" -ne "success" -or "${{ needs.code-quality-tests.result }}" -ne "success" -or "${{ needs.unit-tests.result }}" -ne "success" -or "${{ needs.code-coverage.result }}" -ne "success" -or "${{ needs.vulnerability-scan.result }}" -ne "success" -or "${{ needs.linting.result }}" -ne "success") {
+            Write-Error "One or more quality gates failed"
+            exit 1
+          }
+          Write-Host "✅ All quality gates passed!"

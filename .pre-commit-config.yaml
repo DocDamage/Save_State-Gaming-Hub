@@ -1,0 +1,47 @@
+# Pre-commit hooks configuration
+# Install: pip install pre-commit
+# Setup: pre-commit install
+
+repos:
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.(cs|resx|Designer\.cs)$'
+      - id: end-of-file-fixer
+        exclude: '\.(cs|resx|Designer\.cs)$'
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # .NET formatting
+  - repo: local
+    hooks:
+      - id: dotnet-format
+        name: dotnet format
+        entry: dotnet format SaveStateReborn.Core.sln --verify-no-changes --verbosity diagnostic
+        language: system
+        pass_filenames: false
+        files: '\.cs$'
+
+      - id: dotnet-build
+        name: dotnet build (0 warnings)
+        entry: dotnet build SaveStateReborn.Core.sln --warnaserror --verbosity minimal
+        language: system
+        pass_filenames: false
+        files: '\.(cs|csproj|sln)$'
+
+      - id: architecture-tests
+        name: architecture tests
+        entry: dotnet test tests/SaveState.Infrastructure.Tests --filter "FullyQualifiedName~ArchitectureTests" --verbosity minimal
+        language: system
+        pass_filenames: false
+        files: '\.(cs|csproj)$'
+        stages: [commit]

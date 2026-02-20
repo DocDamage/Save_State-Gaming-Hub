@@ -1,0 +1,30 @@
+# Add 'memory-intelligence' label to any changes in memory-related files
+memory-intelligence:
+  - src/**/GameLibrary/**/*Memory*
+  - src/**/GameLibrary/**/*memory*
+  - src/**/Performance/**/*Memory*
+  - docs/guides/MEMORY_INTELLIGENCE.md
+
+# Add 'mugen' label to MUGEN-related changes
+mugen:
+  - src/**/Mugen/**
+  - src/**/mugen/**
+
+# Add 'tests' label to test changes
+tests:
+  - tests/**
+
+# Add 'documentation' label to doc changes
+documentation:
+  - docs/**
+  - '**/*.md'
+
+# Add 'ui' label to presentation layer changes
+ui:
+  - src/SaveState.Presentation/**
+
+# Add 'backend' label to core/application/infrastructure changes
+backend:
+  - src/SaveState.Core/**
+  - src/SaveState.Application/**
+  - src/SaveState.Infrastructure/**
