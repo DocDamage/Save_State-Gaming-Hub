@@ -874,6 +874,27 @@ public static class DependencyInjection
         // Smart Launcher Services
         services.AddSmartLauncherServices();
 
+        // Register new Metrics Service
+        services.AddMetrics();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds metrics services for Prometheus/Grafana integration.
+    /// </summary>
+    private static IServiceCollection AddMetrics(this IServiceCollection services)
+    {
+        // Register MetricsService as both interface implementations
+        services.AddSingleton<Metrics.MetricsService>();
+        services.AddSingleton<Core.Metrics.IMetricsService>(sp => 
+            sp.GetRequiredService<Metrics.MetricsService>());
+        services.AddSingleton<Core.Metrics.IMetricsReporter>(sp => 
+            sp.GetRequiredService<Metrics.MetricsService>());
+
+        // Register Prometheus Exporter
+        services.AddSingleton<Metrics.PrometheusExporter>();
+
         return services;
     }
 
