@@ -1,4 +1,6 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.GameLibrary.Services;
 using SaveState.Presentation.Views.Dialogs;
 using SaveState.Presentation.ViewModels.Dialogs;
 using SaveState.Presentation.ViewModels.Library.GameDetail;
@@ -206,6 +208,42 @@ public partial class DialogService : IDialogService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to show game rating dialog");
+            return null;
+        }
+    }
+
+    #endregion
+
+    #region Cheat Engine Import
+
+    public async Task<ImportCheatTableResult?> ShowImportCheatTableDialogAsync()
+    {
+        try
+        {
+            _logger.LogInformation("Showing Cheat Engine table import dialog");
+
+            var importer = _serviceProvider.GetRequiredService<ICheatEngineImporter>();
+            var patternDatabase = _serviceProvider.GetService<IMemoryPatternDatabase>();
+
+            var vm = new ImportCheatTableViewModel(importer, this, patternDatabase);
+            var dialog = new ImportCheatTableDialog
+            {
+                DataContext = vm
+            };
+
+            var mainWindow = GetMainWindow();
+            if (mainWindow == null)
+            {
+                _logger.LogWarning("Main window not found for dialog");
+                return null;
+            }
+
+            var result = await dialog.ShowDialog<ImportCheatTableResult?>(mainWindow);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show Cheat Engine table import dialog");
             return null;
         }
     }

@@ -1,3 +1,4 @@
+using SaveState.Core.GameLibrary.Entities;
 using SaveState.Presentation.ViewModels.Automation;
 using SaveState.Presentation.ViewModels.Dialogs;
 using System;
@@ -283,6 +284,12 @@ public record EmulatorConfigResult(
     /// </summary>
     /// <returns>The selected process ID, or null if cancelled.</returns>
     Task<int?> ShowProcessSelectorAsync();
+
+    /// <summary>
+    /// Shows the Cheat Engine table import dialog.
+    /// </summary>
+    /// <returns>Import result containing imported signatures and statistics.</returns>
+    Task<ImportCheatTableResult?> ShowImportCheatTableDialogAsync();
 }
 
 /// <summary>
@@ -493,3 +500,13 @@ public record WorkflowStepViewModel(
     string Name,
     Dictionary<string, string> Parameters,
     int Order);
+
+/// <summary>
+/// Result from the Cheat Engine table import dialog.
+/// </summary>
+public record ImportCheatTableResult(
+    List<GameMemorySignature> ImportedSignatures,
+    int SuccessfullyImported,
+    int Skipped,
+    int Failed,
+    List<string> ErrorMessages);

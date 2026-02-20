@@ -1,0 +1,369 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="600"
+        x:Class="SaveState.Presentation.Views.Dialogs.ImportCheatTableDialog"
+        x:DataType="vm:ImportCheatTableViewModel"
+        Title="Import Cheat Engine Table"
+        Width="700" Height="650"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True"
+        MinWidth="600"
+        MinHeight="500"
+        Background="Transparent"
+        TransparencyLevelHint="Mica">
+
+    <Window.Styles>
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="20,10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style Selector="Button.secondary">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="16,8" />
+        </Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="10" />
+            <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+        </Style>
+
+        <Style Selector="CheckBox">
+            <Setter Property="Padding" Value="8,0,0,0" />
+        </Style>
+
+        <Style Selector="ListBox.cheat-entries">
+            <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+    </Window.Styles>
+
+    <Panel>
+        <!-- Background -->
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"
+                    TintColor="#1e1e1e"
+                    TintOpacity="0.95"
+                    MaterialOpacity="0.85" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+
+        <Border BorderBrush="{DynamicResource SurfaceStrokeColorDefault}"
+                BorderThickness="1"
+                CornerRadius="8"
+                ClipToBounds="True">
+
+            <Grid RowDefinitions="Auto,*,Auto">
+                <!-- Header -->
+                <Border Grid.Row="0" Padding="24,20" Background="#252525">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Import Cheat Engine Table"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="White"/>
+                        <TextBlock Text="Import .CT files to expand game memory signature support"
+                                   FontSize="12"
+                                   Foreground="#aaaaaa"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Content -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="24" Spacing="20">
+                        <!-- File Selection -->
+                        <Border Classes="GlassContainer" Padding="20">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="Cheat Table File" FontWeight="SemiBold" FontSize="14"/>
+                                
+                                <Grid ColumnDefinitions="*,12,Auto">
+                                    <TextBox Grid.Column="0" 
+                                             Text="{Binding SelectedFilePath}" 
+                                             Watermark="Drop a .CT file here or click Browse..."
+                                             IsReadOnly="True"/>
+                                    <Button Grid.Column="2"
+                                            Content="Browse"
+                                            Command="{Binding BrowseFileCommand}"
+                                            Classes="secondary"/>
+                                </Grid>
+
+                                <!-- Drag Drop Hint -->
+                                <Border Background="#2a2a2a" 
+                                        CornerRadius="4" 
+                                        Padding="16,12"
+                                        IsVisible="{Binding SelectedFilePath, Converter={x:Static StringConverters.IsNullOrEmpty}}">
+                                    <StackPanel Spacing="8" HorizontalAlignment="Center">
+                                        <TextBlock Text="📁" FontSize="24" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Drag and drop a .CT file here"
+                                                   HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <TextBlock Text="Support for Cheat Engine 6.0+ table format"
+                                                   FontSize="11"
+                                                   HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource TextTertiaryBrush}"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Game Title -->
+                        <StackPanel Spacing="8" IsVisible="{Binding HasPreview}">
+                            <TextBlock Text="Game Title" FontWeight="SemiBold" FontSize="14"/>
+                            <TextBox Text="{Binding GameTitle}" 
+                                     Watermark="Enter the game title for these signatures"/>
+                        </StackPanel>
+
+                        <!-- Import Options -->
+                        <StackPanel Spacing="12" IsVisible="{Binding HasPreview}">
+                            <TextBlock Text="Import Options" FontWeight="SemiBold" FontSize="14"/>
+                            
+                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+                                <CheckBox Grid.Row="0" Grid.Column="0"
+                                          Content="Skip duplicates"
+                                          IsChecked="{Binding SkipDuplicates}"/>
+                                <CheckBox Grid.Row="0" Grid.Column="1"
+                                          Content="Overwrite existing"
+                                          IsChecked="{Binding OverwriteExisting}"/>
+                                <CheckBox Grid.Row="1" Grid.Column="0"
+                                          Content="Include Lua scripts"
+                                          ToolTip.Tip="Script entries require manual review"
+                                          IsChecked="{Binding IncludeScripts}"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Entries Preview -->
+                        <StackPanel Spacing="12" IsVisible="{Binding HasPreview}">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="Entries to Import" 
+                                           FontWeight="SemiBold" 
+                                           FontSize="14"
+                                           VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" 
+                                            Orientation="Horizontal" 
+                                            Spacing="8">
+                                    <Button Content="Select All" 
+                                            Command="{Binding SelectAllCommand}"
+                                            Classes="secondary"
+                                            Padding="12,6"/>
+                                    <Button Content="Deselect All" 
+                                            Command="{Binding DeselectAllCommand}"
+                                            Classes="secondary"
+                                            Padding="12,6"/>
+                                    <Button Content="Importable Only" 
+                                            Command="{Binding SelectOnlyImportableCommand}"
+                                            Classes="secondary"
+                                            Padding="12,6"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Text="{Binding SelectedEntryCount, StringFormat='{}{0} of {1} selected'}"
+                                       FontSize="12"
+                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+
+                            <!-- Entries List -->
+                            <Border Height="200" 
+                                    Background="{StaticResource InputBackgroundBrush}"
+                                    BorderBrush="{StaticResource InputBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="4">
+                                <ListBox ItemsSource="{Binding Entries}"
+                                         Classes="cheat-entries"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:CheatEntryViewModel">
+                                            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" 
+                                                  VerticalAlignment="Center">
+                                                <CheckBox Grid.Column="0"
+                                                          IsChecked="{Binding IsSelected}"
+                                                          IsEnabled="{Binding CanImport}"
+                                                          VerticalAlignment="Center"
+                                                          Margin="0,0,12,0"/>
+                                                
+                                                <StackPanel Grid.Column="1" Spacing="2">
+                                                    <TextBlock Text="{Binding Description}"
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding Address}"
+                                                               FontSize="11"
+                                                               Foreground="{StaticResource TextTertiaryBrush}"
+                                                               FontFamily="Consolas,Monospace"/>
+                                                </StackPanel>
+
+                                                <Border Grid.Column="2" 
+                                                        Margin="8,0"
+                                                        Padding="6,2"
+                                                        Background="{DynamicResource SystemAccentColor}"
+                                                        CornerRadius="3"
+                                                        IsVisible="{Binding IsPointer}">
+                                                    <TextBlock Text="PTR" 
+                                                               FontSize="10" 
+                                                               FontWeight="Bold"
+                                                               Foreground="White"/>
+                                                </Border>
+
+                                                <Border Grid.Column="3" 
+                                                        Margin="8,0"
+                                                        Padding="6,2"
+                                                        Background="#ff9800"
+                                                        CornerRadius="3"
+                                                        IsVisible="{Binding IsScript}">
+                                                    <TextBlock Text="SCRIPT" 
+                                                               FontSize="10" 
+                                                               FontWeight="Bold"
+                                                               Foreground="White"/>
+                                                </Border>
+
+                                                <TextBlock Grid.Column="4"
+                                                           Text="{Binding VariableType}"
+                                                           FontSize="12"
+                                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                                           Width="70"
+                                                           TextAlignment="Right"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Status Message -->
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   FontSize="12"
+                                   IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                        <!-- Error Message -->
+                        <Border Background="#2a1a1a" 
+                                CornerRadius="4" 
+                                Padding="12"
+                                IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            <TextBlock Text="{Binding ValidationError}"
+                                       Foreground="#ff6b6b"
+                                       TextWrapping="Wrap"/>
+                        </Border>
+
+                        <!-- Progress Bar -->
+                        <StackPanel Spacing="8" IsVisible="{Binding IsImporting}">
+                            <ProgressBar Value="{Binding ImportProgress}"
+                                         Minimum="0" 
+                                         Maximum="100"
+                                         Height="8"
+                                         CornerRadius="4"/>
+                            <TextBlock Text="{Binding StatusMessage}"
+                                       FontSize="12"
+                                       HorizontalAlignment="Center"
+                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+
+                        <!-- Import Results -->
+                        <Border Background="#1a2a1a" 
+                                CornerRadius="4" 
+                                Padding="16"
+                                IsVisible="{Binding ShowResults}">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="Import Complete!" 
+                                           FontWeight="Bold" 
+                                           FontSize="14"
+                                           Foreground="#4caf50"/>
+                                
+                                <Grid ColumnDefinitions="*,*,*">
+                                    <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding CheatEngineImportResult.SuccessfullyImported}"
+                                                   FontSize="24"
+                                                   FontWeight="Bold"
+                                                   Foreground="#4caf50"
+                                                   HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Imported" 
+                                                   FontSize="11"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+                                    
+                                    <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding CheatEngineImportResult.Skipped}"
+                                                   FontSize="24"
+                                                   FontWeight="Bold"
+                                                   Foreground="#ff9800"
+                                                   HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Skipped" 
+                                                   FontSize="11"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+                                    
+                                    <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding CheatEngineImportResult.Failed}"
+                                                   FontSize="24"
+                                                   FontWeight="Bold"
+                                                   Foreground="#f44336"
+                                                   HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Failed" 
+                                                   FontSize="11"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Loading Indicator -->
+                        <ProgressBar IsIndeterminate="True" 
+                                     IsVisible="{Binding IsLoading}"
+                                     Height="2"
+                                     Background="Transparent"
+                                     Foreground="{StaticResource AccentBrush}"/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Footer -->
+                <Border Grid.Row="2" 
+                        Padding="24,16" 
+                        Background="#252525"
+                        BorderBrush="{DynamicResource SurfaceStrokeColorDefault}" 
+                        BorderThickness="0,1,0,0">
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                        <TextBlock Grid.Column="0" 
+                                   VerticalAlignment="Center"
+                                   FontSize="11"
+                                   Foreground="{StaticResource TextTertiaryBrush}">
+                            <Run Text="Sources: "/>
+                            <Run Text="fearlessrevolution.com" Foreground="{StaticResource AccentBrush}"/>
+                            <Run Text=" • Cheat Engine Forums"/>
+                        </TextBlock>
+
+                        <Button Grid.Column="1"
+                                Content="Cancel"
+                                Command="{Binding CancelCommand}"
+                                Classes="secondary"
+                                Margin="0,0,12,0"
+                                IsEnabled="{Binding !IsImporting}"/>
+
+                        <Button Grid.Column="2"
+                                Content="Import"
+                                Command="{Binding ImportCommand}"
+                                Classes="primary"
+                                IsVisible="{Binding !ShowResults}"
+                                IsEnabled="{Binding SelectedEntryCount, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+
+                        <Button Grid.Column="2"
+                                Content="Done"
+                                Command="{Binding ConfirmCommand}"
+                                Classes="primary"
+                                IsVisible="{Binding ShowResults}"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Panel>
+</Window>
