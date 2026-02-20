@@ -190,4 +190,12 @@
     <PackageVersion Include="Tobii.Interaction" Version="0.7.3" />
   </ItemGroup>
 
+  <!-- OpenAPI/Swagger Documentation -->
+  <ItemGroup>
+    <PackageVersion Include="NSwag.AspNetCore" Version="14.0.0" />
+    <PackageVersion Include="NSwag.Generation" Version="14.0.0" />
+    <PackageVersion Include="NSwag.Core" Version="14.0.0" />
+    <PackageVersion Include="NJsonSchema" Version="11.0.0" />
+  </ItemGroup>
+
 </Project>

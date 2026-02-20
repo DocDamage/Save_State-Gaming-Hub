@@ -73,6 +73,7 @@ using SaveState.Infrastructure.Subscriptions;
 using SaveState.Infrastructure.GameDeals;
 using SaveState.Infrastructure.SmartLauncher;
 using SaveState.Core.SmartLauncher;
+using SaveState.Infrastructure.OpenApi;
 
 namespace SaveState.Infrastructure;
 
@@ -877,6 +878,19 @@ public static class DependencyInjection
         // Register new Metrics Service
         services.AddMetrics();
 
+        // Register OpenAPI Documentation
+        services.AddOpenApiDocumentation();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds OpenAPI/Swagger documentation services.
+    /// </summary>
+    public static IServiceCollection AddOpenApiDocumentation(this IServiceCollection services)
+    {
+        OpenApiConfiguration.ConfigureOpenApiDocument(services);
+        services.AddSingleton<OpenApiDocumentationService>();
         return services;
     }
 

@@ -55,6 +55,12 @@
     
     <!-- Eye Tracking -->
     <PackageReference Include="Tobii.Interaction" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+    
+    <!-- OpenAPI/Swagger Documentation -->
+    <PackageReference Include="NSwag.AspNetCore" />
+    <PackageReference Include="NSwag.Generation" />
+    <PackageReference Include="NSwag.Core" />
+    <PackageReference Include="NJsonSchema" />
   </ItemGroup>
 
 </Project>

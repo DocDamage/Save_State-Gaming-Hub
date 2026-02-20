@@ -49,6 +49,9 @@
     <PackageReference Include="Spectre.Console" />
     <PackageReference Include="System.CommandLine" />
     <PackageReference Include="Xaml.Behaviors.Avalonia" />
+    
+    <!-- OpenAPI/Swagger Documentation -->
+    <PackageReference Include="NSwag.Generation" />
   </ItemGroup>
 
 </Project>
