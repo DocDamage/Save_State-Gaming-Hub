@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Caching.Distributed;
+using SaveState.Core.Common.Services;
 using SaveState.Infrastructure.Performance;
 using Xunit;
 using Moq;
@@ -82,6 +83,7 @@ public abstract class BaseIntegrationTest : IDisposable
     {
         _services.AddLogging();
         _services.AddDistributedMemoryCache();
+        _services.AddSingleton<ITimeProvider>(SystemTimeProvider.Instance);
         _services.AddSingleton<QueryOptimizer>();
         _services.AddSingleton<MemoryProfiler>();
     }

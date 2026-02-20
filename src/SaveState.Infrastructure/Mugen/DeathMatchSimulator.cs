@@ -1,6 +1,7 @@
 namespace SaveState.Infrastructure.Mugen;
 
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Entities;
 using SaveState.Core.Mugen.Services;
 using SaveState.Core.Mugen.ValueObjects;
@@ -14,15 +15,18 @@ public class DeathMatchSimulator : IDeathMatchSimulator
     private readonly IMatchPredictionEngine _predictionEngine;
     private readonly SaveState.Core.Mugen.IMugenCharacterRepository _characterRepository;
     private readonly IMugenLauncher _launcher;
+    private readonly ITimeProvider _timeProvider;
 
     public DeathMatchSimulator(
         IMatchPredictionEngine predictionEngine,
         SaveState.Core.Mugen.IMugenCharacterRepository characterRepository,
-        IMugenLauncher launcher)
+        IMugenLauncher launcher,
+        ITimeProvider timeProvider)
     {
         _predictionEngine = predictionEngine;
         _characterRepository = characterRepository;
         _launcher = launcher;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<SimulationResult>> SimulateMatchesAsync(
@@ -44,7 +48,7 @@ public class DeathMatchSimulator : IDeathMatchSimulator
                 return Result.Failure<SimulationResult>("Character 2 not found");
             var character2 = character2Result.Value;
 
-            var startTime = DateTime.UtcNow;
+            var startTime = _timeProvider.UtcNow;
             var char1Wins = 0;
             var char2Wins = 0;
             var draws = 0;
@@ -102,7 +106,7 @@ public class DeathMatchSimulator : IDeathMatchSimulator
                     draws++;
             }
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             var char1WinRate = (float)char1Wins / matchCount;
             var char2WinRate = (float)char2Wins / matchCount;
 
@@ -216,7 +220,7 @@ public class DeathMatchSimulator : IDeathMatchSimulator
                 predictedWinnerName,
                 winnerConfidence,
                 topPaths,
-                DateTime.UtcNow);
+                _timeProvider.UtcNow);
 
             return Result.Success<TournamentSimulation>(tournamentSimulation);
         }

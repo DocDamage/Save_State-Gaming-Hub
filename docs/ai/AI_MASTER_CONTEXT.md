@@ -4,7 +4,7 @@
 **Last Updated**: January 11, 2026 (Application Startup Stabilized - Resources & Database Fixed)
 **Maintained By**: Development Team
 **Next Review**: February 1, 2026
-**Related Documents**: [AI_PROJECT_INDEX.md](../AI_PROJECT_INDEX.md), [V2_3_0_PROGRESS.md](../status/V2_3_0_PROGRESS.md), [ENGINEERING_RULES.md](../architecture/ENGINEERING_RULES.md), [LESSONS_LEARNED.md](../planning/LESSONS_LEARNED.md)
+**Related Documents**: [AI_PROJECT_INDEX.md](../AI_PROJECT_INDEX.md), [DEVELOPMENT_STATUS.md](../status/DEVELOPMENT_STATUS.md), [ENGINEERING_RULES.md](../architecture/ENGINEERING_RULES.md), [LESSONS_LEARNED.md](../planning/LESSONS_LEARNED.md)
 
 ---
 
@@ -241,7 +241,7 @@ NEVER return `null` for failures.
 | CS1591 XML docs | ~1200 | Documentation gaps |
 | `GetAwaiter().GetResult()` | 2 | In Dispose methods - acceptable |
 
-**Full Details**: [TECHNICAL_DEBT_AUDIT_2026-01-02.md](../reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md)
+**Full Details**: [COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md](../reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md)
 
 ---
 
@@ -389,8 +389,8 @@ SaveStateReborn supports full character modification and development capabilitie
 | Document | Purpose |
 |----------|---------|
 | [Engineering Rules](../architecture/ENGINEERING_RULES.md) | The "Must/Must Not" List |
-| [Technical Debt Audit](../reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md) | ⭐ **Latest debt scan** |
-| [Technical Debt Remediation Plan](../reports/TECHNICAL_DEBT_REMEDIATION_PLAN.md) | Remediation tracking |
+| [Technical Debt Audit](../reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md) | ⭐ **Latest debt scan** |
+| [Technical Debt Implementation Plan](../plans/TECHNICAL_DEBT_IMPLEMENTATION_PLAN_2026_02_20.md) | Remediation tracking |
 | [Feature Surfacing Plan](../planning/FEATURE_SURFACING_PLAN.md) | UI implementation roadmap |
 | [Development Status](../status/DEVELOPMENT_STATUS.md) | Overall project status |
 | [V2 Feature Roadmap](../planning/V2_FEATURE_ROADMAP.md) | Feature planning |
@@ -415,3 +415,7 @@ SaveStateReborn supports full character modification and development capabilitie
 | Jan 1, 2026 | 2.1 | Added Feature Surfacing Plan reference |
 | Jan 1, 2026 | 2.0 | Comprehensive audit, accurate metrics |
 | Dec 31, 2025 | 1.0 | Initial creation |
+
+
+
+

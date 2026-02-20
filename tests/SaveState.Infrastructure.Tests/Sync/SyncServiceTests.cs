@@ -25,7 +25,8 @@ public class SyncServiceTests
         var sut = new SyncService(
             new ICloudStorageProvider[] { oneDriveProvider, googleDriveProvider },
             preferencesMock.Object,
-            NullLogger<SyncService>.Instance);
+            NullLogger<SyncService>.Instance,
+            SystemTimeProvider.Instance);
 
         // Act
         var result = await sut.PullAsync();
@@ -52,7 +53,8 @@ public class SyncServiceTests
         var sut = new SyncService(
             new ICloudStorageProvider[] { localProvider, oneDriveProvider },
             preferencesMock.Object,
-            NullLogger<SyncService>.Instance);
+            NullLogger<SyncService>.Instance,
+            SystemTimeProvider.Instance);
 
         // Act
         var result = await sut.PullAsync();

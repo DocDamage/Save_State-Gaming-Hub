@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Configuration;
 using SaveState.Core.GameLibrary.DTOs;
 using SaveState.Core.Monitoring;
@@ -15,6 +16,7 @@ public class SteamApiClient : ISteamApiClient
     private readonly HttpClient _httpClient;
     private readonly SteamOptions _options;
     private readonly ILogger<SteamApiClient> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly IApplicationMetrics _metrics;
     private readonly ErrorTrackingService _errorTracker;
 
@@ -22,24 +24,26 @@ public class SteamApiClient : ISteamApiClient
         HttpClient httpClient,
         IOptions<SteamOptions> options,
         ILogger<SteamApiClient> logger,
+        ITimeProvider timeProvider,
         IApplicationMetrics metrics,
         ErrorTrackingService errorTracker)
     {
         _httpClient = httpClient;
         _options = options.Value;
         _logger = logger;
+        _timeProvider = timeProvider;
         _metrics = metrics;
         _errorTracker = errorTracker;
     }
 
     public async Task<IReadOnlyList<SteamGame>> GetOwnedGamesAsync(CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
 
         if (string.IsNullOrEmpty(_options.ApiKey) || string.IsNullOrEmpty(_options.SteamId))
         {
             _logger.LogWarning("Steam API Key or Steam ID is missing. Returning empty list.");
-            _metrics.RecordApiCall("Steam", "GetOwnedGames", DateTime.UtcNow - startTime, false);
+            _metrics.RecordApiCall("Steam", "GetOwnedGames", _timeProvider.UtcNow - startTime, false);
             _metrics.RecordApiError("Steam", "ConfigurationMissing");
             return Array.Empty<SteamGame>();
         }
@@ -51,7 +55,7 @@ public class SteamApiClient : ISteamApiClient
 
             if (response?.Response?.Games == null)
             {
-                var emptyResultDuration = DateTime.UtcNow - startTime;
+                var emptyResultDuration = _timeProvider.UtcNow - startTime;
                 _metrics.RecordApiCall("Steam", "GetOwnedGames", emptyResultDuration, true); // Success but no games
                 return Array.Empty<SteamGame>();
             }
@@ -63,14 +67,14 @@ public class SteamApiClient : ISteamApiClient
                 PlayTimeMinutes = g.PlaytimeForever
             }).ToList();
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordApiCall("Steam", "GetOwnedGames", duration, true);
 
             return games;
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _logger.LogError(ex, "Failed to fetch owned games from Steam");
 
             // Record error metrics and track exception

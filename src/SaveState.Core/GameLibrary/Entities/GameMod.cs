@@ -1,6 +1,7 @@
 namespace SaveState.Core.GameLibrary.Entities;
 
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 
 /// <summary>
@@ -130,8 +131,8 @@ public class GameMod : EntityBase
             SourceUrl = sourceUrl,
             LoadOrder = loadOrder,
             HasConfiguration = false,
-            InstalledAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            InstalledAt = SystemTimeProvider.Instance.UtcNow,
+            UpdatedAt = SystemTimeProvider.Instance.UtcNow
         };
 
         return mod;
@@ -154,7 +155,7 @@ public class GameMod : EntityBase
         Author = author;
         Category = category;
         Tags = tags?.ToList() ?? new List<string>();
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 
     /// <summary>
@@ -163,7 +164,7 @@ public class GameMod : EntityBase
     public void Enable()
     {
         IsEnabled = true;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 
     /// <summary>
@@ -172,7 +173,7 @@ public class GameMod : EntityBase
     public void Disable()
     {
         IsEnabled = false;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 
     /// <summary>
@@ -181,7 +182,7 @@ public class GameMod : EntityBase
     public void SetLoadOrder(int order)
     {
         LoadOrder = order;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 
     /// <summary>
@@ -190,6 +191,6 @@ public class GameMod : EntityBase
     public void MarkHasConfiguration()
     {
         HasConfiguration = true;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 }

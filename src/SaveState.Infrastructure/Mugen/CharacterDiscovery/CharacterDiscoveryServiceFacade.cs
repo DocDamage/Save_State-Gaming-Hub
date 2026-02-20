@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Services;
 
 namespace SaveState.Infrastructure.Mugen.CharacterDiscovery;
@@ -11,9 +12,9 @@ public class CharacterDiscoveryService : ICharacterDiscoveryService
 {
     private readonly CharacterDiscoveryServiceOperations _operations;
 
-    public CharacterDiscoveryService(ILogger<CharacterDiscoveryService> logger)
+    public CharacterDiscoveryService(ILogger<CharacterDiscoveryService> logger, ITimeProvider timeProvider)
     {
-        _operations = new CharacterDiscoveryServiceOperations(logger);
+        _operations = new CharacterDiscoveryServiceOperations(logger, timeProvider);
     }
 
     public Task<Result<CharacterSearchResult>> SearchCharactersAsync(

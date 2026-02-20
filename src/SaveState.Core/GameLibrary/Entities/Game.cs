@@ -3,6 +3,7 @@ namespace SaveState.Core.GameLibrary.Entities;
 using System.ComponentModel.DataAnnotations.Schema;
 using SaveState.Core.Common.Base;
 using SaveState.Core.Common.Interfaces;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Enums;
 using SaveState.Core.GameLibrary.ValueObjects;
 
@@ -12,6 +13,8 @@ using SaveState.Core.GameLibrary.ValueObjects;
 /// </summary>
 public class Game : EntityBase, ISoftDelete
 {
+    private static DateTime UtcNow => SystemTimeProvider.Instance.UtcNow;
+
     public string Title { get; private set; } = string.Empty;
     public string? Description { get; private set; }
     public string? CoverImagePath { get; private set; }
@@ -67,7 +70,7 @@ public class Game : EntityBase, ISoftDelete
             Source = source,
             SourceId = sourceId,
             Status = GameStatus.NotInstalled,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = UtcNow
         };
     }
 
@@ -80,21 +83,21 @@ public class Game : EntityBase, ISoftDelete
 
         Description = description;
         CoverImagePath = coverImagePath;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = UtcNow;
     }
 
     public void SetInstallPath(string installPath)
     {
         InstallPath = Guard.Against.NullOrWhiteSpace(installPath, nameof(installPath));
         Status = GameStatus.Installed;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = UtcNow;
     }
 
     public void SetSourceInfo(string source, string? sourceId = null)
     {
         Source = Guard.Against.NullOrWhiteSpace(source, nameof(source));
         SourceId = sourceId;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = UtcNow;
     }
 
     public void MarkAsRunning()
@@ -119,45 +122,45 @@ public class Game : EntityBase, ISoftDelete
             return;
 
         IsDeleted = true;
-        DeletedAt = DateTime.UtcNow;
+        DeletedAt = UtcNow;
     }
 
     public void UpdateLaunchConfiguration(string? launchArguments)
     {
         LaunchArguments = launchArguments;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = UtcNow;
     }
 
     public void SetExecutablePath(string? executablePath)
     {
         ExecutablePath = executablePath;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = UtcNow;
     }
 
     public void MarkAsCompleted()
     {
         IsCompleted = true;
-        CompletedAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;
+        CompletedAt = UtcNow;
+        UpdatedAt = UtcNow;
     }
 
     public void MarkAsIncomplete()
     {
         IsCompleted = false;
         CompletedAt = null;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = UtcNow;
     }
 
     public void SetEstimatedTimeToComplete(TimeSpan? value)
     {
         EstimatedTimeToComplete = value;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = UtcNow;
     }
 
     public void UpdateTags(IEnumerable<string> tags)
     {
         Tags = tags.ToList();
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = UtcNow;
     }
 
     public void AddTag(string tag)
@@ -165,7 +168,7 @@ public class Game : EntityBase, ISoftDelete
         if (!Tags.Contains(tag))
         {
             Tags.Add(tag);
-            UpdatedAt = DateTime.UtcNow;
+            UpdatedAt = UtcNow;
         }
     }
 
@@ -173,7 +176,7 @@ public class Game : EntityBase, ISoftDelete
     {
         if (Tags.Remove(tag))
         {
-            UpdatedAt = DateTime.UtcNow;
+            UpdatedAt = UtcNow;
         }
     }
 }

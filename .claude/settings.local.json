@@ -37,7 +37,12 @@
       "Bash(Select-String \"warning\")",
       "Bash(ForEach-Object { $_Line })",
       "Bash(powershell -Command:*)",
-      "Bash(if not exist \"c:\\\\Users\\\\Doc\\\\Desktop\\\\SaveStateReborn\\\\data\\\\cloud_catalog\" mkdir \"c:\\\\Users\\\\Doc\\\\Desktop\\\\SaveStateReborn\\\\data\\\\cloud_catalog\")"
+      "Bash(if not exist \"c:\\\\Users\\\\Doc\\\\Desktop\\\\SaveStateReborn\\\\data\\\\cloud_catalog\" mkdir \"c:\\\\Users\\\\Doc\\\\Desktop\\\\SaveStateReborn\\\\data\\\\cloud_catalog\")",
+      "Bash(xargs -I{} sh -c 'echo \"\"$\\(grep -c \"\"DateTime\\\\.UtcNow\\\\|DateTimeOffset\\\\.UtcNow\"\" \"\"{}\"\"\\) {}\"\"')",
+      "Bash(dotnet list:*)",
+      "WebFetch(domain:www.nuget.org)",
+      "Bash(unzip:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Doc\\.claude\\plans"

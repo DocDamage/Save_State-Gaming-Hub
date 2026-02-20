@@ -9,11 +9,11 @@ public class OpenMKUserProgress
 {
     private OpenMKUserProgress() { }
 
-    public OpenMKUserProgress(Guid userId)
+    public OpenMKUserProgress(Guid userId, DateTime? createdAt = null)
     {
         UserId = userId;
         Koins = 0;
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = createdAt ?? DateTime.UtcNow;
         LastUpdatedAt = CreatedAt;
     }
 
@@ -22,7 +22,7 @@ public class OpenMKUserProgress
     public DateTime CreatedAt { get; private set; }
     public DateTime LastUpdatedAt { get; private set; }
 
-    public void AddKoins(int amount)
+    public void AddKoins(int amount, DateTime? updatedAt = null)
     {
         if (amount <= 0)
         {
@@ -30,10 +30,10 @@ public class OpenMKUserProgress
         }
 
         Koins += amount;
-        LastUpdatedAt = DateTime.UtcNow;
+        LastUpdatedAt = updatedAt ?? DateTime.UtcNow;
     }
 
-    public bool TrySpendKoins(int amount)
+    public bool TrySpendKoins(int amount, DateTime? updatedAt = null)
     {
         if (amount <= 0)
         {
@@ -46,7 +46,7 @@ public class OpenMKUserProgress
         }
 
         Koins -= amount;
-        LastUpdatedAt = DateTime.UtcNow;
+        LastUpdatedAt = updatedAt ?? DateTime.UtcNow;
         return true;
     }
 }

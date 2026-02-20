@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.GamingHealth.Models;
 
@@ -9,7 +10,7 @@ public record GamingHealthSession
 {
     public string Id { get; init; } = Guid.NewGuid().ToString();
     public string UserId { get; init; } = string.Empty;
-    public DateTime StartedAt { get; init; } = DateTime.UtcNow;
+    public DateTime StartedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
     public DateTime? EndedAt { get; init; }
     public IReadOnlyList<HealthMetric> Metrics { get; init; } = Array.Empty<HealthMetric>();
     public IReadOnlyList<HealthAlert> Alerts { get; init; } = Array.Empty<HealthAlert>();
@@ -26,7 +27,7 @@ public record HealthMetric
     public double Value { get; init; }
     public string Unit { get; init; } = string.Empty;
     public HealthStatus Status { get; init; }
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; init; } = SystemTimeProvider.Instance.UtcNow;
     public IReadOnlyDictionary<string, object>? Metadata { get; init; }
 }
 
@@ -70,7 +71,7 @@ public record HealthAlert
     public AlertSeverity Severity { get; init; }
     public string Message { get; init; } = string.Empty;
     public string? RecommendedAction { get; init; }
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; init; } = SystemTimeProvider.Instance.UtcNow;
     public bool IsAcknowledged { get; init; } = false;
 }
 
@@ -129,7 +130,7 @@ public record PostureData
     public bool IsSlouching { get; init; }
     public bool IsTooClose { get; init; }
     public float PostureScore { get; init; }
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; init; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>
@@ -144,7 +145,7 @@ public record EyeStrainData
     public float ScreenBrightness { get; init; }
     public float AmbientLight { get; init; }
     public float ContrastLevel { get; init; }
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; init; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>
@@ -158,7 +159,7 @@ public record HeartRateData
     public int MinBpm { get; init; }
     public int MaxBpm { get; init; }
     public HeartRateZone CurrentZone { get; init; }
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; init; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>
@@ -200,7 +201,7 @@ public record BreakReminder
     public string Message { get; init; } = string.Empty;
     public TimeSpan RecommendedDuration { get; init; } = TimeSpan.FromMinutes(5);
     public IReadOnlyList<string> SuggestedActivities { get; init; } = Array.Empty<string>();
-    public DateTime TriggeredAt { get; init; } = DateTime.UtcNow;
+    public DateTime TriggeredAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>

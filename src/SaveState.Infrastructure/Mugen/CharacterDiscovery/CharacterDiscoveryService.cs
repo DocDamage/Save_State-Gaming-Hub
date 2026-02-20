@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Services;
 
 namespace SaveState.Infrastructure.Mugen.CharacterDiscovery;
@@ -12,15 +13,17 @@ namespace SaveState.Infrastructure.Mugen.CharacterDiscovery;
 internal class CharacterDiscoveryServiceOperations : ICharacterDiscoveryService
 {
     private readonly ILogger<CharacterDiscoveryService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly ConcurrentDictionary<Guid, DiscoveredCharacter> _characters = new();
     private readonly ConcurrentDictionary<Guid, CharacterDetail> _characterDetails = new();
     private readonly ConcurrentDictionary<Guid, CharacterCollection> _collections = new();
     private readonly ConcurrentDictionary<string, List<Guid>> _userFavorites = new();
     private readonly ConcurrentDictionary<string, List<Guid>> _recentlyViewed = new();
 
-    public CharacterDiscoveryServiceOperations(ILogger<CharacterDiscoveryService> logger)
+    public CharacterDiscoveryServiceOperations(ILogger<CharacterDiscoveryService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         SeedSampleData();
     }
 
@@ -368,8 +371,8 @@ internal class CharacterDiscoveryServiceOperations : ICharacterDiscoveryService
             var result = new FeaturedCharacter(
                 featured,
                 FeaturedReason.StaffPick,
-                DateTime.UtcNow,
-                DateTime.UtcNow.AddDays(7));
+                _timeProvider.UtcNow,
+                _timeProvider.UtcNow.AddDays(7));
 
             return Result<FeaturedCharacter>.Success(result);
         }
@@ -425,8 +428,8 @@ internal class CharacterDiscoveryServiceOperations : ICharacterDiscoveryService
         {
             var reviews = new List<CharacterReview>
             {
-                new(Guid.NewGuid(), Guid.NewGuid(), "Player1", 5, "Amazing!", "Best character ever", DateTime.UtcNow.AddDays(-5), 12, 0),
-                new(Guid.NewGuid(), Guid.NewGuid(), "Player2", 4, "Great", "Very well made", DateTime.UtcNow.AddDays(-3), 8, 1)
+                new(Guid.NewGuid(), Guid.NewGuid(), "Player1", 5, "Amazing!", "Best character ever", _timeProvider.UtcNow.AddDays(-5), 12, 0),
+                new(Guid.NewGuid(), Guid.NewGuid(), "Player2", 4, "Great", "Very well made", _timeProvider.UtcNow.AddDays(-3), 8, 1)
             };
 
             var distribution = new RatingDistribution(10, 5, 3, 1, 0);
@@ -487,8 +490,8 @@ internal class CharacterDiscoveryServiceOperations : ICharacterDiscoveryService
         {
             var showcases = new List<CharacterShowcase>
             {
-                new("Gameplay Showcase", "https://youtube.com/watch?v=example1", null, "Full combo exhibition", "User1", DateTime.UtcNow.AddDays(-10), 5000),
-                new("Combo Video", "https://youtube.com/watch?v=example2", null, "Advanced combos", "User2", DateTime.UtcNow.AddDays(-5), 3000)
+                new("Gameplay Showcase", "https://youtube.com/watch?v=example1", null, "Full combo exhibition", "User1", _timeProvider.UtcNow.AddDays(-10), 5000),
+                new("Combo Video", "https://youtube.com/watch?v=example2", null, "Advanced combos", "User2", _timeProvider.UtcNow.AddDays(-5), 3000)
             };
 
             return Result<IReadOnlyList<CharacterShowcase>>.Success(showcases);
@@ -510,9 +513,9 @@ internal class CharacterDiscoveryServiceOperations : ICharacterDiscoveryService
         {
             var entries = new List<DownloadEntry>
             {
-                new(DateTime.UtcNow.AddDays(-30), "1.0", 500),
-                new(DateTime.UtcNow.AddDays(-15), "1.1", 800),
-                new(DateTime.UtcNow.AddDays(-7), "1.2", 1200)
+                new(_timeProvider.UtcNow.AddDays(-30), "1.0", 500),
+                new(_timeProvider.UtcNow.AddDays(-15), "1.1", 800),
+                new(_timeProvider.UtcNow.AddDays(-7), "1.2", 1200)
             };
 
             var history = new DownloadHistory(characterId, entries.Sum(e => e.DownloadCount), entries);
@@ -700,8 +703,8 @@ internal class CharacterDiscoveryServiceOperations : ICharacterDiscoveryService
                 new List<string>(),
                 0,
                 0,
-                DateTime.UtcNow,
-                DateTime.UtcNow);
+                _timeProvider.UtcNow,
+                _timeProvider.UtcNow);
 
             _collections[collection.Id] = collection;
             return Result<CharacterCollection>.Success(collection);
@@ -730,7 +733,7 @@ internal class CharacterDiscoveryServiceOperations : ICharacterDiscoveryService
             _collections[collectionId] = collection with
             {
                 CharacterCount = collection.CharacterCount + 1,
-                LastUpdated = DateTime.UtcNow
+                LastUpdated = _timeProvider.UtcNow
             };
 
             return Result.Success();
@@ -992,7 +995,7 @@ internal class CharacterDiscoveryServiceOperations : ICharacterDiscoveryService
                 for (int i = 0; i < 7; i++)
                 {
                     dailyStats.Add(new DailyStat(
-                        DateTime.UtcNow.AddDays(-i),
+                        _timeProvider.UtcNow.AddDays(-i),
                         new Random().Next(10, 100),
                         c.Rating));
                 }
@@ -1055,31 +1058,31 @@ internal class CharacterDiscoveryServiceOperations : ICharacterDiscoveryService
             new DiscoveredCharacter(
                 Guid.NewGuid(), "Ryu", "Capcom", "The wandering warrior",
                 new[] { "shotokan", "balanced" }, new[] { "Street Fighter", "Capcom" },
-                4.5, 120, 5000, null, DateTime.UtcNow.AddDays(-100), DateTime.UtcNow.AddDays(-10),
+                4.5, 120, 5000, null, _timeProvider.UtcNow.AddDays(-100), _timeProvider.UtcNow.AddDays(-10),
                 new DiscoveredCharacterStats(55, 300, 200)),
 
             new DiscoveredCharacter(
                 Guid.NewGuid(), "Ken", "Capcom", "Ryu's rival",
                 new[] { "shotokan", "rushdown" }, new[] { "Street Fighter", "Capcom" },
-                4.3, 95, 4500, null, DateTime.UtcNow.AddDays(-95), DateTime.UtcNow.AddDays(-5),
+                4.3, 95, 4500, null, _timeProvider.UtcNow.AddDays(-95), _timeProvider.UtcNow.AddDays(-5),
                 new DiscoveredCharacterStats(52, 280, 180)),
 
             new DiscoveredCharacter(
                 Guid.NewGuid(), "Chun-Li", "Capcom", "The strongest woman in the world",
                 new[] { "speed", "footsies" }, new[] { "Street Fighter", "Capcom" },
-                4.7, 150, 6000, null, DateTime.UtcNow.AddDays(-90), DateTime.UtcNow.AddDays(-8),
+                4.7, 150, 6000, null, _timeProvider.UtcNow.AddDays(-90), _timeProvider.UtcNow.AddDays(-8),
                 new DiscoveredCharacterStats(58, 350, 250)),
 
             new DiscoveredCharacter(
                 Guid.NewGuid(), "Goku", "Akira Toriyama", "Super Saiyan warrior",
                 new[] { "anime", "shoto", "beam" }, new[] { "Dragon Ball", "Anime" },
-                4.2, 200, 8000, null, DateTime.UtcNow.AddDays(-80), DateTime.UtcNow.AddDays(-15),
+                4.2, 200, 8000, null, _timeProvider.UtcNow.AddDays(-80), _timeProvider.UtcNow.AddDays(-15),
                 new DiscoveredCharacterStats(50, 400, 300)),
 
             new DiscoveredCharacter(
                 Guid.NewGuid(), "Spider-Man", "Marvel", "Friendly neighborhood hero",
                 new[] { "marvel", "agile", "zoning" }, new[] { "Marvel", "Comics" },
-                4.4, 180, 5500, null, DateTime.UtcNow.AddDays(-70), DateTime.UtcNow.AddDays(-12),
+                4.4, 180, 5500, null, _timeProvider.UtcNow.AddDays(-70), _timeProvider.UtcNow.AddDays(-12),
                 new DiscoveredCharacterStats(53, 320, 220))
         };
 

@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Blockchain.Models;
 using SaveState.Core.Blockchain.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Infrastructure.Blockchain;
 
@@ -12,13 +13,15 @@ namespace SaveState.Infrastructure.Blockchain;
 public sealed class DecentralizedSaveStateNetwork : IDecentralizedSaveStateNetwork
 {
     private readonly ILogger<DecentralizedSaveStateNetwork> _logger;
+    private readonly ITimeProvider _timeProvider;
     private BlockchainConfiguration? _configuration;
     private readonly Dictionary<string, DecentralizedSaveState> _saveStates = new();
     private readonly Dictionary<string, SaveStateAccessGrant> _accessGrants = new();
 
-    public DecentralizedSaveStateNetwork(ILogger<DecentralizedSaveStateNetwork> logger)
+    public DecentralizedSaveStateNetwork(ILogger<DecentralizedSaveStateNetwork> logger, ITimeProvider timeProvider)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     /// <inheritdoc />
@@ -82,7 +85,7 @@ public sealed class DecentralizedSaveStateNetwork : IDecentralizedSaveStateNetwo
             var hasAccess = _accessGrants.Values.Any(g => 
                 g.SaveStateId == saveStateId && 
                 g.GrantedToUserId == userId &&
-                (g.ExpiresAt == null || g.ExpiresAt > DateTime.UtcNow));
+                (g.ExpiresAt == null || g.ExpiresAt > _timeProvider.UtcNow));
             
             if (!hasAccess)
             {
@@ -221,7 +224,7 @@ public sealed class DecentralizedSaveStateNetwork : IDecentralizedSaveStateNetwo
         var grant = _accessGrants.Values.FirstOrDefault(g =>
             g.SaveStateId == saveStateId &&
             g.GrantedToUserId == userId &&
-            (g.ExpiresAt == null || g.ExpiresAt > DateTime.UtcNow));
+            (g.ExpiresAt == null || g.ExpiresAt > _timeProvider.UtcNow));
         
         return Task.FromResult(Result.Success(grant?.Permission));
     }
@@ -300,7 +303,7 @@ public sealed class DecentralizedSaveStateNetwork : IDecentralizedSaveStateNetwo
             Network = network,
             Status = TransactionStatus.Confirmed,
             Confirmations = 12,
-            ConfirmedAt = DateTime.UtcNow.AddMinutes(-10)
+            ConfirmedAt = _timeProvider.UtcNow.AddMinutes(-10)
         };
         
         return Task.FromResult(Result.Success(transaction));

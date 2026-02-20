@@ -96,7 +96,7 @@ The following features require external API configuration:
 | [`CODEBASE_LOCK.md`](CODEBASE_LOCK.md) | Locked file registry |
 | [`docs/AI_MASTER_CONTEXT.md`](docs/AI_MASTER_CONTEXT.md) | Architecture and patterns |
 | [`docs/ENGINEERING_RULES.md`](docs/ENGINEERING_RULES.md) | Coding standards |
-| [`docs/reports/TECHNICAL_DEBT_AUDIT_2026_01_01.md`](docs/reports/TECHNICAL_DEBT_AUDIT_2026_01_01.md) | Quality audit |
+| [`docs/reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md`](docs/reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md) | Quality audit |
 
 ---
 
@@ -204,3 +204,4 @@ SaveState Reborn v1.0.0 is **production-ready** and represents:
 **Project Health**: 98/100
 **Release Date**: January 1, 2026 (v2.3.1 Hotfix: January 8, 2026)
 **Next Review**: February 1, 2026
+

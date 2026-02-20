@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Automation.Services;
 using SaveState.Core.Automation.Services.DTOs;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Infrastructure.Automation;
 
@@ -12,6 +13,7 @@ public class MacroPlayer : IMacroPlayer, IDisposable
 {
     private readonly ILogger<MacroPlayer> _logger;
     private readonly IMacroManager _macroManager;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<Guid, MacroPlaybackSession> _activeSessions = new();
     private readonly Dictionary<Guid, CancellationTokenSource> _sessionCancellations = new();
     private bool _disposed;
@@ -23,10 +25,12 @@ public class MacroPlayer : IMacroPlayer, IDisposable
 
     public MacroPlayer(
         ILogger<MacroPlayer> logger,
-        IMacroManager macroManager)
+        IMacroManager macroManager,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _macroManager = macroManager;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<MacroPlaybackSession>> StartPlaybackAsync(
@@ -50,7 +54,7 @@ public class MacroPlayer : IMacroPlayer, IDisposable
                 Id: sessionId,
                 MacroId: macroId,
                 Speed: config.Speed,
-                StartedAt: DateTime.UtcNow,
+                StartedAt: _timeProvider.UtcNow,
                 Status: new PlaybackStatus(
                     IsPlaying: true,
                     IsPaused: false,
@@ -97,7 +101,7 @@ public class MacroPlayer : IMacroPlayer, IDisposable
 
             if (_activeSessions.TryGetValue(sessionId, out var session))
             {
-                var duration = DateTime.UtcNow - session.StartedAt;
+                var duration = _timeProvider.UtcNow - session.StartedAt;
                 _activeSessions.Remove(sessionId);
                 OnPlaybackStopped(sessionId, true, duration);
                 _logger.LogInformation("Stopped macro playback session {SessionId}", sessionId);
@@ -173,7 +177,7 @@ public class MacroPlayer : IMacroPlayer, IDisposable
                 return Task.FromResult(Result.Failure<PlaybackStatus>("Playback session not found"));
             }
 
-            var currentDuration = DateTime.UtcNow - session.StartedAt;
+            var currentDuration = _timeProvider.UtcNow - session.StartedAt;
             var updatedStatus = session.Status with { Duration = currentDuration };
 
             return Task.FromResult(Result.Success<PlaybackStatus>(updatedStatus));
@@ -258,7 +262,7 @@ public class MacroPlayer : IMacroPlayer, IDisposable
     {
         try
         {
-            var startTime = DateTime.UtcNow;
+            var startTime = _timeProvider.UtcNow;
             var lastActionTime = startTime;
 
             for (int i = 0; i < macro.Actions.Count; i++)
@@ -292,15 +296,15 @@ public class MacroPlayer : IMacroPlayer, IDisposable
                     break;
                 }
 
-                lastActionTime = DateTime.UtcNow;
+                lastActionTime = _timeProvider.UtcNow;
             }
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             OnPlaybackStopped(session.Id, true, duration);
         }
         catch (OperationCanceledException)
         {
-            var duration = DateTime.UtcNow - session.StartedAt;
+            var duration = _timeProvider.UtcNow - session.StartedAt;
             OnPlaybackStopped(session.Id, false, duration);
         }
         catch (Exception ex)

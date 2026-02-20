@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Intelligence.GamingDna.Services;
 
@@ -219,21 +220,23 @@ public sealed record TimeRange(
     DateTime Start,
     DateTime End)
 {
+    private static DateTime UtcNow => SystemTimeProvider.Instance.UtcNow;
+
     public static TimeRange LastMonth => new(
-        DateTime.UtcNow.AddMonths(-1),
-        DateTime.UtcNow);
+        UtcNow.AddMonths(-1),
+        UtcNow);
 
     public static TimeRange LastQuarter => new(
-        DateTime.UtcNow.AddMonths(-3),
-        DateTime.UtcNow);
+        UtcNow.AddMonths(-3),
+        UtcNow);
 
     public static TimeRange LastYear => new(
-        DateTime.UtcNow.AddYears(-1),
-        DateTime.UtcNow);
+        UtcNow.AddYears(-1),
+        UtcNow);
 
     public static TimeRange AllTime => new(
         DateTime.MinValue,
-        DateTime.UtcNow);
+        UtcNow);
 }
 
 /// <summary>

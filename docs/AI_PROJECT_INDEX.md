@@ -106,7 +106,7 @@ This document defines how all project documentation is intended to be read, inte
 
 ---
 
-### TECHNICAL_DEBT_AUDIT_2026-01-02.md ⭐ NEW
+### COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md ⭐ NEW
 
 **Role**: Latest comprehensive debt scan.
 **Priority**: **HIGHEST when assessing current issues**.
@@ -127,7 +127,7 @@ This document defines how all project documentation is intended to be read, inte
 
 ---
 
-### TECHNICAL_DEBT_REMEDIATION_PLAN.md
+### TECHNICAL_DEBT_IMPLEMENTATION_PLAN_2026_02_20.md
 
 **Role**: Historical remediation tracking.
 **Priority**: Reference for completed work.
@@ -190,15 +190,15 @@ This document defines how all project documentation is intended to be read, inte
 
 | Question | Go To | Section |
 |:---------|:------|:--------|
-| **What's broken right now?** | [TECHNICAL_DEBT_AUDIT_2026-01-02.md](reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md) | Critical Issues |
+| **What's broken right now?** | [COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md](reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md) | Critical Issues |
 | **What are the core metrics?** | [PROJECT_METRICS.md](reports/PROJECT_METRICS.md) | Full Metrics |
 | **How do I build a new view?** | [FEATURE_SURFACING_PLAN.md](planning/FEATURE_SURFACING_PLAN.md) | Relevant tab section |
 | How do I write code? | [ai/AI_MASTER_CONTEXT.md](ai/AI_MASTER_CONTEXT.md) | "Coding Standards" |
 | Why does that rule exist? | [planning/LESSONS_LEARNED.md](planning/LESSONS_LEARNED.md) | Use Ctrl+F |
 | What are the non-negotiables? | [ENGINEERING_RULES.md](architecture/ENGINEERING_RULES.md) | Top section |
 | What's being built next? | [planning/FEATURE_SURFACING_PLAN.md](planning/FEATURE_SURFACING_PLAN.md) | "Implementation Phases" |
-| What technical debt exists? | [TECHNICAL_DEBT_AUDIT_2026-01-02.md](reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md) | Full document |
-| What was already fixed? | [TECHNICAL_DEBT_REMEDIATION_PLAN.md](reports/TECHNICAL_DEBT_REMEDIATION_PLAN.md) | Phases 0-7 |
+| What technical debt exists? | [COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md](reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md) | Full document |
+| What was already fixed? | [TECHNICAL_DEBT_IMPLEMENTATION_PLAN_2026_02_20.md](plans/TECHNICAL_DEBT_IMPLEMENTATION_PLAN_2026_02_20.md) | Phases 0-7 |
 | What terms mean what? | [GLOSSARY.md](resources/GLOSSARY.md) | Term lookup |
 | How do I integrate character development tools? | [Character Development Integration Plan](planning/character_development_integration_plan.md) | Full 12-week plan |
 | What character development repositories are available? | [Ikemen Repository Analysis](planning/ikemen_repositories_analysis.md) | Repository evaluation |
@@ -210,13 +210,13 @@ This document defines how all project documentation is intended to be read, inte
 | Document | Last Updated | Confidence | Notes |
 |:---------|:------|:--------|:------|
 | [PROJECT_METRICS.md](reports/PROJECT_METRICS.md) | Jan 2, 2026 | 100% | Single source of truth |
-| [TECHNICAL_DEBT_AUDIT_2026-01-02.md](reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md) | Jan 2, 2026 | 100% | ⭐ Latest scan |
+| [COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md](reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md) | Jan 2, 2026 | 100% | ⭐ Latest scan |
 | [AI_MASTER_CONTEXT.md](ai/AI_MASTER_CONTEXT.md) | Jan 3, 2026 | 100% | Character development integration added |
 | [AI_PROJECT_INDEX.md](AI_PROJECT_INDEX.md) | Jan 3, 2026 | 100% | Character development docs added |
 | [ENGINEERING_RULES.md](architecture/ENGINEERING_RULES.md) | Jan 3, 2026 | 100% | Updated for character development |
 | [GLOSSARY.md](resources/GLOSSARY.md) | Jan 3, 2026 | 100% | Character development terms added |
 | [FEATURE_SURFACING_PLAN.md](planning/FEATURE_SURFACING_PLAN.md) | Jan 2, 2026 | 100% | 118 views planned |
-| [TECHNICAL_DEBT_REMEDIATION_PLAN.md](reports/TECHNICAL_DEBT_REMEDIATION_PLAN.md) | Jan 2, 2026 | 95% | Historical reference |
+| [TECHNICAL_DEBT_IMPLEMENTATION_PLAN_2026_02_20.md](plans/TECHNICAL_DEBT_IMPLEMENTATION_PLAN_2026_02_20.md) | Jan 2, 2026 | 95% | Historical reference |
 | [planning/LESSONS_LEARNED.md](planning/LESSONS_LEARNED.md) | Jan 1, 2026 | 100% | Updated with UI lessons |
 
 **Confidence**: How well this document reflects current code (verified via codebase scan).
@@ -227,17 +227,17 @@ This document defines how all project documentation is intended to be read, inte
 
 ### Precedence Rules
 
-1. **Latest Audit** (TECHNICAL_DEBT_AUDIT_2026-01-02.md) - Current state of code
+1. **Latest Audit** (COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md) - Current state of code
 2. **Architecture Rules** (ENGINEERING_RULES.md) - Non-negotiable
 3. **Context & Patterns** (AI_MASTER_CONTEXT.md) - Standard practice
-4. **Historical Debt** (TECHNICAL_DEBT_REMEDIATION_PLAN.md) - What was fixed
+4. **Historical Debt** (TECHNICAL_DEBT_IMPLEMENTATION_PLAN_2026_02_20.md) - What was fixed
 5. **Decision History** (LESSONS_LEARNED.md) - Learn why
 
 ### Document Status Conflicts
 
 | Situation | Primary Source | Secondary Check |
 |-----------|----------------|-----------------|
-| **What's currently broken** | reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md | ai/AI_MASTER_CONTEXT.md |
+| **What's currently broken** | reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md | ai/AI_MASTER_CONTEXT.md |
 | **Writing new code** | ai/AI_MASTER_CONTEXT.md | architecture/ENGINEERING_RULES.md |
 | **Architecture decisions** | architecture/ENGINEERING_RULES.md | ai/AI_MASTER_CONTEXT.md |
 | **Understanding why** | architecture/DECISIONS_LOG.md | Any other |
@@ -249,13 +249,13 @@ This document defines how all project documentation is intended to be read, inte
 
 ### 🚨 **Fixing Technical Debt (START HERE)**
 
-1. **reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md** - Current issues
+1. **reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md** - Current issues
 2. **ai/AI_MASTER_CONTEXT.md** - Understand patterns
 3. Verify fix with `dotnet build`
 
 ### 🚀 **Starting a New Feature**
 
-1. **reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md** - Check if build works first
+1. **reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md** - Check if build works first
 2. **ai/AI_MASTER_CONTEXT.md** - Learn current patterns
 3. **architecture/ENGINEERING_RULES.md** - Understand constraints
 4. **planning/LESSONS_LEARNED.md** - Understand why
@@ -285,7 +285,7 @@ This document defines how all project documentation is intended to be read, inte
 
 1. **ai/AI_MASTER_CONTEXT.md** - Verify adherence to standards
 2. **architecture/ENGINEERING_RULES.md** - Check architectural compliance
-3. **reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md** - Ensure no new debt added
+3. **reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md** - Ensure no new debt added
 
 ---
 
@@ -293,20 +293,20 @@ This document defines how all project documentation is intended to be read, inte
 
 ### Current Issues
 
-- **reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md**: Latest scan results
+- **reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md**: Latest scan results
 - **ai/AI_MASTER_CONTEXT.md**: Summary in "Current Technical Debt" section
 
 ### Result Pattern
 
 - **ai/AI_MASTER_CONTEXT.md**: Rule - "MANDATORY. Never return null"
 - **architecture/ENGINEERING_RULES.md**: Law - "Must return Result<T>"
-- **reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md**: 45+ violations listed
+- **reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md**: 45+ violations listed
 
 ### Async Safety
 
 - **ai/AI_MASTER_CONTEXT.md**: Current violations count
 - **architecture/ENGINEERING_RULES.md**: Law - "Must Not use async void"
-- **reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md**: Specific instances
+- **reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md**: Specific instances
 
 ### AI Knowledge Base
 
@@ -404,3 +404,6 @@ This document defines how all project documentation is intended to be read, inte
 
 **Last Audit**: January 8, 2026 - Build Error Hotfix v2.3.1
 **Next Review**: February 1, 2026
+
+
+

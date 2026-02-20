@@ -17,22 +17,25 @@ public class OneDriveStorageProvider : ICloudStorageProvider
     private readonly ICloudAuthenticationService _authService;
     private readonly ILogger<OneDriveStorageProvider> _logger;
     private readonly IUserPreferencesService _preferencesService;
+    private readonly ITimeProvider _timeProvider;
     private OAuth2TokenResponse? _token;
 
     public string ProviderName => "OneDrive";
 
-    public bool IsAuthenticated => _token != null && _token.ExpiresAt > DateTime.UtcNow;
+    public bool IsAuthenticated => _token != null && _token.ExpiresAt > _timeProvider.UtcNow;
 
     public OneDriveStorageProvider(
         HttpClient httpClient,
         ICloudAuthenticationService authService,
         IUserPreferencesService preferencesService,
-        ILogger<OneDriveStorageProvider> logger)
+        ILogger<OneDriveStorageProvider> logger,
+        ITimeProvider timeProvider)
     {
         _httpClient = httpClient;
         _authService = authService;
         _preferencesService = preferencesService;
         _logger = logger;
+        _timeProvider = timeProvider;
 
         if (_httpClient.BaseAddress == null)
         {
@@ -76,7 +79,7 @@ public class OneDriveStorageProvider : ICloudStorageProvider
 
     private async Task EnsureAuthenticatedAsync(CancellationToken ct)
     {
-        if (_token != null && _token.ExpiresAt <= DateTime.UtcNow.AddMinutes(5) && _token.RefreshToken != null)
+        if (_token != null && _token.ExpiresAt <= _timeProvider.UtcNow.AddMinutes(5) && _token.RefreshToken != null)
         {
             _logger.LogInformation("Refreshing OneDrive access token...");
             var savedClientId = await _preferencesService.GetCloudClientIdAsync("OneDrive", ct);
@@ -229,7 +232,7 @@ public class OneDriveStorageProvider : ICloudStorageProvider
                     var name = item.GetProperty("name").GetString() ?? string.Empty;
                     var path = remotePath.EndsWith("/") ? remotePath + name : remotePath + "/" + name;
                     var size = item.TryGetProperty("size", out var s) ? s.GetInt64() : 0;
-                    var modified = item.TryGetProperty("lastModifiedDateTime", out var m) ? m.GetDateTime() : DateTime.UtcNow;
+                    var modified = item.TryGetProperty("lastModifiedDateTime", out var m) ? m.GetDateTime() : _timeProvider.UtcNow;
                     var isDir = item.TryGetProperty("folder", out _);
 
                     files.Add(new CloudFileInfo(path, name, size, modified, IsDirectory: isDir));
@@ -263,7 +266,7 @@ public class OneDriveStorageProvider : ICloudStorageProvider
 
             var name = root.GetProperty("name").GetString() ?? string.Empty;
             var size = root.TryGetProperty("size", out var s) ? s.GetInt64() : 0;
-            var modified = root.TryGetProperty("lastModifiedDateTime", out var m) ? m.GetDateTime() : DateTime.UtcNow;
+            var modified = root.TryGetProperty("lastModifiedDateTime", out var m) ? m.GetDateTime() : _timeProvider.UtcNow;
             var isDir = root.TryGetProperty("folder", out _);
 
             return Result.Success(new CloudFileInfo(remotePath, name, size, modified, IsDirectory: isDir));

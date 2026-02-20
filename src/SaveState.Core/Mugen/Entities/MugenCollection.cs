@@ -1,12 +1,15 @@
 namespace SaveState.Core.Mugen.Entities;
 
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 /// <summary>
 /// Represents a user-created collection of MUGEN characters.
 /// </summary>
 public class MugenCollection : EntityBase
 {
+    private static DateTime UtcNow => SystemTimeProvider.Instance.UtcNow;
+
     /// <summary>
     /// The name of the collection.
     /// </summary>
@@ -71,8 +74,8 @@ public class MugenCollection : EntityBase
             Icon = icon,
             UserId = userId,
             IsPublic = isPublic,
-            CreatedAt = DateTime.UtcNow,
-            LastModified = DateTime.UtcNow
+            CreatedAt = UtcNow,
+            LastModified = UtcNow
         };
     }
 
@@ -89,7 +92,7 @@ public class MugenCollection : EntityBase
         Description = description;
         Icon = icon;
         IsPublic = isPublic;
-        LastModified = DateTime.UtcNow;
+        LastModified = UtcNow;
     }
 
     /// <summary>
@@ -103,7 +106,7 @@ public class MugenCollection : EntityBase
             throw new InvalidOperationException("Character is already in this collection.");
 
         Characters.Add(MugenCollectionCharacter.Create(Id, characterId, notes));
-        LastModified = DateTime.UtcNow;
+        LastModified = UtcNow;
     }
 
     /// <summary>
@@ -117,7 +120,7 @@ public class MugenCollection : EntityBase
             throw new InvalidOperationException("Character is not in this collection.");
 
         Characters.Remove(character);
-        LastModified = DateTime.UtcNow;
+        LastModified = UtcNow;
     }
 
     // EF Core constructor

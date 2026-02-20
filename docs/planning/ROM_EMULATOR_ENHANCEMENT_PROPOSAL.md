@@ -80,6 +80,7 @@ This document outlines strategic enhancements for the ROM and Emulator sections 
 
 ## 🔗 Related Documentation
 
-- [ROM Management Status](file:///c:/Users/Doc/Desktop/SaveStateReborn/docs/status/ROM_MANAGEMENT_COMPLETE.md)
-- [Emulator Installation Status](file:///c:/Users/Doc/Desktop/SaveStateReborn/docs/status/EMULATOR_INSTALLATION_STATUS.md)
+- [ROM Management Status (Archived)](../archive/2026-02-20-documentation-refresh/status/ROM_MANAGEMENT_COMPLETE.md)
+- [Emulator Installation Status (Archived)](../archive/2026-02-20-documentation-refresh/status/EMULATOR_INSTALLATION_STATUS.md)
 - [V2 Feature Roadmap](file:///c:/Users/Doc/Desktop/SaveStateReborn/docs/planning/V2_FEATURE_ROADMAP.md)
+

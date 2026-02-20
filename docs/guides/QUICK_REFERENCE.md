@@ -26,7 +26,7 @@
 | [`CODEBASE_LOCK.md`](CODEBASE_LOCK.md) | Locked files | ⭐️⭐️⭐️ |
 | [`docs/AI_MASTER_CONTEXT.md`](docs/AI_MASTER_CONTEXT.md) | Architecture | ⭐️⭐️ |
 | [`docs/ENGINEERING_RULES.md`](docs/ENGINEERING_RULES.md) | Standards | ⭐️⭐️ |
-| [`docs/reports/TECHNICAL_DEBT_AUDIT_2026_01_01.md`](docs/reports/TECHNICAL_DEBT_AUDIT_2026_01_01.md) | Quality audit | ⭐️ |
+| [`docs/reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md`](docs/reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md) | Quality audit | ⭐️ |
 
 ---
 
@@ -90,8 +90,9 @@ dotnet run --project src/SaveState.Presentation
 - [Full Documentation](docs/)
 - [Architecture](docs/AI_MASTER_CONTEXT.md)
 - [Lock Registry](CODEBASE_LOCK.md)
-- [Audit Report](docs/reports/TECHNICAL_DEBT_AUDIT_2026_01_01.md)
+- [Audit Report](docs/reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md)
 
 ---
 
 **Next Review**: February 1, 2026
+

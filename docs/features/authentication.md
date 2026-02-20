@@ -170,7 +170,7 @@ var customRole = new Role
 
 ## Known Technical Debt
 
-⚠️ **JwtTokenService.cs** has 3 sync-over-async violations (`.Result` calls) that need to be fixed. See [Technical Debt Audit](../reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md).
+⚠️ **JwtTokenService.cs** has 3 sync-over-async violations (`.Result` calls) that need to be fixed. See [Technical Debt Audit](../reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md).
 
 ## Usage Examples
 
@@ -311,3 +311,4 @@ Enable debug logging to troubleshoot authentication issues:
 - [Engineering Rules](../ENGINEERING_RULES.md) - Code standards
 
 **Note**: This authentication system provides enterprise-grade security suitable for production applications. All sensitive operations are logged and monitored for security compliance.
+

@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Translation.Models;
 
@@ -14,7 +15,7 @@ public record TranslationResult
     public string TargetLanguage { get; init; } = string.Empty;
     public float Confidence { get; init; }
     public TranslationSource Source { get; init; }
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; init; } = SystemTimeProvider.Instance.UtcNow;
     public TimeSpan ProcessingTime { get; init; }
 }
 
@@ -40,7 +41,7 @@ public record OcrResult
     public string Language { get; init; } = string.Empty;
     public float Confidence { get; init; }
     public IReadOnlyList<TextRegion> TextRegions { get; init; } = Array.Empty<TextRegion>();
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; init; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>
@@ -74,7 +75,7 @@ public record ScreenTextCapture
     public OcrResult OcrResult { get; init; } = new();
     public IReadOnlyList<TranslationResult> Translations { get; init; } = Array.Empty<TranslationResult>();
     public string GameContext { get; init; } = string.Empty;
-    public DateTime CapturedAt { get; init; } = DateTime.UtcNow;
+    public DateTime CapturedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>
@@ -90,7 +91,7 @@ public record VoiceDubbingData
     public string SourceLanguage { get; init; } = string.Empty;
     public string TargetLanguage { get; init; } = string.Empty;
     public TimeSpan Duration { get; init; }
-    public DateTime GeneratedAt { get; init; } = DateTime.UtcNow;
+    public DateTime GeneratedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>
@@ -106,8 +107,8 @@ public record TranslationMemoryEntry
     public string? Context { get; init; }
     public string? GameId { get; init; }
     public int UseCount { get; init; }
-    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
-    public DateTime LastUsedAt { get; init; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
+    public DateTime LastUsedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
     public TranslationQuality Quality { get; init; } = TranslationQuality.Machine;
 }
 

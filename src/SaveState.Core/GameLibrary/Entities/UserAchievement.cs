@@ -1,5 +1,6 @@
 using SaveState.Core.Common.Base;
 using SaveState.Core.Common.Interfaces;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.GameLibrary.Entities;
 
@@ -8,6 +9,8 @@ namespace SaveState.Core.GameLibrary.Entities;
 /// </summary>
 public class UserAchievement : EntityBase
 {
+    private static DateTime UtcNow => SystemTimeProvider.Instance.UtcNow;
+
     /// <summary>
     /// The ID of the user who is working towards this achievement.
     /// </summary>
@@ -68,7 +71,7 @@ public class UserAchievement : EntityBase
         CurrentProgress = 0;
         TargetProgress = targetProgress;
         IsUnlocked = false;
-        LastUpdatedAt = DateTime.UtcNow;
+        LastUpdatedAt = UtcNow;
     }
 
     /// <summary>
@@ -79,7 +82,7 @@ public class UserAchievement : EntityBase
     public void UpdateProgress(int newProgress, string? metadata = null)
     {
         CurrentProgress = Math.Max(0, newProgress);
-        LastUpdatedAt = DateTime.UtcNow;
+        LastUpdatedAt = UtcNow;
 
         if (metadata != null)
         {
@@ -111,8 +114,8 @@ public class UserAchievement : EntityBase
         if (!IsUnlocked)
         {
             IsUnlocked = true;
-            UnlockedAt = DateTime.UtcNow;
-            LastUpdatedAt = DateTime.UtcNow;
+            UnlockedAt = UtcNow;
+            LastUpdatedAt = UtcNow;
         }
     }
 
@@ -124,7 +127,7 @@ public class UserAchievement : EntityBase
         CurrentProgress = 0;
         IsUnlocked = false;
         UnlockedAt = null;
-        LastUpdatedAt = DateTime.UtcNow;
+        LastUpdatedAt = UtcNow;
         Metadata = null;
     }
 }

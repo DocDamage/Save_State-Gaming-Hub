@@ -15,20 +15,18 @@
 
 ### **Primary Documents (Must Read)**
 
-1. **`plans/UI_SURFACING_PLAN_2026-01-16.md`** 🔥
-   **THE MASTER PLAN** - 12 remaining items to achieve 100% completeness
-   - Phase 2: Analytics Surfacing
-   - Phase 3: Cloud Gaming Surfacing
-   - Phase 4: Technical Debt Resolution
-   - Phase 5: Feature Gaps (MUGEN Import, Steam Deck, Price History)
-   - Phase 6: Infrastructure Completeness (Google Drive, OneDrive)
+1. **`plans/TECHNICAL_DEBT_IMPLEMENTATION_PLAN_2026_02_20.md`** 🔧
+   **ACTIVE TECH-DEBT EXECUTION PLAN** - Current close-out sequencing and tranche gates
+   - Time determinism completion (Slice B)
+   - Suppression paydown close-out (Slice C)
+   - Deferred dependency queue closure (Slice A)
+   - Class-size policy closure + doc alignment
 
-2. **`plans/IMPLEMENTATION_PLAN_CORE_SERVICES_2026-01-16.md`**
-   Reference document - All Phases 1-4 ✅ COMPLETE
-   - Phase 1: Google Cloud Integration ✅
-   - Phase 2: Analytics Services ✅
-   - Phase 3: Cloud Gaming Services ✅
-   - Phase 4: Audio Engine ✅
+2. **`plans/FEATURE_ROADMAP_2026.md`** 🚀
+   **ACTIVE PRODUCT ROADMAP** - Current feature roadmap and phase planning
+   - Multi-phase delivery roadmap
+   - Priorities, dependencies, and effort bands
+   - Cross-team planning reference
 
 ---
 
@@ -62,7 +60,7 @@
   - ✅ Classes >1000 LOC reduced from 26 to 4 (3 mega-services decomposed)
   - ✅ Technical Debt Score: 99/100 (was 72/100)
   - ✅ NoWarn entries reduced 42% (36 → 21)
-- **Remaining Work:** Time determinism (Phase 2 ongoing), 12 actionable items (see UI_SURFACING_PLAN)
+- **Remaining Work:** Time determinism and debt close-out (see `plans/TECHNICAL_DEBT_IMPLEMENTATION_PLAN_2026_02_20.md`)
 
 ---
 
@@ -93,7 +91,7 @@
 
 ### **Long-Term Vision**
 
-- `planning/TECHNICAL_DEBT_REMEDIATION_PLAN.md` - Ongoing debt management
+- `plans/TECHNICAL_DEBT_IMPLEMENTATION_PLAN_2026_02_20.md` - Ongoing debt management
 - `planning/MUGEN_ENHANCEMENT_PROPOSAL.md` - Future MUGEN features
 - `planning/ROM_EMULATOR_ENHANCEMENT_PROPOSAL.md` - ROM/Emulator roadmap
 - `planning/V2_FEATURE_ROADMAP.md` - Version 2.x features
@@ -110,6 +108,10 @@
 
 **83 documents archived** on Jan 16, 2026 to `archive/2026-01-16-pre-final-scan/`
 
+**60 additional documents archived** on Feb 20, 2026 to `archive/2026-02-20-documentation-refresh/`
+
+**8 additional plan documents archived** on Feb 20, 2026 from `docs/plans/` to `archive/2026-02-20-documentation-refresh/plans/`
+
 ### Archived Categories
 
 - ✅ All completed phase reports (Phases 1-6)
@@ -117,8 +119,11 @@
 - ✅ All superseded technical debt audits
 - ✅ All completed build fix plans
 - ✅ All "What's Left" planning documents (now superseded)
+- ✅ Superseded historical plan documents from `docs/plans`
 
-**See:** `archive/2026-01-16-pre-final-scan/README.md` for complete manifest
+**See:**
+- `archive/2026-01-16-pre-final-scan/README.md`
+- `archive/2026-02-20-documentation-refresh/README.md`
 
 ---
 
@@ -154,7 +159,7 @@
 
 ### **Technical Debt Implementation Plan (2026-02-15)**
 
-See `docs/plans/TECHNICAL_DEBT_IMPLEMENTATION_PLAN_2026_02_15.md` for full details.
+See `docs/plans/TECHNICAL_DEBT_IMPLEMENTATION_PLAN_2026_02_20.md` for full details.
 
 | Phase | Status | Key Achievement |
 |-------|--------|-----------------|
@@ -170,7 +175,7 @@ See `docs/plans/TECHNICAL_DEBT_IMPLEMENTATION_PLAN_2026_02_15.md` for full detai
 
 | Need | Document |
 |------|----------|
-| What to work on next? | `plans/UI_SURFACING_PLAN_2026-01-16.md` |
+| What to work on next? | `plans/FEATURE_ROADMAP_2026.md` |
 | Current project health? | `status/DEVELOPMENT_STATUS.md` |
 | How to configure? | `guides/PHASE3_CONFIGURATION_GUIDE.md` |
 | Architecture overview? | `architecture/` directory |
@@ -181,7 +186,7 @@ See `docs/plans/TECHNICAL_DEBT_IMPLEMENTATION_PLAN_2026_02_15.md` for full detai
 
 ## �📖 **Documentation Principles**
 
-1. **Single Source of Truth:** `UI_SURFACING_PLAN_2026-01-16.md` is THE active plan
+1. **Single Source of Truth:** `FEATURE_ROADMAP_2026.md` (product) and `TECHNICAL_DEBT_IMPLEMENTATION_PLAN_2026_02_20.md` (debt)
 2. **Archive Aggressively:** Outdated docs moved to archive with manifest
 3. **Date Stamping:** All plans dated (YYYY-MM-DD format)
 4. **Clear Status:** Every document marked as Active, Complete, or Archived
@@ -189,8 +194,9 @@ See `docs/plans/TECHNICAL_DEBT_IMPLEMENTATION_PLAN_2026_02_15.md` for full detai
 
 ---
 
-**Last Major Archive:** January 16, 2026 (83 documents)
+**Last Major Archive:** February 20, 2026 (`archive/2026-02-20-documentation-refresh/`)
 **Last Major Achievement:** February 12, 2026 - Large Service Refactoring completed (31 services, -17,000 lines)
-**Next Review:** After completing UI_SURFACING_PLAN items
+**Next Review:** After next roadmap/debt milestone checkpoint
 
 For questions or clarifications, refer to `planning/LESSONS_LEARNED.md` for project wisdom and best practices.
+

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Social.Entities;
 using SaveState.Core.Social.Repositories;
 using SaveState.Infrastructure.Persistence;
@@ -12,10 +13,12 @@ namespace SaveState.Infrastructure.Repositories;
 public class CommunityRepository : ICommunityRepository
 {
     private readonly SaveStateDbContext _context;
+    private readonly ITimeProvider _timeProvider;
 
-    public CommunityRepository(SaveStateDbContext context)
+    public CommunityRepository(SaveStateDbContext context, ITimeProvider timeProvider)
     {
         _context = context;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<Challenge>> GetChallengeByIdAsync(Guid id, CancellationToken ct = default)
@@ -32,7 +35,7 @@ public class CommunityRepository : ICommunityRepository
 
     public async Task<Result<IReadOnlyList<Challenge>>> GetActiveChallengesAsync(CancellationToken ct = default)
     {
-        var now = DateTime.UtcNow;
+        var now = _timeProvider.UtcNow;
         var challenges = await _context.Challenges
             .Where(c => c.StartDate <= now && c.EndDate >= now && !c.IsDeleted)
             .Include(c => c.Requirements)
@@ -69,7 +72,7 @@ public class CommunityRepository : ICommunityRepository
         challenge.Participants.Add(new ChallengeParticipant
         {
             UserId = userId,
-            JoinedAt = DateTime.UtcNow,
+            JoinedAt = _timeProvider.UtcNow,
             Progress = 0,
             IsCompleted = false
         });
@@ -93,7 +96,7 @@ public class CommunityRepository : ICommunityRepository
         if (progress >= 100 && !participant.IsCompleted)
         {
             participant.IsCompleted = true;
-            participant.CompletedAt = DateTime.UtcNow;
+            participant.CompletedAt = _timeProvider.UtcNow;
         }
 
         await _context.SaveChangesAsync(ct);
@@ -148,7 +151,7 @@ public class CommunityRepository : ICommunityRepository
         if (existingEntry != null)
         {
             existingEntry.Score = entry.Score;
-            existingEntry.LastUpdated = DateTime.UtcNow;
+            existingEntry.LastUpdated = _timeProvider.UtcNow;
             existingEntry.Metadata = entry.Metadata;
         }
         else

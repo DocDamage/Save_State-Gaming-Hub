@@ -1000,7 +1000,7 @@ public partial class GameDetailViewModel
 
 **What we created:**
 
-- `docs/technical_debt_scan_report.md` - Living document tracking all debt
+- `docs/archive/2026-02-20-documentation-refresh/reports/technical_debt_scan_report.md` - Living document tracking all debt
 - Regular automated scans for anti-patterns
 - Priority-based remediation phases
 
@@ -1431,3 +1431,4 @@ var config = new AutoSaveConfig(
 *Updated January 8, 2026 with Dialog Completion & Build Error Resolution lessons*
 *Based on the complete development cycle of SaveStateReborn*
 *Health Score: 98/100 | Build Status: 0 errors, 117 warnings | Tests: 300+ passing*
+

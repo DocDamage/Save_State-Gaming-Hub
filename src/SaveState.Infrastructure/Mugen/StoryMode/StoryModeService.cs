@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Services;
 
 namespace SaveState.Infrastructure.Mugen.StoryMode;
@@ -21,9 +22,12 @@ public class StoryModeService : IStoryModeService
     private StoryProject? _currentProject;
     private Guid? _currentPlaybackId;
 
-    public StoryModeService(ILogger<StoryModeService> logger)
+    private readonly ITimeProvider _timeProvider;
+
+    public StoryModeService(ILogger<StoryModeService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     #region Story Project Management
@@ -43,8 +47,8 @@ public class StoryModeService : IStoryModeService
                 title,
                 description,
                 $"{title.Replace(" ", "_")}.story",
-                DateTime.UtcNow,
-                DateTime.UtcNow,
+                _timeProvider.UtcNow,
+                _timeProvider.UtcNow,
                 new StoryVersion(1, 0, 0),
                 new List<StoryChapter>(),
                 new List<StoryCharacter>(),
@@ -106,7 +110,7 @@ public class StoryModeService : IStoryModeService
 
             _currentProject = _currentProject with
             {
-                ModifiedAt = DateTime.UtcNow,
+                ModifiedAt = _timeProvider.UtcNow,
                 Version = new StoryVersion(
                     _currentProject.Version.Major,
                     _currentProject.Version.Minor,
@@ -921,7 +925,7 @@ public class StoryModeService : IStoryModeService
         try
         {
             var simulatedScenes = new List<SimulatedScene>();
-            var currentTime = DateTime.UtcNow;
+            var currentTime = _timeProvider.UtcNow;
 
             foreach (var choice in choices)
             {
@@ -936,7 +940,7 @@ public class StoryModeService : IStoryModeService
             var simulation = new StoryPathSimulation(
                 simulatedScenes,
                 new Dictionary<string, object>(),
-                DateTime.UtcNow - currentTime,
+                _timeProvider.UtcNow - currentTime,
                 "ending_good");
 
             return Task.FromResult(Result<StoryPathSimulation>.Success(simulation));
@@ -996,7 +1000,7 @@ public class StoryModeService : IStoryModeService
                 type,
                 filePath,
                 fileInfo.Length,
-                DateTime.UtcNow);
+                _timeProvider.UtcNow);
 
             _assets[asset.Id] = asset;
             return Task.FromResult(Result<StoryAsset>.Success(asset));

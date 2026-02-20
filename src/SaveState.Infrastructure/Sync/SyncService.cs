@@ -11,6 +11,7 @@ namespace SaveState.Infrastructure.Sync;
 public class SyncService : ISyncService
 {
     private readonly ILogger<SyncService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly IUserPreferencesService _preferencesService;
     private readonly IEnumerable<ICloudStorageProvider> _providers;
     private ICloudStorageProvider? _provider;
@@ -46,12 +47,15 @@ public class SyncService : ISyncService
     /// <param name="providers">Available cloud storage providers.</param>
     /// <param name="preferencesService">User preferences service.</param>
     /// <param name="logger">Logger for diagnostic information.</param>
+    /// <param name="timeProvider">Time provider for deterministic time access.</param>
     public SyncService(
         IEnumerable<ICloudStorageProvider> providers,
         IUserPreferencesService preferencesService,
-        ILogger<SyncService> logger)
+        ILogger<SyncService> logger,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         _preferencesService = preferencesService;
         _providers = providers;
     }
@@ -187,7 +191,7 @@ public class SyncService : ISyncService
             // Calculate total bytes for progress
             _totalBytes = localManifest.Keys.Select(k => new FileInfo(GetLocalPath(k)).Length).Sum();
             _processedBytes = 0;
-            _syncStartTime = DateTime.UtcNow;
+            _syncStartTime = _timeProvider.UtcNow;
 
             foreach (var (remotePath, modifiedAt) in localManifest)
             {
@@ -279,7 +283,7 @@ public class SyncService : ISyncService
             var totalFiles = remoteFiles.Count;
             _totalBytes = remoteFiles.Where(f => !f.IsDirectory).Select(f => f.SizeBytes).Sum();
             _processedBytes = 0;
-            _syncStartTime = DateTime.UtcNow;
+            _syncStartTime = _timeProvider.UtcNow;
 
             foreach (var remoteFile in remoteFiles.Where(f => !f.IsDirectory))
             {
@@ -471,7 +475,7 @@ public class SyncService : ISyncService
     private async Task UpdateSyncHistoryAsync(IEnumerable<string> paths, CancellationToken ct)
     {
         var history = await GetSyncHistoryAsync(ct).ConfigureAwait(false);
-        var now = DateTime.UtcNow;
+        var now = _timeProvider.UtcNow;
         foreach (var path in paths)
         {
             history[path] = now;
@@ -515,7 +519,7 @@ public class SyncService : ISyncService
 
     private void ReportProgress(int total, int processed, string currentFile)
     {
-        var elapsed = DateTime.UtcNow - _syncStartTime;
+        var elapsed = _timeProvider.UtcNow - _syncStartTime;
         var throughput = elapsed.TotalSeconds > 0 ? _processedBytes / elapsed.TotalSeconds : 0;
 
         TimeSpan? remainingTime = null;

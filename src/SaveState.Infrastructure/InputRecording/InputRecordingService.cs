@@ -4,6 +4,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.InputRecording.Services;
 using SaveState.Infrastructure.Persistence;
 using InputRecordingEntity = SaveState.Core.InputRecording.InputRecording;
@@ -31,6 +32,7 @@ internal class InputRecordingServiceOperations : IInputRecordingService
 {
     private readonly SaveStateDbContext _dbContext;
     private readonly ILogger<InputRecordingService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly string _recordingsBasePath;
     private readonly Dictionary<Guid, RecordingSession> _activeRecordings = new();
     private readonly Dictionary<Guid, PlaybackSession> _activePlaybacks = new();
@@ -38,10 +40,12 @@ internal class InputRecordingServiceOperations : IInputRecordingService
 
     public InputRecordingServiceOperations(
         SaveStateDbContext dbContext,
-        ILogger<InputRecordingService> logger)
+        ILogger<InputRecordingService> logger,
+        ITimeProvider timeProvider)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _timeProvider = timeProvider;
         _recordingsBasePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "SaveStateReborn",
@@ -57,7 +61,7 @@ internal class InputRecordingServiceOperations : IInputRecordingService
             var session = new RecordingSession
             {
                 GameId = request.GameId,
-                StartedAt = DateTime.UtcNow,
+                StartedAt = _timeProvider.UtcNow,
                 IsRecording = true,
                 IsPaused = false
             };
@@ -103,13 +107,14 @@ internal class InputRecordingServiceOperations : IInputRecordingService
             if (!_frameBuffers.TryGetValue(sessionId, out var frames))
                 frames = new List<InputFrame>();
 
+            var now = _timeProvider.UtcNow;
             var recording = new InputRecordingEntity
             {
                 GameId = session.GameId,
-                Name = $"Recording_{DateTime.UtcNow:yyyyMMdd_HHmmss}",
+                Name = $"Recording_{now:yyyyMMdd_HHmmss}",
                 Status = RecordingStatus.Processing,
                 TotalFrames = session.CurrentFrame,
-                Duration = DateTime.UtcNow - session.StartedAt,
+                Duration = now - session.StartedAt,
                 Fps = 60,
                 Tags = new List<string>()
             };
@@ -189,7 +194,7 @@ internal class InputRecordingServiceOperations : IInputRecordingService
 
             _activePlaybacks[session.Id] = session;
             recording.PlayCount++;
-            recording.LastPlayedAt = DateTime.UtcNow;
+            recording.LastPlayedAt = _timeProvider.UtcNow;
             _dbContext.SaveChanges();
 
             return Task.FromResult(Result<PlaybackSession>.Success(session));
@@ -363,7 +368,7 @@ internal class InputRecordingServiceOperations : IInputRecordingService
             recording.Name = name;
             if (description != null) recording.Description = description;
             if (tags != null) recording.Tags = tags;
-            recording.UpdatedAt = DateTime.UtcNow;
+            recording.UpdatedAt = _timeProvider.UtcNow;
 
             await _dbContext.SaveChangesAsync(ct);
             return Result<InputRecordingEntity>.Success(recording);
@@ -861,7 +866,7 @@ internal class InputRecordingServiceOperations : IInputRecordingService
         {
             Metadata = includeMetadata ? recording : null,
             Frames = frames,
-            ExportedAt = DateTime.UtcNow
+            ExportedAt = _timeProvider.UtcNow
         };
 
         var json = JsonSerializer.Serialize(export, new JsonSerializerOptions { WriteIndented = true });

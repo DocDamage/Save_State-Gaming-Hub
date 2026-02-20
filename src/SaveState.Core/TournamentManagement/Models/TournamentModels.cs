@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.TournamentManagement.Models;
 
@@ -26,7 +27,7 @@ public record Tournament
     public TournamentRules Rules { get; init; } = new();
     public IReadOnlyList<TournamentParticipant> Participants { get; init; } = Array.Empty<TournamentParticipant>();
     public IReadOnlyList<TournamentMatch> Matches { get; init; } = Array.Empty<TournamentMatch>();
-    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>
@@ -70,7 +71,7 @@ public record TournamentParticipant
     public string? TeamName { get; init; }
     public int Seed { get; init; }
     public ParticipantStatus Status { get; init; } = ParticipantStatus.Registered;
-    public DateTime RegisteredAt { get; init; } = DateTime.UtcNow;
+    public DateTime RegisteredAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
     public IReadOnlyDictionary<string, object> Stats { get; init; } = new Dictionary<string, object>();
 }
 
@@ -204,7 +205,7 @@ public record PrizeContributor
     public string UserId { get; init; } = string.Empty;
     public string DisplayName { get; init; } = string.Empty;
     public decimal Amount { get; init; }
-    public DateTime ContributedAt { get; init; } = DateTime.UtcNow;
+    public DateTime ContributedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>
@@ -290,7 +291,7 @@ public record TournamentSchedule
 {
     public string TournamentId { get; init; } = string.Empty;
     public IReadOnlyList<ScheduledMatch> ScheduledMatches { get; init; } = Array.Empty<ScheduledMatch>();
-    public DateTime GeneratedAt { get; init; } = DateTime.UtcNow;
+    public DateTime GeneratedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>

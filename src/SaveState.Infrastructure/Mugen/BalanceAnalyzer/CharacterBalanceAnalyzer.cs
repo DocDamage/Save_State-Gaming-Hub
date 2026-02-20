@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen;
 using SaveState.Core.Mugen.Entities;
 using SaveState.Core.Mugen.Services;
@@ -15,17 +16,20 @@ public class CharacterBalanceAnalyzer : ICharacterBalanceAnalyzer
     private readonly IMugenMatchHistoryRepository _matchHistoryRepository;
     private readonly IMugenCharacterRepository _characterRepository;
     private readonly IMugenStatsService _statsService;
+    private readonly ITimeProvider _timeProvider;
 
     public CharacterBalanceAnalyzer(
         ILogger<CharacterBalanceAnalyzer> logger,
         IMugenMatchHistoryRepository matchHistoryRepository,
         IMugenCharacterRepository characterRepository,
-        IMugenStatsService statsService)
+        IMugenStatsService statsService,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _matchHistoryRepository = matchHistoryRepository;
         _characterRepository = characterRepository;
         _statsService = statsService;
+        _timeProvider = timeProvider;
     }
 
     /// <inheritdoc />
@@ -65,7 +69,7 @@ public class CharacterBalanceAnalyzer : ICharacterBalanceAnalyzer
 
             var tierList = new TierList(
                 Guid.NewGuid().ToString(),
-                DateTime.UtcNow,
+                _timeProvider.UtcNow,
                 request.Criteria,
                 placements.Sum(p => p.MatchesPlayed),
                 tiers,
@@ -281,7 +285,7 @@ public class CharacterBalanceAnalyzer : ICharacterBalanceAnalyzer
             }
 
             return Result<OverpoweredDetectionResult>.Success(new OverpoweredDetectionResult(
-                DateTime.UtcNow,
+                _timeProvider.UtcNow,
                 thresholdValue,
                 overpoweredCharacters,
                 overpoweredMoves,
@@ -347,7 +351,7 @@ public class CharacterBalanceAnalyzer : ICharacterBalanceAnalyzer
             }
 
             return Result<BalancePatchSuggestions>.Success(new BalancePatchSuggestions(
-                DateTime.UtcNow,
+                _timeProvider.UtcNow,
                 request.TargetCharacters?.Count ?? characterSuggestions.Count,
                 characterSuggestions,
                 moveSuggestions,
@@ -455,7 +459,7 @@ public class CharacterBalanceAnalyzer : ICharacterBalanceAnalyzer
 
             return Result<CharacterRankings>.Success(new CharacterRankings(
                 criteria,
-                DateTime.UtcNow,
+                _timeProvider.UtcNow,
                 finalRankings));
         }
         catch (Exception ex)
@@ -476,7 +480,7 @@ public class CharacterBalanceAnalyzer : ICharacterBalanceAnalyzer
         {
             _logger.LogInformation("Analyzing popularity trends for period: {Days} days", period.TotalDays);
 
-            var endDate = DateTime.UtcNow;
+            var endDate = _timeProvider.UtcNow;
             var startDate = endDate - period;
             var characters = await _characterRepository.GetAllAsync(ct);
 
@@ -501,7 +505,7 @@ public class CharacterBalanceAnalyzer : ICharacterBalanceAnalyzer
 
             return Result<PopularityTrends>.Success(new PopularityTrends(
                 period,
-                DateTime.UtcNow,
+                _timeProvider.UtcNow,
                 popularities.Sum(p => p.MatchesPlayed),
                 popularities.OrderByDescending(p => p.PickRate).ToList()));
         }
@@ -527,8 +531,8 @@ public class CharacterBalanceAnalyzer : ICharacterBalanceAnalyzer
 
             var content = format switch
             {
-                BalanceExportFormat.Markdown => $"# Balance Analysis\n\nGenerated: {DateTime.UtcNow}\n\nAnalysis ID: {analysisId}",
-                BalanceExportFormat.Json => $"{{\"analysisId\": \"{analysisId}\", \"generatedAt\": \"{DateTime.UtcNow:O}\"}}",
+                BalanceExportFormat.Markdown => $"# Balance Analysis\n\nGenerated: {_timeProvider.UtcNow}\n\nAnalysis ID: {analysisId}",
+                BalanceExportFormat.Json => $"{{\"analysisId\": \"{analysisId}\", \"generatedAt\": \"{_timeProvider.UtcNow:O}\"}}",
                 _ => "Export not yet implemented for this format"
             };
 

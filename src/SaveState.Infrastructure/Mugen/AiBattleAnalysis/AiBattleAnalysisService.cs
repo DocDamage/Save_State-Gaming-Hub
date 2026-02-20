@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.AiBattleAnalysis;
 using SaveState.Core.Mugen.AiBattleAnalysis.Services;
 using SaveState.Infrastructure.Persistence;
@@ -18,18 +19,21 @@ public class AiBattleAnalysisService : IAiBattleAnalysisService
     private readonly ILogger<AiBattleAnalysisService> _logger;
     private readonly IAiInsightsProvider _aiProvider;
     private readonly BattleAnalysisOptions _defaultOptions;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<Guid, RealTimeAnalysis> _activeSessions = new();
 
     public AiBattleAnalysisService(
         SaveStateDbContext dbContext,
         ILogger<AiBattleAnalysisService> logger,
         IAiInsightsProvider aiProvider,
-        IOptions<BattleAnalysisOptions> options)
+        IOptions<BattleAnalysisOptions> options,
+        ITimeProvider timeProvider)
     {
         _dbContext = dbContext;
         _logger = logger;
         _aiProvider = aiProvider;
         _defaultOptions = options.Value;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<CoreModels.AiBattleAnalysis>> AnalyzeBattleAsync(
@@ -59,7 +63,7 @@ public class AiBattleAnalysisService : IAiBattleAnalysisService
                 CharacterName = request.CharacterName,
                 OpponentName = request.OpponentName,
                 Source = request.ReplayFilePath ?? "memory",
-                BattleDate = DateTime.UtcNow,
+                BattleDate = _timeProvider.UtcNow,
                 Duration = TimeSpan.FromSeconds(replayData.Length / 60.0) // Approximate
             };
 
@@ -337,7 +341,8 @@ public class AiBattleAnalysisService : IAiBattleAnalysisService
     {
         try
         {
-            var startDate = since ?? DateTime.UtcNow.AddMonths(-1);
+            var now = _timeProvider.UtcNow;
+            var startDate = since ?? now.AddMonths(-1);
             
             var analyses = await _dbContext.AiBattleAnalyses
                 .AsNoTracking()
@@ -352,7 +357,7 @@ public class AiBattleAnalysisService : IAiBattleAnalysisService
             {
                 CharacterName = characterName,
                 StartDate = startDate,
-                EndDate = DateTime.UtcNow,
+                EndDate = now,
                 TotalBattles = analyses.Count,
                 Wins = analyses.Count(a => a.Result == BattleResult.Win),
                 Losses = analyses.Count(a => a.Result == BattleResult.Loss),
@@ -422,7 +427,7 @@ public class AiBattleAnalysisService : IAiBattleAnalysisService
             SessionId = sessionId,
             CharacterName = characterName,
             OpponentName = opponentName,
-            StartedAt = DateTime.UtcNow,
+            StartedAt = _timeProvider.UtcNow,
             CurrentStats = new CombatStats(),
             Insights = new List<RealTimeInsight>(),
             Suggestions = new List<string>()
@@ -473,7 +478,7 @@ public class AiBattleAnalysisService : IAiBattleAnalysisService
             CharacterName = session.CharacterName,
             OpponentName = session.OpponentName,
             BattleDate = session.StartedAt,
-            Duration = DateTime.UtcNow - session.StartedAt,
+            Duration = _timeProvider.UtcNow - session.StartedAt,
             Stats = session.CurrentStats,
             PerformanceRating = CalculateRealTimePerformanceRating(session)
         };

@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using SaveState.Core.Common.Services;
 using SaveState.Core.UserManagement.Configuration;
 using SaveState.Core.UserManagement.Entities;
 using SaveState.Core.UserManagement.Services;
@@ -17,11 +18,16 @@ public class JwtTokenService : IJwtTokenService
 {
     private readonly JwtOptions _options;
     private readonly ILogger<JwtTokenService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public JwtTokenService(IOptions<JwtOptions> options, ILogger<JwtTokenService> logger)
+    public JwtTokenService(
+        IOptions<JwtOptions> options,
+        ILogger<JwtTokenService> logger,
+        ITimeProvider timeProvider)
     {
         _options = options.Value;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<string> GenerateAccessTokenAsync(User user, CancellationToken ct = default)
@@ -34,7 +40,7 @@ public class JwtTokenService : IJwtTokenService
             issuer: _options.Issuer,
             audience: _options.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(_options.AccessTokenExpirationMinutes),
+            expires: _timeProvider.UtcNow.AddMinutes(_options.AccessTokenExpirationMinutes),
             signingCredentials: credentials
         );
 
@@ -57,7 +63,7 @@ public class JwtTokenService : IJwtTokenService
             issuer: _options.Issuer,
             audience: _options.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddDays(_options.RefreshTokenExpirationDays),
+            expires: _timeProvider.UtcNow.AddDays(_options.RefreshTokenExpirationDays),
             signingCredentials: credentials
         );
 
@@ -80,6 +86,21 @@ public class JwtTokenService : IJwtTokenService
                 ValidateAudience = true,
                 ValidAudience = _options.Audience,
                 ValidateLifetime = true,
+                LifetimeValidator = (notBefore, expires, _, _) =>
+                {
+                    var now = _timeProvider.UtcNow;
+                    if (notBefore.HasValue && notBefore.Value > now)
+                    {
+                        return false;
+                    }
+
+                    if (expires.HasValue && expires.Value < now)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                },
                 ClockSkew = TimeSpan.Zero
             };
 

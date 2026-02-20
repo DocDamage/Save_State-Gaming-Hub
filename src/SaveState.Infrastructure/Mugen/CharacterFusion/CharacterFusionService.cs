@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen;
 using SaveState.Core.Mugen.Entities;
 using SaveState.Core.Mugen.CharacterFusion;
@@ -19,15 +20,18 @@ public class CharacterFusionService : ICharacterFusionService
     private readonly SaveStateDbContext _dbContext;
     private readonly ILogger<CharacterFusionService> _logger;
     private readonly IMugenCharacterRepository _characterRepository;
+    private readonly ITimeProvider _timeProvider;
 
     public CharacterFusionService(
         SaveStateDbContext dbContext,
         ILogger<CharacterFusionService> logger,
-        IMugenCharacterRepository characterRepository)
+        IMugenCharacterRepository characterRepository,
+        ITimeProvider timeProvider)
     {
         _dbContext = dbContext;
         _logger = logger;
         _characterRepository = characterRepository;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<FusionAnalysis>> AnalyzeFusionPotentialAsync(
@@ -566,7 +570,7 @@ public class CharacterFusionService : ICharacterFusionService
         sb.AppendLine("[Info]");
         sb.AppendLine($"name = \"{fusion.DisplayName}\"");
         sb.AppendLine($"displayname = \"{fusion.DisplayName}\"");
-        sb.AppendLine($"versiondate = {DateTime.Now:MM,dd,yyyy}");
+        sb.AppendLine($"versiondate = {_timeProvider.UtcNow:MM,dd,yyyy}");
         sb.AppendLine("mugenversion = 1.1");
         sb.AppendLine("author = \"SaveState Fusion System\"");
         sb.AppendLine("pal.defaults = 1");

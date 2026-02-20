@@ -5,6 +5,7 @@ using MediatR;
 using SaveState.Presentation.Services;
 using SaveState.Core.Automation.Services;
 using SaveState.Core.Automation.Services.DTOs;
+using SaveState.Core.Common.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -75,14 +76,15 @@ public partial class AutomationDashboardViewModel : ObservableObject
         ILogger<AutomationDashboardViewModel> logger,
         ILoggerFactory loggerFactory,
         IMediator mediator,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        ITimeProvider timeProvider)
     {
         _dialogService = dialogService;
         _workflowService = workflowService;
         _macroManager = macroManager;
         _logger = logger;
 
-        MacroMarketplace = new MacroMarketplaceViewModel(mediator, macroManager, notificationService);
+        MacroMarketplace = new MacroMarketplaceViewModel(mediator, macroManager, notificationService, timeProvider);
 
         // Load data
         _ = LoadDataAsync();

@@ -1,9 +1,6 @@
 using Microsoft.Extensions.Logging;
-using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using SharpCompress.Archives;
-using SharpCompress.Common;
-using SharpCompress.Readers;
 
 namespace SaveState.Infrastructure.Common.Services;
 
@@ -43,18 +40,12 @@ public class SharpCompressExtractionService : IExtractionService
 
             await Task.Run(() =>
             {
-                using var archive = ArchiveFactory.Open(archivePath);
+                using var archive = ArchiveFactory.OpenArchive(archivePath);
 
                 // For progress reporting, we need to know the total number of entries or total size
                 // Calculating this can be expensive for some archive types, but let's try for better UX
                 var totalEntries = archive.Entries.Count();
                 var processedEntries = 0;
-
-                var extractionOptions = new ExtractionOptions
-                {
-                    ExtractFullPath = true,
-                    Overwrite = overwrite
-                };
 
                 foreach (var entry in archive.Entries)
                 {
@@ -62,7 +53,16 @@ public class SharpCompressExtractionService : IExtractionService
 
                     if (!entry.IsDirectory)
                     {
-                        entry.WriteToDirectory(destinationDirectory, extractionOptions);
+                        var key = entry.Key ?? string.Empty;
+                        var targetPath = Path.Combine(
+                            destinationDirectory,
+                            key.Replace('/', Path.DirectorySeparatorChar));
+                        var targetDir = Path.GetDirectoryName(targetPath);
+                        if (!string.IsNullOrEmpty(targetDir) && !Directory.Exists(targetDir))
+                            Directory.CreateDirectory(targetDir);
+
+                        if (overwrite || !File.Exists(targetPath))
+                            entry.WriteToFile(targetPath);
                     }
 
                     processedEntries++;

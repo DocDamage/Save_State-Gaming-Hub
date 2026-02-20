@@ -62,14 +62,14 @@ public partial class ActivityFeedWidget : WidgetBase
             Activities.Clear();
 
             // Get recent game sessions (last 7 days)
-            var recentDate = DateTime.UtcNow.AddDays(-7);
+            var recentDate = _timeProvider.UtcNow.AddDays(-7);
             var sessions = await _sessionRepository.GetRecentSessionsAsync(10);
 
             foreach (var session in sessions.OrderByDescending(s => s.EndedAt ?? s.StartedAt).Take(5))
             {
                 var game = await _gameRepository.GetByIdAsync(SaveState.Core.Common.ValueObjects.GameId.From(session.GameId));
                 var gameName = game?.Title ?? "Unknown Game";
-                var duration = session.Duration;
+                var duration = session.GetDuration();
 
                 var durationText = duration.TotalHours >= 1
                     ? $"{duration.TotalHours:F1} hours"
@@ -88,7 +88,7 @@ public partial class ActivityFeedWidget : WidgetBase
                 var achievementName = achievement.Achievement?.Name ?? "Unknown Achievement";
                 Activities.Add(new ActivityItem(
                     $"🏆 Achievement Unlocked: {achievementName}",
-                    achievement.UnlockedAt ?? DateTime.UtcNow,
+                    achievement.UnlockedAt ?? _timeProvider.UtcNow,
                     ActivityType.Achievement));
             }
 

@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Services;
 using SaveState.Infrastructure.Mugen.IkemenGo;
 
@@ -11,7 +12,7 @@ public class IkemenGoServiceFacadeTests
     [Fact]
     public async Task LoadConfigAsync_WhenConfigFileMissing_ReturnsDefaultConfig()
     {
-        var sut = new IkemenGoService(NullLogger<IkemenGoService>.Instance);
+        var sut = new IkemenGoService(NullLogger<IkemenGoService>.Instance, SystemTimeProvider.Instance);
         var missingPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}-missing-config.json");
 
         var result = await sut.LoadConfigAsync(missingPath);
@@ -26,7 +27,7 @@ public class IkemenGoServiceFacadeTests
     [Fact]
     public async Task ValidateSelectDefAsync_WhenFileMissing_ReturnsNotFoundFailure()
     {
-        var sut = new IkemenGoService(NullLogger<IkemenGoService>.Instance);
+        var sut = new IkemenGoService(NullLogger<IkemenGoService>.Instance, SystemTimeProvider.Instance);
         var missingPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}-select.def");
 
         var result = await sut.ValidateSelectDefAsync(missingPath);
@@ -38,7 +39,7 @@ public class IkemenGoServiceFacadeTests
     [Fact]
     public async Task ValidateConfigAsync_WhenValuesOutOfRange_ReturnsInvalidWithErrors()
     {
-        var sut = new IkemenGoService(NullLogger<IkemenGoService>.Instance);
+        var sut = new IkemenGoService(NullLogger<IkemenGoService>.Instance, SystemTimeProvider.Instance);
         var invalidConfig = new IkemenGoConfig(
             new IkemenGoVideoSettings(100, 120, false, true, 60, "OpenGL"),
             new IkemenGoAudioSettings(200, 80, 100, true),

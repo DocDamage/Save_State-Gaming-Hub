@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SaveState.Application.SaveStates.Queries;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using System;
 using System.Collections.ObjectModel;
@@ -24,6 +25,7 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
     private readonly IDialogService _dialogService;
     private readonly INotificationService _notificationService;
     private readonly ILogger<GameSaveStatesTabViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private string _saveStatesCountText = "0 save states";
@@ -65,12 +67,14 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
         IMediator mediator,
         IDialogService dialogService,
         INotificationService notificationService,
-        ILogger<GameSaveStatesTabViewModel> logger)
+        ILogger<GameSaveStatesTabViewModel> logger,
+        ITimeProvider timeProvider)
     {
         _mediator = mediator;
         _dialogService = dialogService;
         _notificationService = notificationService;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     private GameId? _currentGameId;
@@ -120,7 +124,7 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
             if (backupResult.IsSuccess && backupResult.Value.Any())
             {
                 var mostRecent = backupResult.Value.OrderByDescending(b => b.CreatedAt).First();
-                var timeSince = DateTime.UtcNow - mostRecent.CreatedAt;
+                var timeSince = _timeProvider.UtcNow - mostRecent.CreatedAt;
                 if (timeSince.TotalHours < 1)
                     LastBackupText = $"{(int)timeSince.TotalMinutes} min ago";
                 else if (timeSince.TotalDays < 1)
@@ -147,7 +151,7 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
             SaveStates.Clear();
             foreach (var saveState in saveStates.OrderByDescending(s => s.CreatedAt))
             {
-                var timeSince = DateTime.UtcNow - saveState.CreatedAt;
+                var timeSince = _timeProvider.UtcNow - saveState.CreatedAt;
                 string createdText;
                 if (timeSince.TotalDays < 1)
                     createdText = $"Today {saveState.CreatedAt:HH:mm}";
@@ -378,8 +382,8 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
                 {
                     Name = "Boss Battle Save",
                     Status = ViewModels.Dialogs.DiffStatus.Conflict,
-                    LeftTimestamp = DateTime.UtcNow.AddHours(-2),
-                    RightTimestamp = DateTime.UtcNow.AddHours(-1),
+                    LeftTimestamp = _timeProvider.UtcNow.AddHours(-2),
+                    RightTimestamp = _timeProvider.UtcNow.AddHours(-1),
                     LeftSize = 1024 * 1024 * 5,
                     RightSize = 1024 * 1024 * 6
                 }
@@ -425,8 +429,8 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
                 {
                     Name = "Chapter 1 Complete",
                     Status = ViewModels.Dialogs.DiffStatus.InBoth,
-                    LeftTimestamp = DateTime.UtcNow.AddDays(-5),
-                    RightTimestamp = DateTime.UtcNow.AddDays(-5),
+                    LeftTimestamp = _timeProvider.UtcNow.AddDays(-5),
+                    RightTimestamp = _timeProvider.UtcNow.AddDays(-5),
                     LeftSize = 1024 * 1024 * 3,
                     RightSize = 1024 * 1024 * 3
                 },
@@ -434,14 +438,14 @@ public partial class GameSaveStatesTabViewModel : ObservableObject
                 {
                     Name = "Secret Area Found",
                     Status = ViewModels.Dialogs.DiffStatus.OnlyInLeft,
-                    LeftTimestamp = DateTime.UtcNow.AddDays(-2),
+                    LeftTimestamp = _timeProvider.UtcNow.AddDays(-2),
                     LeftSize = 1024 * 1024 * 4
                 },
                 new ViewModels.Dialogs.SaveStateDiffViewModel
                 {
                     Name = "Boss Rush Mode",
                     Status = ViewModels.Dialogs.DiffStatus.OnlyInRight,
-                    RightTimestamp = DateTime.UtcNow.AddDays(-1),
+                    RightTimestamp = _timeProvider.UtcNow.AddDays(-1),
                     RightSize = 1024 * 1024 * 5
                 }
             };

@@ -1,6 +1,7 @@
 namespace SaveState.Core.GameLibrary.Entities;
 
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 
 /// <summary>
@@ -143,8 +144,8 @@ public class GameMedia : EntityBase
             IsFavorite = false,
             IsPublic = false,
             ThumbnailPath = thumbnailPath,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = SystemTimeProvider.Instance.UtcNow,
+            UpdatedAt = SystemTimeProvider.Instance.UtcNow
         };
 
         return media;
@@ -161,7 +162,7 @@ public class GameMedia : EntityBase
         Title = title;
         Description = description;
         Tags = tags?.ToList() ?? new List<string>();
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 
     /// <summary>
@@ -170,7 +171,7 @@ public class GameMedia : EntityBase
     public void MarkAsFavorite()
     {
         IsFavorite = true;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 
     /// <summary>
@@ -179,7 +180,7 @@ public class GameMedia : EntityBase
     public void UnmarkAsFavorite()
     {
         IsFavorite = false;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 
     /// <summary>
@@ -188,7 +189,7 @@ public class GameMedia : EntityBase
     public void MakePublic()
     {
         IsPublic = true;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 
     /// <summary>
@@ -197,7 +198,7 @@ public class GameMedia : EntityBase
     public void MakePrivate()
     {
         IsPublic = false;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 
     /// <summary>
@@ -206,7 +207,7 @@ public class GameMedia : EntityBase
     public void SetThumbnail(string thumbnailPath)
     {
         ThumbnailPath = thumbnailPath;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 }
 

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Services;
 
 namespace SaveState.Infrastructure.Mugen.IkemenGo;
@@ -14,12 +15,14 @@ namespace SaveState.Infrastructure.Mugen.IkemenGo;
 internal class IkemenGoServiceOperations : IIkemenGoService
 {
     private readonly ILogger<IkemenGoService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly ConcurrentDictionary<int, Process> _runningProcesses = new();
     private readonly ConcurrentDictionary<string, IkemenGoModule> _modulesCache = new();
 
-    public IkemenGoServiceOperations(ILogger<IkemenGoService> logger)
+    public IkemenGoServiceOperations(ILogger<IkemenGoService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     #region Engine Detection & Compatibility
@@ -932,7 +935,7 @@ internal class IkemenGoServiceOperations : IIkemenGoService
             var result = new IkemenGoProcess(
                 process.Id,
                 exePath,
-                DateTime.UtcNow,
+                _timeProvider.UtcNow,
                 options);
 
             _runningProcesses[process.Id] = process;
@@ -1232,8 +1235,8 @@ internal class IkemenGoServiceOperations : IIkemenGoService
 
             var history = new List<IkemenGoMatchRecord>
             {
-                new(DateTime.UtcNow.AddDays(-1), "Versus", "Player1", "Player2", "Ryu", "Ken", "Win", TimeSpan.FromMinutes(3)),
-                new(DateTime.UtcNow.AddDays(-2), "Arcade", "Player1", "CPU", "Ryu", "Kung Fu Man", "Win", TimeSpan.FromMinutes(2))
+                new(_timeProvider.UtcNow.AddDays(-1), "Versus", "Player1", "Player2", "Ryu", "Ken", "Win", TimeSpan.FromMinutes(3)),
+                new(_timeProvider.UtcNow.AddDays(-2), "Arcade", "Player1", "CPU", "Ryu", "Kung Fu Man", "Win", TimeSpan.FromMinutes(2))
             };
 
             return Result<IReadOnlyList<IkemenGoMatchRecord>>.Success(history);
@@ -1350,12 +1353,12 @@ internal class IkemenGoServiceOperations : IIkemenGoService
                     int.TryParse(parts[1], out var minor) &&
                     int.TryParse(parts[2], out var patch))
                 {
-                    return new IkemenGoVersion(major, minor, patch, null, DateTime.UtcNow);
+                    return new IkemenGoVersion(major, minor, patch, null, _timeProvider.UtcNow);
                 }
             }
 
             // Default version
-            return new IkemenGoVersion(0, 99, 0, "unknown", DateTime.UtcNow);
+            return new IkemenGoVersion(0, 99, 0, "unknown", _timeProvider.UtcNow);
         }
         catch
         {

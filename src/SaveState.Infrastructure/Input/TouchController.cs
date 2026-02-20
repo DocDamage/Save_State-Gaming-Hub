@@ -32,7 +32,7 @@ public class TouchController : ITouchController
                 Name: $"Touch Profile - {_timeProvider.Now:yyyy-MM-dd HH:mm}",
                 Config: config,
                 CalibrationData: _calibrationData ?? GetDefaultCalibrationData(),
-                CreatedAt: DateTime.UtcNow);
+                CreatedAt: _timeProvider.UtcNow);
 
             _profiles[profile.Id] = profile;
 
@@ -147,7 +147,7 @@ public class TouchController : ITouchController
                 BottomRight: bottomRight,
                 Center: center,
                 CalibrationAccuracy: 0.98, // 98% accuracy
-                CalibratedAt: DateTime.UtcNow);
+                CalibratedAt: _timeProvider.UtcNow);
 
             return new CalibrationResult
             {
@@ -193,7 +193,7 @@ public class TouchController : ITouchController
                 GameId = input.GameId,
                 Gesture = gesture,
                 Position = input.Position,
-                Timestamp = DateTime.UtcNow
+                Timestamp = _timeProvider.UtcNow
             });
         }
     }

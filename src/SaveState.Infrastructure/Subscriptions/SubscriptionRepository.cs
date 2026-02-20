@@ -2,6 +2,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Subscriptions;
 using SaveState.Infrastructure.Persistence;
 
@@ -14,13 +15,16 @@ public sealed class SubscriptionRepository : ISubscriptionRepository
 {
     private readonly SaveStateDbContext _dbContext;
     private readonly ILogger<SubscriptionRepository> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public SubscriptionRepository(
         SaveStateDbContext dbContext,
-        ILogger<SubscriptionRepository> logger)
+        ILogger<SubscriptionRepository> logger,
+        ITimeProvider timeProvider)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     /// <inheritdoc />
@@ -59,7 +63,7 @@ public sealed class SubscriptionRepository : ISubscriptionRepository
     /// <inheritdoc />
     public async Task AddAsync(UserSubscriptionEntity subscription, CancellationToken ct = default)
     {
-        subscription.CreatedAt = DateTime.UtcNow;
+        subscription.CreatedAt = _timeProvider.UtcNow;
         _dbContext.UserSubscriptions.Add(subscription);
         await _dbContext.SaveChangesAsync(ct);
         
@@ -72,7 +76,7 @@ public sealed class SubscriptionRepository : ISubscriptionRepository
     /// <inheritdoc />
     public async Task UpdateAsync(UserSubscriptionEntity subscription, CancellationToken ct = default)
     {
-        subscription.UpdatedAt = DateTime.UtcNow;
+        subscription.UpdatedAt = _timeProvider.UtcNow;
         _dbContext.UserSubscriptions.Update(subscription);
         await _dbContext.SaveChangesAsync(ct);
         
@@ -128,7 +132,7 @@ public sealed class SubscriptionRepository : ISubscriptionRepository
             return;
         }
 
-        game.TrackedAt = DateTime.UtcNow;
+        game.TrackedAt = _timeProvider.UtcNow;
         _dbContext.TrackedSubscriptionGames.Add(game);
         await _dbContext.SaveChangesAsync(ct);
         

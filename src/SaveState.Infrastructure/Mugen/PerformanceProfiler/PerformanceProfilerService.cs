@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Services;
 
 namespace SaveState.Infrastructure.Mugen.PerformanceProfiler;
@@ -14,6 +15,7 @@ namespace SaveState.Infrastructure.Mugen.PerformanceProfiler;
 public class PerformanceProfilerService : IPerformanceProfilerService
 {
     private readonly ILogger<PerformanceProfilerService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly ConcurrentDictionary<string, ProfilingSession> _sessions = new();
     private readonly ConcurrentDictionary<string, PerformanceAlert> _alerts = new();
     private readonly ConcurrentDictionary<string, BenchmarkResult> _benchmarks = new();
@@ -24,9 +26,10 @@ public class PerformanceProfilerService : IPerformanceProfilerService
     private readonly Stopwatch _stopwatch = new();
     private readonly Process _currentProcess;
 
-    public PerformanceProfilerService(ILogger<PerformanceProfilerService> logger)
+    public PerformanceProfilerService(ILogger<PerformanceProfilerService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         _currentProcess = Process.GetCurrentProcess();
         _stopwatch.Start();
     }
@@ -46,7 +49,7 @@ public class PerformanceProfilerService : IPerformanceProfilerService
             var session = new ProfilingSession(
                 Guid.NewGuid().ToString(),
                 name,
-                DateTime.UtcNow,
+                _timeProvider.UtcNow,
                 configuration,
                 ProfilingStatus.Running,
                 TimeSpan.Zero,
@@ -77,14 +80,14 @@ public class PerformanceProfilerService : IPerformanceProfilerService
 
             _logger.LogInformation("Stopping profiling session: {Name}", _activeSession.Name);
 
-            var duration = DateTime.UtcNow - _activeSession.StartedAt;
+            var duration = _timeProvider.UtcNow - _activeSession.StartedAt;
             var summary = GeneratePerformanceSummary();
             var issues = DetectPerfIssues();
             var recommendations = GenerateRecommendations();
 
             var report = new ProfilingReport(
                 _activeSession.Id,
-                DateTime.UtcNow,
+                _timeProvider.UtcNow,
                 duration,
                 summary,
                 issues,
@@ -151,7 +154,7 @@ public class PerformanceProfilerService : IPerformanceProfilerService
                 _currentProcess.TotalProcessorTime.TotalMilliseconds / Environment.ProcessorCount,
                 0, // GPU usage would require additional libraries
                 _currentProcess.Threads.Count,
-                DateTime.UtcNow);
+                _timeProvider.UtcNow);
 
             return Task.FromResult(Result<PerfMetrics>.Success(metrics));
         }
@@ -310,7 +313,7 @@ public class PerformanceProfilerService : IPerformanceProfilerService
             if (metrics.IsSuccess && metrics.Value != null)
             {
                 yield return new PerformanceSnapshot(
-                    DateTime.UtcNow,
+                    _timeProvider.UtcNow,
                     metrics.Value,
                     new List<string>());
             }
@@ -550,8 +553,8 @@ public class PerformanceProfilerService : IPerformanceProfilerService
         {
             var spikes = new List<PerformanceSpike>
             {
-                new(DateTime.UtcNow.AddSeconds(-30), 33.33, 16.67, SpikeType.FrameTime, "AI calculation spike"),
-                new(DateTime.UtcNow.AddSeconds(-15), 50.0, 16.67, SpikeType.FrameTime, "Particle effect burst")
+                new(_timeProvider.UtcNow.AddSeconds(-30), 33.33, 16.67, SpikeType.FrameTime, "AI calculation spike"),
+                new(_timeProvider.UtcNow.AddSeconds(-15), 50.0, 16.67, SpikeType.FrameTime, "Particle effect burst")
             };
 
             return Task.FromResult(Result<IReadOnlyList<PerformanceSpike>>.Success(spikes));
@@ -817,7 +820,7 @@ public class PerformanceProfilerService : IPerformanceProfilerService
             var result = new BenchmarkResult(
                 Guid.NewGuid().ToString(),
                 configuration.Name,
-                DateTime.UtcNow,
+                _timeProvider.UtcNow,
                 metrics);
 
             _benchmarks[result.Id] = result;
@@ -900,7 +903,7 @@ public class PerformanceProfilerService : IPerformanceProfilerService
             _baseline = new PerformanceBaseline(
                 Guid.NewGuid().ToString(),
                 description,
-                DateTime.UtcNow,
+                _timeProvider.UtcNow,
                 metrics);
 
             return Result.Success();
@@ -925,7 +928,7 @@ public class PerformanceProfilerService : IPerformanceProfilerService
         {
             var content = $"""
                 Performance Report - {options.SessionId}
-                Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}
+                Generated: {_timeProvider.UtcNow:yyyy-MM-dd HH:mm:ss}
                 
                 Summary:
                 - Average FPS: 58.5
@@ -941,7 +944,7 @@ public class PerformanceProfilerService : IPerformanceProfilerService
 
             var report = new PerfReport(
                 options.SessionId,
-                DateTime.UtcNow,
+                _timeProvider.UtcNow,
                 content,
                 options.Format);
 
@@ -992,7 +995,7 @@ public class PerformanceProfilerService : IPerformanceProfilerService
             for (int i = 0; i < 24; i++)
             {
                 history.Add(new HistoricalMetrics(
-                    DateTime.UtcNow.AddHours(-i),
+                    _timeProvider.UtcNow.AddHours(-i),
                     55 + random.NextDouble() * 10,
                     419430400L + (long)(random.NextDouble() * 209715200L),
                     30 + random.NextDouble() * 20));
@@ -1092,3 +1095,4 @@ public class PerformanceProfilerService : IPerformanceProfilerService
 
     #endregion
 }
+

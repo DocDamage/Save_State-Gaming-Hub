@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,11 +13,13 @@ namespace SaveState.Infrastructure.MachineLearning;
 public class TensorFlowMLService
 {
     private readonly ILogger<TensorFlowMLService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, MLModel> _models = new();
 
-    public TensorFlowMLService(ILogger<TensorFlowMLService> logger)
+    public TensorFlowMLService(ILogger<TensorFlowMLService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -64,7 +67,7 @@ public class TensorFlowMLService
                 Name: modelName,
                 Type: MLModelType.NeuralNetwork,
                 Version: "1.0",
-                CreatedAt: DateTime.UtcNow,
+                CreatedAt: _timeProvider.UtcNow,
                 Accuracy: 0.85f,
                 IsTrained: false);
 
@@ -243,7 +246,7 @@ public class TensorFlowMLService
             ModelName: model.Name,
             PredictedValue: 0.75,
             Confidence: 0.92f,
-            Timestamp: DateTime.UtcNow);
+            Timestamp: _timeProvider.UtcNow);
 
         await Task.CompletedTask;
         return prediction;
@@ -261,7 +264,7 @@ public class TensorFlowMLService
             Precision: 0.85f,
             Recall: 0.87f,
             F1Score: 0.86f,
-            Timestamp: DateTime.UtcNow);
+            Timestamp: _timeProvider.UtcNow);
 
         await Task.CompletedTask;
         return evaluation;

@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Automation.Services;
 using SaveState.Core.Automation.Services.DTOs;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using System.Collections.Concurrent;
 
 namespace SaveState.Infrastructure.Automation;
@@ -14,6 +15,7 @@ namespace SaveState.Infrastructure.Automation;
 public class MacroService : IMacroService
 {
     private readonly ILogger<MacroService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly ConcurrentDictionary<Guid, Macro> _macros = new();
     private MacroRecording? _currentRecording;
     private readonly object _recordingLock = new();
@@ -57,9 +59,11 @@ public class MacroService : IMacroService
     /// Initializes a new instance of the <see cref="MacroService"/> class.
     /// </summary>
     /// <param name="logger">Logger for diagnostic information.</param>
-    public MacroService(ILogger<MacroService> logger)
+    /// <param name="timeProvider">Time provider for deterministic timestamps.</param>
+    public MacroService(ILogger<MacroService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -88,7 +92,7 @@ public class MacroService : IMacroService
                     Name: macroName,
                     Description: description,
                     Mode: RecordingMode.Manual,
-                    StartedAt: DateTime.UtcNow,
+                    StartedAt: _timeProvider.UtcNow,
                     Actions: new List<MacroAction>(),
                     State: MacroRecordingStateImpl.Recording);
 
@@ -138,7 +142,7 @@ public class MacroService : IMacroService
                     Tags: Array.Empty<string>(),
                     Properties: new Dictionary<string, string>()),
                 CreatedAt: recording.StartedAt,
-                UpdatedAt: DateTime.UtcNow);
+                UpdatedAt: _timeProvider.UtcNow);
 
             _macros[macro.Id] = macro;
             _logger.LogInformation("Stopped recording macro: {Name}", macro.Name);
@@ -188,11 +192,12 @@ public class MacroService : IMacroService
                 return Task.FromResult(Result.Failure<MacroExecutionResult>($"Macro not found: {macroId}"));
             }
 
+            var now = _timeProvider.UtcNow;
             var result = new MacroExecutionResult(
                 MacroId: macroId,
                 ExecutionId: Guid.NewGuid(),
-                StartedAt: DateTime.UtcNow,
-                CompletedAt: DateTime.UtcNow,
+                StartedAt: now,
+                CompletedAt: now,
                 Success: true,
                 ActionsExecuted: macro.Actions.Count,
                 TotalActions: macro.Actions.Count,
@@ -260,7 +265,7 @@ public class MacroService : IMacroService
             return Task.FromResult(Result.Failure($"Macro not found: {macroId}"));
         }
 
-        _macros[macroId] = macro with { Name = name, Description = description, UpdatedAt = DateTime.UtcNow };
+        _macros[macroId] = macro with { Name = name, Description = description, UpdatedAt = _timeProvider.UtcNow };
         return Task.FromResult(Result.Success());
     }
 
@@ -310,4 +315,3 @@ public class MacroService : IMacroService
         return Result.Success<Macro>(imported);
     }
 }
-

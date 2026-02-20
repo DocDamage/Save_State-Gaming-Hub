@@ -2,23 +2,26 @@ namespace SaveState.Infrastructure.Ai;
 
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Ai.Services;
+using SaveState.Core.Common.Services;
 
 public class ChaosTester : IChaosTester
 {
     private readonly IAiOrchestrator _orchestrator;
     private readonly ILogger<ChaosTester> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public ChaosTester(IAiOrchestrator orchestrator, ILogger<ChaosTester> logger)
+    public ChaosTester(IAiOrchestrator orchestrator, ILogger<ChaosTester> logger, ITimeProvider timeProvider)
     {
         _orchestrator = orchestrator;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<ChaosTestResult> RunCircuitBreakerChaosTestAsync(int testDurationSeconds = 30, CancellationToken ct = default)
     {
         _logger.LogInformation("Starting circuit breaker chaos test for {Duration}s", testDurationSeconds);
 
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         var endTime = startTime.AddSeconds(testDurationSeconds);
         var requestsSent = 0;
         var failuresInduced = 0;
@@ -28,7 +31,7 @@ public class ChaosTester : IChaosTester
         var tasks = new List<Task>();
 
         // Phase 1: Normal operation (first 10 seconds)
-        while (DateTime.UtcNow < startTime.AddSeconds(10) && !ct.IsCancellationRequested)
+        while (_timeProvider.UtcNow < startTime.AddSeconds(10) && !ct.IsCancellationRequested)
         {
             requestsSent++;
             var task = MakeTestRequestAsync(ct);
@@ -38,7 +41,7 @@ public class ChaosTester : IChaosTester
 
         // Phase 2: Induce failures (next 10 seconds)
         _logger.LogInformation("Phase 2: Inducing failures to test circuit breaker");
-        while (DateTime.UtcNow < startTime.AddSeconds(20) && !ct.IsCancellationRequested)
+        while (_timeProvider.UtcNow < startTime.AddSeconds(20) && !ct.IsCancellationRequested)
         {
             failuresInduced++;
             requestsSent++;
@@ -49,7 +52,7 @@ public class ChaosTester : IChaosTester
 
         // Phase 3: Recovery (final 10 seconds)
         _logger.LogInformation("Phase 3: Testing recovery");
-        while (DateTime.UtcNow < endTime && !ct.IsCancellationRequested)
+        while (_timeProvider.UtcNow < endTime && !ct.IsCancellationRequested)
         {
             requestsSent++;
             var task = MakeTestRequestAsync(ct);

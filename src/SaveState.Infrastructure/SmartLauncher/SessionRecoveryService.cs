@@ -2,6 +2,7 @@
 
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.SmartLauncher;
 
 namespace SaveState.Infrastructure.SmartLauncher;
@@ -12,6 +13,7 @@ namespace SaveState.Infrastructure.SmartLauncher;
 public sealed class SessionRecoveryService
 {
     private readonly ILogger<SessionRecoveryService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly ILaunchSessionRepository _sessionRepository;
     private readonly ISystemOptimizerService _optimizerService;
     private readonly string _recoveryStatePath;
@@ -19,11 +21,13 @@ public sealed class SessionRecoveryService
     public SessionRecoveryService(
         ILogger<SessionRecoveryService> logger,
         ILaunchSessionRepository sessionRepository,
-        ISystemOptimizerService optimizerService)
+        ISystemOptimizerService optimizerService,
+        ITimeProvider timeProvider)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _sessionRepository = sessionRepository ?? throw new ArgumentNullException(nameof(sessionRepository));
         _optimizerService = optimizerService ?? throw new ArgumentNullException(nameof(optimizerService));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         
         _recoveryStatePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -46,7 +50,7 @@ public sealed class SessionRecoveryService
                 ProfileId = session.ProfileId,
                 StartedAt = session.StartedAt,
                 SystemState = systemState,
-                SavedAt = DateTime.UtcNow,
+                SavedAt = _timeProvider.UtcNow,
                 ProcessId = null // Would be populated if we had access to it
             };
 
@@ -104,7 +108,7 @@ public sealed class SessionRecoveryService
             }
 
             // Check if the recovery data is too old (more than 24 hours)
-            if (DateTime.UtcNow - recoveryData.SavedAt > TimeSpan.FromHours(24))
+            if (_timeProvider.UtcNow - recoveryData.SavedAt > TimeSpan.FromHours(24))
             {
                 _logger.LogWarning("Recovery data is too old, cleaning up");
                 File.Delete(_recoveryStatePath);
@@ -152,7 +156,7 @@ public sealed class SessionRecoveryService
                 Success = true,
                 SessionId = recoveryData.SessionId,
                 GameName = recoveryData.GameName,
-                Duration = DateTime.UtcNow - recoveryData.StartedAt
+                Duration = _timeProvider.UtcNow - recoveryData.StartedAt
             };
         }
         catch (Exception ex)
@@ -176,7 +180,7 @@ public sealed class SessionRecoveryService
             if (File.Exists(_recoveryStatePath))
             {
                 var fileInfo = new FileInfo(_recoveryStatePath);
-                if (DateTime.UtcNow - fileInfo.LastWriteTimeUtc > TimeSpan.FromDays(7))
+                if (_timeProvider.UtcNow - fileInfo.LastWriteTimeUtc > TimeSpan.FromDays(7))
                 {
                     File.Delete(_recoveryStatePath);
                     _logger.LogInformation("Cleaned up stale recovery data");

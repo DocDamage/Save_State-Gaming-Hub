@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Intelligence.AiContent.Services;
 using SaveState.Infrastructure.Intelligence.AiContent;
 
@@ -12,10 +13,13 @@ public class ThumbnailGeneratorServiceTests
 {
     private readonly ThumbnailGeneratorService _service;
     private readonly Mock<ILogger<ThumbnailGeneratorService>> _loggerMock;
+    private readonly Mock<ITimeProvider> _timeProviderMock;
 
     public ThumbnailGeneratorServiceTests()
     {
         _loggerMock = new Mock<ILogger<ThumbnailGeneratorService>>();
+        _timeProviderMock = new Mock<ITimeProvider>();
+        _timeProviderMock.SetupGet(tp => tp.UtcNow).Returns(new DateTime(2026, 2, 19, 18, 0, 0, DateTimeKind.Utc));
 
         var options = Options.Create(new AiContentGenerationOptions
         {
@@ -25,7 +29,7 @@ public class ThumbnailGeneratorServiceTests
             EnableCaching = true
         });
 
-        _service = new ThumbnailGeneratorService(options, _loggerMock.Object);
+        _service = new ThumbnailGeneratorService(options, _loggerMock.Object, _timeProviderMock.Object);
     }
 
     [Fact]

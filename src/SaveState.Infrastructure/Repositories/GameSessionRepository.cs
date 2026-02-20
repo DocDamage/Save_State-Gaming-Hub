@@ -116,7 +116,7 @@ public class GameSessionRepository : IGameSessionRepository
             .ConfigureAwait(false);
 
         return sessions
-            .OrderByDescending(s => s.Duration)
+            .OrderByDescending(s => s.GetDuration())
             .FirstOrDefault();
     }
 

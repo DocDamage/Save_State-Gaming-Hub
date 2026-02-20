@@ -77,8 +77,10 @@ public class GameNote : EntityBase
         string title,
         string content,
         string? category = null,
-        IEnumerable<string>? tags = null)
+        IEnumerable<string>? tags = null,
+        DateTime? createdAt = null)
     {
+        var timestamp = createdAt ?? DateTime.UtcNow;
         var note = new GameNote
         {
             Id = Guid.NewGuid(),
@@ -89,8 +91,8 @@ public class GameNote : EntityBase
             Category = category,
             Tags = tags?.ToList() ?? new List<string>(),
             IsPinned = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = timestamp,
+            UpdatedAt = timestamp
         };
 
         return note;
@@ -99,21 +101,21 @@ public class GameNote : EntityBase
     /// <summary>
     /// Updates the note content and metadata.
     /// </summary>
-    public void Update(string title, string content, string? category = null, IEnumerable<string>? tags = null)
+    public void Update(string title, string content, string? category = null, IEnumerable<string>? tags = null, DateTime? updatedAt = null)
     {
         Title = title;
         Content = content;
         Category = category;
         Tags = tags?.ToList() ?? new List<string>();
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = updatedAt ?? DateTime.UtcNow;
     }
 
     /// <summary>
     /// Toggles the pinned state of the note.
     /// </summary>
-    public void TogglePin()
+    public void TogglePin(DateTime? updatedAt = null)
     {
         IsPinned = !IsPinned;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = updatedAt ?? DateTime.UtcNow;
     }
 }

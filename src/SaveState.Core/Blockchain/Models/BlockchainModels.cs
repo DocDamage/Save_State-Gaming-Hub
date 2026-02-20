@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Blockchain.Models;
 
@@ -36,7 +37,7 @@ public record BlockchainAchievement
     public int TotalMinted { get; init; }
     public int MaxSupply { get; init; }
     public bool IsTransferable { get; init; } = false;
-    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
     public AchievementRarity Rarity { get; init; } = AchievementRarity.Common;
 }
 
@@ -66,7 +67,7 @@ public record MintedAchievement
     public BlockchainNetwork Network { get; init; }
     public string ContractAddress { get; init; } = string.Empty;
     public int TokenId { get; init; }
-    public DateTime MintedAt { get; init; } = DateTime.UtcNow;
+    public DateTime MintedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
     public string? BlockNumber { get; init; }
     public bool Verified { get; init; } = false;
 }
@@ -92,7 +93,7 @@ public record DecentralizedSaveState
     public string ContractAddress { get; init; } = string.Empty;
     public int TokenId { get; init; }
     public SaveStateVisibility Visibility { get; init; } = SaveStateVisibility.Private;
-    public DateTime UploadedAt { get; init; } = DateTime.UtcNow;
+    public DateTime UploadedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
     public DateTime? LastAccessedAt { get; init; }
     public int AccessCount { get; init; } = 0;
 }
@@ -119,7 +120,7 @@ public record WalletConnection
     public WalletType WalletType { get; init; }
     public BlockchainNetwork PreferredNetwork { get; init; }
     public bool IsConnected { get; init; }
-    public DateTime ConnectedAt { get; init; } = DateTime.UtcNow;
+    public DateTime ConnectedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
     public DateTime? LastUsedAt { get; init; }
 }
 
@@ -156,7 +157,7 @@ public record BlockchainTransaction
     public string? BlockNumber { get; init; }
     public decimal? GasPrice { get; init; }
     public decimal? GasUsed { get; init; }
-    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
     public DateTime? ConfirmedAt { get; init; }
     public string? ErrorMessage { get; init; }
 }
@@ -238,7 +239,7 @@ public record SaveStateAccessGrant
     public string GrantedToUserId { get; init; } = string.Empty;
     public string GrantedToWalletAddress { get; init; } = string.Empty;
     public AccessPermission Permission { get; init; } = AccessPermission.Read;
-    public DateTime GrantedAt { get; init; } = DateTime.UtcNow;
+    public DateTime GrantedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
     public DateTime? ExpiresAt { get; init; }
 }
 

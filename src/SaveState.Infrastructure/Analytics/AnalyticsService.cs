@@ -68,7 +68,7 @@ public class AnalyticsService : IAnalyticsService
 
                 var allSessions = await GetAllSessionsInDateRangeAsync(startDate, endDate, ct);
                 var activities = BuildDailyActivities(allSessions);
-                var totalPlaytime = TimeSpan.FromTicks(allSessions.Sum(s => s.Duration.Ticks));
+                var totalPlaytime = TimeSpan.FromTicks(allSessions.Sum(s => s.GetDuration(_timeProvider.Now).Ticks));
 
                 var streakResult = _streakCalculator.Calculate(
                     activities,
@@ -126,7 +126,7 @@ public class AnalyticsService : IAnalyticsService
                     var weekSessions = allSessions.Where(s =>
                         s.StartedAt >= weekStart && s.StartedAt < weekEnd).ToList();
 
-                    var weekPlaytime = TimeSpan.FromTicks(weekSessions.Sum(s => s.Duration.Ticks));
+                    var weekPlaytime = TimeSpan.FromTicks(weekSessions.Sum(s => s.GetDuration(_timeProvider.Now).Ticks));
                     var changePercent = previousPlaytime.TotalHours > 0
                         ? (float)((weekPlaytime.TotalHours - previousPlaytime.TotalHours) / previousPlaytime.TotalHours * 100)
                         : 0;
@@ -176,14 +176,14 @@ public class AnalyticsService : IAnalyticsService
                     .GroupBy(s => s.StartedAt.DayOfWeek)
                     .ToDictionary(
                         g => g.Key,
-                        g => TimeSpan.FromTicks(g.Sum(s => s.Duration.Ticks)));
+                        g => TimeSpan.FromTicks(g.Sum(s => s.GetDuration(_timeProvider.Now).Ticks)));
 
                 // Group by hour of day
                 var byHour = allSessions
                     .GroupBy(s => s.StartedAt.Hour)
                     .ToDictionary(
                         g => g.Key,
-                        g => TimeSpan.FromTicks(g.Sum(s => s.Duration.Ticks)));
+                        g => TimeSpan.FromTicks(g.Sum(s => s.GetDuration(_timeProvider.Now).Ticks)));
 
                 return new TimeDistribution(byDayOfWeek, byHour);
 
@@ -226,7 +226,7 @@ public class AnalyticsService : IAnalyticsService
                     {
                         GameId = g.Key,
                         GameTitle = g.First().Game.Title, // Assuming first session has the title
-                        TotalPlaytime = TimeSpan.FromTicks(g.Sum(s => s.Duration.Ticks)),
+                        TotalPlaytime = TimeSpan.FromTicks(g.Sum(s => s.GetDuration(_timeProvider.Now).Ticks)),
                         SessionCount = g.Count()
                     })
                     .OrderByDescending(x => x.TotalPlaytime)
@@ -259,7 +259,7 @@ public class AnalyticsService : IAnalyticsService
             var allSessions = await GetAllSessionsAsync(ct);
             var games = await _gameRepository.GetAllAsync(ct);
 
-            var totalPlayTime = TimeSpan.FromTicks(allSessions.Sum(s => s.Duration.Ticks));
+            var totalPlayTime = TimeSpan.FromTicks(allSessions.Sum(s => s.GetDuration(_timeProvider.Now).Ticks));
             var totalGames = games.Count;
             var totalSessions = allSessions.Count;
             var avgSession = totalSessions > 0 ? totalPlayTime / totalSessions : TimeSpan.Zero;
@@ -267,7 +267,7 @@ public class AnalyticsService : IAnalyticsService
             var sessionExports = allSessions.Select(s => new SessionExportData(
                 s.Game.Title,
                 s.StartedAt,
-                s.Duration,
+                s.GetDuration(_timeProvider.Now),
                 s.Game.Platform?.Name ?? "Unknown")).ToList();
 
             var genreExport = BuildGenreExport(games, totalPlayTime);
@@ -329,7 +329,7 @@ public class AnalyticsService : IAnalyticsService
         {
             var date = sessionGroup.Key;
             var sessionList = sessionGroup.ToList();
-            var dailyPlaytime = TimeSpan.FromTicks(sessionList.Sum(s => s.Duration.Ticks));
+            var dailyPlaytime = TimeSpan.FromTicks(sessionList.Sum(s => s.GetDuration(DateTime.UtcNow).Ticks));
             var gamesPlayed = sessionList
                 .Select(s => s.Game.Title)
                 .Where(title => !string.IsNullOrWhiteSpace(title))

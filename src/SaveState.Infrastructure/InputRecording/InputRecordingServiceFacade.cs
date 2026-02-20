@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.InputRecording;
 using SaveState.Core.InputRecording.Services;
 using SaveState.Infrastructure.Persistence;
@@ -16,9 +17,10 @@ public class InputRecordingService : IInputRecordingService
 
     public InputRecordingService(
         SaveStateDbContext dbContext,
-        ILogger<InputRecordingService> logger)
+        ILogger<InputRecordingService> logger,
+        ITimeProvider timeProvider)
     {
-        _operations = new InputRecordingServiceOperations(dbContext, logger);
+        _operations = new InputRecordingServiceOperations(dbContext, logger, timeProvider);
     }
 
     public Task<Result<RecordingSession>> StartRecordingAsync(StartRecordingRequest request, CancellationToken ct = default)

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.RetroAchievements;
 using SaveState.Core.RetroAchievements.Services;
 
@@ -17,6 +18,7 @@ public class RetroAchievementsApiClient : IRetroAchievementsService
     private readonly HttpClient _httpClient;
     private readonly IMemoryCache _cache;
     private readonly ILogger<RetroAchievementsApiClient> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly RetroAchievementsOptions _options;
     private Timer? _richPresenceTimer;
     private int _currentGameId;
@@ -26,11 +28,13 @@ public class RetroAchievementsApiClient : IRetroAchievementsService
         HttpClient httpClient,
         IMemoryCache cache,
         ILogger<RetroAchievementsApiClient> logger,
-        IOptions<RetroAchievementsOptions> options)
+        IOptions<RetroAchievementsOptions> options,
+        ITimeProvider timeProvider)
     {
         _httpClient = httpClient;
         _cache = cache;
         _logger = logger;
+        _timeProvider = timeProvider;
         _options = options.Value;
         
         _httpClient.BaseAddress = new Uri("https://retroachievements.org/API/");
@@ -170,7 +174,7 @@ public class RetroAchievementsApiClient : IRetroAchievementsService
                 IsUnlocked = a.DateEarned != null,
                 UnlockedAt = a.DateEarned != null ? DateTime.Parse(a.DateEarned) : null,
                 IsHardcore = a.DateEarnedHardcore != null,
-                LastUpdatedAt = DateTime.UtcNow
+                LastUpdatedAt = _timeProvider.UtcNow
             }).ToList();
             
             return Result<List<UserRetroAchievementProgress>>.Success(progress);
@@ -305,7 +309,7 @@ public class RetroAchievementsApiClient : IRetroAchievementsService
         try
         {
             var url = BuildApiUrl("API_AwardAchievement.php", 
-                $"a={achievementId}&h={hash ?? 1}&v={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}");
+                $"a={achievementId}&h={hash ?? 1}&v={new DateTimeOffset(_timeProvider.UtcNow).ToUnixTimeSeconds()}");
             var response = await _httpClient.GetAsync(url, ct);
             response.EnsureSuccessStatusCode();
             
@@ -460,7 +464,7 @@ public class RetroAchievementsApiClient : IRetroAchievementsService
         };
     }
 
-    private static RetroAchievement MapToAchievement(AchievementDto dto)
+    private RetroAchievement MapToAchievement(AchievementDto dto)
     {
         return new RetroAchievement
         {
@@ -473,7 +477,7 @@ public class RetroAchievementsApiClient : IRetroAchievementsService
             BadgeUrl = $"https://retroachievements.org/Badge/{dto.BadgeName}.png",
             EarnedCount = dto.TrueRatio,
             CreatedAt = DateTimeOffset.FromUnixTimeSeconds(dto.DateCreated).DateTime,
-            LastSyncedAt = DateTime.UtcNow
+            LastSyncedAt = _timeProvider.UtcNow
         };
     }
 

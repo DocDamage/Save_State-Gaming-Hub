@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Intelligence.AiContent.Services;
 
 namespace SaveState.Infrastructure.Intelligence.AiContent;
@@ -13,14 +14,17 @@ public sealed class ThumbnailGeneratorService : IThumbnailGeneratorService
 {
     private readonly ILogger<ThumbnailGeneratorService> _logger;
     private readonly AiContentGenerationOptions _options;
+    private readonly ITimeProvider _timeProvider;
     private readonly List<GenerationHistoryItem> _generationHistory = new();
 
     public ThumbnailGeneratorService(
         IOptions<AiContentGenerationOptions> options,
-        ILogger<ThumbnailGeneratorService> logger)
+        ILogger<ThumbnailGeneratorService> logger,
+        ITimeProvider timeProvider)
     {
         _options = options.Value;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <inheritdoc />
@@ -35,7 +39,7 @@ public sealed class ThumbnailGeneratorService : IThumbnailGeneratorService
                 request.GameTitle ?? "Unknown",
                 _options.DefaultProvider);
 
-            var startTime = DateTime.UtcNow;
+            var startTime = _timeProvider.UtcNow;
 
             // Build the prompt
             var prompt = BuildPrompt(request);
@@ -45,6 +49,7 @@ public sealed class ThumbnailGeneratorService : IThumbnailGeneratorService
 
             // Generate placeholder result
             var resolution = request.TargetResolution ?? ImageResolution.Large;
+            var endTime = _timeProvider.UtcNow;
             var thumbnail = new GeneratedThumbnail(
                 Id: Guid.NewGuid(),
                 Url: $"https://ai-generated/savestate/{Guid.NewGuid()}.png",
@@ -54,10 +59,10 @@ public sealed class ThumbnailGeneratorService : IThumbnailGeneratorService
                 Style: request.Style,
                 Quality: request.Quality,
                 PromptUsed: prompt,
-                GeneratedAt: DateTime.UtcNow,
+                GeneratedAt: endTime,
                 Metadata: new GenerationMetadata(
                     Provider: _options.DefaultProvider,
-                    GenerationTime: DateTime.UtcNow - startTime,
+                    GenerationTime: endTime - startTime,
                     Seed: new Random().Next(1, 1000000),
                     Cost: EstimateCost(request.Quality, resolution),
                     Parameters: new List<GenerationParameter>
@@ -78,7 +83,7 @@ public sealed class ThumbnailGeneratorService : IThumbnailGeneratorService
                 Quality: request.Quality,
                 Status: "Completed",
                 CreatedAt: startTime,
-                CompletedAt: DateTime.UtcNow,
+                CompletedAt: endTime,
                 ErrorMessage: null));
 
             return Result.Success(thumbnail);
@@ -163,7 +168,7 @@ public sealed class ThumbnailGeneratorService : IThumbnailGeneratorService
             Style: null,
             Quality: GenerationQuality.High,
             PromptUsed: "Upscaling",
-            GeneratedAt: DateTime.UtcNow,
+            GeneratedAt: _timeProvider.UtcNow,
             Metadata: new GenerationMetadata(
                 Provider: _options.DefaultProvider,
                 GenerationTime: TimeSpan.FromSeconds(1),

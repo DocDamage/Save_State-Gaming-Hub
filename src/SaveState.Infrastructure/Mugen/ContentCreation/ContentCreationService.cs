@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Services;
 using SaveState.Core.Mugen.ValueObjects;
 
@@ -14,15 +15,18 @@ public class ContentCreationService : IContentCreationService
     private readonly ILogger<ContentCreationService> _logger;
     private readonly IMugenTemplateRepository _templateRepository;
     private readonly IMugenValidationService _validationService;
+    private readonly ITimeProvider _timeProvider;
 
     public ContentCreationService(
         ILogger<ContentCreationService> logger,
         IMugenTemplateRepository templateRepository,
-        IMugenValidationService validationService)
+        IMugenValidationService validationService,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _templateRepository = templateRepository;
         _validationService = validationService;
+        _timeProvider = timeProvider;
     }
 
     /// <inheritdoc />
@@ -123,7 +127,7 @@ public class ContentCreationService : IContentCreationService
             // Backup original if requested
             if (modification.BackupOriginal)
             {
-                var backupDir = Path.Combine(charDir, "backup_" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss"));
+                var backupDir = Path.Combine(charDir, "backup_" + _timeProvider.UtcNow.ToString("yyyyMMdd_HHmmss"));
                 Directory.CreateDirectory(backupDir);
                 
                 foreach (var file in Directory.GetFiles(charDir, "*.cmd"))
@@ -375,7 +379,7 @@ public class ContentCreationService : IContentCreationService
             // Backup sources if requested
             if (request.Options.BackupSources)
             {
-                var backupDir = Path.Combine(request.OutputPath, "backup_" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss"));
+                var backupDir = Path.Combine(request.OutputPath, "backup_" + _timeProvider.UtcNow.ToString("yyyyMMdd_HHmmss"));
                 Directory.CreateDirectory(backupDir);
             }
 
@@ -445,7 +449,7 @@ public class ContentCreationService : IContentCreationService
         content.AppendLine("[Info]");
         content.AppendLine($"name = \"{request.CharacterName}\"");
         content.AppendLine($"displayname = \"{request.CharacterName}\"");
-        content.AppendLine($"versiondate = {DateTime.UtcNow:yyyy-MM-dd}");
+        content.AppendLine($"versiondate = {_timeProvider.UtcNow:yyyy-MM-dd}");
         content.AppendLine($"mugenversion = 1.1");
         content.AppendLine($"author = \"{request.Options.Author}\"");
         content.AppendLine($"pal.defaults = 1,2,3,4");
@@ -623,7 +627,7 @@ public class ContentCreationService : IContentCreationService
         content.AppendLine("[Info]");
         content.AppendLine($"name = \"{request.StageName}\"");
         content.AppendLine("displayname = \"Battle Stage\"");
-        content.AppendLine($"versiondate = {DateTime.UtcNow:yyyy-MM-dd}");
+        content.AppendLine($"versiondate = {_timeProvider.UtcNow:yyyy-MM-dd}");
         content.AppendLine("mugenversion = 1.1");
         content.AppendLine($"author = \"{request.Options.Author}\"");
         content.AppendLine("bgmusic = sound.mp3");
@@ -677,7 +681,7 @@ public class ContentCreationService : IContentCreationService
   ""author"": ""{request.Metadata.Author}"",
   ""description"": ""{request.Metadata.Description}"",
   ""tags"": [{string.Join(", ", request.Metadata.Tags.Select(t => $@"""{t}"""))}],
-  ""created"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}"",
+  ""created"": ""{_timeProvider.UtcNow:yyyy-MM-ddTHH:mm:ssZ}"",
   ""files"": [{string.Join(", ", request.ContentFiles.Select(f => $@"""{Path.GetFileName(f)}"""))}]
 }}";
 
@@ -780,9 +784,9 @@ public class ContentCreationService : IContentCreationService
 
     private async Task<string> CalculateFileChecksumAsync(string filePath)
     {
-        using var md5 = System.Security.Cryptography.MD5.Create();
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
         await using var stream = File.OpenRead(filePath);
-        var hash = await md5.ComputeHashAsync(stream);
+        var hash = await sha256.ComputeHashAsync(stream);
         return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
     }
 

@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SaveState.Application.GameLibrary.Queries;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary.Services;
 using System;
@@ -25,6 +26,7 @@ public partial class GameSessionsTabViewModel : ObservableObject
     private readonly IMediator _mediator;
     private readonly IDialogService _dialogService;
     private readonly ILogger<GameSessionsTabViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private string _sessionCountText = "0 sessions";
@@ -80,11 +82,13 @@ public partial class GameSessionsTabViewModel : ObservableObject
     public GameSessionsTabViewModel(
         IMediator mediator,
         IDialogService dialogService,
-        ILogger<GameSessionsTabViewModel> logger)
+        ILogger<GameSessionsTabViewModel> logger,
+        ITimeProvider timeProvider)
     {
         _mediator = mediator;
         _dialogService = dialogService;
         _logger = logger;
+        _timeProvider = timeProvider;
         // Note: ISessionTrackingService will be resolved from DI container when needed
         // For now, we'll handle null case gracefully
     }
@@ -112,7 +116,7 @@ public partial class GameSessionsTabViewModel : ObservableObject
             {
                 var duration = session.EndedAt.HasValue
                     ? session.EndedAt.Value - session.StartedAt
-                    : DateTime.UtcNow - session.StartedAt;
+                    : _timeProvider.UtcNow - session.StartedAt;
                 totalPlaytime += duration;
             }
 
@@ -159,7 +163,7 @@ public partial class GameSessionsTabViewModel : ObservableObject
                 var startTimeText = FormatDateTime(session.StartedAt);
                 var duration = session.EndedAt.HasValue
                     ? session.EndedAt.Value - session.StartedAt
-                    : DateTime.UtcNow - session.StartedAt;
+                    : _timeProvider.UtcNow - session.StartedAt;
                 var durationText = FormatDuration(duration);
                 var endTimeText = session.EndedAt.HasValue
                     ? FormatDateTime(session.EndedAt.Value)
@@ -200,7 +204,7 @@ public partial class GameSessionsTabViewModel : ObservableObject
             .GroupBy(s => s.StartedAt.DayOfWeek)
             .Select(g => new {
                 Day = g.Key,
-                Ticks = g.Sum(s => (s.EndedAt ?? DateTime.UtcNow).Ticks - s.StartedAt.Ticks)
+                Ticks = g.Sum(s => (s.EndedAt ?? _timeProvider.UtcNow).Ticks - s.StartedAt.Ticks)
             })
             .ToList();
 
@@ -227,7 +231,7 @@ public partial class GameSessionsTabViewModel : ObservableObject
             .GroupBy(s => s.StartedAt.Hour)
             .Select(g => new {
                 Hour = g.Key,
-                Ticks = g.Sum(s => (s.EndedAt ?? DateTime.UtcNow).Ticks - s.StartedAt.Ticks)
+                Ticks = g.Sum(s => (s.EndedAt ?? _timeProvider.UtcNow).Ticks - s.StartedAt.Ticks)
             })
             .ToList();
 
@@ -303,9 +307,9 @@ public partial class GameSessionsTabViewModel : ObservableObject
         await Task.CompletedTask;
     }
 
-    private static string FormatDateTime(DateTime dateTime)
+    private string FormatDateTime(DateTime dateTime)
     {
-        var timeSince = DateTime.UtcNow - dateTime;
+        var timeSince = _timeProvider.UtcNow - dateTime;
         if (timeSince.TotalDays < 1)
             return $"Today {dateTime:HH:mm}";
         else if (timeSince.TotalDays < 2)

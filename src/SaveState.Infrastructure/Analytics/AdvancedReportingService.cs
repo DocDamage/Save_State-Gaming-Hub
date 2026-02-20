@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,11 +13,15 @@ namespace SaveState.Infrastructure.Analytics;
 public class AdvancedReportingService
 {
     private readonly ILogger<AdvancedReportingService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, Report> _reports = new();
 
-    public AdvancedReportingService(ILogger<AdvancedReportingService> logger)
+    public AdvancedReportingService(
+        ILogger<AdvancedReportingService> logger,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -35,8 +40,8 @@ public class AdvancedReportingService
                 Id: Guid.NewGuid(),
                 Name: reportName,
                 Config: config,
-                CreatedAt: DateTime.UtcNow,
-                ModifiedAt: DateTime.UtcNow,
+                CreatedAt: _timeProvider.UtcNow,
+                ModifiedAt: _timeProvider.UtcNow,
                 Data: await GenerateReportDataAsync(config, ct));
 
             _reports[reportName] = report;
@@ -166,7 +171,7 @@ public class AdvancedReportingService
                 Name: reportName,
                 Config: config,
                 Schedule: schedule,
-                CreatedAt: DateTime.UtcNow,
+                CreatedAt: _timeProvider.UtcNow,
                 IsActive: true);
 
             _logger.LogInformation("Report scheduled successfully");
@@ -197,7 +202,7 @@ public class AdvancedReportingService
                 MostPlayedGame: "Super Mario 64",
                 AchievementProgress: 75,
                 SaveStateCount: 120,
-                GeneratedAt: DateTime.UtcNow);
+                GeneratedAt: _timeProvider.UtcNow);
 
             return Result.Success(summary);
         }
@@ -224,7 +229,7 @@ public class AdvancedReportingService
             ReportType: config.Type,
             DateRange: config.DateRange,
             Rows: rows,
-            GeneratedAt: DateTime.UtcNow);
+            GeneratedAt: _timeProvider.UtcNow);
 
         await Task.CompletedTask;
         return data;

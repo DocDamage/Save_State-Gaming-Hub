@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Repositories;
 using SaveState.Core.Mugen.ValueObjects;
 
@@ -11,11 +12,13 @@ namespace SaveState.Infrastructure.Mugen.Repositories;
 public class MugenPlayerDataRepository : IPlayerDataRepository
 {
     private readonly ILogger<MugenPlayerDataRepository> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, PlayerSkill> _playerSkills;
 
-    public MugenPlayerDataRepository(ILogger<MugenPlayerDataRepository> logger)
+    public MugenPlayerDataRepository(ILogger<MugenPlayerDataRepository> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         _playerSkills = InitializePlayerSkills();
     }
 
@@ -37,7 +40,7 @@ public class MugenPlayerDataRepository : IPlayerDataRepository
                     rating: 1500.0, // Default Elo rating
                     volatility: 0.06, // Default Glicko volatility
                     characterRatings: new Dictionary<string, double>(),
-                    lastUpdated: DateTime.UtcNow);
+                    lastUpdated: _timeProvider.UtcNow);
 
                 _playerSkills[playerId] = defaultSkill;
 
@@ -104,7 +107,7 @@ public class MugenPlayerDataRepository : IPlayerDataRepository
                     ["Ken"] = 1680,
                     ["Guile"] = 1550
                 },
-                lastUpdated: DateTime.UtcNow.AddHours(-2)),
+                lastUpdated: _timeProvider.UtcNow.AddHours(-2)),
 
             ["player2"] = new PlayerSkill(
                 playerId: "player2",
@@ -116,7 +119,7 @@ public class MugenPlayerDataRepository : IPlayerDataRepository
                     ["Blanka"] = 1600,
                     ["Dhalsim"] = 1500
                 },
-                lastUpdated: DateTime.UtcNow.AddHours(-1)),
+                lastUpdated: _timeProvider.UtcNow.AddHours(-1)),
 
             ["player3"] = new PlayerSkill(
                 playerId: "player3",
@@ -128,7 +131,7 @@ public class MugenPlayerDataRepository : IPlayerDataRepository
                     ["Sagat"] = 1700,
                     ["Ryu"] = 1680
                 },
-                lastUpdated: DateTime.UtcNow.AddMinutes(-30))
+                lastUpdated: _timeProvider.UtcNow.AddMinutes(-30))
         };
     }
 }

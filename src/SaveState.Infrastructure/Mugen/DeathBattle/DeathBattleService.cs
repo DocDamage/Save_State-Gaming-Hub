@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen;
 using SaveState.Core.Mugen.Entities;
 using SaveState.Core.Mugen.DeathBattle;
@@ -18,16 +19,19 @@ public class DeathBattleService : IDeathBattleService
     private readonly SaveStateDbContext _dbContext;
     private readonly ILogger<DeathBattleService> _logger;
     private readonly IMugenCharacterRepository _characterRepository;
+    private readonly ITimeProvider _timeProvider;
     private readonly Random _random = new();
 
     public DeathBattleService(
         SaveStateDbContext dbContext,
         ILogger<DeathBattleService> logger,
-        IMugenCharacterRepository characterRepository)
+        IMugenCharacterRepository characterRepository,
+        ITimeProvider timeProvider)
     {
         _dbContext = dbContext;
         _logger = logger;
         _characterRepository = characterRepository;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<DeathBattleMatch>> CreateBattleAsync(
@@ -60,7 +64,7 @@ public class DeathBattleService : IDeathBattleService
                 Combatant1 = CreateCombatant(combatant1),
                 Combatant2 = CreateCombatant(combatant2),
                 State = DeathBattleState.Preparation,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 IsPublic = request.IsPublic,
                 Tags = request.Tags ?? new List<string>(),
                 Phases = CreatePhases(combatant1.Name, combatant2.Name)
@@ -203,7 +207,7 @@ public class DeathBattleService : IDeathBattleService
 
         battle.Value.Outcome = outcome;
         battle.Value.State = DeathBattleState.Concluded;
-        battle.Value.CompletedAt = DateTime.UtcNow;
+        battle.Value.CompletedAt = _timeProvider.UtcNow;
 
         // Mark all phases complete
         foreach (var phase in battle.Value.Phases)
@@ -298,7 +302,7 @@ public class DeathBattleService : IDeathBattleService
             SuggestedCombatant2Name = c2.Name,
             Reasoning = reasoning,
             SuggestedByUserId = userId,
-            SuggestedAt = DateTime.UtcNow,
+            SuggestedAt = _timeProvider.UtcNow,
             Upvotes = 1
         };
 

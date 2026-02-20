@@ -14,13 +14,19 @@ public class RateLimiter : IRateLimiter
     private readonly IMemoryCache _cache;
     private readonly ILogger<RateLimiter> _logger;
     private readonly RateLimitingOptions _options;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, RateLimitRule> _rules;
 
-    public RateLimiter(IMemoryCache cache, ILogger<RateLimiter> logger, IOptions<RateLimitingOptions> options)
+    public RateLimiter(
+        IMemoryCache cache,
+        ILogger<RateLimiter> logger,
+        IOptions<RateLimitingOptions> options,
+        ITimeProvider timeProvider)
     {
         _cache = cache;
         _logger = logger;
         _options = options.Value;
+        _timeProvider = timeProvider;
         _rules = InitializeRateLimitRules();
     }
 
@@ -31,7 +37,7 @@ public class RateLimiter : IRateLimiter
             return true; // No rate limit for this operation
 
         var cacheKey = $"{operation}:{key}";
-        var now = DateTimeOffset.UtcNow;
+        var now = new DateTimeOffset(_timeProvider.UtcNow);
 
         // Get or create rate limit data for this key
         var rateLimitData = await _cache.GetOrCreateAsync(cacheKey, entry =>
@@ -74,7 +80,7 @@ public class RateLimiter : IRateLimiter
             return; // No rate limit tracking for this operation
 
         var cacheKey = $"{operation}:{key}";
-        var now = DateTimeOffset.UtcNow;
+        var now = new DateTimeOffset(_timeProvider.UtcNow);
 
         var rateLimitData = await _cache.GetOrCreateAsync(cacheKey, entry =>
         {
@@ -101,7 +107,7 @@ public class RateLimiter : IRateLimiter
             return -1; // No limit
 
         var cacheKey = $"{operation}:{key}";
-        var now = DateTimeOffset.UtcNow;
+        var now = new DateTimeOffset(_timeProvider.UtcNow);
 
         var rateLimitData = await _cache.GetOrCreateAsync(cacheKey, entry =>
         {
@@ -237,4 +243,3 @@ public class RateLimiter : IRateLimiter
         public TimeSpan WindowDuration { get; set; }
     }
 }
-

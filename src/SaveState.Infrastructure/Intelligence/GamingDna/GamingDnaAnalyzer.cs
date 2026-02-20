@@ -267,7 +267,7 @@ public sealed class GamingDnaAnalyzer : IGamingDnaAnalyzer
         };
 
         // Calculate Hardcore score
-        var avgSessionLength = sessions.Average(s => s.Duration.TotalHours);
+        var avgSessionLength = sessions.Average(s => s.GetDuration(_timeProvider.UtcNow).TotalHours);
         var hardcoreScore = Math.Min((float)(avgSessionLength / 3), 1.0f);
         archetypeScores[GamingArchetype.Hardcore] = hardcoreScore;
         indicators[GamingArchetype.Hardcore] = new List<string>
@@ -299,7 +299,7 @@ public sealed class GamingDnaAnalyzer : IGamingDnaAnalyzer
         // Simplified completion rate calculation
         // In production, this would check actual completion achievements/status
         var gamesWithHighPlaytime = sessions
-            .Where(s => s.Duration.TotalHours > 20)
+            .Where(s => s.GetDuration(_timeProvider.UtcNow).TotalHours > 20)
             .Count();
 
         var uniqueGames = sessions.Select(s => s.GameId).Distinct().Count();
@@ -314,7 +314,7 @@ public sealed class GamingDnaAnalyzer : IGamingDnaAnalyzer
             .SelectMany(s => s.Game.Genres?.Select(g => new
             {
                 Genre = g.Name,
-                PlayTime = s.Duration,
+                PlayTime = s.GetDuration(_timeProvider.UtcNow),
                 Session = s
             }) ?? Enumerable.Empty<dynamic>())
             .GroupBy(x => (string)x.Genre)
@@ -345,7 +345,7 @@ public sealed class GamingDnaAnalyzer : IGamingDnaAnalyzer
         IReadOnlyList<Core.GameLibrary.Entities.GameSession> sessions)
     {
         var avgSessionLength = sessions.Count > 0
-            ? sessions.Average(s => s.Duration.TotalMinutes)
+            ? sessions.Average(s => s.GetDuration(_timeProvider.UtcNow).TotalMinutes)
             : 0;
 
         var peakHour = sessions
@@ -392,7 +392,7 @@ public sealed class GamingDnaAnalyzer : IGamingDnaAnalyzer
     {
         var totalGames = sessions.Select(s => s.GameId).Distinct().Count();
         var completedGames = sessions
-            .Where(s => s.Duration.TotalHours > 30)
+            .Where(s => s.GetDuration(_timeProvider.UtcNow).TotalHours > 30)
             .Select(s => s.GameId)
             .Distinct()
             .Count();
@@ -448,7 +448,7 @@ public sealed class GamingDnaAnalyzer : IGamingDnaAnalyzer
         CancellationToken ct)
     {
         // Simplified achievement analysis
-        var totalPlaytime = sessions.Sum(s => s.Duration.TotalHours);
+        var totalPlaytime = sessions.Sum(s => s.GetDuration(_timeProvider.UtcNow).TotalHours);
         var achievementScore = Math.Min((float)(totalPlaytime / 100), 1.0f);
 
         return new AchievementProfile(

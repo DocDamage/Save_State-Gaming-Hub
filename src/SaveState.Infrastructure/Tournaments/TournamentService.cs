@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Constants;
+using SaveState.Core.Common.Services;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,11 +14,13 @@ namespace SaveState.Infrastructure.Tournaments;
 public class TournamentService
 {
     private readonly ILogger<TournamentService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, Tournament> _tournaments = new();
 
-    public TournamentService(ILogger<TournamentService> logger)
+    public TournamentService(ILogger<TournamentService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -40,7 +43,7 @@ public class TournamentService
                 gameId: gameId,
                 format: format,
                 maxParticipants: maxParticipants,
-                createdAt: DateTime.UtcNow,
+                createdAt: _timeProvider.UtcNow,
                 participants: new List<TournamentParticipant>(),
                 status: TournamentStatus.Registration,
                 bracket: null);
@@ -83,7 +86,7 @@ public class TournamentService
             var participant = new TournamentParticipant(
                 Id: participantId,
                 Name: participantName,
-                RegisteredAt: DateTime.UtcNow,
+                RegisteredAt: _timeProvider.UtcNow,
                 Wins: 0,
                 Losses: 0);
 
@@ -205,7 +208,7 @@ public class TournamentService
                 RunnerUp: ranking.Skip(1).FirstOrDefault(),
                 ThirdPlace: ranking.Skip(2).FirstOrDefault(),
                 FinalRanking: ranking,
-                ConcludedAt: DateTime.UtcNow);
+                ConcludedAt: _timeProvider.UtcNow);
 
             return Result.Success(results);
         }
@@ -261,7 +264,7 @@ public class TournamentService
             TournamentId: tournament.Id,
             Format: tournament.Format,
             Rounds: new List<TournamentRound>(),
-            GeneratedAt: DateTime.UtcNow);
+            GeneratedAt: _timeProvider.UtcNow);
     }
 }
 

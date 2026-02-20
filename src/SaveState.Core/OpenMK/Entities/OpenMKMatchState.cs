@@ -1,4 +1,5 @@
 using System;
+using SaveState.Core.Common.Services;
 using SaveState.Core.OpenMK.Services;
 
 namespace SaveState.Core.OpenMK.Entities;
@@ -8,6 +9,8 @@ namespace SaveState.Core.OpenMK.Entities;
 /// </summary>
 public class OpenMKMatchState
 {
+    private static DateTime UtcNow => SystemTimeProvider.Instance.UtcNow;
+
     private OpenMKMatchState() { }
 
     public OpenMKMatchState(
@@ -36,7 +39,7 @@ public class OpenMKMatchState
         Player2Wins = player2Wins;
         RoundTimeRemaining = roundTimeRemaining;
         Phase = phase;
-        LastUpdatedAt = DateTime.UtcNow;
+        LastUpdatedAt = UtcNow;
     }
 
     public Guid MatchId { get; private set; }
@@ -75,7 +78,7 @@ public class OpenMKMatchState
         Player2Wins = player2Wins;
         RoundTimeRemaining = roundTimeRemaining;
         Phase = phase;
-        LastUpdatedAt = DateTime.UtcNow;
+        LastUpdatedAt = UtcNow;
     }
 
     public bool UpdateSuperBar(Guid characterId, int newValue)
@@ -83,14 +86,14 @@ public class OpenMKMatchState
         if (characterId == Player1CharacterId)
         {
             Player1SuperBar = newValue;
-            LastUpdatedAt = DateTime.UtcNow;
+            LastUpdatedAt = UtcNow;
             return true;
         }
 
         if (characterId == Player2CharacterId)
         {
             Player2SuperBar = newValue;
-            LastUpdatedAt = DateTime.UtcNow;
+            LastUpdatedAt = UtcNow;
             return true;
         }
 
@@ -102,14 +105,14 @@ public class OpenMKMatchState
         if (characterId == Player1CharacterId)
         {
             Player1CostumeName = costumeName;
-            LastUpdatedAt = DateTime.UtcNow;
+            LastUpdatedAt = UtcNow;
             return true;
         }
 
         if (characterId == Player2CharacterId)
         {
             Player2CostumeName = costumeName;
-            LastUpdatedAt = DateTime.UtcNow;
+            LastUpdatedAt = UtcNow;
             return true;
         }
 

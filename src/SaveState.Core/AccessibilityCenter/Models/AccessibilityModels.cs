@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.AccessibilityCenter.Models;
 
@@ -116,7 +117,7 @@ public record EyeGazeData
     public float HeadYaw { get; init; }
     public float HeadRoll { get; init; }
     public float Confidence { get; init; }
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; init; } = SystemTimeProvider.Instance.UtcNow;
     public bool IsBlinkDetected { get; init; } = false;
 }
 
@@ -131,7 +132,7 @@ public record OneSwitchScanState
     public string CurrentElementId { get; init; } = string.Empty;
     public string CurrentGroupId { get; init; } = string.Empty;
     public IReadOnlyList<ScannableElement> Elements { get; init; } = Array.Empty<ScannableElement>();
-    public DateTime ScanStartedAt { get; init; } = DateTime.UtcNow;
+    public DateTime ScanStartedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>
@@ -162,7 +163,7 @@ public record VoiceCommandResult
     public float Confidence { get; init; }
     public bool IsMatch { get; init; }
     public IReadOnlyDictionary<string, object>? ExtractedParameters { get; init; }
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; init; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>
@@ -174,7 +175,7 @@ public record AccessibilityAction
     public AccessibilityActionType Type { get; init; }
     public string Target { get; init; } = string.Empty;
     public IReadOnlyDictionary<string, object> Parameters { get; init; } = new Dictionary<string, object>();
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; init; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>
@@ -204,8 +205,8 @@ public record AccessibilityProfile
     public string Name { get; init; } = "Default";
     public bool IsDefault { get; init; } = false;
     public AccessibilityConfiguration Configuration { get; init; } = new();
-    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
-    public DateTime ModifiedAt { get; init; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
+    public DateTime ModifiedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>

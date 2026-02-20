@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Sync.Services;
 using SaveState.Core.Sync.Services.DTOs;
 
@@ -22,6 +23,7 @@ public sealed class CloudCatalogService : ICloudCatalogService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMemoryCache _cache;
     private readonly ILogger<CloudCatalogService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly string _localCatalogPath;
     private readonly SemaphoreSlim _refreshLock = new(1, 1);
     private DateTimeOffset _lastRemoteRefresh = DateTimeOffset.MinValue;
@@ -38,11 +40,13 @@ public sealed class CloudCatalogService : ICloudCatalogService
     public CloudCatalogService(
         IHttpClientFactory httpClientFactory,
         IMemoryCache cache,
-        ILogger<CloudCatalogService> logger)
+        ILogger<CloudCatalogService> logger,
+        ITimeProvider timeProvider)
     {
         _httpClientFactory = httpClientFactory;
         _cache = cache;
         _logger = logger;
+        _timeProvider = timeProvider;
 
         // Resolve local catalog path relative to application base
         var basePath = AppDomain.CurrentDomain.BaseDirectory;
@@ -197,7 +201,7 @@ public sealed class CloudCatalogService : ICloudCatalogService
 
             // Update cache
             _cache.Set(CatalogCacheKey, remoteCatalog, CacheDuration);
-            _lastRemoteRefresh = DateTimeOffset.UtcNow;
+            _lastRemoteRefresh = _timeProvider.UtcNow;
 
             _logger.LogInformation("Cloud catalog refreshed successfully - {Count} games, version {Version}",
                 remoteCatalog.Games.Count, remoteCatalog.Version);
@@ -250,7 +254,7 @@ public sealed class CloudCatalogService : ICloudCatalogService
         var remoteCatalog = await FetchRemoteCatalogAsync(ct).ConfigureAwait(false);
         if (remoteCatalog != null)
         {
-            _lastRemoteRefresh = DateTimeOffset.UtcNow;
+            _lastRemoteRefresh = _timeProvider.UtcNow;
             return remoteCatalog;
         }
 
@@ -331,7 +335,7 @@ public sealed class CloudCatalogService : ICloudCatalogService
     private async Task TryBackgroundRefreshAsync(CancellationToken ct)
     {
         // Only refresh if enough time has passed
-        if (DateTimeOffset.UtcNow - _lastRemoteRefresh < RemoteRefreshInterval)
+        if (_timeProvider.UtcNow - _lastRemoteRefresh < RemoteRefreshInterval)
         {
             return;
         }

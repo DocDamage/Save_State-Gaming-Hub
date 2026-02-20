@@ -1,6 +1,7 @@
 namespace SaveState.Core.Mugen.Entities;
 
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.Interfaces;
 using SaveState.Core.Mugen.ValueObjects;
 
@@ -10,6 +11,8 @@ using SaveState.Core.Mugen.ValueObjects;
 /// </summary>
 public class MugenCharacter : EntityBase, ISoftDelete
 {
+    private static DateTime UtcNow => SystemTimeProvider.Instance.UtcNow;
+
     /// <summary>
     /// The display name of the character.
     /// </summary>
@@ -136,7 +139,7 @@ public class MugenCharacter : EntityBase, ISoftDelete
             DisplayName = name, // Default to same as name
             DefinitionFilePath = definitionFilePath,
             CharacterDirectory = characterDirectory,
-            LastScannedAt = DateTime.UtcNow,
+            LastScannedAt = UtcNow,
             IsValid = true,
             PaletteInfo = PaletteInfo.Default,
             ArcadeInfo = ArcadeInfo.Default,
@@ -177,7 +180,7 @@ public class MugenCharacter : EntityBase, ISoftDelete
         PaletteInfo = metadata.PaletteInfo ?? PaletteInfo;
         ArcadeInfo = metadata.ArcadeInfo ?? ArcadeInfo;
         FileSize = metadata.FileSize;
-        LastScannedAt = DateTime.UtcNow;
+        LastScannedAt = UtcNow;
     }
 
     /// <summary>
@@ -188,7 +191,7 @@ public class MugenCharacter : EntityBase, ISoftDelete
     {
         IsValid = false;
         ValidationErrors = errorMessage;
-        LastScannedAt = DateTime.UtcNow;
+        LastScannedAt = UtcNow;
     }
 
     /// <summary>
@@ -196,7 +199,7 @@ public class MugenCharacter : EntityBase, ISoftDelete
     /// </summary>
     public void UpdateLastScanned()
     {
-        LastScannedAt = DateTime.UtcNow;
+        LastScannedAt = UtcNow;
     }
 
     /// <summary>

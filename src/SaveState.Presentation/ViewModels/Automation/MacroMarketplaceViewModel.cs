@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using MediatR;
 using SaveState.Core.Automation.Services.DTOs;
 using SaveState.Core.Automation.Services;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Services;
 
 namespace SaveState.Presentation.ViewModels.Automation;
@@ -70,14 +71,18 @@ public partial class MacroMarketplaceViewModel : ObservableObject
         "Name (A-Z)"
     };
 
+    private readonly ITimeProvider _timeProvider;
+
     public MacroMarketplaceViewModel(
         IMediator mediator,
         IMacroManager macroManager,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        ITimeProvider timeProvider)
     {
         _mediator = mediator;
         _macroManager = macroManager;
         _notificationService = notificationService;
+        _timeProvider = timeProvider;
     }
 
     public async Task InitializeAsync()
@@ -111,7 +116,7 @@ public partial class MacroMarketplaceViewModel : ObservableObject
                     Downloads = 1250,
                     Rating = 4.5,
                     Version = "1.2.0",
-                    UpdatedAt = DateTime.UtcNow.AddDays(-5),
+                    UpdatedAt = _timeProvider.UtcNow.AddDays(-5),
                     Tags = new List<string> { "save-state", "automation", "rpg" },
                     IsInstalled = false
                 },
@@ -125,7 +130,7 @@ public partial class MacroMarketplaceViewModel : ObservableObject
                     Downloads = 980,
                     Rating = 4.8,
                     Version = "2.0.1",
-                    UpdatedAt = DateTime.UtcNow.AddDays(-2),
+                    UpdatedAt = _timeProvider.UtcNow.AddDays(-2),
                     Tags = new List<string> { "achievements", "tracking", "helper" },
                     IsInstalled = false
                 },
@@ -139,7 +144,7 @@ public partial class MacroMarketplaceViewModel : ObservableObject
                     Downloads = 750,
                     Rating = 4.3,
                     Version = "1.0.5",
-                    UpdatedAt = DateTime.UtcNow.AddDays(-10),
+                    UpdatedAt = _timeProvider.UtcNow.AddDays(-10),
                     Tags = new List<string> { "screenshots", "organization", "media" },
                     IsInstalled = true
                 },
@@ -153,7 +158,7 @@ public partial class MacroMarketplaceViewModel : ObservableObject
                     Downloads = 1100,
                     Rating = 4.6,
                     Version = "1.5.0",
-                    UpdatedAt = DateTime.UtcNow.AddDays(-1),
+                    UpdatedAt = _timeProvider.UtcNow.AddDays(-1),
                     Tags = new List<string> { "recording", "statistics", "analytics" },
                     IsInstalled = false
                 }

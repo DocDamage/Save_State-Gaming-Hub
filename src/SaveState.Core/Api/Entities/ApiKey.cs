@@ -17,7 +17,7 @@ public class ApiKey : EntityBase
 
     private ApiKey() { }
 
-    public static ApiKey Create(string key, string appName, string[] scopes, DateTime? expiresAt = null)
+    public static ApiKey Create(string key, string appName, string[] scopes, DateTime? expiresAt = null, DateTime? createdAt = null)
     {
         Guard.Against.NullOrWhiteSpace(key, nameof(key));
         Guard.Against.NullOrWhiteSpace(appName, nameof(appName));
@@ -28,15 +28,16 @@ public class ApiKey : EntityBase
             Key = key,
             AppName = appName,
             Scopes = scopes,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = createdAt ?? DateTime.UtcNow,
             ExpiresAt = expiresAt,
             IsActive = true
         };
     }
 
-    public bool IsExpired()
+    public bool IsExpired(DateTime? comparisonTime = null)
     {
-        return ExpiresAt.HasValue && DateTime.UtcNow > ExpiresAt.Value;
+        var now = comparisonTime ?? DateTime.UtcNow;
+        return ExpiresAt.HasValue && now > ExpiresAt.Value;
     }
 
     public void Revoke()
@@ -44,9 +45,9 @@ public class ApiKey : EntityBase
         IsActive = false;
     }
 
-    public void UpdateLastUsed()
+    public void UpdateLastUsed(DateTime? lastUsedAt = null)
     {
-        LastUsedAt = DateTime.UtcNow;
+        LastUsedAt = lastUsedAt ?? DateTime.UtcNow;
     }
 
     public bool ValidateScopes(string[] requiredScopes)

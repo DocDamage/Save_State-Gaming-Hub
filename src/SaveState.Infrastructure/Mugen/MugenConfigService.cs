@@ -109,7 +109,7 @@ public class MugenConfigService : IMugenConfigService
                 });
 
                 await File.WriteAllTextAsync(_configFilePath, json, ct);
-                _lastLoadTime = DateTime.UtcNow;
+                _lastLoadTime = _timeProvider.UtcNow;
 
                 _logger.LogInformation("Updated {Count} configuration settings", settings.Count);
                 return Result.Success();
@@ -222,7 +222,7 @@ public class MugenConfigService : IMugenConfigService
     private async Task<Result> EnsureConfigLoadedAsync(CancellationToken ct)
     {
         // Check if config needs reload (cache is older than 5 minutes)
-        if (_cachedConfig != null && (DateTime.UtcNow - _lastLoadTime).TotalMinutes < 5)
+        if (_cachedConfig != null && (_timeProvider.UtcNow - _lastLoadTime).TotalMinutes < 5)
             return Result.Success();
 
         try
@@ -238,14 +238,14 @@ public class MugenConfigService : IMugenConfigService
                     Directory.CreateDirectory(dir);
 
                 await File.WriteAllTextAsync(_configFilePath, json, ct);
-                _lastLoadTime = DateTime.UtcNow;
+                _lastLoadTime = _timeProvider.UtcNow;
                 _logger.LogInformation("Created default config file: {Path}", _configFilePath);
                 return Result.Success();
             }
 
             var content = await File.ReadAllTextAsync(_configFilePath, ct);
             _cachedConfig = JsonNode.Parse(content);
-            _lastLoadTime = DateTime.UtcNow;
+            _lastLoadTime = _timeProvider.UtcNow;
 
             if (_cachedConfig == null)
                 return Result.Failure("Failed to parse config.json - invalid JSON format");

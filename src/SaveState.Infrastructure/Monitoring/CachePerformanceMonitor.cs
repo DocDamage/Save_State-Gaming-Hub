@@ -13,6 +13,7 @@ public class CachePerformanceMonitor : ICachePerformanceMonitor
 {
     private readonly IApplicationMetrics _metrics;
     private readonly ILogger<CachePerformanceMonitor> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Timer _cacheTimer;
     private bool _disposed;
 
@@ -21,10 +22,12 @@ public class CachePerformanceMonitor : ICachePerformanceMonitor
 
     public CachePerformanceMonitor(
         IApplicationMetrics metrics,
-        ILogger<CachePerformanceMonitor> logger)
+        ILogger<CachePerformanceMonitor> logger,
+        ITimeProvider timeProvider)
     {
         _metrics = metrics;
         _logger = logger;
+        _timeProvider = timeProvider;
 
         // Monitor cache performance every 5 minutes
         _cacheTimer = new Timer(AnalyzeCachePerformance, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(5));
@@ -79,10 +82,10 @@ public class CachePerformanceMonitor : ICachePerformanceMonitor
                 stats.Evictions++;
             }
 
-            stats.LastAccessTime = DateTime.UtcNow;
+            stats.LastAccessTime = _timeProvider.UtcNow;
         }
 
-        stats.LastAccessTime = DateTime.UtcNow;
+        stats.LastAccessTime = _timeProvider.UtcNow;
     }
 
     private void AnalyzeCachePerformance(object? state)
@@ -91,6 +94,8 @@ public class CachePerformanceMonitor : ICachePerformanceMonitor
         {
             if (_disposed)
                 return;
+
+            var now = _timeProvider.UtcNow;
 
             foreach (var (cacheName, stats) in _cacheStatistics)
             {
@@ -117,7 +122,7 @@ public class CachePerformanceMonitor : ICachePerformanceMonitor
                 }
 
                 // Reset rolling statistics periodically
-                if (DateTime.UtcNow - stats.LastAccessTime > TimeSpan.FromHours(1))
+                if (now - stats.LastAccessTime > TimeSpan.FromHours(1))
                 {
                     stats.Reset();
                 }
@@ -167,7 +172,7 @@ public class CacheStats
     public long Hits { get; set; }
     public long Misses { get; set; }
     public long Evictions { get; set; }
-    public DateTime LastAccessTime { get; set; } = DateTime.UtcNow;
+    public DateTime LastAccessTime { get; set; } = SystemTimeProvider.Instance.UtcNow;
 
     public double HitRatio => Hits + Misses > 0 ? (double)Hits / (Hits + Misses) : 0;
     public long TotalRequests => Hits + Misses;

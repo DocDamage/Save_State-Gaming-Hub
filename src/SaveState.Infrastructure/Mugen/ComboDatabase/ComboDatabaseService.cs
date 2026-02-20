@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.ComboDatabase;
 using SaveState.Core.Mugen.ComboDatabase.Services;
 using SaveState.Infrastructure.Persistence;
@@ -13,20 +14,23 @@ public class ComboDatabaseService : IComboDatabaseService
 {
     private readonly SaveStateDbContext _dbContext;
     private readonly ILogger<ComboDatabaseService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public ComboDatabaseService(
         SaveStateDbContext dbContext,
-        ILogger<ComboDatabaseService> logger)
+        ILogger<ComboDatabaseService> logger,
+        ITimeProvider timeProvider)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public Task<Result<ComboEntry>> AddComboAsync(AddComboRequest request,  CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.AddComboAsync(_dbContext, _logger, request, ct);
+        ComboDatabaseServiceOperations.AddComboAsync(_dbContext, _logger, _timeProvider, request, ct);
 
     public Task<Result<ComboEntry>> UpdateComboAsync(Guid comboId,  UpdateComboRequest request, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.UpdateComboAsync(_dbContext, _logger, comboId, request, ct);
+        ComboDatabaseServiceOperations.UpdateComboAsync(_dbContext, _logger, _timeProvider, comboId, request, ct);
 
     public Task<Result<ComboEntry>> GetComboAsync(Guid comboId,  CancellationToken ct = default) =>
         ComboDatabaseServiceOperations.GetComboAsync(_dbContext, _logger, comboId, ct);
@@ -68,28 +72,28 @@ public class ComboDatabaseService : IComboDatabaseService
         ComboDatabaseServiceOperations.DownvoteComboAsync(_dbContext, _logger, comboId, ct);
 
     public Task<Result<ComboPracticeSession>> StartPracticeSessionAsync(Guid comboId,  CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.StartPracticeSessionAsync(_dbContext, _logger, comboId, ct);
+        ComboDatabaseServiceOperations.StartPracticeSessionAsync(_dbContext, _logger, _timeProvider, comboId, ct);
 
     public Task<Result> RecordPracticeAttemptAsync(Guid sessionId,  PracticeAttempt attempt, CancellationToken ct = default) =>
         ComboDatabaseServiceOperations.RecordPracticeAttemptAsync(_dbContext, _logger, sessionId, attempt, ct);
 
     public Task<Result<ComboPracticeSession>> CompletePracticeSessionAsync(Guid sessionId,  CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.CompletePracticeSessionAsync(_dbContext, _logger, sessionId, ct);
+        ComboDatabaseServiceOperations.CompletePracticeSessionAsync(_dbContext, _logger, _timeProvider, sessionId, ct);
 
     public Task<Result<ComboSubmission>> SubmitComboAsync(Guid comboId,  string submitterName, string? submitterId = null, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.SubmitComboAsync(_dbContext, _logger, comboId, submitterName, submitterId, ct);
+        ComboDatabaseServiceOperations.SubmitComboAsync(_dbContext, _logger, _timeProvider, comboId, submitterName, submitterId, ct);
 
     public Task<Result> ReviewSubmissionAsync(Guid submissionId,  SubmissionStatus status,  string? reviewerNotes = null, string? reviewedBy = null, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.ReviewSubmissionAsync(_dbContext, _logger, submissionId, status, reviewerNotes, reviewedBy, ct);
+        ComboDatabaseServiceOperations.ReviewSubmissionAsync(_dbContext, _logger, _timeProvider, submissionId, status, reviewerNotes, reviewedBy, ct);
 
     public Task<Result<List<ComboSubmission>>> GetPendingSubmissionsAsync(int page = 1,  int pageSize = 20, CancellationToken ct = default) =>
         ComboDatabaseServiceOperations.GetPendingSubmissionsAsync(_dbContext, _logger, page, pageSize, ct);
 
     public Task<Result<ComboCollection>> CreateCollectionAsync(string name,  string? description,  string? characterName, string creator, bool isPublic = true, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.CreateCollectionAsync(_dbContext, _logger, name, description, characterName, creator, isPublic, ct);
+        ComboDatabaseServiceOperations.CreateCollectionAsync(_dbContext, _logger, _timeProvider, name, description, characterName, creator, isPublic, ct);
 
     public Task<Result> AddToCollectionAsync(Guid collectionId,  Guid comboId, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.AddToCollectionAsync(_dbContext, _logger, collectionId, comboId, ct);
+        ComboDatabaseServiceOperations.AddToCollectionAsync(_dbContext, _logger, _timeProvider, collectionId, comboId, ct);
 
     public Task<Result<ComboCollection>> GetCollectionAsync(Guid collectionId,  CancellationToken ct = default) =>
         ComboDatabaseServiceOperations.GetCollectionAsync(_dbContext, _logger, collectionId, ct);
@@ -101,7 +105,7 @@ public class ComboDatabaseService : IComboDatabaseService
         ComboDatabaseServiceOperations.DiscoverCombosFromReplayAsync(_dbContext, _logger, replayAnalysisId, ct);
 
     public Task<Result<int>> ImportCombosAsync(string source,  string data, CancellationToken ct = default) =>
-        ComboDatabaseServiceOperations.ImportCombosAsync(_dbContext, _logger, source, data, ct);
+        ComboDatabaseServiceOperations.ImportCombosAsync(_dbContext, _logger, _timeProvider, source, data, ct);
 
     public Task<Result<string>> ExportCombosAsync(string characterName,  ExportFormat format = ExportFormat.Json, CancellationToken ct = default) =>
         ComboDatabaseServiceOperations.ExportCombosAsync(_dbContext, _logger, characterName, format, ct);

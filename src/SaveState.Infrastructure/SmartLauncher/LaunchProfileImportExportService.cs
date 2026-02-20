@@ -3,6 +3,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.SmartLauncher;
 
 namespace SaveState.Infrastructure.SmartLauncher;
@@ -14,14 +15,17 @@ public sealed class LaunchProfileImportExportService : ILaunchProfileImportExpor
 {
     private readonly ILaunchProfileRepository _profileRepository;
     private readonly ILogger<LaunchProfileImportExportService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly JsonSerializerOptions _jsonOptions;
 
     public LaunchProfileImportExportService(
         ILaunchProfileRepository profileRepository,
-        ILogger<LaunchProfileImportExportService> logger)
+        ILogger<LaunchProfileImportExportService> logger,
+        ITimeProvider timeProvider)
     {
         _profileRepository = profileRepository ?? throw new ArgumentNullException(nameof(profileRepository));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         _jsonOptions = new JsonSerializerOptions
         {
             WriteIndented = true,
@@ -43,7 +47,7 @@ public sealed class LaunchProfileImportExportService : ILaunchProfileImportExpor
             var dto = new LaunchProfileDto
             {
                 Version = "1.0",
-                ExportedAt = DateTime.UtcNow,
+                ExportedAt = _timeProvider.UtcNow,
                 Profiles = new List<LaunchProfileExportData> { MapToExportData(profileResult.Value) }
             };
 
@@ -66,7 +70,7 @@ public sealed class LaunchProfileImportExportService : ILaunchProfileImportExpor
             var dto = new LaunchProfileDto
             {
                 Version = "1.0",
-                ExportedAt = DateTime.UtcNow,
+                ExportedAt = _timeProvider.UtcNow,
                 Profiles = profiles.Select(MapToExportData).ToList()
             };
 
@@ -343,7 +347,7 @@ public sealed class LaunchProfileImportExportService : ILaunchProfileImportExpor
         };
     }
 
-    private static LaunchProfile MapFromExportData(LaunchProfileExportData data)
+    private LaunchProfile MapFromExportData(LaunchProfileExportData data)
     {
         var profile = new LaunchProfile
         {
@@ -367,7 +371,7 @@ public sealed class LaunchProfileImportExportService : ILaunchProfileImportExpor
                 TargetFPS = data.PerformanceSettings?.TargetFPS,
                 EnableHardwareGPUScheduling = data.PerformanceSettings?.EnableHardwareGPUScheduling ?? true
             },
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = _timeProvider.UtcNow
         };
 
         if (data.DisplaySettings != null)

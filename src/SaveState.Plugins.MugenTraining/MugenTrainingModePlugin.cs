@@ -1,8 +1,11 @@
 using System.Diagnostics;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Plugins;
+
 
 namespace SaveState.Plugins.MugenTraining;
 
@@ -14,6 +17,7 @@ public class MugenTrainingModePlugin : IPlugin
 {
     private IPluginContext? _context;
     private ILogger? _logger;
+    private ITimeProvider? _timeProvider;
     private TrainingSession? _currentSession;
     private readonly Dictionary<string, ComboRecording> _recordedCombos = new();
     private readonly List<FrameDataEntry> _frameDataHistory = new();
@@ -29,6 +33,7 @@ public class MugenTrainingModePlugin : IPlugin
     {
         _context = context;
         _logger = context.Logger;
+        _timeProvider = context.Services.GetRequiredService<ITimeProvider>();
 
         _logger.LogInformation("Initializing MUGEN Training Mode plugin");
 
@@ -96,7 +101,7 @@ public class MugenTrainingModePlugin : IPlugin
             _currentSession = new TrainingSession
             {
                 Id = Guid.NewGuid(),
-                StartTime = DateTime.UtcNow,
+                StartTime = _timeProvider?.UtcNow ?? DateTime.UtcNow,
                 CharacterName = "Training Mode",
                 OpponentName = "Dummy",
                 TrainingGoals = new List<string> { "Practice combos", "Analyze frame data", "Improve timing" }
@@ -286,7 +291,7 @@ public class MugenTrainingModePlugin : IPlugin
             {
                 var frameData = new FrameDataEntry
                 {
-                    Timestamp = DateTime.UtcNow,
+                    Timestamp = _timeProvider?.UtcNow ?? DateTime.UtcNow,
                     MoveName = GetRandomMoveName(),
                     FrameAdvantage = Random.Shared.Next(-10, 15),
                     Damage = Random.Shared.Next(10, 150),
@@ -306,7 +311,7 @@ public class MugenTrainingModePlugin : IPlugin
             // Update current session
             if (_currentSession != null)
             {
-                _currentSession.Duration = DateTime.UtcNow - _currentSession.StartTime;
+                _currentSession.Duration = (_timeProvider?.UtcNow ?? DateTime.UtcNow) - _currentSession.StartTime;
                 _currentSession.CombosPracticed = _recordedCombos.Count;
             }
         }
@@ -321,7 +326,7 @@ public class MugenTrainingModePlugin : IPlugin
         try
         {
             var sessionData = JsonSerializer.Serialize(session);
-            var fileName = $"training_session_{session.Id}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json";
+            var fileName = $"training_session_{session.Id}_{(_timeProvider?.UtcNow ?? DateTime.UtcNow):yyyyMMdd_HHmmss}.json";
 
             if (_context != null)
             {

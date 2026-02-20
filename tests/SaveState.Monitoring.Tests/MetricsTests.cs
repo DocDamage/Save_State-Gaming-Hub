@@ -229,7 +229,7 @@ public class MetricsTests
     public void ErrorTrackingService_RecordsExceptions()
     {
         // Arrange
-        var errorTracker = new SaveState.Infrastructure.Monitoring.ErrorTrackingService(_metrics, new Mock<ILogger<SaveState.Infrastructure.Monitoring.ErrorTrackingService>>().Object);
+        var errorTracker = new SaveState.Infrastructure.Monitoring.ErrorTrackingService(_metrics, new Mock<ILogger<SaveState.Infrastructure.Monitoring.ErrorTrackingService>>().Object, SaveState.Core.Common.Services.SystemTimeProvider.Instance);
         var exception = new InvalidOperationException("Test exception");
 
         // Act
@@ -251,7 +251,7 @@ public class MetricsTests
     public void CachePerformanceMonitor_TracksHitMissRatio()
     {
         // Arrange
-        var cacheMonitor = new SaveState.Infrastructure.Monitoring.CachePerformanceMonitor(_metrics, new Mock<ILogger<SaveState.Infrastructure.Monitoring.CachePerformanceMonitor>>().Object);
+        var cacheMonitor = new SaveState.Infrastructure.Monitoring.CachePerformanceMonitor(_metrics, new Mock<ILogger<SaveState.Infrastructure.Monitoring.CachePerformanceMonitor>>().Object, SaveState.Core.Common.Services.SystemTimeProvider.Instance);
 
         // Act
         cacheMonitor.RecordCacheHit("TestCache");

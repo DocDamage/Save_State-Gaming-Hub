@@ -99,8 +99,24 @@ Slice: A
     - `tools/_phase1_outdated_post_syscmd_aws.json`
     - `tools/_phase1_deprecated_post_syscmd_aws.json`
 
+### Progress Update (2026-02-19, Session 20)
+
+Completed:
+
+- `SharpCompress` `0.39.0` -> `0.46.2` in `Directory.Packages.props` ✅
+  - Migrated `SharpCompressExtractionService.cs` to 0.46.2 API:
+    - `ArchiveFactory.Open(path)` → `ArchiveFactory.OpenArchive(path)` (breaking rename)
+    - `ExtractionOptions` removed — replaced with manual path construction + `entry.WriteToFile(targetPath)` for overwrite control
+    - Removed unused `using SharpCompress.Common;` and `using SharpCompress.Readers;`
+  - Build verification: 0 warnings, 0 errors. Full test suite green.
+
+Remaining:
+
+- `Tobii.Interaction` `0.7.3` - NO UPDATE AVAILABLE at configured sources.
+- Keep `Microsoft.EntityFrameworkCore.*` and `Microsoft.AspNetCore.TestHost` on `9.0.13` until a coordinated `net10.0` migration wave.
+
 ### Remaining Phase 1 Queue (post cluster wave)
-- `SharpCompress` `0.39.0` -> `0.46.0` in `src/SaveState.Infrastructure/SaveState.Infrastructure.csproj` - DEFERRED (breaking API changes).
+
 - `Tobii.Interaction` `0.7.3` - NO UPDATE AVAILABLE at configured sources.
 - Keep `Microsoft.EntityFrameworkCore.*` and `Microsoft.AspNetCore.TestHost` on `9.0.13` until a coordinated `net10.0` migration wave.
 
@@ -178,6 +194,176 @@ Slice: B
   - `dotnet test SaveStateReborn.sln --no-build`: pass.
 - Snapshot metric impact:
   - Application direct-now usage: `22 -> 0`.
+
+### Progress Update (2026-02-19, Session 20) - Infrastructure/Core Wave
+
+Infrastructure and Core layer ITimeProvider migration tranche:
+
+- Infrastructure services migrated to injected `ITimeProvider`:
+  - `src/SaveState.Infrastructure/Mugen/BalanceAnalyzer/CharacterBalanceAnalyzer.cs` (8 usages)
+  - `src/SaveState.Infrastructure/Monitoring/ErrorTrackingService.cs` (4 service-level usages; nested `ErrorStats` class uses `SystemTimeProvider.Instance` as no-DI fallback)
+  - `src/SaveState.Infrastructure/Repositories/GameRepository.cs` (7 usages)
+  - `src/SaveState.Infrastructure/Automation/MacroPlayer.cs` (7 usages)
+  - `src/SaveState.Infrastructure/AutoSave/AutoSaveService.cs` (`DateTime.Now` → `_timeProvider.UtcNow`)
+  - `src/SaveState.Infrastructure/Mugen/CharacterFusion/CharacterFusionService.cs` (`DateTime.Now` → `_timeProvider.UtcNow`)
+- Core entity/model defaults migrated to `SystemTimeProvider.Instance.UtcNow` (no-DI context):
+  - `src/SaveState.Core/GameLibrary/Entities/GameMedia.cs` (8 usages)
+  - `src/SaveState.Core/GamingHealth/Models/HealthModels.cs` (7 usages)
+  - `src/SaveState.Core/GameLibrary/Entities/GameMod.cs` (7 usages)
+  - `src/SaveState.Core/BiometricGaming/Models/BiometricModels.cs` (7 usages)
+- Presentation ViewModel migrated:
+  - `src/SaveState.Presentation/ViewModels/Subscriptions/SubscriptionManagerViewModel.cs` (`DateTime.Now` → `SystemTimeProvider.Instance.UtcNow`)
+- Test updates:
+  - `tests/SaveState.Monitoring.Tests/MetricsTests.cs` — `ErrorTrackingService` constructor updated with `SystemTimeProvider.Instance`.
+  - `tests/SaveState.Application.Tests/Concurrency/ConcurrencyTests.cs` — `ITimeProvider` registered in test `ServiceCollection`.
+- Verification:
+  - `DateTime.Now` / `DateTimeOffset.Now` in `src`: `6 -> 0` (100% elimination).
+  - `UtcNow` direct usage in `src`: `595 -> 536` (-59, -10%).
+  - `dotnet build SaveStateReborn.sln`: pass (0 warnings, 0 errors).
+  - `dotnet test SaveStateReborn.sln --no-build`: pass (all assemblies green).
+
+### Progress Update (2026-02-19, Session 21) - Infrastructure/Core Hotspot Wave
+
+Additional Slice B `ITimeProvider` migration tranche completed in remaining high-density Core/Infrastructure hotspots:
+
+- Infrastructure services migrated to injected `ITimeProvider`:
+  - `src/SaveState.Infrastructure/InputRecording/InputRecordingService.cs` (6 usages)
+  - `src/SaveState.Infrastructure/Monitoring/DatabaseConnectionMonitor.cs` (6 usages)
+  - `src/SaveState.Infrastructure/DataPortability/DataExportService.cs` (6 usages)
+  - `src/SaveState.Infrastructure/Mugen/StoryMode/StoryModeService.cs` (6 usages)
+- Infrastructure call-site wiring:
+  - `src/SaveState.Infrastructure/InputRecording/InputRecordingServiceFacade.cs`
+- Core defaults and static time-range helpers migrated to `SystemTimeProvider.Instance.UtcNow`:
+  - `src/SaveState.Core/Blockchain/Models/BlockchainModels.cs` (6 usages)
+  - `src/SaveState.Core/AccessibilityCenter/Models/AccessibilityModels.cs` (6 usages)
+  - `src/SaveState.Core/Translation/Models/TranslationModels.cs` (6 usages)
+  - `src/SaveState.Core/OpenMK/Entities/OpenMKMatchState.cs` (6 usages)
+  - `src/SaveState.Core/InputRecording/InputRecordingModels.cs` (5 usages)
+  - `src/SaveState.Core/Intelligence/GamingDna/Services/IGamingDnaAnalyzer.cs` (7 usages)
+- Test updates:
+  - `tests/SaveState.Infrastructure.Tests/Input/InputRecordingServiceFacadeTests.cs` now injects mocked `ITimeProvider` and asserts deterministic timestamps.
+  - `tests/SaveState.Infrastructure.Tests/DataPortability/DataExportServiceTests.cs` now injects mocked `ITimeProvider` and asserts exported timestamp determinism.
+- Verification:
+  - Targeted `rg` scan confirms **0** direct `DateTime/DateTimeOffset` now usage in all migrated files above.
+  - `dotnet test tests/SaveState.Infrastructure.Tests/SaveState.Infrastructure.Tests.csproj --filter "FullyQualifiedName~InputRecordingServiceFacadeTests|FullyQualifiedName~DataExportServiceTests"` passed.
+  - `dotnet build SaveStateReborn.sln --no-restore --verbosity minimal` passed (0 warnings, 0 errors).
+  - `dotnet test SaveStateReborn.sln --no-build --verbosity minimal` passed.
+  - Snapshot metric impact in `src`: `UtcNow 536 -> 476` (-60, -11.2%); `Now` remains exception-only (`2`).
+
+### Progress Update (2026-02-19, Session 22) - Macro/Profiler Hotspots
+
+Continued Slice B on the next highest remaining Infrastructure hotspots:
+
+- Infrastructure services migrated to injected `ITimeProvider`:
+  - `src/SaveState.Infrastructure/Automation/MacroService.cs` (5 usages)
+  - `src/SaveState.Infrastructure/Automation/MacroManager.cs` (5 usages)
+  - `src/SaveState.Infrastructure/Performance/MemoryProfiler.cs` (5 usages)
+- Test infrastructure wiring:
+  - `tests/SaveState.Tests.Infrastructure/BaseTests.cs` now registers `ITimeProvider` for integration-default `MemoryProfiler` activation.
+- Verification:
+  - Targeted `rg` scan confirms **0** direct `DateTime/DateTimeOffset` now usage in all three hotspot files.
+  - `dotnet test tests/SaveState.Infrastructure.Tests/SaveState.Infrastructure.Tests.csproj --filter "FullyQualifiedName~Automation|FullyQualifiedName~MemoryProfiler"` passed.
+  - `dotnet build SaveStateReborn.sln --no-restore --verbosity minimal` passed (0 warnings, 0 errors).
+  - `dotnet test SaveStateReborn.sln --no-build --verbosity minimal` passed.
+  - Snapshot metric impact in `src`: `UtcNow 476 -> 461` (-15, -3.2%); `Now` remains exception-only (`2`).
+
+### Progress Update (2026-02-19, Session 23) - Service + Core Entity Wave
+
+Continued Slice B on the next high-density Infrastructure and Core hotspots:
+
+- Infrastructure services migrated to injected `ITimeProvider`:
+  - `src/SaveState.Infrastructure/Mugen/AiBattleAnalysis/AiBattleAnalysisService.cs` (5 usages)
+  - `src/SaveState.Infrastructure/Analytics/AdvancedReportingService.cs` (5 usages)
+  - `src/SaveState.Infrastructure/SaveStateCloudSync/CloudSyncService.cs` (5 usages)
+  - `src/SaveState.Infrastructure/Intelligence/AiContent/ThumbnailGeneratorService.cs` (5 usages)
+- Core entity/model migration to deterministic no-DI time source (`SystemTimeProvider.Instance.UtcNow`):
+  - `src/SaveState.Core/Mugen/Entities/MugenCollection.cs` (5 usages)
+  - `src/SaveState.Core/Mugen/Entities/MugenCharacterCollection.cs` (5 usages)
+  - `src/SaveState.Core/GameLibrary/Entities/UserAchievement.cs` (5 usages)
+  - `src/SaveState.Core/RomManagement/RomValidation/RomValidationModels.cs` (5 usages)
+- Test/DI updates:
+  - `tests/SaveState.Core.Tests/Intelligence/AiContent/ThumbnailGeneratorServiceTests.cs` updated for `ITimeProvider` ctor injection.
+  - `src/SaveState.Infrastructure/Intelligence/IntelligenceServiceExtensions.cs` now `TryAddSingleton<ITimeProvider>(SystemTimeProvider.Instance)` to keep standalone AI content/intelligence registrations activatable.
+- Verification:
+  - Targeted `rg` scan confirms **0** direct `DateTime/DateTimeOffset` now usage in all migrated files above.
+  - `dotnet test tests/SaveState.Core.Tests/SaveState.Core.Tests.csproj --filter "FullyQualifiedName~ThumbnailGeneratorServiceTests" --no-build --verbosity minimal` passed.
+  - `dotnet build SaveStateReborn.sln --no-restore --verbosity minimal` passed (0 warnings, 0 errors).
+  - `dotnet test SaveStateReborn.sln --no-build --verbosity minimal` passed.
+  - Snapshot metric impact in `src`: `UtcNow 461 -> 421` (-40, -8.7%); `Now` remains exception-only (`2`).
+
+### Progress Update (2026-02-19, Session 24) - Content/Ikemen/Sprite Hotspots
+
+Continued Slice B on the next highest remaining Infrastructure hotspots:
+
+- Infrastructure services migrated to injected `ITimeProvider`:
+  - `src/SaveState.Infrastructure/Mugen/ContentCreation/ContentCreationService.cs` (5 usages)
+  - `src/SaveState.Infrastructure/Mugen/IkemenGo/IkemenGoService.cs` (5 usages)
+  - `src/SaveState.Infrastructure/Mugen/SpriteAnimation/SpriteAnimationService.cs` (5 usages)
+- Constructor/call-site and test updates:
+  - `src/SaveState.Infrastructure/Mugen/IkemenGo/IkemenGoServiceFacade.cs` now requires and forwards `ITimeProvider`.
+  - `tests/SaveState.Infrastructure.Tests/Mugen/IkemenGoServiceFacadeTests.cs` now injects `SystemTimeProvider.Instance`.
+- Build hygiene follow-up in touched hotspot:
+  - `ContentCreationService.CalculateFileChecksumAsync` migrated from `MD5` to `SHA256` to satisfy analyzer policy (`CA5351`).
+- Verification:
+  - Targeted `rg` scan confirms **0** direct `DateTime/DateTimeOffset` now usage in all migrated hotspot files above.
+  - `dotnet test tests/SaveState.Infrastructure.Tests/SaveState.Infrastructure.Tests.csproj --filter "FullyQualifiedName~IkemenGoServiceFacadeTests" --no-build --verbosity minimal` passed.
+  - `dotnet build SaveStateReborn.sln --no-restore --verbosity minimal` passed (0 warnings, 0 errors).
+  - `dotnet test SaveStateReborn.sln --no-build --verbosity minimal` passed.
+  - Snapshot metric impact in `src`: `UtcNow 421 -> 406` (-15, -3.6%); `Now` remains exception-only (`2`).
+
+### Progress Update (2026-02-19, Session 25) - Tournament + Sync + Core Models Wave
+
+Continued Slice B on the next 4-usage Core/Infrastructure hotspot cluster:
+
+- Infrastructure services migrated to injected `ITimeProvider`:
+  - `src/SaveState.Infrastructure/Sync/OneDriveStorageProvider.cs` (4 usages)
+  - `src/SaveState.Infrastructure/Mugen/TournamentBracket/TournamentBracketService.cs` (4 usages)
+  - `src/SaveState.Infrastructure/Tournaments/TournamentService.cs` (4 usages)
+- Core entity/model defaults migrated to deterministic no-DI source (`SystemTimeProvider.Instance.UtcNow`):
+  - `src/SaveState.Core/TournamentManagement/Models/TournamentModels.cs` (4 usages)
+  - `src/SaveState.Core/Mugen/Entities/MugenCharacter.cs` (4 usages via local helper)
+- Constructor/call-site and test updates:
+  - `src/SaveState.Infrastructure/Mugen/TournamentBracket/TournamentEventService.cs` now accepts and forwards `ITimeProvider`.
+  - `tests/SaveState.Infrastructure.Tests/Mugen/TournamentEventServiceFacadeTests.cs` updated to inject `SystemTimeProvider.Instance`.
+- Verification:
+  - Targeted `rg` scan confirms **0** direct `DateTime/DateTimeOffset` now usage in all migrated files above.
+  - `dotnet test tests/SaveState.Infrastructure.Tests/SaveState.Infrastructure.Tests.csproj --filter "FullyQualifiedName~TournamentEventServiceFacadeTests" --verbosity minimal` passed.
+  - `dotnet build SaveStateReborn.sln --no-restore --verbosity minimal` passed (0 warnings, 0 errors).
+  - `dotnet test SaveStateReborn.sln --no-build --verbosity minimal` passed.
+  - Snapshot metric impact in `src`: `UtcNow 406 -> 386` (-20, -4.9%); `Now` remains exception-only (`2`).
+
+### Progress Update (2026-02-19, Session 26) - Social + Drive + Core Models Wave
+
+Continued Slice B on the next 4-usage Core/Infrastructure hotspot cluster:
+
+- Infrastructure services migrated to injected `ITimeProvider`:
+  - `src/SaveState.Infrastructure/Sync/GoogleDriveStorageProvider.cs` (4 usages)
+  - `src/SaveState.Infrastructure/Social/SocialFeaturesService.cs` (4 usages)
+- Core model/entity defaults and computed properties migrated to deterministic no-DI source (`SystemTimeProvider.Instance.UtcNow`):
+  - `src/SaveState.Core/GameDeals/Models.cs` (4 usages)
+  - `src/SaveState.Core/Social/Entities/Friend.cs` (4 usages via local helper)
+- Verification:
+  - Targeted `rg` scan confirms **0** direct `DateTime/DateTimeOffset` now usage in all migrated files above.
+  - `dotnet build SaveStateReborn.sln --no-restore --verbosity minimal` passed (0 warnings, 0 errors).
+  - `dotnet test SaveStateReborn.sln --no-build --verbosity minimal` passed.
+  - Snapshot metric impact in `src`: `UtcNow 386 -> 370` (-16, -4.1%); `Now` remains exception-only (`2`).
+
+### Progress Update (2026-02-19, Session 27) - Multiplayer + Config + Health + Monitoring Wave
+
+Continued Slice B on the next highest remaining Infrastructure hotspots:
+
+- Infrastructure services migrated to deterministic time usage:
+  - `src/SaveState.Infrastructure/Multiplayer/MultiplayerService.cs` (4 usages)
+  - `src/SaveState.Infrastructure/Mugen/MugenConfigService.cs` (4 usages)
+  - `src/SaveState.Infrastructure/HealthChecks/ApplicationHealthCheckService.cs` (4 usages)
+  - `src/SaveState.Infrastructure/Monitoring/CachePerformanceMonitor.cs` (4 usages)
+- Constructor/call-site test update:
+  - `tests/SaveState.Monitoring.Tests/MetricsTests.cs` updated to pass `SystemTimeProvider.Instance` into `CachePerformanceMonitor`.
+- Verification:
+  - Targeted `rg` scan confirms **0** direct `DateTime/DateTimeOffset` now usage in all four hotspot files above.
+  - `dotnet build SaveStateReborn.sln --no-restore --verbosity minimal` passed (0 warnings, 0 errors).
+  - `dotnet test SaveStateReborn.sln --no-build --verbosity minimal` passed.
+  - Snapshot metric impact in `src`: `UtcNow 370 -> 354` (-16, -4.3%); `Now` remains exception-only (`2`).
 
 ### Tasks
 1. Prioritize migration in this order:

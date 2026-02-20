@@ -52,7 +52,7 @@ public class BatteryOptimizer : IBatteryOptimizer
                 Name: $"{mode} Mode - {_timeProvider.Now:yyyy-MM-dd}",
                 Mode: mode,
                 Settings: settings,
-                CreatedAt: DateTime.UtcNow,
+                CreatedAt: _timeProvider.UtcNow,
                 IsActive: false);
 
             lock (_profilesLock)
@@ -349,7 +349,7 @@ public class BatteryOptimizer : IBatteryOptimizer
                     EnablePowerSaverMode: false,
                     TargetFrameRate: 60,
                     ScreenBrightnessPercent: 100),
-                DateTime.UtcNow.AddDays(-1),
+                _timeProvider.UtcNow.AddDays(-1),
                 false);
 
             _profiles[balancedId] = new BatteryProfile(
@@ -365,7 +365,7 @@ public class BatteryOptimizer : IBatteryOptimizer
                     EnablePowerSaverMode: false,
                     TargetFrameRate: 60,
                     ScreenBrightnessPercent: 80),
-                DateTime.UtcNow.AddDays(-1),
+                _timeProvider.UtcNow.AddDays(-1),
                 true);
 
             _profiles[powerSaverId] = new BatteryProfile(
@@ -381,7 +381,7 @@ public class BatteryOptimizer : IBatteryOptimizer
                     EnablePowerSaverMode: true,
                     TargetFrameRate: 30,
                     ScreenBrightnessPercent: 50),
-                DateTime.UtcNow.AddDays(-1),
+                _timeProvider.UtcNow.AddDays(-1),
                 false);
 
             _activeProfile = _profiles[balancedId];

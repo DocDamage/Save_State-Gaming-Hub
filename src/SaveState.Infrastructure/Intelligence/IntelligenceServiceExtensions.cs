@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Intelligence.AiContent.Services;
 using SaveState.Core.Intelligence.GamingDna.Services;
 using SaveState.Core.Intelligence.Recommendations.Services;
@@ -26,6 +28,8 @@ public static class IntelligenceServiceExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.TryAddSingleton<ITimeProvider>(SystemTimeProvider.Instance);
+
         // Smart Game Recommendations 2.0
         services.AddSingleton<IRecommendationEngineV2, HybridRecommendationEngineV2>();
 
@@ -81,6 +85,8 @@ public static class IntelligenceServiceExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.TryAddSingleton<ITimeProvider>(SystemTimeProvider.Instance);
+
         services.AddSingleton<IThumbnailGeneratorService, ThumbnailGeneratorService>();
         services.AddSingleton<INaturalLanguageSaveSearch, NaturalLanguageSaveSearch>();
 

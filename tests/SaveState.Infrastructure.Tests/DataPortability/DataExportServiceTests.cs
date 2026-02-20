@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using SaveState.Core.Analytics.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
@@ -20,6 +21,7 @@ public class DataExportServiceTests
     private readonly Mock<IGameRepository> _gameRepositoryMock;
     private readonly Mock<ICompletionPredictionService> _predictionServiceMock;
     private readonly Mock<ILogger<DataExportService>> _loggerMock;
+    private readonly Mock<ITimeProvider> _timeProviderMock;
     private readonly DataExportService _service;
     private readonly SaveStateDbContext _dbContext; // Needed for constructor but not used in ExportGameLibraryAsync
 
@@ -28,6 +30,7 @@ public class DataExportServiceTests
         _gameRepositoryMock = new Mock<IGameRepository>();
         _predictionServiceMock = new Mock<ICompletionPredictionService>();
         _loggerMock = new Mock<ILogger<DataExportService>>();
+        _timeProviderMock = new Mock<ITimeProvider>();
 
         var options = new DbContextOptionsBuilder<SaveStateDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
@@ -38,13 +41,17 @@ public class DataExportServiceTests
             _gameRepositoryMock.Object,
             _dbContext,
             _predictionServiceMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _timeProviderMock.Object);
     }
 
     [Fact]
     public async Task ExportGameLibraryAsync_IncludesPredictions()
     {
         // Arrange
+        var exportedAt = new DateTime(2026, 2, 19, 15, 30, 0, DateTimeKind.Utc);
+        _timeProviderMock.SetupGet(tp => tp.UtcNow).Returns(exportedAt);
+
         var gameId = Guid.NewGuid();
         var game = Game.Create("Test Game", Guid.NewGuid());
 
@@ -89,6 +96,7 @@ public class DataExportServiceTests
             var root = doc.RootElement;
 
             root.GetProperty("totalGames").GetInt32().Should().Be(1);
+            root.GetProperty("exportedAt").GetDateTime().Should().Be(exportedAt);
             var gamesArray = root.GetProperty("games");
             var gameJson = gamesArray[0];
 

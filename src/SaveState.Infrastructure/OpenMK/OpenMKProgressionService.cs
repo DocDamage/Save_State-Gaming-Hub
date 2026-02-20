@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.OpenMK.Entities;
 using SaveState.Core.OpenMK.Services;
 using SaveState.Core.OpenMK.ValueObjects;
@@ -12,10 +13,12 @@ namespace SaveState.Infrastructure.OpenMK;
 public partial class OpenMKProgressionService : IOpenMKProgressionService
 {
     private readonly ILogger<OpenMKProgressionService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public OpenMKProgressionService(ILogger<OpenMKProgressionService> logger)
+    public OpenMKProgressionService(ILogger<OpenMKProgressionService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<OpenMKProgressionProfile>> GetProgressionProfileAsync(Guid userId, CancellationToken ct = default)
@@ -230,9 +233,9 @@ public partial class OpenMKProgressionService : IOpenMKProgressionService
                 WinRate: 0.72m,
                 Stats: new List<OpenMKCharacterStat>
                 {
-                    new OpenMKCharacterStat("Total Damage Dealt", 15420, DateTime.UtcNow),
-                    new OpenMKCharacterStat("Fatalities Performed", 12, DateTime.UtcNow),
-                    new OpenMKCharacterStat("Longest Combo", 28, DateTime.UtcNow)
+                    new OpenMKCharacterStat("Total Damage Dealt", 15420, _timeProvider.UtcNow),
+                    new OpenMKCharacterStat("Fatalities Performed", 12, _timeProvider.UtcNow),
+                    new OpenMKCharacterStat("Longest Combo", 28, _timeProvider.UtcNow)
                 });
 
             return Result.Success(progression);

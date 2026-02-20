@@ -4,6 +4,7 @@ using System.Net.NetworkInformation;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Configuration;
 using SaveState.Core.Sync;
 using SaveState.Core.Sync.Entities;
@@ -21,6 +22,7 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
     private readonly HttpClient _httpClient;
     private readonly CloudGamingOptions _options;
     private readonly INetworkQualityHistoryRepository _historyRepository;
+    private readonly ITimeProvider _timeProvider;
 
     private Timer? _monitoringTimer;
     private NetworkQuality _lastQuality = default!;
@@ -47,12 +49,14 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
         ILogger<NetworkQualityMonitor> logger,
         HttpClient httpClient,
         IOptions<CloudGamingOptions> options,
-        INetworkQualityHistoryRepository historyRepository)
+        INetworkQualityHistoryRepository historyRepository,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _httpClient = httpClient;
         _options = options.Value;
         _historyRepository = historyRepository;
+        _timeProvider = timeProvider;
 
         // Start background cleanup task for historical data
         if (_options.NetworkMonitoring.StoreHistoricalData)
@@ -90,7 +94,7 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
                 PingTests: pingTests,
                 SpeedTests: speedTests,
                 Recommendations: recommendations,
-                TestCompletedAt: DateTime.UtcNow);
+                TestCompletedAt: _timeProvider.UtcNow);
 
             _logger.LogInformation("Network quality test completed - Latency: {Latency}ms, Quality: {Quality}",
                 currentQuality.Value.LatencyMs, currentQuality.Value.Level);
@@ -137,7 +141,7 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
                 PacketLossPercent: packetLoss,
                 BandwidthMbps: bandwidth,
                 Level: qualityLevel,
-                MeasuredAt: DateTime.UtcNow);
+                MeasuredAt: _timeProvider.UtcNow);
 
             // Store historical data if enabled
             if (_options.NetworkMonitoring.StoreHistoricalData)
@@ -213,7 +217,7 @@ public class NetworkQualityMonitor : INetworkQualityMonitor, IDisposable
             {
                 await Task.Delay(TimeSpan.FromHours(1)); // Run cleanup hourly
 
-                var cutoffDate = DateTime.UtcNow.AddDays(-_options.NetworkMonitoring.HistoricalDataRetentionDays);
+                var cutoffDate = _timeProvider.UtcNow.AddDays(-_options.NetworkMonitoring.HistoricalDataRetentionDays);
                 var deleteResult = await _historyRepository.DeleteOlderThanAsync(cutoffDate).ConfigureAwait(false);
 
                 if (deleteResult.IsSuccess && deleteResult.Value > 0)

@@ -1,5 +1,7 @@
 // Copyright (c) 2026 SaveStateReborn. All rights reserved.
 
+using SaveState.Core.Common.Services;
+
 namespace SaveState.Core.GameDeals;
 
 /// <summary>
@@ -62,7 +64,7 @@ public class GameDeal
     /// <summary>
     /// Whether the deal is active.
     /// </summary>
-    public bool IsActive => DealEnd == null || DealEnd.Value > DateTime.UtcNow;
+    public bool IsActive => DealEnd == null || DealEnd.Value > SystemTimeProvider.Instance.UtcNow;
 
     /// <summary>
     /// Whether this is a historical low price.
@@ -82,7 +84,7 @@ public class GameDeal
     /// <summary>
     /// When the deal was last updated.
     /// </summary>
-    public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
+    public DateTime LastUpdated { get; set; } = SystemTimeProvider.Instance.UtcNow;
 
     /// <summary>
     /// Metacritic score if available.
@@ -239,7 +241,7 @@ public class PriceAlert
     /// <summary>
     /// When the alert was created.
     /// </summary>
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = SystemTimeProvider.Instance.UtcNow;
 
     /// <summary>
     /// When the alert was last triggered.
@@ -255,7 +257,7 @@ public class PriceAlert
     /// Checks if enough time has passed since last alert.
     /// </summary>
     public bool CanTrigger => !LastTriggeredAt.HasValue ||
-        DateTime.UtcNow >= LastTriggeredAt.Value.AddHours(MinHoursBetweenAlerts);
+        SystemTimeProvider.Instance.UtcNow >= LastTriggeredAt.Value.AddHours(MinHoursBetweenAlerts);
 }
 
 /// <summary>

@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.DataPortability;
 using SaveState.Core.GameLibrary;
 using SaveState.Infrastructure.Persistence;
@@ -22,6 +23,7 @@ public partial class DataExportService : IDataExportService
     private readonly SaveStateDbContext _dbContext;
     private readonly ICompletionPredictionService _predictionService;
     private readonly ILogger<DataExportService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -33,12 +35,14 @@ public partial class DataExportService : IDataExportService
         IGameRepository gameRepository,
         SaveStateDbContext dbContext,
         ICompletionPredictionService predictionService,
-        ILogger<DataExportService> logger)
+        ILogger<DataExportService> logger,
+        ITimeProvider timeProvider)
     {
         _gameRepository = gameRepository;
         _dbContext = dbContext;
         _predictionService = predictionService;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     #region LoggerMessage Definitions
@@ -133,7 +137,7 @@ public partial class DataExportService : IDataExportService
             var exportData = new
             {
                 ExportVersion = "1.0",
-                ExportedAt = DateTime.UtcNow,
+                ExportedAt = _timeProvider.UtcNow,
                 TotalGames = games.Count,
                 Games = games.Select(g => new
                 {
@@ -207,7 +211,7 @@ public partial class DataExportService : IDataExportService
             var exportData = new
             {
                 ExportVersion = "1.0",
-                ExportedAt = DateTime.UtcNow,
+                ExportedAt = _timeProvider.UtcNow,
                 Settings = settings
             };
 
@@ -234,7 +238,7 @@ public partial class DataExportService : IDataExportService
             var exportData = new
             {
                 ExportVersion = "1.0",
-                ExportedAt = DateTime.UtcNow,
+                ExportedAt = _timeProvider.UtcNow,
                 TotalSaveFiles = saveStates.Count,
                 SaveFiles = saveStates.Select(sf => new
                 {
@@ -276,7 +280,7 @@ public partial class DataExportService : IDataExportService
             var exportData = new
             {
                 ExportVersion = "1.0",
-                ExportedAt = DateTime.UtcNow,
+                ExportedAt = _timeProvider.UtcNow,
                 TotalAchievements = userAchievements.Count,
                 Achievements = userAchievements.Select(ua => new
                 {
@@ -321,7 +325,7 @@ public partial class DataExportService : IDataExportService
             var exportData = new
             {
                 ExportVersion = "1.0",
-                ExportedAt = DateTime.UtcNow,
+                ExportedAt = _timeProvider.UtcNow,
                 TotalSessions = sessions.Count,
                 Sessions = sessions.Select(s => new
                 {
@@ -330,7 +334,7 @@ public partial class DataExportService : IDataExportService
                     GameTitle = s.Game?.Title,
                     s.StartedAt,
                     s.EndedAt,
-                    Duration = s.Duration.ToString(),
+                    Duration = s.GetDuration().ToString(),
                     s.Notes,
                     EndReason = s.EndReason?.ToString()
                 }).ToList()
@@ -378,7 +382,7 @@ public partial class DataExportService : IDataExportService
                 var manifest = new
                 {
                     BackupVersion = "1.0",
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = _timeProvider.UtcNow,
                     Application = "SaveState Reborn",
                     ApplicationVersion = "2.3.0",
                     IncludesActualSaveFiles = includeActualSaveFiles,

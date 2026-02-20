@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using System.Diagnostics;
 
 namespace SaveState.Infrastructure.Performance;
@@ -10,11 +11,13 @@ namespace SaveState.Infrastructure.Performance;
 public class MemoryProfiler
 {
     private readonly ILogger<MemoryProfiler> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, OperationMetrics> _metrics = new();
 
-    public MemoryProfiler(ILogger<MemoryProfiler> logger)
+    public MemoryProfiler(ILogger<MemoryProfiler> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -44,7 +47,7 @@ public class MemoryProfiler
                 Duration: stopwatch.Elapsed,
                 MemoryUsedBytes: memoryUsed,
                 CpuTimeMilliseconds: (long)cpuUsed.TotalMilliseconds,
-                Timestamp: DateTime.UtcNow);
+                Timestamp: _timeProvider.UtcNow);
 
             RecordMetrics(operationName, metrics);
             LogMetrics(metrics);
@@ -78,7 +81,7 @@ public class MemoryProfiler
                 Duration: stopwatch.Elapsed,
                 MemoryUsedBytes: memoryUsed,
                 CpuTimeMilliseconds: (long)cpuUsed.TotalMilliseconds,
-                Timestamp: DateTime.UtcNow);
+                Timestamp: _timeProvider.UtcNow);
 
             RecordMetrics(operationName, metrics);
             LogMetrics(metrics);
@@ -98,7 +101,7 @@ public class MemoryProfiler
             PrivateMemoryMB: process.PrivateMemorySize64 / 1024 / 1024,
             ManagedMemoryMB: totalMemory / 1024 / 1024,
             PeakMemoryMB: process.PeakWorkingSet64 / 1024 / 1024,
-            Timestamp: DateTime.UtcNow);
+            Timestamp: _timeProvider.UtcNow);
     }
 
     /// <summary>
@@ -114,7 +117,7 @@ public class MemoryProfiler
             UserProcessorTimeMs: (long)process.UserProcessorTime.TotalMilliseconds,
             PrivilegedProcessorTimeMs: (long)process.PrivilegedProcessorTime.TotalMilliseconds,
             ThreadCount: process.Threads.Count,
-            Timestamp: DateTime.UtcNow);
+            Timestamp: _timeProvider.UtcNow);
     }
 
     /// <summary>
@@ -135,7 +138,7 @@ public class MemoryProfiler
             Generation2Collections: gen2Collections,
             CurrentMemoryMB: totalMemory / 1024 / 1024,
             LeakSuspected: issueSuspected,
-            Timestamp: DateTime.UtcNow);
+            Timestamp: _timeProvider.UtcNow);
     }
 
     /// <summary>

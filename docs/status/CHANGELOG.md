@@ -3,8 +3,67 @@
 **Release Date**: January 1, 2026
 **Version**: 1.0.0
 **Status**: ✅ Production Release
-**Current Version**: v2.4.1 - Technical Debt Reduction (Phase 1 Complete)
-**Build Status**: ✅ Infrastructure: 0 Errors | ⚠️ Presentation: 66 Errors (Implementation Updates Pending)
+**Current Version**: v2.4.2 - Technical Debt Reduction (SharpCompress Upgrade + ITimeProvider Infrastructure Wave)
+**Build Status**: ✅ 0 errors, 0 warnings | All tests passing
+
+---
+
+## 🔧 v2.4.2 - Technical Debt: SharpCompress Upgrade + ITimeProvider Infrastructure Wave (February 19, 2026)
+
+**Release Date**: February 19, 2026
+**Status**: ✅ COMPLETE
+**Session**: Session 20
+
+### Summary
+
+Continued technical debt remediation from the comprehensive 2026-02-15 audit. Completed the deferred SharpCompress 0.46.2 migration (Slice A) and drove a significant ITimeProvider hardening wave across the Infrastructure and Core layers (Slice B), fully eliminating all remaining `DateTime.Now` (non-UTC) usages in `src`.
+
+### Key Achievements
+
+| Achievement | Metric |
+| --- | --- |
+| `SharpCompress` upgraded | `0.39.0` → `0.46.2` ✅ |
+| `DateTime.Now` in `src` | `6` → **`0`** (100% elimination) |
+| `UtcNow` direct usages in `src` | `595` → **`536`** (-59, -10%) |
+| Infrastructure services migrated | 6 services |
+| Core entity/model defaults migrated | 4 model files |
+| Build result | 0 errors, 0 warnings |
+| Test result | All assemblies green |
+
+### Slice A — Dependency: SharpCompress 0.46.2 Migration
+
+- Bumped `SharpCompress` in `Directory.Packages.props`: `0.39.0` → `0.46.2`.
+- Migrated `src/SaveState.Infrastructure/Common/Services/SharpCompressExtractionService.cs` to 0.46.2 breaking API:
+  - `ArchiveFactory.Open(path)` → `ArchiveFactory.OpenArchive(path)`.
+  - `ExtractionOptions` class removed upstream; replaced with manual path construction + `entry.WriteToFile(targetPath)` for per-entry overwrite control.
+  - Removed now-unused `using SharpCompress.Common;` and `using SharpCompress.Readers;`.
+
+### Slice B — Time Determinism: Infrastructure and Core Wave
+
+Infrastructure services — injected `ITimeProvider` constructor parameter:
+
+- `CharacterBalanceAnalyzer.cs` — 8 `UtcNow` usages migrated.
+- `ErrorTrackingService.cs` — 4 service-level usages migrated; nested `ErrorStats` class uses `SystemTimeProvider.Instance` (no-DI context).
+- `GameRepository.cs` — 7 `UtcNow` usages migrated.
+- `MacroPlayer.cs` — 7 `UtcNow` usages migrated.
+- `AutoSaveService.cs` — `DateTime.Now` eliminated → `_timeProvider.UtcNow`.
+- `CharacterFusionService.cs` — `DateTime.Now` eliminated → `_timeProvider.UtcNow`.
+
+Core entities/models — `SystemTimeProvider.Instance.UtcNow` (no-DI context):
+
+- `GameMedia.cs` — 8 property default usages.
+- `HealthModels.cs` — 7 property default usages.
+- `GameMod.cs` — 7 property default usages.
+- `BiometricModels.cs` — 7 property default usages.
+
+Presentation — `SystemTimeProvider.Instance.UtcNow`:
+
+- `SubscriptionManagerViewModel.cs` — 2 `DateTime.Now` usages eliminated.
+
+Test infrastructure updates:
+
+- `MetricsTests.cs` — `ErrorTrackingService` constructor updated with `SystemTimeProvider.Instance`.
+- `ConcurrencyTests.cs` — `ITimeProvider` added to test `ServiceCollection` to resolve DI for `GameRepository`.
 
 ---
 
@@ -189,7 +248,7 @@ Created comprehensive testing and analysis DTOs in `Core/Mugen/ValueObjects/`:
 - **Detailed Report**: `docs/status/BUILD_FIX_SESSION_2026-01-13.md`
 - **Status Update**: `docs/status/DEVELOPMENT_STATUS_UPDATE_2026-01-13.md`
 - **Task Breakdown**: `docs/planning/TECHNICAL_DEBT_TASKS_2026-01-13.md`
-- **Technical Debt Report**: `docs/reports/TECHNICAL_DEBT_REPORT_2026-01-13.md`
+- **Technical Debt Report**: `docs/archive/2026-02-20-documentation-refresh/reports/TECHNICAL_DEBT_REPORT_2026-01-13.md`
 
 ---
 
@@ -1019,3 +1078,4 @@ Built with:
 ---
 
 *SaveState Reborn - Elevating Your Gaming Experience*
+

@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.AiCoOp.Models;
 using SaveState.Core.AiCoOp.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Infrastructure.AiCoOp;
 
@@ -12,12 +13,14 @@ namespace SaveState.Infrastructure.AiCoOp;
 public sealed class AiCoOpCompanionService : IAiCoOpCompanionService
 {
     private readonly ILogger<AiCoOpCompanionService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private CompanionPersonality? _activePersonality;
     private readonly Dictionary<string, PlayerBehaviorProfile> _behaviorProfiles = new();
 
-    public AiCoOpCompanionService(ILogger<AiCoOpCompanionService> logger)
+    public AiCoOpCompanionService(ILogger<AiCoOpCompanionService> logger, ITimeProvider timeProvider)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     /// <inheritdoc />
@@ -40,7 +43,7 @@ public sealed class AiCoOpCompanionService : IAiCoOpCompanionService
             GameName = "Unknown Game",
             CurrentScene = "default",
             PlayerStatus = new PlayerStatus(),
-            Timestamp = DateTime.UtcNow
+            Timestamp = _timeProvider.UtcNow
         };
         
         return Task.FromResult(Result.Success(snapshot));
@@ -65,7 +68,7 @@ public sealed class AiCoOpCompanionService : IAiCoOpCompanionService
         {
             Success = true,
             ExecutedActionId = action.Id,
-            ExecutedAt = DateTime.UtcNow
+            ExecutedAt = _timeProvider.UtcNow
         };
         
         return Task.FromResult(Result.Success(result));
@@ -106,8 +109,8 @@ public sealed class AiCoOpCompanionService : IAiCoOpCompanionService
                 Description = "Aggressive approach to combat encounters",
                 Confidence = 0.75f,
                 OccurrenceCount = 10,
-                FirstObserved = DateTime.UtcNow.AddDays(-7),
-                LastObserved = DateTime.UtcNow
+                FirstObserved = _timeProvider.UtcNow.AddDays(-7),
+                LastObserved = _timeProvider.UtcNow
             }
         };
         

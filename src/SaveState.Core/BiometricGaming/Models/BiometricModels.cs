@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.BiometricGaming.Models;
 
@@ -40,7 +41,7 @@ public record BiometricData
 {
     public string Id { get; init; } = Guid.NewGuid().ToString();
     public string UserId { get; init; } = string.Empty;
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; init; } = SystemTimeProvider.Instance.UtcNow;
     public IReadOnlyList<SensorReading> Readings { get; init; } = Array.Empty<SensorReading>();
     public CognitiveState? CognitiveState { get; init; }
     public EmotionalState? EmotionalState { get; init; }
@@ -57,7 +58,7 @@ public record SensorReading
     public double Value { get; init; }
     public string Unit { get; init; } = string.Empty;
     public double? RawValue { get; init; }
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; init; } = SystemTimeProvider.Instance.UtcNow;
     public ReadingQuality Quality { get; init; } = ReadingQuality.Good;
 }
 
@@ -84,7 +85,7 @@ public record CognitiveState
     public float EngagementLevel { get; init; }
     public float CognitiveLoad { get; init; }
     public AttentionState AttentionState { get; init; }
-    public DateTime CalculatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime CalculatedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>
@@ -110,7 +111,7 @@ public record EmotionalState
     public float Frustration { get; init; }
     public float Relaxation { get; init; }
     public DominantEmotion DominantEmotion { get; init; }
-    public DateTime CalculatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime CalculatedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>
@@ -142,7 +143,7 @@ public record PhysiologicalState
     public float BloodOxygen { get; init; }
     public float RespirationRate { get; init; }
     public PhysicalEffortLevel PhysicalEffort { get; init; }
-    public DateTime CalculatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime CalculatedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>
@@ -170,7 +171,7 @@ public record AdaptiveDifficultyAdjustment
     public AdjustmentReason Reason { get; init; }
     public string Explanation { get; init; } = string.Empty;
     public IReadOnlyList<BiometricFactor> ContributingFactors { get; init; } = Array.Empty<BiometricFactor>();
-    public DateTime CalculatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime CalculatedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>
@@ -234,7 +235,7 @@ public record BiometricGamingSession
     public string Id { get; init; } = Guid.NewGuid().ToString();
     public string UserId { get; init; } = string.Empty;
     public string GameId { get; init; } = string.Empty;
-    public DateTime StartedAt { get; init; } = DateTime.UtcNow;
+    public DateTime StartedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
     public DateTime? EndedAt { get; init; }
     public IReadOnlyList<BiometricData> DataPoints { get; init; } = Array.Empty<BiometricData>();
     public IReadOnlyList<AdaptiveDifficultyAdjustment> DifficultyAdjustments { get; init; } = Array.Empty<AdaptiveDifficultyAdjustment>();

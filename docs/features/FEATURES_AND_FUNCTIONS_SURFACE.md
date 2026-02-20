@@ -572,8 +572,10 @@ savestate plugins load "path/to/plugin.dll"
 | [ENGINEERING_RULES.md](ENGINEERING_RULES.md) | Coding standards |
 | [V2_FEATURE_ROADMAP.md](planning/V2_FEATURE_ROADMAP.md) | Feature roadmap |
 | [DEVELOPMENT_STATUS.md](status/DEVELOPMENT_STATUS.md) | Development progress |
-| [TECHNICAL_DEBT_REMEDIATION_PLAN.md](reports/TECHNICAL_DEBT_REMEDIATION_PLAN.md) | Tech debt tracking |
+| [TECHNICAL_DEBT_IMPLEMENTATION_PLAN_2026_02_20.md](plans/TECHNICAL_DEBT_IMPLEMENTATION_PLAN_2026_02_20.md) | Tech debt tracking |
 
 ---
 
 *This document provides a complete surface map of all features, services, and functions in the SaveState Reborn platform.*
+
+

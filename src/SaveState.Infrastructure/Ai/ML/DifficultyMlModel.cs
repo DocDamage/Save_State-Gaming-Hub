@@ -155,7 +155,7 @@ public sealed class DifficultyMlModel : IDisposable
         var data = testData.ToList();
         if (data.Count == 0)
         {
-            return new ModelMetrics(0, 0, 0, 0, 0, DateTime.UtcNow, "0.0.0");
+            return new ModelMetrics(0, 0, 0, 0, 0, _timeProvider.UtcNow, "0.0.0");
         }
 
         var correct = 0;
@@ -320,14 +320,14 @@ public sealed class DifficultyMlModel : IDisposable
         return weights;
     }
 
-    private static PlayerBehaviorMetrics ConvertToPlayerMetrics(DifficultyTrainingData data)
+    private PlayerBehaviorMetrics ConvertToPlayerMetrics(DifficultyTrainingData data)
     {
         return new PlayerBehaviorMetrics
         {
             SessionId = Guid.NewGuid(),
             GameId = Guid.NewGuid(),
-            SessionStartTimeUtc = DateTime.UtcNow.AddHours(-1),
-            TimestampUtc = DateTime.UtcNow,
+            SessionStartTimeUtc = _timeProvider.UtcNow.AddHours(-1),
+            TimestampUtc = _timeProvider.UtcNow,
             DeathCount = data.DeathCount,
             RetryCount = data.RetryCount,
             TimeInCurrentSection = TimeSpan.FromMinutes(data.TimeInCurrentSectionMinutes),
@@ -393,7 +393,7 @@ public sealed class DifficultyMlModel : IDisposable
         }
     }
 
-    private static ModelWeights CreateDefaultWeights()
+    private ModelWeights CreateDefaultWeights()
     {
         return new ModelWeights
         {
@@ -401,7 +401,7 @@ public sealed class DifficultyMlModel : IDisposable
             MasteryWeight = 0.3f,
             BaselineWeight = 0.2f,
             Version = "1.0.0",
-            LastTrainedAtUtc = DateTime.UtcNow
+            LastTrainedAtUtc = _timeProvider.UtcNow
         };
     }
 

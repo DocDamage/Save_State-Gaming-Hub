@@ -1,5 +1,6 @@
 using SaveState.Core.Common;
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.InputRecording;
 
@@ -239,7 +240,7 @@ public class InputRecording : EntityBase
     /// <summary>
     /// Recording started at.
     /// </summary>
-    public DateTime RecordedAt { get; set; } = DateTime.UtcNow;
+    public DateTime RecordedAt { get; set; } = SystemTimeProvider.Instance.UtcNow;
     
     /// <summary>
     /// Last played at.
@@ -249,7 +250,7 @@ public class InputRecording : EntityBase
     /// <summary>
     /// Last updated at.
     /// </summary>
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = SystemTimeProvider.Instance.UtcNow;
     
     /// <summary>
     /// Whether the recording is bookmarked.
@@ -280,7 +281,7 @@ public sealed class RecordingBookmark
     /// <summary>
     /// Timestamp when bookmark was created.
     /// </summary>
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>
@@ -306,7 +307,7 @@ public sealed class RecordingSession
     /// <summary>
     /// When recording started.
     /// </summary>
-    public DateTime StartedAt { get; set; } = DateTime.UtcNow;
+    public DateTime StartedAt { get; set; } = SystemTimeProvider.Instance.UtcNow;
     
     /// <summary>
     /// Current frame number.
@@ -347,7 +348,7 @@ public sealed class PlaybackSession
     /// <summary>
     /// When playback started.
     /// </summary>
-    public DateTime StartedAt { get; set; } = DateTime.UtcNow;
+    public DateTime StartedAt { get; set; } = SystemTimeProvider.Instance.UtcNow;
     
     /// <summary>
     /// Current frame position.

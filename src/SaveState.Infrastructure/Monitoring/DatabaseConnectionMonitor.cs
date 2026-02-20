@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Monitoring;
 using SaveState.Infrastructure.Persistence;
 
@@ -15,17 +16,20 @@ public class DatabaseConnectionMonitor : IDisposable
     private readonly SaveStateDbContext _context;
     private readonly IApplicationMetrics _metrics;
     private readonly ILogger<DatabaseConnectionMonitor> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Timer _connectionTimer;
     private bool _disposed;
 
     public DatabaseConnectionMonitor(
         SaveStateDbContext context,
         IApplicationMetrics metrics,
-        ILogger<DatabaseConnectionMonitor> logger)
+        ILogger<DatabaseConnectionMonitor> logger,
+        ITimeProvider timeProvider)
     {
         _context = context;
         _metrics = metrics;
         _logger = logger;
+        _timeProvider = timeProvider;
 
         // Monitor connection pool every 60 seconds
         _connectionTimer = new Timer(MonitorConnections, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
@@ -68,12 +72,12 @@ public class DatabaseConnectionMonitor : IDisposable
         Func<Task<T>> operation,
         CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
 
         try
         {
             var result = await operation().ConfigureAwait(false);
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
 
             _metrics.RecordDatabaseQuery(operationName, duration);
             _metrics.RecordDatabaseConnectionCount(1); // Assume connection was used
@@ -82,7 +86,7 @@ public class DatabaseConnectionMonitor : IDisposable
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery(operationName, duration);
             _metrics.RecordDatabaseError(operationName, ex.GetType().Name);
 
@@ -98,19 +102,19 @@ public class DatabaseConnectionMonitor : IDisposable
         Func<Task> operation,
         CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
 
         try
         {
             await operation().ConfigureAwait(false);
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
 
             _metrics.RecordDatabaseQuery(operationName, duration);
             _metrics.RecordDatabaseConnectionCount(1);
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery(operationName, duration);
             _metrics.RecordDatabaseError(operationName, ex.GetType().Name);
 

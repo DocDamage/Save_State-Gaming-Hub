@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Constants;
+using SaveState.Core.Common.Services;
 using System.Collections.Generic;
 
 namespace SaveState.Infrastructure.Social;
@@ -12,12 +13,14 @@ namespace SaveState.Infrastructure.Social;
 public class SocialFeaturesService
 {
     private readonly ILogger<SocialFeaturesService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, SocialPost> _posts = new();
     private readonly Dictionary<string, UserProfile> _profiles = new();
 
-    public SocialFeaturesService(ILogger<SocialFeaturesService> logger)
+    public SocialFeaturesService(ILogger<SocialFeaturesService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -37,7 +40,7 @@ public class SocialFeaturesService
                 UserId: userId,
                 Username: username,
                 Bio: bio,
-                CreatedAt: DateTime.UtcNow,
+                CreatedAt: _timeProvider.UtcNow,
                 Followers: new List<string>(),
                 Following: new List<string>(),
                 Posts: new List<string>());
@@ -77,7 +80,7 @@ public class SocialFeaturesService
                 type: SocialPostType.Achievement,
                 content: $"I just unlocked the '{achievementName}' achievement!",
                 platform: platform,
-                createdAt: DateTime.UtcNow,
+                createdAt: _timeProvider.UtcNow,
                 likes: 0,
                 comments: new List<string>());
 
@@ -114,7 +117,7 @@ public class SocialFeaturesService
                 type: SocialPostType.GameplayClip,
                 content: $"Check out my gameplay clip: {clipName}",
                 platform: platform,
-                createdAt: DateTime.UtcNow,
+                createdAt: _timeProvider.UtcNow,
                 likes: 0,
                 comments: new List<string>(),
                 mediaUrl: clipUrl);
@@ -150,7 +153,7 @@ public class SocialFeaturesService
                 type: SocialPostType.Status,
                 content: content,
                 platform: "Local",
-                createdAt: DateTime.UtcNow,
+                createdAt: _timeProvider.UtcNow,
                 likes: 0,
                 comments: new List<string>(),
                 mediaUrl: mediaUrl);

@@ -87,14 +87,14 @@ public class DeepRecommendationModel : IDeepRecommendationModel
 
             // Aggregate game embeddings weighted by playtime
             var userEmbedding = new float[EmbeddingDimensions];
-            var totalPlaytime = sessions.Sum(s => s.Duration.TotalHours);
+            var totalPlaytime = sessions.Sum(s => s.GetDuration(DateTime.UtcNow).TotalHours);
 
             foreach (var session in sessions)
             {
                 var gameEmbeddingResult = await GetGameEmbeddingAsync(session.GameId, ct);
                 if (gameEmbeddingResult.IsSuccess)
                 {
-                    var weight = (float)(session.Duration.TotalHours / totalPlaytime);
+                    var weight = (float)(session.GetDuration(DateTime.UtcNow).TotalHours / totalPlaytime);
                     var gameEmbedding = gameEmbeddingResult.Value;
 
                     for (int i = 0; i < EmbeddingDimensions; i++)

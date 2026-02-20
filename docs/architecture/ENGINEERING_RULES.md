@@ -70,7 +70,7 @@ These rules are derived from the lessons learned during the development and stab
 - **Must Not** return `null` to indicate failure or "not found".
 - **Must Not** use exceptions for expected validation errors.
 
-**Current Violations**: 45+ `return null` statements (see [Tech Debt Audit](../reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md))
+**Current Violations**: 45+ `return null` statements (see [Tech Debt Audit](../reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md))
 
 ---
 
@@ -315,7 +315,7 @@ catch (HttpRequestException ex) when (ex is { InnerException: TimeoutException }
 
 | Category | Count | Reference |
 |----------|-------|-----------|
-| `return null` | 45+ | [Tech Debt Audit](../reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md) |
+| `return null` | 45+ | [Tech Debt Audit](../reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md) |
 | TODO comments | 68+ | Presentation layer |
 | Manual HttpClient | 2 | Plugin projects |
 
@@ -340,3 +340,4 @@ catch (HttpRequestException ex) when (ex is { InnerException: TimeoutException }
 
 *Last Audit*: January 8, 2026 (Dialog System Complete v2.3.9)
 *Audit Method*: grep, file analysis, build verification, dialog implementation review
+

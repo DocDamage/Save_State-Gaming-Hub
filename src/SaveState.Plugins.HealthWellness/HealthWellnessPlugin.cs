@@ -295,7 +295,7 @@ public class HealthWellnessPlugin : IPlugin
         var currentSession = await _sessionTracker.GetCurrentSessionAsync();
         if (currentSession != null)
         {
-            _logger?.LogInformation($"🎮 Current Session: {currentSession.Duration:hh\\:mm\\:ss}");
+            _logger?.LogInformation($"🎮 Current Session: {currentSession.GetDuration():hh\\:mm\\:ss}");
             _logger?.LogInformation($"⏰ Started: {currentSession.StartTime:g}");
         }
 
@@ -402,7 +402,7 @@ public class HealthWellnessPlugin : IPlugin
         var session = await _sessionTracker.EndSessionAsync();
         if (session != null)
         {
-            _logger?.LogInformation($"🎮 Gaming session ended - Duration: {session.Duration:hh\\:mm\\:ss}");
+            _logger?.LogInformation($"🎮 Gaming session ended - Duration: {session.GetDuration():hh\\:mm\\:ss}");
         }
     }
 
@@ -667,7 +667,7 @@ public class SessionTracker
 
         return new PlaytimeStats
         {
-            TotalPlayTime = TimeSpan.FromTicks(todaySessions.Sum(s => s.Duration.Ticks)),
+            TotalPlayTime = TimeSpan.FromTicks(todaySessions.Sum(s => s.GetDuration().Ticks)),
             SessionCount = todaySessions.Count()
         };
     }
@@ -679,7 +679,7 @@ public class SessionTracker
 
         return new PlaytimeStats
         {
-            TotalPlayTime = TimeSpan.FromTicks(weekSessions.Sum(s => s.Duration.Ticks)),
+            TotalPlayTime = TimeSpan.FromTicks(weekSessions.Sum(s => s.GetDuration().Ticks)),
             SessionCount = weekSessions.Count()
         };
     }
@@ -740,6 +740,11 @@ public record GamingSession
     public DateTime StartTime { get; init; }
     public DateTime? EndTime { get; init; }
     public TimeSpan Duration { get; init; }
+
+    /// <summary>
+    /// Gets the duration of this session.
+    /// </summary>
+    public TimeSpan GetDuration() => Duration;
 }
 
 /// <summary>

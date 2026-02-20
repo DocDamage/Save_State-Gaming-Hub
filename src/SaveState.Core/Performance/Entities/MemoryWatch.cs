@@ -1,5 +1,6 @@
 using Ardalis.GuardClauses;
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Performance.ValueObjects;
 
 namespace SaveState.Core.Performance.Entities;
@@ -9,6 +10,8 @@ namespace SaveState.Core.Performance.Entities;
 /// </summary>
 public class MemoryWatch : EntityBase
 {
+    private static DateTime UtcNow => SystemTimeProvider.Instance.UtcNow;
+
     /// <summary>
     /// Gets the game this watch belongs to.
     /// </summary>
@@ -98,8 +101,8 @@ public class MemoryWatch : EntityBase
             IsActive = true,
             IsFrozen = false,
             ChangeCount = 0,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = UtcNow,
+            UpdatedAt = UtcNow
         };
     }
 
@@ -112,9 +115,9 @@ public class MemoryWatch : EntityBase
         {
             PreviousValue = CurrentValue;
             CurrentValue = newValue;
-            LastChangedAt = DateTime.UtcNow;
+            LastChangedAt = UtcNow;
             ChangeCount++;
-            UpdatedAt = DateTime.UtcNow;
+            UpdatedAt = UtcNow;
         }
     }
 
@@ -124,7 +127,7 @@ public class MemoryWatch : EntityBase
     public void ToggleFreeze()
     {
         IsFrozen = !IsFrozen;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = UtcNow;
     }
 
     /// <summary>
@@ -133,7 +136,7 @@ public class MemoryWatch : EntityBase
     public void Activate()
     {
         IsActive = true;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = UtcNow;
     }
 
     /// <summary>
@@ -142,7 +145,7 @@ public class MemoryWatch : EntityBase
     public void Deactivate()
     {
         IsActive = false;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = UtcNow;
     }
 
     /// <summary>
@@ -151,7 +154,7 @@ public class MemoryWatch : EntityBase
     public void UpdateLabel(string label)
     {
         Label = Guard.Against.NullOrWhiteSpace(label, nameof(label));
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = UtcNow;
     }
 
     /// <summary>
@@ -160,6 +163,6 @@ public class MemoryWatch : EntityBase
     public void UpdateDescription(string? description)
     {
         Description = description;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = UtcNow;
     }
 }

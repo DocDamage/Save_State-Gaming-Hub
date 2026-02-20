@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.SaveStateCloudSync;
 using SaveState.Core.SaveStateCloudSync.Services;
 using SaveState.Infrastructure.Persistence;
@@ -17,6 +18,7 @@ public class CloudSyncService : ICloudSyncService
     private readonly SaveStateDbContext _dbContext;
     private readonly IMemoryCache _cache;
     private readonly ILogger<CloudSyncService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(5);
 
     public event EventHandler<SyncProgressEventArgs>? SyncProgress;
@@ -25,11 +27,13 @@ public class CloudSyncService : ICloudSyncService
     public CloudSyncService(
         SaveStateDbContext dbContext,
         IMemoryCache cache,
-        ILogger<CloudSyncService> logger)
+        ILogger<CloudSyncService> logger,
+        ITimeProvider timeProvider)
     {
         _dbContext = dbContext;
         _cache = cache;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public Task<Result<CloudSaveState>> UploadAsync(
@@ -63,7 +67,7 @@ public class CloudSyncService : ICloudSyncService
                 return Result.Failure("Save state not found", ErrorType.NotFound);
 
             saveState.IsDeleted = true;
-            saveState.DeletedAt = DateTime.UtcNow;
+            saveState.DeletedAt = _timeProvider.UtcNow;
             saveState.Status = SyncStatus.MarkedForDeletion;
             
             await _dbContext.SaveChangesAsync(ct);
@@ -113,7 +117,7 @@ public class CloudSyncService : ICloudSyncService
         var result = new SyncResult
         {
             Success = true,
-            CompletedAt = DateTime.UtcNow
+            CompletedAt = _timeProvider.UtcNow
         };
         
         _logger.LogInformation("Sync requested (not fully implemented)");
@@ -178,8 +182,8 @@ public class CloudSyncService : ICloudSyncService
                         CloudId = $"savestates/{Guid.NewGuid()}.sav",
                         SizeBytes = saveState.SizeBytes,
                         Status = SyncStatus.Pending,
-                        LocalCreatedAt = DateTime.UtcNow,
-                        LocalModifiedAt = DateTime.UtcNow
+                        LocalCreatedAt = _timeProvider.UtcNow,
+                        LocalModifiedAt = _timeProvider.UtcNow
                     };
                     _dbContext.CloudSaveStates.Add(copy);
                     saveState.Status = SyncStatus.Synced;
@@ -232,7 +236,7 @@ public class CloudSyncService : ICloudSyncService
         {
             Token = Guid.NewGuid().ToString("N"),
             ShareUrl = $"https://savestate.app/share/{Guid.NewGuid():N}",
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
             ExpiresAt = options.ExpiresAt,
             MaxDownloads = options.MaxDownloads
         };

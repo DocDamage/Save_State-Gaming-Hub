@@ -82,8 +82,11 @@ public class SubscriptionGame
     public List<SubscriptionServiceType> AvailableOn { get; set; } = new();
     public DateTime? AddedDate { get; set; }
     public DateTime? LeavingSoonDate { get; set; }
-    public bool IsLeavingSoon => LeavingSoonDate.HasValue && LeavingSoonDate.Value <= DateTime.UtcNow.AddDays(14);
-    public bool IsNewArrival => AddedDate.HasValue && AddedDate.Value >= DateTime.UtcNow.AddDays(-30);
+    public bool IsLeavingSoon => IsLeavingSoonAt(DateTime.UtcNow);
+    public bool IsNewArrival => IsNewArrivalAt(DateTime.UtcNow);
+    
+    public bool IsLeavingSoonAt(DateTime currentTime) => LeavingSoonDate.HasValue && LeavingSoonDate.Value <= currentTime.AddDays(14);
+    public bool IsNewArrivalAt(DateTime currentTime) => AddedDate.HasValue && AddedDate.Value >= currentTime.AddDays(-30);
     public List<string> Genres { get; set; } = new();
     public int? MetacriticScore { get; set; }
     public TimeSpan? AveragePlaytime { get; set; }
@@ -133,6 +136,7 @@ public class LeavingSoonAlert
     public SubscriptionGame Game { get; set; } = null!;
     public DateTime LeavingDate { get; set; }
     public int DaysRemaining => (LeavingDate - DateTime.UtcNow).Days;
+    public int GetDaysRemaining(DateTime currentTime) => (LeavingDate - currentTime).Days;
     public bool IsUrgent => DaysRemaining <= 7;
 }
 

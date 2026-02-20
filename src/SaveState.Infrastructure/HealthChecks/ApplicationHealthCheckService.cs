@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using System.Diagnostics;
 using System.Text.Json;
 
@@ -12,6 +13,7 @@ public class ApplicationHealthCheckService
 {
     private readonly Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckService _healthCheckService;
     private readonly ILogger<ApplicationHealthCheckService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -20,10 +22,12 @@ public class ApplicationHealthCheckService
 
     public ApplicationHealthCheckService(
         Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckService healthCheckService,
-        ILogger<ApplicationHealthCheckService> logger)
+        ILogger<ApplicationHealthCheckService> logger,
+        ITimeProvider timeProvider)
     {
         _healthCheckService = healthCheckService;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -41,7 +45,7 @@ public class ApplicationHealthCheckService
             return new HealthCheckResponse
             {
                 Status = report.Status.ToString().ToLowerInvariant(),
-                Timestamp = DateTime.UtcNow,
+                Timestamp = _timeProvider.UtcNow,
                 DurationMs = stopwatch.ElapsedMilliseconds,
                 Checks = report.Entries.ToDictionary(
                     entry => entry.Key,
@@ -64,7 +68,7 @@ public class ApplicationHealthCheckService
             return new HealthCheckResponse
             {
                 Status = "unhealthy",
-                Timestamp = DateTime.UtcNow,
+                Timestamp = _timeProvider.UtcNow,
                 DurationMs = stopwatch.ElapsedMilliseconds,
                 Checks = new Dictionary<string, HealthCheckItem>
                 {
@@ -98,7 +102,7 @@ public class ApplicationHealthCheckService
             return new HealthCheckResponse
             {
                 Status = report.Status.ToString().ToLowerInvariant(),
-                Timestamp = DateTime.UtcNow,
+                Timestamp = _timeProvider.UtcNow,
                 DurationMs = stopwatch.ElapsedMilliseconds,
                 Checks = report.Entries.ToDictionary(
                     entry => entry.Key,
@@ -121,7 +125,7 @@ public class ApplicationHealthCheckService
             return new HealthCheckResponse
             {
                 Status = "unhealthy",
-                Timestamp = DateTime.UtcNow,
+                Timestamp = _timeProvider.UtcNow,
                 DurationMs = stopwatch.ElapsedMilliseconds,
                 Checks = new Dictionary<string, HealthCheckItem>()
             };

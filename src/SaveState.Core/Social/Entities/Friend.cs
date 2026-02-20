@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Social.Entities;
 
@@ -7,6 +8,8 @@ namespace SaveState.Core.Social.Entities;
 /// </summary>
 public class Friend : EntityBase
 {
+    private static DateTime UtcNow => SystemTimeProvider.Instance.UtcNow;
+
     /// <summary>
     /// Gets the display name of the friend.
     /// </summary>
@@ -66,7 +69,7 @@ public class Friend : EntityBase
             PlatformUserId = Guard.Against.NullOrWhiteSpace(platformUserId, nameof(platformUserId)),
             AvatarUrl = avatarUrl,
             IsOnline = false,
-            UpdatedAt = DateTime.UtcNow
+            UpdatedAt = UtcNow
         };
     }
 
@@ -77,8 +80,8 @@ public class Friend : EntityBase
     {
         IsOnline = isOnline;
         CurrentGame = currentGame;
-        LastSeenAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;
+        LastSeenAt = UtcNow;
+        UpdatedAt = UtcNow;
     }
 
     /// <summary>
@@ -96,7 +99,7 @@ public class Friend : EntityBase
             AvatarUrl = avatarUrl;
         }
 
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = UtcNow;
     }
 }
 

@@ -270,7 +270,7 @@ public class GamingAnalyticsPlugin : IPlugin
 
         // Show overview statistics
         var totalSessions = _sessions.Count;
-        var totalPlayTime = TimeSpan.FromTicks(_sessions.Sum(s => s.Duration.Ticks));
+        var totalPlayTime = TimeSpan.FromTicks(_sessions.Sum(s => s.GetDuration().Ticks));
         var avgFps = _sessions.Where(s => s.AverageFps > 0).Average(s => s.AverageFps);
         var patternsDetected = _patterns.Count;
 
@@ -315,7 +315,7 @@ public class GamingAnalyticsPlugin : IPlugin
         var recentSessions = _sessions.OrderByDescending(s => s.StartTime).Take(5);
         foreach (var session in recentSessions)
         {
-            _logger?.LogInformation($"- {session.GameTitle}: {session.AverageFps:F1} FPS avg, {session.Duration.TotalMinutes:F0} min");
+            _logger?.LogInformation($"- {session.GameTitle}: {session.AverageFps:F1} FPS avg, {session.GetDuration().TotalMinutes:F0} min");
         }
     }
 
@@ -562,11 +562,11 @@ public class GamingAnalyticsPlugin : IPlugin
             return;
         }
 
-        var totalPlayTime = TimeSpan.FromTicks(periodSessions.Sum(s => s.Duration.Ticks));
-        var avgSessionLength = periodSessions.Average(s => s.Duration.TotalMinutes);
+        var totalPlayTime = TimeSpan.FromTicks(periodSessions.Sum(s => s.GetDuration().Ticks));
+        var avgSessionLength = periodSessions.Average(s => s.GetDuration().TotalMinutes);
         var mostPlayedGame = periodSessions
             .GroupBy(s => s.GameTitle)
-            .OrderByDescending(g => g.Sum(s => s.Duration.TotalMinutes))
+            .OrderByDescending(g => g.Sum(s => s.GetDuration().TotalMinutes))
             .FirstOrDefault()?.Key;
 
         _logger?.LogInformation($"Total play time: {totalPlayTime.TotalHours:F1} hours");
@@ -702,7 +702,7 @@ public class AnalyticsEngine
     public GamingInsights GenerateInsights(IEnumerable<PerformanceSession> sessions)
     {
         // Generate comprehensive gaming insights
-        var totalPlayTime = TimeSpan.FromTicks(sessions.Sum(s => s.Duration.Ticks));
+        var totalPlayTime = TimeSpan.FromTicks(sessions.Sum(s => s.GetDuration().Ticks));
         return new GamingInsights(
             AverageFps: sessions.Average(s => s.AverageFps),
             TotalPlayTime: totalPlayTime,
@@ -728,6 +728,11 @@ public class PerformanceSession
     public string GameTitle { get; set; } = string.Empty;
     public DateTime StartTime { get; set; }
     public TimeSpan Duration { get; set; }
+
+    /// <summary>
+    /// Gets the duration of this session.
+    /// </summary>
+    public TimeSpan GetDuration() => Duration;
     public float AverageFps { get; set; }
     public float MinFps { get; set; }
     public float MaxFps { get; set; }

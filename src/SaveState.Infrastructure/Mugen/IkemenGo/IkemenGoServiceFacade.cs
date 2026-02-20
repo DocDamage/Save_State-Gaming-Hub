@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Services;
 
 namespace SaveState.Infrastructure.Mugen.IkemenGo;
@@ -11,9 +12,9 @@ public class IkemenGoService : IIkemenGoService
 {
     private readonly IkemenGoServiceOperations _operations;
 
-    public IkemenGoService(ILogger<IkemenGoService> logger)
+    public IkemenGoService(ILogger<IkemenGoService> logger, ITimeProvider timeProvider)
     {
-        _operations = new IkemenGoServiceOperations(logger);
+        _operations = new IkemenGoServiceOperations(logger, timeProvider);
     }
 
     public Task<Result<IkemenGoDetectionResult>> DetectInstallationAsync(CancellationToken ct = default) =>

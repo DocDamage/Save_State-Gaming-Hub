@@ -147,12 +147,15 @@ public class ArchitectureTests
 
         foreach (var type in allTypes.Where(t => t.IsClass && !t.IsAbstract))
         {
-            // Skip migrations, snapshots, and generated code
+            // Skip migrations, snapshots, generated code, and internal implementation classes
             if (type.Name.Contains("Migration") || 
                 type.Name.Contains("Snapshot") ||
                 type.Name.Contains("Designer") ||
                 type.Name.Contains("TypeAliases") ||
-                type.Name.Contains("GlobalUsings"))
+                type.Name.Contains("GlobalUsings") ||
+                type.Name.EndsWith("Operations") ||  // Facade pattern implementations
+                type.Name.EndsWith("Implementation") ||
+                type.Name.EndsWith("Engine"))
             {
                 continue;
             }

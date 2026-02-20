@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Services;
 
 namespace SaveState.Infrastructure.Mugen.SpriteAnimation;
@@ -18,9 +19,12 @@ public class SpriteAnimationService : ISpriteAnimationService
     private SpriteProject? _currentProject;
     private AnimationPlaybackState? _playbackState;
 
-    public SpriteAnimationService(ILogger<SpriteAnimationService> logger)
+    private readonly ITimeProvider _timeProvider;
+
+    public SpriteAnimationService(ILogger<SpriteAnimationService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     #region Sprite Management
@@ -143,7 +147,7 @@ public class SpriteAnimationService : ISpriteAnimationService
                         options.TransparentColor,
                         0,
                         false,
-                        DateTime.UtcNow));
+                        _timeProvider.UtcNow));
 
                 sprites.Add(sprite);
             }
@@ -982,7 +986,7 @@ public class SpriteAnimationService : ISpriteAnimationService
                 SffVersion.V2_0,
                 allGroups,
                 _palettes.Values.ToList(),
-                DateTime.UtcNow);
+                _timeProvider.UtcNow);
 
             return Result<SffFile>.Success(merged);
         }
@@ -1015,7 +1019,7 @@ public class SpriteAnimationService : ISpriteAnimationService
                 null,
                 new List<Palette>(),
                 DateTime.UtcNow,
-                DateTime.UtcNow);
+                _timeProvider.UtcNow);
 
             _currentProject = project;
             return Task.FromResult(Result<SpriteProject>.Success(project));
@@ -1063,7 +1067,7 @@ public class SpriteAnimationService : ISpriteAnimationService
             var path = projectPath ?? _currentProject.FilePath;
             // Save project to file
 
-            _currentProject = _currentProject with { ModifiedAt = DateTime.UtcNow };
+            _currentProject = _currentProject with { ModifiedAt = _timeProvider.UtcNow };
             return Task.FromResult(Result.Success());
         }
         catch (Exception ex)

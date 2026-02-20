@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Automation.Services;
 using SaveState.Core.Automation.Services.DTOs;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Infrastructure.Automation;
 
@@ -11,12 +12,14 @@ namespace SaveState.Infrastructure.Automation;
 public class MacroManager : IMacroManager
 {
     private readonly ILogger<MacroManager> _logger;
+    private readonly ITimeProvider _timeProvider;
     // In a real implementation, this would use a database
     private readonly Dictionary<Guid, Macro> _macros = new();
 
-    public MacroManager(ILogger<MacroManager> logger)
+    public MacroManager(ILogger<MacroManager> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public Task<Result<Macro>> CreateMacroAsync(
@@ -34,8 +37,8 @@ public class MacroManager : IMacroManager
                 UserId: metadata.Author,
                 Actions: Array.Empty<MacroAction>(),
                 Metadata: metadata,
-                CreatedAt: DateTime.UtcNow,
-                UpdatedAt: DateTime.UtcNow);
+                CreatedAt: _timeProvider.UtcNow,
+                UpdatedAt: _timeProvider.UtcNow);
 
             _macros[macro.Id] = macro;
 
@@ -138,7 +141,7 @@ public class MacroManager : IMacroManager
             var updatedMacro = existingMacro with
             {
                 Metadata = metadata,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = _timeProvider.UtcNow
             };
 
             _macros[macroId] = updatedMacro;
@@ -185,6 +188,7 @@ public class MacroManager : IMacroManager
             using var reader = new StreamReader(macroData);
             var content = await reader.ReadToEndAsync(ct);
 
+            var now = _timeProvider.UtcNow;
             var macro = new Macro(
                 Id: Guid.NewGuid(),
                 Name: "Imported Macro",
@@ -197,8 +201,8 @@ public class MacroManager : IMacroManager
                     Version: "1.0.0",
                     Tags: new[] { "imported" },
                     Properties: new Dictionary<string, string> { ["format"] = format }),
-                CreatedAt: DateTime.UtcNow,
-                UpdatedAt: DateTime.UtcNow);
+                CreatedAt: now,
+                UpdatedAt: now);
 
             _macros[macro.Id] = macro;
 
@@ -360,4 +364,3 @@ public class MacroManager : IMacroManager
         }
     }
 }
-

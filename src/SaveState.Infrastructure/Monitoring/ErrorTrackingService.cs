@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Monitoring;
 
 namespace SaveState.Infrastructure.Monitoring;
@@ -13,6 +14,7 @@ public class ErrorTrackingService : IDisposable
 {
     private readonly IApplicationMetrics _metrics;
     private readonly ILogger<ErrorTrackingService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Timer _errorAnalysisTimer;
     private bool _disposed;
 
@@ -22,10 +24,12 @@ public class ErrorTrackingService : IDisposable
 
     public ErrorTrackingService(
         IApplicationMetrics metrics,
-        ILogger<ErrorTrackingService> logger)
+        ILogger<ErrorTrackingService> logger,
+        ITimeProvider timeProvider)
     {
         _metrics = metrics;
         _logger = logger;
+        _timeProvider = timeProvider;
         _recentErrors = new CircularBuffer<ErrorEvent>(1000); // Keep last 1000 errors
 
         // Analyze error patterns every 10 minutes
@@ -43,7 +47,7 @@ public class ErrorTrackingService : IDisposable
 
         var errorEvent = new ErrorEvent
         {
-            Timestamp = DateTime.UtcNow,
+            Timestamp = _timeProvider.UtcNow,
             Source = source,
             ExceptionType = exceptionType,
             Message = message,
@@ -81,7 +85,7 @@ public class ErrorTrackingService : IDisposable
 
         var errorEvent = new ErrorEvent
         {
-            Timestamp = DateTime.UtcNow,
+            Timestamp = _timeProvider.UtcNow,
             Source = source,
             ExceptionType = exception.GetType().Name,
             Message = exception.Message,
@@ -113,7 +117,7 @@ public class ErrorTrackingService : IDisposable
         }
 
         // Keep only recent statistics (last hour)
-        if (DateTime.UtcNow - stats.FirstOccurrence > TimeSpan.FromHours(1))
+        if (_timeProvider.UtcNow - stats.FirstOccurrence > TimeSpan.FromHours(1))
         {
             stats.Reset();
             stats.FirstOccurrence = errorEvent.Timestamp;
@@ -127,7 +131,7 @@ public class ErrorTrackingService : IDisposable
             if (_disposed)
                 return;
 
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.UtcNow;
             var recentErrors = _recentErrors.ToList();
 
             // Analyze error rates over different time windows
@@ -256,17 +260,17 @@ public class ErrorStats
 {
     public long Count { get; set; }
     public long UnhandledCount { get; set; }
-    public DateTime FirstOccurrence { get; set; } = DateTime.UtcNow;
-    public DateTime LastOccurrence { get; set; } = DateTime.UtcNow;
+    public DateTime FirstOccurrence { get; set; } = SystemTimeProvider.Instance.UtcNow;
+    public DateTime LastOccurrence { get; set; } = SystemTimeProvider.Instance.UtcNow;
 
     public double ErrorRatePerHour => Count > 0 ?
-        Count / Math.Max(1, (DateTime.UtcNow - FirstOccurrence).TotalHours) : 0;
+        Count / Math.Max(1, (SystemTimeProvider.Instance.UtcNow - FirstOccurrence).TotalHours) : 0;
 
     public void Reset()
     {
         Count = 0;
         UnhandledCount = 0;
-        FirstOccurrence = DateTime.UtcNow;
+        FirstOccurrence = SystemTimeProvider.Instance.UtcNow;
     }
 }
 

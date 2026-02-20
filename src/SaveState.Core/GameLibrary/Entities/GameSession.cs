@@ -26,6 +26,23 @@ public class GameSession : EntityBase
         : DateTime.UtcNow - StartedAt;
 
     /// <summary>
+    /// Gets the duration of this session.
+    /// If session is still active, returns time since start using UTC now.
+    /// </summary>
+    /// <returns>The duration of the session.</returns>
+    public TimeSpan GetDuration() => GetDuration(DateTime.UtcNow);
+
+    /// <summary>
+    /// Gets the duration of this session using the specified current time for active sessions.
+    /// If session is still active, returns time since start based on provided time.
+    /// </summary>
+    /// <param name="currentTime">The current time to use for calculating duration of active sessions.</param>
+    /// <returns>The duration of the session.</returns>
+    public TimeSpan GetDuration(DateTime currentTime) => EndedAt.HasValue
+        ? EndedAt.Value - StartedAt
+        : currentTime - StartedAt;
+
+    /// <summary>
     /// Indicates whether this session is currently active.
     /// </summary>
     public bool IsActive => !EndedAt.HasValue;
@@ -35,25 +52,25 @@ public class GameSession : EntityBase
     /// <summary>
     /// Creates a new game session for the specified game.
     /// </summary>
-    public static GameSession Create(Guid gameId)
+    public static GameSession Create(Guid gameId, DateTime? startedAt = null)
     {
         return new GameSession
         {
             Id = Guid.NewGuid(),
             GameId = gameId,
-            StartedAt = DateTime.UtcNow
+            StartedAt = startedAt ?? DateTime.UtcNow
         };
     }
 
     /// <summary>
     /// Ends this session with the specified reason.
     /// </summary>
-    public void End(SessionEndReason reason)
+    public void End(SessionEndReason reason, DateTime? endedAt = null)
     {
         if (EndedAt.HasValue)
             return; // Already ended
 
-        EndedAt = DateTime.UtcNow;
+        EndedAt = endedAt ?? DateTime.UtcNow;
         EndReason = reason;
     }
 

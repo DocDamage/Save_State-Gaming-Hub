@@ -52,8 +52,9 @@ public class MugenTournament : EntityBase
     /// </summary>
     /// <param name="name">Tournament name.</param>
     /// <param name="format">Tournament format.</param>
+    /// <param name="createdAt">Optional creation timestamp.</param>
     /// <returns>A new MugenTournament instance.</returns>
-    public static MugenTournament Create(string name, TournamentFormat format)
+    public static MugenTournament Create(string name, TournamentFormat format, DateTime? createdAt = null)
     {
         return new MugenTournament
         {
@@ -61,7 +62,7 @@ public class MugenTournament : EntityBase
             Name = Guard.Against.NullOrWhiteSpace(name, nameof(name)),
             Format = format,
             Status = TournamentStatus.Setup,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = createdAt ?? DateTime.UtcNow
         };
     }
 
@@ -80,13 +81,14 @@ public class MugenTournament : EntityBase
     /// Completes the tournament with a winner.
     /// </summary>
     /// <param name="winnerId">The winning participant ID.</param>
-    public void Complete(Guid winnerId)
+    /// <param name="completedAt">Optional completion timestamp.</param>
+    public void Complete(Guid winnerId, DateTime? completedAt = null)
     {
         if (Status != TournamentStatus.InProgress)
             throw new InvalidOperationException("Tournament can only be completed from in-progress state.");
 
         WinnerId = winnerId;
-        CompletedAt = DateTime.UtcNow;
+        CompletedAt = completedAt ?? DateTime.UtcNow;
         Status = TournamentStatus.Completed;
     }
 
@@ -104,12 +106,12 @@ public class MugenTournament : EntityBase
     // EF Core and Mock constructor
     public MugenTournament() { }
 
-    public MugenTournament(Guid id, string name)
+    public MugenTournament(Guid id, string name, DateTime? createdAt = null)
     {
         Id = id;
         Name = name;
         Status = TournamentStatus.Setup;
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = createdAt ?? DateTime.UtcNow;
     }
 }
 

@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.ComboDatabase;
 using SaveState.Core.Mugen.ComboDatabase.Services;
 using SaveState.Infrastructure.Persistence;
@@ -14,6 +15,7 @@ namespace SaveState.Infrastructure.Mugen.ComboDatabaseServices;
 internal static class ComboDatabaseServiceOperations
 {
     public static async Task<Result<ComboEntry>> AddComboAsync(SaveStateDbContext dbContext, ILogger<ComboDatabaseService> logger, 
+        ITimeProvider timeProvider,
         AddComboRequest request, 
         CancellationToken ct = default)
     {
@@ -39,8 +41,8 @@ internal static class ComboDatabaseServiceOperations
                 Tags = request.Tags ?? new List<string>(),
                 IsTouchOfDeath = request.IsTouchOfDeath,
                 GameVersion = request.GameVersion,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = timeProvider.UtcNow,
+                UpdatedAt = timeProvider.UtcNow
             };
 
             // Auto-calculate properties
@@ -61,6 +63,7 @@ internal static class ComboDatabaseServiceOperations
         }
     }
     public static async Task<Result<ComboEntry>> UpdateComboAsync(SaveStateDbContext dbContext, ILogger<ComboDatabaseService> logger, 
+        ITimeProvider timeProvider,
         Guid comboId, 
         UpdateComboRequest request,
         CancellationToken ct = default)
@@ -87,7 +90,7 @@ internal static class ComboDatabaseServiceOperations
             if (request.IsVerified.HasValue) combo.IsVerified = request.IsVerified.Value;
             if (request.IsOptimal.HasValue) combo.IsOptimal = request.IsOptimal.Value;
 
-            combo.UpdatedAt = DateTime.UtcNow;
+            combo.UpdatedAt = timeProvider.UtcNow;
 
             await dbContext.SaveChangesAsync(ct);
 
@@ -532,6 +535,7 @@ internal static class ComboDatabaseServiceOperations
         }
     }
     public static Task<Result<ComboPracticeSession>> StartPracticeSessionAsync(SaveStateDbContext dbContext, ILogger<ComboDatabaseService> logger, 
+        ITimeProvider timeProvider,
         Guid comboId, 
         CancellationToken ct = default)
     {
@@ -540,7 +544,7 @@ internal static class ComboDatabaseServiceOperations
             var session = new ComboPracticeSession
             {
                 ComboId = comboId,
-                StartedAt = DateTime.UtcNow,
+                StartedAt = timeProvider.UtcNow,
                 Attempts = 0,
                 Successes = 0
             };
@@ -584,6 +588,7 @@ internal static class ComboDatabaseServiceOperations
         }
     }
     public static async Task<Result<ComboPracticeSession>> CompletePracticeSessionAsync(SaveStateDbContext dbContext, ILogger<ComboDatabaseService> logger, 
+        ITimeProvider timeProvider,
         Guid sessionId, 
         CancellationToken ct = default)
     {
@@ -596,7 +601,7 @@ internal static class ComboDatabaseServiceOperations
                 return Result<ComboPracticeSession>.Failure($"Session {sessionId} not found", ErrorType.NotFound);
 
             session.IsCompleted = true;
-            session.CompletedAt = DateTime.UtcNow;
+            session.CompletedAt = timeProvider.UtcNow;
             session.TotalPracticeTime = session.CompletedAt.Value - session.StartedAt;
 
             // Calculate consistency rating
@@ -625,6 +630,7 @@ internal static class ComboDatabaseServiceOperations
         }
     }
     public static async Task<Result<ComboSubmission>> SubmitComboAsync(SaveStateDbContext dbContext, ILogger<ComboDatabaseService> logger, 
+        ITimeProvider timeProvider,
         Guid comboId, 
         string submitterName,
         string? submitterId = null,
@@ -645,7 +651,7 @@ internal static class ComboDatabaseServiceOperations
                 ComboId = comboId,
                 SubmitterName = submitterName,
                 SubmitterId = submitterId,
-                SubmittedAt = DateTime.UtcNow,
+                SubmittedAt = timeProvider.UtcNow,
                 Status = SubmissionStatus.Pending
             };
 
@@ -661,6 +667,7 @@ internal static class ComboDatabaseServiceOperations
         }
     }
     public static async Task<Result> ReviewSubmissionAsync(SaveStateDbContext dbContext, ILogger<ComboDatabaseService> logger, 
+        ITimeProvider timeProvider,
         Guid submissionId, 
         SubmissionStatus status, 
         string? reviewerNotes = null,
@@ -678,7 +685,7 @@ internal static class ComboDatabaseServiceOperations
             submission.Status = status;
             submission.ReviewerNotes = reviewerNotes;
             submission.ReviewedBy = reviewedBy;
-            submission.ReviewedAt = DateTime.UtcNow;
+            submission.ReviewedAt = timeProvider.UtcNow;
 
             // Update combo status
             var combo = await dbContext.ComboEntries
@@ -724,6 +731,7 @@ internal static class ComboDatabaseServiceOperations
         }
     }
     public static async Task<Result<ComboCollection>> CreateCollectionAsync(SaveStateDbContext dbContext, ILogger<ComboDatabaseService> logger, 
+        ITimeProvider timeProvider,
         string name, 
         string? description, 
         string? characterName,
@@ -740,8 +748,8 @@ internal static class ComboDatabaseServiceOperations
                 CharacterName = characterName,
                 Creator = creator,
                 IsPublic = isPublic,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = timeProvider.UtcNow,
+                UpdatedAt = timeProvider.UtcNow,
                 ComboIds = new List<Guid>()
             };
 
@@ -757,6 +765,7 @@ internal static class ComboDatabaseServiceOperations
         }
     }
     public static async Task<Result> AddToCollectionAsync(SaveStateDbContext dbContext, ILogger<ComboDatabaseService> logger, 
+        ITimeProvider timeProvider,
         Guid collectionId, 
         Guid comboId,
         CancellationToken ct = default)
@@ -772,7 +781,7 @@ internal static class ComboDatabaseServiceOperations
             if (!collection.ComboIds.Contains(comboId))
             {
                 collection.ComboIds.Add(comboId);
-                collection.UpdatedAt = DateTime.UtcNow;
+                collection.UpdatedAt = timeProvider.UtcNow;
                 await dbContext.SaveChangesAsync(ct);
             }
 
@@ -884,6 +893,7 @@ internal static class ComboDatabaseServiceOperations
         }
     }
     public static Task<Result<int>> ImportCombosAsync(SaveStateDbContext dbContext, ILogger<ComboDatabaseService> logger, 
+        ITimeProvider timeProvider,
         string source, 
         string data,
         CancellationToken ct = default)
@@ -897,7 +907,7 @@ internal static class ComboDatabaseServiceOperations
             foreach (var combo in combos)
             {
                 // Id is set by EntityBase constructor
-                combo.CreatedAt = DateTime.UtcNow;
+                combo.CreatedAt = timeProvider.UtcNow;
                 combo.Source = source;
                 dbContext.ComboEntries.Add(combo);
             }

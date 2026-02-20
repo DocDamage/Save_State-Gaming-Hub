@@ -75,12 +75,12 @@ public class AutoSaveConfiguration : EntityBase
     /// <summary>
     /// When the configuration was created.
     /// </summary>
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
     
     /// <summary>
     /// When the configuration was last updated.
     /// </summary>
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; }
 }
 
 /// <summary>
@@ -111,7 +111,7 @@ public class AutoSaveEntry : EntityBase
     /// <summary>
     /// When the auto-save was created.
     /// </summary>
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
     
     /// <summary>
     /// Play time at the moment of save (in seconds).
@@ -215,7 +215,7 @@ public class AutoSaveSession
     /// <summary>
     /// When the session started.
     /// </summary>
-    public DateTime StartedAt { get; set; } = DateTime.UtcNow;
+    public DateTime StartedAt { get; set; }
     
     /// <summary>
     /// When the last auto-save occurred.

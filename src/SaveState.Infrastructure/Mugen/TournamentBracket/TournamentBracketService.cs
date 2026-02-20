@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.TournamentEvents;
 using SaveState.Core.Mugen.TournamentEvents.Services;
 using SaveState.Infrastructure.Persistence;
@@ -14,13 +15,16 @@ internal class TournamentEventServiceOperations : ITournamentEventService
 {
     private readonly SaveStateDbContext _dbContext;
     private readonly ILogger<TournamentEventService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public TournamentEventServiceOperations(
         SaveStateDbContext dbContext,
-        ILogger<TournamentEventService> logger)
+        ILogger<TournamentEventService> logger,
+        ITimeProvider timeProvider)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<TournamentEvent>> CreateTournamentAsync(
@@ -276,7 +280,7 @@ internal class TournamentEventServiceOperations : ITournamentEventService
                 return Result.Failure($"Participant {participantId} not found", ErrorType.NotFound);
 
             participant.IsCheckedIn = true;
-            participant.CheckedInAt = DateTime.UtcNow;
+            participant.CheckedInAt = _timeProvider.UtcNow;
             await _dbContext.SaveChangesAsync(ct);
 
             return Result.Success();
@@ -301,7 +305,7 @@ internal class TournamentEventServiceOperations : ITournamentEventService
                 return Result<TournamentEvent>.Failure($"Tournament {tournamentId} not found", ErrorType.NotFound);
 
             tournament.Status = TournamentStatus.InProgress;
-            tournament.StartedAt = DateTime.UtcNow;
+            tournament.StartedAt = _timeProvider.UtcNow;
             tournament.CurrentRound = 1;
 
             await _dbContext.SaveChangesAsync(ct);
@@ -404,7 +408,7 @@ internal class TournamentEventServiceOperations : ITournamentEventService
             };
 
             match.Status = MatchStatus.Completed;
-            match.EndedAt = DateTime.UtcNow;
+            match.EndedAt = _timeProvider.UtcNow;
 
             var winner = tournament.Participants.First(p => p.Id == request.WinnerId);
             var loser = match.Participant1?.Id == request.WinnerId ? match.Participant2 : match.Participant1;
@@ -703,7 +707,7 @@ internal class TournamentEventServiceOperations : ITournamentEventService
                 return Result<TournamentEvent>.Failure($"Tournament {tournamentId} not found", ErrorType.NotFound);
 
             tournament.Status = TournamentStatus.Completed;
-            tournament.EndedAt = DateTime.UtcNow;
+            tournament.EndedAt = _timeProvider.UtcNow;
 
             await _dbContext.SaveChangesAsync(ct);
 

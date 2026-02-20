@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Subscriptions;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Presentation.ViewModels.Subscriptions;
 
@@ -317,7 +318,7 @@ public sealed class SubscriptionAlertViewModel : ObservableObject
     {
         get
         {
-            var days = (_alert.LeavingDate - DateTime.Now).Days;
+            var days = (_alert.LeavingDate - SystemTimeProvider.Instance.UtcNow).Days;
             return days switch
             {
                 0 => "Leaving today!",
@@ -328,7 +329,7 @@ public sealed class SubscriptionAlertViewModel : ObservableObject
         }
     }
 
-    public bool IsUrgent => (_alert.LeavingDate - DateTime.Now).Days <= 3;
+    public bool IsUrgent => (_alert.LeavingDate - SystemTimeProvider.Instance.UtcNow).Days <= 3;
 }
 
 /// <summary>

@@ -54,6 +54,7 @@ public class ConcurrencyTests : IAsyncLifetime
         services.AddSingleton(new Mock<SaveState.Core.Common.Services.IUserPreferencesService>().Object);
         services.AddSingleton(new Mock<SaveState.Core.Monitoring.IApplicationMetrics>().Object);
         services.AddSingleton(new Mock<IDistributedCache>().Object);
+        services.AddSingleton<SaveState.Core.Common.Services.ITimeProvider>(SaveState.Core.Common.Services.SystemTimeProvider.Instance);
 
         // Add performance services
         services.AddScoped<QueryOptimizer>();

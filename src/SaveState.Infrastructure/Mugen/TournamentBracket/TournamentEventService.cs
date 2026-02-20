@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.TournamentEvents;
 using SaveState.Core.Mugen.TournamentEvents.Services;
 using SaveState.Infrastructure.Persistence;
@@ -15,9 +16,10 @@ public class TournamentEventService : ITournamentEventService
 
     public TournamentEventService(
         SaveStateDbContext dbContext,
-        ILogger<TournamentEventService> logger)
+        ILogger<TournamentEventService> logger,
+        ITimeProvider timeProvider)
     {
-        _operations = new TournamentEventServiceOperations(dbContext, logger);
+        _operations = new TournamentEventServiceOperations(dbContext, logger, timeProvider);
     }
 
     public Task<Result<TournamentEvent>> CreateTournamentAsync(CreateTournamentRequest request, CancellationToken ct = default)

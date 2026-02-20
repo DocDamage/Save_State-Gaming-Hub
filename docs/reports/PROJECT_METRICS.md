@@ -87,7 +87,7 @@
 
 ## 🚨 Critical Technical Debt
 
-Full details: [TECHNICAL_DEBT_AUDIT_2026-01-02.md](../reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md)
+Full details: [COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md](../reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md)
 
 ### Severity Breakdown
 
@@ -321,10 +321,11 @@ dotnet run --project tools/SaveState.Docs.Sync/SaveState.Docs.Sync.csproj
 
 | Document | Purpose |
 | :--- | :--- |
-| [TECHNICAL_DEBT_AUDIT_2026-01-02.md](../reports/TECHNICAL_DEBT_AUDIT_2026-01-02.md) | Full debt scan |
+| [COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md](../reports/COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_15.md) | Full debt scan |
 | [AI_MASTER_CONTEXT.md](../AI_MASTER_CONTEXT.md) | Codebase context |
 | [DEVELOPMENT_STATUS.md](../DEVELOPMENT_STATUS.md) | Implementation roadmap |
 
 ---
 
 **This is the single source of truth for all project metrics. If you see conflicting numbers elsewhere, they're stale—refer to this document.**
+

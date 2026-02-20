@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.TournamentEvents;
 using SaveState.Infrastructure.Mugen.TournamentEvents.Services;
 using SaveState.Infrastructure.Persistence;
@@ -13,7 +14,7 @@ public class TournamentEventServiceFacadeTests
     public async Task CreateTournamentAsync_ThenStartTournamentAsync_TransitionsToInProgress()
     {
         await using var dbContext = CreateDbContext();
-        var sut = new TournamentEventService(dbContext, NullLogger<TournamentEventService>.Instance);
+        var sut = new TournamentEventService(dbContext, NullLogger<TournamentEventService>.Instance, SystemTimeProvider.Instance);
 
         var createResult = await sut.CreateTournamentAsync(new CreateTournamentRequest
         {
@@ -33,7 +34,7 @@ public class TournamentEventServiceFacadeTests
     public async Task GenerateBracketAsync_WithRegisteredParticipants_CreatesMatchesAndRounds()
     {
         await using var dbContext = CreateDbContext();
-        var sut = new TournamentEventService(dbContext, NullLogger<TournamentEventService>.Instance);
+        var sut = new TournamentEventService(dbContext, NullLogger<TournamentEventService>.Instance, SystemTimeProvider.Instance);
 
         var tournamentResult = await sut.CreateTournamentAsync(new CreateTournamentRequest
         {

@@ -2,6 +2,7 @@ namespace SaveState.Infrastructure.Repositories;
 
 using Microsoft.EntityFrameworkCore;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
@@ -20,6 +21,7 @@ public class GameRepository : IGameRepository
     private readonly SaveStateDbContext _context;
     private readonly IApplicationMetrics _metrics;
     private readonly QueryOptimizer _queryOptimizer;
+    private readonly ITimeProvider _timeProvider;
 
     /// <summary>
     /// Initializes a new instance of the GameRepository.
@@ -27,11 +29,13 @@ public class GameRepository : IGameRepository
     /// <param name="context">The database context for accessing game data.</param>
     /// <param name="metrics">Application metrics collector for performance monitoring.</param>
     /// <param name="queryOptimizer">Query optimization and caching helper.</param>
-    public GameRepository(SaveStateDbContext context, IApplicationMetrics metrics, QueryOptimizer queryOptimizer)
+    /// <param name="timeProvider">Time provider for deterministic time access.</param>
+    public GameRepository(SaveStateDbContext context, IApplicationMetrics metrics, QueryOptimizer queryOptimizer, ITimeProvider timeProvider)
     {
         _context = context;
         _metrics = metrics;
         _queryOptimizer = queryOptimizer;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -60,7 +64,7 @@ public class GameRepository : IGameRepository
         // This method loads all games into memory and should be used carefully
         // Consider using GetGamesAsync with pagination for large datasets
 
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             // Add AsNoTracking() for read-only operations to improve performance
@@ -76,7 +80,7 @@ public class GameRepository : IGameRepository
                 throw new InvalidOperationException(result.Error ?? "Query failed.");
             }
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("GameRepository.GetAllAsync", duration);
             _metrics.RecordDatabaseConnectionCount(_context.Database.GetDbConnection().State == System.Data.ConnectionState.Open ? 1 : 0);
 
@@ -91,7 +95,7 @@ public class GameRepository : IGameRepository
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("GameRepository.GetAllAsync", duration);
             _metrics.RecordDatabaseError("GameRepository.GetAllAsync", ex.GetType().Name);
             throw;
@@ -140,7 +144,7 @@ public class GameRepository : IGameRepository
         CollectionFilter? adHocFilter = null,
         CancellationToken ct = default)
     {
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
         try
         {
             var query = _context.Games.AsQueryable();
@@ -248,7 +252,7 @@ public class GameRepository : IGameRepository
 
             var result = new PagedResult<Game>(items, totalCount, pageNumber, pageSize);
 
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("GameRepository.GetGamesAsync", duration);
             _metrics.RecordDatabaseConnectionCount(_context.Database.GetDbConnection().State == System.Data.ConnectionState.Open ? 1 : 0);
 
@@ -256,7 +260,7 @@ public class GameRepository : IGameRepository
         }
         catch (Exception ex)
         {
-            var duration = DateTime.UtcNow - startTime;
+            var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordDatabaseQuery("GameRepository.GetGamesAsync", duration);
             _metrics.RecordDatabaseError("GameRepository.GetGamesAsync", ex.GetType().Name);
             throw;
@@ -273,7 +277,7 @@ public class GameRepository : IGameRepository
 
         if (filter.MaxDaysSinceLastPlayed.HasValue)
         {
-            var cutoffDate = DateTime.UtcNow.AddDays(-filter.MaxDaysSinceLastPlayed.Value);
+            var cutoffDate = _timeProvider.UtcNow.AddDays(-filter.MaxDaysSinceLastPlayed.Value);
             query = query.Where(g => g.LastPlayedAt >= cutoffDate || g.LastPlayedAt == null);
         }
 

@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SaveState.Core.RomManagement.RomValidation;
@@ -37,7 +38,7 @@ public class RomHashInfo : EntityBase
     /// <summary>
     /// When the hashes were calculated.
     /// </summary>
-    public DateTime CalculatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CalculatedAt { get; set; } = SystemTimeProvider.Instance.UtcNow;
 
     /// <summary>
     /// Time taken to calculate hashes.
@@ -72,7 +73,7 @@ public class RomHashInfo : EntityBase
             Sha1 = sha1?.ToLowerInvariant(),
             Sha256 = sha256?.ToLowerInvariant(),
             IsComplete = !string.IsNullOrEmpty(sha1) || !string.IsNullOrEmpty(md5),
-            CalculatedAt = DateTime.UtcNow
+            CalculatedAt = SystemTimeProvider.Instance.UtcNow
         };
     }
 
@@ -238,7 +239,7 @@ public class RomMatchResult
     /// <summary>
     /// Match date.
     /// </summary>
-    public DateTime MatchedAt { get; set; } = DateTime.UtcNow;
+    public DateTime MatchedAt { get; set; } = SystemTimeProvider.Instance.UtcNow;
 
     /// <summary>
     /// Source DAT database used for matching.
@@ -292,7 +293,7 @@ public class RomValidationReport : EntityBase
     /// <summary>
     /// When validation was performed.
     /// </summary>
-    public DateTime ValidatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ValidatedAt { get; set; } = SystemTimeProvider.Instance.UtcNow;
 
     /// <summary>
     /// Validation duration.
@@ -520,7 +521,7 @@ public class RomValidationJob : EntityBase
     /// <summary>
     /// When the job was created.
     /// </summary>
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = SystemTimeProvider.Instance.UtcNow;
 
     /// <summary>
     /// When the job started.

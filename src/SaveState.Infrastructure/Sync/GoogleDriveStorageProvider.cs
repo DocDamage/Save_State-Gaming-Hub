@@ -16,23 +16,26 @@ public class GoogleDriveStorageProvider : ICloudStorageProvider
     private readonly ICloudAuthenticationService _authService;
     private readonly ILogger<GoogleDriveStorageProvider> _logger;
     private readonly IUserPreferencesService _preferencesService;
+    private readonly ITimeProvider _timeProvider;
     private OAuth2TokenResponse? _token;
     private readonly Dictionary<string, string> _pathToIdMap = new();
 
     public string ProviderName => "Google Drive";
 
-    public bool IsAuthenticated => _token != null && _token.ExpiresAt > DateTime.UtcNow;
+    public bool IsAuthenticated => _token != null && _token.ExpiresAt > _timeProvider.UtcNow;
 
     public GoogleDriveStorageProvider(
         HttpClient httpClient,
         ICloudAuthenticationService authService,
         IUserPreferencesService preferencesService,
-        ILogger<GoogleDriveStorageProvider> logger)
+        ILogger<GoogleDriveStorageProvider> logger,
+        ITimeProvider timeProvider)
     {
         _httpClient = httpClient;
         _authService = authService;
         _preferencesService = preferencesService;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<bool> AuthenticateAsync(CancellationToken ct = default)
@@ -70,7 +73,7 @@ public class GoogleDriveStorageProvider : ICloudStorageProvider
 
     private async Task EnsureAuthenticatedAsync(CancellationToken ct)
     {
-        if (_token != null && _token.ExpiresAt <= DateTime.UtcNow.AddMinutes(5) && _token.RefreshToken != null)
+        if (_token != null && _token.ExpiresAt <= _timeProvider.UtcNow.AddMinutes(5) && _token.RefreshToken != null)
         {
             _logger.LogInformation("Refreshing Google Drive access token...");
             var savedClientId = await _preferencesService.GetCloudClientIdAsync("Google Drive", ct);
@@ -426,7 +429,7 @@ public class GoogleDriveStorageProvider : ICloudStorageProvider
                     var name = item.GetProperty("name").GetString() ?? string.Empty;
                     var path = remotePath.EndsWith("/") ? remotePath + name : remotePath + "/" + name;
                     var size = item.TryGetProperty("size", out var s) ? long.Parse(s.GetString() ?? "0") : 0;
-                    var modified = item.TryGetProperty("modifiedTime", out var m) ? m.GetDateTime() : DateTime.UtcNow;
+                    var modified = item.TryGetProperty("modifiedTime", out var m) ? m.GetDateTime() : _timeProvider.UtcNow;
                     var mimeType = item.TryGetProperty("mimeType", out var mt) ? mt.GetString() : string.Empty;
                     var isDir = mimeType == "application/vnd.google-apps.folder";
 
@@ -469,7 +472,7 @@ public class GoogleDriveStorageProvider : ICloudStorageProvider
 
             var name = root.GetProperty("name").GetString() ?? string.Empty;
             var size = root.TryGetProperty("size", out var s) ? long.Parse(s.GetString() ?? "0") : 0;
-            var modified = root.TryGetProperty("modifiedTime", out var m) ? m.GetDateTime() : DateTime.UtcNow;
+            var modified = root.TryGetProperty("modifiedTime", out var m) ? m.GetDateTime() : _timeProvider.UtcNow;
             var mimeType = root.TryGetProperty("mimeType", out var mt) ? mt.GetString() : string.Empty;
             var isDir = mimeType == "application/vnd.google-apps.folder";
 

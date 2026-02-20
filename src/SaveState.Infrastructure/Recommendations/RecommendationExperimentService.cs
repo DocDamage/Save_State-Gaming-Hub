@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Recommendations.Services;
 using SaveState.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,7 @@ public class RecommendationExperimentService : IRecommendationExperimentService
 {
     private readonly SaveStateDbContext _context;
     private readonly ILogger<RecommendationExperimentService> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     // In-memory storage (in production, use database)
     private static readonly Dictionary<string, Experiment> _experiments = new();
@@ -21,10 +23,12 @@ public class RecommendationExperimentService : IRecommendationExperimentService
 
     public RecommendationExperimentService(
         SaveStateDbContext context,
-        ILogger<RecommendationExperimentService> logger)
+        ILogger<RecommendationExperimentService> logger,
+        ITimeProvider timeProvider)
     {
         _context = context;
         _logger = logger;
+        _timeProvider = timeProvider;
 
         // Initialize default experiment if none exist
         if (!_experiments.Any())
@@ -100,7 +104,7 @@ public class RecommendationExperimentService : IRecommendationExperimentService
                 GameId = gameId,
                 WasClicked = wasClicked,
                 WasPlayed = wasPlayed,
-                Timestamp = DateTime.UtcNow
+                Timestamp = _timeProvider.UtcNow
             };
 
             _interactions.Add(interaction);
@@ -198,7 +202,7 @@ public class RecommendationExperimentService : IRecommendationExperimentService
                 Name = name,
                 Variants = variantDict,
                 IsActive = true,
-                StartedAt = DateTime.UtcNow,
+                StartedAt = _timeProvider.UtcNow,
                 UserCounts = variantDict.Keys.ToDictionary(k => k, _ => 0)
             };
 
@@ -241,7 +245,7 @@ public class RecommendationExperimentService : IRecommendationExperimentService
             Name = "Default Recommendation Algorithm Test",
             Variants = defaultWeights,
             IsActive = true,
-            StartedAt = DateTime.UtcNow,
+            StartedAt = _timeProvider.UtcNow,
             UserCounts = defaultWeights.Keys.ToDictionary(k => k, _ => 0)
         };
     }

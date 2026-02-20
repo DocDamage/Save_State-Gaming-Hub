@@ -139,9 +139,9 @@ public partial class GameDetailViewModel : ObservableObject
 
         // Initialize tab view models with dependencies
         OverviewTab = new GameOverviewTabViewModel(_mediator, _userContextService, _aiOrchestrator, _dialogService, _navigationService, _gameContextService, loggerFactory.CreateLogger<GameOverviewTabViewModel>(), timeProvider);
-        SaveStatesTab = new GameSaveStatesTabViewModel(_mediator, _dialogService, _notificationService, loggerFactory.CreateLogger<GameSaveStatesTabViewModel>());
+        SaveStatesTab = new GameSaveStatesTabViewModel(_mediator, _dialogService, _notificationService, loggerFactory.CreateLogger<GameSaveStatesTabViewModel>(), _timeProvider);
         AchievementsTab = new GameAchievementsTabViewModel(_mediator, _userContextService, _dialogService, loggerFactory.CreateLogger<GameAchievementsTabViewModel>());
-        SessionsTab = new GameSessionsTabViewModel(_mediator, _dialogService, loggerFactory.CreateLogger<GameSessionsTabViewModel>());
+        SessionsTab = new GameSessionsTabViewModel(_mediator, _dialogService, loggerFactory.CreateLogger<GameSessionsTabViewModel>(), _timeProvider);
         NotesTab = new GameNotesTabViewModel(_mediator, _userContextService, _dialogService, clipboardService, _notificationService, loggerFactory.CreateLogger<GameNotesTabViewModel>(), timeProvider);
         ModsTab = new GameModsTabViewModel(_mediator, _modService, _notificationService, _dialogService, loggerFactory.CreateLogger<GameModsTabViewModel>(), timeProvider);
         MediaTab = new GameMediaTabViewModel(_mediator, _userContextService, _dialogService,

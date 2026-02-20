@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.AutoSave;
 using SaveState.Core.AutoSave.Services;
+using SaveState.Core.Common.Services;
 using SaveState.Infrastructure.Persistence;
 
 namespace SaveState.Infrastructure.AutoSave.Services;
@@ -14,14 +15,17 @@ public class AutoSaveService : IAutoSaveService
 {
     private readonly SaveStateDbContext _dbContext;
     private readonly ILogger<AutoSaveService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<Guid, AutoSaveSession> _activeSessions = new();
 
     public AutoSaveService(
         SaveStateDbContext dbContext,
-        ILogger<AutoSaveService> logger)
+        ILogger<AutoSaveService> logger,
+        ITimeProvider timeProvider)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<AutoSaveConfiguration>> ConfigureAutoSaveAsync(
@@ -147,7 +151,7 @@ public class AutoSaveService : IAutoSaveService
 
             var name = !string.IsNullOrEmpty(request.CustomName)
                 ? request.CustomName
-                : AutoSaveNamingHelper.GenerateDefaultName(gameName, level, request.TriggerType, DateTime.Now);
+                : AutoSaveNamingHelper.GenerateDefaultName(gameName, level, request.TriggerType, _timeProvider.UtcNow);
 
             var entry = new AutoSaveEntry
             {

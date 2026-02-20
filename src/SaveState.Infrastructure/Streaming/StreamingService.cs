@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Constants;
+using SaveState.Core.Common.Services;
 using System.Collections.Generic;
 
 namespace SaveState.Infrastructure.Streaming;
@@ -12,12 +13,14 @@ namespace SaveState.Infrastructure.Streaming;
 public class StreamingService
 {
     private readonly ILogger<StreamingService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, StreamingAccount> _accounts = new();
     private readonly Dictionary<string, LiveStream> _liveStreams = new();
 
-    public StreamingService(ILogger<StreamingService> logger)
+    public StreamingService(ILogger<StreamingService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -37,7 +40,7 @@ public class StreamingService
                 Platform: "Twitch",
                 Username: username,
                 IsConnected: true,
-                ConnectedAt: DateTime.UtcNow);
+                ConnectedAt: _timeProvider.UtcNow);
 
             _accounts[username] = account;
 
@@ -70,7 +73,7 @@ public class StreamingService
                 accountId: accountId,
                 gameTitle: gameTitle,
                 streamTitle: streamTitle,
-                startedAt: DateTime.UtcNow,
+                startedAt: _timeProvider.UtcNow,
                 viewerCount: 0,
                 settings: settings,
                 isLive: true);
@@ -104,7 +107,7 @@ public class StreamingService
             _logger.LogInformation("Stopping stream: {StreamId}", streamId);
 
             stream.IsLive = false;
-            stream.EndedAt = DateTime.UtcNow;
+            stream.EndedAt = _timeProvider.UtcNow;
 
             return Result.Success();
         }
@@ -134,7 +137,7 @@ public class StreamingService
                 ViewerCount: stream.ViewerCount,
                 Duration: stream.EndedAt.HasValue
                     ? stream.EndedAt.Value - stream.StartedAt
-                    : DateTime.UtcNow - stream.StartedAt,
+                    : _timeProvider.UtcNow - stream.StartedAt,
                 FollowersGained: 15,
                 ChatMessages: 250,
                 PeakViewers: 150);

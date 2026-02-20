@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,12 +13,14 @@ namespace SaveState.Infrastructure.Multiplayer;
 public class MultiplayerService
 {
     private readonly ILogger<MultiplayerService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, MultiplayerSession> _sessions = new();
     private readonly Dictionary<string, PlayerConnection> _connections = new();
 
-    public MultiplayerService(ILogger<MultiplayerService> logger)
+    public MultiplayerService(ILogger<MultiplayerService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -36,7 +39,7 @@ public class MultiplayerService
                 id: Guid.NewGuid().ToString(),
                 name: sessionName,
                 maxPlayers: maxPlayers,
-                createdAt: DateTime.UtcNow,
+                createdAt: _timeProvider.UtcNow,
                 players: new List<PlayerInfo>(),
                 isActive: true);
 
@@ -78,7 +81,7 @@ public class MultiplayerService
             var playerInfo = new PlayerInfo(
                 Id: playerId,
                 Name: playerName,
-                JoinedAt: DateTime.UtcNow,
+                JoinedAt: _timeProvider.UtcNow,
                 IsReady: false);
 
             session.Players.Add(playerInfo);
@@ -86,7 +89,7 @@ public class MultiplayerService
             var connection = new PlayerConnection(
                 PlayerId: playerId,
                 SessionId: sessionId,
-                ConnectedAt: DateTime.UtcNow,
+                ConnectedAt: _timeProvider.UtcNow,
                 IsConnected: true);
 
             _connections[playerId] = connection;
@@ -224,7 +227,7 @@ public class MultiplayerService
             await BroadcastToSessionAsync(sessionId, new
             {
                 Type = "GameStarted",
-                Timestamp = DateTime.UtcNow
+                Timestamp = _timeProvider.UtcNow
             }, ct);
         }
         catch (Exception ex)
