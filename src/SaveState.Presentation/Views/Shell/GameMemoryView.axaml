@@ -147,10 +147,12 @@
                              <Border Grid.Row="0" Padding="15" BorderBrush="#1AFFFFFF" BorderThickness="0,0,0,1">
                                 <Grid ColumnDefinitions="Auto, *, Auto">
                                     <TextBlock Text="HEX EDITOR" Classes="SectionHeader" VerticalAlignment="Center"/>
-                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5">
                                         <TextBox Text="{Binding CurrentHexAddress}" Width="120" Watermark="Address (0x...)" FontFamily="Courier New"/>
-                                        <Button Content="Go" Command="{Binding RefreshHexViewCommand}" />
-                                        <Button Content="🔄" Command="{Binding RefreshHexViewCommand}" ToolTip.Tip="Refresh"/>
+                                        <Button Content="Go" Command="{Binding GoToAddressCommand}" />
+                                        <Button Content="← Prev" Command="{Binding PreviousPageCommand}" />
+                                        <Button Content="Next →" Command="{Binding NextPageCommand}" />
+                                        <Button Content="🔄 Refresh" Command="{Binding RefreshHexViewCommand}" />
                                     </StackPanel>
                                 </Grid>
                              </Border>

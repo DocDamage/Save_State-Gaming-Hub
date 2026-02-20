@@ -277,6 +277,12 @@ public record EmulatorConfigResult(
     /// </summary>
     Task<LaunchProfileResult?> ShowLaunchProfileEditorAsync(
         SaveState.Core.SmartLauncher.LaunchProfile? existingProfile = null);
+
+    /// <summary>
+    /// Shows the process selector dialog for attaching to a running game process.
+    /// </summary>
+    /// <returns>The selected process ID, or null if cancelled.</returns>
+    Task<int?> ShowProcessSelectorAsync();
 }
 
 /// <summary>

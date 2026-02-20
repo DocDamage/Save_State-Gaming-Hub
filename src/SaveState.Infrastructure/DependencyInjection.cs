@@ -575,7 +575,7 @@ public static class DependencyInjection
         services.AddSingleton<SaveState.Core.GameLibrary.Services.IPerformanceProfiler, GameLibrary.Services.PerformanceProfiler>();
         services.AddScoped<SaveState.Core.GameLibrary.Services.IAiCoachService, GameLibrary.Services.AiCoachService>();
         services.AddScoped<SaveState.Core.Social.Services.ISocialService, Social.Services.SocialService>();
-        services.AddSingleton<GameLibrary.Services.MemoryPatternDatabase>();
+        services.AddSingleton<SaveState.Core.GameLibrary.Services.IMemoryPatternDatabase, GameLibrary.Services.MemoryPatternDatabase>();
         services.AddScoped<SaveState.Core.Automation.Services.IMacroManager, Automation.MacroManager>();
         services.AddScoped<SaveState.Core.Automation.Services.IMacroService, Automation.MacroService>();
         services.AddScoped<SaveState.Core.Automation.Services.IBackupScheduler, Automation.BackupScheduler>();

@@ -5,12 +5,14 @@
         xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
         x:Class="SaveState.Presentation.Views.Dialogs.ProcessSelectorDialog"
         x:DataType="vm:ProcessSelectorDialogViewModel"
-        Title="Attach to Process"
-        Width="500"
-        Height="600"
+        Title="Select Process"
+        Width="600"
+        Height="500"
         WindowStartupLocation="CenterOwner"
         CanResize="True"
-        Background="{StaticResource DialogBackgroundBrush}"
+        MinWidth="400"
+        MinHeight="300"
+        Background="Transparent"
         TransparencyLevelHint="Mica"
         ExtendClientAreaToDecorationsHint="True">
 
@@ -19,7 +21,7 @@
             <Setter Property="Background" Value="{StaticResource AccentBrush}" />
             <Setter Property="Foreground" Value="White" />
             <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="Padding" Value="24,10" />
+            <Setter Property="Padding" Value="20,8" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
 
@@ -28,88 +30,244 @@
             <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="Padding" Value="24,10" />
+            <Setter Property="Padding" Value="20,8" />
         </Style>
 
-        <Style Selector="TextBox">
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Padding" Value="10" />
+        <Style Selector="Button.iconButton">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Width" Value="36" />
+            <Setter Property="Height" Value="36" />
+            <Setter Property="CornerRadius" Value="18" />
+        </Style>
+
+        <Style Selector="Button.iconButton:pointerover">
+            <Setter Property="Background" Value="{StaticResource HoverBackgroundBrush}" />
+        </Style>
+
+        <Style Selector="TextBox.searchBox">
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="12,8" />
             <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
         </Style>
 
-        <Style Selector="ListBoxItem">
+        <Style Selector="ListBox.processList">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+
+        <Style Selector="ListBox.processList ListBoxItem">
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="Margin" Value="4,2" />
+        </Style>
+
+        <Style Selector="ListBox.processList ListBoxItem:pointerover">
+            <Setter Property="Background" Value="{StaticResource HoverBackgroundBrush}" />
+        </Style>
+
+        <Style Selector="ListBox.processList ListBoxItem:selected">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+        </Style>
+
+        <Style Selector="ListBox.processList ListBoxItem:selected TextBlock">
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <Style Selector="Border.glassContainer">
+            <Setter Property="Background" Value="{StaticResource GlassBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource GlassBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+
+        <!-- Game indicator badge -->
+        <Style Selector="Border.gameBadge">
+            <Setter Property="Background" Value="{StaticResource SuccessBrush}" />
             <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Padding" Value="8,12" />
+            <Setter Property="Padding" Value="6,2" />
         </Style>
     </Window.Styles>
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="32">
+    <Grid RowDefinitions="Auto,*,Auto" Margin="24">
         <!-- Header -->
-        <TextBlock Grid.Row="0"
-                   Text="Attach to Process"
-                   FontSize="24"
-                   FontWeight="Bold"
-                   Margin="0,0,0,24" />
-
-        <!-- Filter -->
-        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
-            <TextBox Grid.Column="0"
-                     Text="{Binding FilterText}"
-                     Watermark="Search processes..." />
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+            <StackPanel Grid.Column="0" Spacing="4">
+                <TextBlock Text="Select Process"
+                           FontSize="20"
+                           FontWeight="Bold" />
+                <TextBlock Text="Choose a running game or application to attach to"
+                           FontSize="12"
+                           Opacity="0.7" />
+            </StackPanel>
             <Button Grid.Column="1"
-                    Content="↻"
-                    Command="{Binding LoadProcessesCommand}"
-                    Margin="8,0,0,0"
-                    ToolTip.Tip="Refresh List"/>
+                    Command="{Binding RefreshProcessesCommand}"
+                    Classes="iconButton"
+                    ToolTip.Tip="Refresh process list">
+                <TextBlock Text="&#xE72C;" 
+                           FontFamily="{StaticResource SymbolFont}" 
+                           FontSize="16"/>
+            </Button>
         </Grid>
 
-        <!-- Process List -->
-        <Border Grid.Row="2"
-                BorderBrush="{StaticResource InputBorderBrush}"
-                BorderThickness="1"
-                CornerRadius="6"
-                Background="{StaticResource InputBackgroundBrush}">
-            <Grid>
-                <ListBox ItemsSource="{Binding Processes}"
-                         SelectedItem="{Binding SelectedProcess}"
-                         Background="Transparent">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <Grid ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0" Spacing="4">
-                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
-                                    <TextBlock Text="{Binding Title}" FontSize="12" Opacity="0.7"
-                                               IsVisible="{Binding Title, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                                </StackPanel>
-                                <TextBlock Grid.Column="1" Text="{Binding Id}"
-                                           VerticalAlignment="Center"
-                                           Opacity="0.5"
-                                           FontSize="12"
-                                           Margin="8,0,0,0"/>
-                            </Grid>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
+        <!-- Search and Process List -->
+        <Border Grid.Row="1" Classes="glassContainer">
+            <Grid RowDefinitions="Auto,*">
+                <!-- Search Box -->
+                <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="12,12,12,8">
+                    <TextBlock Grid.Column="0"
+                               Text="&#xE71E;"
+                               FontFamily="{StaticResource SymbolFont}"
+                               FontSize="16"
+                               VerticalAlignment="Center"
+                               Opacity="0.6"
+                               Margin="0,0,8,0"/>
+                    <TextBox Grid.Column="1"
+                             Text="{Binding SearchText}"
+                             Watermark="Search by name, window title, or PID..."
+                             Classes="searchBox" />
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding Processes.Count, StringFormat='{}{0} processes'}"
+                               VerticalAlignment="Center"
+                               FontSize="12"
+                               Opacity="0.6"
+                               Margin="12,0,0,0"/>
+                </Grid>
 
-                <ProgressBar IsIndeterminate="True"
-                             IsVisible="{Binding IsLoading}"
-                             VerticalAlignment="Top"
-                             Height="2"
-                             Background="Transparent"
-                             Foreground="{StaticResource AccentBrush}" />
+                <!-- Process List -->
+                <Grid Grid.Row="1" Margin="8,0,8,8">
+                    <ListBox ItemsSource="{Binding Processes}"
+                             SelectedItem="{Binding SelectedProcess}"
+                             Classes="processList"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:ProcessInfoViewModel">
+                                <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,2">
+                                    <!-- Icon / Game Indicator -->
+                                    <Border Grid.Column="0"
+                                            Width="32"
+                                            Height="32"
+                                            CornerRadius="4"
+                                            Background="{StaticResource AccentBrush}"
+                                            IsVisible="{Binding IsLikelyGame}"
+                                            Margin="0,0,12,0">
+                                        <TextBlock Text="&#xE7FC;"
+                                                   FontFamily="{StaticResource SymbolFont}"
+                                                   FontSize="16"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="White"/>
+                                    </Border>
+                                    <Border Grid.Column="0"
+                                            Width="32"
+                                            Height="32"
+                                            CornerRadius="4"
+                                            Background="{StaticResource InputBorderBrush}"
+                                            IsVisible="{Binding IsLikelyGame, Converter={x:Static BoolConverters.Not}}"
+                                            Margin="0,0,12,0">
+                                        <TextBlock Text="&#xE7EE;"
+                                                   FontFamily="{StaticResource SymbolFont}"
+                                                   FontSize="16"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   Opacity="0.6"/>
+                                    </Border>
 
-                <TextBlock Text="No processes found"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           IsVisible="{Binding !Processes.Count}"
-                           Opacity="0.5"/>
+                                    <!-- Process Info -->
+                                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="{Binding Name}" 
+                                                       FontWeight="SemiBold"
+                                                       FontSize="14"/>
+                                            <Border Classes="gameBadge"
+                                                    IsVisible="{Binding IsLikelyGame}">
+                                                <TextBlock Text="GAME"
+                                                           FontSize="10"
+                                                           FontWeight="Bold"
+                                                           Foreground="White"/>
+                                            </Border>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding WindowTitle}" 
+                                                   FontSize="12" 
+                                                   Opacity="0.7"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   IsVisible="{Binding WindowTitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                    </StackPanel>
+
+                                    <!-- Memory -->
+                                    <TextBlock Grid.Column="2"
+                                               Text="{Binding MemoryUsage}"
+                                               VerticalAlignment="Center"
+                                               FontSize="12"
+                                               Opacity="0.6"
+                                               Margin="12,0"/>
+
+                                    <!-- PID -->
+                                    <Border Grid.Column="3"
+                                            Background="{StaticResource InputBorderBrush}"
+                                            CornerRadius="4"
+                                            Padding="8,4"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Id, StringFormat='PID: {0}'}"
+                                                   FontSize="11"
+                                                   Opacity="0.8"
+                                                   FontFamily="Consolas"/>
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- Loading Indicator -->
+                    <ProgressBar IsIndeterminate="True"
+                                 IsVisible="{Binding IsLoading}"
+                                 VerticalAlignment="Top"
+                                 Height="2"
+                                 Background="Transparent"
+                                 Foreground="{StaticResource AccentBrush}" />
+
+                    <!-- Empty State -->
+                    <StackPanel HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                IsVisible="{Binding !Processes.Count}">
+                        <TextBlock Text="&#xE9CE;"
+                                   FontFamily="{StaticResource SymbolFont}"
+                                   FontSize="48"
+                                   Opacity="0.3"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="No processes found"
+                                   FontSize="16"
+                                   Opacity="0.5"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,8,0,0"/>
+                        <TextBlock Text="Try adjusting your search or refresh the list"
+                                   FontSize="12"
+                                   Opacity="0.4"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Grid>
             </Grid>
         </Border>
 
         <!-- Footer -->
-        <Grid Grid.Row="3" ColumnDefinitions="*,Auto,Auto" Margin="0,24,0,0">
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" Margin="0,16,0,0">
+            <TextBlock Grid.Column="0"
+                       VerticalAlignment="Center"
+                       FontSize="12"
+                       Opacity="0.6">
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="{}{0} | Double-click to select">
+                        <Binding Path="SelectedProcess.DisplayText" />
+                    </MultiBinding>
+                </TextBlock.Text>
+                <TextBlock.IsVisible>
+                    <Binding Path="SelectedProcess" Converter="{x:Static ObjectConverters.IsNotNull}" />
+                </TextBlock.IsVisible>
+            </TextBlock>
+
             <Button Grid.Column="1"
                     Content="Cancel"
                     Command="{Binding CancelCommand}"
@@ -118,7 +276,7 @@
 
             <Button Grid.Column="2"
                     Content="Attach"
-                    Command="{Binding ConfirmCommand}"
+                    Command="{Binding AttachCommand}"
                     Classes="primary"
                     IsEnabled="{Binding SelectedProcess, Converter={x:Static ObjectConverters.IsNotNull}}" />
         </Grid>

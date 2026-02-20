@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.Services;
 
 namespace SaveState.Infrastructure.GameLibrary.Services;
@@ -9,7 +10,7 @@ namespace SaveState.Infrastructure.GameLibrary.Services;
 public class GameMemoryReader : IGameMemoryReader, IDisposable
 {
     private readonly ILogger<GameMemoryReader> _logger;
-    private readonly MemoryPatternDatabase _patternDatabase;
+    private readonly IMemoryPatternDatabase _patternDatabase;
     private IntPtr _processHandle = IntPtr.Zero;
     private Process? _attachedProcess;
     private bool _isAttached;
@@ -22,7 +23,7 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
 
     public bool IsAttached => _isAttached;
 
-    public GameMemoryReader(ILogger<GameMemoryReader> logger, MemoryPatternDatabase patternDatabase)
+    public GameMemoryReader(ILogger<GameMemoryReader> logger, IMemoryPatternDatabase patternDatabase)
     {
         _logger = logger;
         _patternDatabase = patternDatabase;
@@ -143,7 +144,16 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
                         var patternResult = await ScanForSignatureAsync(signature, ct);
                         if (patternResult.IsSuccess && patternResult.Value is not null)
                         {
-                            patterns.Add(patternResult.Value);
+                            // Validate the value before adding
+                            if (signature.IsValidValue(patternResult.Value.CurrentValue))
+                            {
+                                patterns.Add(patternResult.Value);
+                            }
+                            else
+                            {
+                                _logger.LogDebug("Signature '{Signature}' value {Value} outside valid range",
+                                    signature.Name, patternResult.Value.CurrentValue);
+                            }
                         }
                     }
                 }
@@ -331,7 +341,9 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
     [Flags]
     private enum PROCESS_ACCESS_RIGHTS : uint
     {
-        PROCESS_VM_READ = 0x0010
+        PROCESS_VM_READ = 0x0010,
+        PROCESS_VM_WRITE = 0x0020,
+        PROCESS_VM_OPERATION = 0x0008
     }
 
     [DllImport("kernel32.dll", SetLastError = true)]
@@ -339,6 +351,9 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int dwSize, out uint lpNumberOfBytesRead);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int dwSize, out uint lpNumberOfBytesWritten);
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool CloseHandle(IntPtr hObject);
@@ -351,9 +366,16 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
         return processName switch
         {
             "celeste" => "Celeste",
-            "hollowknight" => "Hollow Knight",
+            "hollow_knight" or "hollowknight" => "Hollow Knight",
             "stardew valley" or "stardewvalley" => "Stardew Valley",
-            "celeste.bin" or "celeste.exe" => "Celeste", // Handle different executable names
+            "hades" => "Hades",
+            "hades2" or "hadesii" => "Hades II",
+            "deadcells" => "Dead Cells",
+            "riskofrain2" => "Risk of Rain 2",
+            "slaythespire" => "Slay the Spire",
+            "cuphead" => "Cuphead",
+            "shovelknight" => "Shovel Knight",
+            "ori" or "oriandtheblindforest" or "oriwotw" => "Ori and the Blind Forest",
             _ => null // Unknown game
         };
     }
@@ -364,8 +386,8 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
         {
             try
             {
-                // Convert hex pattern to byte array
-                var patternBytes = HexStringToByteArray(signature.Pattern);
+                // Convert hex pattern to nullable byte array with wildcard support
+                var patternBytes = ParsePatternWithWildcards(signature.Pattern);
                 if (patternBytes == null || patternBytes.Length == 0)
                 {
                     return Result.Failure<MemoryPattern>($"Invalid hex pattern: {signature.Pattern}", ErrorType.Validation);
@@ -397,7 +419,40 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
         }, ct);
     }
 
-    private IntPtr ScanForPattern(byte[] pattern, CancellationToken ct)
+    private byte?[]? ParsePatternWithWildcards(string pattern)
+    {
+        try
+        {
+            // Remove spaces and handle wildcards (??)
+            pattern = pattern.Replace(" ", "");
+
+            if (string.IsNullOrEmpty(pattern) || pattern.Length % 2 != 0)
+            {
+                return null;
+            }
+
+            var bytes = new byte?[pattern.Length / 2];
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                var hexPair = pattern.Substring(i * 2, 2);
+                if (hexPair == "??" || hexPair == "**")
+                {
+                    bytes[i] = null; // Wildcard
+                }
+                else
+                {
+                    bytes[i] = Convert.ToByte(hexPair, 16);
+                }
+            }
+            return bytes;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private IntPtr ScanForPattern(byte?[] pattern, CancellationToken ct)
     {
         // Simplified pattern scanning - scan common memory ranges
         var scanRanges = new[]
@@ -414,7 +469,7 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
             {
                 var address = (IntPtr)(range.Start + offset);
 
-                if (MatchesPattern(address, pattern))
+                if (MatchesPatternWithWildcards(address, pattern))
                 {
                     return address;
                 }
@@ -424,12 +479,16 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
         return IntPtr.Zero;
     }
 
-    private bool MatchesPattern(IntPtr address, byte[] pattern)
+    private bool MatchesPatternWithWildcards(IntPtr address, byte?[] pattern)
     {
         for (int i = 0; i < pattern.Length; i++)
         {
+            // Skip wildcard bytes
+            if (!pattern[i].HasValue)
+                continue;
+
             var byteValue = ReadByte(IntPtr.Add(address, i));
-            if (!byteValue.HasValue || byteValue.Value != pattern[i])
+            if (!byteValue.HasValue || byteValue.Value != pattern[i].Value)
             {
                 return false;
             }
@@ -457,11 +516,47 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
     {
         return valueType.ToLowerInvariant() switch
         {
-            "int32" => ReadInt32(address),
+            "int32" or "int" => ReadInt32(address),
+            "int64" or "long" => ReadInt64(address),
             "float" => ReadFloat(address),
+            "double" => ReadDouble(address),
             "byte" => ReadByte(address),
+            "int16" or "short" => ReadInt16(address),
+            "bool" => ReadByte(address) != 0,
             _ => ReadInt32(address) // Default to int32
         };
+    }
+
+    private short? ReadInt16(IntPtr address)
+    {
+        if (!_isAttached || _processHandle == IntPtr.Zero)
+            return null;
+
+        var buffer = new byte[2];
+        uint bytesRead;
+
+        if (ReadProcessMemory(_processHandle, address, buffer, 2, out bytesRead) && bytesRead == 2)
+        {
+            return BitConverter.ToInt16(buffer, 0);
+        }
+
+        return null;
+    }
+
+    private long? ReadInt64(IntPtr address)
+    {
+        if (!_isAttached || _processHandle == IntPtr.Zero)
+            return null;
+
+        var buffer = new byte[8];
+        uint bytesRead;
+
+        if (ReadProcessMemory(_processHandle, address, buffer, 8, out bytesRead) && bytesRead == 8)
+        {
+            return BitConverter.ToInt64(buffer, 0);
+        }
+
+        return null;
     }
 
     private float? ReadFloat(IntPtr address)
@@ -480,27 +575,175 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
         return null;
     }
 
-    private static byte[]? HexStringToByteArray(string hex)
+    private double? ReadDouble(IntPtr address)
     {
-        try
-        {
-            // Remove spaces and handle wildcards (??)
-            hex = hex.Replace(" ", "").Replace("??", "00"); // Treat ?? as 00 for simplicity
-
-            if (hex.Length % 2 != 0)
-                return null;
-
-            var bytes = new byte[hex.Length / 2];
-            for (int i = 0; i < bytes.Length; i++)
-            {
-                bytes[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
-            }
-            return bytes;
-        }
-        catch
-        {
+        if (!_isAttached || _processHandle == IntPtr.Zero)
             return null;
+
+        var buffer = new byte[8];
+        uint bytesRead;
+
+        if (ReadProcessMemory(_processHandle, address, buffer, 8, out bytesRead) && bytesRead == 8)
+        {
+            return BitConverter.ToDouble(buffer, 0);
         }
+
+        return null;
+    }
+
+    public async Task<Result> WriteMemoryAsync(IntPtr address, int value, CancellationToken ct = default)
+    {
+        if (!_isAttached)
+        {
+            return Result.Failure("Not attached to any process");
+        }
+
+        return await Task.Run(() =>
+        {
+            try
+            {
+                // Reopen with write access if needed
+                var writeHandle = OpenProcess(PROCESS_ACCESS_RIGHTS.PROCESS_VM_WRITE | PROCESS_ACCESS_RIGHTS.PROCESS_VM_OPERATION, false, _attachedProcess!.Id);
+                if (writeHandle == IntPtr.Zero)
+                {
+                    return Result.Failure("Failed to open process for writing");
+                }
+
+                var buffer = BitConverter.GetBytes(value);
+                uint bytesWritten;
+                var success = WriteProcessMemory(writeHandle, address, buffer, buffer.Length, out bytesWritten);
+                CloseHandle(writeHandle);
+
+                if (success && bytesWritten == buffer.Length)
+                {
+                    _logger.LogInformation("Wrote {Value} to address {Address}", value, address);
+                    return Result.Success();
+                }
+
+                return Result.Failure("Failed to write memory");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error writing memory");
+                return Result.Failure($"Error writing memory: {ex.Message}");
+            }
+        }, ct);
+    }
+
+    public async Task<Result> WriteMemoryAsync(IntPtr address, float value, CancellationToken ct = default)
+    {
+        if (!_isAttached)
+        {
+            return Result.Failure("Not attached to any process");
+        }
+
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var writeHandle = OpenProcess(PROCESS_ACCESS_RIGHTS.PROCESS_VM_WRITE | PROCESS_ACCESS_RIGHTS.PROCESS_VM_OPERATION, false, _attachedProcess!.Id);
+                if (writeHandle == IntPtr.Zero)
+                {
+                    return Result.Failure("Failed to open process for writing");
+                }
+
+                var buffer = BitConverter.GetBytes(value);
+                uint bytesWritten;
+                var success = WriteProcessMemory(writeHandle, address, buffer, buffer.Length, out bytesWritten);
+                CloseHandle(writeHandle);
+
+                if (success && bytesWritten == buffer.Length)
+                {
+                    _logger.LogInformation("Wrote {Value} to address {Address}", value, address);
+                    return Result.Success();
+                }
+
+                return Result.Failure("Failed to write memory");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error writing memory");
+                return Result.Failure($"Error writing memory: {ex.Message}");
+            }
+        }, ct);
+    }
+
+    public async Task<Result<byte[]>> ReadMemoryBytesAsync(IntPtr address, int length, CancellationToken ct = default)
+    {
+        if (!_isAttached)
+        {
+            return Result.Failure<byte[]>("Not attached to any process");
+        }
+
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var buffer = new byte[length];
+                uint bytesRead;
+
+                if (ReadProcessMemory(_processHandle, address, buffer, length, out bytesRead) && bytesRead == (uint)length)
+                {
+                    return Result.Success(buffer);
+                }
+
+                return Result.Failure<byte[]>("Failed to read memory");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error reading memory bytes");
+                return Result.Failure<byte[]>($"Error reading memory: {ex.Message}");
+            }
+        }, ct);
+    }
+
+    public async Task<Result<long>> GetModuleBaseAddressAsync(string? moduleName = null, CancellationToken ct = default)
+    {
+        if (!_isAttached || _attachedProcess == null)
+        {
+            return Result.Failure<long>("Not attached to any process");
+        }
+
+        return await Task.Run(() =>
+        {
+            try
+            {
+                ProcessModule? module;
+                if (string.IsNullOrEmpty(moduleName))
+                {
+                    module = _attachedProcess.MainModule;
+                }
+                else
+                {
+                    module = _attachedProcess.Modules.Cast<ProcessModule>()
+                        .FirstOrDefault(m => m.ModuleName?.Equals(moduleName, StringComparison.OrdinalIgnoreCase) == true);
+                }
+
+                if (module == null)
+                {
+                    return Result.Failure<long>($"Module '{moduleName}' not found");
+                }
+
+                return Result.Success(module.BaseAddress.ToInt64());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting module base address");
+                return Result.Failure<long>($"Error getting module base address: {ex.Message}");
+            }
+        }, ct);
+    }
+
+    public Task<Result> FreezeValueAsync(IntPtr address, object value, CancellationToken ct = default)
+    {
+        // Placeholder implementation - would require a background thread to continuously write the value
+        _logger.LogInformation("Freeze value requested for address {Address} with value {Value}", address, value);
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result> UnfreezeValueAsync(IntPtr address, CancellationToken ct = default)
+    {
+        _logger.LogInformation("Unfreeze value requested for address {Address}", address);
+        return Task.FromResult(Result.Success());
     }
 }
-

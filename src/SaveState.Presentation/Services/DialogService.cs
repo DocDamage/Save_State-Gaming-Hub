@@ -197,4 +197,36 @@ public partial class DialogService : IDialogService
     }
 
     #endregion
+
+    #region Process Selector
+
+    /// <inheritdoc />
+    public async Task<int?> ShowProcessSelectorAsync()
+    {
+        try
+        {
+            var vm = new ProcessSelectorDialogViewModel();
+
+            var dialog = new ProcessSelectorDialog
+            {
+                DataContext = vm
+            };
+
+            var mainWindow = GetMainWindow();
+            if (mainWindow == null)
+            {
+                _logger.LogWarning("Main window not found for process selector dialog");
+                return null;
+            }
+
+            return await dialog.ShowDialog<int?>(mainWindow);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show process selector dialog");
+            return null;
+        }
+    }
+
+    #endregion
 }

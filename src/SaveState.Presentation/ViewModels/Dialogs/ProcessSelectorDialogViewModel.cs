@@ -5,35 +5,62 @@ using System.Diagnostics;
 
 namespace SaveState.Presentation.ViewModels.Dialogs;
 
+/// <summary>
+/// View model for the process selector dialog.
+/// Allows users to select a running process to attach to for memory inspection.
+/// </summary>
 public partial class ProcessSelectorDialogViewModel : ObservableObject
 {
     private Action<int?>? _closeAction;
-    private List<ProcessItem> _allProcesses = new();
+    private List<ProcessInfoViewModel> _allProcesses = new();
 
+    /// <summary>
+    /// Collection of filtered processes displayed in the dialog.
+    /// </summary>
     [ObservableProperty]
-    private ObservableCollection<ProcessItem> _processes = new();
+    private ObservableCollection<ProcessInfoViewModel> _processes = new();
 
+    /// <summary>
+    /// The currently selected process.
+    /// </summary>
     [ObservableProperty]
-    private ProcessItem? _selectedProcess;
+    private ProcessInfoViewModel? _selectedProcess;
 
+    /// <summary>
+    /// Search text for filtering the process list.
+    /// </summary>
     [ObservableProperty]
-    private string _filterText = string.Empty;
+    private string _searchText = string.Empty;
 
+    /// <summary>
+    /// Indicates whether the process list is being loaded.
+    /// </summary>
     [ObservableProperty]
     private bool _isLoading;
 
+    /// <summary>
+    /// Initializes a new instance of the process selector dialog view model.
+    /// Automatically loads the process list.
+    /// </summary>
     public ProcessSelectorDialogViewModel()
     {
-        _ = LoadProcessesAsync();
+        _ = RefreshProcessesAsync();
     }
 
+    /// <summary>
+    /// Sets the action to be called when the dialog closes.
+    /// </summary>
+    /// <param name="closeAction">Action that receives the selected process ID or null if cancelled.</param>
     public void SetCloseAction(Action<int?> closeAction)
     {
         _closeAction = closeAction;
     }
 
+    /// <summary>
+    /// Refreshes the list of running processes.
+    /// </summary>
     [RelayCommand]
-    private async Task LoadProcessesAsync()
+    private async Task RefreshProcessesAsync()
     {
         IsLoading = true;
         await Task.Run(() =>
@@ -44,26 +71,31 @@ public partial class ProcessSelectorDialogViewModel : ObservableObject
             {
                 try
                 {
-                    // Filter out system processes usually irrelevant for gaming if desired,
-                    // but for now list all that have a window title or reasonable looking name.
-                    // Accessing MainModule might throw for some system processes.
-
+                    // Accessing process properties might throw for system processes
                     var title = p.MainWindowTitle;
+                    var memoryBytes = p.WorkingSet64;
 
-                    // Simple filter: skip processes with no title to reduce noise,
-                    // unless user wants to attach to background process.
-                    // Games usually have a window.
-                    if (string.IsNullOrEmpty(title)) continue;
+                    // Filter: include processes with window titles OR significant memory usage (>100MB)
+                    // This helps identify games while still allowing background process selection
+                    if (string.IsNullOrEmpty(title) && memoryBytes < 100 * 1024 * 1024)
+                        continue;
 
-                    _allProcesses.Add(new ProcessItem(p.Id, p.ProcessName, title));
+                    _allProcesses.Add(new ProcessInfoViewModel
+                    {
+                        Id = p.Id,
+                        Name = p.ProcessName,
+                        WindowTitle = title,
+                        MemoryUsage = $"{memoryBytes / (1024 * 1024)} MB",
+                        IsLikelyGame = memoryBytes > 200 * 1024 * 1024 && !string.IsNullOrEmpty(title)
+                    });
                 }
                 catch
                 {
-                    // Ignore inaccessible processes
+                    // Ignore inaccessible processes (system processes, etc.)
                 }
             }
 
-            // Sort
+            // Sort by name alphabetically
             _allProcesses.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
         });
 
@@ -71,29 +103,38 @@ public partial class ProcessSelectorDialogViewModel : ObservableObject
         IsLoading = false;
     }
 
-    partial void OnFilterTextChanged(string value)
+    /// <summary>
+    /// Called when SearchText changes to apply the filter.
+    /// </summary>
+    partial void OnSearchTextChanged(string value)
     {
         ApplyFilter();
     }
 
+    /// <summary>
+    /// Applies the current search filter to the process list.
+    /// </summary>
     private void ApplyFilter()
     {
-        if (string.IsNullOrWhiteSpace(FilterText))
+        if (string.IsNullOrWhiteSpace(SearchText))
         {
-            Processes = new ObservableCollection<ProcessItem>(_allProcesses);
+            Processes = new ObservableCollection<ProcessInfoViewModel>(_allProcesses);
         }
         else
         {
             var filtered = _allProcesses.Where(p =>
-                p.Name.Contains(FilterText, StringComparison.OrdinalIgnoreCase) ||
-                p.Title.Contains(FilterText, StringComparison.OrdinalIgnoreCase) ||
-                p.Id.ToString().Contains(FilterText));
-            Processes = new ObservableCollection<ProcessItem>(filtered);
+                p.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                p.WindowTitle.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                p.Id.ToString().Contains(SearchText));
+            Processes = new ObservableCollection<ProcessInfoViewModel>(filtered);
         }
     }
 
+    /// <summary>
+    /// Confirms the selection and closes the dialog with the selected process ID.
+    /// </summary>
     [RelayCommand]
-    private void Confirm()
+    private void Attach()
     {
         if (SelectedProcess != null)
         {
@@ -101,6 +142,9 @@ public partial class ProcessSelectorDialogViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Cancels the dialog and returns null.
+    /// </summary>
     [RelayCommand]
     private void Cancel()
     {
@@ -108,7 +152,38 @@ public partial class ProcessSelectorDialogViewModel : ObservableObject
     }
 }
 
-public record ProcessItem(int Id, string Name, string Title)
+/// <summary>
+/// Represents a process item displayed in the selector dialog.
+/// </summary>
+public class ProcessInfoViewModel
 {
+    /// <summary>
+    /// The process ID (PID).
+    /// </summary>
+    public int Id { get; set; }
+
+    /// <summary>
+    /// The process name (executable name without extension).
+    /// </summary>
+    public string Name { get; set; } = "";
+
+    /// <summary>
+    /// The main window title of the process.
+    /// </summary>
+    public string WindowTitle { get; set; } = "";
+
+    /// <summary>
+    /// Formatted memory usage string (e.g., "512 MB").
+    /// </summary>
+    public string MemoryUsage { get; set; } = "";
+
+    /// <summary>
+    /// Indicates whether this process is likely a game based on memory usage and window presence.
+    /// </summary>
+    public bool IsLikelyGame { get; set; }
+
+    /// <summary>
+    /// Display text combining name and ID for compact representation.
+    /// </summary>
     public string DisplayText => $"{Name} ({Id})";
 }

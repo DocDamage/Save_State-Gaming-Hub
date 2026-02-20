@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Infrastructure.GameLibrary.Services;
 using Xunit;
@@ -30,12 +31,13 @@ public class MemoryServicesTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeEmpty();
-        result.Value.Should().Contain(sig => sig.Name.Contains("Player Health"));
-        result.Value.Should().Contain(sig => sig.Name.Contains("Current Level"));
+        result.Value.Should().Contain(sig => sig.Name == "Strawberries");
+        result.Value.Should().Contain(sig => sig.Name == "Deaths");
+        result.Value.Should().Contain(sig => sig.Name == "Chapter");
     }
 
     [Fact]
-    public void MemoryPatternDatabase_GetSignaturesForGame_UnknownGame_ReturnsEmptyList()
+    public void MemoryPatternDatabase_GetSignaturesForGame_UnknownGame_ReturnsUniversalPatterns()
     {
         // Arrange
         var database = new MemoryPatternDatabase(_patternDbLoggerMock.Object);
@@ -45,7 +47,9 @@ public class MemoryServicesTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEmpty();
+        // Should return universal patterns (*) even for unknown games
+        result.Value.Should().NotBeEmpty();
+        result.Value.Should().Contain(sig => sig.GameTitle == "*");
     }
 
     [Fact]
@@ -77,6 +81,14 @@ public class MemoryServicesTests
         result.Value.Should().Contain("Celeste");
         result.Value.Should().Contain("Hollow Knight");
         result.Value.Should().Contain("Stardew Valley");
+        result.Value.Should().Contain("Hades");
+        result.Value.Should().Contain("Dead Cells");
+        result.Value.Should().Contain("Risk of Rain 2");
+        result.Value.Should().Contain("Slay the Spire");
+        result.Value.Should().Contain("Cuphead");
+        result.Value.Should().Contain("Shovel Knight");
+        result.Value.Should().Contain("Ori and the Blind Forest");
+        result.Value.Should().Contain("*");
     }
 
     [Fact]
