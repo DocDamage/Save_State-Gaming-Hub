@@ -3,11 +3,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Serilog;
 using SaveState.Core.Configuration;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Configuration;
 using SaveState.Core.Common.Services;
 using SaveState.Core.Monitoring;
+using SaveState.Infrastructure.Logging;
 using SaveState.Infrastructure.Services;
 using SaveState.Infrastructure.UserManagement;
 using SaveState.Infrastructure.Ai.Providers;
@@ -147,6 +149,9 @@ public static class DependencyInjection
         services.AddSingleton<SaveState.Core.Common.Services.IUserPreferencesService, SaveState.Infrastructure.Services.UserPreferencesService>();
         services.AddSingleton<ITimeProvider>(_ => SystemTimeProvider.Instance);
         services.AddSingleton<ITaskRunner, TaskRunner>();
+
+        // Structured Logging Services
+        services.AddStructuredLogging();
 
         // Culture and Localization Services
         services.AddSingleton<SaveState.Core.Common.Services.ICultureManager, CultureManager>();
@@ -869,6 +874,29 @@ public static class DependencyInjection
         // Smart Launcher Services
         services.AddSmartLauncherServices();
 
+        return services;
+    }
+
+    /// <summary>
+    /// Adds infrastructure logging services including correlation ID provider and structured logging.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration.</param>
+    /// <returns>The service collection for chaining.</returns>
+    public static IServiceCollection AddInfrastructureLogging(
+        this IServiceCollection services, 
+        IConfiguration configuration)
+    {
+        services.AddStructuredLogging();
+        
+        // Register correlation ID provider as scoped for web scenarios
+        services.AddScoped<ICorrelationIdProvider>(sp => 
+        {
+            var provider = new CorrelationIdProvider();
+            // Could read from HTTP header in web context
+            return provider;
+        });
+        
         return services;
     }
 

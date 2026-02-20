@@ -5,6 +5,7 @@ using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Infrastructure.GameLibrary.Heuristics;
+using SaveState.Application.Common;
 
 namespace SaveState.Infrastructure.GameLibrary.Services;
 
@@ -113,125 +114,164 @@ public sealed class AutoDiscoveryEngine : IAutoDiscoveryEngine, IDisposable
     /// <inheritdoc />
     public Task<Result<DiscoverySession>> StartDiscoverySessionAsync(int processId, DiscoveryOptions options, CancellationToken ct = default)
     {
-        try
+        var sessionId = Guid.NewGuid();
+        
+        using (_logger.BeginCorrelationScope(sessionId.ToString("N")))
+        using (_logger.BeginSessionScope(sessionId))
         {
-            _logger.LogInformation("Starting discovery session for process {ProcessId}", processId);
-
-            // Validate process exists
-            Process? process = null;
+            _logger.LogInformation(
+                "Starting discovery session {SessionId} for process {ProcessId}. ScanRange: {StartAddress:X}-{EndAddress:X}",
+                sessionId,
+                processId,
+                options.ScanStartAddress,
+                options.ScanStartAddress + options.ScanSize);
+                
             try
             {
-                process = Process.GetProcessById(processId);
-            }
-            catch (ArgumentException)
-            {
-                return Task.FromResult(Result.Failure<DiscoverySession>($"Process {processId} not found", ErrorType.NotFound));
-            }
+                // Validate process exists
+                Process? process = null;
+                try
+                {
+                    process = Process.GetProcessById(processId);
+                }
+                catch (ArgumentException)
+                {
+                    _logger.LogError("Process {ProcessId} not found", processId);
+                    return Task.FromResult(Result.Failure<DiscoverySession>($"Process {processId} not found", ErrorType.NotFound));
+                }
 
-            // Open process handle
-            var processHandle = OpenProcess(ProcessAccessRights.ProcessVmRead, false, processId);
-            if (processHandle == IntPtr.Zero)
+                // Open process handle
+                var processHandle = OpenProcess(ProcessAccessRights.ProcessVmRead, false, processId);
+                if (processHandle == IntPtr.Zero)
+                {
+                    var error = Marshal.GetLastWin32Error();
+                    _logger.LogError(
+                        "Failed to start discovery session {SessionId}: Win32 error {Error}", 
+                        sessionId, 
+                        error);
+                    return Task.FromResult(Result.Failure<DiscoverySession>(
+                        $"Failed to open process for memory reading (Win32 error: {error})", ErrorType.External));
+                }
+
+                // Create session (SessionId is auto-generated)
+                var session = new DiscoverySession
+                {
+                    ProcessId = processId,
+                    Options = options,
+                    IsActive = true,
+                    CurrentPass = 0
+                };
+
+                var context = new DiscoverySessionContext
+                {
+                    Session = session,
+                    ProcessHandle = processHandle,
+                    Process = process
+                };
+
+                lock (_sessionLock)
+                {
+                    _activeSessions[session.SessionId] = context;
+                }
+
+                _logger.LogInformation(
+                    "Discovery session {SessionId} initialized. Scan range: {StartAddress:X} - {EndAddress:X}",
+                    sessionId,
+                    options.ScanStartAddress,
+                    options.ScanStartAddress + options.ScanSize);
+                    
+                return Task.FromResult(Result.Success(session));
+            }
+            catch (Exception ex)
             {
-                var error = Marshal.GetLastWin32Error();
-                _logger.LogError("Failed to open process {ProcessId}: Win32 error {Error}", processId, error);
+                _logger.LogError(ex, "Failed to start discovery session {SessionId}", sessionId);
                 return Task.FromResult(Result.Failure<DiscoverySession>(
-                    $"Failed to open process for memory reading (Win32 error: {error})", ErrorType.External));
+                    $"Failed to start discovery session: {ex.Message}", ErrorType.Internal));
             }
-
-            // Create session
-            var session = new DiscoverySession
-            {
-                ProcessId = processId,
-                Options = options,
-                // CreatedAt is init-only and already set to UtcNow by default
-                IsActive = true,
-                CurrentPass = 0
-            };
-
-            var context = new DiscoverySessionContext
-            {
-                Session = session,
-                ProcessHandle = processHandle,
-                Process = process
-            };
-
-            lock (_sessionLock)
-            {
-                _activeSessions[session.SessionId] = context;
-            }
-
-            _logger.LogInformation("Discovery session {SessionId} started for process {ProcessId}",
-                session.SessionId, processId);
-
-            return Task.FromResult(Result.Success(session));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error starting discovery session for process {ProcessId}", processId);
-            return Task.FromResult(Result.Failure<DiscoverySession>(
-                $"Failed to start discovery session: {ex.Message}", ErrorType.Internal));
         }
     }
 
     /// <inheritdoc />
     public async Task<Result<DiscoveryResult>> AnalyzeChangeAsync(DiscoverySession session, PlayerAction action, CancellationToken ct = default)
     {
-        try
+        using (_logger.BeginCorrelationScope())
+        using (_logger.BeginDiscoveryAnalysisScope(action.ToString(), session.SessionId))
         {
-            if (session == null)
-                return Result.Failure<DiscoveryResult>("Session cannot be null", ErrorType.Validation);
-
-            if (!session.IsActive)
-                return Result.Failure<DiscoveryResult>("Session is not active", ErrorType.Validation);
-
-            DiscoverySessionContext? context;
-            lock (_sessionLock)
+            var beforeCount = session.Candidates.Count;
+            
+            _logger.LogInformation(
+                "Analyzing player action {Action} in session {SessionId}. Candidates before: {CandidateCount}",
+                action,
+                session.SessionId,
+                beforeCount);
+                
+            var stopwatch = Stopwatch.StartNew();
+            
+            try
             {
-                if (!_activeSessions.TryGetValue(session.SessionId, out context))
-                    return Result.Failure<DiscoveryResult>("Session not found", ErrorType.NotFound);
+                if (session == null)
+                    return Result.Failure<DiscoveryResult>("Session cannot be null", ErrorType.Validation);
+
+                if (!session.IsActive)
+                    return Result.Failure<DiscoveryResult>("Session is not active", ErrorType.Validation);
+
+                DiscoverySessionContext? context;
+                lock (_sessionLock)
+                {
+                    if (!_activeSessions.TryGetValue(session.SessionId, out context))
+                        return Result.Failure<DiscoveryResult>("Session not found", ErrorType.NotFound);
+                }
+
+                // Record the action
+                var actionRecord = new PlayerActionRecord
+                {
+                    Timestamp = _timeProvider.UtcNow,
+                    Action = action
+                };
+                session.ActionHistory.Add(actionRecord);
+
+                // Perform a scan pass
+                await PerformDiscoveryPassAsync(session, context, action, ct).ConfigureAwait(false);
+
+                // Apply heuristics and rank candidates
+                var rankedCandidates = ApplyHeuristicsAndRank(session);
+
+                // Update session with top candidates
+                session.Candidates.Clear();
+                session.Candidates.AddRange(rankedCandidates.Take(session.Options.MaxCandidates));
+
+                // Build result
+                var afterCount = session.Candidates.Count;
+                var topConfidence = rankedCandidates.FirstOrDefault()?.ConfidenceScore ?? 0;
+                
+                var result = new DiscoveryResult
+                {
+                    SessionId = session.SessionId,
+                    AnalyzedAction = action,
+                    RemainingCandidates = afterCount,
+                    EliminatedCandidates = Math.Max(0, beforeCount - afterCount),
+                    TopValues = rankedCandidates.Take(10).ToList(),
+                    ConfidenceImproved = session.Candidates.Any(c => c.ConfidenceScore > 0.5)
+                };
+
+                stopwatch.Stop();
+                
+                _logger.LogInformation(
+                    "Action analysis complete. Filtered from {BeforeCount} to {AfterCount} candidates in {ElapsedMs}ms. " +
+                    "Top confidence: {TopConfidence:P}",
+                    beforeCount,
+                    afterCount,
+                    stopwatch.ElapsedMilliseconds,
+                    topConfidence);
+                    
+                return Result.Success(result);
             }
-
-            _logger.LogDebug("Analyzing action {Action} for session {SessionId}", action, session.SessionId);
-
-            // Record the action
-            var actionRecord = new PlayerActionRecord
+            catch (Exception ex)
             {
-                Timestamp = _timeProvider.UtcNow,
-                Action = action
-            };
-            session.ActionHistory.Add(actionRecord);
-
-            // Perform a scan pass
-            var candidatesBefore = session.Candidates.Count;
-            await PerformDiscoveryPassAsync(session, context, action, ct).ConfigureAwait(false);
-
-            // Apply heuristics and rank candidates
-            var rankedCandidates = ApplyHeuristicsAndRank(session);
-
-            // Update session with top candidates
-            session.Candidates.Clear();
-            session.Candidates.AddRange(rankedCandidates.Take(session.Options.MaxCandidates));
-
-            // Build result
-            var result = new DiscoveryResult
-            {
-                SessionId = session.SessionId,
-                AnalyzedAction = action,
-                RemainingCandidates = session.Candidates.Count,
-                EliminatedCandidates = Math.Max(0, candidatesBefore - session.Candidates.Count),
-                TopValues = rankedCandidates.Take(10).ToList(),
-                ConfidenceImproved = session.Candidates.Any(c => c.ConfidenceScore > 0.5)
-            };
-
-            _logger.LogDebug("Action analysis complete. Remaining candidates: {Count}, Eliminated: {Eliminated}",
-                result.RemainingCandidates, result.EliminatedCandidates);
-
-            return Result.Success(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error analyzing change for session {SessionId}", session?.SessionId);
-            return Result.Failure<DiscoveryResult>($"Failed to analyze change: {ex.Message}", ErrorType.Internal);
+                stopwatch.Stop();
+                _logger.LogError(ex, "Action analysis failed for {Action} after {ElapsedMs}ms", action, stopwatch.ElapsedMilliseconds);
+                return Result.Failure<DiscoveryResult>($"Failed to analyze change: {ex.Message}", ErrorType.Internal);
+            }
         }
     }
 
@@ -246,12 +286,23 @@ public sealed class AutoDiscoveryEngine : IAutoDiscoveryEngine, IDisposable
             if (!session.IsActive)
                 return Task.FromResult(Result.Failure<List<DiscoveredValue>>("Session is not active", ErrorType.Validation));
 
+            _logger.LogDebug(
+                "Getting ranked results for session {SessionId}. Threshold: {Threshold}, MaxResults: {MaxResults}",
+                session.SessionId,
+                session.Options.MinConfidenceThreshold,
+                session.Options.MaxResults);
+
             // Return ranked results filtered by confidence threshold
             var results = session.Candidates
                 .Where(c => c.ConfidenceScore >= session.Options.MinConfidenceThreshold)
                 .OrderByDescending(c => c.ConfidenceScore)
                 .Take(session.Options.MaxResults)
                 .ToList();
+
+            _logger.LogInformation(
+                "Returning {Count} ranked results for session {SessionId}",
+                results.Count,
+                session.SessionId);
 
             return Task.FromResult(Result.Success(results));
         }
@@ -271,6 +322,8 @@ public sealed class AutoDiscoveryEngine : IAutoDiscoveryEngine, IDisposable
             if (session == null)
                 return Task.FromResult(Result.Failure("Session cannot be null", ErrorType.Validation));
 
+            _logger.LogInformation("Stopping discovery session {SessionId}", session.SessionId);
+
             lock (_sessionLock)
             {
                 if (!_activeSessions.TryGetValue(session.SessionId, out var context))
@@ -289,7 +342,7 @@ public sealed class AutoDiscoveryEngine : IAutoDiscoveryEngine, IDisposable
 
             session.IsActive = false;
 
-            _logger.LogInformation("Discovery session {SessionId} stopped", session.SessionId);
+            _logger.LogInformation("Discovery session {SessionId} stopped successfully", session.SessionId);
             return Task.FromResult(Result.Success());
         }
         catch (Exception ex)
@@ -335,8 +388,11 @@ public sealed class AutoDiscoveryEngine : IAutoDiscoveryEngine, IDisposable
             }
 
             _logger.LogInformation(
-                "Feedback submitted for address {Address}: WasCorrect={WasCorrect}, Category={Category}",
-                feedback.Address, feedback.WasCorrect, feedback.CorrectCategory);
+                "Feedback submitted for address {Address}: WasCorrect={WasCorrect}, Category={Category}, Name={Name}",
+                feedback.Address, 
+                feedback.WasCorrect, 
+                feedback.CorrectCategory,
+                feedback.CorrectName ?? "(not provided)");
 
             return Task.FromResult(Result.Success());
         }
@@ -421,7 +477,7 @@ public sealed class AutoDiscoveryEngine : IAutoDiscoveryEngine, IDisposable
 
         session.Candidates.AddRange(newCandidates);
 
-        _logger.LogInformation("Initial scan found {Count} candidates", newCandidates.Count);
+        _logger.LogInformation("Initial scan found {Count} candidates for session {SessionId}", newCandidates.Count, session.SessionId);
     }
 
     /// <summary>
@@ -430,6 +486,8 @@ public sealed class AutoDiscoveryEngine : IAutoDiscoveryEngine, IDisposable
     private async Task MonitorForChangesAsync(DiscoverySession session, DiscoverySessionContext context, PlayerAction action, CancellationToken ct)
     {
         var updatedCandidates = new List<DiscoveredValue>();
+        var checkedCount = 0;
+        var changedCount = 0;
 
         foreach (var candidate in session.Candidates.ToList())
         {
@@ -440,9 +498,14 @@ public sealed class AutoDiscoveryEngine : IAutoDiscoveryEngine, IDisposable
             if (newValue == null)
                 continue;
 
+            checkedCount++;
+
             // Check if value changed
             var previousValue = candidate.CurrentValue;
             var hasChanged = !ValuesEqual(previousValue, newValue);
+            
+            if (hasChanged)
+                changedCount++;
 
             // Update candidate
             candidate.PreviousValue = previousValue;
@@ -476,6 +539,13 @@ public sealed class AutoDiscoveryEngine : IAutoDiscoveryEngine, IDisposable
         // Replace candidates with filtered list
         session.Candidates.Clear();
         session.Candidates.AddRange(updatedCandidates);
+        
+        _logger.LogDebug(
+            "Monitor pass complete for session {SessionId}. Checked: {Checked}, Changed: {Changed}, Remaining: {Remaining}",
+            session.SessionId,
+            checkedCount,
+            changedCount,
+            updatedCandidates.Count);
     }
 
     /// <summary>
@@ -504,9 +574,17 @@ public sealed class AutoDiscoveryEngine : IAutoDiscoveryEngine, IDisposable
             }
         }
 
-        return session.Candidates
+        var ranked = session.Candidates
             .OrderByDescending(c => c.ConfidenceScore)
             .ToList();
+            
+        _logger.LogDebug(
+            "Applied heuristics to {Count} candidates for session {SessionId}. Top confidence: {TopConfidence:P}",
+            ranked.Count,
+            session.SessionId,
+            ranked.FirstOrDefault()?.ConfidenceScore ?? 0);
+
+        return ranked;
     }
 
     /// <summary>

@@ -10,6 +10,10 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Spectre.Console" />
     <PackageReference Include="System.CommandLine" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="Serilog.Settings.Configuration" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SaveState.Application\SaveState.Application.csproj" />

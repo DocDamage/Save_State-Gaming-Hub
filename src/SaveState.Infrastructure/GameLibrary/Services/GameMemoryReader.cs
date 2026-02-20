@@ -4,12 +4,13 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.Services;
+using SaveState.Application.Common;
 
 namespace SaveState.Infrastructure.GameLibrary.Services;
 
 public class GameMemoryReader : IGameMemoryReader, IDisposable
 {
-    private readonly ILogger<GameMemoryReader> _logger;
+    private ILogger<GameMemoryReader> _logger;
     private readonly IMemoryPatternDatabase _patternDatabase;
     private IntPtr _processHandle = IntPtr.Zero;
     private Process? _attachedProcess;
@@ -32,50 +33,69 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
         _monitoringTimer = new Timer(MonitorGameState, null, Timeout.Infinite, Timeout.Infinite);
     }
 
-    public Task<Result> AttachToProcessAsync(int processId, CancellationToken ct = default)
+    public async Task<Result> AttachToProcessAsync(int processId, CancellationToken ct = default)
     {
-        try
+        using (_logger.BeginCorrelationScope())
+        using (_logger.BeginMemoryScanScope(processId, "Unknown"))
         {
-            if (_isAttached)
-            {
-                return Task.FromResult(Result.Failure("Already attached to a process. Detach first."));
-            }
-
             _logger.LogInformation("Attempting to attach to process {ProcessId}", processId);
-
-            // Get the process
-            _attachedProcess = Process.GetProcessById(processId);
-            if (_attachedProcess == null)
+            
+            try
             {
-                return Task.FromResult(Result.Failure($"Process {processId} not found"));
-            }
+                if (_isAttached)
+                {
+                    return Result.Failure("Already attached to a process. Detach first.");
+                }
 
-            // Open process with read access
-            _processHandle = OpenProcess(PROCESS_ACCESS_RIGHTS.PROCESS_VM_READ, false, processId);
-            if (_processHandle == IntPtr.Zero)
+                // Get the process
+                _attachedProcess = Process.GetProcessById(processId);
+                if (_attachedProcess == null)
+                {
+                    return Result.Failure($"Process {processId} not found");
+                }
+
+                // Open process with read access
+                _processHandle = OpenProcess(PROCESS_ACCESS_RIGHTS.PROCESS_VM_READ, false, processId);
+                if (_processHandle == IntPtr.Zero)
+                {
+                    var error = Marshal.GetLastWin32Error();
+                    _logger.LogError(
+                        "Failed to attach to process {ProcessId}. Win32 error: {Error}", 
+                        processId, 
+                        error);
+                    return Result.Failure($"Failed to open process for memory reading (Win32 error: {error})");
+                }
+
+                _isAttached = true;
+
+                // Try to identify the game from process name
+                _gameTitle = IdentifyGameFromProcess(_attachedProcess);
+
+                _logger.LogInformation(
+                    "Successfully attached to process {ProcessId} ({ProcessName}), identified as game '{Game}'",
+                    processId, 
+                    _attachedProcess?.ProcessName,
+                    _gameTitle ?? "Unknown");
+                    
+                // Enrich logger with game context
+                if (_gameTitle != null)
+                {
+                    _logger = (ILogger<GameMemoryReader>)_logger.EnrichWithGameContext(Guid.NewGuid(), _gameTitle);
+                }
+
+                // Start monitoring
+                _monitoringTimer.Change(TimeSpan.Zero, TimeSpan.FromSeconds(2));
+
+                return Result.Success();
+            }
+            catch (Exception ex)
             {
-                var error = Marshal.GetLastWin32Error();
-                _logger.LogError("Failed to open process {ProcessId}: Win32 error {Error}", processId, error);
-                return Task.FromResult(Result.Failure($"Failed to open process for memory reading (Win32 error: {error})"));
+                _logger.LogError(ex, 
+                    "Failed to attach to process {ProcessId}. Win32 error: {Error}", 
+                    processId, 
+                    Marshal.GetLastWin32Error());
+                return Result.Failure($"Failed to attach: {ex.Message}");
             }
-
-            _isAttached = true;
-
-            // Try to identify the game from process name
-            _gameTitle = IdentifyGameFromProcess(_attachedProcess);
-
-            _logger.LogInformation("Successfully attached to process {ProcessId} ({ProcessName}), identified as game '{Game}'",
-                processId, _attachedProcess.ProcessName, _gameTitle ?? "Unknown");
-
-            // Start monitoring
-            _monitoringTimer.Change(TimeSpan.Zero, TimeSpan.FromSeconds(2));
-
-            return Task.FromResult(Result.Success());
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error attaching to process {ProcessId}", processId);
-            return Task.FromResult(Result.Failure($"Failed to attach to process: {ex.Message}"));
         }
     }
 
@@ -122,70 +142,84 @@ public class GameMemoryReader : IGameMemoryReader, IDisposable
 
     public async Task<Result<IReadOnlyList<MemoryPattern>>> DetectPatternsAsync(CancellationToken ct = default)
     {
-        if (!_isAttached)
+        using (_logger.BeginCorrelationScope())
         {
-            return Result.Failure<IReadOnlyList<MemoryPattern>>("Not attached to any process");
-        }
-
-        try
-        {
-            var patterns = new List<MemoryPattern>();
-
-            if (_gameTitle != null)
+            _logger.LogInformation("Starting pattern detection for game '{Game}'", _gameTitle);
+            
+            var stopwatch = Stopwatch.StartNew();
+            
+            if (!_isAttached)
             {
-                // Use known signatures for this game
-                var signaturesResult = _patternDatabase.GetSignaturesForGame(_gameTitle);
-                if (signaturesResult.IsSuccess && signaturesResult.Value.Any())
-                {
-                    foreach (var signature in signaturesResult.Value)
-                    {
-                        ct.ThrowIfCancellationRequested();
+                stopwatch.Stop();
+                return Result.Failure<IReadOnlyList<MemoryPattern>>("Not attached to any process");
+            }
 
-                        var patternResult = await ScanForSignatureAsync(signature, ct);
-                        if (patternResult.IsSuccess && patternResult.Value is not null)
+            try
+            {
+                var patterns = new List<MemoryPattern>();
+
+                if (_gameTitle != null)
+                {
+                    // Use known signatures for this game
+                    var signaturesResult = _patternDatabase.GetSignaturesForGame(_gameTitle);
+                    if (signaturesResult.IsSuccess && signaturesResult.Value.Any())
+                    {
+                        foreach (var signature in signaturesResult.Value)
                         {
-                            // Validate the value before adding
-                            if (signature.IsValidValue(patternResult.Value.CurrentValue))
+                            ct.ThrowIfCancellationRequested();
+
+                            var patternResult = await ScanForSignatureAsync(signature, ct);
+                            if (patternResult.IsSuccess && patternResult.Value is not null)
                             {
-                                patterns.Add(patternResult.Value);
-                            }
-                            else
-                            {
-                                _logger.LogDebug("Signature '{Signature}' value {Value} outside valid range",
-                                    signature.Name, patternResult.Value.CurrentValue);
+                                // Validate the value before adding
+                                if (signature.IsValidValue(patternResult.Value.CurrentValue))
+                                {
+                                    patterns.Add(patternResult.Value);
+                                }
+                                else
+                                {
+                                    _logger.LogDebug("Signature '{Signature}' value {Value} outside valid range",
+                                        signature.Name, patternResult.Value.CurrentValue);
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            // Fallback: Scan for common patterns if no known signatures found
-            if (patterns.Count == 0)
+                // Fallback: Scan for common patterns if no known signatures found
+                if (patterns.Count == 0)
+                {
+                    _logger.LogInformation("No known signatures found for game '{Game}', scanning for common patterns", _gameTitle);
+
+                    // Example: Look for health values (common pattern)
+                    var healthPatternResult = await ScanForHealthValueAsync(ct);
+                    if (healthPatternResult.IsSuccess && healthPatternResult.Value is not null)
+                    {
+                        patterns.Add(healthPatternResult.Value);
+                    }
+
+                    // Example: Look for score/level values
+                    var scorePatternResult = await ScanForScoreValueAsync(ct);
+                    if (scorePatternResult.IsSuccess && scorePatternResult.Value is not null)
+                    {
+                        patterns.Add(scorePatternResult.Value);
+                    }
+                }
+
+                stopwatch.Stop();
+                _logger.LogInformation(
+                    "Pattern detection completed. Found {Count} patterns in {ElapsedMs}ms",
+                    patterns.Count,
+                    stopwatch.ElapsedMilliseconds);
+                    
+                return Result.Success<IReadOnlyList<MemoryPattern>>(patterns);
+            }
+            catch (Exception ex)
             {
-                _logger.LogInformation("No known signatures found for game '{Game}', scanning for common patterns", _gameTitle);
-
-                // Example: Look for health values (common pattern)
-                var healthPatternResult = await ScanForHealthValueAsync(ct);
-                if (healthPatternResult.IsSuccess && healthPatternResult.Value is not null)
-                {
-                    patterns.Add(healthPatternResult.Value);
-                }
-
-                // Example: Look for score/level values
-                var scorePatternResult = await ScanForScoreValueAsync(ct);
-                if (scorePatternResult.IsSuccess && scorePatternResult.Value is not null)
-                {
-                    patterns.Add(scorePatternResult.Value);
-                }
+                stopwatch.Stop();
+                _logger.LogError(ex, "Pattern detection failed after {ElapsedMs}ms", stopwatch.ElapsedMilliseconds);
+                return Result.Failure<IReadOnlyList<MemoryPattern>>($"Detection failed: {ex.Message}");
             }
-
-            _logger.LogInformation("Detected {Count} memory patterns", patterns.Count);
-            return Result.Success<IReadOnlyList<MemoryPattern>>(patterns);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error detecting memory patterns");
-            return Result.Failure<IReadOnlyList<MemoryPattern>>($"Failed to detect patterns: {ex.Message}");
         }
     }
 
