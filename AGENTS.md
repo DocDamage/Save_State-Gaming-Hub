@@ -858,6 +858,134 @@ Service (Coordinator - ~200 lines)
 
 ---
 
+## 🧠 Memory Intelligence System Guidelines
+
+### Overview
+SaveStateReborn includes a comprehensive game memory reading system for:
+- Real-time memory scanning and editing
+- Cheat Engine-style value detection
+- AI-powered auto-discovery
+- ML-based pattern prediction
+
+### Architecture
+```
+Core Layer (Interfaces)
+├── IGameMemoryReader - Process attachment and memory operations
+├── IMemoryPatternDatabase - Signature storage and retrieval
+├── IAutoDiscoveryEngine - AI heuristic-based detection
+├── IMlPatternPredictionService - ML pattern prediction
+└── ISignatureVerificationService - Signature validation
+
+Infrastructure Layer (Implementations)
+├── GameMemoryReader - Windows API memory operations
+├── MemoryPatternDatabase - JSON-based signature storage
+├── AutoDiscoveryEngine - 24 heuristic algorithms
+├── MlPatternPredictionService - Genre/engine classification
+└── SignatureVerificationService - Multi-pass validation
+
+Presentation Layer (UI)
+├── GameMemoryView - Main memory interface
+├── AutoDiscoveryOverlay - Guided discovery UI
+├── ImportCheatTableDialog - Cheat Engine import
+└── SignatureTesterView - Signature validation tool
+```
+
+### Key Patterns
+
+**1. Memory Reading**
+```csharp
+// Always use Result pattern
+var result = await _memoryReader.ReadMemoryBytesAsync(address, length);
+if (result.IsSuccess)
+{
+    var bytes = result.Value;
+    // Process bytes
+}
+```
+
+**2. Pattern Signatures**
+```csharp
+public class GameMemorySignature
+{
+    public string GameTitle { get; set; }
+    public string Name { get; set; }
+    public string Pattern { get; set; } // Hex pattern with wildcards
+    public int Offset { get; set; }
+    public string ValueType { get; set; } // int32, float, etc.
+}
+```
+
+**3. Heuristic Detection**
+```csharp
+// Use existing heuristics or create new ones
+public class MyHeuristic : IValueHeuristic
+{
+    public string Name => "MyValue";
+    public string Category => "Custom";
+    
+    public double CalculateConfidence(DiscoveredValue value, List<ValueObservation> history)
+    {
+        // Return 0.0-1.0 based on pattern matching
+    }
+}
+```
+
+**4. Adding New Games**
+
+To add a new game to the database:
+1. Edit `src/SaveState.Infrastructure/GameLibrary/Data/GameMemoryDatabase.json`
+2. Add game entry with signatures:
+```json
+{
+  "id": "my-game",
+  "title": "My Game",
+  "processNames": ["MyGame.exe"],
+  "signatures": [
+    {
+      "name": "Health",
+      "pattern": "8B 45 ?? 89 45 ??",
+      "offset": 8,
+      "valueType": "float"
+    }
+  ]
+}
+```
+3. Run signature verification to validate
+
+### 24 Built-in Heuristics
+
+| Category | Heuristics |
+|----------|------------|
+| Movement | Speed, Velocity, JumpHeight, Gravity |
+| Combat | Health, Ammo, Cooldown, Damage, CriticalChance, Armor |
+| RPG | Experience, Level, SkillPoints, Reputation, CarryWeight, Mana |
+| Resource | Currency, Durability, ResourceCount |
+| State | Score, Timer, Difficulty, GameTime, Completion, Position |
+
+### ML Prediction Features
+
+- **Genre Classification**: Auto-detects game genre from process name
+- **Engine Detection**: Identifies Unity, Unreal, Source, Godot
+- **Pattern Prediction**: Suggests likely addresses based on genre/engine
+- **Statistical Validation**: Uses std dev, outlier detection
+
+### Testing Signatures
+
+Use the Signature Tester tool:
+1. Attach to game process
+2. Select signatures to test
+3. Run verification (Static → Dynamic → Stability)
+4. View health scores and export results
+
+### Security Considerations
+
+- Memory reading requires admin privileges for some processes
+- Never distribute signatures for multiplayer anti-cheat games
+- Respect game developers' terms of service
+- Use for single-player games only
+
+---
+
 ## ✅ Pre-Commit Checklist
 
 Before committing code, ensure:
@@ -873,6 +1001,10 @@ Before committing code, ensure:
 - [ ] XML documentation for public APIs
 - [ ] No secrets or API keys in code
 - [ ] Nullable types only used for acceptable patterns (private helpers, UI cancellation)
+- [ ] Memory operations use proper access rights (VM_READ, VM_WRITE)
+- [ ] Signature patterns use realistic hex values
+- [ ] New heuristics implement IValueHeuristic correctly
+- [ ] ML predictions include confidence scores
 
 ---
 
@@ -889,6 +1021,8 @@ Before committing code, ensure:
 | `docs/features/MUGEN_EMULATOR_FEATURES_ROADMAP.md` | MUGEN/Emulator feature roadmap (7 features implemented) |
 | `docs/features/MUGEN_FEATURES_API_GUIDE.md` | Complete API reference for MUGEN features |
 | `TECHNICAL_DEBT_AUDIT_2026-02-01.md` | Current technical debt status |
+| `docs/guides/MEMORY_INTELLIGENCE.md` | Memory system guide |
+| `docs/guides/CHEAT_TABLE_SOURCES.md` | Cheat Engine table sources |
 
 ---
 
