@@ -104,6 +104,34 @@ public class GameMemorySignature
     [JsonPropertyName("gameVersion")]
     public string? GameVersion { get; set; }
 
+    #region Cloud Metadata
+
+    /// <summary>
+    /// Cloud database ID if this signature was imported from the community database.
+    /// </summary>
+    [JsonPropertyName("cloudId")]
+    public string? CloudId { get; set; }
+
+    /// <summary>
+    /// Timestamp of the cloud version (for sync purposes).
+    /// </summary>
+    [JsonPropertyName("cloudVersion")]
+    public DateTime? CloudVersion { get; set; }
+
+    /// <summary>
+    /// Whether this signature was imported from the cloud database.
+    /// </summary>
+    [JsonPropertyName("isFromCloud")]
+    public bool IsFromCloud { get; set; }
+
+    /// <summary>
+    /// Whether this signature has been deprecated and should not be used.
+    /// </summary>
+    [JsonPropertyName("isDeprecated")]
+    public bool IsDeprecated { get; set; }
+
+    #endregion
+
     /// <summary>
     /// Validates that the read value is within expected bounds.
     /// </summary>
