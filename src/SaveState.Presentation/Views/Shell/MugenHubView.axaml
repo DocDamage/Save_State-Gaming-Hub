@@ -21,8 +21,7 @@
                     <!-- Netplay Tab -->
                     <Button Content="Netplay"
                             Command="{Binding ShowNetplayCommand}"
-                            Classes.Primary="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Netplay}"
-                            Classes.Secondary="{Binding SelectedTab, Converter={StaticResource InequalityConverter}, ConverterParameter=Netplay}"
+                            Classes="Secondary"
                             Padding="15,8"
                             FontWeight="{Binding SelectedTab, Converter={StaticResource EqualityToFontWeightConverter}, ConverterParameter=Netplay}" />
 
@@ -31,16 +30,14 @@
                     <!-- Statistics Tab -->
                     <Button Content="Statistics"
                             Command="{Binding ShowStatisticsCommand}"
-                            Classes.Primary="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Statistics}"
-                            Classes.Secondary="{Binding SelectedTab, Converter={StaticResource InequalityConverter}, ConverterParameter=Statistics}"
+                            Classes="Secondary"
                             Padding="15,8"
                             FontWeight="{Binding SelectedTab, Converter={StaticResource EqualityToFontWeightConverter}, ConverterParameter=Statistics}" />
 
                     <!-- Settings Tab -->
                     <Button Content="Settings"
                             Command="{Binding ShowSettingsCommand}"
-                            Classes.Primary="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Settings}"
-                            Classes.Secondary="{Binding SelectedTab, Converter={StaticResource InequalityConverter}, ConverterParameter=Settings}"
+                            Classes="Secondary"
                             Padding="15,8"
                             FontWeight="{Binding SelectedTab, Converter={StaticResource EqualityToFontWeightConverter}, ConverterParameter=Settings}" />
                 </StackPanel>

@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Text.RegularExpressions;
 
 namespace SaveState.Presentation.ViewModels.Dialogs;
 
@@ -11,6 +12,11 @@ namespace SaveState.Presentation.ViewModels.Dialogs;
 public partial class GameRatingDialogViewModel : ObservableObject
 {
     private readonly ILogger<GameRatingDialogViewModel> _logger;
+    private Action<GameRatingResult?>? _closeAction;
+
+    // Validation constants
+    private const int MaxReviewLength = 2000;
+    private static readonly Regex InvalidCharsPattern = new Regex(@"[<>\x00-\x08\x0B\x0C\x0E-\x1F]", RegexOptions.Compiled);
 
     [ObservableProperty]
     private Guid _gameId;
@@ -19,6 +25,8 @@ public partial class GameRatingDialogViewModel : ObservableObject
     private double _rating = 0.0;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsReviewTextValid))]
+    [NotifyPropertyChangedFor(nameof(CanSave))]
     private string _reviewText = string.Empty;
 
     [ObservableProperty]
@@ -31,12 +39,32 @@ public partial class GameRatingDialogViewModel : ObservableObject
     private string _ratingEmoji = "⭐";
 
     [ObservableProperty]
-    private bool _canSave;
+    private string _validationError = string.Empty;
 
     public GameRatingDialogViewModel(ILogger<GameRatingDialogViewModel> logger)
     {
         _logger = logger;
     }
+
+    /// <summary>
+    /// Sets the action to invoke when the dialog is closed.
+    /// </summary>
+    public void SetCloseAction(Action<GameRatingResult?> closeAction)
+    {
+        _closeAction = closeAction;
+    }
+
+    /// <summary>
+    /// Gets whether the review text is valid.
+    /// </summary>
+    public bool IsReviewTextValid => 
+        string.IsNullOrEmpty(ReviewText) || 
+        (ReviewText.Length <= MaxReviewLength && !InvalidCharsPattern.IsMatch(ReviewText));
+
+    /// <summary>
+    /// Gets whether the save button should be enabled.
+    /// </summary>
+    public bool CanSave => HasRating && IsReviewTextValid;
 
     /// <summary>
     /// Initializes the dialog with current rating if available.
@@ -47,8 +75,8 @@ public partial class GameRatingDialogViewModel : ObservableObject
 
         if (currentRating.HasValue)
         {
-            Rating = currentRating.Value;
-            HasRating = true;
+            Rating = Math.Clamp(currentRating.Value, 0, 5);
+            HasRating = Rating > 0;
         }
         else
         {
@@ -57,19 +85,36 @@ public partial class GameRatingDialogViewModel : ObservableObject
         }
 
         UpdateRatingDisplay();
-        UpdateCanSave();
+        OnPropertyChanged(nameof(CanSave));
     }
 
     partial void OnRatingChanged(double value)
     {
         HasRating = value > 0;
         UpdateRatingDisplay();
-        UpdateCanSave();
+        OnPropertyChanged(nameof(CanSave));
     }
 
     partial void OnReviewTextChanged(string value)
     {
-        UpdateCanSave();
+        // Auto-truncate if exceeds max length
+        if (value?.Length > MaxReviewLength)
+        {
+            ReviewText = value[..MaxReviewLength];
+            return;
+        }
+
+        // Update validation error
+        if (!IsReviewTextValid)
+        {
+            ValidationError = $"Review must not exceed {MaxReviewLength} characters or contain invalid characters.";
+        }
+        else
+        {
+            ValidationError = string.Empty;
+        }
+
+        OnPropertyChanged(nameof(CanSave));
     }
 
     private void UpdateRatingDisplay()
@@ -101,9 +146,22 @@ public partial class GameRatingDialogViewModel : ObservableObject
         }
     }
 
-    private void UpdateCanSave()
+    private void CloseDialog(GameRatingResult? result)
     {
-        CanSave = Rating > 0 || !string.IsNullOrWhiteSpace(ReviewText);
+        if (_closeAction != null)
+        {
+            _closeAction(result);
+        }
+        else
+        {
+            // Fallback to direct window close
+            var lifetime = Avalonia.Application.Current?.ApplicationLifetime;
+            if (lifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                var window = desktop.Windows.FirstOrDefault(w => w.DataContext == this);
+                window?.Close(result);
+            }
+        }
     }
 
     [RelayCommand]
@@ -136,11 +194,24 @@ public partial class GameRatingDialogViewModel : ObservableObject
             "Saving rating {Rating}/5.0 for game {GameId}",
             Rating,
             GameId);
+
+        var result = new GameRatingResult(
+            GameId,
+            Rating,
+            ReviewText.Trim());
+
+        CloseDialog(result);
     }
 
     [RelayCommand]
     private void Cancel()
     {
         _logger.LogDebug("Game rating cancelled");
+        CloseDialog(null);
     }
 }
+
+/// <summary>
+/// Result from the game rating dialog.
+/// </summary>
+public record GameRatingResult(Guid GameId, double Rating, string ReviewText);

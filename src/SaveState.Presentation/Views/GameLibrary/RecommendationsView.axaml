@@ -1,0 +1,286 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.GameLibrary"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="SaveState.Presentation.Views.GameLibrary.RecommendationsView"
+             x:DataType="vm:SmartRecommendationsViewModel">
+
+  <Design.DataContext>
+    <vm:SmartRecommendationsViewModel />
+  </Design.DataContext>
+
+  <UserControl.Styles>
+    <Style Selector="Border.RecommendationCard">
+      <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="12" />
+      <Setter Property="Margin" Value="8" />
+      <Setter Property="BoxShadow" Value="0 2 8 0 #20000000" />
+    </Style>
+    <Style Selector="Border.RecommendationCard:pointerover">
+      <Setter Property="Background" Value="{DynamicResource CardBackgroundPointerOverBrush}" />
+      <Setter Property="BoxShadow" Value="0 4 16 0 #30000000" />
+    </Style>
+    <Style Selector="TextBlock.SectionHeader">
+      <Setter Property="FontSize" Value="24" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Margin" Value="16,24,16,12" />
+    </Style>
+    <Style Selector="TextBlock.ReasonBadge">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Padding" Value="8,4" />
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentForegroundBrush}" />
+      <Setter Property="CornerRadius" Value="4" />
+    </Style>
+    <Style Selector="TextBlock.ScoreText">
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}" />
+    </Style>
+    <Style Selector="Button.MoodChip">
+      <Setter Property="Padding" Value="16,8" />
+      <Setter Property="CornerRadius" Value="20" />
+      <Setter Property="Margin" Value="4" />
+    </Style>
+    <Style Selector="Button.MoodChip:selected">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentForegroundBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,Auto,*">
+    <!-- Header -->
+    <Border Grid.Row="0" Background="{DynamicResource CardBackgroundBrush}" Padding="24,16">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Grid.Column="0" Spacing="8">
+          <TextBlock Text="Smart Recommendations" FontSize="32" FontWeight="Bold" />
+          <TextBlock Text="Personalized suggestions based on your mood, time, and preferences"
+                     FontSize="14" Opacity="0.7" />
+        </StackPanel>
+        <Button Grid.Column="1" Content="&#xE72C;" FontFamily="Segoe Fluent Icons, Segoe UI Symbol"
+                Command="{Binding RefreshAllCommand}" ToolTip.Tip="Refresh All"
+                VerticalAlignment="Center" Padding="12" />
+      </Grid>
+    </Border>
+
+    <!-- Filter Bar -->
+    <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}"
+            Padding="24,12" Margin="0,1">
+      <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+        <!-- Mood Selector -->
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <TextBlock Text="Mood:" VerticalAlignment="Center" Opacity="0.8" />
+          <ComboBox ItemsSource="{Binding AvailableMoods}"
+                    SelectedItem="{Binding SelectedMood}"
+                    PlaceholderText="Select mood..."
+                    Width="150">
+            <ComboBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <Button Content="Clear" Command="{Binding ClearMoodCommand}"
+                  IsVisible="{Binding SelectedMood, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        </StackPanel>
+
+        <!-- Time Slider -->
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" Margin="24,0"
+                    VerticalAlignment="Center">
+          <TextBlock Text="Available Time:" VerticalAlignment="Center" Opacity="0.8" />
+          <Slider Minimum="15" Maximum="480" Value="{Binding AvailableTime.TotalMinutes}"
+                  Width="200" VerticalAlignment="Center" />
+          <TextBlock VerticalAlignment="Center">
+            <TextBlock.Text>
+              <MultiBinding StringFormat="{}{0:F0}h {1:F0}m">
+                <Binding Path="AvailableTime.Hours" />
+                <Binding Path="AvailableTime.Minutes" />
+              </MultiBinding>
+            </TextBlock.Text>
+          </TextBlock>
+        </StackPanel>
+
+        <!-- Player Count -->
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" Margin="12,0">
+          <RadioButton Content="Solo" IsChecked="{Binding PlayerCount, Converter={x:Static ObjectConverters.Equals}, ConverterParameter=1}"
+                       Command="{Binding SetSoloPlayCommand}" />
+          <RadioButton Content="Multiplayer" IsChecked="{Binding PlayerCount, Converter={x:Static ObjectConverters.Equals}, ConverterParameter=2}"
+                       Command="{Binding SetMultiplayerCommand}" />
+        </StackPanel>
+
+        <!-- Apply Button -->
+        <Button Grid.Column="3" Content="Get Recommendations"
+                Command="{Binding LoadRecommendationsCommand}"
+                IsEnabled="{Binding !IsLoading}"
+                VerticalAlignment="Center" Margin="12,0" />
+
+        <!-- Loading Indicator -->
+        <ProgressBar Grid.Column="4" IsIndeterminate="True"
+                     IsVisible="{Binding IsLoading}"
+                     Width="24" Height="24" VerticalAlignment="Center" />
+      </Grid>
+    </Border>
+
+    <!-- Content -->
+    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="8">
+        <!-- Error Message -->
+        <Border Background="{DynamicResource ErrorBrush}" Padding="16,12"
+                IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                Margin="16,8">
+          <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource ErrorForegroundBrush}" />
+        </Border>
+
+        <!-- For You Section -->
+        <TextBlock Text="For You" Classes="SectionHeader" />
+        <ItemsControl ItemsSource="{Binding Recommendations}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="{x:Type vm:GameRecommendation}">
+              <Border Classes="RecommendationCard" Width="280">
+                <Grid RowDefinitions="Auto,Auto,Auto,*">
+                  <!-- Cover Image -->
+                  <Border Grid.Row="0" Height="160" CornerRadius="8" ClipToBounds="True"
+                          Background="{DynamicResource ControlFillColorDefaultBrush}">
+                    <Image Source="{Binding CoverImageUrl, FallbackValue={x:Null}}"
+                           Stretch="UniformToFill">
+                      <Image.Transitions>
+                        <Transitions>
+                          <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+                        </Transitions>
+                      </Image.Transitions>
+                    </Image>
+                  </Border>
+
+                  <!-- Score Badge -->
+                  <Border Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top"
+                          Margin="8" Background="{DynamicResource AccentBrush}" CornerRadius="4"
+                          Padding="8,4">
+                    <TextBlock Text="{Binding Score, StringFormat='{}{0:P0}'}" FontWeight="Bold"
+                               Foreground="{DynamicResource AccentForegroundBrush}" />
+                  </Border>
+
+                  <!-- Title -->
+                  <TextBlock Grid.Row="1" Text="{Binding GameTitle}" FontWeight="SemiBold"
+                             FontSize="16" Margin="0,8,0,4" TextTrimming="CharacterEllipsis" />
+
+                  <!-- Reason Badge -->
+                  <TextBlock Grid.Row="2" Text="{Binding Reason}" Classes="ReasonBadge"
+                             HorizontalAlignment="Left" />
+
+                  <!-- Factors -->
+                  <StackPanel Grid.Row="3" Margin="0,8,0,0" Spacing="2">
+                    <TextBlock Text="Why recommended:" FontSize="11" Opacity="0.6" />
+                    <ItemsControl ItemsSource="{Binding Factors}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <TextBlock Text="{Binding}" FontSize="11" Opacity="0.8"
+                                     TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Play Next Section -->
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <TextBlock Grid.Column="0" Text="Play Next" Classes="SectionHeader" />
+          <Button Grid.Column="1" Content="Load" Command="{Binding LoadPlayNextCommand}"
+                  Margin="16" VerticalAlignment="Center" />
+        </Grid>
+        <ItemsControl ItemsSource="{Binding PlayNext}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="{x:Type vm:GameRecommendation}">
+              <Border Classes="RecommendationCard" Width="200">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="{Binding GameTitle}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Text="{Binding Reason}" FontSize="11" Opacity="0.7" />
+                  <TextBlock Text="{Binding Score, StringFormat='Match: {0:P0}'}" Classes="ScoreText" />
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Trending Section -->
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <TextBlock Grid.Column="0" Text="Trending Now" Classes="SectionHeader" />
+          <Button Grid.Column="1" Content="Load" Command="{Binding LoadTrendingCommand}"
+                  Margin="16" VerticalAlignment="Center" />
+        </Grid>
+        <ItemsControl ItemsSource="{Binding Trending}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="{x:Type vm:GameRecommendation}">
+              <Border Classes="RecommendationCard" Width="200">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="{Binding GameTitle}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Text="{Binding Score, StringFormat='Popularity: {0:P0}'}" FontSize="11" Opacity="0.7" />
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Hidden Gems Section -->
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <TextBlock Grid.Column="0" Text="Hidden Gems" Classes="SectionHeader" />
+          <Button Grid.Column="1" Content="Load" Command="{Binding LoadHiddenGemsCommand}"
+                  Margin="16" VerticalAlignment="Center" />
+        </Grid>
+        <ItemsControl ItemsSource="{Binding HiddenGems}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="{x:Type vm:GameRecommendation}">
+              <Border Classes="RecommendationCard" Width="200">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="{Binding GameTitle}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Text="{Binding Score, StringFormat='Rating: {0:P0}'}" FontSize="11" Opacity="0.7" />
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Bottom Padding -->
+        <Border Height="32" />
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

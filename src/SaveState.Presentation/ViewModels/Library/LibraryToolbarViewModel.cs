@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using SaveState.Presentation.Services;
+using SaveState.Presentation.Utilities;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -13,17 +14,22 @@ namespace SaveState.Presentation.ViewModels.Library;
 /// <summary>
 /// View model for the Library toolbar.
 /// </summary>
-public partial class LibraryToolbarViewModel : ObservableObject
+public partial class LibraryToolbarViewModel : ObservableObject, IDisposable
 {
     private readonly ILogger<LibraryToolbarViewModel> _logger;
     private readonly IDialogService _dialogService;
+    private readonly SearchThrottleHelper _searchThrottleHelper;
 
     [ObservableProperty]
     private string _searchTerm = string.Empty;
 
+    /// <summary>
+    /// Called when SearchTerm changes. Uses throttling to prevent excessive search operations.
+    /// </summary>
     partial void OnSearchTermChanged(string value)
     {
-        SearchChanged?.Invoke(this, EventArgs.Empty);
+        // Throttle search input to prevent excessive database queries
+        _searchThrottleHelper.UpdateSearchText(value);
     }
 
     public event EventHandler? SearchChanged;
@@ -52,6 +58,19 @@ public partial class LibraryToolbarViewModel : ObservableObject
     {
         _logger = logger;
         _dialogService = dialogService;
+
+        // Initialize throttled search with 300ms delay
+        _searchThrottleHelper = new SearchThrottleHelper(
+            query =>
+            {
+                // Ensure we're on the UI thread when raising the event
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    SearchChanged?.Invoke(this, EventArgs.Empty);
+                });
+            },
+            TimeSpan.FromMilliseconds(300));
+
         InitializeSortOptions();
         SetGridViewCommand.Execute(null); // Default to grid view
     }
@@ -194,6 +213,14 @@ public partial class LibraryToolbarViewModel : ObservableObject
     {
         SelectedSortOption = SortOptions.FirstOrDefault(o => o.Id == $"rating_{(ascending ? "asc" : "desc")}");
         SortChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Disposes resources used by this view model.
+    /// </summary>
+    public void Dispose()
+    {
+        _searchThrottleHelper.Dispose();
     }
 }
 

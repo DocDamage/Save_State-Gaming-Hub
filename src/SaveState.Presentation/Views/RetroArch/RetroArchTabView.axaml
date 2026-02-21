@@ -1,0 +1,129 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.RetroArch"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="SaveState.Presentation.Views.RetroArch.RetroArchTabView"
+             x:DataType="vm:RetroArchTabViewModel">
+  <Grid ColumnDefinitions="250,*">
+    <!-- Sidebar -->
+    <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" 
+            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
+      <Grid RowDefinitions="Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="🎮 RETROARCH" 
+                   Classes="H6" Margin="16,20,16,12"/>
+        
+        <StackPanel Grid.Row="1" Spacing="4" Margin="8,0">
+          <Button Classes="Flat NavItem" HorizontalAlignment="Stretch"
+                  Command="{Binding ScanLibraryCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="▶"/>
+              <TextBlock Text="All Games"/>
+            </StackPanel>
+          </Button>
+          <Button Classes="Flat NavItem" HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="♥"/>
+              <TextBlock Text="Favorites"/>
+            </StackPanel>
+          </Button>
+          <Button Classes="Flat NavItem" HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="📁"/>
+              <TextBlock Text="Playlists"/>
+            </StackPanel>
+          </Button>
+          <Button Classes="Flat NavItem" HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="🎮"/>
+              <TextBlock Text="Cores"/>
+            </StackPanel>
+          </Button>
+          <Button Classes="Flat NavItem" HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="⚙️"/>
+              <TextBlock Text="Settings"/>
+            </StackPanel>
+          </Button>
+          <Button Classes="Flat NavItem" HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="🔄"/>
+              <TextBlock Text="Netplay"/>
+            </StackPanel>
+          </Button>
+        </StackPanel>
+        
+        <Border Grid.Row="2" Background="{DynamicResource HoverBackgroundBrush}" 
+                Padding="16,12" Margin="8,8">
+          <StackPanel>
+            <TextBlock Text="SCAN STATUS" Classes="Caption" Opacity="0.6"/>
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+              <Ellipse Width="8" Height="8" Fill="{DynamicResource SuccessBrush}"
+                       IsVisible="{Binding !IsScanning}"/>
+              <ProgressBar IsIndeterminate="True" Width="16" Height="16"
+                          IsVisible="{Binding IsScanning}"/>
+              <TextBlock Text="{Binding ScanStatus}"/>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </Border>
+    
+    <!-- Content -->
+    <ScrollViewer Grid.Column="1">
+      <StackPanel Margin="24">
+        <!-- Recently Played -->
+        <TextBlock Text="RECENTLY PLAYED" Classes="H6" Margin="0,0,0,16"/>
+        <ItemsControl ItemsSource="{Binding RecentGames}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Columns="4" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Border Classes="Card" Margin="8">
+                <StackPanel>
+                  <Border Background="{DynamicResource HoverBackgroundBrush}" 
+                          Height="120" CornerRadius="4"/>
+                  <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" 
+                             Margin="0,8,0,0"/>
+                  <TextBlock Text="{Binding System}" Opacity="0.6" FontSize="12"/>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        
+        <!-- All Games -->
+        <TextBlock Text="ALL GAMES" Classes="H6" Margin="0,32,0,16"/>
+        <ItemsControl ItemsSource="{Binding Games}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Columns="4" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Button Classes="Flat" Command="{Binding 
+                      DataContext.LaunchGameCommand, 
+                      RelativeSource={RelativeSource AncestorType=UserControl}}"
+                      CommandParameter="{Binding}">
+                <Border Classes="Card" Width="200">
+                  <StackPanel>
+                    <Border Background="{DynamicResource HoverBackgroundBrush}" 
+                            Height="150" CornerRadius="4"/>
+                    <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" 
+                               Margin="0,8,0,0" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding System}" Opacity="0.6" FontSize="12"/>
+                  </StackPanel>
+                </Border>
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

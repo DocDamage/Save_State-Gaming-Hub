@@ -2,16 +2,30 @@ using System.Globalization;
 using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using SaveState.Core.Analytics.Models.GamerProfile;
 using SaveState.Presentation.ViewModels;
 using SaveState.Presentation.ViewModels.Library;
 using SaveState.Presentation.ViewModels.Library.GameDetail;
 
 namespace SaveState.Presentation.Converters;
 
+// =============================================================================
+// Game Library Converters
+// =============================================================================
+// These converters are used specifically for the game library and related views.
+// They handle view mode styling, boolean-to-brush conversions, tab content
+// selection, and various game-related value transformations.
+// =============================================================================
+
 /// <summary>
 /// Converts ViewMode values to CSS class names for styling.
 /// Used in game library view to apply different styles based on view mode.
 /// </summary>
+/// <remarks>
+/// Example usage:
+///   Button Class="{Binding CurrentViewMode, Converter={StaticResource ViewModeToClassConverter}, ConverterParameter=Grid}"
+/// Returns "Primary" if the view mode matches the parameter, otherwise "Secondary".
+/// </remarks>
 public class ViewModeToClassConverter : IValueConverter
 {
     /// <summary>
@@ -50,6 +64,10 @@ public class ViewModeToClassConverter : IValueConverter
 /// Converts boolean values to CSS class names.
 /// Useful for conditional styling based on boolean states.
 /// </summary>
+/// <remarks>
+/// Example: Returns "{Parameter} Selected" if true, just "{Parameter}" if false.
+/// Used for button states and selection indicators.
+/// </remarks>
 public class BoolToClassConverter : IValueConverter
 {
     /// <summary>
@@ -226,6 +244,252 @@ public class StringNotEmptyConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         return !string.IsNullOrEmpty(value as string);
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Converts a hex color string to a SolidColorBrush.
+/// </summary>
+public class HexToBrushConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string hexColor)
+        {
+            try
+            {
+                var color = Color.Parse(hexColor);
+                return new SolidColorBrush(color);
+            }
+            catch
+            {
+                return new SolidColorBrush(Colors.Gray);
+            }
+        }
+        return new SolidColorBrush(Colors.Gray);
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Converts an integer to a boolean indicating if it's greater than zero.
+/// </summary>
+public class GreaterThanZeroConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return value is int intValue && intValue > 0;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Converts a ProfileCardTheme to a background brush.
+/// </summary>
+public class ThemeToBrushConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is ProfileCardTheme theme)
+        {
+            var color = theme switch
+            {
+                ProfileCardTheme.Cyberpunk => Color.Parse("#1a1a2e"),
+                ProfileCardTheme.Minimal => Color.Parse("#f8f9fa"),
+                ProfileCardTheme.Retro => Color.Parse("#2d3436"),
+                ProfileCardTheme.Arcade => Color.Parse("#6c5ce7"),
+                ProfileCardTheme.Esports => Color.Parse("#0a0a0a"),
+                _ => Color.Parse("#1a1a2e")
+            };
+            return new SolidColorBrush(color);
+        }
+        return new SolidColorBrush(Color.Parse("#1a1a2e"));
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+// =============================================================================
+// AI Companion Converters
+// =============================================================================
+
+/// <summary>
+/// Converts player health (0.0-1.0) to an appropriate color brush.
+/// </summary>
+public class HealthToColorConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is double health || value is float healthFloat)
+        {
+            var h = value is double ? (double)value : (double)(float)value;
+            var color = h switch
+            {
+                > 0.7 => Color.Parse("#10B981"), // Green
+                > 0.3 => Color.Parse("#F59E0B"), // Orange
+                _ => Color.Parse("#EF4444")      // Red
+            };
+            return new SolidColorBrush(color);
+        }
+        return new SolidColorBrush(Color.Parse("#10B981"));
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Converts sender type to a background brush color.
+/// </summary>
+public class SenderToBackgroundConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var sender = value?.ToString();
+        var color = sender?.ToLowerInvariant() switch
+        {
+            "user" => Color.Parse("#10B981"),   // User messages - green
+            "companion" => Color.Parse("#3B82F6"), // Companion messages - blue
+            "system" => Color.Parse("#6B7280"), // System messages - gray
+            _ => Color.Parse("#3B82F6")
+        };
+        return new SolidColorBrush(color);
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Converts sender type to an avatar background brush.
+/// </summary>
+public class SenderToAvatarBrushConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var sender = value?.ToString();
+        var color = sender?.ToLowerInvariant() switch
+        {
+            "user" => Color.Parse("#059669"),   // Darker green for user
+            "companion" => Color.Parse("#2563EB"), // Darker blue for companion
+            "system" => Color.Parse("#4B5563"), // Darker gray for system
+            _ => Color.Parse("#2563EB")
+        };
+        return new SolidColorBrush(color);
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Converts sender type to an icon string.
+/// </summary>
+public class SenderToIconConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var sender = value?.ToString();
+        return sender?.ToLowerInvariant() switch
+        {
+            "user" => "👤",
+            "companion" => "🤖",
+            "system" => "ℹ️",
+            _ => "💬"
+        };
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Converts personality enum to its description string.
+/// </summary>
+public class PersonalityToDescriptionConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var personality = value?.ToString();
+        return personality switch
+        {
+            "Friendly" => "A warm and supportive companion that encourages you during gameplay.",
+            "Competitive" => "A fierce companion that pushes you to be your best and celebrates victories.",
+            "Analytical" => "A strategic companion that focuses on data and optimization.",
+            "Humorous" => "A fun-loving companion that keeps things light with jokes and banter.",
+            "Silent" => "A quiet companion that only speaks when absolutely necessary.",
+            _ => "Choose how your AI companion will interact with you."
+        };
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Converts skill level enum to its description string.
+/// </summary>
+public class SkillLevelToDescriptionConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var level = value?.ToString();
+        return level switch
+        {
+            "Beginner" => "Basic tips and guidance suitable for new players.",
+            "Intermediate" => "Moderate assistance with some advanced strategies.",
+            "Advanced" => "Deep insights and complex tactics for experienced players.",
+            "Expert" => "Professional-level analysis and optimization suggestions.",
+            _ => "Set the expertise level of your AI companion."
+        };
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Converts boolean to a status color brush (green for active, red for inactive).
+/// </summary>
+public class BoolToStatusColorConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is bool isActive)
+        {
+            return isActive
+                ? new SolidColorBrush(Color.Parse("#10B981")) // Green for active
+                : new SolidColorBrush(Color.Parse("#EF4444")); // Red for inactive
+        }
+        return new SolidColorBrush(Color.Parse("#EF4444"));
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

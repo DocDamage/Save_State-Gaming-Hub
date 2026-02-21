@@ -8,7 +8,7 @@ global using Ardalis.GuardClauses;
 // AiCoach type aliases for backward compatibility
 global using CoachingPreferences = SaveState.Core.GameLibrary.Models.AiCoach.CoachingPreferences;
 global using CoachingSession = SaveState.Core.GameLibrary.Models.AiCoach.CoachingSession;
-global using GameStateSnapshot = SaveState.Core.GameLibrary.Models.AiCoach.GameStateSnapshot;
+// Note: GameStateSnapshot is NOT aliased here to avoid conflicts with AiCoOp.Models.GameStateSnapshot
 global using GameAction = SaveState.Core.GameLibrary.Models.AiCoach.GameAction;
 global using CoachingFeedback = SaveState.Core.GameLibrary.Models.AiCoach.CoachingFeedback;
 global using StrategyStrength = SaveState.Core.GameLibrary.Models.AiCoach.StrategyStrength;
@@ -45,3 +45,15 @@ global using TipCategory = SaveState.Core.GameLibrary.Models.AiCoach.TipCategory
 global using TipDifficulty = SaveState.Core.GameLibrary.Models.AiCoach.TipDifficulty;
 global using Difficulty = SaveState.Core.GameLibrary.Models.AiCoach.Difficulty;
 global using AnalysisType = SaveState.Core.GameLibrary.Models.AiCoach.AnalysisType;
+
+// Phase 2 - Recommendations Models
+global using SaveState.Core.GameLibrary.Models.Recommendations;
+
+// Phase 2 - Gamer DNA Models
+global using SaveState.Core.Analytics.Models.GamerProfile;
+
+// Phase 2 - Content Generation Models
+global using SaveState.Core.ContentGeneration.Models;
+
+// Phase 2 - Search Models
+global using SaveState.Core.Search.Models;

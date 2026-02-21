@@ -13,6 +13,7 @@ public class OverlayService : ObservableObject, IOverlayService
 
     private bool _showCommandPalette;
     private bool _showQuickSearch;
+    private bool _showUniversalSearch;
     private bool _showAiAssistant;
     private bool _showPerformanceHud;
     private bool _showNotifications;
@@ -48,6 +49,13 @@ public class OverlayService : ObservableObject, IOverlayService
     {
         get => _showQuickSearch;
         private set => SetProperty(ref _showQuickSearch, value);
+    }
+
+    /// <inheritdoc />
+    public bool ShowUniversalSearch
+    {
+        get => _showUniversalSearch;
+        private set => SetProperty(ref _showUniversalSearch, value);
     }
 
     /// <inheritdoc />
@@ -158,7 +166,7 @@ public class OverlayService : ObservableObject, IOverlayService
     public Guid? CurrentModId => _currentModId;
 
     /// <inheritdoc />
-    public bool ShowDim => ShowCommandPalette || ShowQuickSearch || ShowAiAssistant || ShowNotifications || ShowUserProfile ||
+    public bool ShowDim => ShowCommandPalette || ShowQuickSearch || ShowUniversalSearch || ShowAiAssistant || ShowNotifications || ShowUserProfile ||
                            ShowNetworkDiagnostics || ShowSyncStatus || ShowConflictsResolution ||
                            ShowProviderConfiguration || ShowDashboardCustomization || ShowCreateCollection ||
                            ShowSessionDetails || ShowAchievementDetails || ShowModDetails;
@@ -211,6 +219,31 @@ public class OverlayService : ObservableObject, IOverlayService
             HideQuickSearchOverlay();
         else
             ShowQuickSearchOverlay();
+    }
+
+    /// <inheritdoc />
+    public void ShowUniversalSearchOverlay()
+    {
+        ShowUniversalSearch = true;
+        _logger.LogDebug("Showing universal search overlay");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("UniversalSearch", true));
+    }
+
+    /// <inheritdoc />
+    public void HideUniversalSearchOverlay()
+    {
+        ShowUniversalSearch = false;
+        _logger.LogDebug("Hiding universal search overlay");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("UniversalSearch", false));
+    }
+
+    /// <inheritdoc />
+    public void ToggleUniversalSearchOverlay()
+    {
+        if (ShowUniversalSearch)
+            HideUniversalSearchOverlay();
+        else
+            ShowUniversalSearchOverlay();
     }
 
     /// <inheritdoc />
@@ -489,13 +522,14 @@ public class OverlayService : ObservableObject, IOverlayService
     /// <inheritdoc />
     public void HideAllOverlays()
     {
-        var hadOverlays = ShowCommandPalette || ShowQuickSearch || ShowAiAssistant || ShowPerformanceHud ||
+        var hadOverlays = ShowCommandPalette || ShowQuickSearch || ShowUniversalSearch || ShowAiAssistant || ShowPerformanceHud ||
                           ShowNotifications || ShowUserProfile || ShowNetworkDiagnostics || ShowSyncStatus ||
                           ShowConflictsResolution || ShowProviderConfiguration || ShowDashboardCustomization ||
                           ShowCreateCollection || ShowSessionDetails || ShowAchievementDetails || ShowModDetails;
 
         ShowCommandPalette = false;
         ShowQuickSearch = false;
+        ShowUniversalSearch = false;
         ShowAiAssistant = false;
         ShowPerformanceHud = false;
         ShowNotifications = false;

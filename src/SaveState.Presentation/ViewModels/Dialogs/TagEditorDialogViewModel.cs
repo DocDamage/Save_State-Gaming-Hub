@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using SaveState.Presentation.Services;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace SaveState.Presentation.ViewModels.Dialogs;
 
@@ -11,7 +12,14 @@ namespace SaveState.Presentation.ViewModels.Dialogs;
 /// </summary>
 public partial class TagEditorDialogViewModel : ObservableObject
 {
+    // Validation constants
+    private const int MaxTagLength = 50;
+    private const int MaxTags = 20;
+    private static readonly Regex ValidTagPattern = new Regex(@"^[\w\s\-\']+$", RegexOptions.Compiled);
+
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanAddTag))]
+    [NotifyPropertyChangedFor(nameof(ValidationMessage))]
     private string _newTagText = string.Empty;
 
     public ObservableCollection<string> Tags { get; } = new();
@@ -42,7 +50,35 @@ public partial class TagEditorDialogViewModel : ObservableObject
 
     public string TagCountText => Tags.Count == 0 ? "No tags" : Tags.Count == 1 ? "1 tag" : $"{Tags.Count} tags";
     public bool HasTags => Tags.Count > 0;
-    public bool CanAddTag => !string.IsNullOrWhiteSpace(NewTagText) && !Tags.Contains(NewTagText.Trim());
+    public bool CanAddTag => 
+        !string.IsNullOrWhiteSpace(NewTagText) && 
+        NewTagText.Trim().Length <= MaxTagLength &&
+        ValidTagPattern.IsMatch(NewTagText.Trim()) &&
+        !Tags.Any(t => t.Equals(NewTagText.Trim(), StringComparison.OrdinalIgnoreCase)) &&
+        Tags.Count < MaxTags;
+
+    /// <summary>
+    /// Gets the validation message for adding tags.
+    /// </summary>
+    public string? ValidationMessage
+    {
+        get
+        {
+            if (Tags.Count >= MaxTags)
+                return $"Maximum of {MaxTags} tags allowed.";
+            if (!string.IsNullOrWhiteSpace(NewTagText))
+            {
+                var trimmed = NewTagText.Trim();
+                if (trimmed.Length > MaxTagLength)
+                    return $"Tag must not exceed {MaxTagLength} characters.";
+                if (!ValidTagPattern.IsMatch(trimmed))
+                    return "Tag can only contain letters, numbers, spaces, hyphens, and apostrophes.";
+                if (Tags.Any(t => t.Equals(trimmed, StringComparison.OrdinalIgnoreCase)))
+                    return "This tag already exists.";
+            }
+            return null;
+        }
+    }
 
     public TagEditorDialogViewModel(string[] currentTags)
     {
@@ -68,33 +104,54 @@ public partial class TagEditorDialogViewModel : ObservableObject
     {
         if (!CanAddTag) return;
 
-        var tag = NewTagText.Trim();
+        var tag = SanitizeTag(NewTagText.Trim());
         Tags.Add(tag);
         NewTagText = string.Empty;
 
         UpdateSuggestedTags();
         OnPropertyChanged(nameof(TagCountText));
         OnPropertyChanged(nameof(HasTags));
+        OnPropertyChanged(nameof(CanAddTag));
+        OnPropertyChanged(nameof(ValidationMessage));
+    }
+
+    private static string SanitizeTag(string tag)
+    {
+        // Remove consecutive spaces, trim, and normalize
+        var sanitized = tag.Trim();
+        while (sanitized.Contains("  "))
+        {
+            sanitized = sanitized.Replace("  ", " ");
+        }
+        return sanitized;
     }
 
     [RelayCommand]
-    private void RemoveTag(string tag)
+    private void RemoveTag(string? tag)
     {
+        if (string.IsNullOrEmpty(tag)) return;
+
         Tags.Remove(tag);
         UpdateSuggestedTags();
         OnPropertyChanged(nameof(TagCountText));
         OnPropertyChanged(nameof(HasTags));
+        OnPropertyChanged(nameof(CanAddTag));
+        OnPropertyChanged(nameof(ValidationMessage));
     }
 
     [RelayCommand]
-    private void AddSuggestedTag(string tag)
+    private void AddSuggestedTag(string? tag)
     {
-        if (Tags.Contains(tag)) return;
+        if (string.IsNullOrEmpty(tag)) return;
+        if (Tags.Count >= MaxTags) return;
+        if (Tags.Any(t => t.Equals(tag, StringComparison.OrdinalIgnoreCase))) return;
 
         Tags.Add(tag);
         UpdateSuggestedTags();
         OnPropertyChanged(nameof(TagCountText));
         OnPropertyChanged(nameof(HasTags));
+        OnPropertyChanged(nameof(CanAddTag));
+        OnPropertyChanged(nameof(ValidationMessage));
     }
 
     private void UpdateSuggestedTags()
@@ -111,23 +168,22 @@ public partial class TagEditorDialogViewModel : ObservableObject
     private void Save()
     {
         var result = new TagEditorResult(Tags.ToArray());
-
-        // Close dialog with result
-        if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            var window = desktop.Windows.FirstOrDefault(w => w.DataContext == this);
-            window?.Close(result);
-        }
+        CloseDialog(result);
     }
 
     [RelayCommand]
     private void Cancel()
     {
-        // Close dialog without result
-        if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+        CloseDialog(null);
+    }
+
+    private void CloseDialog(TagEditorResult? result)
+    {
+        var lifetime = Avalonia.Application.Current?.ApplicationLifetime;
+        if (lifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
         {
             var window = desktop.Windows.FirstOrDefault(w => w.DataContext == this);
-            window?.Close(null);
+            window?.Close(result);
         }
     }
 }

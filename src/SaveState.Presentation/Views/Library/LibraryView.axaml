@@ -1,3 +1,17 @@
+<!--
+    LibraryView.axaml
+    
+    Main view for the game library. Displays games in multiple view modes
+    (Grid, List, Compact, Table) with sidebar filtering and toolbar controls.
+    
+    Binding Context: LibraryViewModel
+    Key Features:
+    - Multiple view modes (Grid/List/Compact/Table)
+    - Sidebar with smart filters, collections, and platforms
+    - Pagination controls
+    - Empty state handling
+    - Bulk selection mode
+-->
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -8,12 +22,17 @@
              x:Class="SaveState.Presentation.Views.Library.LibraryView"
              x:DataType="vm:LibraryViewModel">
 
+    <!-- Main layout: Header | Toolbar | Content (Sidebar + Games) -->
     <Grid RowDefinitions="Auto, Auto, *">
         <!-- Header -->
-        <Border Grid.Row="0" Classes="GlassContainer" Margin="20,20,20,10" Padding="20">
+        <Border Grid.Row="0"
+                Classes="GlassContainer"
+                Margin="20,20,20,10"
+                Padding="20"
+                AutomationProperties.Name="Library Header">
             <Grid ColumnDefinitions="Auto, *, Auto">
                 <TextBlock Grid.Column="0"
-                           Text="🎮 Game Library"
+                           Text="Game Library"
                            Classes="Header"
                            VerticalAlignment="Center" />
 
@@ -24,16 +43,18 @@
                            HorizontalAlignment="Center"
                            Foreground="{StaticResource TextSecondaryBrush}" />
 
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
-                    <Button Content="🔄 Refresh"
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12">
+                    <Button Content="Refresh"
                             Classes="Secondary"
                             Command="{Binding RefreshCommand}"
-                            ToolTip.Tip="Refresh library data" />
+                            ToolTip.Tip="Refresh library data from all sources"
+                            AutomationProperties.Name="Refresh Library" />
 
-                    <Button Content="⚙️ Settings"
+                    <Button Content="Settings"
                             Classes="Secondary"
                             Command="{Binding OpenSettingsCommand}"
-                            ToolTip.Tip="Library settings" />
+                            ToolTip.Tip="Open library settings"
+                            AutomationProperties.Name="Library Settings" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -82,7 +103,7 @@
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center">
                         <StackPanel Spacing="20" HorizontalAlignment="Center">
-                            <TextBlock Text="📚 No games found"
+                            <TextBlock Text="No games found"
                                        Classes="Header"
                                        HorizontalAlignment="Center" />
 
@@ -92,10 +113,12 @@
                                        TextWrapping="Wrap"
                                        MaxWidth="400" />
 
-                            <Button Content="➕ Add Your First Game"
+                            <Button Content="Add Your First Game"
                                     Classes="Primary"
                                     Command="{Binding AddGameCommand}"
-                                    HorizontalAlignment="Center" />
+                                    HorizontalAlignment="Center"
+                                    ToolTip.Tip="Add a new game to your library"
+                                    AutomationProperties.Name="Add First Game" />
                         </StackPanel>
                     </Border>
                 </Grid>
@@ -105,7 +128,8 @@
                         Classes="GlassContainer"
                         Margin="0,20,0,0"
                         Padding="20"
-                        IsVisible="{Binding HasGames}">
+                        IsVisible="{Binding HasGames}"
+                        AutomationProperties.Name="Pagination Controls">
                     <Grid ColumnDefinitions="Auto, *, Auto">
                         <TextBlock Grid.Column="0"
                                    Text="{Binding PaginationInfo}"
@@ -114,28 +138,33 @@
 
                         <StackPanel Grid.Column="2"
                                     Orientation="Horizontal"
-                                    Spacing="10"
+                                    Spacing="12"
                                     VerticalAlignment="Center">
-                            <Button Content="◀ Previous"
+                            <Button Content="Previous"
                                     Classes="Secondary"
                                     Command="{Binding PreviousPageCommand}"
-                                    IsEnabled="{Binding HasPreviousPage}" />
+                                    IsEnabled="{Binding HasPreviousPage}"
+                                    ToolTip.Tip="Go to previous page"
+                                    AutomationProperties.Name="Previous Page" />
 
                             <TextBlock Text="{Binding CurrentPageInfo}"
                                        Classes="Body"
                                        VerticalAlignment="Center"
                                        Margin="10,0" />
 
-                            <Button Content="Next ▶"
+                            <Button Content="Next"
                                     Classes="Secondary"
                                     Command="{Binding NextPageCommand}"
-                                    IsEnabled="{Binding HasNextPage}" />
+                                    IsEnabled="{Binding HasNextPage}"
+                                    ToolTip.Tip="Go to next page"
+                                    AutomationProperties.Name="Next Page" />
 
                             <ComboBox ItemsSource="{Binding PageSizeOptions}"
                                       SelectedItem="{Binding SelectedPageSize}"
                                       Width="80"
                                       Margin="20,0,0,0"
-                                      ToolTip.Tip="Games per page" />
+                                      ToolTip.Tip="Number of games to display per page"
+                                      AutomationProperties.Name="Page Size Selector" />
                         </StackPanel>
                     </Grid>
                 </Border>

@@ -1,0 +1,270 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Settings"
+             xmlns:health="using:SaveState.Presentation.Models.Health"
+             xmlns:converters="using:SaveState.Presentation.Converters"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
+             x:Class="SaveState.Presentation.Views.Settings.SystemHealthView"
+             x:DataType="vm:SystemHealthViewModel">
+
+  <UserControl.Resources>
+    <converters:HealthStatusToBrushConverter x:Key="HealthStatusToBrushConverter" />
+    <converters:ErrorSeverityToBrushConverter x:Key="ErrorSeverityToBrushConverter" />
+    <converters:ByteToMegabytesConverter x:Key="ByteToMegabytesConverter" />
+  </UserControl.Resources>
+
+  <ScrollViewer>
+    <StackPanel Margin="24" Spacing="24">
+      <!-- Header -->
+      <TextBlock Text="System Health Dashboard" Classes="H4" />
+
+      <!-- Overall Status -->
+      <Border Classes="Card" Padding="20">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="0">
+            <TextBlock Classes="H6">
+              <TextBlock.Text>
+                <MultiBinding StringFormat="Overall Status: {0}">
+                  <Binding Path="OverallStatus.OverallStatus"/>
+                </MultiBinding>
+              </TextBlock.Text>
+            </TextBlock>
+            <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,8,0,0">
+              <TextBlock Classes="Body">
+                <TextBlock.Text>
+                  <MultiBinding StringFormat="🟢 {0} Healthy">
+                    <Binding Path="OverallStatus.HealthyServices"/>
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+              <TextBlock Classes="Body"
+                         IsVisible="{Binding OverallStatus.DegradedServices, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <TextBlock.Text>
+                  <MultiBinding StringFormat="🟡 {0} Degraded">
+                    <Binding Path="OverallStatus.DegradedServices"/>
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+              <TextBlock Classes="Body"
+                         IsVisible="{Binding OverallStatus.UnhealthyServices, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <TextBlock.Text>
+                  <MultiBinding StringFormat="🔴 {0} Unhealthy">
+                    <Binding Path="OverallStatus.UnhealthyServices"/>
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+            </StackPanel>
+          </StackPanel>
+          <Button Grid.Column="1"
+                  Command="{Binding RefreshCommand}"
+                  IsEnabled="{Binding !IsRefreshing}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <ProgressBar IsIndeterminate="True"
+                          Width="16" Height="16"
+                          IsVisible="{Binding IsRefreshing}"/>
+              <TextBlock Text="Refresh"/>
+            </StackPanel>
+          </Button>
+        </Grid>
+      </Border>
+
+      <!-- Status Cards Row -->
+      <UniformGrid Columns="3">
+        <!-- Database -->
+        <Border Classes="Card" Margin="0,0,8,0" Padding="16">
+          <StackPanel Spacing="8">
+            <TextBlock Text="🗄️ Database" Classes="H6"/>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Ellipse Width="12" Height="12"
+                       Fill="{Binding DatabaseHealth.Status, Converter={StaticResource HealthStatusToBrushConverter}}"/>
+              <TextBlock Text="{Binding DatabaseHealth.Status}"/>
+            </StackPanel>
+            <TextBlock>
+              <TextBlock.Text>
+                <MultiBinding StringFormat="Response: {0:F0}ms">
+                  <Binding Path="DatabaseHealth.ResponseTime.TotalMilliseconds"/>
+                </MultiBinding>
+              </TextBlock.Text>
+            </TextBlock>
+            <TextBlock Opacity="0.6" FontSize="12">
+              <TextBlock.Text>
+                <MultiBinding StringFormat="Last Backup: {0:g}">
+                  <Binding Path="DatabaseHealth.LastBackup"/>
+                </MultiBinding>
+              </TextBlock.Text>
+            </TextBlock>
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+              <Button Content="Backup Now"
+                      Command="{Binding BackupDatabaseCommand}"
+                      Classes="Small"/>
+              <Button Content="View Logs"
+                      Command="{Binding ViewErrorLogCommand}"
+                      Classes="Small"/>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- External APIs -->
+        <Border Classes="Card" Margin="4,0" Padding="16">
+          <StackPanel Spacing="8">
+            <TextBlock Text="☁️ External APIs" Classes="H6"/>
+            <ItemsControl ItemsSource="{Binding ApiStatuses}" MaxHeight="150">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="health:ApiHealthStatus">
+                  <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,2">
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding ApiName}"
+                               VerticalAlignment="Center"/>
+                    <Ellipse Grid.Column="1"
+                             Width="8" Height="8"
+                             Margin="8,0"
+                             Fill="{Binding Status, Converter={StaticResource HealthStatusToBrushConverter}}"/>
+                    <Button Grid.Column="2"
+                            Content="Retry"
+                            Classes="Small"
+                            Command="{Binding DataContext.RetryApiCommand,
+                                     RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                            CommandParameter="{Binding}"
+                            IsVisible="{Binding Status,
+                                      Converter={x:Static ObjectConverters.AreNotEqual},
+                                      ConverterParameter={x:Static health:HealthStatus.Healthy}}"/>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
+        <!-- Cache -->
+        <Border Classes="Card" Margin="8,0,0,0" Padding="16">
+          <StackPanel Spacing="8">
+            <TextBlock Text="💾 Cache" Classes="H6"/>
+            <TextBlock>
+              <TextBlock.Text>
+                <MultiBinding StringFormat="Hit Rate: {0:P0}">
+                  <Binding Path="CacheStats.HitRate"/>
+                </MultiBinding>
+              </TextBlock.Text>
+            </TextBlock>
+            <TextBlock>
+              <TextBlock.Text>
+                <MultiBinding StringFormat="Size: {0:F1} MB">
+                  <Binding Path="CacheStats.SizeInBytes"
+                           Converter="{StaticResource ByteToMegabytesConverter}"/>
+                </MultiBinding>
+              </TextBlock.Text>
+            </TextBlock>
+            <TextBlock>
+              <TextBlock.Text>
+                <MultiBinding StringFormat="Entries: {0:N0}">
+                  <Binding Path="CacheStats.EntryCount"/>
+                </MultiBinding>
+              </TextBlock.Text>
+            </TextBlock>
+            <Button Content="Clear Cache"
+                    Command="{Binding ClearCacheCommand}"
+                    Classes="Small"
+                    Margin="0,8,0,0"/>
+          </StackPanel>
+        </Border>
+      </UniformGrid>
+
+      <!-- System Resources -->
+      <Border Classes="Card" Padding="20">
+        <StackPanel Spacing="16">
+          <TextBlock Text="📊 System Resources" Classes="H6"/>
+          <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" RowSpacing="16">
+            <!-- CPU -->
+            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,16,0">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="CPU" Classes="BodyStrong"/>
+                <TextBlock Grid.Column="1"
+                           Text="{Binding Resources.CpuPercentage, StringFormat='{}{0:F0}%'}"/>
+              </Grid>
+              <ProgressBar Value="{Binding Resources.CpuPercentage}"
+                           Maximum="100"
+                           Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <!-- Memory -->
+            <StackPanel Grid.Row="0" Grid.Column="1" Margin="16,0,0,0">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Memory" Classes="BodyStrong"/>
+                <TextBlock Grid.Column="1"
+                           Text="{Binding Resources.MemoryPercentage, StringFormat='{}{0:F0}%'}"/>
+              </Grid>
+              <ProgressBar Value="{Binding Resources.MemoryPercentage}"
+                           Maximum="100"
+                           Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <!-- GPU -->
+            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,16,0">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="GPU" Classes="BodyStrong"/>
+                <TextBlock Grid.Column="1"
+                           Text="{Binding Resources.GpuPercentage, StringFormat='{}{0:F0}%'}"/>
+              </Grid>
+              <ProgressBar Value="{Binding Resources.GpuPercentage}"
+                           Maximum="100"
+                           Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <!-- Disk -->
+            <StackPanel Grid.Row="1" Grid.Column="1" Margin="16,0,0,0">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Disk" Classes="BodyStrong"/>
+                <TextBlock Grid.Column="1"
+                           Text="{Binding Resources.DiskPercentage, StringFormat='{}{0:F0}%'}"/>
+              </Grid>
+              <ProgressBar Value="{Binding Resources.DiskPercentage}"
+                           Maximum="100"
+                           Margin="0,4,0,0"/>
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <!-- Recent Errors -->
+      <Border Classes="Card" Padding="20">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="⚠️ Recent Errors (Last 24h)" Classes="H6"/>
+            <Button Grid.Column="1"
+                    Content="View Full Log"
+                    Command="{Binding ViewErrorLogCommand}"
+                    Classes="Small"/>
+          </Grid>
+          <ItemsControl ItemsSource="{Binding RecentErrors}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="health:ErrorLogEntry">
+                <Border Classes="ListItem" Padding="12,8">
+                  <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
+                               Opacity="0.6"
+                               Width="140"/>
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding Component}"
+                               Margin="16,0"
+                               Width="140"/>
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding Message}"
+                               TextTrimming="CharacterEllipsis"/>
+                    <Ellipse Grid.Column="3"
+                             Width="8" Height="8"
+                             Margin="8,0"
+                             Fill="{Binding Severity, Converter={StaticResource ErrorSeverityToBrushConverter}}"/>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

@@ -186,6 +186,42 @@ public enum PlayerAction
     /// <summary>Player score increased.</summary>
     ScoreIncreased,
 
+    /// <summary>Player performed an attack (for combo detection).</summary>
+    Attacked,
+
+    /// <summary>Player blocked incoming damage (for shield detection).</summary>
+    BlockedDamage,
+
+    /// <summary>Player sprinted or ran (for stamina detection).</summary>
+    Sprinted,
+
+    /// <summary>Player used a special ability (for energy detection).</summary>
+    UsedAbility,
+
+    /// <summary>Player used an item (for hunger/thirst detection).</summary>
+    UsedItem,
+
+    /// <summary>Player died or was defeated (for lives detection).</summary>
+    Died,
+
+    /// <summary>Player is idle/resting (for regeneration detection).</summary>
+    Idle,
+
+    /// <summary>Player moved (for vehicle fuel detection).</summary>
+    Moved,
+
+    /// <summary>Player jumped (for jump detection).</summary>
+    Jumped,
+
+    /// <summary>Player rotated/turned (for rotation detection).</summary>
+    Rotated,
+
+    /// <summary>Player aimed/looked (for aim detection).</summary>
+    AimChanged,
+
+    /// <summary>Player dodged (for dodge detection).</summary>
+    Dodged,
+
     /// <summary>Custom action with metadata.</summary>
     Custom
 }

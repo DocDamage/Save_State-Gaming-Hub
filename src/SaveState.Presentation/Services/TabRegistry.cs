@@ -17,16 +17,19 @@ public static class TabRegistry
         ["Library"] = new("Library", "📚", typeof(ViewModels.GameLibraryViewModel), Key.D2, KeyModifiers.Control),
         ["ROMs"] = new("ROMs", "🎮", typeof(ViewModels.Shell.RomManagementViewModel), Key.D3, KeyModifiers.Control),
         ["MUGEN"] = new("MUGEN", "🥊", typeof(ViewModels.Shell.MugenViewModel), Key.D4, KeyModifiers.Control),
+        ["RetroArch"] = new("RetroArch", "🕹️", typeof(ViewModels.Shell.RetroArchViewModel), Key.None, KeyModifiers.None),
         ["Analytics"] = new("Analytics", "📊", typeof(ViewModels.Shell.AnalyticsViewModel), Key.D5, KeyModifiers.Control),
         ["Social"] = new("Social", "👥", typeof(ViewModels.Shell.SocialViewModel), Key.D6, KeyModifiers.Control),
         ["Subscriptions"] = new("Subscriptions", "🎁", typeof(ViewModels.Subscriptions.SubscriptionManagerViewModel), Key.None, KeyModifiers.None),
         ["Deals"] = new("Deals", "💰", typeof(ViewModels.GameDeals.GameDealsViewModel), Key.None, KeyModifiers.None),
+        ["Recommendations"] = new("Recommendations", "🎯", typeof(ViewModels.GameLibrary.SmartRecommendationsViewModel), Key.None, KeyModifiers.None),
         ["Achievements"] = new("Achievements", "🏆", typeof(ViewModels.Shell.AchievementHubViewModel), Key.None, KeyModifiers.None),
         ["Launcher"] = new("Launcher", "🚀", typeof(ViewModels.SmartLauncher.SmartLauncherViewModel), Key.None, KeyModifiers.None),
         ["Cloud"] = new("Cloud", "☁️", typeof(ViewModels.Shell.CloudSyncViewModel), Key.D7, KeyModifiers.Control),
         ["Automation"] = new("Automation", "🎬", typeof(ViewModels.Shell.AutomationViewModel), Key.D8, KeyModifiers.Control),
         ["Tools"] = new("Tools", "🛠️", typeof(ViewModels.Shell.ToolsViewModel), Key.D9, KeyModifiers.Control),
         ["Terminal"] = new("Terminal", "💻", typeof(ViewModels.Shell.TerminalViewModel), Key.D0, KeyModifiers.Control),
+        ["GamerDNA"] = new("Gamer DNA", "🧬", typeof(ViewModels.Analytics.GamerDnaViewModel), Key.None, KeyModifiers.None),
         ["Settings"] = new("Settings", "⚙️", typeof(ViewModels.SettingsViewModel), Key.F10, KeyModifiers.None),
     };
 
@@ -37,9 +40,12 @@ public static class TabRegistry
     {
         yield return Tabs["Dashboard"];
         yield return Tabs["Library"];
+        yield return Tabs["Recommendations"];
         yield return Tabs["ROMs"];
         yield return Tabs["MUGEN"];
+        yield return Tabs["RetroArch"];
         yield return Tabs["Analytics"];
+        yield return Tabs["GamerDNA"];
         yield return Tabs["Social"];
         yield return Tabs["Subscriptions"];
         yield return Tabs["Deals"];

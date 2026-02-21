@@ -9,14 +9,15 @@ using SaveState.Core.Input.Services;
 using SaveState.Core.Input.Services.DTOs;
 using SaveState.Core.Plugins.Services;
 using SaveState.Presentation.Services;
+using SaveState.Presentation.Utilities;
 using Splat;
 
 namespace SaveState.Presentation.ViewModels.Shell;
 
 /// <summary>
-/// View model for the command palette overlay.
+/// View model for the command palette overlay with throttled search.
 /// </summary>
-public partial class CommandPaletteViewModel : ObservableObject
+public partial class CommandPaletteViewModel : ObservableObject, IDisposable
 {
     private const string CategoryNavigation = "Navigation";
     private const string CategoryLibrary = "Library";
@@ -29,6 +30,7 @@ public partial class CommandPaletteViewModel : ObservableObject
     private readonly IGameRepository? _gameRepository;
     private readonly IPluginManager? _pluginManager;
     private readonly ILogger<CommandPaletteViewModel>? _logger;
+    private readonly SearchThrottleHelper _searchThrottleHelper;
     private readonly CommandContext _searchContext = CommandContext.Default;
     private HashSet<string> _pluginCommandIds = new(StringComparer.OrdinalIgnoreCase);
 
@@ -54,12 +56,23 @@ public partial class CommandPaletteViewModel : ObservableObject
         _pluginManager = Locator.Current.GetService<IPluginManager>();
         _logger = Locator.Current.GetService<ILoggerFactory>()?.CreateLogger<CommandPaletteViewModel>();
 
+        // Initialize throttled search with 150ms delay for instant command palette feel
+        _searchThrottleHelper = new SearchThrottleHelper(
+            _ =>
+            {
+                Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+                {
+                    await UpdateFilteredCommandsAsync();
+                });
+            },
+            TimeSpan.FromMilliseconds(150));
+
         RegisterBuiltInCommands();
         _ = UpdateFilteredCommandsAsync();
     }
 
     /// <summary>
-    /// Gets or sets the search text.
+    /// Gets or sets the search text with throttled updates.
     /// </summary>
     public string SearchText
     {
@@ -68,7 +81,7 @@ public partial class CommandPaletteViewModel : ObservableObject
         {
             if (SetProperty(ref _searchText, value))
             {
-                _ = UpdateFilteredCommandsAsync();
+                _searchThrottleHelper.UpdateSearchText(value);
             }
         }
     }
@@ -504,5 +517,13 @@ public partial class CommandPaletteViewModel : ObservableObject
                 $"Plugin command '{registration.MenuItem.Label}' failed: {ex.Message}",
                 ErrorType.Internal);
         }
+    }
+
+    /// <summary>
+    /// Disposes resources used by this view model.
+    /// </summary>
+    public void Dispose()
+    {
+        _searchThrottleHelper.Dispose();
     }
 }

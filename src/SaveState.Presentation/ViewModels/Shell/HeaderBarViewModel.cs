@@ -125,6 +125,15 @@ public partial class HeaderBarViewModel : ObservableObject
         _overlayService.ToggleUserProfileOverlay();
     }
 
+    /// <summary>
+    /// Command to open the universal search overlay.
+    /// </summary>
+    [RelayCommand]
+    private void OpenUniversalSearch()
+    {
+        _overlayService.ShowUniversalSearchOverlay();
+    }
+
     private void OnNavigated(object? sender, NavigationEventArgs e)
     {
         UpdateActiveTab(e.Entry.Tab);

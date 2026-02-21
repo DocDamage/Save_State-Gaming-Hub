@@ -1,0 +1,283 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Search"
+             xmlns:search="using:SaveState.Core.Search.Models"
+             x:Class="SaveState.Presentation.Views.Search.UniversalSearchOverlay"
+             x:DataType="vm:UniversalSearchViewModel"
+             Background="#CC000000">
+
+    <Design.DataContext>
+        <vm:UniversalSearchViewModel />
+    </Design.DataContext>
+
+    <UserControl.Styles>
+        <!-- Search Item Style -->
+        <Style Selector="Button.search-item">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+
+        <Style Selector="Button.search-item:pointerover">
+            <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+        </Style>
+
+        <Style Selector="Button.search-item.selected">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+        </Style>
+
+        <!-- Scope Button Style -->
+        <Style Selector="Button.scope-button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+
+        <Style Selector="Button.scope-button:pointerover">
+            <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+        </Style>
+
+        <Style Selector="Button.scope-button.active">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+        </Style>
+
+        <!-- Shortcut Badge Style -->
+        <Style Selector="Border.shortcut-badge">
+            <Setter Property="Background" Value="{DynamicResource BackgroundSecondaryBrush}" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="6,3" />
+        </Style>
+
+        <!-- Suggestion Item Style -->
+        <Style Selector="Button.suggestion-item">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Padding" Value="12,6" />
+        </Style>
+
+        <Style Selector="Button.suggestion-item:pointerover">
+            <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Search Input Container -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource BackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Margin="24,24,24,0"
+                BoxShadow="0 4 20 0 #40000000">
+            <Grid RowDefinitions="Auto,Auto,Auto">
+                <!-- Search Input -->
+                <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+                    <TextBlock Grid.Column="0"
+                               Text="🔍"
+                               FontSize="20"
+                               Margin="16,12,12,12"
+                               VerticalAlignment="Center" />
+
+                    <TextBox Grid.Column="1"
+                             Text="{Binding SearchText}"
+                             Watermark="Search games, saves, settings, and more..."
+                             FontSize="18"
+                             Padding="4"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             VerticalAlignment="Center">
+                        <TextBox.InnerLeftContent>
+                            <Border IsVisible="{Binding IsSearching}"
+                                    Margin="0,0,8,0">
+                                <ProgressBar IsIndeterminate="True"
+                                            Width="16"
+                                            Height="16" />
+                            </Border>
+                        </TextBox.InnerLeftContent>
+                    </TextBox>
+
+                    <Button Grid.Column="2"
+                            Content="✕"
+                            Command="{Binding CloseCommand}"
+                            Margin="8"
+                            Padding="8"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            VerticalAlignment="Center" />
+                </Grid>
+
+                <!-- Scope Filters -->
+                <Border Grid.Row="1"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="0,1,0,0"
+                        Padding="12,8">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Search in:"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Margin="0,0,8,0" />
+
+                        <Button Content="All"
+                                Classes.scope-button="{Binding CurrentScope, Converter={StaticResource EqualsConverter}, ConverterParameter={x:Static search:SearchScope.All}}"
+                                Command="{Binding ChangeScopeCommand}"
+                                CommandParameter="{x:Static search:SearchScope.All}" />
+
+                        <Button Content="Games"
+                                Classes.scope-button="{Binding CurrentScope, Converter={StaticResource EqualsConverter}, ConverterParameter={x:Static search:SearchScope.Games}}"
+                                Command="{Binding ChangeScopeCommand}"
+                                CommandParameter="{x:Static search:SearchScope.Games}" />
+
+                        <Button Content="Saves"
+                                Classes.scope-button="{Binding CurrentScope, Converter={StaticResource EqualsConverter}, ConverterParameter={x:Static search:SearchScope.Saves}}"
+                                Command="{Binding ChangeScopeCommand}"
+                                CommandParameter="{x:Static search:SearchScope.Saves}" />
+
+                        <Button Content="Actions"
+                                Classes.scope-button="{Binding CurrentScope, Converter={StaticResource EqualsConverter}, ConverterParameter={x:Static search:SearchScope.Actions}}"
+                                Command="{Binding ChangeScopeCommand}"
+                                CommandParameter="{x:Static search:SearchScope.Actions}" />
+
+                        <Button Content="Settings"
+                                Classes.scope-button="{Binding CurrentScope, Converter={StaticResource EqualsConverter}, ConverterParameter={x:Static search:SearchScope.Settings}}"
+                                Command="{Binding ChangeScopeCommand}"
+                                CommandParameter="{x:Static search:SearchScope.Settings}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Suggestions Dropdown -->
+                <Border Grid.Row="2"
+                        IsVisible="{Binding ShowSuggestions}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="0,1,0,0"
+                        Background="{DynamicResource BackgroundSecondaryBrush}">
+                    <ItemsControl ItemsSource="{Binding Suggestions}"
+                                  MaxHeight="150">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Button Content="{Binding}"
+                                        Classes="suggestion-item"
+                                        Command="{Binding DataContext.ApplySuggestionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Results Container -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource BackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Margin="24,12,24,24"
+                MaxHeight="500"
+                VerticalAlignment="Top"
+                BoxShadow="0 4 20 0 #40000000">
+
+            <!-- Results List -->
+            <Panel>
+                <ScrollViewer IsVisible="{Binding HasResults}"
+                              HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding SearchResults}"
+                                  Margin="0,4">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:UniversalSearchResultViewModel">
+                                <Button Classes="search-item"
+                                        Classes.selected="{Binding ., Converter={StaticResource EqualsConverter}, ConverterParameter={Binding $parent[ItemsControl].DataContext.SelectedResult}}"
+                                        Command="{Binding DataContext.SelectResultCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <!-- Icon -->
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Icon}"
+                                                   FontSize="24"
+                                                   Margin="0,0,12,0"
+                                                   VerticalAlignment="Center" />
+
+                                        <!-- Content -->
+                                        <StackPanel Grid.Column="1"
+                                                    Orientation="Vertical"
+                                                    Spacing="2">
+                                            <TextBlock Text="{Binding Title}"
+                                                       FontSize="14"
+                                                       FontWeight="SemiBold"
+                                                       TextTrimming="CharacterEllipsis" />
+
+                                            <Grid ColumnDefinitions="Auto,*">
+                                                <TextBlock Grid.Column="0"
+                                                           Text="{Binding TypeLabel}"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource AccentBrush}"
+                                                           Margin="0,0,8,0" />
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{Binding Subtitle}"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                            </Grid>
+                                        </StackPanel>
+
+                                        <!-- Shortcut -->
+                                        <Border Grid.Column="2"
+                                                Classes="shortcut-badge"
+                                                IsVisible="{Binding Shortcut, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                                Margin="12,0,0,0">
+                                            <TextBlock Text="{Binding Shortcut}"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        </Border>
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- No Results State -->
+                <Border IsVisible="{Binding ShowNoResults}"
+                        Padding="24"
+                        VerticalAlignment="Center">
+                    <StackPanel Orientation="Vertical"
+                                Spacing="8"
+                                HorizontalAlignment="Center">
+                        <TextBlock Text="🔍"
+                                   FontSize="48"
+                                   HorizontalAlignment="Center"
+                                   Opacity="0.5" />
+                        <TextBlock Text="No results found"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="Try different keywords or check your spelling"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Error State -->
+                <Border IsVisible="{Binding SearchError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                        Padding="24"
+                        Background="{DynamicResource ErrorBrush}"
+                        Opacity="0.1"
+                        VerticalAlignment="Center">
+                    <TextBlock Text="{Binding SearchError}"
+                               Foreground="{DynamicResource ErrorBrush}"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center" />
+                </Border>
+            </Panel>
+        </Border>
+    </Grid>
+</UserControl>

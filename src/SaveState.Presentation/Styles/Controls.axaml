@@ -1,6 +1,27 @@
+<!--
+    Controls.axaml
+    
+    Custom control styles for SaveState Reborn.
+    Uses a "Midnight" aesthetic inspired by WeMod with:
+    - Deep slate backgrounds (#121212 - #25262B)
+    - Clean white primary text
+    - Emerald green accents (#10B981)
+    - Rounded pill-shaped buttons
+    - Subtle shadows and hover effects
+    
+    Style Categories:
+    1. Typography (H1, H2, Header, Body, Caption)
+    2. Buttons (Primary, Secondary, Nav, Outline)
+    3. Cards & Containers (Card, GlassContainer, GameCard)
+    4. Inputs (TextBox, ComboBox, CheckBox)
+    5. Navigation (TabControl, ListBox)
+    
+    Usage: Apply style classes using Classes="StyleName"
+-->
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!-- Import brush resources for color references -->
     <Styles.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -9,7 +30,9 @@
         </ResourceDictionary>
     </Styles.Resources>
 
-    <!-- WeMod-Inspired "Midnight" Controls -->
+    <!-- =========================================================================
+         WE-MOD INSPIRED "MIDNIGHT" CONTROL STYLES
+         ========================================================================= -->
 
     <!-- ========================================
          TYPOGRAPHY
@@ -40,6 +63,12 @@
     <Style Selector="TextBlock.Caption">
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}"/>
+    </Style>
+
+    <Style Selector="TextBlock.Label">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}"/>
+        <Setter Property="FontWeight" Value="Medium"/>
     </Style>
 
     <Style Selector="TextBlock.Header">
@@ -177,6 +206,19 @@
         <Setter Property="BoxShadow" Value="0 8 32 #20000000"/>
     </Style>
 
+    <Style Selector="Border.ListItem">
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="12"/>
+    </Style>
+
+    <Style Selector="TextBlock.SectionHeader">
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Margin" Value="0,0,0,8"/>
+    </Style>
+
     <Style Selector="Border.GameCard">
         <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
         <Setter Property="CornerRadius" Value="12"/>
@@ -187,6 +229,22 @@
                 <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.15"/>
             </Transitions>
         </Setter>
+    </Style>
+
+    <Style Selector="Border.list-item">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Padding" Value="12,8"/>
+    </Style>
+
+    <Style Selector="Border.list-item:pointerover">
+        <Setter Property="Background" Value="{StaticResource CardHoverBrush}"/>
+    </Style>
+
+    <Style Selector="Border.card">
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="16"/>
+        <Setter Property="Margin" Value="0,4"/>
     </Style>
 
     <Style Selector="Border.GameCard:pointerover">

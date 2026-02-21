@@ -1,19 +1,24 @@
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Presentation.Services;
+using SaveState.Presentation.Services.ImageLoading;
+using Splat;
 using System;
 
 namespace SaveState.Presentation.ViewModels.Library;
 
 /// <summary>
 /// View model for individual game cards in the library.
+/// Supports async image loading for better UI performance.
 /// </summary>
 public partial class GameCardViewModel : ObservableObject
 {
     private readonly ILogger<GameCardViewModel> _logger;
     private readonly INavigationService _navigationService;
+    private readonly IAsyncImageLoader? _imageLoader;
 
     [ObservableProperty]
     private GameId _gameId;
@@ -23,6 +28,12 @@ public partial class GameCardViewModel : ObservableObject
 
     [ObservableProperty]
     private string? _coverArtUrl;
+
+    /// <summary>
+    /// The loaded cover art image. Updated asynchronously when the image loads.
+    /// </summary>
+    [ObservableProperty]
+    private Bitmap? _coverArt;
 
     [ObservableProperty]
     private string _platformName = string.Empty;
@@ -49,10 +60,23 @@ public partial class GameCardViewModel : ObservableObject
     private string _releaseYearText = "----";
 
     [ObservableProperty]
+    private string _developer = string.Empty;
+
+    [ObservableProperty]
     private bool _isSelected;
 
     [ObservableProperty]
     private bool _isSelectionMode;
+
+    /// <summary>
+    /// Brush for alternating row colors in list view.
+    /// </summary>
+    public string BackgroundBrush => (GameId.GetHashCode() % 2 == 0) 
+        ? "#1A1A1A" 
+        : "#252525";
+
+    public string LastPlayedText => "Never"; // Placeholder
+    public string RatingText => string.Empty; // Placeholder
 
     public GameCardViewModel(
         ILogger<GameCardViewModel> logger,
@@ -60,6 +84,17 @@ public partial class GameCardViewModel : ObservableObject
     {
         _logger = logger;
         _navigationService = navigationService;
+        _gameId = GameId.From(Guid.Empty);
+        
+        // Try to get the image loader from service locator
+        try
+        {
+            _imageLoader = Locator.Current.GetService<IAsyncImageLoader>();
+        }
+        catch
+        {
+            _imageLoader = null;
+        }
     }
 
     public GameCardViewModel(
@@ -90,6 +125,58 @@ public partial class GameCardViewModel : ObservableObject
         PlaytimeText = FormatPlaytime(playtime);
         RatingStars = FormatRating(rating);
         ReleaseYearText = FormatReleaseYear(releaseDate);
+
+        // Try to get the image loader from service locator
+        try
+        {
+            _imageLoader = Locator.Current.GetService<IAsyncImageLoader>();
+        }
+        catch
+        {
+            _imageLoader = null;
+        }
+
+        // Start async image loading
+        _ = LoadCoverArtAsync(coverArtUrl);
+    }
+
+    /// <summary>
+    /// Loads the cover art image asynchronously.
+    /// </summary>
+    private async Task LoadCoverArtAsync(string? coverArtUrl)
+    {
+        if (string.IsNullOrWhiteSpace(coverArtUrl))
+        {
+            CoverArt = AsyncImageLoader.GetDefaultPlaceholder();
+            return;
+        }
+
+        try
+        {
+            if (_imageLoader != null)
+            {
+                var image = await _imageLoader.LoadImageAsync(coverArtUrl);
+                CoverArt = image ?? AsyncImageLoader.GetDefaultPlaceholder();
+            }
+            else
+            {
+                // Fallback: Load directly
+                if (System.IO.File.Exists(coverArtUrl))
+                {
+                    await using var stream = System.IO.File.OpenRead(coverArtUrl);
+                    CoverArt = new Avalonia.Media.Imaging.Bitmap(stream);
+                }
+                else
+                {
+                    CoverArt = AsyncImageLoader.GetDefaultPlaceholder();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load cover art for {Title}", Title);
+            CoverArt = AsyncImageLoader.GetDefaultPlaceholder();
+        }
     }
 
     [RelayCommand]

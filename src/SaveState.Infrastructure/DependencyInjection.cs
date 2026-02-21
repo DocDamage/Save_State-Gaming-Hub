@@ -13,6 +13,7 @@ using SaveState.Infrastructure.Logging;
 using SaveState.Infrastructure.Services;
 using SaveState.Infrastructure.UserManagement;
 using SaveState.Infrastructure.Ai.Providers;
+using SaveState.Infrastructure.AiCoOp.Services;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.RomManagement;
@@ -57,6 +58,7 @@ using SaveState.Infrastructure.Assistant;
 using SaveState.Infrastructure.Sync;
 using SaveState.Infrastructure.External;
 using SaveState.Infrastructure.GameLibrary.Services;
+using SaveState.Core.GameLibrary.Services;
 using SaveState.Infrastructure.Persistence;
 using SaveState.Infrastructure.RomManagement.Services;
 using SaveState.Infrastructure.Common;
@@ -70,6 +72,19 @@ using SaveState.Core.RetroArch.Services;
 using SaveState.Infrastructure.RetroArch;
 using SaveState.Infrastructure.RetroArch.RetroArchCloudSync;
 using SaveState.Infrastructure.Subscriptions;
+using SaveState.Core.Intelligence.Recommendations.Services;
+using SaveState.Core.Analytics.Services;
+using SaveState.Core.Intelligence.AiContent.Services;
+using SaveState.Core.ContentGeneration.Services;
+using SaveState.Core.Intelligence.Search.Services;
+using SaveState.Core.Search.Services;
+using SaveState.Infrastructure.Intelligence.Recommendations;
+using SaveState.Infrastructure.Analytics.Services;
+using SaveState.Infrastructure.Intelligence.AiContent;
+using SaveState.Infrastructure.ContentGeneration.Services;
+using SaveState.Infrastructure.Intelligence.Search;
+using SaveState.Infrastructure.Search.Services;
+using SaveState.Infrastructure.Search.Providers;
 using SaveState.Infrastructure.GameDeals;
 using SaveState.Infrastructure.SmartLauncher;
 using SaveState.Core.SmartLauncher;
@@ -384,6 +399,42 @@ public static class DependencyInjection
 
         // Smart Categorization Services
         services.AddScoped<SaveState.Core.GameLibrary.Services.ISmartCategorizationService, GameLibrary.SmartCategorizationService>();
+
+        // Phase 2: Intelligence & Personalization Services
+        // Smart Recommendations 2.0 - Hybrid Recommendation Engine
+        services.AddScoped<
+            SaveState.Core.GameLibrary.Services.IRecommendationEngineV2,
+            SaveState.Infrastructure.GameLibrary.Services.RecommendationEngineV2>();
+
+        // Gamer DNA Service
+        services.AddScoped<IGamerDnaService, GamerDnaService>();
+
+        // AI Content Generation (use ContentGeneration namespace to avoid ambiguity)
+        services.AddScoped<
+            SaveState.Core.ContentGeneration.Services.IThumbnailGeneratorService, 
+            SaveState.Infrastructure.ContentGeneration.Services.ThumbnailGeneratorService>();
+
+        services.AddScoped<
+            SaveState.Core.ContentGeneration.Services.INaturalLanguageSaveSearch,
+            SaveState.Infrastructure.ContentGeneration.Services.NaturalLanguageSaveSearch>();
+
+        services.AddScoped<
+            SaveState.Core.ContentGeneration.Services.IGameSummaryService,
+            SaveState.Infrastructure.ContentGeneration.Services.GameSummaryService>();
+
+        // Universal Search (use Search.Services namespace to avoid ambiguity)
+        services.AddScoped<
+            SaveState.Core.Search.Services.IUniversalSearchService,
+            SaveState.Infrastructure.Search.Services.UniversalSearchService>();
+        services.AddScoped<ISearchProvider, GameSearchProvider>();
+        services.AddScoped<ISearchProvider, SettingsSearchProvider>();
+        services.AddScoped<ISearchProvider, ActionSearchProvider>();
+        services.AddScoped<ISearchProvider, CommandSearchProvider>();
+        services.AddScoped<ISearchProvider, SaveStateSearchProvider>();
+
+        // OpenAI Clients
+        services.AddScoped<IOpenAiImageClient, OpenAiImageClient>();
+        services.AddScoped<IOpenAiEmbeddingClient, OpenAiEmbeddingClient>();
 
         // Recommendation Services
         services.AddScoped<SaveState.Core.Recommendations.Services.IRecommendationService, Recommendations.RecommendationService>();
@@ -877,6 +928,9 @@ public static class DependencyInjection
 
         // Register new Metrics Service
         services.AddMetrics();
+
+        // Phase 5.1: AI Co-Op Companion Service
+        services.AddScoped<SaveState.Core.AiCoOp.Services.IAiCoOpCompanionService, SaveState.Infrastructure.AiCoOp.Services.AiCoOpCompanionService>();
 
         // Register OpenAPI Documentation
         services.AddOpenApiDocumentation();

@@ -100,11 +100,19 @@ public class LaunchProfile
     public DateTime? ModifiedAt { get; set; }
 
     /// <summary>
-    /// Initializes a new instance of the LaunchProfile class.
+    /// Initializes a new instance of the LaunchProfile class for EF Core.
     /// </summary>
-    public LaunchProfile(ITimeProvider? timeProvider = null)
+    public LaunchProfile()
     {
-        CreatedAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
+        CreatedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the LaunchProfile class with a time provider.
+    /// </summary>
+    public LaunchProfile(ITimeProvider timeProvider)
+    {
+        CreatedAt = timeProvider.UtcNow;
     }
 
     /// <summary>
@@ -294,11 +302,19 @@ public class LaunchSession
     public DateTime StartedAt { get; set; }
 
     /// <summary>
-    /// Initializes a new instance of the LaunchSession class.
+    /// Initializes a new instance of the LaunchSession class for EF Core.
     /// </summary>
-    public LaunchSession(ITimeProvider? timeProvider = null)
+    public LaunchSession()
     {
-        StartedAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
+        StartedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the LaunchSession class with a time provider.
+    /// </summary>
+    public LaunchSession(ITimeProvider timeProvider)
+    {
+        StartedAt = timeProvider.UtcNow;
     }
 
     /// <summary>

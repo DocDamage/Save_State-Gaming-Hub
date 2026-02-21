@@ -8,21 +8,41 @@
              x:Class="SaveState.Presentation.Views.Library.GameGridView"
              x:DataType="vm:GameGridViewModel">
 
+    <!-- 
+        PERFORMANCE OPTIMIZATION NOTES:
+        - Uses ListBox with VirtualizingPanel for efficient rendering of large collections
+        - VirtualizingPanel.IsVirtualizing="True" ensures only visible items are rendered
+        - VirtualizingPanel.VirtualizationMode="Recycling" reuses containers for better performance
+        - ScrollViewer.HorizontalScrollBarVisibility="Disabled" to prevent dual scrolling
+    -->
     <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                   VerticalScrollBarVisibility="Auto">
-        <ItemsControl ItemsSource="{Binding Games}"
-                      Margin="20">
-            <ItemsControl.ItemsPanel>
+        <ListBox ItemsSource="{Binding Games, Mode=OneWay}"
+                 Margin="20"
+                 VirtualizingPanel.IsVirtualizing="True"
+                 VirtualizingPanel.VirtualizationMode="Recycling"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                 Background="Transparent"
+                 BorderThickness="0">
+            <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel Orientation="Horizontal"
                                HorizontalAlignment="Center" />
                 </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemContainerTheme>
+                <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="Margin" Value="10,10,0,0" />
+                    <Setter Property="Background" Value="Transparent" />
+                </ControlTheme>
+            </ListBox.ItemContainerTheme>
+            <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <views:GameCard Margin="10,10,0,0" />
+                    <views:GameCard />
                 </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+            </ListBox.ItemTemplate>
+        </ListBox>
     </ScrollViewer>
 </UserControl>

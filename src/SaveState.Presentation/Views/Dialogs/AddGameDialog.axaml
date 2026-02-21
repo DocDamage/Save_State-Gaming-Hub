@@ -4,50 +4,19 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
         xmlns:core="using:SaveState.Core.GameLibrary.Entities"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="450"
         x:Class="SaveState.Presentation.Views.Dialogs.AddGameDialog"
         x:DataType="vm:AddGameDialogViewModel"
         Title="Add Game"
         Width="600"
         Height="450"
+        MinWidth="500"
+        MinHeight="400"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         Background="{StaticResource DialogBackgroundBrush}"
         TransparencyLevelHint="Mica"
         ExtendClientAreaToDecorationsHint="True">
-
-    <Window.Styles>
-        <Style Selector="Button.primary">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="Padding" Value="24,10" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-        </Style>
-
-        <Style Selector="Button.secondary">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="Padding" Value="24,10" />
-        </Style>
-
-        <Style Selector="TextBox">
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Padding" Value="10" />
-            <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
-        </Style>
-
-        <Style Selector="ComboBox">
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Padding" Value="10" />
-            <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
-        </Style>
-    </Window.Styles>
 
     <Grid RowDefinitions="Auto,*,Auto" Margin="32">
         <!-- Header -->
@@ -55,16 +24,18 @@
                    Text="Add New Game"
                    FontSize="24"
                    FontWeight="Bold"
-                   Margin="0,0,0,24" />
+                   Margin="0,0,0,24"
+                   Foreground="{StaticResource TextPrimaryBrush}" />
 
         <!-- Form -->
         <StackPanel Grid.Row="1" Spacing="20">
             <!-- Platform Selection -->
             <StackPanel Spacing="8">
-                <TextBlock Text="Platform" FontWeight="SemiBold" />
+                <TextBlock Text="Platform" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
                 <ComboBox ItemsSource="{Binding AvailablePlatforms}"
                           SelectedItem="{Binding SelectedPlatform}"
-                          HorizontalAlignment="Stretch">
+                          HorizontalAlignment="Stretch"
+                          ToolTip.Tip="Select the game platform">
                     <ComboBox.ItemTemplate>
                         <DataTemplate x:DataType="core:Platform">
                             <TextBlock Text="{Binding Name.Value}" />
@@ -75,33 +46,47 @@
 
             <!-- Title Input -->
             <StackPanel Spacing="8">
-                <TextBlock Text="Game Title" FontWeight="SemiBold" />
-                <TextBox Text="{Binding Title}" Watermark="Enter the game title" />
+                <TextBlock Text="Game Title" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBox Text="{Binding Title}"
+                         Watermark="Enter the game title"
+                         ToolTip.Tip="Enter the title of the game" />
             </StackPanel>
 
             <!-- Path Selection -->
             <StackPanel Spacing="8">
-                <TextBlock Text="Installation Location / ROM Folder" FontWeight="SemiBold" />
+                <TextBlock Text="Installation Location / ROM Folder" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
                 <Grid ColumnDefinitions="*,12,Auto">
-                    <TextBox Grid.Column="0" Text="{Binding Path}" Watermark="Select folder..." IsReadOnly="False"/>
+                    <TextBox Grid.Column="0"
+                             Text="{Binding Path}"
+                             Watermark="Select folder..."
+                             IsReadOnly="False"
+                             ToolTip.Tip="Path to game executable or ROM folder" />
                     <Button Grid.Column="2"
                             Content="Browse"
                             Command="{Binding BrowsePathCommand}"
-                            Classes="secondary"/>
+                            Classes="Secondary"
+                            ToolTip.Tip="Browse for game folder"
+                            AutomationProperties.Name="Browse Button" />
                 </Grid>
             </StackPanel>
 
             <!-- Options -->
             <CheckBox Content="Scan folder automatically after adding"
                       IsChecked="{Binding ScanAutomatically}"
-                      Margin="0,8,0,0" />
+                      Margin="0,8,0,0"
+                      Foreground="{StaticResource TextPrimaryBrush}"
+                      ToolTip.Tip="Automatically scan the folder for game files after adding" />
 
             <!-- Error Message -->
             <TextBlock Text="{Binding ValidationError}"
-                       Foreground="Red"
+                       Foreground="{StaticResource ErrorBrush}"
                        IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
-            <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsLoading}" Height="2" Background="Transparent" Foreground="{StaticResource AccentBrush}" />
+            <ProgressBar IsIndeterminate="True"
+                         IsVisible="{Binding IsLoading}"
+                         Height="2"
+                         Background="Transparent"
+                         Foreground="{StaticResource AccentBrush}" />
         </StackPanel>
 
         <!-- Footer -->
@@ -109,13 +94,17 @@
             <Button Grid.Column="1"
                     Content="Cancel"
                     Command="{Binding CancelCommand}"
-                    Classes="secondary"
-                    Margin="0,0,12,0" />
+                    Classes="Secondary"
+                    Margin="0,0,12,0"
+                    ToolTip.Tip="Cancel and close"
+                    AutomationProperties.Name="Cancel Button" />
 
             <Button Grid.Column="2"
                     Content="Add Game"
                     Command="{Binding ConfirmCommand}"
-                    Classes="primary" />
+                    Classes="Primary"
+                    ToolTip.Tip="Add the game to your library"
+                    AutomationProperties.Name="Add Game Button" />
         </Grid>
     </Grid>
 </Window>

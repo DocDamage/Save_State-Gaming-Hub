@@ -27,9 +27,20 @@ public partial class MainShell : Window
             return;
         }
 
+        // Universal Search: Ctrl+Shift+P
         if (e.KeyModifiers.HasFlag(KeyModifiers.Control) &&
             e.KeyModifiers.HasFlag(KeyModifiers.Shift) &&
             e.Key == Key.P)
+        {
+            _overlayService ??= Locator.Current.GetService<IOverlayService>();
+            _overlayService?.ShowUniversalSearchOverlay();
+            e.Handled = true;
+        }
+
+        // Command Palette: Ctrl+Shift+K (alternative shortcut)
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Control) &&
+            e.KeyModifiers.HasFlag(KeyModifiers.Shift) &&
+            e.Key == Key.K)
         {
             _overlayService ??= Locator.Current.GetService<IOverlayService>();
             _overlayService?.ToggleCommandPaletteOverlay();

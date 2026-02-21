@@ -446,4 +446,16 @@ public class GameRepository : IGameRepository
 
         return stats;
     }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<Game>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
+    {
+        var idSet = ids.ToHashSet();
+        return await _context.Games
+            .AsNoTracking()
+            .Include(g => g.Genres)
+            .Where(g => idSet.Contains(g.Id))
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+    }
 }

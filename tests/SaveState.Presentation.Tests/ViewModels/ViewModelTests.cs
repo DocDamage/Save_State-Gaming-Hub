@@ -2,7 +2,8 @@ using Xunit;
 using Moq;
 using SaveState.Presentation.ViewModels.Shell;
 using SaveState.Presentation.ViewModels.Analytics;
-using SaveState.Presentation.ViewModels.Settings;
+using SettingsViewModels = SaveState.Presentation.ViewModels.Settings;
+using ShellViewModels = SaveState.Presentation.ViewModels.Shell;
 using SaveState.Presentation.ViewModels.Library;
 using SaveState.Presentation.Services;
 using SaveState.Core.Common;
@@ -14,6 +15,7 @@ using SaveState.Core.Performance.Services;
 using CoreAudioSettings = SaveState.Core.Performance.Services.AudioSettings;
 using CoreAudioProfile = SaveState.Core.Performance.Services.AudioProfile;
 using CoreAudioLatencyMode = SaveState.Core.Performance.Services.AudioLatencyMode;
+
 using SaveState.Core.SaveStates.Services;
 using SaveState.Core.SaveStates.Services.DTOs;
 using SaveState.Core.Sync;
@@ -167,7 +169,7 @@ public class AccessibilityViewModelTests : BaseUnitTest
         _services.AddScoped(_ => _accessibilityServiceMock.Object);
     }
 
-    private AccessibilityViewModel CreateViewModel() =>
+    private SettingsViewModels.AccessibilityViewModel CreateViewModel() =>
         new(_accessibilityServiceMock.Object, _notificationMock.Object);
 
     [Fact]
@@ -239,7 +241,7 @@ public class AudioOptimizationViewModelTests : BaseUnitTest
         _services.AddScoped(_ => _audioOptimizerMock.Object);
     }
 
-    private AudioOptimizationViewModel CreateViewModel() =>
+    private SettingsViewModels.AudioOptimizationViewModel CreateViewModel() =>
         new(_audioOptimizerMock.Object, _notificationMock.Object);
 
     [Fact]

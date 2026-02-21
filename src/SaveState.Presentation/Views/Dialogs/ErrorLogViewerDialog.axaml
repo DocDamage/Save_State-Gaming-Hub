@@ -1,0 +1,107 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        xmlns:health="using:SaveState.Presentation.Models.Health"
+        xmlns:converters="using:SaveState.Presentation.Converters"
+        x:Class="SaveState.Presentation.Views.Dialogs.ErrorLogViewerDialog"
+        x:DataType="vm:ErrorLogViewerDialogViewModel"
+        Title="Error Log"
+        Width="900"
+        Height="600"
+        WindowStartupLocation="CenterOwner">
+
+  <Window.Resources>
+    <converters:ErrorSeverityToBrushConverter x:Key="ErrorSeverityToBrushConverter" />
+  </Window.Resources>
+
+  <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="16">
+    <!-- Header -->
+    <TextBlock Grid.Row="0" Text="Error Log" Classes="H5" Margin="0,0,0,16"/>
+
+    <!-- Filters -->
+    <Grid Grid.Row="1" ColumnDefinitions="*,*,*,Auto" Margin="0,0,0,16">
+      <TextBox Grid.Column="0"
+               Watermark="Search..."
+               Text="{Binding SearchQuery}"
+               Margin="0,0,8,0"/>
+      <ComboBox Grid.Column="1"
+                ItemsSource="{Binding Components}"
+                SelectedItem="{Binding SelectedComponent}"
+                Margin="0,0,8,0"/>
+      <ComboBox Grid.Column="2"
+                ItemsSource="{Binding SeverityFilters}"
+                SelectedItem="{Binding MinSeverity}"
+                Margin="0,0,8,0">
+        <ComboBox.ItemTemplate>
+          <DataTemplate>
+            <TextBlock Text="{Binding}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+      <Button Grid.Column="3" Content="Filter" Command="{Binding FilterCommand}"/>
+    </Grid>
+
+    <!-- Error List -->
+    <Border Grid.Row="2"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1">
+      <ScrollViewer>
+        <ItemsControl ItemsSource="{Binding Errors}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="health:ErrorLogEntry">
+              <Border Classes="ListItem" Padding="12">
+                <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
+                  <TextBlock Grid.Column="0"
+                             Text="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
+                             Width="150"
+                             Opacity="0.6"/>
+                  <Border Grid.Column="1"
+                          Width="80"
+                          Margin="8,0"
+                          CornerRadius="4"
+                          Padding="4,2"
+                          Background="{Binding Severity, Converter={StaticResource ErrorSeverityToBrushConverter}}">
+                    <TextBlock Text="{Binding Severity}"
+                               HorizontalAlignment="Center"
+                               Foreground="White"
+                               FontSize="12"
+                               FontWeight="SemiBold"/>
+                  </Border>
+                  <TextBlock Grid.Column="2"
+                             Text="{Binding Component}"
+                             Width="120"
+                             Margin="0,0,8,0"
+                             Opacity="0.8"/>
+                  <TextBlock Grid.Column="3"
+                             Text="{Binding Message}"
+                             TextTrimming="CharacterEllipsis"/>
+                  <Button Grid.Column="4"
+                          Content="Details"
+                          Classes="Small"
+                          Command="{Binding DataContext.ViewDetailsCommand,
+                                   RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                          CommandParameter="{Binding}"/>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+    </Border>
+
+    <!-- Bottom Buttons -->
+    <StackPanel Grid.Row="3"
+                Orientation="Horizontal"
+                HorizontalAlignment="Right"
+                Margin="0,16,0,0"
+                Spacing="8">
+      <Button Content="Export"
+              Command="{Binding ExportLogCommand}"/>
+      <Button Content="Clear All"
+              Command="{Binding ClearLogCommand}"
+              Classes="Danger"/>
+      <Button Content="Close"
+              Command="{Binding CloseCommand}"/>
+    </StackPanel>
+  </Grid>
+</Window>

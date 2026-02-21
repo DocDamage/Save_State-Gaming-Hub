@@ -7,87 +7,109 @@
              x:Class="SaveState.Presentation.Views.Library.GameListView"
              x:DataType="vm:GameListViewModel">
 
+    <!-- 
+        PERFORMANCE OPTIMIZATION NOTES:
+        - Uses ListBox with VirtualizingPanel for efficient rendering of large collections
+        - VirtualizingPanel.IsVirtualizing="True" ensures only visible items are rendered
+        - VirtualizingPanel.VirtualizationMode="Recycling" reuses containers for better performance
+        - Images use async loading to prevent UI blocking
+    -->
     <Border Classes="GlassContainer" Margin="20" Padding="0">
-        <ScrollViewer HorizontalScrollBarVisibility="Auto"
-                      VerticalScrollBarVisibility="Auto">
-            <Grid RowDefinitions="Auto, *">
-                <!-- Table Header -->
-                <Border Grid.Row="0"
-                        Background="{StaticResource SurfaceBrush}"
-                        Padding="15,10">
-                    <Grid ColumnDefinitions="50, 60, *, 120, 100, 100, 120, 80">
-                    <CheckBox Grid.Column="0"
-                              IsChecked="{Binding IsAllSelected}"
-                              Command="{Binding ToggleSelectAllCommand}"
-                              ToolTip.Tip="Select/Deselect All" />
+        <Grid RowDefinitions="Auto, *">
+            <!-- Table Header -->
+            <Border Grid.Row="0"
+                    Background="{StaticResource SurfaceBrush}"
+                    Padding="15,10">
+                <Grid ColumnDefinitions="50, 60, *, 120, 100, 100, 120, 80">
+                <CheckBox Grid.Column="0"
+                          IsChecked="{Binding IsAllSelected, Mode=TwoWay}"
+                          Command="{Binding ToggleSelectAllCommand}"
+                          ToolTip.Tip="Select/Deselect All" />
 
-                    <TextBlock Grid.Column="1" Text="Cover" Classes="Caption" FontWeight="Bold" />
-                    <TextBlock Grid.Column="2" Text="Title &amp; Developer" Classes="Caption" FontWeight="Bold" />
-                    <TextBlock Grid.Column="3" Text="Platform" Classes="Caption" FontWeight="Bold" />
-                    <TextBlock Grid.Column="4" Text="Status" Classes="Caption" FontWeight="Bold" />
-                    <TextBlock Grid.Column="5" Text="Last Played" Classes="Caption" FontWeight="Bold" />
-                    <TextBlock Grid.Column="6" Text="Playtime" Classes="Caption" FontWeight="Bold" />
-                    <TextBlock Grid.Column="7" Text="Rating" Classes="Caption" FontWeight="Bold" />
-                    </Grid>
-                </Border>
+                <TextBlock Grid.Column="1" Text="Cover" Classes="Caption" FontWeight="Bold" />
+                <TextBlock Grid.Column="2" Text="Title &amp; Developer" Classes="Caption" FontWeight="Bold" />
+                <TextBlock Grid.Column="3" Text="Platform" Classes="Caption" FontWeight="Bold" />
+                <TextBlock Grid.Column="4" Text="Status" Classes="Caption" FontWeight="Bold" />
+                <TextBlock Grid.Column="5" Text="Last Played" Classes="Caption" FontWeight="Bold" />
+                <TextBlock Grid.Column="6" Text="Playtime" Classes="Caption" FontWeight="Bold" />
+                <TextBlock Grid.Column="7" Text="Rating" Classes="Caption" FontWeight="Bold" />
+                </Grid>
+            </Border>
 
-                <!-- Table Rows -->
-                <ItemsControl Grid.Row="1" ItemsSource="{Binding Games}">
-                    <ItemsControl.ItemTemplate>
+            <!-- Table Rows - Virtualized for performance -->
+            <ScrollViewer Grid.Row="1"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto">
+                <ListBox ItemsSource="{Binding Games, Mode=OneWay}"
+                         VirtualizingPanel.IsVirtualizing="True"
+                         VirtualizingPanel.VirtualizationMode="Recycling"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                         Background="Transparent"
+                         BorderThickness="0">
+                    <ListBox.ItemContainerTheme>
+                        <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Margin" Value="0" />
+                            <Setter Property="Background" Value="Transparent" />
+                        </ControlTheme>
+                    </ListBox.ItemContainerTheme>
+                    <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <Border Background="{Binding BackgroundBrush}"
+                            <Border Background="{Binding BackgroundBrush, Mode=OneTime}"
                                     Padding="15,8">
                                 <Grid ColumnDefinitions="50, 60, *, 120, 100, 100, 120, 80">
                                 <CheckBox Grid.Column="0"
-                                          IsChecked="{Binding IsSelected}"
+                                          IsChecked="{Binding IsSelected, Mode=TwoWay}"
                                           VerticalAlignment="Center" />
 
+                                <!-- Use AsyncImageLoader for non-blocking image loading -->
                                 <Image Grid.Column="1"
-                                       Source="{Binding CoverArtUrl}"
+                                       Source="{Binding CoverArt, Mode=OneWay}"
                                        Width="40"
                                        Height="60"
                                        Stretch="UniformToFill"
                                        VerticalAlignment="Center"
-                                       ToolTip.Tip="{Binding Title}" />
+                                       ToolTip.Tip="{Binding Title, Mode=OneTime}" />
 
                                 <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2">
-                                    <TextBlock Text="{Binding Title}"
+                                    <TextBlock Text="{Binding Title, Mode=OneTime}"
                                                Classes="Body"
                                                FontWeight="SemiBold"
                                                TextTrimming="CharacterEllipsis" />
-                                    <TextBlock Text="{Binding Developer}"
+                                    <TextBlock Text="{Binding Developer, Mode=OneTime}"
                                                Classes="Caption"
                                                Foreground="{StaticResource TextSecondaryBrush}"
                                                TextTrimming="CharacterEllipsis" />
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="3" VerticalAlignment="Center" Spacing="2">
-                                    <TextBlock Text="{Binding PlatformIcon}"
+                                    <TextBlock Text="{Binding PlatformIcon, Mode=OneTime}"
                                                FontSize="16" />
-                                    <TextBlock Text="{Binding PlatformName}"
+                                    <TextBlock Text="{Binding PlatformName, Mode=OneTime}"
                                                Classes="Caption"
                                                TextTrimming="CharacterEllipsis" />
                                 </StackPanel>
 
                                 <TextBlock Grid.Column="4"
-                                           Text="{Binding StatusText}"
+                                           Text="{Binding StatusText, Mode=OneTime}"
                                            Classes="Caption"
                                            VerticalAlignment="Center"
-                                           Foreground="{Binding StatusColor}" />
+                                           Foreground="{Binding StatusColor, Mode=OneTime}" />
 
                                 <TextBlock Grid.Column="5"
-                                           Text="{Binding LastPlayedText}"
+                                           Text="{Binding LastPlayedText, Mode=OneTime}"
                                            Classes="Caption"
                                            VerticalAlignment="Center" />
 
                                 <TextBlock Grid.Column="6"
-                                           Text="{Binding PlaytimeText}"
+                                           Text="{Binding PlaytimeText, Mode=OneTime}"
                                            Classes="Caption"
                                            VerticalAlignment="Center" />
 
                                 <StackPanel Grid.Column="7" VerticalAlignment="Center" Orientation="Horizontal">
-                                    <TextBlock Text="{Binding RatingStars}" FontSize="14" />
-                                    <TextBlock Text="{Binding RatingText}"
+                                    <TextBlock Text="{Binding RatingStars, Mode=OneTime}" FontSize="14" />
+                                    <TextBlock Text="{Binding RatingText, Mode=OneTime}"
                                                Classes="Caption"
                                                Margin="5,0,0,0"
                                                Foreground="{StaticResource TextSecondaryBrush}" />
@@ -95,9 +117,9 @@
                                 </Grid>
                             </Border>
                         </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </Grid>
-        </ScrollViewer>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </ScrollViewer>
+        </Grid>
     </Border>
 </UserControl>

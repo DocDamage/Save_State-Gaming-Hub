@@ -88,4 +88,41 @@ public static class HeuristicUtilities
 
         return doubleValue.Value >= min && doubleValue.Value <= max;
     }
+
+    /// <summary>
+    /// Checks whether the specified value is non-negative (greater than or equal to zero).
+    /// </summary>
+    /// <param name="value">The value to check.</param>
+    /// <returns>
+    /// <c>true</c> if the value is a numeric type and is greater than or equal to zero;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    /// <remarks>
+    /// Non-numeric values and null values return <c>false</c>.
+    /// </remarks>
+    public static bool IsNonNegative(object? value)
+    {
+        if (value == null)
+            return false;
+
+        var doubleValue = ConvertToDouble(value);
+        if (!doubleValue.HasValue)
+            return false;
+
+        return doubleValue.Value >= 0;
+    }
+
+    /// <summary>
+    /// Compares two values for equality within a small tolerance.
+    /// </summary>
+    /// <param name="value1">The first value to compare.</param>
+    /// <param name="value2">The second value to compare.</param>
+    /// <returns>
+    /// <c>true</c> if the values are equal within a small tolerance (0.0001);
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    public static bool AreValuesEqual(double value1, double value2)
+    {
+        return Math.Abs(value1 - value2) < 0.0001;
+    }
 }

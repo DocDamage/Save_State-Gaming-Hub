@@ -13,10 +13,18 @@ public partial class AddGameDialogViewModel : ObservableObject
     private readonly IDialogService _dialogService;
     private Action<AddGameResult?>? _closeAction;
 
+    // Validation constants
+    private const int MaxTitleLength = 200;
+    private const int MaxPathLength = 260;
+
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsTitleValid))]
+    [NotifyPropertyChangedFor(nameof(CanConfirm))]
     private string _title = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsPathValid))]
+    [NotifyPropertyChangedFor(nameof(CanConfirm))]
     private string _path = string.Empty;
 
     [ObservableProperty]
@@ -33,6 +41,25 @@ public partial class AddGameDialogViewModel : ObservableObject
 
     [ObservableProperty]
     private string _validationError = string.Empty;
+
+    /// <summary>
+    /// Gets whether the title is valid.
+    /// </summary>
+    public bool IsTitleValid => 
+        !string.IsNullOrWhiteSpace(Title) && 
+        Title.Length <= MaxTitleLength;
+
+    /// <summary>
+    /// Gets whether the path is valid.
+    /// </summary>
+    public bool IsPathValid => 
+        !string.IsNullOrWhiteSpace(Path) && 
+        Path.Length <= MaxPathLength;
+
+    /// <summary>
+    /// Gets whether the confirm button should be enabled.
+    /// </summary>
+    public bool CanConfirm => IsTitleValid && IsPathValid && !IsLoading;
 
     public AddGameDialogViewModel(
         IPlatformRepository platformRepository,
@@ -99,30 +126,25 @@ public partial class AddGameDialogViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanConfirm))]
     private void Confirm()
     {
-        if (string.IsNullOrWhiteSpace(Title))
+        if (!CanConfirm)
         {
-            ValidationError = "Title is required.";
+            if (!IsTitleValid)
+                ValidationError = $"Title is required and must not exceed {MaxTitleLength} characters.";
+            else if (!IsPathValid)
+                ValidationError = $"Path is required and must not exceed {MaxPathLength} characters.";
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(Path))
-        {
-            ValidationError = "Path is required.";
-            return;
-        }
-
-        /*
-         * Note: Platform can be null if user wants "Unknown" or generic,
-         * but usually for this app we strongly prefer a platform.
-         * We'll send platform name or ID. AddGameResult expects string? Platform (name/id).
-         */
+        // Sanitize inputs
+        var sanitizedTitle = Title.Trim();
+        var sanitizedPath = Path.Trim();
 
         var result = new AddGameResult(
-            Title,
-            Path,
+            sanitizedTitle,
+            sanitizedPath,
             SelectedPlatform?.Id.ToString(),
             ScanAutomatically);
 

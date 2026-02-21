@@ -1,3 +1,18 @@
+<!--
+    ConfirmationDialog.axaml
+    
+    Confirmation dialog with customizable confirm/cancel buttons.
+    Returns true if confirmed, false if cancelled.
+    
+    Usage: 
+        var confirmed = await IDialogService.ShowConfirmationAsync(
+            "Delete Game", 
+            "Are you sure you want to delete this game?",
+            confirmText: "Delete",
+            cancelText: "Keep");
+    
+    Binding Context: ConfirmationDialogViewModel
+-->
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
@@ -6,35 +21,13 @@
         Title="{Binding Title}"
         Width="450"
         Height="220"
-        MinWidth="350"
-        MinHeight="180"
+        MinWidth="400"
+        MinHeight="200"
         MaxWidth="600"
         MaxHeight="300"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         Background="{StaticResource DialogBackgroundBrush}">
-
-    <Window.Styles>
-        <Style Selector="Button.primary">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Padding" Value="24,10" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="MinWidth" Value="100" />
-        </Style>
-
-        <Style Selector="Button.secondary">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
-            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Padding" Value="24,10" />
-            <Setter Property="MinWidth" Value="100" />
-        </Style>
-    </Window.Styles>
 
     <Grid RowDefinitions="*,Auto" Margin="24">
         <!-- Content -->
@@ -50,7 +43,7 @@
                       TextAlignment="Center"
                       HorizontalAlignment="Center"
                       MaxWidth="400"
-                      Foreground="{StaticResource ForegroundBrush}" />
+                      Foreground="{StaticResource TextPrimaryBrush}" />
         </StackPanel>
 
         <!-- Buttons -->
@@ -60,15 +53,19 @@
             <Panel Grid.Column="0" />
 
             <Button Grid.Column="1"
-                   Classes="secondary"
                    Content="{Binding CancelText}"
                    Command="{Binding CancelCommand}"
-                   Margin="0,0,12,0" />
+                   Classes="Secondary"
+                   Margin="0,0,12,0"
+                   ToolTip.Tip="Cancel the operation"
+                   AutomationProperties.Name="Cancel Button" />
 
             <Button Grid.Column="2"
-                   Classes="primary"
                    Content="{Binding ConfirmText}"
-                   Command="{Binding ConfirmCommand}" />
+                   Command="{Binding ConfirmCommand}"
+                   Classes="Primary"
+                   ToolTip.Tip="Confirm the operation"
+                   AutomationProperties.Name="Confirm Button" />
         </Grid>
     </Grid>
 </Window>

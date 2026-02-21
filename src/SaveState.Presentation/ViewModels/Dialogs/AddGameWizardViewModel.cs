@@ -1,7 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using SaveState.Presentation.Services;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Linq;
 
@@ -10,14 +13,24 @@ namespace SaveState.Presentation.ViewModels.Dialogs;
 public partial class AddGameWizardViewModel : ObservableObject
 {
     private readonly IDialogService _dialogService;
+    private readonly ILogger<AddGameWizardViewModel>? _logger;
+
+    // Validation constants
+    private const int MaxTitleLength = 200;
+    private const int MaxPathLength = 260;
+    private static readonly Regex InvalidCharsPattern = new Regex(@"[<>\x00-\x08\x0B\x0C\x0E-\x1F]", RegexOptions.Compiled);
 
     [ObservableProperty]
     private int _currentStep = 1;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsTitleValid))]
+    [NotifyPropertyChangedFor(nameof(CanGoNext))]
     private string _title = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsPathValid))]
+    [NotifyPropertyChangedFor(nameof(CanGoNext))]
     private string _path = string.Empty;
 
     [ObservableProperty]
@@ -42,6 +55,24 @@ public partial class AddGameWizardViewModel : ObservableObject
 
     public string NextButtonText => Step == 3 ? "Finish" : "Next";
 
+    [ObservableProperty]
+    private string _validationError = string.Empty;
+
+    /// <summary>
+    /// Gets whether the title is valid.
+    /// </summary>
+    public bool IsTitleValid => 
+        !string.IsNullOrWhiteSpace(Title) && 
+        Title.Length <= MaxTitleLength &&
+        !InvalidCharsPattern.IsMatch(Title);
+
+    /// <summary>
+    /// Gets whether the path is valid.
+    /// </summary>
+    public bool IsPathValid => 
+        !string.IsNullOrWhiteSpace(Path) && 
+        Path.Length <= MaxPathLength;
+
     public ObservableCollection<string> Platforms { get; } = new()
     {
         "PC",
@@ -51,9 +82,32 @@ public partial class AddGameWizardViewModel : ObservableObject
         "Epic"
     };
 
-    public AddGameWizardViewModel(IDialogService dialogService)
+    public AddGameWizardViewModel(IDialogService dialogService, ILogger<AddGameWizardViewModel>? logger = null)
     {
         _dialogService = dialogService;
+        _logger = logger;
+        UpdateValidation();
+    }
+
+    partial void OnTitleChanged(string value)
+    {
+        // Auto-truncate if exceeds max length
+        if (value?.Length > MaxTitleLength)
+        {
+            Title = value[..MaxTitleLength];
+            return;
+        }
+        UpdateValidation();
+    }
+
+    partial void OnPathChanged(string value)
+    {
+        // Auto-truncate if exceeds max length
+        if (value?.Length > MaxPathLength)
+        {
+            Path = value[..MaxPathLength];
+            return;
+        }
         UpdateValidation();
     }
 
@@ -120,20 +174,21 @@ public partial class AddGameWizardViewModel : ObservableObject
 
     private void Save()
     {
-        var result = new AddGameResult(Title, Path, SelectedPlatform, ScanAutomatically);
-
-        if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+        // Final validation
+        if (!IsTitleValid || !IsPathValid)
         {
-            var window = desktop.Windows.FirstOrDefault(w => w.DataContext == this);
-            window?.Close(result);
+            _logger?.LogWarning("Attempted to save wizard with invalid data");
+            return;
         }
-    }
 
-    partial void OnPathChanged(string value) => UpdateValidation();
-    partial void OnTitleChanged(string value) => UpdateValidation();
+        var result = new AddGameResult(Title.Trim(), Path.Trim(), SelectedPlatform, ScanAutomatically);
+        CloseDialog(result);
+    }
 
     private void UpdateValidation()
     {
+        ValidationError = string.Empty;
+
         // Simple validation
         switch (Step)
         {
@@ -141,16 +196,40 @@ public partial class AddGameWizardViewModel : ObservableObject
                 CanGoNext = !string.IsNullOrEmpty(SelectedPlatform);
                 break;
             case 2:
-                CanGoNext = !string.IsNullOrEmpty(Path);
+                CanGoNext = IsPathValid;
+                if (CanGoNext && !File.Exists(Path) && !Directory.Exists(Path))
+                {
+                    // Warn but don't block - file might be on removable media
+                    ValidationError = "Warning: Path does not currently exist.";
+                }
                 // Auto-fill title from path if empty
-                if (!string.IsNullOrEmpty(Path) && string.IsNullOrEmpty(Title))
+                if (IsPathValid && string.IsNullOrEmpty(Title))
                 {
                     Title = System.IO.Path.GetFileNameWithoutExtension(Path);
                 }
                 break;
             case 3:
-                CanGoNext = !string.IsNullOrEmpty(Title);
+                CanGoNext = IsTitleValid;
+                if (!IsTitleValid)
+                {
+                    if (string.IsNullOrWhiteSpace(Title))
+                        ValidationError = "Title is required.";
+                    else if (Title.Length > MaxTitleLength)
+                        ValidationError = $"Title must not exceed {MaxTitleLength} characters.";
+                    else
+                        ValidationError = "Title contains invalid characters.";
+                }
                 break;
+        }
+    }
+
+    private void CloseDialog(AddGameResult? result)
+    {
+        var lifetime = Avalonia.Application.Current?.ApplicationLifetime;
+        if (lifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var window = desktop.Windows.FirstOrDefault(w => w.DataContext == this);
+            window?.Close(result);
         }
     }
 }

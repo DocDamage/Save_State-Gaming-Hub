@@ -1,3 +1,18 @@
+<!--
+    MessageDialog.axaml
+    
+    Simple message dialog for displaying information, warnings, or errors.
+    Shows an icon, message text, and an OK button.
+    
+    Dialog Types:
+    - Information (ℹ️)
+    - Warning (⚠️)
+    - Error (❌)
+    
+    Usage: await IDialogService.ShowInformationAsync(title, message)
+    
+    Binding Context: MessageDialogViewModel
+-->
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
@@ -6,25 +21,13 @@
         Title="{Binding Title}"
         Width="450"
         Height="220"
-        MinWidth="350"
-        MinHeight="180"
+        MinWidth="400"
+        MinHeight="200"
         MaxWidth="600"
         MaxHeight="300"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         Background="{StaticResource DialogBackgroundBrush}">
-
-    <Window.Styles>
-        <Style Selector="Button.primary">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Padding" Value="24,10" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="MinWidth" Value="120" />
-        </Style>
-    </Window.Styles>
 
     <Grid RowDefinitions="*,Auto" Margin="24">
         <!-- Content -->
@@ -40,16 +43,17 @@
                       TextAlignment="Center"
                       HorizontalAlignment="Center"
                       MaxWidth="400"
-                      Foreground="{StaticResource ForegroundBrush}" />
+                      Foreground="{StaticResource TextPrimaryBrush}" />
         </StackPanel>
 
         <!-- Button -->
-        <Grid Grid.Row="1"
-              Margin="0,20,0,0">
-            <Button Classes="primary"
-                   Content="OK"
+        <Grid Grid.Row="1" Margin="0,20,0,0">
+            <Button Content="OK"
+                   Classes="Primary"
                    Command="{Binding CloseCommand}"
-                   HorizontalAlignment="Center" />
+                   HorizontalAlignment="Center"
+                   ToolTip.Tip="Close this dialog"
+                   AutomationProperties.Name="OK Button" />
         </Grid>
     </Grid>
 </Window>

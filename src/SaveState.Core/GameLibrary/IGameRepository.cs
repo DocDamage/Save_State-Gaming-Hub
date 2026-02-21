@@ -119,4 +119,12 @@ public interface IGameRepository
     /// <param name="ct">Cancellation token.</param>
     /// <returns>A dictionary mapping platform names to game counts.</returns>
     Task<IReadOnlyDictionary<string, int>> GetPlatformStatisticsAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves multiple games by their IDs.
+    /// </summary>
+    /// <param name="ids">The list of game IDs to retrieve.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>A list of games matching the provided IDs.</returns>
+    Task<IReadOnlyList<Game>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default);
 }

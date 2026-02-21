@@ -1,0 +1,299 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Companion;assembly=SaveState.Presentation"
+             xmlns:models="clr-namespace:SaveState.Core.AiCoOp.Models;assembly=SaveState.Core"
+             x:Class="SaveState.Presentation.Views.Companion.AiCompanionView"
+             x:DataType="vm:AiCompanionViewModel"
+             Background="{StaticResource BackgroundBrush}">
+
+    <Grid RowDefinitions="Auto, *, Auto">
+        <!-- Header -->
+        <Border Grid.Row="0" Classes="GlassContainer" Margin="15" Padding="15">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                    <!-- Companion Avatar -->
+                    <Border Width="50" Height="50"
+                            CornerRadius="25"
+                            Background="{StaticResource PrimaryBrush}">
+                        <TextBlock Text="🤖"
+                                   FontSize="24"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{Binding CompanionName}"
+                                   FontWeight="Bold"
+                                   FontSize="16"/>
+                        <TextBlock Text="{Binding SelectedPersonality}"
+                                   Classes="Caption"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Game State Display -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="20" Margin="20,0">
+                    <StackPanel IsVisible="{Binding CurrentLevel, Converter={StaticResource NullOrEmptyToBoolConverter}, ConverterParameter=Invert}">
+                        <TextBlock Text="Level" Classes="Label"/>
+                        <TextBlock Text="{Binding CurrentLevel}" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <StackPanel IsVisible="{Binding CurrentObjective, Converter={StaticResource NullOrEmptyToBoolConverter}, ConverterParameter=Invert}">
+                        <TextBlock Text="Objective" Classes="Label"/>
+                        <TextBlock Text="{Binding CurrentObjective}" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="Health" Classes="Label"/>
+                        <ProgressBar Value="{Binding PlayerHealth}"
+                                     Minimum="0" Maximum="1"
+                                     Width="80"
+                                     Foreground="{Binding PlayerHealth, Converter={StaticResource HealthToColorConverter}}"/>
+                    </StackPanel>
+                    <StackPanel IsVisible="{Binding EnemyCount, Converter={StaticResource IntToBoolConverter}}">
+                        <TextBlock Text="Enemies" Classes="Label"/>
+                        <TextBlock Text="{Binding EnemyCount}" FontWeight="SemiBold" Foreground="#EF4444"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Action Buttons -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                    <Button Content="⚙️"
+                            Command="{Binding ToggleSettingsCommand}"
+                            Classes="Secondary"
+                            ToolTip.Tip="Settings"/>
+                    <Button Content="🎤"
+                            Command="{Binding ProcessVoiceCommandCommand}"
+                            Classes="Secondary"
+                            ToolTip.Tip="Voice Command"/>
+                    <Button Content="💡"
+                            Command="{Binding GetSuggestionCommand}"
+                            Classes="Secondary"
+                            ToolTip.Tip="Get Suggestion"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, 320" Margin="15,0">
+            <!-- Chat Area -->
+            <Border Grid.Column="0" Classes="GlassContainer" Margin="0,0,10,0" Padding="15">
+                <Grid RowDefinitions="*, Auto">
+                    <!-- Chat History -->
+                    <ScrollViewer Grid.Row="0">
+                        <ItemsControl ItemsSource="{Binding ChatMessages}"
+                                      IsVisible="{Binding ChatMessages.Count, Converter={StaticResource IntToBoolConverter}}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:CompanionChatMessage">
+                                    <Border Classes="ListItem"
+                                            Padding="12"
+                                            Margin="0,0,0,8"
+                                            Background="{Binding Sender, Converter={StaticResource SenderToBackgroundConverter}}">
+                                        <Grid ColumnDefinitions="Auto, *, Auto">
+                                            <Border Grid.Column="0"
+                                                    Width="32" Height="32"
+                                                    CornerRadius="16"
+                                                    Background="{Binding Sender, Converter={StaticResource SenderToAvatarBrushConverter}}"
+                                                    Margin="0,0,10,0">
+                                                <TextBlock Text="{Binding Sender, Converter={StaticResource SenderToIconConverter}}"
+                                                           FontSize="14"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="{Binding Message}"
+                                                           TextWrapping="Wrap"/>
+                                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                                                    <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm}'}"
+                                                               Classes="Caption"
+                                                               FontSize="10"/>
+                                                    <TextBlock Text="🔊"
+                                                               FontSize="10"
+                                                               IsVisible="{Binding IsVoice}"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Empty State -->
+                    <Border Grid.Row="0"
+                            IsVisible="{Binding ChatMessages.Count, Converter={StaticResource IntToBoolConverter}, ConverterParameter=0}"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Padding="40">
+                        <StackPanel Spacing="15" HorizontalAlignment="Center">
+                            <TextBlock Text="🤖" FontSize="48" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Start a conversation with your AI Companion!"
+                                       Classes="Subtitle"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center"/>
+                            <TextBlock Text="Your companion will learn from your playstyle and offer suggestions."
+                                       Classes="Caption"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Message Input -->
+                    <Grid Grid.Row="1" ColumnDefinitions="*, Auto, Auto" Margin="0,10,0,0">
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding CurrentMessage}"
+                                 Watermark="Type a message..."
+                                 AcceptsReturn="False"
+                                 KeyDown="OnMessageKeyDown"/>
+                        <Button Grid.Column="1"
+                                Content="🎤"
+                                Command="{Binding ProcessVoiceCommandCommand}"
+                                Classes="Secondary"
+                                Margin="8,0"
+                                Padding="12,8"/>
+                        <Button Grid.Column="2"
+                                Content="Send"
+                                Command="{Binding SendMessageCommand}"
+                                Classes="Primary"
+                                IsEnabled="{Binding CurrentMessage, Converter={StaticResource NullOrEmptyToBoolConverter}, ConverterParameter=Invert}"
+                                Padding="20,8"/>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- Settings Panel -->
+            <Border Grid.Column="1" Classes="GlassContainer" Padding="15">
+                <ScrollViewer>
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="Companion Settings" Classes="SectionHeader"/>
+
+                        <!-- Name -->
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Name" Classes="Label"/>
+                            <TextBox Text="{Binding CompanionName}"/>
+                        </StackPanel>
+
+                        <!-- Personality -->
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Personality" Classes="Label"/>
+                            <ComboBox ItemsSource="{Binding Personalities}"
+                                      SelectedItem="{Binding SelectedPersonality}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="models:CompanionPersonality">
+                                        <TextBlock Text="{Binding }"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBlock Classes="Caption"
+                                       Text="{Binding SelectedPersonality, Converter={StaticResource PersonalityToDescriptionConverter}}"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <!-- Skill Level -->
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Skill Level" Classes="Label"/>
+                            <ComboBox ItemsSource="{Binding SkillLevels}"
+                                      SelectedItem="{Binding SelectedSkillLevel}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="models:SkillLevel">
+                                        <TextBlock Text="{Binding }"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBlock Classes="Caption"
+                                       Text="{Binding SelectedSkillLevel, Converter={StaticResource SkillLevelToDescriptionConverter}}"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <!-- Voice Profile -->
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Voice" Classes="Label"/>
+                            <ComboBox ItemsSource="{Binding VoiceProfiles}"
+                                      SelectedItem="{Binding SelectedVoice}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="models:VoiceProfile">
+                                        <TextBlock Text="{Binding }"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <!-- Toggles -->
+                        <StackPanel Spacing="10">
+                            <CheckBox Content="Enable Voice"
+                                      IsChecked="{Binding VoiceEnabled}"/>
+                            <CheckBox Content="Proactive Suggestions"
+                                      IsChecked="{Binding ProactiveSuggestions}"
+                                      ToolTip.Tip="Companion will offer suggestions automatically"/>
+                            <CheckBox Content="Allow Take Control"
+                                      IsChecked="{Binding TakeControlAllowed}"
+                                      ToolTip.Tip="Allow companion to take control in critical situations"/>
+                        </StackPanel>
+
+                        <!-- Action Buttons -->
+                        <StackPanel Spacing="8" Margin="0,10,0,0">
+                            <Button Content="Initialize Companion"
+                                    Command="{Binding InitializeCompanionCommand}"
+                                    Classes="Primary"
+                                    HorizontalAlignment="Stretch"/>
+                            <Button Content="Update Configuration"
+                                    Command="{Binding UpdateConfigurationCommand}"
+                                    Classes="Secondary"
+                                    HorizontalAlignment="Stretch"/>
+                            <Button Content="Clear Chat History"
+                                    Command="{Binding ClearChatCommand}"
+                                    Classes="Secondary"
+                                    HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <!-- Status -->
+                        <Border Classes="GlassContainer" Padding="10" Margin="0,10,0,0">
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="Status" Classes="Label"/>
+                                <TextBlock Text="{Binding StatusMessage}"
+                                           TextWrapping="Wrap"
+                                           FontSize="12"/>
+                                <ProgressBar IsIndeterminate="True"
+                                             IsVisible="{Binding IsLoading}"
+                                             Height="3"
+                                             Margin="0,5,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- Footer Status Bar -->
+        <Border Grid.Row="2" Classes="GlassContainer" Margin="15" Padding="10">
+            <Grid ColumnDefinitions="*, Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15">
+                    <Ellipse Width="10" Height="10"
+                             Fill="{Binding IsCompanionActive, Converter={StaticResource BoolToStatusColorConverter}}"/>
+                    <TextBlock Text="{Binding StatusMessage}" Classes="Caption"/>
+                </StackPanel>
+                <TextBlock Grid.Column="1" Classes="Caption"
+                           Text="{Binding SelectedPersonality, StringFormat='Personality: {0}'}"/>
+            </Grid>
+        </Border>
+
+        <!-- Settings Overlay -->
+        <Border Grid.RowSpan="3"
+                IsVisible="{Binding ShowSettings}"
+                Background="#CC000000"
+                ZIndex="100">
+            <Grid ColumnDefinitions="*, 400, *" RowDefinitions="*, Auto, *">
+                <Border Grid.Column="1" Grid.Row="1" Classes="GlassContainer" Padding="20">
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="Quick Settings" Classes="SectionHeader"/>
+                        <TextBlock Text="Configure your AI companion on the right panel."
+                                   TextWrapping="Wrap"/>
+                        <Button Content="Close"
+                                Command="{Binding ToggleSettingsCommand}"
+                                Classes="Primary"
+                                HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

@@ -174,8 +174,7 @@
                  <StackPanel Orientation="Horizontal" Spacing="10">
                      <Button Content="{Binding VoiceSettings.IsListening, Converter={StaticResource BoolToStringConverter}, ConverterParameter='🔴 Stop Listening|🎤 Start Listening'}"
                              Command="{Binding VoiceSettings.ToggleListeningCommand}"
-                             Classes.Danger="{Binding VoiceSettings.IsListening}"
-                             Classes.Primary="{Binding !VoiceSettings.IsListening}" />
+                             Classes="Primary" />
 
                      <ToggleSwitch IsChecked="{Binding VoiceSettings.IsContinuousMode}"
                                  Command="{Binding VoiceSettings.ToggleContinuousModeCommand}"
@@ -234,6 +233,58 @@
       </Border>
 
       <audio:AudioOptimizationView DataContext="{Binding AudioOptimizationViewModel}" />
+
+      <!-- System Health Section -->
+      <Border Classes="Card" Padding="16">
+        <StackPanel Spacing="12">
+          <TextBlock Text="🔧 System Health" Classes="Header" />
+          <TextBlock Text="Monitor system status, database health, and performance metrics."
+                    Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
+          <Button Content="Open System Health Dashboard"
+                  Command="{Binding OpenSystemHealthCommand}"
+                  Classes="Primary"
+                  HorizontalAlignment="Left" />
+        </StackPanel>
+      </Border>
+
+      <!-- Connected Accounts Section -->
+      <Border Classes="Card" Padding="16">
+        <StackPanel Spacing="12">
+          <TextBlock Text="🔗 Connected Accounts" Classes="Header" />
+          <TextBlock Text="Manage your gaming platform connections and account integrations."
+                    Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
+          <Button Content="Manage Connected Accounts"
+                  Command="{Binding OpenConnectedAccountsCommand}"
+                  Classes="Primary"
+                  HorizontalAlignment="Left" />
+        </StackPanel>
+      </Border>
+
+      <!-- Data Management Section -->
+      <Border Classes="Card" Padding="16">
+        <StackPanel Spacing="12">
+          <TextBlock Text="💾 Data Management" Classes="Header" />
+          <TextBlock Text="Export, import, and backup your game library data and settings."
+                    Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
+          <Button Content="Open Data Management"
+                  Command="{Binding OpenDataManagementCommand}"
+                  Classes="Primary"
+                  HorizontalAlignment="Left" />
+        </StackPanel>
+      </Border>
+
+      <!-- AI Administration Section -->
+      <Border Classes="Card" Padding="16">
+        <StackPanel Spacing="12">
+          <TextBlock Text="🤖 AI Administration" Classes="Header" />
+          <TextBlock Text="Configure AI providers, manage conversation memory, and control knowledge base settings."
+                    Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
+          <Button Content="Open AI Administration"
+                  Command="{Binding OpenAiAdministrationCommand}"
+                  Classes="Primary"
+                  HorizontalAlignment="Left" />
+        </StackPanel>
+      </Border>
 
     </StackPanel>
   </ScrollViewer>

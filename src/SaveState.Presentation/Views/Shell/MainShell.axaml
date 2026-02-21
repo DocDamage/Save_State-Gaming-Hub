@@ -1,3 +1,18 @@
+<!--
+    MainShell.axaml
+    
+    The main application window shell. Provides the outer chrome including:
+    - Custom title bar with window controls (minimize, maximize, close)
+    - Header bar with navigation tabs and global search
+    - Main content area for the current view
+    - Status bar with system information
+    - Overlay container for popups and notifications
+    
+    Uses ExtendClientAreaToDecorationsHint for a modern borderless window
+    with custom chrome. The background uses Mica/Acrylic blur effects.
+    
+    Binding Context: MainShellViewModel
+-->
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"

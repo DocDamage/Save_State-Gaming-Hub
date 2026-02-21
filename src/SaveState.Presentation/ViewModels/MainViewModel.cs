@@ -142,6 +142,33 @@ public partial class MainViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Navigates to the recommendations view.
+    /// </summary>
+    [RelayCommand]
+    public void NavigateToRecommendations()
+    {
+        CurrentViewModel = Locator.Current.GetService<GameLibrary.SmartRecommendationsViewModel>()!;
+    }
+
+    /// <summary>
+    /// Navigates to the RetroArch integration view.
+    /// </summary>
+    [RelayCommand]
+    public void NavigateToRetroArch()
+    {
+        CurrentViewModel = Locator.Current.GetService<Shell.RetroArchViewModel>()!;
+    }
+
+    /// <summary>
+    /// Navigates to the Gamer DNA profile view.
+    /// </summary>
+    [RelayCommand]
+    public void NavigateToGamerDna()
+    {
+        CurrentViewModel = Locator.Current.GetService<Analytics.GamerDnaViewModel>()!;
+    }
+
+    /// <summary>
     /// Navigates to the game detail view for a specific game.
     /// </summary>
     /// <param name="gameId">The ID of the game to display.</param>

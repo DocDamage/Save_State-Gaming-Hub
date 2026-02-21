@@ -4,9 +4,11 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using SaveState.Application.RetroArch.Commands;
 using SaveState.Application.RetroArch.Queries;
-using SaveState.Core.RetroArch;
 using SaveState.Presentation.Services;
 using System.Collections.ObjectModel;
+
+// Alias to disambiguate from SaveState.Presentation.Models.RetroArch (imported via GlobalUsings.cs)
+using RetroArchCoreModels = SaveState.Core.RetroArch;
 
 namespace SaveState.Presentation.ViewModels.Shell;
 
@@ -38,18 +40,18 @@ public partial class RetroArchViewModel : ObservableObject
     private int _installedCoresCount;
 
     [ObservableProperty]
-    private RetroArchGame? _selectedGame;
+    private RetroArchCoreModels.RetroArchGame? _selectedGame;
 
     [ObservableProperty]
-    private RetroArchCore? _selectedCore;
+    private RetroArchCoreModels.RetroArchCore? _selectedCore;
 
     [ObservableProperty]
     private string _searchText = string.Empty;
 
-    public ObservableCollection<RetroArchGame> Games { get; } = new();
-    public ObservableCollection<RetroArchCore> InstalledCores { get; } = new();
-    public ObservableCollection<RetroArchCore> AvailableCores { get; } = new();
-    public ObservableCollection<RetroArchGame> FilteredGames { get; } = new();
+    public ObservableCollection<RetroArchCoreModels.RetroArchGame> Games { get; } = new();
+    public ObservableCollection<RetroArchCoreModels.RetroArchCore> InstalledCores { get; } = new();
+    public ObservableCollection<RetroArchCoreModels.RetroArchCore> AvailableCores { get; } = new();
+    public ObservableCollection<RetroArchCoreModels.RetroArchGame> FilteredGames { get; } = new();
 
     public RetroArchViewModel(
         IMediator mediator,
@@ -61,10 +63,10 @@ public partial class RetroArchViewModel : ObservableObject
         _logger = logger;
 
         // Initialize collections immediately to prevent null reference exceptions
-        Games = new ObservableCollection<RetroArchGame>();
-        InstalledCores = new ObservableCollection<RetroArchCore>();
-        AvailableCores = new ObservableCollection<RetroArchCore>();
-        FilteredGames = new ObservableCollection<RetroArchGame>();
+        Games = new ObservableCollection<RetroArchCoreModels.RetroArchGame>();
+        InstalledCores = new ObservableCollection<RetroArchCoreModels.RetroArchCore>();
+        AvailableCores = new ObservableCollection<RetroArchCoreModels.RetroArchCore>();
+        FilteredGames = new ObservableCollection<RetroArchCoreModels.RetroArchGame>();
     }
 
     private async Task InitializeAsync()
@@ -282,7 +284,7 @@ public partial class RetroArchViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task LaunchSpecificGameAsync(RetroArchGame game)
+    private async Task LaunchSpecificGameAsync(RetroArchCoreModels.RetroArchGame game)
     {
         try
         {

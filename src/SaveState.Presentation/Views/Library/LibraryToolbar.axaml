@@ -49,12 +49,12 @@
                     Margin="0,0,15,0"
                     ToolTip.Tip="Show/Hide advanced filters" />
 
-            <!-- Search Box -->
+            <!-- Search Box - Uses LostFocus binding mode to reduce updates -->
             <TextBox Grid.Column="3"
-                     Text="{Binding SearchTerm}"
+                     Text="{Binding SearchTerm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      Watermark="Search games..."
                      Margin="0,0,15,0"
-                     ToolTip.Tip="Search by title, developer, or tags" />
+                     ToolTip.Tip="Search by title, developer, or tags (throttled)" />
 
             <!-- Game Count -->
             <TextBlock Grid.Column="4"

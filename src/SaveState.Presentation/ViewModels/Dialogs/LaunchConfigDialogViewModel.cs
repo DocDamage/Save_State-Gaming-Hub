@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Presentation.Services;
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 
 namespace SaveState.Presentation.ViewModels.Dialogs;
 
@@ -14,19 +15,32 @@ public partial class LaunchConfigDialogViewModel : ObservableObject
 {
     private readonly ILogger<LaunchConfigDialogViewModel> _logger;
 
+    // Validation constants
+    private const int MinWidth = 640;
+    private const int MinHeight = 480;
+    private const int MaxWidth = 7680;  // 8K
+    private const int MaxHeight = 4320; // 8K
+    private const int MaxLaunchArgsLength = 1000;
+    private const int MaxPathLength = 260;
+
     [ObservableProperty]
     private Guid _gameId;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasValidationErrors))]
     private string _launchArguments = string.Empty;
 
     [ObservableProperty]
     private bool _useCustomResolution;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(AreResolutionSettingsValid))]
+    [NotifyPropertyChangedFor(nameof(HasValidationErrors))]
     private int _width = 1920;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(AreResolutionSettingsValid))]
+    [NotifyPropertyChangedFor(nameof(HasValidationErrors))]
     private int _height = 1080;
 
     [ObservableProperty]
@@ -39,6 +53,8 @@ public partial class LaunchConfigDialogViewModel : ObservableObject
     private bool _skipIntro;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsWorkingDirectoryValid))]
+    [NotifyPropertyChangedFor(nameof(HasValidationErrors))]
     private string _workingDirectory = string.Empty;
 
     [ObservableProperty]
@@ -53,6 +69,38 @@ public partial class LaunchConfigDialogViewModel : ObservableObject
 
     [ObservableProperty]
     private string? _selectedResolution;
+
+    [ObservableProperty]
+    private string _validationError = string.Empty;
+
+    /// <summary>
+    /// Gets whether the resolution settings are valid.
+    /// </summary>
+    public bool AreResolutionSettingsValid => 
+        !UseCustomResolution || 
+        (Width >= MinWidth && Width <= MaxWidth && 
+         Height >= MinHeight && Height <= MaxHeight);
+
+    /// <summary>
+    /// Gets whether the working directory is valid.
+    /// </summary>
+    public bool IsWorkingDirectoryValid => 
+        string.IsNullOrEmpty(WorkingDirectory) ||
+        (WorkingDirectory.Length <= MaxPathLength &&
+         (Directory.Exists(WorkingDirectory) || !Path.IsPathRooted(WorkingDirectory)));
+
+    /// <summary>
+    /// Gets whether the launch arguments are valid.
+    /// </summary>
+    public bool AreLaunchArgumentsValid => LaunchArguments.Length <= MaxLaunchArgsLength;
+
+    /// <summary>
+    /// Gets whether there are any validation errors.
+    /// </summary>
+    public bool HasValidationErrors => 
+        !AreResolutionSettingsValid || 
+        !IsWorkingDirectoryValid ||
+        !AreLaunchArgumentsValid;
 
     public LaunchConfigDialogViewModel(ILogger<LaunchConfigDialogViewModel> logger)
     {
@@ -108,12 +156,15 @@ public partial class LaunchConfigDialogViewModel : ObservableObject
         if (match.Success)
         {
             if (int.TryParse(match.Groups[1].Value, out var w))
-                Width = w;
+                Width = ClampWidth(w);
             if (int.TryParse(match.Groups[2].Value, out var h))
-                Height = h;
+                Height = ClampHeight(h);
             UseCustomResolution = true;
         }
     }
+
+    private int ClampWidth(int width) => Math.Clamp(width, MinWidth, MaxWidth);
+    private int ClampHeight(int height) => Math.Clamp(height, MinHeight, MaxHeight);
 
     partial void OnUseCustomResolutionChanged(bool value)
     {
@@ -139,9 +190,47 @@ public partial class LaunchConfigDialogViewModel : ObservableObject
         _logger.LogInformation("Launch configuration reset to defaults for game {GameId}", GameId);
     }
 
+    partial void OnWidthChanged(int value)
+    {
+        if (value < MinWidth || value > MaxWidth)
+        {
+            Width = ClampWidth(value);
+        }
+    }
+
+    partial void OnHeightChanged(int value)
+    {
+        if (value < MinHeight || value > MaxHeight)
+        {
+            Height = ClampHeight(value);
+        }
+    }
+
+    partial void OnWorkingDirectoryChanged(string value)
+    {
+        if (value?.Length > MaxPathLength)
+        {
+            WorkingDirectory = value[..MaxPathLength];
+        }
+    }
+
+    partial void OnLaunchArgumentsChanged(string value)
+    {
+        if (value?.Length > MaxLaunchArgsLength)
+        {
+            LaunchArguments = value[..MaxLaunchArgsLength];
+        }
+    }
+
     [RelayCommand]
     private void Save()
     {
+        if (HasValidationErrors)
+        {
+            UpdateValidationError();
+            return;
+        }
+
         // Build final launch arguments string
         var args = LaunchArguments;
 
@@ -183,8 +272,33 @@ public partial class LaunchConfigDialogViewModel : ObservableObject
             UseCustomResolution ? Height : null,
             StartInFullScreen);
 
-        // Close dialog with result
-        if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+        CloseDialog(result);
+    }
+
+    private void UpdateValidationError()
+    {
+        if (!AreResolutionSettingsValid)
+        {
+            ValidationError = $"Resolution must be between {MinWidth}x{MinHeight} and {MaxWidth}x{MaxHeight}.";
+        }
+        else if (!IsWorkingDirectoryValid)
+        {
+            ValidationError = "Working directory path is too long or invalid.";
+        }
+        else if (!AreLaunchArgumentsValid)
+        {
+            ValidationError = $"Launch arguments must not exceed {MaxLaunchArgsLength} characters.";
+        }
+        else
+        {
+            ValidationError = string.Empty;
+        }
+    }
+
+    private void CloseDialog(LaunchConfigResult? result)
+    {
+        var lifetime = Avalonia.Application.Current?.ApplicationLifetime;
+        if (lifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
         {
             var window = desktop.Windows.FirstOrDefault(w => w.DataContext == this);
             window?.Close(result);
@@ -195,12 +309,6 @@ public partial class LaunchConfigDialogViewModel : ObservableObject
     private void Cancel()
     {
         _logger.LogDebug("Launch configuration cancelled");
-
-        // Close dialog without result
-        if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            var window = desktop.Windows.FirstOrDefault(w => w.DataContext == this);
-            window?.Close(null);
-        }
+        CloseDialog(null);
     }
 }

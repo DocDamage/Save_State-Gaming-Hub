@@ -7,7 +7,16 @@ using Splat;
 namespace SaveState.Presentation.Services;
 
 /// <summary>
-/// Implementation of the navigation service.
+/// Implementation of the navigation service for the main application shell.
+/// 
+/// Responsibilities:
+/// - Maintains current view model and tab state
+/// - Manages navigation history stack
+/// - Caches ViewModel instances for performance
+/// - Raises Navigated events for UI updates
+/// 
+/// Thread Safety: This service is designed to be called from the UI thread.
+/// All state changes raise PropertyChanged events which must be on UI thread.
 /// </summary>
 public class NavigationService : ObservableObject, INavigationService
 {

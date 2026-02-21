@@ -164,7 +164,7 @@ public class OAuthTokens
     public bool IsExpiredAt(DateTime currentTime) => currentTime >= ExpiresAt.AddMinutes(-5);
 
     /// <summary>
-    /// Gets whether the tokens have expired.
+    /// Gets whether the tokens have expired (including 5-minute grace period for early renewal).
     /// </summary>
-    public bool IsExpired => DateTime.UtcNow >= ExpiresAt;
+    public bool IsExpired => DateTime.UtcNow >= ExpiresAt.AddMinutes(-5);
 }

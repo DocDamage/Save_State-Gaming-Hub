@@ -1,0 +1,268 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Settings"
+             xmlns:data="using:SaveState.Presentation.Models.Data"
+             mc:Ignorable="d"
+             x:Class="SaveState.Presentation.Views.Settings.DataManagementView"
+             x:DataType="vm:DataManagementViewModel">
+
+  <ScrollViewer>
+    <StackPanel Margin="24" Spacing="24">
+      <TextBlock Text="⚙️ SETTINGS > DATA MANAGEMENT" Classes="H5"/>
+
+      <!-- Export Section -->
+      <Border Classes="Card" Padding="20">
+        <StackPanel Spacing="16">
+          <TextBlock Text="📤 EXPORT DATA" Classes="H6"/>
+          <TextBlock Text="Export your data for backup or migration to another device."
+                     Classes="Body" Opacity="0.8"/>
+
+          <!-- Export Options -->
+          <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,8">
+            <CheckBox Grid.Row="0" Grid.Column="0"
+                      Content="Game Library"
+                      IsChecked="{Binding ExportOptions.IncludeGameLibrary}"
+                      Margin="0,4"/>
+            <CheckBox Grid.Row="0" Grid.Column="1"
+                      Content="Save States"
+                      IsChecked="{Binding ExportOptions.IncludeSaveStates}"
+                      Margin="0,4"/>
+            <CheckBox Grid.Row="1" Grid.Column="0"
+                      Content="Achievements"
+                      IsChecked="{Binding ExportOptions.IncludeAchievements}"
+                      Margin="0,4"/>
+            <CheckBox Grid.Row="1" Grid.Column="1"
+                      Content="Play Sessions"
+                      IsChecked="{Binding ExportOptions.IncludePlaySessions}"
+                      Margin="0,4"/>
+            <CheckBox Grid.Row="2" Grid.Column="0"
+                      Content="Collections"
+                      IsChecked="{Binding ExportOptions.IncludeCollections}"
+                      Margin="0,4"/>
+            <CheckBox Grid.Row="2" Grid.Column="1"
+                      Content="Settings"
+                      IsChecked="{Binding ExportOptions.IncludeSettings}"
+                      Margin="0,4"/>
+            <CheckBox Grid.Row="3" Grid.Column="0"
+                      Content="MUGEN Data"
+                      IsChecked="{Binding ExportOptions.IncludeMugenData}"
+                      Margin="0,4"/>
+            <CheckBox Grid.Row="3" Grid.Column="1"
+                      Content="Macros"
+                      IsChecked="{Binding ExportOptions.IncludeMacros}"
+                      Margin="0,4"/>
+          </Grid>
+
+          <!-- Format Selection -->
+          <StackPanel Spacing="8">
+            <TextBlock Text="Export Format" Classes="Label"/>
+            <ComboBox ItemsSource="{Binding Source={x:Static data:ExportFormat.Json}, Converter={StaticResource EnumToItemsConverter}}"
+                      SelectedItem="{Binding ExportOptions.Format}"
+                      HorizontalAlignment="Left"
+                      Width="200"/>
+          </StackPanel>
+
+          <!-- Export Path -->
+          <StackPanel Spacing="8">
+            <TextBlock Text="Export Location" Classes="Label"/>
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBox Grid.Column="0"
+                       Text="{Binding SelectedExportPath}"
+                       Watermark="Select export location..."
+                       IsReadOnly="True"
+                       Margin="0,0,8,0"/>
+              <Button Grid.Column="1"
+                      Content="Browse..."
+                      Command="{Binding SelectExportPathCommand}"
+                      Classes="Secondary"
+                      IsEnabled="{Binding IsExporting, Converter={x:Static BoolConverters.Not}}"/>
+            </Grid>
+          </StackPanel>
+
+          <!-- Export Button -->
+          <Button Content="Export Data"
+                  Command="{Binding ExportCommand}"
+                  Classes="Primary"
+                  HorizontalAlignment="Left"
+                  IsEnabled="{Binding IsExporting, Converter={x:Static BoolConverters.Not}}"/>
+        </StackPanel>
+      </Border>
+
+      <!-- Import Section -->
+      <Border Classes="Card" Padding="20">
+        <StackPanel Spacing="16">
+          <TextBlock Text="📥 IMPORT DATA" Classes="H6"/>
+          <TextBlock Text="Import data from a backup or another device."
+                     Classes="Body" Opacity="0.8"/>
+
+          <!-- Import Path -->
+          <StackPanel Spacing="8">
+            <TextBlock Text="Import File" Classes="Label"/>
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBox Grid.Column="0"
+                       Text="{Binding SelectedImportPath}"
+                       Watermark="Select import file..."
+                       IsReadOnly="True"
+                       Margin="0,0,8,0"/>
+              <Button Grid.Column="1"
+                      Content="Browse..."
+                      Command="{Binding SelectImportPathCommand}"
+                      Classes="Secondary"
+                      IsEnabled="{Binding IsImporting, Converter={x:Static BoolConverters.Not}}"/>
+            </Grid>
+          </StackPanel>
+
+          <!-- Import Strategy -->
+          <StackPanel Spacing="8">
+            <TextBlock Text="Import Strategy" Classes="Label"/>
+            <ComboBox ItemsSource="{Binding Source={x:Static data:ImportStrategy.Merge}, Converter={StaticResource EnumToItemsConverter}}"
+                      SelectedItem="{Binding ImportStrategy}"
+                      HorizontalAlignment="Left"
+                      Width="200"/>
+            <TextBlock Classes="Caption" Opacity="0.6">
+              <TextBlock.Text>
+                <MultiBinding StringFormat="{}{0}: Merges with existing data | {1}: Replaces all data | {2}: Only adds new items">
+                  <Binding Source="{x:Static data:ImportStrategy.Merge}"/>
+                  <Binding Source="{x:Static data:ImportStrategy.Replace}"/>
+                  <Binding Source="{x:Static data:ImportStrategy.OnlyNew}"/>
+                </MultiBinding>
+              </TextBlock.Text>
+            </TextBlock>
+          </StackPanel>
+
+          <!-- Preview Button -->
+          <Button Content="Preview Import"
+                  Command="{Binding PreviewImportCommand}"
+                  Classes="Secondary"
+                  HorizontalAlignment="Left"
+                  IsEnabled="{Binding IsImporting, Converter={x:Static BoolConverters.Not}}"/>
+
+          <!-- Import Preview -->
+          <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                  BorderThickness="1"
+                  CornerRadius="8"
+                  Padding="16"
+                  IsVisible="{Binding ImportPreview, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <StackPanel Spacing="12">
+              <TextBlock Text="Import Preview" Classes="BodyStrong"/>
+
+              <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" Margin="0,8">
+                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,4">
+                  <TextBlock Text="{Binding ImportPreview.GamesToAdd, StringFormat='Games to add: {0}'}"/>
+                </StackPanel>
+                <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,4">
+                  <TextBlock Text="{Binding ImportPreview.GamesToUpdate, StringFormat='Games to update: {0}'}"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,4">
+                  <TextBlock Text="{Binding ImportPreview.SaveStatesToImport, StringFormat='Save states: {0}'}"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,4">
+                  <TextBlock Text="{Binding ImportPreview.AchievementsToImport, StringFormat='Achievements: {0}'}"/>
+                </StackPanel>
+                <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,4">
+                  <TextBlock Text="{Binding ImportPreview.Conflicts, StringFormat='Conflicts: {0}'}">
+                    <TextBlock.Foreground>
+                      <Binding Path="ImportPreview.Conflicts" Converter="{StaticResource IntToStatusBrushConverter}"/>
+                    </TextBlock.Foreground>
+                  </TextBlock>
+                </StackPanel>
+                <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,4">
+                  <TextBlock Text="{Binding ImportPreview.EstimatedDuration, StringFormat='Estimated time: {0:mm\\:ss}'}"/>
+                </StackPanel>
+              </Grid>
+
+              <!-- Warnings -->
+              <ItemsControl ItemsSource="{Binding ImportPreview.Warnings}"
+                            IsVisible="{Binding ImportPreview.Warnings.Count, Converter={StaticResource GreaterThanConverter}, ConverterParameter=0}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding}"
+                               Foreground="{StaticResource AccentBrush}"
+                               Classes="Caption"
+                               Margin="0,2"/>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <Button Content="Start Import"
+                      Command="{Binding ImportCommand}"
+                      Classes="Accent"
+                      HorizontalAlignment="Left"
+                      Margin="0,8,0,0"/>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Border>
+
+      <!-- Backup Section -->
+      <Border Classes="Card" Padding="20">
+        <StackPanel Spacing="16">
+          <TextBlock Text="💾 BACKUP &amp; RESTORE" Classes="H6"/>
+          <TextBlock Text="Create full backups or restore from a previous backup."
+                     Classes="Body" Opacity="0.8"/>
+
+          <!-- Backup Info -->
+          <StackPanel Spacing="8">
+            <TextBlock Text="Backup Location" Classes="Label"/>
+            <TextBlock Text="{Binding BackupLocation}"
+                       Classes="Caption"
+                       Opacity="0.6"
+                       TextWrapping="Wrap"/>
+            <TextBlock Text="{Binding LastBackupDate, StringFormat='Last backup: {0:g}'}"
+                       Classes="Caption"
+                       Opacity="0.6">
+              <TextBlock.IsVisible>
+                <Binding Path="LastBackupDate" Converter="{x:Static ObjectConverters.IsNotNull}"/>
+              </TextBlock.IsVisible>
+            </TextBlock>
+          </StackPanel>
+
+          <!-- Backup Actions -->
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <Button Content="Create Backup"
+                    Command="{Binding CreateBackupCommand}"
+                    Classes="Primary"
+                    IsEnabled="{Binding IsExporting, Converter={x:Static BoolConverters.Not}}"/>
+            <Button Content="Restore Backup"
+                    Command="{Binding RestoreBackupCommand}"
+                    Classes="Secondary"
+                    IsEnabled="{Binding IsImporting, Converter={x:Static BoolConverters.Not}}"/>
+            <Button Content="Auto-Backup Settings"
+                    Command="{Binding ConfigureAutoBackupCommand}"
+                    Classes="Ghost"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <!-- Progress Section -->
+      <Border Classes="Card" Padding="20"
+              IsVisible="{Binding IsExporting}">
+        <StackPanel Spacing="12">
+          <TextBlock Text="{Binding StatusMessage}" Classes="BodyStrong"/>
+          <ProgressBar Value="{Binding OperationProgress}"
+                       Maximum="100"
+                       HorizontalAlignment="Stretch"/>
+          <TextBlock Text="{Binding OperationProgress, StringFormat='{}{0:F0}%'}"
+                     HorizontalAlignment="Center"
+                     Classes="Caption"/>
+        </StackPanel>
+      </Border>
+
+      <!-- Import Progress Section -->
+      <Border Classes="Card" Padding="20"
+              IsVisible="{Binding IsImporting}">
+        <StackPanel Spacing="12">
+          <TextBlock Text="{Binding StatusMessage}" Classes="BodyStrong"/>
+          <ProgressBar Value="{Binding OperationProgress}"
+                       Maximum="100"
+                       HorizontalAlignment="Stretch"/>
+          <TextBlock Text="{Binding OperationProgress, StringFormat='{}{0:F0}%'}"
+                     HorizontalAlignment="Center"
+                     Classes="Caption"/>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

@@ -18,7 +18,7 @@
                     <Button Content="{Binding IsListening, Converter={StaticResource BoolToStringConverter}, ConverterParameter='🔴 Stop Listening|🎤 Start Listening'}"
                             Command="{Binding ToggleListeningCommand}"
                             Classes.Danger="{Binding IsListening}"
-                            Classes.Primary="{Binding !IsListening}"
+                            Classes="Secondary"
                             Padding="15,8" />
 
                     <Button Content="🔄 Refresh"

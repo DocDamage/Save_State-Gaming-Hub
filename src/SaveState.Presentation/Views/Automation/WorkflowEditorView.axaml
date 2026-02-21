@@ -1,0 +1,625 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Automation"
+             xmlns:models="using:SaveState.Core.Automation.Models"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="900"
+             x:Class="SaveState.Presentation.Views.Automation.WorkflowEditorView"
+             x:DataType="vm:WorkflowEditorViewModel">
+
+  <Design.DataContext>
+    <vm:WorkflowEditorViewModel/>
+  </Design.DataContext>
+
+  <Grid ColumnDefinitions="300, *">
+    
+    <!-- LEFT SIDEBAR -->
+    <Border Grid.Column="0"
+            Background="{StaticResource SurfaceBrush}"
+            BorderThickness="0,0,1,0"
+            BorderBrush="{StaticResource DividerBrush}">
+      <Grid RowDefinitions="Auto, Auto, *, Auto">
+        
+        <!-- Header -->
+        <Border Grid.Row="0" 
+                Background="{StaticResource CardBackgroundBrush}"
+                Padding="16,12"
+                BorderThickness="0,0,0,1"
+                BorderBrush="{StaticResource DividerBrush}">
+          <StackPanel Spacing="4">
+            <TextBlock Text="Automation Studio"
+                       Classes="H3"
+                       Foreground="White"/>
+            <TextBlock Text="Visual workflow builder"
+                       Classes="Caption"
+                       Foreground="{StaticResource TextSecondaryBrush}"/>
+          </StackPanel>
+        </Border>
+
+        <!-- Toolbar -->
+        <StackPanel Grid.Row="1" 
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Stretch"
+                    Spacing="8"
+                    Margin="12,8">
+          <Button Command="{Binding CreateNewWorkflowCommand}"
+                  ToolTip.Tip="Create new workflow">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <PathIcon Data="M12,20L12,4M4,12L20,12" 
+                        Width="14" 
+                        Height="14"
+                        Stroke="White"
+                        StrokeThickness="2"/>
+              <TextBlock Text="New" Classes="Caption"/>
+            </StackPanel>
+          </Button>
+          
+          <Button Command="{Binding RefreshCommand}"
+                  ToolTip.Tip="Refresh workflows">
+            <PathIcon Data="M4,4L9,9M9,9L4,9M9,9L9,4" 
+                      Width="14" 
+                      Height="14"
+                      Stroke="White"
+                      StrokeThickness="2"/>
+          </Button>
+        </StackPanel>
+
+        <!-- Workflow List -->
+        <ScrollViewer Grid.Row="2" 
+                      VerticalScrollBarVisibility="Auto"
+                      Margin="8,0">
+          <ItemsControl ItemsSource="{Binding Workflows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:WorkflowViewModel">
+                <Border Classes="Card"
+                        Background="{Binding IsSelected, 
+                                    RelativeSource={RelativeSource AncestorType=ListBoxItem},
+                                    Converter={StaticResource SelectedBackgroundConverter}}"
+                        Margin="0,4"
+                        Padding="12,10"
+                        CornerRadius="8"
+                        BorderThickness="1"
+                        BorderBrush="{StaticResource DividerBrush}">
+                  <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="*, Auto">
+                    
+                    <TextBlock Grid.Row="0" 
+                               Grid.Column="0"
+                               Text="{Binding Name}"
+                               FontWeight="SemiBold"
+                               TextTrimming="CharacterEllipsis"/>
+                    
+                    <Border Grid.Row="0"
+                            Grid.Column="1"
+                            Background="{Binding IsEnabled, 
+                                        Converter={StaticResource BoolToEnabledBrushConverter}}"
+                            CornerRadius="10"
+                            Padding="6,2"
+                            VerticalAlignment="Center">
+                      <TextBlock Text="{Binding StatusDisplay}"
+                                 FontSize="10"
+                                 Foreground="White"/>
+                    </Border>
+                    
+                    <TextBlock Grid.Row="1"
+                               Grid.Column="0"
+                               Grid.ColumnSpan="2"
+                               Text="{Binding Description}"
+                               Classes="Caption"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               TextTrimming="CharacterEllipsis"
+                               MaxLines="2"
+                               Margin="0,4"/>
+                    
+                    <StackPanel Grid.Row="2"
+                                Grid.Column="0"
+                                Grid.ColumnSpan="2"
+                                Orientation="Horizontal"
+                                Spacing="12"
+                                Margin="0,4,0,0">
+                      <TextBlock Classes="Caption"
+                                 Foreground="{StaticResource TextSecondaryBrush}">
+                        <Run Text="Trigger: "/>
+                        <Run Text="{Binding TriggerDisplay}"/>
+                      </TextBlock>
+                      <TextBlock Classes="Caption"
+                                 Foreground="{StaticResource TextSecondaryBrush}">
+                        <Run Text="Actions: "/>
+                        <Run Text="{Binding ActionCount}"/>
+                      </TextBlock>
+                    </StackPanel>
+                    
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Selected Workflow Actions -->
+        <Border Grid.Row="3"
+                Background="{StaticResource CardBackgroundBrush}"
+                Padding="12"
+                BorderThickness="0,1,0,0"
+                BorderBrush="{StaticResource DividerBrush}"
+                IsVisible="{Binding SelectedWorkflow, Converter={StaticResource ObjectToBoolConverter}}">
+          <StackPanel Spacing="8">
+            <TextBlock Text="Selected Workflow"
+                       Classes="Caption"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource TextSecondaryBrush}"/>
+            
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Command="{Binding EditSelectedWorkflowCommand}"
+                      Classes="Primary"
+                      HorizontalAlignment="Stretch">
+                <TextBlock Text="Edit"/>
+              </Button>
+              
+              <Button Command="{Binding ExecuteWorkflowCommand}"
+                      ToolTip.Tip="Run workflow now">
+                <PathIcon Data="M5,3L19,12L5,21Z" 
+                          Width="12" 
+                          Height="12"
+                          Fill="White"/>
+              </Button>
+              
+              <Button Command="{Binding DuplicateWorkflowCommand}"
+                      ToolTip.Tip="Duplicate workflow">
+                <PathIcon Data="M8,4L8,8L4,8M4,8L4,20L16,20L16,16M4,8L16,8L16,4Z" 
+                          Width="12" 
+                          Height="12"
+                          Stroke="White"
+                          StrokeThickness="1.5"/>
+              </Button>
+              
+              <Button Command="{Binding DeleteWorkflowCommand}"
+                      Classes="Danger"
+                      ToolTip.Tip="Delete workflow">
+                <PathIcon Data="M3,6L5,6L21,6M19,6L19,20A2,2,0,0,1,17,22L7,22A2,2,0,0,1,5,20L5,6M8,6L8,4A2,2,0,0,1,10,2L14,2A2,2,0,0,1,16,4L16,6" 
+                          Width="12" 
+                          Height="12"
+                          Stroke="White"
+                          StrokeThickness="1.5"/>
+              </Button>
+            </StackPanel>
+            
+            <ToggleButton Content="{Binding SelectedWorkflow.StatusDisplay}"
+                          IsChecked="{Binding SelectedWorkflow.IsEnabled}"
+                          Command="{Binding ToggleWorkflowEnabledCommand}"
+                          HorizontalAlignment="Stretch"/>
+          </StackPanel>
+        </Border>
+        
+      </Grid>
+    </Border>
+
+    <!-- MAIN CONTENT AREA -->
+    <Grid Grid.Column="1" RowDefinitions="*, Auto">
+      
+      <!-- Templates View (shown when not editing) -->
+      <Border Grid.Row="0"
+              Background="{StaticResource BackgroundBrush}"
+              IsVisible="{Binding IsEditing, Converter={StaticResource InverseBoolConverter}}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel Margin="24">
+            <TextBlock Text="Quick Start Templates"
+                       Classes="H2"
+                       Foreground="White"
+                       Margin="0,0,0,24"/>
+            
+            <ItemsControl ItemsSource="{Binding Templates}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel ItemWidth="320" 
+                             ItemHeight="180"
+                             Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="models:WorkflowTemplate">
+                  <Button Command="{Binding DataContext.CreateFromTemplateCommand, 
+                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          CommandParameter="{Binding}"
+                          Margin="8"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch">
+                    <Border Background="{StaticResource CardBackgroundBrush}"
+                            Padding="16"
+                            CornerRadius="12"
+                            BorderThickness="1"
+                            BorderBrush="{StaticResource DividerBrush}">
+                      <Grid RowDefinitions="Auto, *, Auto">
+                        <StackPanel Grid.Row="0" 
+                                    Orientation="Horizontal" 
+                                    Spacing="8"
+                                    Margin="0,0,0,8">
+                          <Border Background="{StaticResource AccentBrush}"
+                                  CornerRadius="8"
+                                  Width="32"
+                                  Height="32">
+                            <TextBlock Text="{Binding Icon}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       FontSize="14"/>
+                          </Border>
+                          <TextBlock Text="{Binding Category}"
+                                     Classes="Caption"
+                                     Foreground="{StaticResource AccentBrush}"
+                                     VerticalAlignment="Center"/>
+                        </StackPanel>
+                        
+                        <StackPanel Grid.Row="1" Spacing="4">
+                          <TextBlock Text="{Binding Name}"
+                                     Classes="H4"
+                                     Foreground="White"/>
+                          <TextBlock Text="{Binding Description}"
+                                     Classes="Body"
+                                     Foreground="{StaticResource TextSecondaryBrush}"
+                                     TextWrapping="Wrap"
+                                     MaxLines="3"/>
+                        </StackPanel>
+                        
+                        <StackPanel Grid.Row="2"
+                                    Orientation="Horizontal"
+                                    Spacing="8"
+                                    Margin="0,8,0,0">
+                          <TextBlock Classes="Caption"
+                                     Foreground="{StaticResource TextSecondaryBrush}">
+                            <Run Text="Trigger: "/>
+                            <Run Text="{Binding DefaultTrigger}"/>
+                          </TextBlock>
+                          <TextBlock Classes="Caption"
+                                     Foreground="{StaticResource TextSecondaryBrush}">
+                            <Run Text="Actions: "/>
+                            <Run Text="{Binding DefaultActions.Count}"/>
+                          </TextBlock>
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+
+      <!-- Workflow Editor (shown when editing) -->
+      <Grid Grid.Row="0"
+            Background="{StaticResource BackgroundBrush}"
+            IsVisible="{Binding IsEditing}"
+            ColumnDefinitions="*, 280">
+        
+        <!-- Canvas Area -->
+        <Border Grid.Column="0"
+                Background="#0D0D0D"
+                Margin="12"
+                CornerRadius="12">
+          <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                        VerticalScrollBarVisibility="Auto">
+            <Canvas Width="800" Height="1000" 
+                    Background="Transparent">
+              <!-- Grid Background -->
+              <Canvas.Background>
+                <DrawingBrush TileMode="Tile" 
+                              DestinationRect="0,0,20,20">
+                  <DrawingBrush.Drawing>
+                    <GeometryDrawing Brush="#1A1A1A">
+                      <GeometryDrawing.Geometry>
+                        <RectangleGeometry Rect="0,0,20,20"/>
+                      </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                  </DrawingBrush.Drawing>
+                </DrawingBrush>
+              </Canvas.Background>
+              
+              <!-- Workflow Nodes -->
+              <ItemsControl ItemsSource="{Binding WorkflowNodes}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <Canvas/>
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:WorkflowNodeViewModel">
+                    <Canvas Left="{Binding X}" Top="{Binding Y}">
+                      <Border Width="200"
+                              Background="{StaticResource SurfaceBrush}"
+                              BorderThickness="2"
+                              BorderBrush="{StaticResource AccentBrush}"
+                              CornerRadius="12"
+                              Padding="16">
+                        <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="Auto, *">
+                          
+                          <!-- Icon -->
+                          <Border Grid.Row="0"
+                                  Grid.RowSpan="2"
+                                  Grid.Column="0"
+                                  Background="{StaticResource AccentBrush}"
+                                  CornerRadius="8"
+                                  Width="36"
+                                  Height="36"
+                                  Margin="0,0,12,0">
+                            <TextBlock Text="{Binding Icon}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       FontSize="16"/>
+                          </Border>
+                          
+                          <!-- Type Label -->
+                          <TextBlock Grid.Row="0"
+                                     Grid.Column="1"
+                                     Text="{Binding Type}"
+                                     Classes="Caption"
+                                     Foreground="{StaticResource AccentBrush}"
+                                     FontWeight="Bold"
+                                     TextTransform="Uppercase"/>
+                          
+                          <!-- Action Label -->
+                          <TextBlock Grid.Row="1"
+                                     Grid.Column="1"
+                                     Text="{Binding Label}"
+                                     Classes="Body"
+                                     Foreground="White"
+                                     FontWeight="SemiBold"
+                                     TextTrimming="CharacterEllipsis"/>
+                          
+                          <!-- Delay Badge -->
+                          <Border Grid.Row="2"
+                                  Grid.Column="0"
+                                  Grid.ColumnSpan="2"
+                                  Background="{StaticResource WarningBrush}"
+                                  CornerRadius="4"
+                                  Padding="6,2"
+                                  Margin="0,8,0,0"
+                                  IsVisible="{Binding HasDelay}">
+                            <TextBlock Text="{Binding DelayText}"
+                                       FontSize="10"
+                                       Foreground="White"/>
+                          </Border>
+                          
+                        </Grid>
+                      </Border>
+                      
+                      <!-- Connection Line (simplified) -->
+                      <Line StartPoint="100,80" EndPoint="100,150"
+                            Stroke="{StaticResource AccentBrush}"
+                            StrokeThickness="2"
+                            StrokeDashArray="5,5"
+                            IsVisible="{Binding DataContext.EditingWorkflow.Actions.Count, 
+                                        RelativeSource={RelativeSource AncestorType=UserControl},
+                                        Converter={StaticResource GreaterThanZeroConverter}}"/>
+                    </Canvas>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Canvas>
+          </ScrollViewer>
+        </Border>
+
+        <!-- Properties Panel -->
+        <Border Grid.Column="1"
+                Background="{StaticResource SurfaceBrush}"
+                BorderThickness="1,0,0,0"
+                BorderBrush="{StaticResource DividerBrush}"
+                Padding="16">
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="16">
+              
+              <!-- Header -->
+              <TextBlock Text="Properties"
+                         Classes="H4"
+                         Foreground="White"/>
+              
+              <!-- Workflow Name -->
+              <StackPanel Spacing="4">
+                <TextBlock Text="Name"
+                           Classes="Caption"
+                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                <TextBox Text="{Binding EditingWorkflow.Name}"
+                         Watermark="Enter workflow name"/>
+              </StackPanel>
+              
+              <!-- Description -->
+              <StackPanel Spacing="4">
+                <TextBlock Text="Description"
+                           Classes="Caption"
+                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                <TextBox Text="{Binding EditingWorkflow.Description}"
+                         Watermark="Enter description"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         Height="60"/>
+              </StackPanel>
+              
+              <!-- Trigger Section -->
+              <Border Background="{StaticResource CardBackgroundBrush}"
+                      CornerRadius="8"
+                      Padding="12">
+                <StackPanel Spacing="12">
+                  <TextBlock Text="Trigger"
+                             Classes="H5"
+                             Foreground="White"/>
+                  
+                  <ComboBox ItemsSource="{Binding AvailableTriggers}"
+                            SelectedItem="{Binding EditingWorkflow.Trigger}"
+                            HorizontalAlignment="Stretch"/>
+                  
+                  <!-- Trigger-specific config would go here -->
+                  
+                </StackPanel>
+              </Border>
+              
+              <!-- Actions Section -->
+              <Border Background="{StaticResource CardBackgroundBrush}"
+                      CornerRadius="8"
+                      Padding="12">
+                <StackPanel Spacing="12">
+                  <Grid ColumnDefinitions="*, Auto">
+                    <TextBlock Grid.Column="0"
+                               Text="Actions"
+                               Classes="H5"
+                               Foreground="White"/>
+                    <Button Grid.Column="1"
+                            Classes="Icon"
+                            Command="{Binding AddActionCommand}"
+                            CommandParameter="{x:Static models:AutomationAction.SendNotification}"
+                            Width="28"
+                            Height="28">
+                      <PathIcon Data="M12,4L12,20M4,12L20,12" 
+                                Width="14" 
+                                Height="14"
+                                Stroke="White"
+                                StrokeThickness="2"/>
+                    </Button>
+                  </Grid>
+                  
+                  <ItemsControl ItemsSource="{Binding EditingWorkflow.Actions}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:WorkflowActionEditModel">
+                        <Border Background="{StaticResource SurfaceBrush}"
+                                CornerRadius="6"
+                                Padding="10"
+                                Margin="0,4">
+                          <Grid ColumnDefinitions="*, Auto, Auto">
+                            <StackPanel Grid.Column="0" Spacing="2">
+                              <TextBlock Text="{Binding Type}"
+                                         Classes="Caption"
+                                         Foreground="White"
+                                         FontWeight="SemiBold"/>
+                              <TextBlock Classes="Small"
+                                         Foreground="{StaticResource TextSecondaryBrush}">
+                                <Run Text="Order: "/>
+                                <Run Text="{Binding Order}"/>
+                              </TextBlock>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Column="1" 
+                                        Orientation="Horizontal"
+                                        Spacing="4">
+                              <Button Command="{Binding DataContext.MoveActionUpCommand, 
+                                                RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                      CommandParameter="{Binding}"
+                                      Classes="Icon"
+                                      Width="24"
+                                      Height="24">
+                                <PathIcon Data="M12,4L6,10L18,10Z" 
+                                          Width="10" 
+                                          Height="10"
+                                          Fill="White"/>
+                              </Button>
+                              <Button Command="{Binding DataContext.MoveActionDownCommand, 
+                                                RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                      CommandParameter="{Binding}"
+                                      Classes="Icon"
+                                      Width="24"
+                                      Height="24">
+                                <PathIcon Data="M12,20L6,14L18,14Z" 
+                                          Width="10" 
+                                          Height="10"
+                                          Fill="White"/>
+                              </Button>
+                            </StackPanel>
+                            
+                            <Button Grid.Column="2"
+                                    Command="{Binding DataContext.RemoveActionCommand, 
+                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"
+                                    Classes="Icon Danger"
+                                    Width="24"
+                                    Height="24"
+                                    Margin="8,0,0,0">
+                              <PathIcon Data="M6,6L18,18M6,18L18,6" 
+                                        Width="10" 
+                                        Height="10"
+                                        Stroke="White"
+                                        StrokeThickness="2"/>
+                            </Button>
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  
+                  <!-- Add Action Buttons -->
+                  <Expander Header="Add Action" IsExpanded="False">
+                    <WrapPanel ItemWidth="140">
+                      <ItemsControl ItemsSource="{Binding AvailableActions}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="models:AutomationAction">
+                            <Button Command="{Binding DataContext.AddActionCommand, 
+                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"
+                                    Margin="2"
+                                    Padding="8,4">
+                              <TextBlock Text="{Binding}"
+                                         FontSize="11"
+                                         TextTrimming="CharacterEllipsis"/>
+                            </Button>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </WrapPanel>
+                  </Expander>
+                  
+                </StackPanel>
+              </Border>
+              
+            </StackPanel>
+          </ScrollViewer>
+        </Border>
+        
+      </Grid>
+
+      <!-- Editor Toolbar -->
+      <Border Grid.Row="1"
+              Background="{StaticResource SurfaceBrush}"
+              BorderThickness="0,1,0,0"
+              BorderBrush="{StaticResource DividerBrush}"
+              Padding="16,12"
+              IsVisible="{Binding IsEditing}">
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <Button Command="{Binding SaveWorkflowCommand}"
+                  Classes="Primary"
+                  IsEnabled="{Binding EditingWorkflow.Name, Converter={StaticResource StringNotEmptyConverter}}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <PathIcon Data="M5,13L9,17L19,7" 
+                        Width="14" 
+                        Height="14"
+                        Stroke="White"
+                        StrokeThickness="2"/>
+              <TextBlock Text="Save Workflow"/>
+            </StackPanel>
+          </Button>
+          
+          <Button Command="{Binding CancelEditCommand}">
+            <TextBlock Text="Cancel"/>
+          </Button>
+          
+          <Rectangle Width="1" 
+                     Height="24" 
+                     Fill="{StaticResource DividerBrush}"
+                     Margin="8,0"/>
+          
+          <TextBlock Text="{Binding EditingWorkflow.Actions.Count, StringFormat='{}{0} actions'}"
+                     VerticalAlignment="Center"
+                     Foreground="{StaticResource TextSecondaryBrush}"/>
+        </StackPanel>
+      </Border>
+
+      <!-- Error Message -->
+      <Border Grid.Row="1"
+              Background="{StaticResource ErrorBrush}"
+              Padding="16,12"
+              IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}">
+        <TextBlock Text="{Binding ErrorMessage}"
+                   Foreground="White"
+                   TextWrapping="Wrap"/>
+      </Border>
+      
+    </Grid>
+    
+  </Grid>
+  
+</UserControl>

@@ -62,6 +62,10 @@ public partial class SettingsViewModel : ObservableObject
 
     public VoiceControlViewModel VoiceSettings { get; }
     public AudioOptimizationViewModel AudioOptimizationViewModel { get; }
+    public SystemHealthViewModel SystemHealthViewModel { get; }
+    public ConnectedAccountsViewModel ConnectedAccountsViewModel { get; }
+    public DataManagementViewModel DataManagementViewModel { get; }
+    public AiAdministrationViewModel AiAdministrationViewModel { get; }
 
     public SettingsViewModel(
         ICultureManager cultureManager,
@@ -71,7 +75,11 @@ public partial class SettingsViewModel : ObservableObject
         IUserPreferencesService preferencesService,
         IDialogService dialogService,
         SaveState.Presentation.ViewModels.Shell.VoiceControlViewModel voiceSettings,
-        AudioOptimizationViewModel audioOptimizationViewModel)
+        AudioOptimizationViewModel audioOptimizationViewModel,
+        SystemHealthViewModel systemHealthViewModel,
+        ConnectedAccountsViewModel connectedAccountsViewModel,
+        DataManagementViewModel dataManagementViewModel,
+        AiAdministrationViewModel aiAdministrationViewModel)
     {
         _cultureManager = cultureManager;
         _resources = resources;
@@ -81,6 +89,10 @@ public partial class SettingsViewModel : ObservableObject
         _dialogService = dialogService;
         VoiceSettings = voiceSettings;
         AudioOptimizationViewModel = audioOptimizationViewModel;
+        SystemHealthViewModel = systemHealthViewModel;
+        ConnectedAccountsViewModel = connectedAccountsViewModel;
+        DataManagementViewModel = dataManagementViewModel;
+        AiAdministrationViewModel = aiAdministrationViewModel;
 
         SelectedCulture = _cultureManager.CurrentCulture;
         SelectedTheme = _themeService.CurrentTheme;
@@ -143,6 +155,31 @@ public partial class SettingsViewModel : ObservableObject
     private async Task OpenEmulatorSetupAsync()
     {
         await _dialogService.ShowEmulatorSetupWizardAsync();
+    }
+
+    [RelayCommand]
+    private void OpenSystemHealth()
+    {
+        // Navigate to System Health view - the view is accessed via the ViewModel property
+        // This can be expanded to show the view in a dialog or navigate to it
+    }
+
+    [RelayCommand]
+    private void OpenConnectedAccounts()
+    {
+        // Navigate to Connected Accounts view
+    }
+
+    [RelayCommand]
+    private void OpenDataManagement()
+    {
+        // Navigate to Data Management view
+    }
+
+    [RelayCommand]
+    private void OpenAiAdministration()
+    {
+        // Navigate to AI Administration view
     }
 
     private async Task LoadAiPreferencesAsync()

@@ -4,69 +4,91 @@
              x:Class="SaveState.Presentation.Views.Shell.Mugen.TournamentBracketView"
              x:DataType="vm:TournamentBracketViewModel">
 
-    <Grid RowDefinitions="Auto, *">
-        <!-- Tournament Header -->
-        <Border Grid.Row="0" Classes="GlassContainer" Margin="10" Padding="15">
-            <Grid ColumnDefinitions="*, Auto">
-                <StackPanel>
-                    <TextBlock Text="{Binding TournamentName}" FontSize="24" FontWeight="Bold" />
-                    <TextBlock Text="{Binding Status}" Classes="Subtitle" />
-                </StackPanel>
-            </Grid>
-        </Border>
+  <!-- 
+    PERFORMANCE OPTIMIZATION NOTES:
+    - Uses ListBox with VirtualizingPanel for efficient rendering of large tournaments
+    - VirtualizingPanel.IsVirtualizing="True" ensures only visible items are rendered
+    - Nested ItemsControls optimized for typical bracket sizes
+  -->
 
-        <!-- Bracket Area -->
-        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding Rounds}" Margin="20">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal" Spacing="40" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
+  <Grid RowDefinitions="Auto, *">
+    <!-- Tournament Header -->
+    <Border Grid.Row="0" Classes="GlassContainer" Margin="10" Padding="15">
+      <Grid ColumnDefinitions="*, Auto">
+        <StackPanel>
+          <TextBlock Text="{Binding TournamentName, Mode=OneTime}" FontSize="24" FontWeight="Bold" />
+          <TextBlock Text="{Binding Status, Mode=OneTime}" Classes="Subtitle" />
+        </StackPanel>
+      </Grid>
+    </Border>
 
+    <!-- Bracket Area - Virtualized for performance -->
+    <ScrollViewer Grid.Row="1" 
+                  HorizontalScrollBarVisibility="Auto" 
+                  VerticalScrollBarVisibility="Auto">
+      <ListBox ItemsSource="{Binding Rounds, Mode=OneWay}" 
+               Margin="20"
+               VirtualizingPanel.IsVirtualizing="True"
+               VirtualizingPanel.VirtualizationMode="Recycling"
+               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+               ScrollViewer.VerticalScrollBarVisibility="Disabled"
+               Background="Transparent"
+               BorderThickness="0">
+        <ListBox.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Orientation="Horizontal" Spacing="40" />
+          </ItemsPanelTemplate>
+        </ListBox.ItemsPanel>
+        <ListBox.ItemContainerTheme>
+          <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+          </ControlTheme>
+        </ListBox.ItemContainerTheme>
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <StackPanel Spacing="20">
+              <!-- Round Header -->
+              <TextBlock Text="{Binding RoundName, Mode=OneTime}"
+                         HorizontalAlignment="Center"
+                         FontWeight="Bold"
+                         FontSize="16"
+                         Foreground="{StaticResource AccentBrush}" />
+
+              <!-- Matches in Round - ItemsControl OK for small match counts -->
+              <ItemsControl ItemsSource="{Binding Matches, Mode=OneWay}">
                 <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Spacing="20">
-                            <!-- Round Header -->
-                            <TextBlock Text="{Binding RoundName}"
-                                       HorizontalAlignment="Center"
-                                       FontWeight="Bold"
-                                       FontSize="16"
-                                       Foreground="{StaticResource AccentBrush}" />
+                  <DataTemplate>
+                    <Border Classes="GlassContainer"
+                            Padding="10"
+                            Margin="0,0,0,15"
+                            Width="180"
+                            BorderThickness="1"
+                            BorderBrush="{Binding IsComplete, Converter={StaticResource BoolToAccentBrushConverter}, Mode=OneWay}">
+                      <StackPanel Spacing="5">
+                        <!-- Player 1 -->
+                        <Grid ColumnDefinitions="*, Auto">
+                          <TextBlock Text="{Binding Player1Name, Mode=OneTime}" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Grid.Column="1" Text="🏆" IsVisible="{Binding Result, Converter={StaticResource StringContainsConverter}, ConverterParameter=P1, Mode=OneWay}" />
+                        </Grid>
 
-                            <!-- Matches in Round -->
-                            <ItemsControl ItemsSource="{Binding Matches}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Classes="GlassContainer"
-                                                Padding="10"
-                                                Margin="0,0,0,15"
-                                                Width="180"
-                                                BorderThickness="1"
-                                                BorderBrush="{Binding IsComplete, Converter={StaticResource BoolToAccentBrushConverter}}">
-                                            <StackPanel Spacing="5">
-                                                <!-- Player 1 -->
-                                                <Grid ColumnDefinitions="*, Auto">
-                                                    <TextBlock Text="{Binding Player1Name}" TextTrimming="CharacterEllipsis" />
-                                                    <TextBlock Grid.Column="1" Text="🏆" IsVisible="{Binding Result, Converter={StaticResource StringContainsConverter}, ConverterParameter=P1}" />
-                                                </Grid>
+                        <Separator Background="#333" Height="1" Margin="0,2" />
 
-                                                <Separator Background="#333" Height="1" Margin="0,2" />
-
-                                                <!-- Player 2 -->
-                                                <Grid ColumnDefinitions="*, Auto">
-                                                    <TextBlock Text="{Binding Player2Name}" TextTrimming="CharacterEllipsis" />
-                                                    <TextBlock Grid.Column="1" Text="🏆" IsVisible="{Binding Result, Converter={StaticResource StringContainsConverter}, ConverterParameter=P2}" />
-                                                </Grid>
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-                    </DataTemplate>
+                        <!-- Player 2 -->
+                        <Grid ColumnDefinitions="*, Auto">
+                          <TextBlock Text="{Binding Player2Name, Mode=OneTime}" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Grid.Column="1" Text="🏆" IsVisible="{Binding Result, Converter={StaticResource StringContainsConverter}, ConverterParameter=P2, Mode=OneWay}" />
+                        </Grid>
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
                 </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
-    </Grid>
+              </ItemsControl>
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </ScrollViewer>
+  </Grid>
 </UserControl>

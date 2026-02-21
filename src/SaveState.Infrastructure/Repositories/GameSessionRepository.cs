@@ -160,4 +160,17 @@ public class GameSessionRepository : IGameSessionRepository
             .ToListAsync(ct)
             .ConfigureAwait(false);
     }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<GameSession>> GetRecentSessionsAsync(TimeSpan timeSpan, int limit, CancellationToken ct = default)
+    {
+        var cutoffTime = _timeProvider.UtcNow.Subtract(timeSpan);
+        return await _context.GameSessions
+            .Include(s => s.Game)
+            .Where(s => s.StartedAt >= cutoffTime)
+            .OrderByDescending(s => s.StartedAt)
+            .Take(limit)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+    }
 }

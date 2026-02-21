@@ -68,7 +68,7 @@ public sealed class AutoDiscoveryEngine : IAutoDiscoveryEngine, IDisposable
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
 
-        // Initialize all heuristics (7 original + 17 new = 24 total)
+        // Initialize all heuristics (91 existing + 32 new = 123 total)
         _heuristics = new List<IValueHeuristic>
         {
             // Original 7 heuristics
@@ -80,32 +80,123 @@ public sealed class AutoDiscoveryEngine : IAutoDiscoveryEngine, IDisposable
             new ScoreHeuristic(),
             new TimerHeuristic(),
 
-            // Movement & Physics (4)
+            // Movement & Physics (8)
             new SpeedHeuristic(),
             new VelocityHeuristic(),
             new JumpHeightHeuristic(),
             new GravityHeuristic(),
+            new AltitudeHeuristic(),
+            new RotationHeuristic(),
+            new AccelerationHeuristic(),
+            new DistanceTraveledHeuristic(),
 
-            // Combat Mechanics (4)
+            // Combat Mechanics (18)
             new CooldownHeuristic(),
             new DamageHeuristic(),
             new CriticalChanceHeuristic(),
             new ArmorRatingHeuristic(),
+            new ShieldHeuristic(),
+            new EnergyHeuristic(),
+            new StaminaHeuristic(),
+            new ComboCountHeuristic(),
+            new KillCountHeuristic(),
+            new HeadshotCountHeuristic(),
+            new MultiKillHeuristic(),
+            new AccuracyHeuristic(),
+            new CritDamageHeuristic(),
+            new LifeStealHeuristic(),
+            new DodgeChanceHeuristic(),
+            new FireRateHeuristic(),
+            new ReloadSpeedHeuristic(),
+            new BlockChanceHeuristic(),
 
-            // RPG Progression (3)
+            // RPG Progression (22)
             new SkillPointsHeuristic(),
             new ReputationHeuristic(),
             new CarryWeightHeuristic(),
+            new LevelProgressHeuristic(),
+            new GoldHeuristic(),
+            new QuestProgressHeuristic(),
+            new FameHeuristic(),
+            new BlessingHeuristic(),
+            new AttributeStrengthHeuristic(),
+            new AttributeAgilityHeuristic(),
+            new AttributeIntelligenceHeuristic(),
+            new AttributeVitalityHeuristic(),
+            new CharismaHeuristic(),
+            new LuckHeuristic(),
+            new PerceptionHeuristic(),
+            new TalentPointsHeuristic(),
+            new ResistFireHeuristic(),
+            new ResistIceHeuristic(),
+            new ResistLightningHeuristic(),
+            new ResistPoisonHeuristic(),
 
-            // Resource Management (3)
+            // Resource Management (13)
             new ManaHeuristic(),
             new DurabilityHeuristic(),
             new ResourceCountHeuristic(),
+            new KeyCountHeuristic(),
+            new GemCountHeuristic(),
+            new EnergyCellHeuristic(),
+            new ScrapHeuristic(),
+            new WoodHeuristic(),
+            new StoneHeuristic(),
+            new FiberHeuristic(),
+            new HideHeuristic(),
+            new FoodHeuristic(),
+            new AmmoSpecialHeuristic(),
 
-            // Game State (3)
+            // Game State (15)
             new DifficultyHeuristic(),
             new GameTimeHeuristic(),
-            new CompletionHeuristic()
+            new CompletionHeuristic(),
+            new LivesHeuristic(),
+            new WaveNumberHeuristic(),
+            new DayNumberHeuristic(),
+            new DeathCountHeuristic(),
+            new PlayTimeHeuristic(),
+            new MissionTimerHeuristic(),
+            new CheckpointHeuristic(),
+            new SecretCountHeuristic(),
+            new RankHeuristic(),
+            new LoadingProgressHeuristic(),
+            new MatchTimeHeuristic(),
+            new TutorialProgressHeuristic(),
+
+            // Survival (10)
+            new HungerHeuristic(),
+            new ThirstHeuristic(),
+            new TemperatureHeuristic(),
+            new OxygenHeuristic(),
+            new RadiationHeuristic(),
+            new FatigueHeuristic(),
+            new SanityHeuristic(),
+            new PoisonHeuristic(),
+            new WetnessHeuristic(),
+            new BleedingHeuristic(),
+
+            // Vehicle (9)
+            new FuelHeuristic(),
+            new VehicleSpeedHeuristic(),
+            new NitroHeuristic(),
+            new GearHeuristic(),
+            new BrakeTemperatureHeuristic(),
+            new TireWearHeuristic(),
+            new SuspensionHeightHeuristic(),
+            new OilTemperatureHeuristic(),
+            new DownforceHeuristic(),
+
+            // Map (4)
+            new MapZoomHeuristic(),
+            new MapRotationHeuristic(),
+            new MapMarkerCountHeuristic(),
+            new FogOfWarHeuristic(),
+
+            // Multiplayer (3)
+            new PingHeuristic(),
+            new PlayerCountHeuristic(),
+            new TeamScoreHeuristic()
         };
 
         _logger.LogInformation("AutoDiscoveryEngine initialized with {Count} heuristics", _heuristics.Count);

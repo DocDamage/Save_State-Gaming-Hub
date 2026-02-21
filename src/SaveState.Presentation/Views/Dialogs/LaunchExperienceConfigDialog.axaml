@@ -1,0 +1,155 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Dialogs"
+        x:Class="SaveState.Presentation.Views.Dialogs.LaunchExperienceConfigDialog"
+        x:DataType="vm:LaunchExperienceConfigDialogViewModel"
+        Title="Launch Experience Settings"
+        Width="500"
+        Height="550"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+
+  <Design.DataContext>
+    <vm:LaunchExperienceConfigDialogViewModel/>
+  </Design.DataContext>
+
+  <Window.Styles>
+    <Style Selector="Border.Card">
+      <Setter Property="Background" Value="#15FFFFFF"/>
+      <Setter Property="BorderBrush" Value="#25FFFFFF"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="8"/>
+    </Style>
+    
+    <Style Selector="TextBlock.H5">
+      <Setter Property="FontSize" Value="24"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+    
+    <Style Selector="TextBlock.BodyStrong">
+      <Setter Property="FontSize" Value="16"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+    
+    <Style Selector="TextBlock.Caption">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Opacity" Value="0.7"/>
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+    
+    <Style Selector="Button.accent">
+      <Setter Property="Background" Value="#FF00CCFF"/>
+      <Setter Property="Foreground" Value="Black"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Padding" Value="20,10"/>
+      <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+  </Window.Styles>
+
+  <ScrollViewer>
+    <StackPanel Margin="24" Spacing="16">
+      <TextBlock Text="🎬 Launch Experience" Classes="H5"/>
+      <TextBlock Text="Customize the cinematic game startup experience." 
+                 Opacity="0.6" 
+                 TextWrapping="Wrap"
+                 Foreground="White"/>
+      
+      <!-- Enable Cinematic Launch -->
+      <Border Classes="Card" Padding="16">
+        <StackPanel>
+          <ToggleSwitch Content="Enable cinematic launch"
+                        IsChecked="{Binding EnableCinematicLaunch}"
+                        Foreground="White"/>
+          <TextBlock Text="Show an immersive overlay when launching games"
+                     Classes="Caption" 
+                     Margin="0,4,0,0"/>
+        </StackPanel>
+      </Border>
+      
+      <!-- Animation Duration -->
+      <StackPanel IsEnabled="{Binding EnableCinematicLaunch}">
+        <StackPanel.Styles>
+          <Style Selector="StackPanel:disabled">
+            <Setter Property="Opacity" Value="0.5"/>
+          </Style>
+        </StackPanel.Styles>
+        <TextBlock Text="Animation Duration" Classes="BodyStrong"/>
+        <ComboBox ItemsSource="{Binding DurationOptions}"
+                  SelectedItem="{Binding AnimationDurationSeconds}"
+                  Width="200" 
+                  HorizontalAlignment="Left" 
+                  Margin="0,8,0,0">
+          <ComboBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding, StringFormat='{}{0} seconds'}" Foreground="White"/>
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+      </StackPanel>
+      
+      <!-- Display Options -->
+      <StackPanel Spacing="12" IsEnabled="{Binding EnableCinematicLaunch}">
+        <StackPanel.Styles>
+          <Style Selector="StackPanel:disabled">
+            <Setter Property="Opacity" Value="0.5"/>
+          </Style>
+        </StackPanel.Styles>
+        <TextBlock Text="Display Options" Classes="BodyStrong"/>
+        
+        <ToggleSwitch Content="Show AI briefing"
+                      IsChecked="{Binding ShowAiBriefing}"
+                      Foreground="White"/>
+        <TextBlock Text="Display AI-generated game information"
+                   Classes="Caption" 
+                   Margin="48,-12,0,0"/>
+        
+        <ToggleSwitch Content="Show tips"
+                      IsChecked="{Binding ShowTips}"
+                      Foreground="White"/>
+        <TextBlock Text="Rotate helpful gameplay tips"
+                   Classes="Caption" 
+                   Margin="48,-12,0,0"/>
+        
+        <ToggleSwitch Content="Show last session summary"
+                      IsChecked="{Binding ShowLastSessionSummary}"
+                      Foreground="White"/>
+        <TextBlock Text="Display your previous play session info"
+                   Classes="Caption" 
+                   Margin="48,-12,0,0"/>
+      </StackPanel>
+      
+      <!-- Background Style -->
+      <StackPanel IsEnabled="{Binding EnableCinematicLaunch}">
+        <StackPanel.Styles>
+          <Style Selector="StackPanel:disabled">
+            <Setter Property="Opacity" Value="0.5"/>
+          </Style>
+        </StackPanel.Styles>
+        <TextBlock Text="Background Style" Classes="BodyStrong"/>
+        <ComboBox ItemsSource="{Binding BackgroundStyleOptions}"
+                  SelectedItem="{Binding BackgroundStyle}"
+                  Width="200" 
+                  HorizontalAlignment="Left" 
+                  Margin="0,8,0,0">
+          <ComboBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding}" Foreground="White"/>
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+      </StackPanel>
+      
+      <!-- Buttons -->
+      <StackPanel Orientation="Horizontal" 
+                  HorizontalAlignment="Right" 
+                  Spacing="8"
+                  Margin="0,16,0,0">
+        <Button Content="Cancel" Command="{Binding CancelCommand}" Padding="20,10"/>
+        <Button Content="Save" Command="{Binding SaveCommand}" Classes="accent"/>
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+  
+</Window>

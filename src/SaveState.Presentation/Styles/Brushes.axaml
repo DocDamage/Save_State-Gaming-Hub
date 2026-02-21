@@ -1,8 +1,30 @@
+<!--
+    Brushes.axaml
+    
+    Color palette and brush resources for SaveState Reborn.
+    Uses a "Midnight" theme with deep slate backgrounds and emerald accents.
+    
+    Color Palette:
+    - Background:    #121212 (Deepest layer)
+    - Surface:       #1A1B1E (Elevated surfaces)
+    - Card:          #25262B (Cards and panels)
+    - Card Hover:    #2C2E33 (Hover states)
+    - Text Primary:  #FFFFFF (Headings, important text)
+    - Text Secondary:#A1A1AA (Body text)
+    - Text Tertiary: #71717A (Muted text)
+    - Accent:        #10B981 (Primary action color)
+    - Accent Hover:  #059669 (Accent hover state)
+    
+    Usage in XAML:
+        <Border Background="{StaticResource CardBackgroundBrush}" />
+-->
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- WeMod-Inspired "Midnight" Theme -->
-    <!-- Authentic Deep Slate Aesthetic -->
+    <!-- =========================================================================
+         WE-MOD INSPIRED "MIDNIGHT" THEME
+         Authentic Deep Slate Aesthetic
+         ========================================================================= -->
 
     <!-- Base Colors -->
     <!-- Main Window Background (Deepest) -->
@@ -99,4 +121,14 @@
 
     <!-- Utility -->
     <SolidColorBrush x:Key="GlassBrush" Color="#1A1B1E" Opacity="0.95" />
+
+    <!-- Semantic Brushes for Consistency -->
+    <SolidColorBrush x:Key="DialogBackgroundBrush" Color="#1A1B1E" />
+    <SolidColorBrush x:Key="InputBorderBrush" Color="#2C2E33" />
+    <SolidColorBrush x:Key="InputBackgroundBrush" Color="#2C2E33" />
+    <SolidColorBrush x:Key="ForegroundBrush" Color="#FFFFFF" />
+
+    <!-- Tag-specific brushes (used in TagEditorDialog) -->
+    <SolidColorBrush x:Key="TagBackgroundBrush" Color="#2C2E33" />
+    <SolidColorBrush x:Key="TagBorderBrush" Color="#3F3F46" />
 </ResourceDictionary>

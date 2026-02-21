@@ -1,3 +1,22 @@
+<!--
+    HeaderBarView.axaml
+    
+    The header navigation bar containing:
+    - Tab buttons for main navigation (Library, Dashboard, MUGEN, etc.)
+    - Universal search box with special command prefixes:
+      * ">" - Opens command palette
+      * "@" - Opens AI assistant
+      * Any text - Opens quick search
+    - Notification button with unread badge
+    - Settings and user profile buttons
+    
+    The tab buttons use a custom control template with:
+    - Icon + text layout
+    - Active indicator bar at bottom
+    - Hover and active state styling
+    
+    Binding Context: HeaderBarViewModel
+-->
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:SaveState.Presentation.ViewModels.Shell"
@@ -6,6 +25,7 @@
              x:DataType="vm:HeaderBarViewModel"
              Height="48">
 
+    <!-- Local styles for header-specific controls -->
     <UserControl.Styles>
         <!-- Tab Button Styles -->
         <Style Selector="Button.tab-button">
@@ -112,7 +132,7 @@
         </Style>
     </UserControl.Styles>
 
-    <Grid ColumnDefinitions="Auto, *, Auto, Auto, Auto, Auto">
+    <Grid ColumnDefinitions="Auto, *, Auto, Auto, Auto, Auto, Auto">
         <!-- Tab Navigation -->
         <ItemsControl Grid.Column="0"
                      ItemsSource="{Binding TabButtons}"
@@ -138,11 +158,19 @@
         <TextBox Grid.Column="1"
                  Classes="search-box"
                  Text="{Binding SearchText}"
+                 Watermark="Search games, commands, settings... (Ctrl+Shift+P)"
                  Margin="24,8"
                  KeyDown="OnSearchKeyDown" />
 
-        <!-- Notification Button -->
+        <!-- Search Button -->
         <Button Grid.Column="2"
+                Classes="header-button"
+                Content="🔍"
+                Command="{Binding OpenUniversalSearchCommand}"
+                ToolTip.Tip="Universal Search (Ctrl+Shift+P)" />
+
+        <!-- Notification Button -->
+        <Button Grid.Column="3"
                 Classes="header-button badge"
                 Content="🔔"
                 Command="{Binding ToggleNotificationsCommand}"
@@ -150,14 +178,14 @@
                 ToolTip.Tip="Notifications" />
 
         <!-- Settings Button -->
-        <Button Grid.Column="3"
+        <Button Grid.Column="4"
                 Classes="header-button"
                 Content="⚙️"
                 Command="{Binding OpenSettingsCommand}"
                 ToolTip.Tip="Settings (Ctrl+,)" />
 
         <!-- User Profile Button -->
-        <Button Grid.Column="4"
+        <Button Grid.Column="5"
                 Classes="header-button"
                 Content="👤"
                 Command="{Binding OpenUserProfileCommand}"

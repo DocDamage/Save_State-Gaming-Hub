@@ -12,41 +12,87 @@
             <!-- Header -->
             <Grid ColumnDefinitions="*, Auto, Auto">
                 <StackPanel>
-                    <TextBlock Text="Analytics Dashboard" FontSize="28" FontWeight="Light"/>
-                    <TextBlock Text="Track your gaming habits, backlog, and predictions" FontSize="14" Opacity="0.6"/>
+                    <TextBlock Text="Analytics Dashboard"
+                               FontSize="28"
+                               FontWeight="Light"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock Text="Track your gaming habits, backlog, and predictions"
+                               FontSize="14"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
                 </StackPanel>
 
-                <Button Grid.Column="1" Command="{Binding LoadAnalyticsCommand}" Content="Refresh Data" Margin="0,0,10,0"/>
-                <Button Grid.Column="2" Command="{Binding ExportDataCommand}" Content="Export JSON"/>
+                <Button Grid.Column="1"
+                        Command="{Binding LoadAnalyticsCommand}"
+                        Content="Refresh Data"
+                        Classes="Secondary"
+                        Margin="0,0,12,0"
+                        ToolTip.Tip="Refresh analytics data"
+                        AutomationProperties.Name="Refresh Analytics" />
+                <Button Grid.Column="2"
+                        Command="{Binding ExportDataCommand}"
+                        Content="Export JSON"
+                        Classes="Secondary"
+                        ToolTip.Tip="Export analytics data as JSON"
+                        AutomationProperties.Name="Export Analytics" />
             </Grid>
 
             <!-- Loading Indicator -->
-            <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsLoading}" Height="2"/>
+            <ProgressBar IsIndeterminate="True"
+                         IsVisible="{Binding IsLoading}"
+                         Height="2"
+                         Foreground="{StaticResource AccentBrush}" />
 
             <!-- Summary Stats -->
             <UniformGrid Columns="4" Rows="1">
-                <Border Margin="0,0,10,0" Padding="15" Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8">
+                <Border Margin="0,0,12,0"
+                        Padding="16"
+                        Background="{StaticResource CardBackgroundBrush}"
+                        CornerRadius="8">
                     <StackPanel>
-                        <TextBlock Text="Total Play Time" Opacity="0.7"/>
-                        <TextBlock Text="{Binding TotalPlayTime}" FontSize="24" FontWeight="Bold"/>
+                        <TextBlock Text="Total Play Time"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                        <TextBlock Text="{Binding TotalPlayTime}"
+                                   FontSize="24"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
                     </StackPanel>
                 </Border>
-                <Border Margin="0,0,10,0" Padding="15" Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8">
+                <Border Margin="0,0,12,0"
+                        Padding="16"
+                        Background="{StaticResource CardBackgroundBrush}"
+                        CornerRadius="8">
                     <StackPanel>
-                        <TextBlock Text="Total Games" Opacity="0.7"/>
-                        <TextBlock Text="{Binding TotalGames}" FontSize="24" FontWeight="Bold"/>
+                        <TextBlock Text="Total Games"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                        <TextBlock Text="{Binding TotalGames}"
+                                   FontSize="24"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
                     </StackPanel>
                 </Border>
-                <Border Margin="0,0,10,0" Padding="15" Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8">
+                <Border Margin="0,0,12,0"
+                        Padding="16"
+                        Background="{StaticResource CardBackgroundBrush}"
+                        CornerRadius="8">
                     <StackPanel>
-                        <TextBlock Text="Avg Session" Opacity="0.7"/>
-                        <TextBlock Text="{Binding AverageSessionLength}" FontSize="24" FontWeight="Bold"/>
+                        <TextBlock Text="Avg Session"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                        <TextBlock Text="{Binding AverageSessionLength}"
+                                   FontSize="24"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
                     </StackPanel>
                 </Border>
-                <Border Padding="15" Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8">
+                <Border Padding="16"
+                        Background="{StaticResource CardBackgroundBrush}"
+                        CornerRadius="8">
                     <StackPanel>
-                        <TextBlock Text="Longest Streak" Opacity="0.7"/>
-                        <TextBlock Text="{Binding LongestStreak}" FontSize="24" FontWeight="Bold"/>
+                        <TextBlock Text="Longest Streak"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                        <TextBlock Text="{Binding LongestStreak}"
+                                   FontSize="24"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
                     </StackPanel>
                 </Border>
             </UniformGrid>
@@ -58,11 +104,16 @@
                 <StackPanel Grid.Column="0" Spacing="20">
 
                     <!-- AI Predictions -->
-                    <Border Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8" Padding="15">
-                        <StackPanel Spacing="15">
+                    <Border Background="{StaticResource CardBackgroundBrush}"
+                            CornerRadius="8"
+                            Padding="16">
+                        <StackPanel Spacing="16">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="✨" FontSize="16"/>
-                                <TextBlock Text="AI Completion Predictions" FontWeight="Bold" FontSize="16"/>
+                                <TextBlock Text="✨" FontSize="16" />
+                                <TextBlock Text="AI Completion Predictions"
+                                           FontWeight="Bold"
+                                           FontSize="16"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
                             </StackPanel>
 
                             <ItemsControl ItemsSource="{Binding Predictions}">
@@ -70,11 +121,21 @@
                                     <DataTemplate>
                                         <Grid ColumnDefinitions="*, Auto" Margin="0,8">
                                             <StackPanel>
-                                                <TextBlock Text="{Binding GameName}" FontWeight="SemiBold"/>
-                                                <TextBlock Text="{Binding EstimatedTimeRemaining, StringFormat='Estimated: \{0:h\}h \{0:m\}m remaining'}" FontSize="12" Opacity="0.7"/>
+                                                <TextBlock Text="{Binding GameName}"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                                <TextBlock Text="{Binding EstimatedTimeRemaining, StringFormat='Estimated: \{0:h\}h \{0:m\}m remaining'}"
+                                                           FontSize="12"
+                                                           Foreground="{StaticResource TextSecondaryBrush}" />
                                             </StackPanel>
-                                            <Border Grid.Column="1" Background="#30FFFFFF" CornerRadius="4" Padding="8,4" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding ConfidenceScore, StringFormat='\{0:F0\}% Conf.'}" FontSize="12"/>
+                                            <Border Grid.Column="1"
+                                                    Background="{StaticResource HoverBrush}"
+                                                    CornerRadius="4"
+                                                    Padding="8,4"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding ConfidenceScore, StringFormat='\{0:F0\}% Conf.'}"
+                                                           FontSize="12"
+                                                           Foreground="{StaticResource TextPrimaryBrush}" />
                                             </Border>
                                         </Grid>
                                     </DataTemplate>
@@ -83,21 +144,41 @@
 
                             <TextBlock Text="No active games sufficient for prediction."
                                        IsVisible="{Binding !Predictions.Count}"
-                                       Opacity="0.5" FontStyle="Italic" HorizontalAlignment="Center"/>
+                                       Foreground="{StaticResource TextTertiaryBrush}"
+                                       FontStyle="Italic"
+                                       HorizontalAlignment="Center" />
                         </StackPanel>
                     </Border>
 
                     <!-- Genre Distribution -->
-                    <Border Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8" Padding="15">
-                        <StackPanel Spacing="10">
-                            <TextBlock Text="Top Genres by Playtime" FontWeight="Bold" FontSize="16"/>
+                    <Border Background="{StaticResource CardBackgroundBrush}"
+                            CornerRadius="8"
+                            Padding="16">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Top Genres by Playtime"
+                                       FontWeight="Bold"
+                                       FontSize="16"
+                                       Foreground="{StaticResource TextPrimaryBrush}" />
                             <ItemsControl ItemsSource="{Binding GenreData}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Grid ColumnDefinitions="Auto, *, Auto" Margin="0,6">
-                                            <TextBlock Text="{Binding Genre}" Width="110" TextTrimming="CharacterEllipsis"/>
-                                            <ProgressBar Grid.Column="1" Value="{Binding Percentage}" Maximum="100" Height="6" Margin="10,0" VerticalAlignment="Center"/>
-                                            <TextBlock Grid.Column="2" Text="{Binding Hours, StringFormat='\{0:F1\}h'}" Width="50" TextAlignment="Right"/>
+                                            <TextBlock Text="{Binding Genre}"
+                                                       Width="110"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       Foreground="{StaticResource TextPrimaryBrush}" />
+                                            <ProgressBar Grid.Column="1"
+                                                         Value="{Binding Percentage}"
+                                                         Maximum="100"
+                                                         Height="6"
+                                                         Margin="10,0"
+                                                         VerticalAlignment="Center"
+                                                         Foreground="{StaticResource AccentBrush}" />
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding Hours, StringFormat='\{0:F1\}h'}"
+                                                       Width="50"
+                                                       TextAlignment="Right"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
                                         </Grid>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -106,15 +187,24 @@
                     </Border>
 
                     <!-- Play Streaks -->
-                    <Border Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8" Padding="15">
-                         <StackPanel Spacing="10">
-                            <TextBlock Text="Recent Play Streaks" FontWeight="Bold" FontSize="16"/>
+                    <Border Background="{StaticResource CardBackgroundBrush}"
+                            CornerRadius="8"
+                            Padding="16">
+                         <StackPanel Spacing="12">
+                            <TextBlock Text="Recent Play Streaks"
+                                       FontWeight="Bold"
+                                       FontSize="16"
+                                       Foreground="{StaticResource TextPrimaryBrush}" />
                             <ItemsControl ItemsSource="{Binding PlayStreaks}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Grid ColumnDefinitions="*, Auto" Margin="0,4">
-                                            <TextBlock Text="{Binding DateRange}" Opacity="0.8"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding StreakText}" FontWeight="Bold"/>
+                                            <TextBlock Text="{Binding DateRange}"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding StreakText}"
+                                                       FontWeight="Bold"
+                                                       Foreground="{StaticResource TextPrimaryBrush}" />
                                         </Grid>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -127,38 +217,76 @@
                 <StackPanel Grid.Column="2" Spacing="20">
 
                     <!-- Backlog Trend -->
-                    <Border Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8" Padding="15">
-                        <StackPanel Spacing="15">
-                            <TextBlock Text="Backlog Growth (6 Months)" FontWeight="Bold" FontSize="16"/>
+                    <Border Background="{StaticResource CardBackgroundBrush}"
+                            CornerRadius="8"
+                            Padding="16">
+                        <StackPanel Spacing="16">
+                            <TextBlock Text="Backlog Growth (6 Months)"
+                                       FontWeight="Bold"
+                                       FontSize="16"
+                                       Foreground="{StaticResource TextPrimaryBrush}" />
 
                             <ItemsControl ItemsSource="{Binding BacklogData}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Grid ColumnDefinitions="Auto, *, Auto" Margin="0,6">
-                                            <TextBlock Text="{Binding Date, StringFormat='MMM'}" Width="40" VerticalAlignment="Center"/>
-                                            <!-- Visualizing count relative to 100 max for now -->
-                                            <ProgressBar Grid.Column="1" Value="{Binding BacklogCount}" Maximum="100" Height="12" Margin="10,0" Foreground="#FF6B6B" VerticalAlignment="Center"/>
-                                            <TextBlock Grid.Column="2" Text="{Binding BacklogCount}" Width="30" TextAlignment="Right"/>
+                                            <TextBlock Text="{Binding Date, StringFormat='MMM'}"
+                                                       Width="40"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <ProgressBar Grid.Column="1"
+                                                         Value="{Binding BacklogCount}"
+                                                         Maximum="100"
+                                                         Height="12"
+                                                         Margin="10,0"
+                                                         VerticalAlignment="Center"
+                                                         Foreground="{StaticResource ErrorBrush}" />
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding BacklogCount}"
+                                                       Width="30"
+                                                       TextAlignment="Right"
+                                                       Foreground="{StaticResource TextPrimaryBrush}" />
                                         </Grid>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
 
-                            <TextBlock Text="Shows uncompleted games added over time" FontSize="11" Opacity="0.5" HorizontalAlignment="Right"/>
+                            <TextBlock Text="Shows uncompleted games added over time"
+                                       FontSize="11"
+                                       Foreground="{StaticResource TextTertiaryBrush}"
+                                       HorizontalAlignment="Right" />
                         </StackPanel>
                     </Border>
 
                     <!-- Completion Rates -->
-                     <Border Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8" Padding="15">
-                        <StackPanel Spacing="15">
-                            <TextBlock Text="Completion Rate Trend" FontWeight="Bold" FontSize="16"/>
+                     <Border Background="{StaticResource CardBackgroundBrush}"
+                             CornerRadius="8"
+                             Padding="16">
+                        <StackPanel Spacing="16">
+                            <TextBlock Text="Completion Rate Trend"
+                                       FontWeight="Bold"
+                                       FontSize="16"
+                                       Foreground="{StaticResource TextPrimaryBrush}" />
                             <ItemsControl ItemsSource="{Binding CompletionRates}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Grid ColumnDefinitions="Auto, *, Auto" Margin="0,6">
-                                            <TextBlock Text="{Binding Date, StringFormat='MMM'}" Width="40" VerticalAlignment="Center"/>
-                                            <ProgressBar Grid.Column="1" Value="{Binding CompletionRate}" Maximum="100" Height="12" Margin="10,0" Foreground="#4ECDC4" VerticalAlignment="Center"/>
-                                            <TextBlock Grid.Column="2" Text="{Binding CompletionRate, StringFormat='\{0:F0\}%'}" Width="40" TextAlignment="Right"/>
+                                            <TextBlock Text="{Binding Date, StringFormat='MMM'}"
+                                                       Width="40"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <ProgressBar Grid.Column="1"
+                                                         Value="{Binding CompletionRate}"
+                                                         Maximum="100"
+                                                         Height="12"
+                                                         Margin="10,0"
+                                                         VerticalAlignment="Center"
+                                                         Foreground="{StaticResource SuccessBrush}" />
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding CompletionRate, StringFormat='\{0:F0\}%'}"
+                                                       Width="40"
+                                                       TextAlignment="Right"
+                                                       Foreground="{StaticResource TextPrimaryBrush}" />
                                         </Grid>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -167,16 +295,32 @@
                     </Border>
 
                     <!-- Day Distribution -->
-                     <Border Background="{DynamicResource SurfaceRegionBrush}" CornerRadius="8" Padding="15">
-                        <StackPanel Spacing="10">
-                            <TextBlock Text="Weekly Habits" FontWeight="Bold" FontSize="16"/>
+                     <Border Background="{StaticResource CardBackgroundBrush}"
+                             CornerRadius="8"
+                             Padding="16">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Weekly Habits"
+                                       FontWeight="Bold"
+                                       FontSize="16"
+                                       Foreground="{StaticResource TextPrimaryBrush}" />
                             <ItemsControl ItemsSource="{Binding DayOfWeekData}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Grid ColumnDefinitions="Auto, *, Auto" Margin="0,4">
-                                            <TextBlock Text="{Binding Label}" Width="40"/>
-                                            <ProgressBar Grid.Column="1" Value="{Binding Value}" Maximum="100" Height="6" Margin="10,0"/>
-                                            <TextBlock Grid.Column="2" Text="{Binding Value, StringFormat='\{0:F0\}%'}" Width="40" TextAlignment="Right"/>
+                                            <TextBlock Text="{Binding Label}"
+                                                       Width="40"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <ProgressBar Grid.Column="1"
+                                                         Value="{Binding Value}"
+                                                         Maximum="100"
+                                                         Height="6"
+                                                         Margin="10,0"
+                                                         Foreground="{StaticResource SecondaryAccentBrush}" />
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding Value, StringFormat='\{0:F0\}%'}"
+                                                       Width="40"
+                                                       TextAlignment="Right"
+                                                       Foreground="{StaticResource TextPrimaryBrush}" />
                                         </Grid>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>

@@ -1,0 +1,234 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
+             x:Class="SaveState.Presentation.Views.Dialogs.GamerTypeQuizView"
+             x:DataType="vm:GamerTypeQuizViewModel">
+
+    <Grid RowDefinitions="Auto, *, Auto">
+        <!-- Header -->
+        <Border Grid.Row="0"
+                Background="{StaticResource AccentBrush}"
+                Padding="20"
+                CornerRadius="8,8,0,0">
+            <Grid ColumnDefinitions="*, Auto">
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="{Binding Title}"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Foreground="White" />
+                    <TextBlock Text="Answer a few questions to discover your gamer archetype"
+                               FontSize="12"
+                               Foreground="#CCFFFFFF" />
+                </StackPanel>
+                <TextBlock Grid.Column="1"
+                           Text="🎮"
+                           FontSize="32"
+                           VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+
+        <!-- Content -->
+        <Border Grid.Row="1"
+                Background="{StaticResource CardBackgroundBrush}"
+                Padding="24">
+            <Grid IsVisible="{Binding !IsLoading}">
+                <!-- Question View -->
+                <StackPanel IsVisible="{Binding !ShowResults}">
+                    <!-- Progress Bar -->
+                    <ProgressBar Value="{Binding ProgressPercentage}"
+                                 Maximum="100"
+                                 Height="8"
+                                 Margin="0,0,0,24"
+                                 Foreground="{StaticResource AccentBrush}" />
+
+                    <TextBlock Text="{Binding CurrentQuestion.Question}"
+                               FontSize="20"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,24" />
+
+                    <ItemsControl ItemsSource="{Binding CurrentQuestion.Answers}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Spacing="12" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Command="{Binding $parent[UserControl].((vm:GamerTypeQuizViewModel)DataContext).SelectAnswerCommand}"
+                                        CommandParameter="{Binding}"
+                                        HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Left"
+                                        Padding="16,12"
+                                        Classes="Secondary">
+                                    <Grid ColumnDefinitions="Auto, *">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="⭕"
+                                                   Margin="0,0,12,0"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Text}"
+                                                   FontSize="14"
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Button Command="{Binding PreviousQuestionCommand}"
+                            Content="← Back"
+                            Classes="Tertiary"
+                            HorizontalAlignment="Left"
+                            Margin="0,24,0,0"
+                            IsVisible="{Binding CurrentQuestionIndex, Converter={StaticResource GreaterThanZeroConverter}}" />
+                </StackPanel>
+
+                <!-- Results View -->
+                <ScrollViewer IsVisible="{Binding ShowResults}"
+                              MaxHeight="350">
+                    <StackPanel Spacing="20">
+                        <!-- Result Header -->
+                        <Border Background="{Binding ResultColor, Converter={StaticResource HexToBrushConverter}}"
+                                CornerRadius="12"
+                                Padding="24">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding ResultIcon}"
+                                           FontSize="64"
+                                           HorizontalAlignment="Center" />
+                                <TextBlock Text="You Are..."
+                                           FontSize="14"
+                                           HorizontalAlignment="Center"
+                                           Foreground="#CCFFFFFF"
+                                           Margin="0,8,0,4" />
+                                <TextBlock Text="{Binding ResultTitle}"
+                                           FontSize="28"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           Foreground="White" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Description -->
+                        <TextBlock Text="{Binding ResultDescription}"
+                                   FontSize="14"
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   TextWrapping="Wrap"
+                                   HorizontalAlignment="Center"
+                                   TextAlignment="Center" />
+
+                        <!-- Recommended Genres -->
+                        <Border Background="{StaticResource BackgroundBrush}"
+                                CornerRadius="8"
+                                Padding="16">
+                            <StackPanel>
+                                <TextBlock Text="Recommended Genres"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           Margin="0,0,0,8" />
+                                <ItemsControl ItemsSource="{Binding RecommendedGenres}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel HorizontalAlignment="Center" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{StaticResource AccentBrush}"
+                                                    CornerRadius="12"
+                                                    Padding="8,4"
+                                                    Margin="4">
+                                                <TextBlock Text="{Binding}"
+                                                           FontSize="12"
+                                                           Foreground="White" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- All Scores -->
+                        <Border Background="{StaticResource BackgroundBrush}"
+                                CornerRadius="8"
+                                Padding="16">
+                            <StackPanel>
+                                <TextBlock Text="Your Archetype Breakdown"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           Margin="0,0,0,12" />
+                                <ItemsControl ItemsSource="{Binding AllResults}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Spacing="8" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="Auto, *, Auto, Auto">
+                                                <TextBlock Grid.Column="0"
+                                                           Text="{Binding Icon}"
+                                                           FontSize="16"
+                                                           Width="24" />
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{Binding Name}"
+                                                           FontSize="12"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                                <ProgressBar Grid.Column="2"
+                                                             Value="{Binding Percentage}"
+                                                             Maximum="100"
+                                                             Width="100"
+                                                             Height="6"
+                                                             Margin="8,0"
+                                                             Foreground="{Binding Color, Converter={StaticResource HexToBrushConverter}}" />
+                                                <TextBlock Grid.Column="3"
+                                                           Text="{Binding Score}"
+                                                           FontSize="12"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                                           Width="30" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Footer -->
+        <Border Grid.Row="2"
+                Background="{StaticResource BackgroundBrush}"
+                Padding="16"
+                CornerRadius="0,0,8,8">
+            <Grid ColumnDefinitions="*, Auto">
+                <Button Grid.Column="0"
+                        Command="{Binding RestartQuizCommand}"
+                        Content="↻ Restart"
+                        Classes="Tertiary"
+                        IsVisible="{Binding ShowResults}" />
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            Spacing="12">
+                    <Button Command="{Binding CloseDialogCommand}"
+                            Content="Close"
+                            Classes="Secondary" />
+                    <Button Command="{Binding CloseDialogCommand}"
+                            Content="Done"
+                            Classes="Primary"
+                            IsVisible="{Binding ShowResults}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

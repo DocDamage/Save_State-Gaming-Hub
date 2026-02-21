@@ -1,199 +1,173 @@
-using SaveState.Core.Common;
-
 namespace SaveState.Core.AiCoOp.Models;
 
 /// <summary>
 /// Represents the personality type of an AI Co-Op companion.
 /// </summary>
-public enum CompanionPersonalityType
+public enum CompanionPersonality
 {
+    /// <summary>Encouraging and helpful personality.</summary>
     Supportive,
-    Aggressive,
-    Tactical,
+    /// <summary>Challenges the player and competes.</summary>
+    Competitive,
+    /// <summary>Makes jokes and keeps things lighthearted.</summary>
     Humorous,
-    Silent,
-    Roleplay
+    /// <summary>Strategic and analytical approach.</summary>
+    Tactical,
+    /// <summary>Minimal chatter, focused on gameplay.</summary>
+    Silent
 }
 
 /// <summary>
-/// Represents the current state of game context for AI companion.
+/// Represents the skill level of the AI companion.
 /// </summary>
-public record GameContextSnapshot
+public enum SkillLevel
 {
-    public string GameId { get; init; } = string.Empty;
-    public string GameName { get; init; } = string.Empty;
-    public string CurrentScene { get; init; } = string.Empty;
-    public PlayerStatus PlayerStatus { get; init; } = new();
-    public GameObjective? CurrentObjective { get; init; }
-    public IReadOnlyList<GameEntity> NearbyEntities { get; init; } = Array.Empty<GameEntity>();
-    public IReadOnlyList<string> RecentEvents { get; init; } = Array.Empty<string>();
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    /// <summary>Learns alongside the player.</summary>
+    Beginner,
+    /// <summary>Matches the player's skill level.</summary>
+    Equal,
+    /// <summary>Slightly better, teaches the player.</summary>
+    Mentor,
+    /// <summary>High skill, can carry when needed.</summary>
+    Professional
 }
 
 /// <summary>
-/// Represents player status information.
+/// Represents the voice profile for the AI companion.
 /// </summary>
-public record PlayerStatus
+public enum VoiceProfile
 {
-    public int Health { get; init; }
-    public int MaxHealth { get; init; }
-    public int Mana { get; init; }
-    public int MaxMana { get; init; }
-    public string CurrentWeapon { get; init; } = string.Empty;
-    public string Location { get; init; } = string.Empty;
-    public IReadOnlyList<string> StatusEffects { get; init; } = Array.Empty<string>();
+    /// <summary>Neutral voice.</summary>
+    Neutral,
+    /// <summary>Energetic and enthusiastic voice.</summary>
+    Energetic,
+    /// <summary>Calm and soothing voice.</summary>
+    Calm,
+    /// <summary>Robotic/mechanical voice.</summary>
+    Robotic,
+    /// <summary>Custom user-defined voice.</summary>
+    Custom
 }
 
 /// <summary>
-/// Represents a game objective.
+/// Configuration for the AI Co-Op companion.
 /// </summary>
-public record GameObjective
+public record CompanionConfiguration
 {
-    public string Id { get; init; } = string.Empty;
-    public string Description { get; init; } = string.Empty;
-    public ObjectivePriority Priority { get; init; }
-    public float CompletionPercentage { get; init; }
+    /// <summary>The display name of the companion.</summary>
+    public required string Name { get; init; }
+
+    /// <summary>The personality type of the companion.</summary>
+    public required CompanionPersonality Personality { get; init; }
+
+    /// <summary>The skill level of the companion.</summary>
+    public required SkillLevel SkillLevel { get; init; }
+
+    /// <summary>The voice profile for the companion.</summary>
+    public required VoiceProfile Voice { get; init; }
+
+    /// <summary>Whether the companion should proactively offer suggestions.</summary>
+    public required bool ProactiveSuggestions { get; init; }
+
+    /// <summary>Whether voice output is enabled.</summary>
+    public required bool VoiceEnabled { get; init; }
+
+    /// <summary>Whether the companion is allowed to take control in critical situations.</summary>
+    public required bool TakeControlAllowed { get; init; }
 }
 
 /// <summary>
-/// Priority levels for objectives.
+/// Represents a snapshot of the current game state for the companion to analyze.
 /// </summary>
-public enum ObjectivePriority
+public record GameStateSnapshot
 {
-    Low,
-    Medium,
-    High,
-    Critical
+    /// <summary>The unique identifier of the game.</summary>
+    public required string GameId { get; init; }
+
+    /// <summary>The current level or area in the game.</summary>
+    public required string CurrentLevel { get; init; }
+
+    /// <summary>The player's current position in the game world.</summary>
+    public required string PlayerPosition { get; init; }
+
+    /// <summary>The player's current health (0.0 to 1.0).</summary>
+    public required float PlayerHealth { get; init; }
+
+    /// <summary>The number of enemies currently nearby.</summary>
+    public required int EnemyCount { get; init; }
+
+    /// <summary>The current objective or mission.</summary>
+    public required string CurrentObjective { get; init; }
+
+    /// <summary>List of nearby items or collectibles.</summary>
+    public required IReadOnlyList<string> NearbyItems { get; init; }
+
+    /// <summary>Duration of the current gaming session.</summary>
+    public required TimeSpan SessionDuration { get; init; }
 }
 
 /// <summary>
-/// Represents an entity in the game world.
-/// </summary>
-public record GameEntity
-{
-    public string Id { get; init; } = string.Empty;
-    public string Name { get; init; } = string.Empty;
-    public EntityType Type { get; init; }
-    public float Distance { get; init; }
-    public bool IsHostile { get; init; }
-    public IReadOnlyDictionary<string, string> Attributes { get; init; } = new Dictionary<string, string>();
-}
-
-/// <summary>
-/// Types of game entities.
-/// </summary>
-public enum EntityType
-{
-    NPC,
-    Enemy,
-    Item,
-    Object,
-    Location
-}
-
-/// <summary>
-/// Configuration for AI companion personality.
-/// </summary>
-public record CompanionPersonality
-{
-    public string Id { get; init; } = Guid.NewGuid().ToString();
-    public string Name { get; init; } = "Companion";
-    public CompanionPersonalityType Type { get; init; } = CompanionPersonalityType.Supportive;
-    public string VoiceProfile { get; init; } = "default";
-    public IReadOnlyList<string> Catchphrases { get; init; } = Array.Empty<string>();
-    public float AggressivenessLevel { get; init; } = 0.5f;
-    public float HelpfulnessLevel { get; init; } = 0.8f;
-    public float VerbosityLevel { get; init; } = 0.6f;
-    public IReadOnlyDictionary<string, string> CustomTraits { get; init; } = new Dictionary<string, string>();
-}
-
-/// <summary>
-/// Represents a player behavior pattern learned by the AI.
-/// </summary>
-public record PlayerBehaviorPattern
-{
-    public string Id { get; init; } = Guid.NewGuid().ToString();
-    public string PatternType { get; init; } = string.Empty;
-    public string Description { get; init; } = string.Empty;
-    public float Confidence { get; init; }
-    public int OccurrenceCount { get; init; }
-    public DateTime FirstObserved { get; init; }
-    public DateTime LastObserved { get; init; }
-    public IReadOnlyDictionary<string, object> Metadata { get; init; } = new Dictionary<string, object>();
-}
-
-/// <summary>
-/// Represents a companion action to be executed.
+/// Represents an action the AI companion wants to take.
 /// </summary>
 public record CompanionAction
 {
-    public string Id { get; init; } = Guid.NewGuid().ToString();
-    public ActionType Type { get; init; }
-    public string Description { get; init; } = string.Empty;
-    public IReadOnlyDictionary<string, object> Parameters { get; init; } = new Dictionary<string, object>();
-    public int Priority { get; init; } = 5;
-    public TimeSpan? Delay { get; init; }
+    /// <summary>The type of action (e.g., "Suggest", "Warn", "Assist").</summary>
+    public required string ActionType { get; init; }
+
+    /// <summary>Human-readable description of the action.</summary>
+    public required string Description { get; init; }
+
+    /// <summary>Confidence score (0.0 to 1.0) of the action.</summary>
+    public required float Confidence { get; init; }
+
+    /// <summary>Voice line to speak, if any.</summary>
+    public required string? VoiceLine { get; init; }
+
+    /// <summary>Additional parameters for the action.</summary>
+    public required Dictionary<string, object> Parameters { get; init; }
 }
 
 /// <summary>
-/// Types of companion actions.
+/// Represents a sample of player behavior for learning purposes.
 /// </summary>
-public enum ActionType
+public record PlayerBehaviorSample
 {
-    Speak,
-    Emote,
-    Suggest,
-    Warn,
-    Assist,
-    Celebrate,
-    Console
+    /// <summary>The game identifier.</summary>
+    public required string GameId { get; init; }
+
+    /// <summary>The action the player took.</summary>
+    public required string Action { get; init; }
+
+    /// <summary>The context in which the action was taken.</summary>
+    public required string Context { get; init; }
+
+    /// <summary>Whether the action was successful.</summary>
+    public required bool WasSuccessful { get; init; }
+
+    /// <summary>Time taken to react and execute the action.</summary>
+    public required TimeSpan ReactionTime { get; init; }
+
+    /// <summary>When the action occurred.</summary>
+    public required DateTime Timestamp { get; init; }
 }
 
 /// <summary>
-/// Represents the result of a companion action execution.
+/// Represents a chat message between the player and companion.
 /// </summary>
-public record ActionExecutionResult
+public record CompanionChatMessage
 {
-    public bool Success { get; init; }
-    public string? ErrorMessage { get; init; }
-    public string ExecutedActionId { get; init; } = string.Empty;
-    public DateTime ExecutedAt { get; init; } = DateTime.UtcNow;
-}
+    /// <summary>Unique identifier for the message.</summary>
+    public required string Id { get; init; }
 
-/// <summary>
-/// Represents a player behavior profile for learning.
-/// </summary>
-public record PlayerBehaviorProfile
-{
-    public string PlayerId { get; init; } = string.Empty;
-    public IReadOnlyList<PlayerBehaviorPattern> Patterns { get; init; } = Array.Empty<PlayerBehaviorPattern>();
-    public IReadOnlyList<string> PreferredStrategies { get; init; } = Array.Empty<string>();
-    public IReadOnlyList<string> CommonMistakes { get; init; } = Array.Empty<string>();
-    public float SkillLevelEstimate { get; init; }
-    public DateTime LastUpdated { get; init; } = DateTime.UtcNow;
-}
+    /// <summary>The sender ("Player" or "Companion").</summary>
+    public required string Sender { get; init; }
 
-/// <summary>
-/// Represents a suggestion from the AI companion.
-/// </summary>
-public record CompanionSuggestion
-{
-    public string Id { get; init; } = Guid.NewGuid().ToString();
-    public string Message { get; init; } = string.Empty;
-    public SuggestionType Type { get; init; }
-    public float Confidence { get; init; }
-    public IReadOnlyList<string> RelatedGameElements { get; init; } = Array.Empty<string>();
-}
+    /// <summary>The message content.</summary>
+    public required string Message { get; init; }
 
-/// <summary>
-/// Types of companion suggestions.
-/// </summary>
-public enum SuggestionType
-{
-    Strategy,
-    Warning,
-    Tip,
-    Lore,
-    Shortcut,
-    Challenge
+    /// <summary>When the message was sent.</summary>
+    public required DateTime Timestamp { get; init; }
+
+    /// <summary>Whether this message was sent via voice.</summary>
+    public required bool IsVoice { get; init; }
 }

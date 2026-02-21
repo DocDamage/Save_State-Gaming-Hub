@@ -70,6 +70,23 @@ public static class Program
             builder.Services.AddTransient<MainViewModel>();
             builder.Services.AddTransient<SettingsViewModel>();
 
+            // Phase 1: UI Feature Surfacing ViewModels
+            // RetroArch ViewModels
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.RetroArch.RetroArchTabViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.RetroArch.RetroArchCoreManagerViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.RetroArch.RetroArchPlaylistViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.RetroArch.RetroArchNetplayViewModel>();
+
+            // System Health & Accounts ViewModels
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Settings.SystemHealthViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Settings.ConnectedAccountsViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Settings.DataManagementViewModel>();
+
+            // Phase 2: Intelligence & Personalization ViewModels
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Analytics.RecommendationsViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Analytics.GamerDnaViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Search.UniversalSearchViewModel>();
+
             // Phase 4: Immersive Launch Experience ViewModels
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.BigPicture.LaunchExperienceViewModel>();
 

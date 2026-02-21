@@ -14,6 +14,18 @@ public partial class AccessibilityViewModel : ObservableObject
     private readonly IAccessibilityService _accessibilityService;
     private readonly INotificationService _notificationService;
 
+    // Range constants for validation
+    private const float MinUiScale = 50.0f;
+    private const float MaxUiScale = 200.0f;
+    private const float MinFontSize = 0.5f;
+    private const float MaxFontSize = 3.0f;
+    private const float MinSpeechRate = 0.5f;
+    private const float MaxSpeechRate = 3.0f;
+    private const float MinSpeechVolume = 0.0f;
+    private const float MaxSpeechVolume = 100.0f;
+    private const float MinPointerSize = 1.0f;
+    private const float MaxPointerSize = 3.0f;
+
     [ObservableProperty]
     private bool screenReaderEnabled;
 
@@ -191,6 +203,51 @@ public partial class AccessibilityViewModel : ObservableObject
         }
     }
 
+    partial void OnUiScalePercentageChanged(float value)
+    {
+        // Clamp to valid range
+        if (value < MinUiScale || value > MaxUiScale)
+        {
+            UiScalePercentage = Math.Clamp(value, MinUiScale, MaxUiScale);
+        }
+    }
+
+    partial void OnFontSizeMultiplierChanged(float value)
+    {
+        // Clamp to valid range
+        if (value < MinFontSize || value > MaxFontSize)
+        {
+            FontSizeMultiplier = Math.Clamp(value, MinFontSize, MaxFontSize);
+        }
+    }
+
+    partial void OnTextToSpeechRateChanged(float value)
+    {
+        // Clamp to valid range
+        if (value < MinSpeechRate || value > MaxSpeechRate)
+        {
+            TextToSpeechRate = Math.Clamp(value, MinSpeechRate, MaxSpeechRate);
+        }
+    }
+
+    partial void OnTextToSpeechVolumeChanged(float value)
+    {
+        // Clamp to valid range
+        if (value < MinSpeechVolume || value > MaxSpeechVolume)
+        {
+            TextToSpeechVolume = Math.Clamp(value, MinSpeechVolume, MaxSpeechVolume);
+        }
+    }
+
+    partial void OnPointerSizeChanged(float value)
+    {
+        // Clamp to valid range
+        if (value < MinPointerSize || value > MaxPointerSize)
+        {
+            PointerSize = Math.Clamp(value, MinPointerSize, MaxPointerSize);
+        }
+    }
+
     [RelayCommand]
     public async Task ApplyUIScaleAsync()
     {
@@ -250,6 +307,7 @@ public partial class AccessibilityViewModel : ObservableObject
             ScreenReaderEnabled = false;
             TextToSpeechEnabled = false;
             TextToSpeechRate = 1.0f;
+            TextToSpeechVolume = 100.0f;
             HighContrastModeEnabled = false;
             ColorBlindModeEnabled = false;
             SelectedColorBlindMode = ColorBlindMode.Normal;
@@ -258,6 +316,12 @@ public partial class AccessibilityViewModel : ObservableObject
             ReduceMotionEnabled = false;
             PointerSize = 1.0f;
             MousePointerEnlargementEnabled = false;
+            StickyKeysEnabled = false;
+            ToggleKeysEnabled = false;
+            FilterKeysEnabled = false;
+            CaptionsEnabled = false;
+            SoundVisualizationEnabled = false;
+            MonoAudioEnabled = false;
 
             await _notificationService.ShowNotificationAsync("Accessibility settings reset to defaults", "Success");
         }

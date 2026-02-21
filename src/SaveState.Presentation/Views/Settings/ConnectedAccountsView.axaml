@@ -1,0 +1,213 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Settings"
+             xmlns:acct="using:SaveState.Presentation.Models.Accounts"
+             mc:Ignorable="d"
+             x:Class="SaveState.Presentation.Views.Settings.ConnectedAccountsView"
+             x:DataType="vm:ConnectedAccountsViewModel">
+
+  <ScrollViewer>
+    <StackPanel Margin="24" Spacing="24">
+      <TextBlock Text="⚙️ SETTINGS > CONNECTED ACCOUNTS" Classes="H5"/>
+
+      <!-- Gaming Platforms -->
+      <Border Classes="Card" Padding="20">
+        <StackPanel Spacing="16">
+          <TextBlock Text="🎮 GAMING PLATFORMS" Classes="H6"/>
+          <ItemsControl ItemsSource="{Binding GamingPlatforms}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="acct:AccountConnectionStatus">
+                <Border Classes="ListItem" Padding="16,12">
+                  <Grid ColumnDefinitions="Auto,*,Auto">
+                    <!-- Icon -->
+                    <TextBlock Grid.Column="0" Text="🎮" FontSize="24" Margin="0,0,16,0" VerticalAlignment="Center"/>
+
+                    <!-- Info -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding PlatformName}" Classes="BodyStrong"/>
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Ellipse Width="8" Height="8" VerticalAlignment="Center">
+                          <Ellipse.Fill>
+                            <Binding Path="Status" Converter="{StaticResource ConnectionStatusToBrushConverter}"/>
+                          </Ellipse.Fill>
+                        </Ellipse>
+                        <TextBlock Text="{Binding Status}" Opacity="0.8"/>
+                        <TextBlock Text="{Binding Username, StringFormat='as {0}'}"
+                                   IsVisible="{Binding Username, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                   Opacity="0.6"/>
+                      </StackPanel>
+                      <TextBlock Text="{Binding ErrorMessage}"
+                                 IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                 Classes="Caption" Opacity="0.6" TextWrapping="Wrap"/>
+                      <StackPanel Orientation="Horizontal" Spacing="16"
+                                  IsVisible="{Binding ConnectedSince, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <TextBlock Text="{Binding ConnectedSince, StringFormat='Connected: {0:g}'}"
+                                   Classes="Caption" Opacity="0.5"/>
+                        <TextBlock Text="{Binding LastSync, StringFormat='Last sync: {0:g}'}"
+                                   Classes="Caption" Opacity="0.5"
+                                   IsVisible="{Binding LastSync, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                      </StackPanel>
+                    </StackPanel>
+
+                    <!-- Actions -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                      <Button Content="Sync"
+                              Command="{Binding DataContext.SyncAccountCommand,
+                                       RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                              CommandParameter="{Binding}"
+                              IsVisible="{Binding CanSync}"
+                              Classes="Small"
+                              IsEnabled="{Binding Status, Converter={StaticResource IsConnectedConverter}}"/>
+                      <Button Content="Connect"
+                              Command="{Binding DataContext.ConnectAccountCommand,
+                                       RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                              CommandParameter="{Binding}"
+                              IsVisible="{Binding Status, Converter={StaticResource IsDisconnectedConverter}}"
+                              Classes="Small Accent"/>
+                      <Button Content="Disconnect"
+                              Command="{Binding DataContext.DisconnectAccountCommand,
+                                       RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                              CommandParameter="{Binding}"
+                              IsVisible="{Binding Status, Converter={StaticResource IsConnectedConverter}}"
+                              Classes="Small Flat"/>
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <Button Content="Sync All Accounts"
+                  Command="{Binding SyncAllCommand}"
+                  HorizontalAlignment="Right"
+                  Classes="Small"
+                  IsEnabled="{Binding IsConnecting, Converter={x:Static BoolConverters.Not}}"/>
+        </StackPanel>
+      </Border>
+
+      <!-- Achievement Services -->
+      <Border Classes="Card" Padding="20">
+        <StackPanel Spacing="16">
+          <TextBlock Text="🏆 ACHIEVEMENT SERVICES" Classes="H6"/>
+          <ItemsControl ItemsSource="{Binding AchievementServices}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="acct:AccountConnectionStatus">
+                <Border Classes="ListItem" Padding="16,12">
+                  <Grid ColumnDefinitions="Auto,*,Auto">
+                    <TextBlock Grid.Column="0" Text="🏆" FontSize="24" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding PlatformName}" Classes="BodyStrong"/>
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Ellipse Width="8" Height="8" VerticalAlignment="Center">
+                          <Ellipse.Fill>
+                            <Binding Path="Status" Converter="{StaticResource ConnectionStatusToBrushConverter}"/>
+                          </Ellipse.Fill>
+                        </Ellipse>
+                        <TextBlock Text="{Binding Status}" Opacity="0.8"/>
+                        <TextBlock Text="{Binding Username, StringFormat='as {0}'}"
+                                   IsVisible="{Binding Username, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                   Opacity="0.6"/>
+                      </StackPanel>
+                      <StackPanel Orientation="Horizontal" Spacing="16"
+                                  IsVisible="{Binding LastSync, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <TextBlock Text="{Binding LastSync, StringFormat='Last sync: {0:g}'}"
+                                   Classes="Caption" Opacity="0.5"/>
+                      </StackPanel>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                      <Button Content="Sync"
+                              Command="{Binding DataContext.SyncAccountCommand,
+                                       RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                              CommandParameter="{Binding}"
+                              IsVisible="{Binding CanSync}"
+                              Classes="Small"
+                              IsEnabled="{Binding Status, Converter={StaticResource IsConnectedConverter}}"/>
+                      <Button Content="Connect"
+                              Command="{Binding DataContext.ConnectAccountCommand,
+                                       RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                              CommandParameter="{Binding}"
+                              IsVisible="{Binding Status, Converter={StaticResource IsDisconnectedConverter}}"
+                              Classes="Small Accent"/>
+                      <Button Content="Disconnect"
+                              Command="{Binding DataContext.DisconnectAccountCommand,
+                                       RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                              CommandParameter="{Binding}"
+                              IsVisible="{Binding Status, Converter={StaticResource IsConnectedConverter}}"
+                              Classes="Small Flat"/>
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <!-- Social Platforms -->
+      <Border Classes="Card" Padding="20">
+        <StackPanel Spacing="16">
+          <TextBlock Text="💬 SOCIAL" Classes="H6"/>
+          <ItemsControl ItemsSource="{Binding SocialPlatforms}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="acct:AccountConnectionStatus">
+                <Border Classes="ListItem" Padding="16,12">
+                  <Grid ColumnDefinitions="Auto,*,Auto">
+                    <TextBlock Grid.Column="0" Text="💬" FontSize="24" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding PlatformName}" Classes="BodyStrong"/>
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Ellipse Width="8" Height="8" VerticalAlignment="Center">
+                          <Ellipse.Fill>
+                            <Binding Path="Status" Converter="{StaticResource ConnectionStatusToBrushConverter}"/>
+                          </Ellipse.Fill>
+                        </Ellipse>
+                        <TextBlock Text="{Binding Status}" Opacity="0.8"/>
+                      </StackPanel>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                      <Button Content="Disconnect"
+                              Command="{Binding DataContext.DisconnectAccountCommand,
+                                       RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                              CommandParameter="{Binding}"
+                              IsVisible="{Binding Status, Converter={StaticResource IsConnectedConverter}}"
+                              Classes="Small Flat"/>
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <!-- Discord Rich Presence Settings -->
+          <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                  BorderThickness="1"
+                  CornerRadius="8"
+                  Padding="16"
+                  Margin="0,16,0,0"
+                  IsVisible="{Binding DiscordShowCurrentGame}">
+            <StackPanel Spacing="12">
+              <TextBlock Text="Rich Presence Settings" Classes="BodyStrong"/>
+              <ToggleSwitch Content="Show current game" IsChecked="{Binding DiscordShowCurrentGame}"/>
+              <ToggleSwitch Content="Show playtime" IsChecked="{Binding DiscordShowPlaytime}"/>
+              <ToggleSwitch Content="Allow join requests" IsChecked="{Binding DiscordAllowJoinRequests}"/>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Border>
+
+      <!-- Connection Status Message -->
+      <TextBlock Text="{Binding ConnectionStatusMessage}"
+                 IsVisible="{Binding ConnectionStatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                 Classes="Body"
+                 HorizontalAlignment="Center"/>
+
+      <!-- Loading Indicator -->
+      <ProgressBar IsIndeterminate="True"
+                   IsVisible="{Binding IsConnecting}"
+                   HorizontalAlignment="Stretch"
+                   Margin="0,8"/>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

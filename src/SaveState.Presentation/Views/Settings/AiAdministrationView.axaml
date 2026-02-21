@@ -1,0 +1,229 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Settings"
+             mc:Ignorable="d"
+             x:Class="SaveState.Presentation.Views.Settings.AiAdministrationView"
+             x:DataType="vm:AiAdministrationViewModel">
+
+  <ScrollViewer>
+    <StackPanel Spacing="16">
+      
+      <!-- Header -->
+      <Border Classes="Card" Padding="16" CornerRadius="12">
+        <StackPanel Spacing="8">
+          <TextBlock Text="AI Administration" Classes="Header" />
+          <TextBlock Text="Configure AI providers, manage conversation memory, and control knowledge base settings."
+                     Classes="Body"
+                     Foreground="{StaticResource AccentBrush}" />
+        </StackPanel>
+      </Border>
+
+      <!-- LLM Providers Section -->
+      <Border Classes="Card" Padding="16" CornerRadius="12">
+        <StackPanel Spacing="12">
+          <TextBlock Text="LLM Providers" Classes="Subheader" />
+          <TextBlock Text="Enable and configure AI model providers. API keys are stored securely."
+                     Classes="Caption"
+                     Foreground="{StaticResource AccentBrush}" />
+          
+          <ItemsControl ItemsSource="{Binding LlmProviders}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="12"
+                        Margin="0,4">
+                  <Grid ColumnDefinitions="*,Auto,Auto">
+                    <StackPanel Grid.Column="0" Spacing="4">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                        <Border Background="{StaticResource AccentBrush}"
+                                CornerRadius="4"
+                                Padding="4,2"
+                                IsVisible="{Binding IsEnabled}">
+                          <TextBlock Text="Enabled" FontSize="10" Foreground="White" />
+                        </Border>
+                      </StackPanel>
+                      <TextBlock Text="{Binding ApiKeyStatus}"
+                                 Classes="Caption"
+                                 Foreground="{StaticResource TextSecondaryBrush}" />
+                      <TextBlock Text="{Binding SelectedModel, StringFormat='Model: {0}'}"
+                                 Classes="Caption"
+                                 Foreground="{StaticResource TextSecondaryBrush}"
+                                 IsVisible="{Binding SelectedModel, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                    </StackPanel>
+                    
+                    <ToggleSwitch Grid.Column="1"
+                                  IsChecked="{Binding IsEnabled}"
+                                  Margin="12,0" />
+                    
+                    <Button Grid.Column="2"
+                            Content="Configure"
+                            Command="{Binding DataContext.ConfigureProviderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding}" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <!-- Security Warning -->
+          <Border Background="{StaticResource WarningBrush}"
+                  CornerRadius="8"
+                  Padding="12"
+                  Margin="0,8,0,0">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="⚠️" FontSize="16" />
+              <TextBlock Text="API keys are stored encrypted. Never share your keys or commit them to version control."
+                         TextWrapping="Wrap"
+                         FontSize="12" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Border>
+
+      <!-- Conversation Memory Section -->
+      <Border Classes="Card" Padding="16" CornerRadius="12">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Conversation Memory" Classes="Subheader" />
+          
+          <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto">
+            <StackPanel Grid.Column="0" Grid.Row="0" Spacing="4">
+              <TextBlock Text="{Binding MemoryStats.StoredConversations}" 
+                         Classes="Header" 
+                         FontSize="24" />
+              <TextBlock Text="Stored Conversations" Classes="Caption" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Grid.Row="0" Spacing="4">
+              <TextBlock Text="{Binding MemoryStats.ContextWindowSize}" 
+                         Classes="Header" 
+                         FontSize="24" />
+              <TextBlock Text="Context Window" Classes="Caption" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Grid.Row="0" Spacing="4">
+              <TextBlock Text="{Binding MemoryStats.MemoryUsageBytes, StringFormat='{}{0:N0} KB'}" 
+                         Classes="Header" 
+                         FontSize="24" />
+              <TextBlock Text="Memory Usage" Classes="Caption" />
+            </StackPanel>
+            
+            <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3"
+                       Text="{Binding MemoryStats.LastCleared, StringFormat='Last cleared: {0:g}'}"
+                       Classes="Caption"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       IsVisible="{Binding MemoryStats.LastCleared, Converter={x:Static ObjectConverters.IsNotNull}}"
+                       Margin="0,8,0,0" />
+          </Grid>
+
+          <Button Content="Clear Conversation Memory"
+                  Command="{Binding ClearMemoryCommand}"
+                  Classes="Danger"
+                  HorizontalAlignment="Left"
+                  AutomationProperties.AutomationId="ClearMemoryButton" />
+        </StackPanel>
+      </Border>
+
+      <!-- Knowledge Base Section -->
+      <Border Classes="Card" Padding="16" CornerRadius="12">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Knowledge Base" Classes="Subheader" />
+          
+          <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto">
+            <StackPanel Grid.Column="0" Grid.Row="0" Spacing="4">
+              <TextBlock Text="{Binding KnowledgeBaseStats.DocumentCount}" 
+                         Classes="Header" 
+                         FontSize="24" />
+              <TextBlock Text="Documents" Classes="Caption" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Grid.Row="0" Spacing="4">
+              <TextBlock Text="{Binding KnowledgeBaseStats.VectorStoreType}" 
+                         Classes="Header" 
+                         FontSize="18"
+                         TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="Vector Store" Classes="Caption" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Grid.Row="0" Spacing="4">
+              <TextBlock Text="{Binding KnowledgeBaseStats.IndexSizeBytes, StringFormat='{}{0:N0} MB'}" 
+                         Classes="Header" 
+                         FontSize="24" />
+              <TextBlock Text="Index Size" Classes="Caption" />
+            </StackPanel>
+            
+            <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3"
+                       Text="{Binding KnowledgeBaseStats.LastUpdated, StringFormat='Last updated: {0:g}'}"
+                       Classes="Caption"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       Margin="0,8,0,0" />
+          </Grid>
+
+          <!-- Rebuild Progress -->
+          <StackPanel IsVisible="{Binding IsRebuildingIndex}" Spacing="4">
+            <TextBlock Text="Rebuilding index..." Classes="Caption" />
+            <ProgressBar Value="{Binding RebuildProgress}" 
+                         Maximum="100" 
+                         Minimum="0" />
+            <TextBlock Text="{Binding RebuildProgress, StringFormat='{}{0:F0} %'}"
+                       Classes="Caption"
+                       HorizontalAlignment="Center" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Content="Rebuild Index"
+                    Command="{Binding RebuildIndexCommand}"
+                    IsEnabled="{Binding IsRebuildingIndex, Converter={x:Static ObjectConverters.Not}}"
+                    AutomationProperties.AutomationId="RebuildIndexButton" />
+            <Button Content="Import Documents"
+                    Command="{Binding ImportDocumentsCommand}"
+                    Classes="Secondary"
+                    AutomationProperties.AutomationId="ImportDocumentsButton" />
+            <Button Content="Export Knowledge"
+                    Command="{Binding ExportKnowledgeCommand}"
+                    Classes="Secondary"
+                    AutomationProperties.AutomationId="ExportKnowledgeButton" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <!-- Feedback & Learning Section -->
+      <Border Classes="Card" Padding="16" CornerRadius="12">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Feedback &amp; Learning" Classes="Subheader" />
+          
+          <Grid ColumnDefinitions="*,*,*">
+            <StackPanel Spacing="4">
+              <TextBlock Text="{Binding FeedbackStats.RecommendationsImproved}" 
+                         Classes="Header" 
+                         FontSize="24" />
+              <TextBlock Text="Recommendations Improved" Classes="Caption" />
+            </StackPanel>
+            <StackPanel Spacing="4">
+              <TextBlock Text="{Binding FeedbackStats.UserFeedbackIncorporated}" 
+                         Classes="Header" 
+                         FontSize="24" />
+              <TextBlock Text="Feedback Incorporated" Classes="Caption" />
+            </StackPanel>
+            <StackPanel Spacing="4">
+              <TextBlock Text="{Binding FeedbackStats.AverageRating, StringFormat='{}{0:F1} ★'}" 
+                         Classes="Header" 
+                         FontSize="24" />
+              <TextBlock Text="Average Rating" Classes="Caption" />
+            </StackPanel>
+          </Grid>
+
+          <StackPanel Spacing="8">
+            <ToggleSwitch Content="Allow anonymous data collection to improve AI recommendations"
+                          IsChecked="{Binding AllowAnonymousDataCollection}"
+                          AutomationProperties.AutomationId="AnonymousDataToggle" />
+            <ToggleSwitch Content="Use my feedback to improve recommendations for all users"
+                          IsChecked="{Binding UseFeedbackForImprovements}"
+                          AutomationProperties.AutomationId="FeedbackImprovementsToggle" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

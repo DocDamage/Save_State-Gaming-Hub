@@ -16,24 +16,21 @@
                     <!-- Dashboard Tab Button -->
                     <Button Content="📊 Dashboard"
                             Command="{Binding ShowDashboardCommand}"
-                            Classes.Primary="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Dashboard}"
-                            Classes.Secondary="{Binding SelectedTab, Converter={StaticResource InequalityConverter}, ConverterParameter=Dashboard}"
+                            Classes="Secondary"
                             Padding="15,8"
                             FontWeight="{Binding SelectedTab, Converter={StaticResource EqualityToFontWeightConverter}, ConverterParameter=Dashboard}" />
 
                     <!-- Macros Tab Button -->
                     <Button Content="🎬 Macros"
                             Command="{Binding ShowMacrosCommand}"
-                            Classes.Primary="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Macros}"
-                            Classes.Secondary="{Binding SelectedTab, Converter={StaticResource InequalityConverter}, ConverterParameter=Macros}"
+                            Classes="Secondary"
                             Padding="15,8"
                             FontWeight="{Binding SelectedTab, Converter={StaticResource EqualityToFontWeightConverter}, ConverterParameter=Macros}" />
 
                     <!-- Scheduler Tab Button -->
                     <Button Content="📅 Scheduler"
                             Command="{Binding ShowSchedulerCommand}"
-                            Classes.Primary="{Binding SelectedTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Scheduler}"
-                            Classes.Secondary="{Binding SelectedTab, Converter={StaticResource InequalityConverter}, ConverterParameter=Scheduler}"
+                            Classes="Secondary"
                             Padding="15,8"
                             FontWeight="{Binding SelectedTab, Converter={StaticResource EqualityToFontWeightConverter}, ConverterParameter=Scheduler}" />
                 </StackPanel>

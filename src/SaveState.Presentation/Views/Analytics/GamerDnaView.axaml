@@ -1,0 +1,555 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Analytics"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="900"
+             x:Class="SaveState.Presentation.Views.Analytics.GamerDnaView"
+             x:DataType="vm:GamerDnaViewModel">
+
+    <ScrollViewer>
+        <StackPanel Spacing="24" Margin="24">
+            <!-- Header -->
+            <Grid ColumnDefinitions="*, Auto, Auto, Auto">
+                <StackPanel>
+                    <TextBlock Text="Gaming DNA Profile"
+                               FontSize="32"
+                               FontWeight="Light"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock Text="Discover your unique gamer archetype and preferences"
+                               FontSize="14"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        Command="{Binding TakeQuizCommand}"
+                        Content="🎯 Take Quiz"
+                        Classes="Primary"
+                        Margin="0,0,12,0"
+                        ToolTip.Tip="Take a quiz to determine your gamer type" />
+
+                <Button Grid.Column="2"
+                        Command="{Binding GenerateShareCardCommand}"
+                        Content="📤 Share"
+                        Classes="Secondary"
+                        Margin="0,0,12,0"
+                        ToolTip.Tip="Generate a shareable profile card" />
+
+                <Button Grid.Column="3"
+                        Command="{Binding RefreshProfileCommand}"
+                        Content="🔄 Refresh"
+                        Classes="Secondary"
+                        ToolTip.Tip="Refresh your profile data" />
+            </Grid>
+
+            <!-- Loading Indicator -->
+            <ProgressBar IsIndeterminate="True"
+                         IsVisible="{Binding IsLoading}"
+                         Height="2"
+                         Foreground="{StaticResource AccentBrush}" />
+
+            <!-- Primary Archetype Card -->
+            <Border Background="{StaticResource CardBackgroundBrush}"
+                    CornerRadius="16"
+                    Padding="32"
+                    IsVisible="{Binding HasProfile}">
+                <Grid ColumnDefinitions="Auto, *, Auto">
+                    <!-- Archetype Icon -->
+                    <Border Grid.Column="0"
+                            Width="120"
+                            Height="120"
+                            CornerRadius="60"
+                            Background="{Binding PrimaryArchetypeColor, Converter={StaticResource HexToBrushConverter}}"
+                            Margin="0,0,32,0">
+                        <TextBlock Text="{Binding PrimaryArchetypeIcon}"
+                                   FontSize="64"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                    </Border>
+
+                    <!-- Archetype Info -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="Your Gamer Archetype"
+                                   FontSize="14"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Margin="0,0,0,8" />
+                        <TextBlock Text="{Binding PrimaryArchetypeName}"
+                                   FontSize="36"
+                                   FontWeight="Bold"
+                                   Foreground="{Binding PrimaryArchetypeColor, Converter={StaticResource HexToBrushConverter}}"
+                                   Margin="0,0,0,12" />
+                        <TextBlock Text="{Binding PrimaryArchetypeDescription}"
+                                   FontSize="14"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   TextWrapping="Wrap"
+                                   MaxWidth="600" />
+                    </StackPanel>
+
+                    <!-- Radar Chart Placeholder -->
+                    <Border Grid.Column="2"
+                            Width="200"
+                            Height="200"
+                            Background="{StaticResource BackgroundBrush}"
+                            CornerRadius="8"
+                            Margin="24,0,0,0">
+                        <Grid>
+                            <TextBlock Text="Archetype Distribution"
+                                       FontSize="12"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,8,0,0" />
+                            <ItemsControl ItemsSource="{Binding ArchetypeScores}"
+                                          Margin="8,32,8,8">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="Auto, *, Auto" Margin="0,2">
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{Binding Icon}"
+                                                       FontSize="10"
+                                                       Width="20" />
+                                            <ProgressBar Grid.Column="1"
+                                                         Value="{Binding Percentage}"
+                                                         Maximum="100"
+                                                         Height="6"
+                                                         Margin="4,0"
+                                                         Foreground="{Binding Color, Converter={StaticResource HexToBrushConverter}}" />
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding Percentage, StringFormat='{}{0:F0}%'}"
+                                                       FontSize="10"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Width="35" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Stats Grid -->
+            <Grid ColumnDefinitions="*, *" IsVisible="{Binding HasProfile}">
+                <!-- Genre Preferences -->
+                <Border Grid.Column="0"
+                        Background="{StaticResource CardBackgroundBrush}"
+                        CornerRadius="12"
+                        Padding="24"
+                        Margin="0,0,12,0">
+                    <StackPanel>
+                        <TextBlock Text="Genre Preferences"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   Margin="0,0,0,16" />
+
+                        <ItemsControl ItemsSource="{Binding GenrePreferences}"
+                                      MaxHeight="300">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Spacing="12" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="*, Auto, Auto">
+                                        <StackPanel Grid.Column="0">
+                                            <Grid ColumnDefinitions="*, Auto">
+                                                <TextBlock Text="{Binding Genre}"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{Binding TrendIcon}"
+                                                           ToolTip.Tip="{Binding Trend}" />
+                                            </Grid>
+                                            <ProgressBar Value="{Binding BarWidth}"
+                                                         Maximum="100"
+                                                         Height="8"
+                                                         Margin="0,4,0,0"
+                                                         Foreground="{StaticResource AccentBrush}" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding HoursPlayed, StringFormat='{}{0}h'}"
+                                                   FontSize="12"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                                   Margin="12,0,0,0"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding GamesPlayed, StringFormat='{}{0} games'}"
+                                                   FontSize="12"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                                   Margin="8,0,0,0"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Platform Preferences -->
+                <Border Grid.Column="1"
+                        Background="{StaticResource CardBackgroundBrush}"
+                        CornerRadius="12"
+                        Padding="24"
+                        Margin="12,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Platform Preferences"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   Margin="0,0,0,16" />
+
+                        <ItemsControl ItemsSource="{Binding PlatformPreferences}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Spacing="12" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="*, Auto">
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding Platform}"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource TextPrimaryBrush}" />
+                                            <ProgressBar Value="{Binding BarWidth}"
+                                                         Maximum="100"
+                                                         Height="8"
+                                                         Margin="0,4,0,0"
+                                                         Foreground="{StaticResource AccentBrush}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1"
+                                                    Margin="12,0,0,0"
+                                                    VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding HoursPlayed, StringFormat='{}{0}h'}"
+                                                       FontSize="12"
+                                                       HorizontalAlignment="Right"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <TextBlock Text="{Binding GamesOwned, StringFormat='{}{0} games'}"
+                                                       FontSize="11"
+                                                       HorizontalAlignment="Right"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Playstyle Metrics -->
+            <Border Background="{StaticResource CardBackgroundBrush}"
+                    CornerRadius="12"
+                    Padding="24"
+                    IsVisible="{Binding HasProfile}">
+                <StackPanel>
+                    <TextBlock Text="Playstyle Metrics"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               Margin="0,0,0,16" />
+
+                    <UniformGrid Columns="5" Rows="2">
+                        <!-- Metric 1 -->
+                        <Border Padding="12"
+                                Background="{StaticResource BackgroundBrush}"
+                                CornerRadius="8"
+                                Margin="6">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding PlaystyleMetrics.TotalPlaytimeFormatted}"
+                                           FontSize="24"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource AccentBrush}" />
+                                <TextBlock Text="Total Playtime"
+                                           FontSize="11"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Metric 2 -->
+                        <Border Padding="12"
+                                Background="{StaticResource BackgroundBrush}"
+                                CornerRadius="8"
+                                Margin="6">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding PlaystyleMetrics.AverageSessionLength}"
+                                           FontSize="24"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource AccentBrush}" />
+                                <TextBlock Text="Avg Session"
+                                           FontSize="11"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Metric 3 -->
+                        <Border Padding="12"
+                                Background="{StaticResource BackgroundBrush}"
+                                CornerRadius="8"
+                                Margin="6">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding PlaystyleMetrics.CompletionRatePercentage, StringFormat='{}{0:F0}%'}"
+                                           FontSize="24"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource AccentBrush}" />
+                                <TextBlock Text="Completion Rate"
+                                           FontSize="11"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Metric 4 -->
+                        <Border Padding="12"
+                                Background="{StaticResource BackgroundBrush}"
+                                CornerRadius="8"
+                                Margin="6">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding PlaystyleMetrics.TotalGamesOwned}"
+                                           FontSize="24"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource AccentBrush}" />
+                                <TextBlock Text="Games Owned"
+                                           FontSize="11"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Metric 5 -->
+                        <Border Padding="12"
+                                Background="{StaticResource BackgroundBrush}"
+                                CornerRadius="8"
+                                Margin="6">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding PlaystyleMetrics.TotalAchievementsUnlocked}"
+                                           FontSize="24"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource AccentBrush}" />
+                                <TextBlock Text="Achievements"
+                                           FontSize="11"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Metric 6 -->
+                        <Border Padding="12"
+                                Background="{StaticResource BackgroundBrush}"
+                                CornerRadius="8"
+                                Margin="6">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding PlaystyleMetrics.MostActiveDay}"
+                                           FontSize="20"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource AccentBrush}" />
+                                <TextBlock Text="Most Active Day"
+                                           FontSize="11"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Metric 7 -->
+                        <Border Padding="12"
+                                Background="{StaticResource BackgroundBrush}"
+                                CornerRadius="8"
+                                Margin="6">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding PlaystyleMetrics.MostActiveTime}"
+                                           FontSize="20"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource AccentBrush}" />
+                                <TextBlock Text="Peak Hours"
+                                           FontSize="11"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Metric 8 -->
+                        <Border Padding="12"
+                                Background="{StaticResource BackgroundBrush}"
+                                CornerRadius="8"
+                                Margin="6">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding PlaystyleMetrics.ReplayabilityPercentage, StringFormat='{}{0:F0}%'}"
+                                           FontSize="24"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource AccentBrush}" />
+                                <TextBlock Text="Replay Rate"
+                                           FontSize="11"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Metric 9 -->
+                        <Border Padding="12"
+                                Background="{StaticResource BackgroundBrush}"
+                                CornerRadius="8"
+                                Margin="6">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding PlaystyleMetrics.TotalGamesCompleted}"
+                                           FontSize="24"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource AccentBrush}" />
+                                <TextBlock Text="Completed"
+                                           FontSize="11"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Metric 10 -->
+                        <Border Padding="12"
+                                Background="{StaticResource BackgroundBrush}"
+                                CornerRadius="8"
+                                Margin="6">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding PlaystyleMetrics.AchievementHunterScore, StringFormat='{}{0:F1}'}"
+                                           FontSize="24"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource AccentBrush}" />
+                                <TextBlock Text="Achievement Score"
+                                           FontSize="11"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- Evolution Timeline -->
+            <Border Background="{StaticResource CardBackgroundBrush}"
+                    CornerRadius="12"
+                    Padding="24"
+                    IsVisible="{Binding HasProfile}">
+                <StackPanel>
+                    <TextBlock Text="Evolution Timeline"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               Margin="0,0,0,16" />
+
+                    <ItemsControl ItemsSource="{Binding EvolutionHistory}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="16" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Width="80"
+                                        Background="{StaticResource BackgroundBrush}"
+                                        CornerRadius="8"
+                                        Padding="8">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:MMM yyyy}'}"
+                                                   FontSize="10"
+                                                   HorizontalAlignment="Center"
+                                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                        <TextBlock Text="{Binding DominantArchetypeIcon}"
+                                                   FontSize="32"
+                                                   HorizontalAlignment="Center"
+                                                   Margin="0,4" />
+                                        <TextBlock Text="{Binding DominantArchetypeName}"
+                                                   FontSize="9"
+                                                   HorizontalAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Share Card Overlay -->
+            <Border Background="{StaticResource OverlayBackgroundBrush}"
+                    IsVisible="{Binding ShowShareCard}"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Margin="-24">
+                <Border Background="{StaticResource CardBackgroundBrush}"
+                        CornerRadius="16"
+                        Padding="32"
+                        MaxWidth="500"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        BoxShadow="0 8 32 0 #40000000">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="Share Your Gaming DNA"
+                                   FontSize="24"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
+
+                        <!-- Card Preview -->
+                        <Border Background="{Binding SelectedTheme, Converter={StaticResource ThemeToBrushConverter}}"
+                                CornerRadius="12"
+                                Padding="24">
+                            <StackPanel>
+                                <TextBlock Text="{Binding ShareableCard.PrimaryArchetype.Icon}"
+                                           FontSize="48"
+                                           HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding ShareableCard.PrimaryArchetype.GetDisplayName}"
+                                           FontSize="20"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           Foreground="White" />
+                                <TextBlock Text="{Binding ShareableCard.KeyStats[Total Playtime]}"
+                                           FontSize="14"
+                                           HorizontalAlignment="Center"
+                                           Foreground="#CCFFFFFF" />
+                                <TextBlock Text="{Binding ShareableCard.ShareCode}"
+                                           FontSize="12"
+                                           HorizontalAlignment="Center"
+                                           FontFamily="{StaticResource MonospaceFont}"
+                                           Foreground="#80FFFFFF"
+                                           Margin="0,8,0,0" />
+                            </StackPanel>
+                        </Border>
+
+                        <TextBox Text="{Binding ShareMessage}"
+                                 IsReadOnly="True"
+                                 TextWrapping="Wrap"
+                                 AcceptsReturn="True"
+                                 Height="80" />
+
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Center"
+                                    Spacing="12">
+                            <Button Command="{Binding CopyShareCodeCommand}"
+                                    Content="Copy to Clipboard"
+                                    Classes="Primary" />
+                            <Button Command="{Binding CloseShareCardCommand}"
+                                    Content="Close"
+                                    Classes="Secondary" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

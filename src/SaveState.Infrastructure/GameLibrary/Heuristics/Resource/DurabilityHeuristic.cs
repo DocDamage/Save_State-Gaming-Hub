@@ -3,15 +3,16 @@ using SaveState.Core.GameLibrary.Services;
 namespace SaveState.Infrastructure.GameLibrary.Heuristics;
 
 /// <summary>
-/// Heuristic for detecting item durability values in game memory.
+/// Heuristic for detecting equipment durability/condition in RPGs and survival games.
 /// Durability values typically:
-/// - Are integers in range 0-100 or 0-1000
-/// - Slowly decrease with use
-/// - Jump up on repair
+/// - Are integers (0-100) or floats representing percentage
+/// - Decrease slowly with use
+/// - Can be repaired to restore
+/// - At 0, item breaks or becomes unusable
 /// </summary>
 public sealed class DurabilityHeuristic : IValueHeuristic
 {
-    public string Name => "Durability Detection";
+    public string Name => "Durability/Condition Detection";
     public string Category => "Resource";
 
     public double CalculateConfidence(DiscoveredValue value, List<ValueObservation> history)
@@ -20,19 +21,14 @@ public sealed class DurabilityHeuristic : IValueHeuristic
             return 0.0;
 
         double score = 0.0;
-        int decreases = 0;
-        int repairJumps = 0;
+        int decreaseEvents = 0;
+        int repairEvents = 0;
+        int maxValue = 0;
 
-        // Check value range
+        // Check value range (durability typically 0-100)
         if (IsInDurabilityRange(value.CurrentValue))
         {
-            score += 0.3;
-        }
-
-        // Durability is always an integer
-        if (HeuristicUtilities.IsIntegerValue(value.CurrentValue))
-        {
-            score += 0.2;
+            score += 0.35;
         }
 
         // Analyze observation history
@@ -50,37 +46,64 @@ public sealed class DurabilityHeuristic : IValueHeuristic
             if (!prevVal.HasValue || !currVal.HasValue)
                 continue;
 
-            var delta = currVal.Value - prevVal.Value;
+            // Track max value
+            if (currVal > maxValue)
+                maxValue = (int)currVal.Value;
 
-            // Small decreases indicate wear and tear
-            if (delta < 0 && delta >= -5)
+            // Check for gradual decrease (wear and tear)
+            if (currVal < prevVal)
             {
-                decreases++;
+                decreaseEvents++;
+                var delta = prevVal.Value - currVal.Value;
+                // Durability decreases by small amounts (1-5 typically)
+                if (delta > 0 && delta <= 5)
+                {
+                    score += 0.1;
+                }
+                else if (delta > 5 && delta <= 10)
+                {
+                    // Larger decrease might be from intense use
+                    score += 0.05;
+                }
             }
 
-            // Large jumps indicate repair
-            if (delta > 50)
+            // Check for repair (increase, typically to max or significant amount)
+            if (currVal > prevVal)
             {
-                repairJumps++;
+                var delta = currVal.Value - prevVal.Value;
+                // Repair typically restores significant amount
+                if (delta > 10)
+                {
+                    repairEvents++;
+                    score += 0.15;
+                }
             }
 
-            // Durability should never be negative
-            if (currVal.Value < 0)
+            // Durability should not go negative
+            if (currVal < 0)
+            {
+                score -= 0.5;
+            }
+
+            // Durability typically caps at 100 (percentage)
+            if (currVal > 1000)
             {
                 score -= 0.3;
             }
         }
 
-        // Slow decrease is characteristic of durability
-        if (decreases >= 2)
+        // Bonus for wear pattern
+        if (decreaseEvents >= 2)
+            score += 0.15;
+
+        // Bonus for repair events
+        if (repairEvents >= 1)
+            score += 0.1;
+
+        // Strong indicator: max value is 100 (percentage-based durability)
+        if (maxValue == 100 || (maxValue >= 98 && maxValue <= 102))
         {
             score += 0.25;
-        }
-
-        // Repair jumps
-        if (repairJumps >= 1)
-        {
-            score += 0.15;
         }
 
         return Math.Clamp(score, 0.0, 1.0);
@@ -89,7 +112,7 @@ public sealed class DurabilityHeuristic : IValueHeuristic
     public bool SupportsValueType(string valueType)
     {
         var normalizedType = valueType.ToLowerInvariant();
-        return normalizedType is "int32" or "int" or "int16" or "short" or "byte";
+        return normalizedType is "float" or "single" or "int32" or "int" or "double" or "int16" or "short";
     }
 
     private static bool IsInDurabilityRange(object? value)
@@ -101,6 +124,7 @@ public sealed class DurabilityHeuristic : IValueHeuristic
             var doubleValue = HeuristicUtilities.ConvertToDouble(value);
             if (!doubleValue.HasValue) return false;
 
+            // Durability typically in range 0-1000 (percentage or raw values)
             var val = doubleValue.Value;
             return val >= 0 && val <= 1000;
         }

@@ -1,5 +1,49 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2003/xaml">
-    <!-- Animation resources removed due to XAML compilation issues -->
-    <!-- These can be re-added when Avalonia animation support is properly configured -->
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Standard Animation and Transition Definitions
+        Use these durations for consistent UI animations
+    -->
+
+    <!-- Standard Transition Durations -->
+    <TimeSpan x:Key="TransitionFast">0:0:0.150</TimeSpan>
+    <TimeSpan x:Key="TransitionNormal">0:0:0.200</TimeSpan>
+    <TimeSpan x:Key="TransitionSlow">0:0:0.300</TimeSpan>
+
+    <!-- Standard Easing Functions -->
+    <Easing x:Key="EaseOutQuart">0.25, 1, 0.5, 1</Easing>
+    <Easing x:Key="EaseInOutQuart">0.76, 0, 0.24, 1</Easing>
+    <Easing x:Key="EaseOutCubic">0.33, 1, 0.68, 1</Easing>
+
+    <!-- Standard Transitions -->
+    <Transitions x:Key="FadeTransition">
+        <DoubleTransition Property="Opacity" Duration="0:0:0.200"/>
+    </Transitions>
+
+    <Transitions x:Key="ScaleTransition">
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.150"/>
+    </Transitions>
+
+    <Transitions x:Key="BackgroundTransition">
+        <BrushTransition Property="Background" Duration="0:0:0.150"/>
+    </Transitions>
+
+    <Transitions x:Key="ColorTransition">
+        <BrushTransition Property="Foreground" Duration="0:0:0.150"/>
+    </Transitions>
+
+    <!-- Combined Standard Transition -->
+    <Transitions x:Key="StandardTransition">
+        <DoubleTransition Property="Opacity" Duration="0:0:0.200"/>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.150"/>
+        <BrushTransition Property="Background" Duration="0:0:0.150"/>
+    </Transitions>
+
+    <!-- Dialog Transition -->
+    <Transitions x:Key="DialogTransition">
+        <DoubleTransition Property="Opacity" Duration="0:0:0.300"/>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.300"/>
+    </Transitions>
+
 </ResourceDictionary>

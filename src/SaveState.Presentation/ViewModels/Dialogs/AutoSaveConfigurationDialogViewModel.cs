@@ -12,6 +12,10 @@ namespace SaveState.Presentation.ViewModels.Dialogs;
 /// </summary>
 public partial class AutoSaveConfigurationDialogViewModel : ObservableObject
 {
+    // Validation constants
+    private const int MinAutoSaves = 1;
+    private const int MaxAutoSavesAllowed = 100;
+
     [ObservableProperty]
     private bool _autoSaveEnabled = true;
 
@@ -58,34 +62,46 @@ public partial class AutoSaveConfigurationDialogViewModel : ObservableObject
         MaxAutoSaves = maxAutoSaves;
     }
 
+    partial void OnMaxAutoSavesChanged(int value)
+    {
+        // Clamp to valid range
+        if (value < MinAutoSaves || value > MaxAutoSavesAllowed)
+        {
+            MaxAutoSaves = Math.Clamp(value, MinAutoSaves, MaxAutoSavesAllowed);
+        }
+    }
+
     [RelayCommand]
     private void Save()
     {
+        // Ensure value is within range
+        var clampedMaxAutoSaves = Math.Clamp(MaxAutoSaves, MinAutoSaves, MaxAutoSavesAllowed);
+
         var result = new AutoSaveConfigurationResult(
             AutoSaveEnabled: AutoSaveEnabled,
             Interval: SelectedInterval,
-            MaxAutoSaves: MaxAutoSaves,
+            MaxAutoSaves: clampedMaxAutoSaves,
             CreateOnGameStart: CreateAutoSaveOnGameStart,
             CreateOnBossEncounter: CreateAutoSaveOnBossEncounter,
             NotifyOnAutoSave: NotifyOnAutoSave,
             CompressAutoSaves: CompressAutoSaves);
 
-        // Close dialog with result
-        if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            var window = desktop.Windows.FirstOrDefault(w => w.DataContext == this);
-            window?.Close(result);
-        }
+        CloseDialog(result);
     }
 
     [RelayCommand]
     private void Cancel()
     {
-        // Close dialog without result
-        if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+        CloseDialog(null);
+    }
+
+    private void CloseDialog(AutoSaveConfigurationResult? result)
+    {
+        var lifetime = Avalonia.Application.Current?.ApplicationLifetime;
+        if (lifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
         {
             var window = desktop.Windows.FirstOrDefault(w => w.DataContext == this);
-            window?.Close(null);
+            window?.Close(result);
         }
     }
 

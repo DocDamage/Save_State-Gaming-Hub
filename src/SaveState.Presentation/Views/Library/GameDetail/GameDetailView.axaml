@@ -145,8 +145,7 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button Classes.Primary="{Binding IsSelected}"
-                                        Classes.Secondary="{Binding !IsSelected}"
+                                <Button Classes="Secondary"
                                         Command="{Binding SelectCommand}"
                                         Padding="20,12"
                                         Margin="0"

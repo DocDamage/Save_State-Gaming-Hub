@@ -1,28 +1,35 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Enums;
 using SaveState.Presentation.Services;
+using SaveState.Presentation.Utilities;
 using System.Collections.ObjectModel;
 
 namespace SaveState.Presentation.ViewModels.Shell;
 
 /// <summary>
-/// View model for the quick search overlay.
+/// View model for the quick search overlay with throttled search.
 /// </summary>
-public partial class QuickSearchViewModel : ObservableObject
+public partial class QuickSearchViewModel : ObservableObject, IDisposable
 {
     private readonly IOverlayService _overlayService;
     private readonly IGameRepository _gameRepository;
     private readonly INavigationService _navigationService;
     private readonly IUiGameContextService _gameContextService;
+    private readonly ILogger<QuickSearchViewModel>? _logger;
+    private readonly AsyncSearchThrottleHelper _searchThrottleHelper;
 
     [ObservableProperty]
     private string _searchText = string.Empty;
 
     [ObservableProperty]
     private bool _isSearching;
+
+    [ObservableProperty]
+    private string _searchError = string.Empty;
 
     [ObservableProperty]
     private ObservableCollection<SearchResultViewModel> _searchResults = new();
@@ -36,29 +43,43 @@ public partial class QuickSearchViewModel : ObservableObject
         IOverlayService overlayService,
         IGameRepository gameRepository,
         INavigationService navigationService,
-        IUiGameContextService gameContextService)
+        IUiGameContextService gameContextService,
+        ILogger<QuickSearchViewModel>? logger = null)
     {
         _overlayService = overlayService;
         _gameRepository = gameRepository;
         _navigationService = navigationService;
         _gameContextService = gameContextService;
+        _logger = logger;
+
+        // Initialize throttled search with 200ms delay for responsive feel
+        _searchThrottleHelper = new AsyncSearchThrottleHelper(
+            async (query, ct) =>
+            {
+                if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
+                {
+                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        SearchResults.Clear();
+                        SearchError = string.Empty;
+                        RefreshResultsState();
+                    });
+                    return;
+                }
+
+                await SearchGamesAsync(query, ct);
+            },
+            TimeSpan.FromMilliseconds(200));
 
         SearchResults.CollectionChanged += (_, __) => RefreshResultsState();
     }
 
+    /// <summary>
+    /// Called when SearchText changes. Uses throttling to prevent excessive search operations.
+    /// </summary>
     partial void OnSearchTextChanged(string value)
     {
-        // Trigger search when text changes (with debounce in real UI)
-        if (value.Length >= 2)
-        {
-            _ = SearchGamesAsync(value);
-        }
-        else
-        {
-            SearchResults.Clear();
-        }
-
-        RefreshResultsState();
+        _searchThrottleHelper.UpdateSearchText(value);
     }
 
     partial void OnIsSearchingChanged(bool value)
@@ -78,12 +99,16 @@ public partial class QuickSearchViewModel : ObservableObject
     /// <summary>
     /// Searches for games matching the query.
     /// </summary>
-    private async Task SearchGamesAsync(string query)
+    private async Task SearchGamesAsync(string query, CancellationToken cancellationToken)
     {
         try
         {
-            IsSearching = true;
-            SearchResults.Clear();
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                IsSearching = true;
+                SearchError = string.Empty;
+                SearchResults.Clear();
+            });
 
             var results = await _gameRepository.GetGameSummariesAsync(
                 pageNumber: 1,
@@ -91,22 +116,39 @@ public partial class QuickSearchViewModel : ObservableObject
                 searchTerm: query,
                 sortBy: GameSortBy.Title);
 
-            foreach (var game in results.Items)
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
-                SearchResults.Add(new SearchResultViewModel(
-                    game.Id,
-                    game.Title,
-                    game.PlatformName ?? "Unknown",
-                    game.CoverImageUrl));
-            }
+                foreach (var game in results.Items)
+                {
+                    SearchResults.Add(new SearchResultViewModel(
+                        game.Id,
+                        game.Title,
+                        game.PlatformName ?? "Unknown",
+                        game.CoverImageUrl));
+                }
+            });
         }
-        catch
+        catch (OperationCanceledException)
         {
-            // Silently handle search errors
+            // Expected when search is cancelled due to new input
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Search failed for query: {Query}", query);
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                SearchError = "Search failed. Please try again.";
+            });
         }
         finally
         {
-            IsSearching = false;
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                IsSearching = false;
+            });
         }
     }
 
@@ -147,8 +189,17 @@ public partial class QuickSearchViewModel : ObservableObject
     private void Close()
     {
         SearchText = string.Empty;
+        SearchError = string.Empty;
         SearchResults.Clear();
         _overlayService.HideQuickSearchOverlay();
+    }
+
+    /// <summary>
+    /// Disposes resources used by this view model.
+    /// </summary>
+    public void Dispose()
+    {
+        _searchThrottleHelper.Dispose();
     }
 }
 

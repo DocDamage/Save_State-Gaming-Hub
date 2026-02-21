@@ -6,6 +6,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace SaveState.Presentation.ViewModels.Dialogs;
@@ -15,19 +16,38 @@ public partial class EmulatorEditorDialogViewModel : ObservableObject
     private readonly ILogger<EmulatorEditorDialogViewModel> _logger;
     private readonly IDialogService? _dialogService;
 
+    // Validation constants
+    private const int MaxNameLength = 100;
+    private const int MaxDisplayNameLength = 100;
+    private const int MaxPathLength = 260;
+    private const int MaxCommandLineLength = 1000;
+    private static readonly Regex InvalidCharsPattern = new Regex(@"[<>\x00-\x08\x0B\x0C\x0E-\x1F]", RegexOptions.Compiled);
+
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEmulatorNameValid))]
+    [NotifyPropertyChangedFor(nameof(HasValidationErrors))]
+    [NotifyPropertyChangedFor(nameof(CanSave))]
     private string _emulatorName = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsDisplayNameValid))]
+    [NotifyPropertyChangedFor(nameof(HasValidationErrors))]
     private string _displayName = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsExecutablePathValid))]
+    [NotifyPropertyChangedFor(nameof(HasValidationErrors))]
+    [NotifyPropertyChangedFor(nameof(CanTest))]
     private string _executablePath = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsCommandLineTemplateValid))]
+    [NotifyPropertyChangedFor(nameof(HasValidationErrors))]
     private string _commandLineTemplate = "{ROM_PATH}";
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsWorkingDirectoryValid))]
+    [NotifyPropertyChangedFor(nameof(HasValidationErrors))]
     private string? _workingDirectory;
 
     [ObservableProperty]
@@ -70,9 +90,59 @@ public partial class EmulatorEditorDialogViewModel : ObservableObject
     private string? _selectedPlatform;
 
     [ObservableProperty]
-    private bool _canTest;
+    private string _validationError = string.Empty;
 
     private Action<EmulatorEditorResult?>? _closeAction;
+
+    /// <summary>
+    /// Gets whether the emulator name is valid.
+    /// </summary>
+    public bool IsEmulatorNameValid => 
+        !string.IsNullOrWhiteSpace(EmulatorName) && 
+        EmulatorName.Length <= MaxNameLength &&
+        !InvalidCharsPattern.IsMatch(EmulatorName);
+
+    /// <summary>
+    /// Gets whether the display name is valid.
+    /// </summary>
+    public bool IsDisplayNameValid => 
+        string.IsNullOrEmpty(DisplayName) || 
+        (DisplayName.Length <= MaxDisplayNameLength && !InvalidCharsPattern.IsMatch(DisplayName));
+
+    /// <summary>
+    /// Gets whether the executable path is valid.
+    /// </summary>
+    public bool IsExecutablePathValid => 
+        !string.IsNullOrWhiteSpace(ExecutablePath) && 
+        ExecutablePath.Length <= MaxPathLength;
+
+    /// <summary>
+    /// Gets whether the command line template is valid.
+    /// </summary>
+    public bool IsCommandLineTemplateValid => 
+        CommandLineTemplate.Length <= MaxCommandLineLength;
+
+    /// <summary>
+    /// Gets whether the working directory is valid.
+    /// </summary>
+    public bool IsWorkingDirectoryValid => 
+        string.IsNullOrEmpty(WorkingDirectory) || 
+        (WorkingDirectory.Length <= MaxPathLength);
+
+    /// <summary>
+    /// Gets whether there are any validation errors.
+    /// </summary>
+    public bool HasValidationErrors => 
+        !IsEmulatorNameValid || 
+        !IsDisplayNameValid || 
+        !IsExecutablePathValid || 
+        !IsCommandLineTemplateValid ||
+        !IsWorkingDirectoryValid;
+
+    /// <summary>
+    /// Gets whether the test button should be enabled.
+    /// </summary>
+    public bool CanTest => IsExecutablePathValid && File.Exists(ExecutablePath);
 
     public EmulatorEditorDialogViewModel(
         ILogger<EmulatorEditorDialogViewModel> logger,
@@ -101,7 +171,74 @@ public partial class EmulatorEditorDialogViewModel : ObservableObject
 
     partial void OnExecutablePathChanged(string value)
     {
-        CanTest = !string.IsNullOrWhiteSpace(value) && File.Exists(value);
+        // Auto-truncate if exceeds max length
+        if (value?.Length > MaxPathLength)
+        {
+            ExecutablePath = value[..MaxPathLength];
+            return;
+        }
+        OnPropertyChanged(nameof(CanTest));
+    }
+
+    partial void OnEmulatorNameChanged(string value)
+    {
+        if (value?.Length > MaxNameLength)
+        {
+            EmulatorName = value[..MaxNameLength];
+        }
+        UpdateValidationError();
+    }
+
+    partial void OnDisplayNameChanged(string value)
+    {
+        if (value?.Length > MaxDisplayNameLength)
+        {
+            DisplayName = value[..MaxDisplayNameLength];
+        }
+        UpdateValidationError();
+    }
+
+    partial void OnCommandLineTemplateChanged(string value)
+    {
+        if (value?.Length > MaxCommandLineLength)
+        {
+            CommandLineTemplate = value[..MaxCommandLineLength];
+        }
+        UpdateValidationError();
+    }
+
+    partial void OnWorkingDirectoryChanged(string? value)
+    {
+        if (value?.Length > MaxPathLength)
+        {
+            WorkingDirectory = value[..MaxPathLength];
+        }
+        UpdateValidationError();
+    }
+
+    private void UpdateValidationError()
+    {
+        if (!IsEmulatorNameValid)
+        {
+            if (string.IsNullOrWhiteSpace(EmulatorName))
+                ValidationError = "Emulator name is required.";
+            else if (EmulatorName.Length > MaxNameLength)
+                ValidationError = $"Name must not exceed {MaxNameLength} characters.";
+            else
+                ValidationError = "Name contains invalid characters.";
+        }
+        else if (!IsExecutablePathValid)
+        {
+            ValidationError = "Valid executable path is required.";
+        }
+        else if (!IsCommandLineTemplateValid)
+        {
+            ValidationError = $"Command line template must not exceed {MaxCommandLineLength} characters.";
+        }
+        else
+        {
+            ValidationError = string.Empty;
+        }
     }
 
     [RelayCommand]
@@ -195,26 +332,22 @@ public partial class EmulatorEditorDialogViewModel : ObservableObject
     [RelayCommand]
     private void Save()
     {
-        if (string.IsNullOrWhiteSpace(EmulatorName))
+        if (HasValidationErrors)
         {
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(ExecutablePath))
-        {
+            UpdateValidationError();
             return;
         }
 
         var result = new EmulatorEditorResult(
-            EmulatorName,
-            DisplayName,
-            ExecutablePath,
+            EmulatorName.Trim(),
+            string.IsNullOrWhiteSpace(DisplayName) ? EmulatorName.Trim() : DisplayName.Trim(),
+            ExecutablePath.Trim(),
             SelectedPlatform,
-            CommandLineTemplate,
-            WorkingDirectory,
+            CommandLineTemplate.Trim(),
+            string.IsNullOrWhiteSpace(WorkingDirectory) ? null : WorkingDirectory.Trim(),
             SupportsSaveStates,
             AutoDetect,
-            Notes);
+            Notes?.Trim());
 
         _closeAction?.Invoke(result);
     }
@@ -224,6 +357,11 @@ public partial class EmulatorEditorDialogViewModel : ObservableObject
     {
         _closeAction?.Invoke(null);
     }
+
+    /// <summary>
+    /// Gets whether the save button should be enabled.
+    /// </summary>
+    public bool CanSave => !HasValidationErrors;
 
     public void SetCloseAction(Action<EmulatorEditorResult?> closeAction)
     {

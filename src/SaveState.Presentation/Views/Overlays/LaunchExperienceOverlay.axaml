@@ -1,0 +1,178 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Overlays"
+             mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+             x:Class="SaveState.Presentation.Views.Overlays.LaunchExperienceOverlay"
+             x:DataType="vm:LaunchExperienceViewModel"
+             IsVisible="{Binding IsVisible}">
+
+  <Design.DataContext>
+    <vm:LaunchExperienceViewModel/>
+  </Design.DataContext>
+
+  <UserControl.Styles>
+    <Style Selector="Border.launch-panel">
+      <Setter Property="Background" Value="#E6000000" />
+    </Style>
+    
+    <Style Selector="TextBlock.H2">
+      <Setter Property="FontSize" Value="48" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    
+    <Style Selector="TextBlock.Subtitle">
+      <Setter Property="FontSize" Value="24" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    
+    <Style Selector="TextBlock.Caption">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="Opacity" Value="0.6" />
+    </Style>
+    
+    <Style Selector="TextBlock.Body">
+      <Setter Property="FontSize" Value="16" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    
+    <Style Selector="Button.accent">
+      <Setter Property="Background" Value="#FF00CCFF" />
+      <Setter Property="Foreground" Value="Black" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Padding" Value="24,12" />
+      <Setter Property="CornerRadius" Value="8" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid>
+    <!-- Animated Background -->
+    <Border Classes="launch-panel">
+      <Border.Background>
+        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+          <GradientStop Offset="0" Color="#FF1A1A2E"/>
+          <GradientStop Offset="0.5" Color="#FF16213E"/>
+          <GradientStop Offset="1" Color="#FF0F3460"/>
+        </LinearGradientBrush>
+      </Border.Background>
+    </Border>
+    
+    <!-- Background Image (if available) -->
+    <Image Source="{Binding Briefing.BackgroundPath}" 
+           Stretch="UniformToFill" Opacity="0.3"
+           IsVisible="{Binding Briefing.BackgroundPath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+    
+    <!-- Content -->
+    <Grid HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="900">
+      <StackPanel Spacing="24">
+        <!-- Game Title -->
+        <TextBlock Text="{Binding Game.Title}" 
+                   Classes="H2" 
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center"/>
+        
+        <!-- Tagline -->
+        <TextBlock Text="{Binding Briefing.Tagline}" 
+                   Classes="Subtitle"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center"
+                   Opacity="0.8"
+                   IsVisible="{Binding ShowAiBriefing}"/>
+        
+        <!-- Cover Art -->
+        <Border Width="300" Height="400" 
+                CornerRadius="12"
+                BoxShadow="0 20 40 0 #40000000"
+                HorizontalAlignment="Center">
+          <Border.Background>
+            <SolidColorBrush Color="#FF2A2A2A"/>
+          </Border.Background>
+          <Image Source="{Binding Game.CoverArt}" 
+                 Stretch="UniformToFill"/>
+        </Border>
+        
+        <!-- Stats Row -->
+        <Grid ColumnDefinitions="*,*,*" Margin="0,16">
+          <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+            <TextBlock Text="📊 LAST SESSION" Classes="Caption"/>
+            <TextBlock Text="{Binding Briefing.LastSessionSummary}" 
+                       Margin="0,4,0,0"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       MaxWidth="250"
+                       Foreground="White"
+                       IsVisible="{Binding ShowLastSessionSummary}"/>
+          </StackPanel>
+          
+          <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+            <TextBlock Text="🎯 CURRENT OBJECTIVE" Classes="Caption"/>
+            <TextBlock Text="{Binding Briefing.CurrentObjective}" 
+                       Margin="0,4,0,0"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       MaxWidth="250"
+                       Foreground="White"/>
+          </StackPanel>
+          
+          <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+            <TextBlock Text="🏆 PROGRESS" Classes="Caption"/>
+            <TextBlock Text="{Binding Briefing.ProgressPercentage, StringFormat='{}{0:F0}% Complete'}" 
+                       Margin="0,4,0,0"
+                       TextAlignment="Center"
+                       Foreground="White"/>
+          </StackPanel>
+        </Grid>
+        
+        <!-- Progress Bar -->
+        <StackPanel Spacing="8">
+          <ProgressBar Value="{Binding Progress}" 
+                       Maximum="100"
+                       Height="8"
+                       CornerRadius="4"
+                       Foreground="#FF00CCFF"
+                       Background="#30FFFFFF"/>
+          <TextBlock Text="{Binding LoadingStatus}" 
+                     HorizontalAlignment="Center"
+                     Opacity="0.6"
+                     Foreground="White"/>
+        </StackPanel>
+        
+        <!-- Tips Carousel -->
+        <Border Background="#20FFFFFF"
+                CornerRadius="8"
+                BorderBrush="#30FFFFFF"
+                BorderThickness="1"
+                Padding="24,16"
+                IsVisible="{Binding ShowTips}">
+          <StackPanel>
+            <TextBlock Text="💡 TIP" Classes="Caption"/>
+            <TextBlock Text="{Binding CurrentTip}" 
+                       Classes="Body"
+                       TextWrapping="Wrap"
+                       Margin="0,8,0,0"/>
+          </StackPanel>
+        </Border>
+        
+        <!-- Action Buttons -->
+        <StackPanel Orientation="Horizontal" 
+                    HorizontalAlignment="Center" 
+                    Spacing="16"
+                    Margin="0,16,0,0">
+          <Button Content="Skip" 
+                  Command="{Binding SkipCommand}"
+                  Padding="24,12"
+                  CornerRadius="8"
+                  IsVisible="{Binding CanSkip}"/>
+          <Button Content="Cancel" 
+                  Command="{Binding CancelLaunchCommand}"
+                  Classes="accent"/>
+        </StackPanel>
+      </StackPanel>
+    </Grid>
+  </Grid>
+</UserControl>

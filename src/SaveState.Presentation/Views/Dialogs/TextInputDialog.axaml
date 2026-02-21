@@ -7,59 +7,64 @@
         x:Class="SaveState.Presentation.Views.Dialogs.TextInputDialog"
         x:DataType="vm:TextInputDialogViewModel"
         Title="{Binding Title}"
-        Width="400" Height="250"
+        Width="400"
+        Height="250"
+        MinWidth="400"
+        MinHeight="250"
         WindowStartupLocation="CenterOwner"
-        TransparencyLevelHint="AcrylicBlur"
-        Background="Transparent"
-        ExtendClientAreaToDecorationsHint="True">
+        CanResize="False"
+        Background="{StaticResource DialogBackgroundBrush}">
 
-    <Panel>
-        <ExperimentalAcrylicBorder IsHitTestVisible="False">
-            <ExperimentalAcrylicBorder.Material>
-                <ExperimentalAcrylicMaterial
-                    BackgroundSource="Digger"
-                    TintColor="Black"
-                    TintOpacity="0.8"
-                    MaterialOpacity="0.65" />
-            </ExperimentalAcrylicBorder.Material>
-        </ExperimentalAcrylicBorder>
+    <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,16">
+            <TextBlock Text="{Binding Title}"
+                       FontSize="20"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource TextPrimaryBrush}" />
+            <TextBlock Text="{Binding Message}"
+                       TextWrapping="Wrap"
+                       Foreground="{StaticResource TextSecondaryBrush}" />
+        </StackPanel>
 
-        <Border Padding="20" Background="#1E1E1E" CornerRadius="8" BorderBrush="#333333" BorderThickness="1" Margin="10">
-            <StackPanel Spacing="15">
-                <TextBlock Text="{Binding Title}" FontSize="20" FontWeight="Bold" Foreground="White" />
-                <TextBlock Text="{Binding Message}" TextWrapping="Wrap" Foreground="#CCCCCC" />
+        <!-- Content -->
+        <StackPanel Grid.Row="1" Spacing="12">
+            <TextBox Text="{Binding InputText}"
+                     Watermark="{Binding Placeholder}"
+                     PasswordChar="{Binding PasswordChar}"
+                     AcceptsReturn="False"
+                     FontSize="14"
+                     Background="{StaticResource InputBackgroundBrush}"
+                     Foreground="{StaticResource TextPrimaryBrush}"
+                     BorderBrush="{StaticResource InputBorderBrush}"
+                     BorderThickness="1"
+                     CornerRadius="8"
+                     Padding="12,10" />
 
-                <TextBox Text="{Binding InputText}"
-                         Watermark="{Binding Placeholder}"
-                         PasswordChar="{Binding PasswordChar}"
-                         AcceptsReturn="False"
-                         FontSize="14"
-                         Padding="10"
-                         Background="#2D2D2D"
-                         Foreground="White"
-                         BorderBrush="#3B82F6"
-                         BorderThickness="1" />
+            <CheckBox IsVisible="{Binding IsSensitive}"
+                      IsChecked="{Binding ShowSensitiveText}"
+                      Content="Show input"
+                      Foreground="{StaticResource TextSecondaryBrush}"
+                      FontSize="12"
+                      ToolTip.Tip="Toggle password visibility" />
+        </StackPanel>
 
-                <CheckBox IsVisible="{Binding IsSensitive}"
-                          IsChecked="{Binding ShowSensitiveText}"
-                          Content="Show input"
-                          Foreground="#CCCCCC"
-                          FontSize="12" />
-
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,10,0,0">
-                    <Button Command="{Binding CancelCommand}"
-                            Content="{Binding CancelText}"
-                            Padding="20,8"
-                            Background="#333333"
-                            Foreground="White"
-                            BorderBrush="#444444" />
-                    <Button Command="{Binding ConfirmCommand}"
-                            Content="{Binding ConfirmText}"
-                            Padding="20,8"
-                            Background="#3B82F6"
-                            Foreground="White" />
-                </StackPanel>
-            </StackPanel>
-        </Border>
-    </Panel>
+        <!-- Footer -->
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Spacing="12"
+                    Margin="0,20,0,0">
+            <Button Command="{Binding CancelCommand}"
+                    Content="{Binding CancelText}"
+                    Classes="Secondary"
+                    ToolTip.Tip="Cancel and close dialog"
+                    AutomationProperties.Name="Cancel Button" />
+            <Button Command="{Binding ConfirmCommand}"
+                    Content="{Binding ConfirmText}"
+                    Classes="Primary"
+                    ToolTip.Tip="Confirm and save changes"
+                    AutomationProperties.Name="Confirm Button" />
+        </StackPanel>
+    </Grid>
 </Window>

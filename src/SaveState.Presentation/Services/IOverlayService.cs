@@ -18,6 +18,11 @@ public interface IOverlayService
     bool ShowQuickSearch { get; }
 
     /// <summary>
+    /// Gets whether the universal search overlay is visible.
+    /// </summary>
+    bool ShowUniversalSearch { get; }
+
+    /// <summary>
     /// Gets whether the AI assistant is visible.
     /// </summary>
     bool ShowAiAssistant { get; }
@@ -96,6 +101,21 @@ public interface IOverlayService
     /// Toggles the quick search overlay.
     /// </summary>
     void ToggleQuickSearchOverlay();
+
+    /// <summary>
+    /// Shows the universal search overlay.
+    /// </summary>
+    void ShowUniversalSearchOverlay();
+
+    /// <summary>
+    /// Hides the universal search overlay.
+    /// </summary>
+    void HideUniversalSearchOverlay();
+
+    /// <summary>
+    /// Toggles the universal search overlay.
+    /// </summary>
+    void ToggleUniversalSearchOverlay();
 
     /// <summary>
     /// Shows the AI assistant overlay.

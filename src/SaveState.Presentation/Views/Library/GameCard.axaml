@@ -7,38 +7,45 @@
              x:Class="SaveState.Presentation.Views.Library.GameCard"
              x:DataType="vm:GameCardViewModel">
 
+    <!-- 
+        PERFORMANCE OPTIMIZATION NOTES:
+        - Uses async image loading to prevent UI blocking
+        - Binding modes optimized for read-only display
+        - Fixed dimensions prevent layout recalculation
+    -->
+
     <Button Classes="GameCardButton"
             Width="180" Height="260"
             Background="Transparent"
             BorderThickness="0"
             Command="{Binding OpenGameCommand}"
-            ToolTip.Tip="{Binding Title}">
+            ToolTip.Tip="{Binding Title, Mode=OneTime}">
 
         <Grid RowDefinitions="*, Auto, Auto, Auto">
             <!-- Selection Checkbox (shown in selection mode) -->
             <CheckBox Grid.Row="0"
-                      IsChecked="{Binding IsSelected}"
+                      IsChecked="{Binding IsSelected, Mode=TwoWay}"
                       HorizontalAlignment="Left"
                       VerticalAlignment="Top"
                       Margin="8"
-                      IsVisible="{Binding IsSelectionMode}"
+                      IsVisible="{Binding IsSelectionMode, Mode=OneWay}"
                       ToolTip.Tip="Select game" />
 
-            <!-- Cover Art -->
+            <!-- Cover Art - Loaded asynchronously -->
             <Border Grid.Row="0"
                     Background="{StaticResource SurfaceBrush}"
                     CornerRadius="6"
                     Margin="8,8,8,0">
-                <Image Source="{Binding CoverArtUrl}"
+                <Image Source="{Binding CoverArt, Mode=OneWay}"
                        Stretch="UniformToFill"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
-                       ToolTip.Tip="{Binding Title}" />
+                       ToolTip.Tip="{Binding Title, Mode=OneTime}" />
             </Border>
 
             <!-- Title -->
             <TextBlock Grid.Row="1"
-                       Text="{Binding Title}"
+                       Text="{Binding Title, Mode=OneTime}"
                        Classes="Body"
                        FontWeight="SemiBold"
                        TextWrapping="Wrap"
@@ -46,26 +53,26 @@
                        Height="40"
                        Margin="8,8,8,0"
                        TextTrimming="CharacterEllipsis"
-                       ToolTip.Tip="{Binding Title}" />
+                       ToolTip.Tip="{Binding Title, Mode=OneTime}" />
 
             <!-- Platform & Status -->
             <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="8,4,8,0" Spacing="8">
-                <TextBlock Text="{Binding PlatformIcon}" FontSize="14" />
-                <TextBlock Text="{Binding PlatformName}"
+                <TextBlock Text="{Binding PlatformIcon, Mode=OneTime}" FontSize="14" />
+                <TextBlock Text="{Binding PlatformName, Mode=OneTime}"
                            Classes="Caption"
                            Foreground="{StaticResource TextSecondaryBrush}" />
-                <TextBlock Text="{Binding StatusIcon}"
+                <TextBlock Text="{Binding StatusIcon, Mode=OneTime}"
                            FontSize="12"
                            Margin="4,0,0,0"
-                           Foreground="{Binding StatusColor}" />
+                           Foreground="{Binding StatusColor, Mode=OneTime}" />
             </StackPanel>
 
             <!-- Playtime & Rating -->
             <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="8,4,8,8" Spacing="8">
-                <TextBlock Text="{Binding PlaytimeText}"
+                <TextBlock Text="{Binding PlaytimeText, Mode=OneTime}"
                            Classes="Caption"
                            Foreground="{StaticResource TextSecondaryBrush}" />
-                <TextBlock Text="{Binding RatingStars}"
+                <TextBlock Text="{Binding RatingStars, Mode=OneTime}"
                            FontSize="12"
                            Margin="8,0,0,0" />
             </StackPanel>

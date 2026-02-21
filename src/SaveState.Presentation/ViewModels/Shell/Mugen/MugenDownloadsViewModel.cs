@@ -3,14 +3,19 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using SaveState.Core.Mugen.Services;
 using SaveState.Core.Mugen.ValueObjects;
+using SaveState.Presentation.Utilities;
 // Use ValueObjects as canonical type for ambiguous MugenDiscoveryItem
 using MugenDiscoveryItem = SaveState.Core.Mugen.ValueObjects.MugenDiscoveryItem;
 
 namespace SaveState.Presentation.ViewModels.Shell.Mugen;
 
-public partial class MugenDownloadsViewModel : MugenSectionViewModelBase
+/// <summary>
+/// View model for the MUGEN downloads section with throttled search.
+/// </summary>
+public partial class MugenDownloadsViewModel : MugenSectionViewModelBase, IDisposable
 {
     private readonly IMugenDiscoveryService _discoveryService;
+    private readonly AsyncSearchThrottleHelper _searchThrottleHelper;
 
     [ObservableProperty]
     private string _searchQuery = string.Empty;
@@ -30,40 +35,94 @@ public partial class MugenDownloadsViewModel : MugenSectionViewModelBase
     {
         _discoveryService = discoveryService;
         Title = "ASSET DOWNLOADER";
+
+        // Initialize throttled search with 500ms delay for network requests
+        _searchThrottleHelper = new AsyncSearchThrottleHelper(
+            async (query, ct) =>
+            {
+                if (string.IsNullOrWhiteSpace(query))
+                {
+                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        StatusMessage = "Ready to search.";
+                    });
+                    return;
+                }
+
+                await ExecuteSearchAsync(query, ct);
+            },
+            TimeSpan.FromMilliseconds(500));
     }
 
+    /// <summary>
+    /// Called when SearchQuery changes. Uses throttling to prevent excessive network requests.
+    /// </summary>
+    partial void OnSearchQueryChanged(string value)
+    {
+        _searchThrottleHelper.UpdateSearchText(value);
+    }
+
+    /// <summary>
+    /// Executes the search (command or automatic from throttling).
+    /// </summary>
     [RelayCommand]
     private async Task SearchAsync()
     {
-        if (string.IsNullOrWhiteSpace(SearchQuery)) return;
+        await _searchThrottleHelper.SearchImmediatelyAsync(SearchQuery);
+    }
 
+    /// <summary>
+    /// Internal search execution with cancellation support.
+    /// </summary>
+    private async Task ExecuteSearchAsync(string query, CancellationToken cancellationToken)
+    {
         try
         {
-            IsBusy = true;
-            StatusMessage = "Searching...";
-            SearchResults.Clear();
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                IsBusy = true;
+                StatusMessage = "Searching...";
+                SearchResults.Clear();
+            });
 
-            var result = await _discoveryService.SearchAsync(SearchQuery);
-            if (result.IsSuccess && result.Value != null)
+            var result = await _discoveryService.SearchAsync(query, cancellationToken);
+            
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
-                foreach (var item in result.Value)
+                if (result.IsSuccess && result.Value != null)
                 {
-                    SearchResults.Add(item);
+                    foreach (var item in result.Value)
+                    {
+                        SearchResults.Add(item);
+                    }
+                    StatusMessage = $"Found {SearchResults.Count} items.";
                 }
-                StatusMessage = $"Found {SearchResults.Count} items.";
-            }
-            else
-            {
-                StatusMessage = result.Error ?? "Search failed.";
-            }
+                else
+                {
+                    StatusMessage = result.Error ?? "Search failed.";
+                }
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when search is cancelled due to new input
+            throw;
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error: {ex.Message}";
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            });
         }
         finally
         {
-            IsBusy = false;
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                IsBusy = false;
+            });
         }
     }
 
@@ -74,29 +133,49 @@ public partial class MugenDownloadsViewModel : MugenSectionViewModelBase
 
         try
         {
-            IsBusy = true;
-            StatusMessage = $"Installing {item.Name}...";
-            DownloadProgress = 0;
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                IsBusy = true;
+                StatusMessage = $"Installing {item.Name}...";
+                DownloadProgress = 0;
+            });
 
             var result = await _discoveryService.InstallAsync(item);
 
-            if (result.IsSuccess)
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
-                StatusMessage = $"Successfully installed {item.Name}!";
-                DownloadProgress = 100;
-            }
-            else
-            {
-                StatusMessage = $"Installation failed: {result.Error}";
-            }
+                if (result.IsSuccess)
+                {
+                    StatusMessage = $"Successfully installed {item.Name}!";
+                    DownloadProgress = 100;
+                }
+                else
+                {
+                    StatusMessage = $"Installation failed: {result.Error}";
+                }
+            });
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error: {ex.Message}";
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                StatusMessage = $"Error: {ex.Message}";
+            });
         }
         finally
         {
-            IsBusy = false;
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                IsBusy = false;
+            });
         }
+    }
+
+    /// <summary>
+    /// Disposes resources used by this view model.
+    /// </summary>
+    public void Dispose()
+    {
+        _searchThrottleHelper.Dispose();
     }
 }
