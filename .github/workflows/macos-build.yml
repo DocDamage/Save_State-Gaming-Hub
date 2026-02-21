@@ -1,0 +1,89 @@
+name: macOS Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        runtime: [osx-x64, osx-arm64]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: Restore
+        run: dotnet restore src/SaveState.Presentation/SaveState.Presentation.csproj
+      
+      - name: Build
+        run: dotnet build src/SaveState.Presentation/SaveState.Presentation.csproj -c Release -r ${{ matrix.runtime }}
+      
+      - name: Test (macOS-compatible)
+        run: |
+          # Run tests that don't require Windows-specific APIs
+          dotnet test tests/SaveState.Core.Tests --verbosity normal
+          dotnet test tests/SaveState.Application.Tests --verbosity normal
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SaveStateReborn-${{ matrix.runtime }}
+          path: src/SaveState.Presentation/bin/Release/net9.0/${{ matrix.runtime }}/
+
+  build-universal:
+    runs-on: macos-latest
+    needs: build-macos
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: Build x64
+        run: |
+          dotnet publish src/SaveState.Presentation \
+            -c Release \
+            -r osx-x64 \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -o ./publish/x64
+      
+      - name: Build arm64
+        run: |
+          dotnet publish src/SaveState.Presentation \
+            -c Release \
+            -r osx-arm64 \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -o ./publish/arm64
+      
+      - name: Create Universal Binary
+        run: |
+          mkdir -p ./publish/universal
+          lipo -create \
+            ./publish/x64/SaveStateReborn \
+            ./publish/arm64/SaveStateReborn \
+            -output ./publish/universal/SaveStateReborn
+          chmod +x ./publish/universal/SaveStateReborn
+      
+      - name: Sign with Entitlements
+        run: |
+          codesign --force --sign - \
+            --entitlements assets/macos/entitlements.plist \
+            ./publish/universal/SaveStateReborn
+      
+      - name: Upload Universal Binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: SaveStateReborn-osx-universal
+          path: ./publish/universal/

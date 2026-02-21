@@ -30,9 +30,14 @@ public static class MemoryReaderFactory
             return new LinuxMemoryReader(
                 loggerFactory.CreateLogger<LinuxMemoryReader>());
         }
+        else if (OperatingSystem.IsMacOS())
+        {
+            return new MacOSMemoryReader(
+                loggerFactory.CreateLogger<MacOSMemoryReader>());
+        }
         else
         {
-            throw new PlatformNotSupportedException("Memory reading is only supported on Windows and Linux platforms.");
+            throw new PlatformNotSupportedException("Memory reading is only supported on Windows, Linux, and macOS platforms.");
         }
     }
 }
