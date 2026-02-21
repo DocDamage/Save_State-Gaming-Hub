@@ -26,7 +26,7 @@ public class SubscriptionModelsTests
         };
 
         // Act & Assert
-        game.IsLeavingSoon.Should().BeTrue();
+        game.IsLeavingSoon(DateTime.UtcNow).Should().BeTrue();
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class SubscriptionModelsTests
         };
 
         // Act & Assert
-        game.IsLeavingSoon.Should().BeFalse();
+        game.IsLeavingSoon(DateTime.UtcNow).Should().BeFalse();
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class SubscriptionModelsTests
         };
 
         // Act & Assert
-        game.IsLeavingSoon.Should().BeFalse();
+        game.IsLeavingSoon(DateTime.UtcNow).Should().BeFalse();
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class SubscriptionModelsTests
         };
 
         // Act & Assert
-        game.IsNewArrival.Should().BeTrue();
+        game.IsNewArrival(DateTime.UtcNow).Should().BeTrue();
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class SubscriptionModelsTests
         };
 
         // Act & Assert
-        game.IsNewArrival.Should().BeFalse();
+        game.IsNewArrival(DateTime.UtcNow).Should().BeFalse();
     }
 
     #endregion
@@ -122,7 +122,7 @@ public class SubscriptionModelsTests
         };
 
         // Act & Assert
-        library.LeavingSoonCount.Should().Be(2);
+        library.GetLeavingSoonCount(DateTime.UtcNow).Should().Be(2);
     }
 
     [Fact]
@@ -140,7 +140,7 @@ public class SubscriptionModelsTests
         };
 
         // Act & Assert
-        library.NewArrivalsCount.Should().Be(2);
+        library.GetNewArrivalsCount(DateTime.UtcNow).Should().Be(2);
     }
 
     #endregion

@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Social.MobileRemote;
 
@@ -166,12 +167,12 @@ public sealed class DeviceConnectedEventArgs : EventArgs
     public string IpAddress { get; }
     public DateTime ConnectedAt { get; }
 
-    public DeviceConnectedEventArgs(string deviceId, string deviceName, string ipAddress)
+    public DeviceConnectedEventArgs(string deviceId, string deviceName, string ipAddress, ITimeProvider? timeProvider = null)
     {
         DeviceId = deviceId;
         DeviceName = deviceName;
         IpAddress = ipAddress;
-        ConnectedAt = DateTime.UtcNow;
+        ConnectedAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     }
 }
 
@@ -184,11 +185,11 @@ public sealed class DeviceDisconnectedEventArgs : EventArgs
     public DisconnectReason Reason { get; }
     public DateTime DisconnectedAt { get; }
 
-    public DeviceDisconnectedEventArgs(string deviceId, DisconnectReason reason)
+    public DeviceDisconnectedEventArgs(string deviceId, DisconnectReason reason, ITimeProvider? timeProvider = null)
     {
         DeviceId = deviceId;
         Reason = reason;
-        DisconnectedAt = DateTime.UtcNow;
+        DisconnectedAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     }
 }
 
@@ -201,11 +202,11 @@ public sealed class ControllerInputReceivedEventArgs : EventArgs
     public ControllerInput Input { get; }
     public DateTime ReceivedAt { get; }
 
-    public ControllerInputReceivedEventArgs(string deviceId, ControllerInput input)
+    public ControllerInputReceivedEventArgs(string deviceId, ControllerInput input, ITimeProvider? timeProvider = null)
     {
         DeviceId = deviceId;
         Input = input;
-        ReceivedAt = DateTime.UtcNow;
+        ReceivedAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     }
 }
 

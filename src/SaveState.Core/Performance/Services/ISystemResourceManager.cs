@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Performance.Services;
 
@@ -136,5 +137,10 @@ public sealed class OptimizationStateChangedEventArgs : EventArgs
     public OptimizationState PreviousState { get; init; }
     public OptimizationState NewState { get; init; }
     public OptimizationProfile? AppliedProfile { get; init; }
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; init; }
+
+    public OptimizationStateChangedEventArgs(ITimeProvider? timeProvider = null)
+    {
+        Timestamp = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
+    }
 }

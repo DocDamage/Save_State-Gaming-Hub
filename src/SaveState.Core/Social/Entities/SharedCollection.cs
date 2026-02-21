@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Social.Entities;
 
@@ -52,6 +53,22 @@ public class SharedCollection : EntityBase
     /// <summary>
     /// Creates a new shared collection.
     /// </summary>
+    public static SharedCollection Create(string title, ITimeProvider timeProvider, string? description = null, bool isPublic = false)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        return new SharedCollection
+        {
+            Id = Guid.NewGuid(),
+            Title = Guard.Against.NullOrWhiteSpace(title, nameof(title)),
+            Description = description,
+            ShareCode = GenerateShareCode(),
+            IsPublic = isPublic,
+            CreatedAt = timeProvider.UtcNow,
+            DownloadCount = 0
+        };
+    }
+
+    [Obsolete("Use Create(string, ITimeProvider, string?, bool) instead")]
     public static SharedCollection Create(string title, string? description = null, bool isPublic = false)
     {
         return new SharedCollection
@@ -69,6 +86,28 @@ public class SharedCollection : EntityBase
     /// <summary>
     /// Updates the collection's title and description.
     /// </summary>
+    public void Update(ITimeProvider timeProvider, string? title = null, string? description = null, bool? isPublic = null)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        if (title is not null)
+        {
+            Title = Guard.Against.NullOrWhiteSpace(title, nameof(title));
+        }
+
+        if (description is not null)
+        {
+            Description = description;
+        }
+
+        if (isPublic.HasValue)
+        {
+            IsPublic = isPublic.Value;
+        }
+
+        UpdatedAt = timeProvider.UtcNow;
+    }
+
+    [Obsolete("Use Update(ITimeProvider, string?, string?, bool?) instead")]
     public void Update(string? title = null, string? description = null, bool? isPublic = null)
     {
         if (title is not null)
@@ -129,7 +168,7 @@ public class SharedCollectionItem
     /// <summary>
     /// Gets the shared collection.
     /// </summary>
-    public SharedCollection Collection { get; set; } = null!;
+    public SharedCollection Collection { get; set; } = null!; // EF Core navigation property
 
     /// <summary>
     /// Gets the title of the game in this collection.

@@ -1,5 +1,6 @@
 using MediatR;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
@@ -13,10 +14,12 @@ namespace SaveState.Application.GameLibrary.Commands.Handlers;
 public class CreateGameGoalCommandHandler : IRequestHandler<CreateGameGoalCommand, Result<Guid>>
 {
     private readonly IGameGoalRepository _goalRepository;
+    private readonly ITimeProvider _timeProvider;
 
-    public CreateGameGoalCommandHandler(IGameGoalRepository goalRepository)
+    public CreateGameGoalCommandHandler(IGameGoalRepository goalRepository, ITimeProvider timeProvider)
     {
         _goalRepository = goalRepository;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<Guid>> Handle(CreateGameGoalCommand request, CancellationToken cancellationToken)
@@ -28,6 +31,7 @@ public class CreateGameGoalCommandHandler : IRequestHandler<CreateGameGoalComman
             gameId,
             userId,
             request.Title,
+            _timeProvider,
             request.Description,
             request.TargetValue,
             request.Unit,

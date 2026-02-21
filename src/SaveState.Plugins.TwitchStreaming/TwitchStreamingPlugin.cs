@@ -1,4 +1,6 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Plugins;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -25,6 +27,7 @@ public class TwitchStreamingPlugin : IPlugin
 {
     private IPluginContext? _context;
     private ILogger? _logger;
+    private ITimeProvider? _timeProvider;
     private TwitchAPI? _twitchApi;
     private TwitchClient? _twitchClient;
     private bool _isStreamOnline = false;
@@ -43,6 +46,7 @@ public class TwitchStreamingPlugin : IPlugin
     {
         _context = context;
         _logger = context.Logger;
+        _timeProvider = context.Services.GetService<ITimeProvider>();
 
         _logger.LogInformation(TwitchStreamingStrings.LogInitializing);
 
@@ -653,7 +657,8 @@ public class TwitchStreamingPlugin : IPlugin
 
         try
         {
-            var response = await _twitchApi.Helix.Clips.GetClipsAsync(broadcasterId: broadcasterId, startedAt: DateTime.UtcNow.AddDays(-7));
+            var now = _timeProvider?.UtcNow ?? DateTime.UtcNow;
+            var response = await _twitchApi.Helix.Clips.GetClipsAsync(broadcasterId: broadcasterId, startedAt: now.AddDays(-7));
             _logger?.LogInformation($"Found {response.Clips.Length} clips from the last 7 days:");
 
             foreach (var clip in response.Clips.Take(5))

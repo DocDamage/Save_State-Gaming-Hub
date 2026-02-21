@@ -53,8 +53,8 @@ public interface IFrameDataService
 /// </summary>
 public class MoveComparison
 {
-    public MoveFrameData Move1 { get; set; } = null!;
-    public MoveFrameData Move2 { get; set; } = null!;
+    public required MoveFrameData Move1 { get; set; }
+    public required MoveFrameData Move2 { get; set; }
     public int SpeedDifference => Move1.StartupFrames - Move2.StartupFrames;
     public int DamageDifference => Move1.Damage - Move2.Damage;
     public int AdvantageDifference => Move1.BlockAdvantage - Move2.BlockAdvantage;

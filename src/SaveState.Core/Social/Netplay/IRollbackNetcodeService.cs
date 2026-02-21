@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Social.Netplay;
 
@@ -209,12 +210,12 @@ public sealed class DesyncDetectedEventArgs : EventArgs
     public string? DesyncLocation { get; }
     public DateTime DetectedAt { get; }
 
-    public DesyncDetectedEventArgs(int desyncFrame, uint localChecksum, uint remoteChecksum, string? desyncLocation)
+    public DesyncDetectedEventArgs(int desyncFrame, uint localChecksum, uint remoteChecksum, string? desyncLocation, ITimeProvider? timeProvider = null)
     {
         DesyncFrame = desyncFrame;
         LocalChecksum = localChecksum;
         RemoteChecksum = remoteChecksum;
         DesyncLocation = desyncLocation;
-        DetectedAt = DateTime.UtcNow;
+        DetectedAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     }
 }

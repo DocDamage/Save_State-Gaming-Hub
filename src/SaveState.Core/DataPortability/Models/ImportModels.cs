@@ -1,3 +1,5 @@
+using SaveState.Core.Common.Services;
+
 namespace SaveState.Core.DataPortability.Models;
 
 /// <summary>
@@ -10,10 +12,15 @@ public class ImportJob
     public ImportFormat Format { get; set; } = ImportFormat.Unknown;
     public ImportStatus Status { get; set; } = ImportStatus.Pending;
     public ImportOptions Options { get; init; } = new();
-    public DateTime StartedAt { get; init; } = DateTime.UtcNow;
+    public DateTime StartedAt { get; init; }
     public DateTime? CompletedAt { get; set; }
     public List<string> Errors { get; init; } = new();
     public List<string> Warnings { get; init; } = new();
+
+    public ImportJob(ITimeProvider? timeProvider = null)
+    {
+        StartedAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
+    }
 }
 
 /// <summary>

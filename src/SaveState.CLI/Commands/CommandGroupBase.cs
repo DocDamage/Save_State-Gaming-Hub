@@ -13,17 +13,17 @@ public abstract class CommandGroupBase : ICommandGroup
     /// <summary>
     /// Gets the MediatR mediator instance.
     /// </summary>
-    protected IMediator Mediator { get; private set; } = null!;
+    protected IMediator? Mediator { get; private set; }
 
     /// <summary>
     /// Gets the host instance for service resolution.
     /// </summary>
-    protected IHost Host { get; private set; } = null!;
+    protected IHost? Host { get; private set; }
 
     /// <summary>
     /// Gets the console instance for output.
     /// </summary>
-    protected IAnsiConsole AnsiConsole { get; private set; } = null!;
+    protected IAnsiConsole? AnsiConsole { get; private set; }
 
     /// <summary>
     /// Registers all commands in this group with the root command.

@@ -63,7 +63,7 @@ public sealed record Recommendation(
 
 public sealed class PerformanceMetricsUpdatedEventArgs : EventArgs
 {
-    public PerformanceMetrics Metrics { get; init; } = null!;
+    public required PerformanceMetrics Metrics { get; init; }
 }
 
 public enum BottleneckSeverity

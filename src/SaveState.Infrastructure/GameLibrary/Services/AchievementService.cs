@@ -378,7 +378,7 @@ public class AchievementService : IAchievementService
         var totalPlaytime = TimeSpan.Zero;
         foreach (var session in sessions)
         {
-            totalPlaytime += session.GetDuration();
+            totalPlaytime += session.GetDuration(_timeProvider);
         }
 
         var sessionCount = sessions.Count;

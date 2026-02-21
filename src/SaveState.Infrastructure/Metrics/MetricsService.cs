@@ -1,6 +1,7 @@
 using System.Diagnostics.Metrics;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Metrics;
 
 namespace SaveState.Infrastructure.Metrics;
@@ -12,6 +13,7 @@ namespace SaveState.Infrastructure.Metrics;
 public sealed class MetricsService : IMetricsService, IMetricsReporter, IDisposable
 {
     private readonly ILogger<MetricsService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Meter _meter;
     private readonly Dictionary<string, Counter<long>> _counters = new();
     private readonly Dictionary<string, Histogram<double>> _histograms = new();
@@ -27,9 +29,10 @@ public sealed class MetricsService : IMetricsService, IMetricsReporter, IDisposa
 
     private readonly object _lock = new();
 
-    public MetricsService(ILogger<MetricsService> logger)
+    public MetricsService(ILogger<MetricsService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         _meter = new Meter("SaveStateReborn.Metrics", "2.5.1");
 
         InitializeMetrics();
@@ -424,7 +427,7 @@ public sealed class MetricsService : IMetricsService, IMetricsReporter, IDisposa
     {
         var snapshot = new ServiceMetricsSnapshot
         {
-            Timestamp = DateTime.UtcNow,
+            Timestamp = _timeProvider.UtcNow,
             Counters = new Dictionary<string, long>(),
             Gauges = new Dictionary<string, double>(),
             Histograms = new Dictionary<string, MetricHistogram>()

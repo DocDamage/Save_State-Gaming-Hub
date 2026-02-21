@@ -154,8 +154,8 @@ public class FusionSuggestion
 /// </summary>
 public class FusionComparison
 {
-    public FusedCharacter Fusion1 { get; set; } = null!;
-    public FusedCharacter Fusion2 { get; set; } = null!;
+    public required FusedCharacter Fusion1 { get; set; }
+    public required FusedCharacter Fusion2 { get; set; }
     public int Winner { get; set; } // 1, 2, or 0 for tie
     public Dictionary<string, StatComparison> StatComparisons { get; set; } = new();
     public List<string> Fusion1Advantages { get; set; } = new();

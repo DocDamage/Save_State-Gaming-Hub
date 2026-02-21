@@ -283,8 +283,8 @@ public class BattleAnalysisOptions
 /// </summary>
 public class BattleComparison
 {
-    public AiBattleAnalysis Current { get; set; } = null!;
-    public AiBattleAnalysis Previous { get; set; } = null!;
+    public required AiBattleAnalysis Current { get; set; }
+    public required AiBattleAnalysis Previous { get; set; }
     public bool Improved => Current.PerformanceRating > Previous.PerformanceRating;
     public int RatingChange => Current.PerformanceRating - Previous.PerformanceRating;
     public List<string> Improvements { get; set; } = new();

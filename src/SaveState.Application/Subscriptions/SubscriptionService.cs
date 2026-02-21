@@ -173,7 +173,7 @@ public sealed class SubscriptionManagerService : ISubscriptionService
             }
             
             // Sort by urgency (days remaining)
-            alerts = alerts.OrderBy(a => a.DaysRemaining).ToList();
+            alerts = alerts.OrderBy(a => a.GetDaysRemaining(_timeProvider.UtcNow)).ToList();
             
             _logger.LogInformation("Found {Count} games leaving soon", alerts.Count);
             return Result.Success<IReadOnlyList<LeavingSoonAlert>>(alerts);

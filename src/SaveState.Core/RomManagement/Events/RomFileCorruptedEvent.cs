@@ -8,10 +8,10 @@ public class RomFileCorruptedEvent : EventBase
     public string FilePath { get; }
     public DateTime DetectedAt { get; }
 
-    public RomFileCorruptedEvent(Guid romFileId, string filePath)
+    public RomFileCorruptedEvent(Guid romFileId, string filePath, DateTime detectedAt)
     {
         RomFileId = romFileId;
         FilePath = Guard.Against.NullOrWhiteSpace(filePath, nameof(filePath));
-        DetectedAt = DateTime.UtcNow;
+        DetectedAt = detectedAt;
     }
 }

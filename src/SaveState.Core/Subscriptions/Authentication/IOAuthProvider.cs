@@ -1,5 +1,7 @@
 // Copyright (c) 2026 SaveStateReborn. All rights reserved.
 
+using SaveState.Core.Common.Services;
+
 namespace SaveState.Core.Subscriptions.Authentication;
 
 /// <summary>
@@ -64,6 +66,11 @@ public class OAuthTokenResult
     public DateTime? ExpiresAt { get; set; }
 
     /// <summary>
+    /// When the tokens were obtained.
+    /// </summary>
+    public DateTime ObtainedAt { get; set; }
+
+    /// <summary>
     /// Error message if the exchange failed.
     /// </summary>
     public string? Error { get; set; }
@@ -73,14 +80,15 @@ public class OAuthTokenResult
     /// </summary>
     public Dictionary<string, string> AdditionalData { get; set; } = new();
 
-    public static OAuthTokenResult Success(string accessToken, string? refreshToken = null, DateTime? expiresAt = null)
+    public static OAuthTokenResult Success(string accessToken, string? refreshToken = null, DateTime? expiresAt = null, DateTime? obtainedAt = null)
     {
         return new OAuthTokenResult
         {
             IsSuccess = true,
             AccessToken = accessToken,
             RefreshToken = refreshToken,
-            ExpiresAt = expiresAt
+            ExpiresAt = expiresAt,
+            ObtainedAt = obtainedAt ?? DateTime.UtcNow
         };
     }
 
@@ -143,7 +151,7 @@ public class OAuthTokens
     /// <summary>
     /// When the tokens were obtained.
     /// </summary>
-    public DateTime ObtainedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ObtainedAt { get; set; }
 
     /// <summary>
     /// Additional token data.
@@ -151,7 +159,12 @@ public class OAuthTokens
     public Dictionary<string, string> AdditionalData { get; set; } = new();
 
     /// <summary>
-    /// Checks if the token is expired or about to expire (within 5 minutes).
+    /// Checks if the token is expired or about to expire (within 5 minutes) at the specified time.
     /// </summary>
-    public bool IsExpired => DateTime.UtcNow >= ExpiresAt.AddMinutes(-5);
+    public bool IsExpiredAt(DateTime currentTime) => currentTime >= ExpiresAt.AddMinutes(-5);
+
+    /// <summary>
+    /// Gets whether the tokens have expired.
+    /// </summary>
+    public bool IsExpired => DateTime.UtcNow >= ExpiresAt;
 }

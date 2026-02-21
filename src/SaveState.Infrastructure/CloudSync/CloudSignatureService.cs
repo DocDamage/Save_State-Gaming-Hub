@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.CloudSync.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Infrastructure.CloudSync.Models;
 
 namespace SaveState.Infrastructure.CloudSync;
@@ -17,6 +18,7 @@ public class CloudSignatureService : ICloudSignatureDatabase
     private readonly HttpClient _httpClient;
     private readonly IMemoryCache _cache;
     private readonly ILogger<CloudSignatureService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly string _baseUrl;
     private readonly string _apiKey;
 
@@ -27,11 +29,13 @@ public class CloudSignatureService : ICloudSignatureDatabase
         HttpClient httpClient,
         IMemoryCache cache,
         ILogger<CloudSignatureService> logger,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ITimeProvider timeProvider)
     {
         _httpClient = httpClient;
         _cache = cache;
         _logger = logger;
+        _timeProvider = timeProvider;
         _baseUrl = configuration["CloudSignatureDatabase:BaseUrl"] ?? "https://api.savestatereborn.com/signatures";
         _apiKey = configuration["CloudSignatureDatabase:ApiKey"] ?? "";
         
@@ -266,7 +270,7 @@ public class CloudSignatureService : ICloudSignatureDatabase
                 NewSignatures = apiResponse?.New.Select(MapToCloudSignature).ToList() ?? new List<CloudSignature>(),
                 UpdatedSignatures = apiResponse?.Updated.Select(MapToCloudSignature).ToList() ?? new List<CloudSignature>(),
                 DeprecatedSignatures = apiResponse?.Deprecated ?? new List<string>(),
-                SyncTimestamp = apiResponse?.Timestamp ?? DateTime.UtcNow
+                SyncTimestamp = apiResponse?.Timestamp ?? _timeProvider.UtcNow
             };
             
             _logger.LogInformation(

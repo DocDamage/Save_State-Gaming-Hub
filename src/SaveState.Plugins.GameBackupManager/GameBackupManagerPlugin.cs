@@ -1,6 +1,7 @@
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Plugins;
 using System.IO.Compression;
 
@@ -9,6 +10,7 @@ namespace SaveState.Plugins.GameBackupManager;
 public sealed class GameBackupManagerPlugin : IPlugin
 {
     private IPluginContext? _context;
+    private ITimeProvider? _timeProvider;
     private readonly string _backupRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "SaveStateBackups");
 
     public string Id => "game-backup-manager";
@@ -21,6 +23,7 @@ public sealed class GameBackupManagerPlugin : IPlugin
     public Task InitializeAsync(IPluginContext context, CancellationToken ct = default)
     {
         _context = context;
+        _timeProvider = context.Services.GetService<ITimeProvider>();
         _context.Logger.LogInformation("Backup Manager Initialized");
 
         Directory.CreateDirectory(_backupRoot);
@@ -55,7 +58,8 @@ public sealed class GameBackupManagerPlugin : IPlugin
             // Mock Example:
             // var savePath = GetSavePath(gameTitle);
             // if (Directory.Exists(savePath)) {
-            //     var zipPath = Path.Combine(_backupRoot, $"{gameTitle}_{DateTime.Now:yyyyMMddHHmmss}.zip");
+            //     var now = _timeProvider?.Now ?? DateTime.Now;
+            //     var zipPath = Path.Combine(_backupRoot, $"{gameTitle}_{now:yyyyMMddHHmmss}.zip");
             //     ZipFile.CreateFromDirectory(savePath, zipPath);
             // }
 

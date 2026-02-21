@@ -1,4 +1,6 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Performance.Services;
 using SaveState.Core.Plugins;
 using System.CommandLine;
@@ -19,6 +21,7 @@ public class GamingAnalyticsPlugin : IPlugin
 {
     private IPluginContext? _context;
     private ILogger? _logger;
+    private ITimeProvider? _timeProvider;
     private IPerformanceMonitor? _performanceMonitor;
     private readonly AnalyticsEngine _analyticsEngine;
     private readonly List<PerformanceSession> _sessions = new();
@@ -40,6 +43,7 @@ public class GamingAnalyticsPlugin : IPlugin
     {
         _context = context;
         _logger = context.Logger;
+        _timeProvider = context.Services.GetService<ITimeProvider>();
 
         _logger.LogInformation(GamingAnalyticsStrings.LogInitializing);
 
@@ -553,7 +557,8 @@ public class GamingAnalyticsPlugin : IPlugin
             _ => 30
         };
 
-        var startDate = DateTime.UtcNow.AddDays(-days);
+        var now = _timeProvider?.UtcNow ?? DateTime.UtcNow;
+        var startDate = now.AddDays(-days);
         var periodSessions = _sessions.Where(s => s.StartTime >= startDate);
 
         if (!periodSessions.Any())
@@ -613,7 +618,7 @@ public class GamingAnalyticsPlugin : IPlugin
             var data = new AnalyticsData
             {
                 Sessions = _sessions.ToList(),
-                LastUpdated = DateTime.UtcNow
+                LastUpdated = _timeProvider?.UtcNow ?? DateTime.UtcNow
             };
 
             var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });

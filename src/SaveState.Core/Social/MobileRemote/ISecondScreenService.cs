@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Social.MobileRemote;
 
@@ -237,13 +238,13 @@ public sealed class ScreenInteractionEventArgs : EventArgs
     public Dictionary<string, object>? Data { get; }
     public DateTime OccurredAt { get; }
 
-    public ScreenInteractionEventArgs(string sessionId, string elementId, string interactionType, Dictionary<string, object>? data = null)
+    public ScreenInteractionEventArgs(string sessionId, string elementId, string interactionType, Dictionary<string, object>? data = null, ITimeProvider? timeProvider = null)
     {
         SessionId = sessionId;
         ElementId = elementId;
         InteractionType = interactionType;
         Data = data;
-        OccurredAt = DateTime.UtcNow;
+        OccurredAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     }
 }
 
@@ -257,11 +258,11 @@ public sealed class SessionStateChangedEventArgs : EventArgs
     public SecondScreenState NewState { get; }
     public DateTime ChangedAt { get; }
 
-    public SessionStateChangedEventArgs(string sessionId, SecondScreenState oldState, SecondScreenState newState)
+    public SessionStateChangedEventArgs(string sessionId, SecondScreenState oldState, SecondScreenState newState, ITimeProvider? timeProvider = null)
     {
         SessionId = sessionId;
         OldState = oldState;
         NewState = newState;
-        ChangedAt = DateTime.UtcNow;
+        ChangedAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     }
 }

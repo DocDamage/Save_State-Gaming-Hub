@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.RomManagement.Entities;
 
@@ -489,12 +490,12 @@ public sealed class GameLaunchedEventArgs : EventArgs
     public EmulatorType EmulatorType { get; }
     public DateTime LaunchedAt { get; }
 
-    public GameLaunchedEventArgs(string gameId, string? profileId, EmulatorType emulatorType)
+    public GameLaunchedEventArgs(string gameId, string? profileId, EmulatorType emulatorType, ITimeProvider? timeProvider = null)
     {
         GameId = gameId;
         ProfileId = profileId;
         EmulatorType = emulatorType;
-        LaunchedAt = DateTime.UtcNow;
+        LaunchedAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     }
 }
 
@@ -508,11 +509,11 @@ public sealed class ProfileAppliedEventArgs : EventArgs
     public string ConfigPath { get; }
     public DateTime AppliedAt { get; }
 
-    public ProfileAppliedEventArgs(string profileId, string gameId, string configPath)
+    public ProfileAppliedEventArgs(string profileId, string gameId, string configPath, ITimeProvider? timeProvider = null)
     {
         ProfileId = profileId;
         GameId = gameId;
         ConfigPath = configPath;
-        AppliedAt = DateTime.UtcNow;
+        AppliedAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     }
 }

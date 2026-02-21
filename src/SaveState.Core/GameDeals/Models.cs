@@ -49,7 +49,7 @@ public class GameDeal
     /// <summary>
     /// The store offering the deal.
     /// </summary>
-    public GameStore Store { get; set; } = null!;
+    public GameStore? Store { get; set; }
 
     /// <summary>
     /// Deal start date.

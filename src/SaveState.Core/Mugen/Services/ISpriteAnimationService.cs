@@ -4,13 +4,18 @@ using SaveState.Core.Mugen.ValueObjects;
 namespace SaveState.Core.Mugen.Services;
 
 /// <summary>
-/// Comprehensive service for MUGEN sprite and animation management.
-/// Provides sprite editing, animation creation, SFF/AIR file handling, and palette management.
+/// Marker interface for sprite and animation services.
+/// Use specific sub-interfaces for actual operations.
 /// </summary>
 public interface ISpriteAnimationService
 {
-    #region Sprite Management
+}
 
+/// <summary>
+/// Service for sprite file (SFF) management.
+/// </summary>
+public interface ISpriteManagementService
+{
     /// <summary>
     /// Loads sprites from an SFF file.
     /// </summary>
@@ -34,7 +39,7 @@ public interface ISpriteAnimationService
     /// </summary>
     Task<Result<IReadOnlyList<string>>> ExportSpritesAsync(
         IReadOnlyList<Sprite> sprites,
-        ExportSpriteOptions options,
+            ExportSpriteOptions options,
         CancellationToken ct = default);
 
     /// <summary>
@@ -77,11 +82,13 @@ public interface ISpriteAnimationService
         string filePath,
         SpriteOptimizationOptions options,
         CancellationToken ct = default);
+}
 
-    #endregion
-
-    #region Animation Management
-
+/// <summary>
+/// Service for animation (AIR) management.
+/// </summary>
+public interface IAnimationManagementService
+{
     /// <summary>
     /// Loads animations from an AIR file.
     /// </summary>
@@ -155,11 +162,13 @@ public interface ISpriteAnimationService
     Task<Result> DeleteAnimationAsync(
         int actionNumber,
         CancellationToken ct = default);
+}
 
-    #endregion
-
-    #region Palette Management
-
+/// <summary>
+/// Service for palette management.
+/// </summary>
+public interface IPaletteManagementService
+{
     /// <summary>
     /// Loads palette from a file (ACT, PAL, etc.).
     /// </summary>
@@ -210,11 +219,13 @@ public interface ISpriteAnimationService
         int colorIndex,
         RgbColor color,
         CancellationToken ct = default);
+}
 
-    #endregion
-
-    #region Preview and Playback
-
+/// <summary>
+/// Service for animation preview and playback.
+/// </summary>
+public interface IAnimationPreviewService
+{
     /// <summary>
     /// Renders animation frame as preview.
     /// </summary>
@@ -263,11 +274,13 @@ public interface ISpriteAnimationService
     Task<Result> SeekToFrameAsync(
         int frameIndex,
         CancellationToken ct = default);
+}
 
-    #endregion
-
-    #region Batch Operations
-
+/// <summary>
+/// Service for batch sprite operations.
+/// </summary>
+public interface ISpriteBatchService
+{
     /// <summary>
     /// Batch processes sprites.
     /// </summary>
@@ -298,11 +311,13 @@ public interface ISpriteAnimationService
         IReadOnlyList<string> filePaths,
         SpriteMergeOptions options,
         CancellationToken ct = default);
+}
 
-    #endregion
-
-    #region Project Management
-
+/// <summary>
+/// Service for sprite project management.
+/// </summary>
+public interface ISpriteProjectService
+{
     /// <summary>
     /// Creates a new sprite project.
     /// </summary>
@@ -330,8 +345,6 @@ public interface ISpriteAnimationService
     /// </summary>
     Task<Result<ProjectStatistics>> GetProjectStatisticsAsync(
         CancellationToken ct = default);
-
-    #endregion
 }
 
 #region Request/Response Models
@@ -410,11 +423,21 @@ public record ImportSpriteOptions(
 public record ExportSpriteOptions(
     string OutputDirectory,
     string FileNamePattern,
-    ExportFormat Format,
+    SpriteExportFormat Format,
     bool IncludePalette,
     int? ScalePercent = null);
 
-// Export format and OptimizationOptions moved to ISoundDesignService as SoundExportFormat and SpriteOptimizationOptions
+/// <summary>
+/// Sprite export format.
+/// </summary>
+public enum SpriteExportFormat
+{
+    Png,
+    Bmp,
+    Gif,
+    Jpeg,
+    Webp
+}
 
 /// <summary>
 /// Sprite optimization options.
@@ -499,8 +522,8 @@ public record AnimationFrame(
     int? ScaleX = null,
     int? ScaleY = null,
     int? Angle = null,
-    IReadOnlyList<ClsnBox>? Clsn1 = null,  // Attack boxes
-    IReadOnlyList<ClsnBox>? Clsn2 = null); // Defense boxes
+    IReadOnlyList<ClsnBox>? Clsn1 = null,
+    IReadOnlyList<ClsnBox>? Clsn2 = null);
 
 /// <summary>
 /// Collision box.

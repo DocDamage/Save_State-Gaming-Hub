@@ -334,7 +334,7 @@ public partial class DataExportService : IDataExportService
                     GameTitle = s.Game?.Title,
                     s.StartedAt,
                     s.EndedAt,
-                    Duration = s.GetDuration().ToString(),
+                    Duration = s.GetDuration(_timeProvider).ToString(),
                     s.Notes,
                     EndReason = s.EndReason?.ToString()
                 }).ToList()

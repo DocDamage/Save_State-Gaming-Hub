@@ -26,7 +26,7 @@ public sealed class TobiiEyeTrackingProvider : IEyeTrackingMonitor, IDisposable
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
-        _adapter = new TobiiSdkAdapter(logger);
+        _adapter = new TobiiSdkAdapter(logger, timeProvider);
     }
 
     /// <inheritdoc />
@@ -342,6 +342,7 @@ public sealed class TobiiEyeTrackingProvider : IEyeTrackingMonitor, IDisposable
     private sealed class TobiiSdkAdapter : IDisposable
     {
         private readonly ILogger _logger;
+        private readonly ITimeProvider _timeProvider;
         private GazeData _latestGazeData;
         private bool _isTracking;
         private readonly object _dataLock = new();
@@ -351,9 +352,10 @@ public sealed class TobiiEyeTrackingProvider : IEyeTrackingMonitor, IDisposable
         private dynamic? _gazePointDataStream;
         private bool _isSdkLoaded;
 
-        public TobiiSdkAdapter(ILogger logger)
+        public TobiiSdkAdapter(ILogger logger, ITimeProvider timeProvider)
         {
             _logger = logger;
+            _timeProvider = timeProvider;
             _latestGazeData = new GazeData();
             
             // Check SDK availability
@@ -658,7 +660,7 @@ public sealed class TobiiEyeTrackingProvider : IEyeTrackingMonitor, IDisposable
                             X = Math.Clamp(normalizedX, 0f, 1f),
                             Y = Math.Clamp(normalizedY, 0f, 1f),
                             Confidence = 0.85f, // Tobii SDK doesn't provide direct confidence, use default
-                            TimestampUtc = DateTime.UtcNow
+                            TimestampUtc = _timeProvider.UtcNow
                         };
 
                         lock (_dataLock)

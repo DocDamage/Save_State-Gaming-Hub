@@ -1,5 +1,6 @@
 using SaveState.Core.Common;
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Performance.Services;
 
@@ -78,14 +79,15 @@ public class DisplayProfile : EntityBase
     public Guid? GameId { get; private set; }
     public string Name { get; private set; } = string.Empty;
     public bool IsDefault { get; private set; }
-    public DisplaySettings Settings { get; private set; } = null!;
+    public DisplaySettings Settings { get; set; } = null!; // Set via Create factory method
     public DateTime CreatedAt { get; private set; }
     public DateTime? LastAppliedAt { get; private set; }
 
     private DisplayProfile() { }
 
-    public static DisplayProfile Create(Guid? gameId, string name, DisplaySettings settings, bool isDefault = false)
+    public static DisplayProfile Create(Guid? gameId, string name, DisplaySettings settings, bool isDefault = false, ITimeProvider? timeProvider = null)
     {
+        var tp = timeProvider ?? SystemTimeProvider.Instance;
         return new DisplayProfile
         {
             Id = Guid.NewGuid(),
@@ -93,11 +95,11 @@ public class DisplayProfile : EntityBase
             Name = Guard.Against.NullOrWhiteSpace(name, nameof(name)),
             Settings = settings,
             IsDefault = isDefault,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = tp.UtcNow
         };
     }
 
-    public void MarkApplied() => LastAppliedAt = DateTime.UtcNow;
+    public void MarkApplied(ITimeProvider? timeProvider = null) => LastAppliedAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     public void SetAsDefault(bool isDefault) => IsDefault = isDefault;
     public void UpdateSettings(DisplaySettings settings) => Settings = settings;
 }

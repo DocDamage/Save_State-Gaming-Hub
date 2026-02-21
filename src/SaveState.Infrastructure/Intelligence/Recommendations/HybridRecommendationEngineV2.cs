@@ -289,7 +289,7 @@ public sealed class HybridRecommendationEngineV2 : IRecommendationEngineV2
         var score = 0f;
 
         // Boost score for games similar to highly played games
-        foreach (var session in userSessions.OrderByDescending(s => s.GetDuration()).Take(5))
+        foreach (var session in userSessions.OrderByDescending(s => s.GetDuration(_timeProvider)).Take(5))
         {
             var similarity = CalculateGameSimilarity(game, session.Game);
             score += similarity * 0.2f;

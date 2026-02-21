@@ -27,8 +27,8 @@ public sealed record OpenPort(
 /// </summary>
 public sealed class NetworkQualityChangedEventArgs : EventArgs
 {
-    public NetworkQuality PreviousQuality { get; init; } = null!;
-    public NetworkQuality CurrentQuality { get; init; } = null!;
+    public required NetworkQuality PreviousQuality { get; init; }
+    public required NetworkQuality CurrentQuality { get; init; }
     public QualityChangeType ChangeType { get; init; }
 }
 

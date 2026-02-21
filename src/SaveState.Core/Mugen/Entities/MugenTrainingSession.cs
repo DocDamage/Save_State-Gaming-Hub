@@ -16,7 +16,7 @@ public class MugenTrainingSession : EntityBase
     /// <summary>
     /// The character being trained.
     /// </summary>
-    public MugenCharacter Character { get; private set; } = null!;
+    public MugenCharacter Character { get; private set; } = null;
 
     /// <summary>
     /// The ID of the opponent/dummy character used in training.
@@ -26,7 +26,7 @@ public class MugenTrainingSession : EntityBase
     /// <summary>
     /// The opponent/dummy character used in training.
     /// </summary>
-    public MugenCharacter OpponentCharacter { get; private set; } = null!;
+    public MugenCharacter OpponentCharacter { get; private set; } = null;
 
     /// <summary>
     /// The user ID who conducted this training session.

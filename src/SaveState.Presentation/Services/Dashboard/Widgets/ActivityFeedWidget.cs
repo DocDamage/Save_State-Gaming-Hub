@@ -69,7 +69,7 @@ public partial class ActivityFeedWidget : WidgetBase
             {
                 var game = await _gameRepository.GetByIdAsync(SaveState.Core.Common.ValueObjects.GameId.From(session.GameId));
                 var gameName = game?.Title ?? "Unknown Game";
-                var duration = session.GetDuration();
+                var duration = session.GetDuration(_timeProvider);
 
                 var durationText = duration.TotalHours >= 1
                     ? $"{duration.TotalHours:F1} hours"

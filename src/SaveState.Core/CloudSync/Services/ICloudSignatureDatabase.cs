@@ -273,7 +273,7 @@ public class CloudSignatureUploadRequest
     public string Platform { get; set; } = string.Empty;
     
     /// <summary>The signature to upload.</summary>
-    public GameMemorySignature Signature { get; set; } = null!;
+    public required GameMemorySignature Signature { get; init; }
     
     /// <summary>Optional author name.</summary>
     public string? Author { get; set; }

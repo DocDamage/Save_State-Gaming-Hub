@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Application.Common;
 
@@ -14,6 +15,7 @@ namespace SaveState.Infrastructure.GameLibrary.Services;
 public sealed class LinuxMemoryReader : IGameMemoryReader, IDisposable
 {
     private readonly ILogger<LinuxMemoryReader> _logger;
+    private readonly ITimeProvider _timeProvider;
     private int _processId = -1;
     private bool _isAttached;
     private FileStream? _memStream;
@@ -29,6 +31,7 @@ public sealed class LinuxMemoryReader : IGameMemoryReader, IDisposable
 
     private class FrozenValue
     {
+        // Value is set immediately after construction in FreezeValueAsync
         public object Value { get; set; } = null!;
         public string ValueType { get; set; } = string.Empty;
         public CancellationTokenSource Cts { get; } = new();
@@ -37,9 +40,10 @@ public sealed class LinuxMemoryReader : IGameMemoryReader, IDisposable
     public event EventHandler<GameStateChangedEventArgs>? StateChanged;
     public bool IsAttached => _isAttached;
 
-    public LinuxMemoryReader(ILogger<LinuxMemoryReader> logger)
+    public LinuxMemoryReader(ILogger<LinuxMemoryReader> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public Task<Result> AttachToProcessAsync(int processId, CancellationToken ct = default)
@@ -201,7 +205,7 @@ public sealed class LinuxMemoryReader : IGameMemoryReader, IDisposable
                     if (newState != _currentState)
                     {
                         _currentState = newState;
-                        StateChanged?.Invoke(this, new GameStateChangedEventArgs { StateType = _currentState, Data = DateTime.Now });
+                        StateChanged?.Invoke(this, new GameStateChangedEventArgs { StateType = _currentState, Data = _timeProvider.Now });
                         _logger.LogInformation("Process state changed to {State} on Linux", _currentState);
                     }
                 }

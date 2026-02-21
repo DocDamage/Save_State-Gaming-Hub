@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Social.Streaming;
 
@@ -176,10 +177,10 @@ public sealed class ChatMessageReceivedEventArgs : EventArgs
     public ChatMessage Message { get; }
     public DateTime ReceivedAt { get; }
 
-    public ChatMessageReceivedEventArgs(ChatMessage message)
+    public ChatMessageReceivedEventArgs(ChatMessage message, ITimeProvider? timeProvider = null)
     {
         Message = message;
-        ReceivedAt = DateTime.UtcNow;
+        ReceivedAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     }
 }
 
@@ -193,12 +194,12 @@ public sealed class ChatCommandTriggeredEventArgs : EventArgs
     public string[] Arguments { get; }
     public DateTime TriggeredAt { get; }
 
-    public ChatCommandTriggeredEventArgs(string commandName, ChatMessage message, string[] arguments)
+    public ChatCommandTriggeredEventArgs(string commandName, ChatMessage message, string[] arguments, ITimeProvider? timeProvider = null)
     {
         CommandName = commandName;
         Message = message;
         Arguments = arguments;
-        TriggeredAt = DateTime.UtcNow;
+        TriggeredAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     }
 }
 
@@ -211,11 +212,11 @@ public sealed class UserJoinedEventArgs : EventArgs
     public StreamingPlatformType Platform { get; }
     public DateTime JoinedAt { get; }
 
-    public UserJoinedEventArgs(string username, StreamingPlatformType platform)
+    public UserJoinedEventArgs(string username, StreamingPlatformType platform, ITimeProvider? timeProvider = null)
     {
         Username = username;
         Platform = platform;
-        JoinedAt = DateTime.UtcNow;
+        JoinedAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     }
 }
 
@@ -228,10 +229,10 @@ public sealed class UserLeftEventArgs : EventArgs
     public StreamingPlatformType Platform { get; }
     public DateTime LeftAt { get; }
 
-    public UserLeftEventArgs(string username, StreamingPlatformType platform)
+    public UserLeftEventArgs(string username, StreamingPlatformType platform, ITimeProvider? timeProvider = null)
     {
         Username = username;
         Platform = platform;
-        LeftAt = DateTime.UtcNow;
+        LeftAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     }
 }

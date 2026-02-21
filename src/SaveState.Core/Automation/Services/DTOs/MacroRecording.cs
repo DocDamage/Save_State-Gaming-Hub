@@ -84,7 +84,7 @@ public sealed record MacroValidationResult(
 /// </summary>
 public sealed class RecordingStartedEventArgs : EventArgs
 {
-    public MacroRecordingSession Session { get; init; } = null!;
+    public required MacroRecordingSession Session { get; init; }
 }
 
 /// <summary>
@@ -103,7 +103,7 @@ public sealed class RecordingStoppedEventArgs : EventArgs
 public sealed class ActionRecordedEventArgs : EventArgs
 {
     public Guid SessionId { get; init; }
-    public MacroAction Action { get; init; } = null!;
+    public required MacroAction Action { get; init; }
 }
 
 /// <summary>
@@ -111,7 +111,7 @@ public sealed class ActionRecordedEventArgs : EventArgs
 /// </summary>
 public sealed class PlaybackStartedEventArgs : EventArgs
 {
-    public MacroPlaybackSession Session { get; init; } = null!;
+    public required MacroPlaybackSession Session { get; init; }
 }
 
 /// <summary>
@@ -130,7 +130,7 @@ public sealed class PlaybackStoppedEventArgs : EventArgs
 public sealed class ActionExecutedEventArgs : EventArgs
 {
     public Guid SessionId { get; init; }
-    public MacroAction Action { get; init; } = null!;
+    public required MacroAction Action { get; init; }
     public bool Success { get; init; }
 }
 
@@ -140,6 +140,6 @@ public sealed class ActionExecutedEventArgs : EventArgs
 public sealed class PlaybackErrorEventArgs : EventArgs
 {
     public Guid SessionId { get; init; }
-    public Exception Exception { get; init; } = null!;
+    public required Exception Exception { get; init; }
     public MacroAction? FailedAction { get; init; }
 }

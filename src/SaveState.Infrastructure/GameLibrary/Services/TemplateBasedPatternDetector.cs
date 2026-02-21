@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Infrastructure.GameLibrary.Templates;
 
@@ -63,14 +64,17 @@ public sealed class TemplateBasedPatternDetector : ITemplateBasedPatternDetector
 {
     private readonly IGameMemoryReader _memoryReader;
     private readonly ILogger<TemplateBasedPatternDetector> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly List<IMemoryPatternTemplate> _templates;
 
     public TemplateBasedPatternDetector(
         IGameMemoryReader memoryReader,
-        ILogger<TemplateBasedPatternDetector> logger)
+        ILogger<TemplateBasedPatternDetector> logger,
+        ITimeProvider timeProvider)
     {
         _memoryReader = memoryReader ?? throw new ArgumentNullException(nameof(memoryReader));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         _templates = UniversalPatternTemplates.All.ToList();
     }
 
@@ -253,7 +257,7 @@ public sealed class TemplateBasedPatternDetector : ITemplateBasedPatternDetector
                 OverallConfidence = overallConfidence,
                 Strategy = DetectionStrategy.UserTriggered,
                 DetectionTime = stopwatch.Elapsed,
-                DetectedAt = DateTime.UtcNow
+                DetectedAt = _timeProvider.UtcNow
             });
         }
         catch (OperationCanceledException)
@@ -322,7 +326,7 @@ public sealed class TemplateBasedPatternDetector : ITemplateBasedPatternDetector
                 OverallConfidence = matches.Count > 0 ? matches.Average(m => m.Confidence) : 0,
                 Strategy = DetectionStrategy.SinglePass,
                 DetectionTime = stopwatch.Elapsed,
-                DetectedAt = DateTime.UtcNow
+                DetectedAt = _timeProvider.UtcNow
             });
         }
         finally
@@ -369,7 +373,7 @@ public sealed class TemplateBasedPatternDetector : ITemplateBasedPatternDetector
                     OverallConfidence = 0,
                     Strategy = DetectionStrategy.MultiPass,
                     DetectionTime = stopwatch.Elapsed,
-                    DetectedAt = DateTime.UtcNow
+                    DetectedAt = _timeProvider.UtcNow
                 });
             }
 
@@ -415,7 +419,7 @@ public sealed class TemplateBasedPatternDetector : ITemplateBasedPatternDetector
                 OverallConfidence = finalMatches.Count > 0 ? finalMatches.Average(m => m.Confidence) : 0,
                 Strategy = DetectionStrategy.MultiPass,
                 DetectionTime = stopwatch.Elapsed,
-                DetectedAt = DateTime.UtcNow
+                DetectedAt = _timeProvider.UtcNow
             });
         }
         finally
@@ -471,7 +475,7 @@ public sealed class TemplateBasedPatternDetector : ITemplateBasedPatternDetector
                 OverallConfidence = matches.Count > 0 ? matches.Average(m => m.Confidence) : 0,
                 Strategy = DetectionStrategy.SnapshotComparison,
                 DetectionTime = stopwatch.Elapsed,
-                DetectedAt = DateTime.UtcNow
+                DetectedAt = _timeProvider.UtcNow
             });
         }
         finally
@@ -531,7 +535,7 @@ public sealed class TemplateBasedPatternDetector : ITemplateBasedPatternDetector
                 OverallConfidence = matches.Count > 0 ? matches.Average(m => m.Confidence) : 0,
                 Strategy = DetectionStrategy.StatisticalAnalysis,
                 DetectionTime = stopwatch.Elapsed,
-                DetectedAt = DateTime.UtcNow
+                DetectedAt = _timeProvider.UtcNow
             });
         }
         finally

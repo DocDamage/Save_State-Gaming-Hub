@@ -111,7 +111,7 @@ public static class RomManagementContext
 public class Emulator : EntityBase
 {
     public string Name { get; private set; } = string.Empty;
-    public RomManagementContext.EmulatorPath ExecutablePath { get; private set; } = null!;
+    public RomManagementContext.EmulatorPath? ExecutablePath { get; private set; }
     public string Platform { get; private set; } = string.Empty;
     public string? Version { get; private set; }
     public Dictionary<string, string> DefaultArguments { get; private set; } = new();
@@ -133,8 +133,8 @@ public class Emulator : EntityBase
 
 public class BiosFile : EntityBase
 {
-    public RomManagementContext.FilePath FilePath { get; private set; } = null!;
-    public RomManagementContext.FileSize FileSize { get; private set; } = null!;
+    public RomManagementContext.FilePath? FilePath { get; private set; }
+    public RomManagementContext.FileSize? FileSize { get; private set; }
     public string Platform { get; private set; } = string.Empty;
     public string? Description { get; private set; }
     public bool IsRequired { get; private set; }

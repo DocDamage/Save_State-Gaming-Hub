@@ -1,5 +1,6 @@
 using SaveState.Core.Common.Base;
 using SaveState.Core.Common.Interfaces;
+using SaveState.Core.Common.Services;
 using SaveState.Core.RomManagement.ValueObjects;
 using SaveState.Core.RomManagement.Enums;
 using SaveState.Core.RomManagement.Events;
@@ -10,10 +11,10 @@ namespace SaveState.Core.RomManagement.Entities;
 public class RomFile : EntityBase, IAggregateRoot, ISoftDelete
 {
     public string Title { get; private set; } = string.Empty;
-    public FilePath FilePath { get; private set; } = null!;
+    public FilePath? FilePath { get; private set; }
     public long FileSize { get; private set; }
     public Guid PlatformId { get; private set; }
-    public Platform Platform { get; private set; } = null!;
+    public Platform? Platform { get; private set; }
     public string? Description { get; private set; }
     public string? Region { get; private set; }
     public string? Version { get; private set; }
@@ -28,6 +29,23 @@ public class RomFile : EntityBase, IAggregateRoot, ISoftDelete
 
     protected RomFile() { } // EF Core
 
+    public RomFile(
+        string title,
+        Guid platformId,
+        FilePath filePath,
+        long fileSize,
+        ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        Title = Guard.Against.NullOrWhiteSpace(title, nameof(title));
+        PlatformId = platformId;
+        FilePath = Guard.Against.Null(filePath, nameof(filePath));
+        FileSize = Guard.Against.Negative(fileSize, nameof(fileSize));
+        Status = RomStatus.Scanned;
+        ScannedAt = timeProvider.UtcNow;
+    }
+
+    [Obsolete("Use constructor with ITimeProvider parameter")]
     public RomFile(
         string title,
         Guid platformId,
@@ -59,6 +77,19 @@ public class RomFile : EntityBase, IAggregateRoot, ISoftDelete
         Checksum = Guard.Against.NullOrWhiteSpace(checksum, nameof(checksum));
     }
 
+    public void MarkAsVerified(ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        if (Status != RomStatus.Scanned && Status != RomStatus.Processing)
+            throw new InvalidOperationException("Can only verify scanned or processing ROMs");
+
+        Status = RomStatus.Verified;
+        VerifiedAt = timeProvider.UtcNow;
+
+        AddDomainEvent(new RomFileVerifiedEvent((Guid)Id, FilePath.Value, timeProvider.UtcNow));
+    }
+
+    [Obsolete("Use MarkAsVerified(ITimeProvider) instead")]
     public void MarkAsVerified()
     {
         if (Status != RomStatus.Scanned && Status != RomStatus.Processing)
@@ -67,13 +98,21 @@ public class RomFile : EntityBase, IAggregateRoot, ISoftDelete
         Status = RomStatus.Verified;
         VerifiedAt = DateTime.UtcNow;
 
-        AddDomainEvent(new RomFileVerifiedEvent((Guid)Id, FilePath.Value));
+        AddDomainEvent(new RomFileVerifiedEvent((Guid)Id, FilePath.Value, DateTime.UtcNow));
     }
 
+    public void MarkAsCorrupted(ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        Status = RomStatus.Corrupted;
+        AddDomainEvent(new RomFileCorruptedEvent((Guid)Id, FilePath.Value, timeProvider.UtcNow));
+    }
+
+    [Obsolete("Use MarkAsCorrupted(ITimeProvider) instead")]
     public void MarkAsCorrupted()
     {
         Status = RomStatus.Corrupted;
-        AddDomainEvent(new RomFileCorruptedEvent((Guid)Id, FilePath.Value));
+        AddDomainEvent(new RomFileCorruptedEvent((Guid)Id, FilePath.Value, DateTime.UtcNow));
     }
 
     public void MarkAsProcessing()

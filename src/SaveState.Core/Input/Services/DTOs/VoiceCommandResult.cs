@@ -1,3 +1,5 @@
+using SaveState.Core.Common.Services;
+
 namespace SaveState.Core.Input.Services.DTOs;
 
 /// <summary>
@@ -16,8 +18,13 @@ public sealed record VoiceCommandResult(
 /// </summary>
 public sealed class VoiceCommandRecognizedEventArgs : EventArgs
 {
-    public VoiceCommandResult Result { get; init; } = null!;
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public required VoiceCommandResult Result { get; init; }
+    public DateTime Timestamp { get; init; }
+
+    public VoiceCommandRecognizedEventArgs(ITimeProvider? timeProvider = null)
+    {
+        Timestamp = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
+    }
 }
 
 /// <summary>
@@ -27,5 +34,10 @@ public sealed class ListeningStatusChangedEventArgs : EventArgs
 {
     public bool IsListening { get; init; }
     public string? Reason { get; init; }
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; init; }
+
+    public ListeningStatusChangedEventArgs(ITimeProvider? timeProvider = null)
+    {
+        Timestamp = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
+    }
 }

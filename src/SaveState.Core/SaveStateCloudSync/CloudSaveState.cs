@@ -160,8 +160,8 @@ public enum SyncStatus
 public class SyncConflict
 {
     public Guid CloudSaveStateId { get; set; }
-    public CloudSaveState LocalVersion { get; set; } = null!;
-    public CloudSaveState CloudVersion { get; set; } = null!;
+    public required CloudSaveState LocalVersion { get; set; }
+    public required CloudSaveState CloudVersion { get; set; }
     public ConflictType Type { get; set; }
     public string Description { get; set; } = string.Empty;
 }

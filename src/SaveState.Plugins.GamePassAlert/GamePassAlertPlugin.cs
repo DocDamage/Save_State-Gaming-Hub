@@ -13,7 +13,8 @@ namespace SaveState.Plugins.GamePassAlert;
 public sealed class GamePassAlertPlugin : IPlugin
 {
     private IPluginContext? _context;
-    private ITimeProvider _timeProvider = null!;
+    // Initialized in InitializeAsync before use
+    private ITimeProvider? _timeProvider;
     private readonly HttpClient _httpClient = new();
     private Timer? _checkTimer;
     private GamePassAlertSettings _settings = new();
@@ -91,6 +92,9 @@ public sealed class GamePassAlertPlugin : IPlugin
                 }
 
                 // Check for upcoming notifications
+                if (_timeProvider == null)
+                    return;
+
                 var now = _timeProvider.Now;
                 var daysRemaining = (game.LeavingDate - now).Days;
                 if (daysRemaining <= 7 && !game.NotifiedAt7Days)
@@ -146,6 +150,9 @@ public sealed class GamePassAlertPlugin : IPlugin
 
             if (catalog?.Products != null)
             {
+                if (_timeProvider == null)
+                    return leavingGames;
+
                 foreach (var product in catalog.Products)
                 {
                     var now = _timeProvider.Now;

@@ -15,7 +15,7 @@ public class MugenCollectionCharacter : EntityBase
     /// <summary>
     /// The collection this character belongs to.
     /// </summary>
-    public MugenCharacterCollection Collection { get; private set; } = null!;
+    public MugenCharacterCollection Collection { get; private set; } = null;
 
     /// <summary>
     /// The ID of the character in this collection.
@@ -25,7 +25,7 @@ public class MugenCollectionCharacter : EntityBase
     /// <summary>
     /// The character in this collection.
     /// </summary>
-    public MugenCharacter Character { get; private set; } = null!;
+    public MugenCharacter Character { get; private set; } = null;
 
     /// <summary>
     /// Optional notes about this character in the collection.

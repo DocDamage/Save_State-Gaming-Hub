@@ -8,7 +8,7 @@ namespace SaveState.Core.UserManagement.Entities;
 public class ApiKey : EntityBase
 {
     public Guid UserId { get; private set; }
-    public User User { get; private set; } = null!;
+    public User User { get; private set; } = null!; // Set via Create factory method
 
     public string Name { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;

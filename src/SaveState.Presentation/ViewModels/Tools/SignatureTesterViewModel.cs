@@ -668,6 +668,7 @@ public partial class SignatureTesterViewModel : ObservableObject, IDisposable
 public partial class SelectableSignatureViewModel : ObservableObject
 {
     [ObservableProperty]
+    // Initialized when created by SignatureTesterViewModel; null-forgiving used for CommunityToolkit.Mvvm source generator
     private GameMemorySignature _signature = null!;
 
     [ObservableProperty]

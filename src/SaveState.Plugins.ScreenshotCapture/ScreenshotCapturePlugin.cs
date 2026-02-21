@@ -508,7 +508,8 @@ public class ScreenshotCapturePlugin : IPlugin
 public class ScreenshotManager
 {
     private string _outputDirectory = string.Empty;
-    private ITimeProvider _timeProvider = null!;
+    // Initialized in SetTimeProvider before use
+    private ITimeProvider? _timeProvider;
 
     public void SetTimeProvider(ITimeProvider timeProvider)
     {
@@ -522,6 +523,9 @@ public class ScreenshotManager
 
     public async Task<string> CaptureScreenshotAsync(string? customFilename = null, string format = "png")
     {
+        if (_timeProvider == null)
+            throw new InvalidOperationException("TimeProvider not initialized");
+
         var timestamp = _timeProvider.Now.ToString("yyyyMMdd_HHmmss");
         var filename = customFilename ?? $"screenshot_{timestamp}.{format}";
         var filepath = Path.Combine(_outputDirectory, filename);
@@ -578,7 +582,8 @@ public class VideoRecorder
 {
     private string _outputDirectory = string.Empty;
     private bool _isRecording;
-    private ITimeProvider _timeProvider = null!;
+    // Initialized in SetTimeProvider before use
+    private ITimeProvider? _timeProvider;
 
     public void SetTimeProvider(ITimeProvider timeProvider)
     {
@@ -602,6 +607,8 @@ public class VideoRecorder
     public async Task<string> StopRecordingAsync()
     {
         if (!_isRecording) return string.Empty;
+        if (_timeProvider == null)
+            throw new InvalidOperationException("TimeProvider not initialized");
 
         _isRecording = false;
 

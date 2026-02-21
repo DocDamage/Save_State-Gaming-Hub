@@ -5,6 +5,8 @@ using SaveState.Core.Common;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Application.Common;
 
+#pragma warning disable CA1849 // Call async methods when in an async method - macOS implementation uses sync patterns for interop
+
 namespace SaveState.Infrastructure.GameLibrary.Services;
 
 /// <summary>
@@ -44,6 +46,7 @@ public sealed class MacOSMemoryReader : IGameMemoryReader, IDisposable
 
     private class FrozenValue
     {
+        // Value is set immediately after construction in FreezeValueAsync
         public object Value { get; set; } = null!;
         public string ValueType { get; set; } = string.Empty;
         public CancellationTokenSource Cts { get; } = new();
@@ -165,7 +168,7 @@ public sealed class MacOSMemoryReader : IGameMemoryReader, IDisposable
         }
     }
 
-    public Task<Result<IReadOnlyList<MemoryPattern>>> DetectPatternsAsync(CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<MemoryPattern>>> DetectPatternsAsync(CancellationToken ct = default)
     {
         using (_logger.BeginCorrelationScope())
         {
@@ -177,7 +180,7 @@ public sealed class MacOSMemoryReader : IGameMemoryReader, IDisposable
             {
                 stopwatch.Stop();
                 _logger.LogWarning("Pattern detection attempted while not attached");
-                return Task.FromResult(Result.Failure<IReadOnlyList<MemoryPattern>>("Not attached to any process"));
+                return Result.Failure<IReadOnlyList<MemoryPattern>>("Not attached to any process");
             }
 
             try
@@ -207,7 +210,7 @@ public sealed class MacOSMemoryReader : IGameMemoryReader, IDisposable
                         continue;
 
                     // Scan this region for patterns
-                    var regionPatterns = ScanRegionForPatterns(region);
+                    var regionPatterns = await ScanRegionForPatternsAsync(region).ConfigureAwait(false);
                     patterns.AddRange(regionPatterns);
                 }
 
@@ -217,13 +220,13 @@ public sealed class MacOSMemoryReader : IGameMemoryReader, IDisposable
                     patterns.Count,
                     stopwatch.ElapsedMilliseconds);
                     
-                return Task.FromResult(Result.Success<IReadOnlyList<MemoryPattern>>(patterns));
+                return Result.Success<IReadOnlyList<MemoryPattern>>(patterns);
             }
             catch (Exception ex)
             {
                 stopwatch.Stop();
                 _logger.LogError(ex, "Error detecting memory patterns on macOS");
-                return Task.FromResult(Result.Failure<IReadOnlyList<MemoryPattern>>($"Detection failed: {ex.Message}"));
+                return Result.Failure<IReadOnlyList<MemoryPattern>>($"Detection failed: {ex.Message}");
             }
         }
     }
@@ -447,11 +450,11 @@ public sealed class MacOSMemoryReader : IGameMemoryReader, IDisposable
     /// <para>Value freezing may not work if the target uses Hardened Runtime or SIP is enabled.</para>
     /// <para>The freeze loop runs in the background and writes the value every 100ms.</para>
     /// </remarks>
-    public Task<Result> FreezeValueAsync(IntPtr address, object value, CancellationToken ct = default)
+    public async Task<Result> FreezeValueAsync(IntPtr address, object value, CancellationToken ct = default)
     {
         if (!_isAttached || _task == IntPtr.Zero)
         {
-            return Task.FromResult(Result.Failure("Not attached to any process"));
+            return Result.Failure("Not attached to any process");
         }
 
         try
@@ -463,14 +466,14 @@ public sealed class MacOSMemoryReader : IGameMemoryReader, IDisposable
                 
                 if (protectResult != KERN_SUCCESS)
                 {
-                    return Task.FromResult(Result.Failure(
+                    return Result.Failure(
                         "Cannot freeze value: target page is protected. macOS security features prevent memory modification.",
-                        ErrorType.Forbidden));
+                        ErrorType.Forbidden);
                 }
             }
 
             // Unfreeze existing if present
-            UnfreezeValueAsync(address, ct).Wait(ct);
+            await UnfreezeValueAsync(address, ct).ConfigureAwait(false);
 
             var frozenValue = new FrozenValue
             {
@@ -480,7 +483,7 @@ public sealed class MacOSMemoryReader : IGameMemoryReader, IDisposable
 
             if (!_frozenValues.TryAdd(address, frozenValue))
             {
-                return Task.FromResult(Result.Failure("Failed to add freeze entry"));
+                return Result.Failure("Failed to add freeze entry");
             }
 
             // Start freeze loop if not already running
@@ -495,12 +498,12 @@ public sealed class MacOSMemoryReader : IGameMemoryReader, IDisposable
                 "Note: This may not work if the target uses Hardened Runtime or SIP.",
                 address);
             
-            return Task.FromResult(Result.Success());
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error freezing value on macOS");
-            return Task.FromResult(Result.Failure($"Freeze failed: {ex.Message}"));
+            return Result.Failure($"Freeze failed: {ex.Message}");
         }
     }
 
@@ -811,7 +814,7 @@ public sealed class MacOSMemoryReader : IGameMemoryReader, IDisposable
         return regions;
     }
 
-    private List<MemoryPattern> ScanRegionForPatterns(MemoryRegionInfo region)
+    private async Task<List<MemoryPattern>> ScanRegionForPatternsAsync(MemoryRegionInfo region)
     {
         var patterns = new List<MemoryPattern>();
         
@@ -819,7 +822,7 @@ public sealed class MacOSMemoryReader : IGameMemoryReader, IDisposable
         {
             // Read a sample of the region to look for common patterns
             var sampleSize = (int)Math.Min(region.Size, 4096);
-            var result = ReadMemoryBytesAsync(region.Address, sampleSize, default).Result;
+            var result = await ReadMemoryBytesAsync(region.Address, sampleSize, default).ConfigureAwait(false);
             
             if (result.IsFailure)
                 return patterns;

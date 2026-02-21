@@ -73,5 +73,5 @@ public class ChallengeParticipant
     public double CurrentProgress { get; set; }
     public bool IsCompleted { get; set; }
     public DateTime? CompletedAt { get; set; }
-    public DateTime LastUpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime LastUpdatedAt { get; set; }
 }

@@ -41,7 +41,7 @@ public class MoveFrameDataEntity
 {
     public int Id { get; set; }
     public int CharacterFrameDataId { get; set; }
-    public CharacterFrameDataEntity CharacterFrameData { get; set; } = null!;
+    public CharacterFrameDataEntity? CharacterFrameData { get; set; }
     public string MoveName { get; set; } = string.Empty;
     public string Command { get; set; } = string.Empty;
     public MoveType MoveType { get; set; }

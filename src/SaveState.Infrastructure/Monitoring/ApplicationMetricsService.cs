@@ -3,6 +3,7 @@ using System.Diagnostics.Metrics;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.Monitoring;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Performance.Services;
 
 namespace SaveState.Infrastructure.Monitoring;
@@ -55,11 +56,11 @@ public class ApplicationMetricsService : IApplicationMetrics, IDisposable
     // In-memory storage for snapshot calculations
     private readonly MetricsStorage _storage;
 
-    public ApplicationMetricsService(ILogger<ApplicationMetricsService> logger)
+    public ApplicationMetricsService(ILogger<ApplicationMetricsService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
         _meter = new Meter("SaveState.Application", "1.0.0");
-        _storage = new MetricsStorage();
+        _storage = new MetricsStorage(timeProvider);
 
         // Initialize performance counters
         _responseTimeCounter = _meter.CreateCounter<long>("response_time_ms", "ms", "Response time in milliseconds");

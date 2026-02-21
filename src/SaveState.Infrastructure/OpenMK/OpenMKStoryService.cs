@@ -60,7 +60,7 @@ public partial class OpenMKStoryService : IOpenMKStoryService
                 SelectedCharacterId: Guid.NewGuid(),
                 CharacterName: "Liu Kang",
                 Difficulty: OpenMKCampaignDifficulty.Medium,
-                StartedAt: DateTime.UtcNow.AddDays(-2),
+                StartedAt: _timeProvider.UtcNow.AddDays(-2),
                 CurrentChapter: 3,
                 TotalChapters: 10,
                 ProgressPercentage: 30,

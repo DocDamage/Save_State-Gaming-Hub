@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Monitoring;
 
 namespace SaveState.Infrastructure.Monitoring;
@@ -9,6 +10,8 @@ namespace SaveState.Infrastructure.Monitoring;
 /// </summary>
 internal class MetricsStorage
 {
+    private readonly ITimeProvider _timeProvider;
+
     // Thread-safe collections for concurrent access
     private readonly ConcurrentDictionary<string, ConcurrentQueue<TimeSpan>> _responseTimes = new();
     private readonly ConcurrentDictionary<string, long> _throughputCounters = new();
@@ -44,6 +47,11 @@ internal class MetricsStorage
 
     // Rolling buffer size to prevent unbounded memory growth
     private const int MaxBufferSize = 1000;
+
+    public MetricsStorage(ITimeProvider timeProvider)
+    {
+        _timeProvider = timeProvider;
+    }
 
     // Performance Counters Implementation
     public void RecordResponseTime(string operation, TimeSpan duration)
@@ -213,7 +221,7 @@ internal class MetricsStorage
     {
         var snapshot = new MetricsSnapshot
         {
-            Timestamp = DateTime.UtcNow,
+            Timestamp = _timeProvider.UtcNow,
 
             // Performance metrics
             AverageResponseTime = CalculateAverageResponseTime(),

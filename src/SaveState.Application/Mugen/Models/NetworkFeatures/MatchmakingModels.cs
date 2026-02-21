@@ -9,8 +9,8 @@ public class MatchmakingSession
     public string PlayerId { get; set; } = string.Empty;
     public string CharacterName { get; set; } = string.Empty;
     public MatchmakingMode Mode { get; set; }
-    public MatchmakingPreferences Preferences { get; set; } = null!;
-    public PlayerMatchmakingStats PlayerStats { get; set; } = null!;
+    public required MatchmakingPreferences Preferences { get; set; }
+    public required PlayerMatchmakingStats PlayerStats { get; set; }
     public DateTime StartTime { get; set; }
     public TimeSpan Timeout { get; set; }
     public bool MatchFound { get; set; }
@@ -28,8 +28,8 @@ public class QueuedPlayer
     public string PlayerName { get; set; } = string.Empty;
     public string CharacterName { get; set; } = string.Empty;
     public MatchmakingMode Mode { get; set; }
-    public MatchmakingPreferences Preferences { get; set; } = null!;
-    public PlayerMatchmakingStats PlayerStats { get; set; } = null!;
+    public required MatchmakingPreferences Preferences { get; set; }
+    public required PlayerMatchmakingStats PlayerStats { get; set; }
     public DateTime QueuedAt { get; set; }
 }
 
@@ -50,8 +50,8 @@ public class CharacterMatchupData
 /// </summary>
 public class MatchQualityResult
 {
-    public string Player1Id { get; set; } = default!;
-    public string Player2Id { get; set; } = default!;
+    public required string Player1Id { get; set; }
+    public required string Player2Id { get; set; }
     public float QualityScore { get; set; }
     public float RatingCompatibility { get; set; }
     public float WinRateCompatibility { get; set; }

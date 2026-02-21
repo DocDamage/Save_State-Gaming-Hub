@@ -39,7 +39,7 @@ internal class PatternDefinition
     public string PatternType { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public float Threshold { get; set; }
-    public Func<Guid, IReadOnlyList<MatchData>, CancellationToken, Task<float>> AnalysisFunction { get; set; } = null!;
+    public required Func<Guid, IReadOnlyList<MatchData>, CancellationToken, Task<float>> AnalysisFunction { get; set; }
 }
 
 /// <summary>

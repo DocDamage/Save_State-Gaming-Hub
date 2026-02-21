@@ -15,7 +15,8 @@ public class AdvancedThemesPlugin : IPlugin, ITheme
 {
     private IPluginContext? _context;
     private ILogger? _logger;
-    private ITimeProvider _timeProvider = null!;
+    // Initialized in InitializeAsync before use
+    private ITimeProvider? _timeProvider;
     private ThemeInfo? _currentTheme;
     private readonly Dictionary<string, ThemeInfo> _availableThemes;
 
@@ -259,6 +260,9 @@ public class AdvancedThemesPlugin : IPlugin, ITheme
     {
         try
         {
+            if (_timeProvider == null)
+                return;
+
             _logger?.LogInformation("Enabling automatic theme switching based on time");
 
             // Set up a timer to switch themes based on time of day
@@ -303,7 +307,7 @@ public class AdvancedThemesPlugin : IPlugin, ITheme
         try
         {
             // In a real implementation, this would save to settings file
-            var preference = new ThemePreference(themeId, DateTime.UtcNow);
+            var preference = new ThemePreference(themeId, _timeProvider?.UtcNow ?? DateTime.UtcNow);
             var json = JsonSerializer.Serialize(preference);
 
             // Save to plugin data directory

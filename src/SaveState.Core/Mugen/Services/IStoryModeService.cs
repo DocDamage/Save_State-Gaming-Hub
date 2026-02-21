@@ -3,13 +3,18 @@ using SaveState.Core.Common;
 namespace SaveState.Core.Mugen.Services;
 
 /// <summary>
-/// Service for creating and managing MUGEN story modes.
-/// Provides tools for creating narrative-driven gameplay with cutscenes, dialogue, and branching paths.
+/// Marker interface for story mode services.
+/// Use specific sub-interfaces (IStoryProjectService, IStoryChapterService, etc.) for actual operations.
 /// </summary>
 public interface IStoryModeService
 {
-    #region Story Project Management
+}
 
+/// <summary>
+/// Service for story project lifecycle management.
+/// </summary>
+public interface IStoryProjectService
+{
     /// <summary>
     /// Creates a new story mode project.
     /// </summary>
@@ -45,11 +50,13 @@ public interface IStoryModeService
         string outputDirectory,
         MugenStoryExportOptions options,
         CancellationToken ct = default);
+}
 
-    #endregion
-
-    #region Chapter Management
-
+/// <summary>
+/// Service for story chapter management.
+/// </summary>
+public interface IStoryChapterService
+{
     /// <summary>
     /// Creates a new story chapter.
     /// </summary>
@@ -84,11 +91,13 @@ public interface IStoryModeService
     Task<Result<StoryChapter>> DuplicateChapterAsync(
         Guid chapterId,
         CancellationToken ct = default);
+}
 
-    #endregion
-
-    #region Scene Management
-
+/// <summary>
+/// Service for story scene management.
+/// </summary>
+public interface IStorySceneService
+{
     /// <summary>
     /// Creates a new scene.
     /// </summary>
@@ -138,52 +147,13 @@ public interface IStoryModeService
         Guid sceneId,
         SceneTransition transition,
         CancellationToken ct = default);
+}
 
-    #endregion
-
-    #region Character Casting
-
-    /// <summary>
-    /// Adds a character to the story cast.
-    /// </summary>
-    Task<Result<StoryCharacter>> AddCastMemberAsync(
-        Guid characterId,
-        CastingOptions options,
-        CancellationToken ct = default);
-
-    /// <summary>
-    /// Removes a character from the cast.
-    /// </summary>
-    Task<Result> RemoveCastMemberAsync(
-        Guid castMemberId,
-        CancellationToken ct = default);
-
-    /// <summary>
-    /// Gets story cast.
-    /// </summary>
-    Task<Result<IReadOnlyList<StoryCharacter>>> GetCastAsync(
-        CancellationToken ct = default);
-
-    /// <summary>
-    /// Sets character outfit/palette for story.
-    /// </summary>
-    Task<Result> SetCharacterAppearanceAsync(
-        Guid castMemberId,
-        CharacterAppearance appearance,
-        CancellationToken ct = default);
-
-    /// <summary>
-    /// Configures character AI behavior in story.
-    /// </summary>
-    Task<Result> SetCharacterAiAsync(
-        Guid castMemberId,
-        StoryAiSettings aiSettings,
-        CancellationToken ct = default);
-
-    #endregion
-
-    #region Dialogue System
-
+/// <summary>
+/// Service for story dialogue management.
+/// </summary>
+public interface IStoryDialogueService
+{
     /// <summary>
     /// Adds dialogue line.
     /// </summary>
@@ -232,11 +202,13 @@ public interface IStoryModeService
         Guid dialogueId,
         TextDisplaySettings settings,
         CancellationToken ct = default);
+}
 
-    #endregion
-
-    #region Cutscene Editor
-
+/// <summary>
+/// Service for story cutscene editing.
+/// </summary>
+public interface IStoryCutsceneService
+{
     /// <summary>
     /// Adds cutscene element.
     /// </summary>
@@ -288,11 +260,13 @@ public interface IStoryModeService
         Guid castMemberId,
         Position3D position,
         CancellationToken ct = default);
+}
 
-    #endregion
-
-    #region Branching and Choices
-
+/// <summary>
+/// Service for story branching and choices.
+/// </summary>
+public interface IStoryBranchingService
+{
     /// <summary>
     /// Adds player choice.
     /// </summary>
@@ -337,11 +311,13 @@ public interface IStoryModeService
     /// </summary>
     Task<Result<BranchValidationResult>> ValidateBranchingAsync(
         CancellationToken ct = default);
+}
 
-    #endregion
-
-    #region Battle Integration
-
+/// <summary>
+/// Service for story battle integration.
+/// </summary>
+public interface IStoryBattleIntegrationService
+{
     /// <summary>
     /// Adds battle to story.
     /// </summary>
@@ -374,11 +350,13 @@ public interface IStoryModeService
         Guid battleId,
         BossBattleSettings settings,
         CancellationToken ct = default);
+}
 
-    #endregion
-
-    #region Preview and Testing
-
+/// <summary>
+/// Service for story testing and preview.
+/// </summary>
+public interface IStoryTestingService
+{
     /// <summary>
     /// Previews scene.
     /// </summary>
@@ -411,11 +389,13 @@ public interface IStoryModeService
     /// </summary>
     Task<Result<StoryTestResult>> TestStoryAsync(
         CancellationToken ct = default);
+}
 
-    #endregion
-
-    #region Asset Management
-
+/// <summary>
+/// Service for story asset management.
+/// </summary>
+public interface IStoryAssetService
+{
     /// <summary>
     /// Imports story asset.
     /// </summary>
@@ -441,10 +421,8 @@ public interface IStoryModeService
     /// Optimizes story assets.
     /// </summary>
     Task<Result<StoryAssetOptimizationResult>> OptimizeAssetsAsync(
-        OptimizationOptions options,
+        StoryAssetOptimizationOptions options,
         CancellationToken ct = default);
-
-    #endregion
 }
 
 #region Request/Response Models
@@ -1000,12 +978,28 @@ public record AssetValidationResult(
     IReadOnlyList<string> Issues);
 
 /// <summary>
-/// Asset optimization result.
+/// Story asset optimization result.
 /// </summary>
 public record StoryAssetOptimizationResult(
-    long SpaceSaved,
-    int FilesOptimized,
-    IReadOnlyList<string> Optimizations);
+    int AssetsOptimized,
+    long BytesSaved,
+    IReadOnlyList<string> Warnings);
+
+/// <summary>
+/// Story asset optimization options.
+/// </summary>
+public record StoryAssetOptimizationOptions(
+    bool CompressImages,
+    bool ConvertAudio,
+    int TargetAudioBitrate);
+
+/// <summary>
+/// MUGEN story export options.
+/// </summary>
+public record MugenStoryExportOptions(
+    bool IncludeAssets,
+    bool MinifyScripts,
+    string TargetMugenVersion);
 
 /// <summary>
 /// Story project stats.
@@ -1025,18 +1019,9 @@ public record StoryProjectStats(
 /// </summary>
 public record BranchValidationResult(
     bool IsValid,
+    int OrphanedBranches,
     int DeadEnds,
-    int UnreachableScenes,
-    int MissingBranches,
+    int CircularReferences,
     IReadOnlyList<string> Issues);
-
-/// <summary>
-/// MUGEN story export options.
-/// </summary>
-public record MugenStoryExportOptions(
-    bool IncludeAssets,
-    bool CompressAssets,
-    string TargetVersion,
-    IReadOnlyList<string> SelectedChapters);
 
 #endregion

@@ -184,7 +184,7 @@ public sealed record CleanupResult(
 /// </summary>
 public sealed class BackupScheduledEventArgs : EventArgs
 {
-    public BackupSchedule Schedule { get; init; } = null!;
+    public required BackupSchedule Schedule { get; init; }
     public DateTime NextRunTime { get; init; }
 }
 
@@ -203,7 +203,7 @@ public sealed class BackupStartedEventArgs : EventArgs
 /// </summary>
 public sealed class BackupCompletedEventArgs : EventArgs
 {
-    public BackupResult Result { get; init; } = null!;
+    public required BackupResult Result { get; init; }
 }
 
 /// <summary>

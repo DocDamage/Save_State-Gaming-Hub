@@ -1,5 +1,6 @@
 using SaveState.Core.Common;
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Performance.Services;
 
@@ -131,14 +132,15 @@ public class AudioProfile : EntityBase
     public Guid? GameId { get; private set; }
     public string Name { get; private set; } = string.Empty;
     public bool IsDefault { get; private set; }
-    public AudioSettings Settings { get; private set; } = null!;
+    public AudioSettings Settings { get; set; } = null!; // Set via Create factory method
     public DateTime CreatedAt { get; private set; }
     public DateTime? LastAppliedAt { get; private set; }
 
     private AudioProfile() { }
 
-    public static AudioProfile Create(Guid? gameId, string name, AudioSettings settings, bool isDefault = false)
+    public static AudioProfile Create(Guid? gameId, string name, AudioSettings settings, bool isDefault = false, ITimeProvider? timeProvider = null)
     {
+        var tp = timeProvider ?? SystemTimeProvider.Instance;
         return new AudioProfile
         {
             Id = Guid.NewGuid(),
@@ -146,11 +148,11 @@ public class AudioProfile : EntityBase
             Name = Guard.Against.NullOrWhiteSpace(name, nameof(name)),
             Settings = settings,
             IsDefault = isDefault,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = tp.UtcNow
         };
     }
 
-    public void MarkApplied() => LastAppliedAt = DateTime.UtcNow;
+    public void MarkApplied(ITimeProvider? timeProvider = null) => LastAppliedAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     public void SetAsDefault(bool isDefault) => IsDefault = isDefault;
     public void UpdateSettings(AudioSettings settings) => Settings = settings;
 }

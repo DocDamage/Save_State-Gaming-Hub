@@ -7,11 +7,11 @@ namespace SaveState.Core.RomManagement.Entities;
 public class Emulator : EntityBase
 {
     public string Name { get; private set; } = string.Empty;
-    public FilePath ExecutablePath { get; private set; } = null!;
+    public FilePath? ExecutablePath { get; private set; }
     public string? Version { get; private set; }
     public string? Description { get; private set; }
     public Guid PlatformId { get; private set; }
-    public Platform Platform { get; private set; } = null!;
+    public Platform? Platform { get; private set; }
     public string? CommandLineArgs { get; private set; }
     public bool IsAvailable { get; private set; }
 

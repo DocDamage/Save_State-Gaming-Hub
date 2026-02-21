@@ -1,11 +1,12 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.GameLibrary.Entities;
 
 public class BacklogEntry : EntityBase
 {
     public Guid GameId { get; private set; }
-    public Game Game { get; private set; } = null!;
+    public Game? Game { get; private set; }
     public BacklogStatus Status { get; private set; }
     public int Priority { get; private set; }
     public DateTime AddedAt { get; private set; }
@@ -15,6 +16,20 @@ public class BacklogEntry : EntityBase
 
     private BacklogEntry() { }
 
+    public static BacklogEntry Create(Guid gameId, ITimeProvider timeProvider, int priority = 50)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        return new BacklogEntry
+        {
+            Id = Guid.NewGuid(),
+            GameId = gameId,
+            Status = BacklogStatus.NotStarted,
+            Priority = Math.Clamp(priority, 1, 100),
+            AddedAt = timeProvider.UtcNow
+        };
+    }
+
+    [Obsolete("Use Create(Guid, ITimeProvider, int) instead")]
     public static BacklogEntry Create(Guid gameId, int priority = 50)
     {
         return new BacklogEntry

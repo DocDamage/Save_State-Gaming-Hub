@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary.ValueObjects;
 
@@ -10,8 +11,8 @@ namespace SaveState.Core.GameLibrary.Entities;
 public class GameGoal : EntityBase
 {
     public Guid Id { get; private set; }
-    public GameId GameId { get; private set; } = null!;
-    public UserId UserId { get; private set; } = null!;
+    public GameId? GameId { get; private set; }
+    public UserId? UserId { get; private set; }
     public string Title { get; private set; } = string.Empty;
     public string? Description { get; private set; }
     public DateTime CreatedAt { get; private set; }
@@ -34,11 +35,13 @@ public class GameGoal : EntityBase
         GameId gameId,
         UserId userId,
         string title,
+        ITimeProvider timeProvider,
         string? description = null,
         int? targetValue = null,
         string? unit = null,
         DateTime? dueDate = null)
     {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
         return new GameGoal
         {
             Id = Guid.NewGuid(),
@@ -50,7 +53,7 @@ public class GameGoal : EntityBase
             Unit = unit,
             DueDate = dueDate,
             CurrentValue = 0,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = timeProvider.UtcNow
         };
     }
 
@@ -64,6 +67,16 @@ public class GameGoal : EntityBase
         }
     }
 
+    public void MarkAsCompleted(ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        if (!CompletedAt.HasValue)
+        {
+            CompletedAt = timeProvider.UtcNow;
+        }
+    }
+
+    [Obsolete("Use MarkAsCompleted(ITimeProvider) instead")]
     public void MarkAsCompleted()
     {
         if (!CompletedAt.HasValue)

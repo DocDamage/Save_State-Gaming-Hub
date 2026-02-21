@@ -10,10 +10,14 @@ namespace SaveState.Application.Tests.GameLibrary.Commands;
 public class MemoryCommandTests
 {
     private readonly Mock<IGameMemoryReader> _memoryReaderMock;
+    private readonly Mock<ILogger<AttachMemoryReaderCommandHandler>> _attachLoggerMock;
+    private readonly Mock<ILogger<DetachMemoryReaderCommandHandler>> _detachLoggerMock;
 
     public MemoryCommandTests()
     {
         _memoryReaderMock = new Mock<IGameMemoryReader>();
+        _attachLoggerMock = new Mock<ILogger<AttachMemoryReaderCommandHandler>>();
+        _detachLoggerMock = new Mock<ILogger<DetachMemoryReaderCommandHandler>>();
     }
 
     [Fact]
@@ -25,7 +29,7 @@ public class MemoryCommandTests
             .Setup(x => x.AttachToProcessAsync(processId, default))
             .ReturnsAsync(Result.Success());
 
-        var handler = new AttachMemoryReaderCommandHandler(_memoryReaderMock.Object);
+        var handler = new AttachMemoryReaderCommandHandler(_memoryReaderMock.Object, _attachLoggerMock.Object);
         var command = new AttachMemoryReaderCommand { ProcessId = processId };
 
         // Act
@@ -46,7 +50,7 @@ public class MemoryCommandTests
             .Setup(x => x.AttachToProcessAsync(processId, default))
             .ReturnsAsync(Result.Failure(errorMessage));
 
-        var handler = new AttachMemoryReaderCommandHandler(_memoryReaderMock.Object);
+        var handler = new AttachMemoryReaderCommandHandler(_memoryReaderMock.Object, _attachLoggerMock.Object);
         var command = new AttachMemoryReaderCommand { ProcessId = processId };
 
         // Act
@@ -65,7 +69,7 @@ public class MemoryCommandTests
             .Setup(x => x.DetachAsync(default))
             .ReturnsAsync(Result.Success());
 
-        var handler = new DetachMemoryReaderCommandHandler(_memoryReaderMock.Object);
+        var handler = new DetachMemoryReaderCommandHandler(_memoryReaderMock.Object, _detachLoggerMock.Object);
         var command = new DetachMemoryReaderCommand();
 
         // Act
@@ -85,7 +89,7 @@ public class MemoryCommandTests
             .Setup(x => x.DetachAsync(default))
             .ReturnsAsync(Result.Failure(errorMessage));
 
-        var handler = new DetachMemoryReaderCommandHandler(_memoryReaderMock.Object);
+        var handler = new DetachMemoryReaderCommandHandler(_memoryReaderMock.Object, _detachLoggerMock.Object);
         var command = new DetachMemoryReaderCommand();
 
         // Act

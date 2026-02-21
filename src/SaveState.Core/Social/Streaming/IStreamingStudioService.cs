@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Social.Streaming;
 
@@ -212,12 +213,12 @@ public sealed class StreamStatusChangedEventArgs : EventArgs
     public StreamStatus NewStatus { get; }
     public DateTime ChangedAt { get; }
 
-    public StreamStatusChangedEventArgs(string sessionId, StreamStatus oldStatus, StreamStatus newStatus)
+    public StreamStatusChangedEventArgs(string sessionId, StreamStatus oldStatus, StreamStatus newStatus, ITimeProvider? timeProvider = null)
     {
         SessionId = sessionId;
         OldStatus = oldStatus;
         NewStatus = newStatus;
-        ChangedAt = DateTime.UtcNow;
+        ChangedAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     }
 }
 
@@ -232,12 +233,12 @@ public sealed class StreamingErrorEventArgs : EventArgs
     public bool IsFatal { get; }
     public DateTime OccurredAt { get; }
 
-    public StreamingErrorEventArgs(string sessionId, StreamingPlatformType? platform, string errorMessage, bool isFatal)
+    public StreamingErrorEventArgs(string sessionId, StreamingPlatformType? platform, string errorMessage, bool isFatal, ITimeProvider? timeProvider = null)
     {
         SessionId = sessionId;
         Platform = platform;
         ErrorMessage = errorMessage;
         IsFatal = isFatal;
-        OccurredAt = DateTime.UtcNow;
+        OccurredAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     }
 }

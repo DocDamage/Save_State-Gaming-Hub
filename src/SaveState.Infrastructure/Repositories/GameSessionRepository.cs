@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Infrastructure.Persistence;
@@ -13,11 +14,13 @@ public class GameSessionRepository : IGameSessionRepository
 {
     private readonly SaveStateDbContext _context;
     private readonly ILogger<GameSessionRepository> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public GameSessionRepository(SaveStateDbContext context, ILogger<GameSessionRepository> logger)
+    public GameSessionRepository(SaveStateDbContext context, ILogger<GameSessionRepository> logger, ITimeProvider timeProvider)
     {
         _context = context;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task<GameSession?> GetByIdAsync(Guid id, CancellationToken ct = default)
@@ -116,7 +119,7 @@ public class GameSessionRepository : IGameSessionRepository
             .ConfigureAwait(false);
 
         return sessions
-            .OrderByDescending(s => s.GetDuration())
+            .OrderByDescending(s => s.GetDuration(_timeProvider))
             .FirstOrDefault();
     }
 

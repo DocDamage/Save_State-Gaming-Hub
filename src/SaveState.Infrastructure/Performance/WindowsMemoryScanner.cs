@@ -38,7 +38,7 @@ public sealed class WindowsMemoryScanner : IMemoryScanner, IDisposable
         ClearScan();
         _currentDataType = dataType;
 
-        var baseAddressResult = await _memoryReader.GetModuleBaseAddressAsync(processId, null!, ct);
+        var baseAddressResult = await _memoryReader.GetModuleBaseAddressAsync(processId, null, ct);
         if (!baseAddressResult.IsSuccess) return baseAddressResult.ToResult<int>();
 
         long start = baseAddressResult.Value;

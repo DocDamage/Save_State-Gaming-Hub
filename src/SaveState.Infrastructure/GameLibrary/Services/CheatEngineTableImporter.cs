@@ -5,6 +5,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Infrastructure.GameLibrary.Models;
@@ -19,13 +20,16 @@ public class CheatEngineTableImporter : ICheatEngineImporter
 {
     private readonly ILogger<CheatEngineTableImporter> _logger;
     private readonly IMemoryPatternDatabase? _patternDatabase;
+    private readonly ITimeProvider _timeProvider;
 
     public CheatEngineTableImporter(
         ILogger<CheatEngineTableImporter> logger,
-        IMemoryPatternDatabase? patternDatabase = null)
+        IMemoryPatternDatabase? patternDatabase = null,
+        ITimeProvider? timeProvider = null)
     {
         _logger = logger;
         _patternDatabase = patternDatabase;
+        _timeProvider = timeProvider ?? new SystemTimeProvider();
     }
 
     /// <inheritdoc />
@@ -529,7 +533,7 @@ public class CheatEngineTableImporter : ICheatEngineImporter
             ModuleName = parsedAddress.ModuleName,
             IsEnabled = true,
             Tags = new List<string>(options.DefaultTags),
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = _timeProvider.UtcNow
         };
 
         // Add special tags for script entries

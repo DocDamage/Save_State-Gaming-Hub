@@ -16,17 +16,17 @@ public sealed record ImageResizeOptions(
     int MaxWidth,
     int MaxHeight,
     bool MaintainAspectRatio = true,
-    ImageFormat OutputFormat = null!)
+    ImageFormat? OutputFormat = null)
 {
-    public ImageFormat OutputFormat { get; } = OutputFormat ?? ImageFormat.Jpeg;
+    public ImageFormat OutputFormat => OutputFormat ?? ImageFormat.Jpeg;
 }
 
 public sealed record ImageOptimizationOptions(
     long MaxFileSizeBytes = 1024 * 1024, // 1MB default
     int Quality = 85,
-    ImageFormat OutputFormat = null!)
+    ImageFormat? OutputFormat = null)
 {
-    public ImageFormat OutputFormat { get; } = OutputFormat ?? ImageFormat.Jpeg;
+    public ImageFormat OutputFormat => OutputFormat ?? ImageFormat.Jpeg;
 }
 
 public sealed record ImageResizeResult(

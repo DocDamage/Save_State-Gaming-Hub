@@ -13,7 +13,8 @@ namespace SaveState.Plugins.ScreenshotSorter;
 public sealed class ScreenshotSorterPlugin : IPlugin
 {
     private IPluginContext? _context;
-    private ITimeProvider _timeProvider = null!;
+    // Initialized in InitializeAsync before use
+    private ITimeProvider? _timeProvider;
     private FileSystemWatcher? _watcher;
     private ScreenshotSorterSettings _settings = new();
     private readonly HashSet<string> _processedHashes = new();
@@ -178,6 +179,9 @@ public sealed class ScreenshotSorterPlugin : IPlugin
     {
         try
         {
+            if (_timeProvider == null)
+                return;
+
             var fileName = Path.GetFileName(sourcePath);
             var gameTitle = _currentGameTitle ?? "Unknown Game";
             var date = _timeProvider.Now.ToString("yyyy-MM-dd");

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Monitoring;
 using SaveState.Infrastructure.Monitoring;
 using Xunit;
@@ -20,7 +21,9 @@ public class MetricsTests
     public MetricsTests()
     {
         _loggerMock = new Mock<ILogger<ApplicationMetricsService>>();
-        _metrics = new ApplicationMetricsService(_loggerMock.Object);
+        var timeProviderMock = new Mock<ITimeProvider>();
+        timeProviderMock.Setup(tp => tp.UtcNow).Returns(DateTime.UtcNow);
+        _metrics = new ApplicationMetricsService(_loggerMock.Object, timeProviderMock.Object);
     }
 
     [Fact]

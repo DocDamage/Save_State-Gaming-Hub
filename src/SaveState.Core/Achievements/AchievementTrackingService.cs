@@ -239,7 +239,7 @@ public class AchievementRecommendation
     /// <summary>
     /// The achievement.
     /// </summary>
-    public UserAchievementProgress Achievement { get; set; } = null!;
+    public required UserAchievementProgress Achievement { get; init; }
 
     /// <summary>
     /// Why this is recommended.

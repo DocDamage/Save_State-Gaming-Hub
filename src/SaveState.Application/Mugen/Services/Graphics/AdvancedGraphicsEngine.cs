@@ -62,17 +62,17 @@ public class AdvancedGraphicsEngine : IAdvancedGraphicsEngine
         => _shaderManager.CompileShaderAsync(request, ct);
 
     /// <inheritdoc />
-    public Task<Result<LightingSetup>> CreateLightingSetupAsync(LightingSetupRequest request, CancellationToken ct = default)
+    public async Task<Result<LightingSetup>> CreateLightingSetupAsync(LightingSetupRequest request, CancellationToken ct = default)
     {
-        return Task.FromResult(Result<LightingSetup>.Success(
-            _lightingManager.CreateLightingSetupAsync(request, ct).Result));
+        var result = await _lightingManager.CreateLightingSetupAsync(request, ct).ConfigureAwait(false);
+        return Result<LightingSetup>.Success(result);
     }
 
     /// <inheritdoc />
-    public Task<Result<PostProcessingEffect>> CreatePostProcessingEffectAsync(PostProcessingRequest request, CancellationToken ct = default)
+    public async Task<Result<PostProcessingEffect>> CreatePostProcessingEffectAsync(PostProcessingRequest request, CancellationToken ct = default)
     {
-        return Task.FromResult(Result<PostProcessingEffect>.Success(
-            _postProcessingManager.CreateEffectAsync(request, ct).Result));
+        var result = await _postProcessingManager.CreateEffectAsync(request, ct).ConfigureAwait(false);
+        return Result<PostProcessingEffect>.Success(result);
     }
 
     /// <inheritdoc />

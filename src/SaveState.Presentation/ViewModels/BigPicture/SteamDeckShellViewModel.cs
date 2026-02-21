@@ -225,5 +225,6 @@ public class SteamDeckQuickAction
 {
     public string Name { get; set; } = string.Empty;
     public string Icon { get; set; } = string.Empty;
+    // Initialized in InitializeQuickActions method; null-forgiving used as it's always set before use
     public IRelayCommand Command { get; set; } = null!;
 }

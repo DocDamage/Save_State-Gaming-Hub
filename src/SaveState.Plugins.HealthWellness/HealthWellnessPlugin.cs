@@ -613,7 +613,8 @@ public class SessionTracker
 {
     private DateTime? _currentSessionStart;
     private readonly List<GamingSession> _sessions = new();
-    private ITimeProvider _timeProvider = null!;
+    // Initialized in SetTimeProvider before use
+    private ITimeProvider? _timeProvider;
 
     public void SetTimeProvider(ITimeProvider timeProvider)
     {
@@ -627,12 +628,16 @@ public class SessionTracker
 
     public async Task StartSessionAsync()
     {
+        if (_timeProvider == null)
+            throw new InvalidOperationException("TimeProvider not initialized");
         _currentSessionStart = _timeProvider.Now;
     }
 
     public async Task<GamingSession?> EndSessionAsync()
     {
         if (!_currentSessionStart.HasValue) return null;
+        if (_timeProvider == null)
+            throw new InvalidOperationException("TimeProvider not initialized");
 
         var now = _timeProvider.Now;
         var session = new GamingSession
@@ -651,6 +656,8 @@ public class SessionTracker
     public async Task<GamingSession?> GetCurrentSessionAsync()
     {
         if (!_currentSessionStart.HasValue) return null;
+        if (_timeProvider == null)
+            throw new InvalidOperationException("TimeProvider not initialized");
 
         var now = _timeProvider.Now;
         return new GamingSession
@@ -662,7 +669,9 @@ public class SessionTracker
 
     public async Task<PlaytimeStats> GetTodayStatsAsync()
     {
-        var today = DateTime.Today;
+        if (_timeProvider == null)
+            throw new InvalidOperationException("TimeProvider not initialized");
+        var today = _timeProvider.Today;
         var todaySessions = _sessions.Where(s => s.StartTime.Date == today);
 
         return new PlaytimeStats
@@ -674,7 +683,10 @@ public class SessionTracker
 
     public async Task<PlaytimeStats> GetWeekStatsAsync()
     {
-        var weekStart = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek);
+        if (_timeProvider == null)
+            throw new InvalidOperationException("TimeProvider not initialized");
+        var today = _timeProvider.Today;
+        var weekStart = today.AddDays(-(int)today.DayOfWeek);
         var weekSessions = _sessions.Where(s => s.StartTime >= weekStart);
 
         return new PlaytimeStats
@@ -686,7 +698,9 @@ public class SessionTracker
 
     public async Task ResetTodayStatsAsync()
     {
-        var today = DateTime.Today;
+        if (_timeProvider == null)
+            throw new InvalidOperationException("TimeProvider not initialized");
+        var today = _timeProvider.Today;
         _sessions.RemoveAll(s => s.StartTime.Date == today);
     }
 }

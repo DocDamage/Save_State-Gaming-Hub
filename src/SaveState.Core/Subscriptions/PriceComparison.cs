@@ -13,7 +13,7 @@ public class GamePriceComparison
     /// <summary>
     /// The game being compared.
     /// </summary>
-    public SubscriptionGame Game { get; set; } = null!;
+    public required SubscriptionGame Game { get; set; }
 
     /// <summary>
     /// Subscription options for this game.

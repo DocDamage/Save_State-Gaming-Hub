@@ -3,8 +3,10 @@ using System.Text.Json;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Plugins;
 using SaveState.Core.Sync;
 
@@ -21,6 +23,7 @@ public class GoogleDriveSyncPlugin : IPlugin
 {
     private IPluginContext? _context;
     private ILogger? _logger;
+    private ITimeProvider? _timeProvider;
     private DriveService? _driveService;
     private bool _isAuthenticated;
 
@@ -39,6 +42,7 @@ public class GoogleDriveSyncPlugin : IPlugin
     {
         _context = context;
         _logger = context.Logger;
+        _timeProvider = context.Services.GetService<ITimeProvider>();
 
         _logger.LogInformation("Initializing Google Drive sync plugin");
 
@@ -301,7 +305,8 @@ public class GoogleDriveSyncPlugin : IPlugin
             }
 
             // Simulate creating a backup archive
-            var backupName = $"savestate_backup_{DateTime.UtcNow:yyyy-MM-dd_HH-mm-ss}.zip";
+            var now = _timeProvider?.UtcNow ?? DateTime.UtcNow;
+            var backupName = $"savestate_backup_{now:yyyy-MM-dd_HH-mm-ss}.zip";
 
             _logger?.LogInformation("Creating backup: {BackupName}", backupName);
 

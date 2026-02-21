@@ -1,5 +1,7 @@
 using DiscordRPC;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Plugins;
 using System.Text.Json;
 
@@ -11,6 +13,7 @@ namespace SaveState.Plugins.DiscordRPC;
 public sealed class DiscordRPCPlugin : IPlugin
 {
     private IPluginContext? _context;
+    private ITimeProvider? _timeProvider;
     private DiscordRpcClient? _client;
     private DiscordRPCSettings _settings = new();
     private DateTime _sessionStartTime;
@@ -28,6 +31,7 @@ public sealed class DiscordRPCPlugin : IPlugin
     public Task InitializeAsync(IPluginContext context, CancellationToken ct = default)
     {
         _context = context;
+        _timeProvider = context.Services.GetService<ITimeProvider>();
         _context.Logger.LogInformation("Discord RPC Pro plugin initialized");
 
         LoadSettings();
@@ -92,7 +96,7 @@ public sealed class DiscordRPCPlugin : IPlugin
     private void OnGameLaunched(object? data)
     {
         _currentGameTitle = data?.ToString() ?? "Unknown Game";
-        _sessionStartTime = DateTime.UtcNow;
+        _sessionStartTime = _timeProvider?.UtcNow ?? DateTime.UtcNow;
         _achievementCount = 0;
         _totalAchievements = 0;
 

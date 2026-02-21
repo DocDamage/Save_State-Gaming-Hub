@@ -296,7 +296,7 @@ public enum ClsnType
 /// </summary>
 public class PunishableMove
 {
-    public MoveFrameData Move { get; set; } = null!;
+    public required MoveFrameData Move { get; set; }
     public int PunishWindow { get; set; }
     public List<MoveFrameData> RecommendedPunishes { get; set; } = new();
 }

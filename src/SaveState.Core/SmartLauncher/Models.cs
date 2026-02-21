@@ -1,5 +1,7 @@
 // Copyright (c) 2026 SaveStateReborn. All rights reserved.
 
+using SaveState.Core.Common.Services;
+
 namespace SaveState.Core.SmartLauncher;
 
 /// <summary>
@@ -90,12 +92,20 @@ public class LaunchProfile
     /// <summary>
     /// When the profile was created.
     /// </summary>
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
 
     /// <summary>
     /// When the profile was last modified.
     /// </summary>
     public DateTime? ModifiedAt { get; set; }
+
+    /// <summary>
+    /// Initializes a new instance of the LaunchProfile class.
+    /// </summary>
+    public LaunchProfile(ITimeProvider? timeProvider = null)
+    {
+        CreatedAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
+    }
 
     /// <summary>
     /// Estimated performance gain percentage.
@@ -282,6 +292,14 @@ public class LaunchSession
     /// When the session started.
     /// </summary>
     public DateTime StartedAt { get; set; }
+
+    /// <summary>
+    /// Initializes a new instance of the LaunchSession class.
+    /// </summary>
+    public LaunchSession(ITimeProvider? timeProvider = null)
+    {
+        StartedAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
+    }
 
     /// <summary>
     /// When the session ended.

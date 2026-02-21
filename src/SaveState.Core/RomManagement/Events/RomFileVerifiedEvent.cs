@@ -8,10 +8,10 @@ public class RomFileVerifiedEvent : EventBase
     public string FilePath { get; }
     public DateTime VerifiedAt { get; }
 
-    public RomFileVerifiedEvent(Guid romFileId, string filePath)
+    public RomFileVerifiedEvent(Guid romFileId, string filePath, DateTime verifiedAt)
     {
         RomFileId = romFileId;
         FilePath = Guard.Against.NullOrWhiteSpace(filePath, nameof(filePath));
-        VerifiedAt = DateTime.UtcNow;
+        VerifiedAt = verifiedAt;
     }
 }

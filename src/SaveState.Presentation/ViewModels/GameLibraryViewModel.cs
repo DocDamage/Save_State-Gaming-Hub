@@ -94,6 +94,8 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
     /// </summary>
     internal GameLibraryViewModel()
     {
+        // Dependencies initialized via DI in production constructor; null-forgiving operator
+        // is used here for testing purposes only - this constructor should not be used in production code.
         _mediator = null!;
         _navigationService = null!;
         _overlayService = null!;

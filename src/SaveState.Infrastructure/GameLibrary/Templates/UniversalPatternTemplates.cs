@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.Services;
 
@@ -725,8 +726,10 @@ public static class UniversalPatternTemplates
     public static GameMemorySignature ToSignature(
         IMemoryPatternTemplate template,
         PotentialMatch match,
-        string gameTitle = "*")
+        string gameTitle = "*",
+        ITimeProvider? timeProvider = null)
     {
+        var time = timeProvider?.UtcNow ?? DateTime.UtcNow;
         return new GameMemorySignature
         {
             GameTitle = gameTitle,
@@ -741,7 +744,7 @@ public static class UniversalPatternTemplates
             MaxFloatValue = template.FloatRange.Max,
             ModuleName = match.ModuleName,
             Tags = new List<string> { template.Category, "universal", "auto-detected" },
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = time
         };
     }
 }

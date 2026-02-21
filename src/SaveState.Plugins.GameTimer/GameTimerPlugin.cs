@@ -13,7 +13,8 @@ namespace SaveState.Plugins.GameTimer;
 public sealed class GameTimerPlugin : IPlugin
 {
     private IPluginContext? _context;
-    private ITimeProvider _timeProvider = null!;
+    // Initialized in InitializeAsync before use
+    private ITimeProvider? _timeProvider;
     private Timer? _sessionTimer;
     private DateTime _sessionStartTime;
     private TimeSpan _sessionDuration;
@@ -73,7 +74,7 @@ public sealed class GameTimerPlugin : IPlugin
 
     private void OnGameLaunched(object? data)
     {
-        if (!_settings.Enabled)
+        if (!_settings.Enabled || _timeProvider == null)
             return;
 
         _currentGameId = data?.ToString();
@@ -95,7 +96,7 @@ public sealed class GameTimerPlugin : IPlugin
 
     private void OnGameClosed(object? data)
     {
-        if (_sessionTimer == null)
+        if (_sessionTimer == null || _timeProvider == null)
             return;
 
         _sessionTimer.Dispose();
@@ -123,7 +124,7 @@ public sealed class GameTimerPlugin : IPlugin
 
     private void CheckSessionTime(object? state)
     {
-        if (_currentGameId == null)
+        if (_currentGameId == null || _timeProvider == null)
             return;
 
         var now = _timeProvider.Now;

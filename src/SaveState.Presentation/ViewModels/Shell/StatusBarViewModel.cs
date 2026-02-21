@@ -245,7 +245,7 @@ public partial class StatusBarViewModel : ObservableObject, IDisposable
             var heatmapResult = await _analyticsService.GetHeatmapAsync(_timeProvider.Now.Year);
             if (heatmapResult.IsSuccess && heatmapResult.Value != null)
             {
-                var todayKey = DateOnly.FromDateTime(DateTime.Today);
+                var todayKey = DateOnly.FromDateTime(_timeProvider.Today);
                 if (heatmapResult.Value.Activities.TryGetValue(todayKey, out var todayActivity))
                 {
                     TodayPlaytime = todayActivity.TotalPlaytime;

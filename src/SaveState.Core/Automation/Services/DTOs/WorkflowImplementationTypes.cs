@@ -231,7 +231,7 @@ public sealed class MacroRecordingEventArgs : EventArgs
 public sealed class MacroActionRecordedEventArgs : EventArgs
 {
     public Guid RecordingId { get; init; }
-    public MacroAction Action { get; init; } = null!;
+    public required MacroAction Action { get; init; }
     public int ActionIndex { get; init; }
 }
 

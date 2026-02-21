@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Enums;
 using System.Text.Json;
 
@@ -95,14 +96,27 @@ public sealed record CollectionFilter(
 public class VirtualCollectionGame
 {
     public Guid CollectionId { get; set; }
-    public VirtualCollection Collection { get; set; } = null!;
+    public VirtualCollection Collection { get; set; } = null!; // EF Core navigation property
     public Guid GameId { get; set; }
-    public Game Game { get; set; } = null!;
+    public Game Game { get; set; } = null!; // EF Core navigation property
     public int SortOrder { get; set; }
     public DateTime AddedAt { get; set; }
 
     private VirtualCollectionGame() { }
 
+    public static VirtualCollectionGame Create(Guid collectionId, Guid gameId, ITimeProvider timeProvider, int sortOrder = 0)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        return new VirtualCollectionGame
+        {
+            CollectionId = collectionId,
+            GameId = gameId,
+            SortOrder = sortOrder,
+            AddedAt = timeProvider.UtcNow
+        };
+    }
+
+    [Obsolete("Use Create(Guid, Guid, ITimeProvider, int) instead")]
     public static VirtualCollectionGame Create(Guid collectionId, Guid gameId, int sortOrder = 0)
     {
         return new VirtualCollectionGame

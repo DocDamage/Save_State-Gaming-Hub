@@ -6,6 +6,7 @@ using SaveState.Core.Common.Base;
 using SaveState.Core.Common.Configuration;
 using SaveState.Core.Common.Events;
 using SaveState.Core.Common.Interfaces;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.RomManagement.Entities;
 using SaveState.Core.RomManagement.RomValidation;
@@ -51,7 +52,8 @@ namespace SaveState.Infrastructure.Persistence;
 public class SaveStateDbContext : DbContext, ISaveStateDbContext
 {
     private readonly DatabaseOptions _options;
-    private readonly IEventPublisher _eventPublisher;
+    private readonly IEventPublisher? _eventPublisher;
+    private readonly ITimeProvider? _timeProvider;
 
     // Aggregate roots from bounded contexts
     public DbSet<Game> Games { get; set; }
@@ -172,7 +174,8 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
     {
         // Simplified constructor for walking skeleton
         _options = new DatabaseOptions();
-        _eventPublisher = null!;
+        _eventPublisher = null;
+        _timeProvider = null;
 
         // Enable WAL mode for better concurrency - Disabled in constructor to prevent breaking EnsureCreatedAsync
         // EnableWalMode();
@@ -186,6 +189,22 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
     {
         _options = dbOptions.Value;
         _eventPublisher = eventPublisher;
+        _timeProvider = null;
+
+        // Enable WAL mode for better concurrency - Disabled in constructor to prevent breaking EnsureCreatedAsync
+        // EnableWalMode();
+    }
+
+    public SaveStateDbContext(
+        DbContextOptions<SaveStateDbContext> options,
+        IOptions<DatabaseOptions> dbOptions,
+        IEventPublisher eventPublisher,
+        ITimeProvider timeProvider)
+        : base(options)
+    {
+        _options = dbOptions.Value;
+        _eventPublisher = eventPublisher;
+        _timeProvider = timeProvider;
 
         // Enable WAL mode for better concurrency - Disabled in constructor to prevent breaking EnsureCreatedAsync
         // EnableWalMode();
@@ -592,7 +611,7 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
         {
             entry.State = EntityState.Modified;
             entry.Entity.IsDeleted = true;
-            entry.Entity.DeletedAt = DateTime.UtcNow;
+            entry.Entity.DeletedAt = _timeProvider?.UtcNow ?? DateTime.UtcNow;
         }
     }
 

@@ -172,7 +172,7 @@ public sealed class PotentialMatch
     /// <summary>
     /// The current value at this address.
     /// </summary>
-    public object Value { get; set; } = null!;
+    public object Value { get; set; } = null!; // Set during scanning or updated during validation
 
     /// <summary>
     /// The data type of the value (int32, float, double, etc.).
@@ -325,7 +325,7 @@ public sealed class DetectedPattern
     /// <summary>
     /// The template that produced this detection.
     /// </summary>
-    public IMemoryPatternTemplate Template { get; set; } = null!;
+    public required IMemoryPatternTemplate Template { get; init; }
 
     /// <summary>
     /// The detected memory matches.

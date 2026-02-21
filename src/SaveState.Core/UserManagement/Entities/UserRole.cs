@@ -8,10 +8,10 @@ namespace SaveState.Core.UserManagement.Entities;
 public class UserRole : EntityBase
 {
     public Guid UserId { get; private set; }
-    public User User { get; private set; } = null!;
+    public User User { get; private set; } = null!; // Set via Create factory method
 
     public Guid RoleId { get; private set; }
-    public Role Role { get; private set; } = null!;
+    public Role Role { get; private set; } = null!; // Set via Create factory method
 
     public DateTimeOffset AssignedAt { get; private set; }
 

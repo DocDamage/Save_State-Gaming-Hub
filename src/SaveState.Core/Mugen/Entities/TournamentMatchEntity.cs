@@ -15,7 +15,7 @@ public class TournamentMatchEntity : EntityBase
     /// <summary>
     /// The tournament this match belongs to.
     /// </summary>
-    public MugenTournament Tournament { get; private set; } = null!;
+    public MugenTournament Tournament { get; private set; } = null;
 
     /// <summary>
     /// The round number of this match.

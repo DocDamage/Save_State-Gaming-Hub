@@ -711,8 +711,8 @@ public class ReplayAnalysisFilter
 /// </summary>
 public class ReplayComparison
 {
-    public ReplayAnalysis Replay1 { get; set; } = null!;
-    public ReplayAnalysis Replay2 { get; set; } = null!;
+    public required ReplayAnalysis Replay1 { get; set; }
+    public required ReplayAnalysis Replay2 { get; set; }
     
     public int ComboCountDifference => Replay1.Combos.Count - Replay2.Combos.Count;
     public int LongestComboDifference => (Replay1.LongestCombo?.HitCount ?? 0) - (Replay2.LongestCombo?.HitCount ?? 0);

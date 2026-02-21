@@ -752,12 +752,12 @@ public class RegressionTestResult
     /// <summary>
     /// Baseline results.
     /// </summary>
-    public TestSuiteResult BaselineResults { get; set; } = null!;
+    public TestSuiteResult? BaselineResults { get; set; }
 
     /// <summary>
     /// Current results.
     /// </summary>
-    public TestSuiteResult CurrentResults { get; set; } = null!;
+    public TestSuiteResult? CurrentResults { get; set; }
 
     /// <summary>
     /// Signatures that were fixed (failed before, pass now).
@@ -818,7 +818,7 @@ public class RegressionDetails
     /// <summary>
     /// The signature test result.
     /// </summary>
-    public SignatureTestResult SignatureTest { get; set; } = null!;
+    public SignatureTestResult? SignatureTest { get; set; }
 
     /// <summary>
     /// Whether the baseline test passed.

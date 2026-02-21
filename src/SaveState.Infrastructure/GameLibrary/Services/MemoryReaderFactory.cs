@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Services;
 
 namespace SaveState.Infrastructure.GameLibrary.Services;
@@ -28,7 +29,8 @@ public static class MemoryReaderFactory
         else if (OperatingSystem.IsLinux())
         {
             return new LinuxMemoryReader(
-                loggerFactory.CreateLogger<LinuxMemoryReader>());
+                loggerFactory.CreateLogger<LinuxMemoryReader>(),
+                services.GetRequiredService<ITimeProvider>());
         }
         else if (OperatingSystem.IsMacOS())
         {

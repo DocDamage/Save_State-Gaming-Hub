@@ -154,7 +154,7 @@ public class SessionTrackingService : ISessionTrackingService
             }
 
             _logger.LogInformation("Ended session {SessionId} after {Duration} - Reason: {Reason}",
-                sessionId, session.GetDuration(), reason);
+                sessionId, session.GetDuration(_timeProvider), reason);
 
             await _notificationService.NotifyAnalyticsUpdatedAsync("SessionEnded", ct);
 
@@ -329,7 +329,7 @@ public class SessionTrackingService : ISessionTrackingService
                 FirstPlayedAt: firstSession?.StartedAt,
                 LastPlayedAt: game?.LastPlayedAt,
                 AverageSessionDuration: averageDuration,
-                LongestSessionDuration: longestSession?.GetDuration() ?? TimeSpan.Zero,
+                LongestSessionDuration: longestSession?.GetDuration(_timeProvider) ?? TimeSpan.Zero,
                 SessionsThisWeek: sessionsThisWeek,
                 SessionsThisMonth: sessionsThisMonth
             );

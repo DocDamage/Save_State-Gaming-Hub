@@ -261,9 +261,9 @@ public class CheatPattern : EntityBase
 {
     public string Name { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
-    public AiGamingContext.CheatSignature Signature { get; private set; } = null!;
+    public required AiGamingContext.CheatSignature Signature { get; init; }
     public string CheatType { get; private set; } = string.Empty;
-    public AiGamingContext.ConfidenceScore DetectionConfidence { get; private set; } = null!;
+    public required AiGamingContext.ConfidenceScore DetectionConfidence { get; init; }
 
     private CheatPattern() { }
 
@@ -304,17 +304,17 @@ public class Trainer : EntityBase
 public class TrainerCheat
 {
     public string Description { get; set; } = string.Empty;
-    public AiGamingContext.MemoryAddress Address { get; set; } = null!;
+    public required AiGamingContext.MemoryAddress Address { get; set; }
     public AiGamingContext.MemoryValue? DefaultValue { get; set; }
     public Type ValueType => DefaultValue?.ValueType ?? typeof(int);
 }
 
 public class MemoryScan : EntityBase
 {
-    public AiGamingContext.ProcessId ProcessId { get; private set; } = null!;
+    public required AiGamingContext.ProcessId ProcessId { get; init; }
     public string ProcessName { get; private set; } = string.Empty;
-    public AiGamingContext.MemoryAddress StartAddress { get; private set; } = null!;
-    public AiGamingContext.MemoryAddress EndAddress { get; private set; } = null!;
+    public required AiGamingContext.MemoryAddress StartAddress { get; init; }
+    public required AiGamingContext.MemoryAddress EndAddress { get; init; }
     public string ScanType { get; private set; } = string.Empty;
     public List<MemoryScanResult> Results { get; private set; } = new();
     public DateTime ScannedAt { get; private set; }
@@ -341,7 +341,7 @@ public class MemoryScan : EntityBase
 
 public class MemoryScanResult
 {
-    public AiGamingContext.MemoryAddress Address { get; set; } = null!;
+    public required AiGamingContext.MemoryAddress Address { get; set; }
     public AiGamingContext.MemoryValue? Value { get; set; }
-    public AiGamingContext.ConfidenceScore Confidence { get; set; } = null!;
+    public required AiGamingContext.ConfidenceScore Confidence { get; set; }
 }

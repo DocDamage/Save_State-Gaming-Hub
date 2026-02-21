@@ -17,6 +17,7 @@ public sealed partial class SubscriptionManagerViewModel : ObservableObject
 {
     private readonly ISubscriptionService _subscriptionService;
     private readonly ILogger<SubscriptionManagerViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private ObservableCollection<SubscriptionServiceViewModel> _services = new();
@@ -66,10 +67,12 @@ public sealed partial class SubscriptionManagerViewModel : ObservableObject
 
     public SubscriptionManagerViewModel(
         ISubscriptionService subscriptionService,
-        ILogger<SubscriptionManagerViewModel> logger)
+        ILogger<SubscriptionManagerViewModel> logger,
+        ITimeProvider timeProvider)
     {
         _subscriptionService = subscriptionService ?? throw new ArgumentNullException(nameof(subscriptionService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
 
         // Load data on initialization
         _ = RefreshAsync();
@@ -121,7 +124,7 @@ public sealed partial class SubscriptionManagerViewModel : ObservableObject
                 Alerts.Clear();
                 foreach (var alert in result.Value)
                 {
-                    Alerts.Add(new SubscriptionAlertViewModel(alert));
+                    Alerts.Add(new SubscriptionAlertViewModel(alert, _timeProvider));
                 }
             }
         }
@@ -232,7 +235,7 @@ public sealed partial class SubscriptionManagerViewModel : ObservableObject
                 SearchResults.Clear();
                 foreach (var game in result.Value)
                 {
-                    SearchResults.Add(new SubscriptionGameViewModel(game));
+                    SearchResults.Add(new SubscriptionGameViewModel(game, _timeProvider));
                 }
             }
             else
@@ -302,10 +305,12 @@ public sealed class SubscriptionServiceViewModel : ObservableObject
 public sealed class SubscriptionAlertViewModel : ObservableObject
 {
     private readonly SubscriptionAlert _alert;
+    private readonly ITimeProvider _timeProvider;
 
-    public SubscriptionAlertViewModel(SubscriptionAlert alert)
+    public SubscriptionAlertViewModel(SubscriptionAlert alert, ITimeProvider timeProvider)
     {
         _alert = alert ?? throw new ArgumentNullException(nameof(alert));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     public string ServiceName => _alert.ServiceName;
@@ -318,7 +323,7 @@ public sealed class SubscriptionAlertViewModel : ObservableObject
     {
         get
         {
-            var days = (_alert.LeavingDate - SystemTimeProvider.Instance.UtcNow).Days;
+            var days = (_alert.LeavingDate - _timeProvider.UtcNow).Days;
             return days switch
             {
                 0 => "Leaving today!",
@@ -329,7 +334,7 @@ public sealed class SubscriptionAlertViewModel : ObservableObject
         }
     }
 
-    public bool IsUrgent => (_alert.LeavingDate - SystemTimeProvider.Instance.UtcNow).Days <= 3;
+    public bool IsUrgent => (_alert.LeavingDate - _timeProvider.UtcNow).Days <= 3;
 }
 
 /// <summary>
@@ -380,10 +385,12 @@ public sealed class SubscriptionComparisonViewModel : ObservableObject
 public sealed class SubscriptionGameViewModel : ObservableObject
 {
     private readonly SubscriptionGame _game;
+    private readonly ITimeProvider _timeProvider;
 
-    public SubscriptionGameViewModel(SubscriptionGame game)
+    public SubscriptionGameViewModel(SubscriptionGame game, ITimeProvider timeProvider)
     {
         _game = game ?? throw new ArgumentNullException(nameof(game));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     public string GameId => _game.GameId;
@@ -392,8 +399,8 @@ public sealed class SubscriptionGameViewModel : ObservableObject
     public string? CoverImageUrl => _game.CoverImageUrl;
     public DateTime? AddedDate => _game.AddedDate;
     public DateTime? LeavingSoonDate => _game.LeavingSoonDate;
-    public bool IsLeavingSoon => _game.IsLeavingSoon;
-    public bool IsNewArrival => _game.IsNewArrival;
+    public bool IsLeavingSoon => _game.IsLeavingSoon(_timeProvider.UtcNow);
+    public bool IsNewArrival => _game.IsNewArrival(_timeProvider.UtcNow);
     public List<string> Genres => _game.Genres;
     public int? MetacriticScore => _game.MetacriticScore;
 
@@ -403,9 +410,9 @@ public sealed class SubscriptionGameViewModel : ObservableObject
 
     private string GetStatusText()
     {
-        if (_game.IsLeavingSoon)
-            return $"⚠️ Leaving in {(_game.LeavingSoonDate!.Value - DateTime.UtcNow).Days} days";
-        if (_game.IsNewArrival)
+        if (_game.IsLeavingSoon(_timeProvider.UtcNow))
+            return $"⚠️ Leaving in {(_game.LeavingSoonDate!.Value - _timeProvider.UtcNow).Days} days";
+        if (_game.IsNewArrival(_timeProvider.UtcNow))
             return "✨ New arrival";
         return "✓ Available";
     }

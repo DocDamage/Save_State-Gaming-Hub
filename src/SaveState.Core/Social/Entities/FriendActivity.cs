@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Social.Entities;
 
@@ -15,7 +16,7 @@ public class FriendActivity : EntityBase
     /// <summary>
     /// Gets the friend who performed this activity.
     /// </summary>
-    public Friend Friend { get; private set; } = null!;
+    public Friend? Friend { get; private set; }
 
     /// <summary>
     /// Gets the type of activity.
@@ -47,6 +48,28 @@ public class FriendActivity : EntityBase
     /// <summary>
     /// Creates a new friend activity record.
     /// </summary>
+    public static FriendActivity Create(
+        Guid friendId,
+        ActivityType type,
+        string gameTitle,
+        SocialPlatform platform,
+        ITimeProvider timeProvider,
+        string? details = null)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        return new FriendActivity
+        {
+            Id = Guid.NewGuid(),
+            FriendId = friendId,
+            Type = type,
+            GameTitle = Guard.Against.NullOrWhiteSpace(gameTitle, nameof(gameTitle)),
+            Platform = platform,
+            Details = details,
+            Timestamp = timeProvider.UtcNow
+        };
+    }
+
+    [Obsolete("Use Create(Guid, ActivityType, string, SocialPlatform, ITimeProvider, string?) instead")]
     public static FriendActivity Create(
         Guid friendId,
         ActivityType type,

@@ -1,7 +1,8 @@
-namespace SaveState.Core.GameLibrary.Entities;
-
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Enums;
+
+namespace SaveState.Core.GameLibrary.Entities;
 
 /// <summary>
 /// Represents a single play session for a game.
@@ -10,7 +11,7 @@ using SaveState.Core.GameLibrary.Enums;
 public class GameSession : EntityBase
 {
     public Guid GameId { get; private set; }
-    public Game Game { get; private set; } = null!;
+    public Game? Game { get; private set; }
     public DateTime StartedAt { get; private set; }
     public DateTime StartTime => StartedAt;
     public DateTime? EndedAt { get; private set; }
@@ -21,16 +22,55 @@ public class GameSession : EntityBase
     /// Gets the duration of this session.
     /// If session is still active, returns time since start.
     /// </summary>
-    public TimeSpan Duration => EndedAt.HasValue
-        ? EndedAt.Value - StartedAt
-        : DateTime.UtcNow - StartedAt;
+    public TimeSpan Duration => GetDuration(DateTime.UtcNow);
 
     /// <summary>
-    /// Gets the duration of this session.
-    /// If session is still active, returns time since start using UTC now.
+    /// Gets the duration of this session using the provided time provider.
+    /// If session is still active, returns time since start using the provider's UTC time.
     /// </summary>
-    /// <returns>The duration of the session.</returns>
-    public TimeSpan GetDuration() => GetDuration(DateTime.UtcNow);
+    public TimeSpan GetDuration(ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        return GetDuration(timeProvider.UtcNow);
+    }
+
+    /// <summary>
+    /// Creates a new game session for the specified game.
+    /// </summary>
+    public static GameSession Create(Guid gameId, ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        return new GameSession
+        {
+            Id = Guid.NewGuid(),
+            GameId = gameId,
+            StartedAt = timeProvider.UtcNow
+        };
+    }
+
+    /// <summary>
+    /// Creates a new game session for the specified game with explicit start time.
+    /// </summary>
+    public static GameSession Create(Guid gameId, DateTime startedAt)
+    {
+        return new GameSession
+        {
+            Id = Guid.NewGuid(),
+            GameId = gameId,
+            StartedAt = startedAt
+        };
+    }
+
+    [Obsolete("Use Create(Guid, ITimeProvider) or Create(Guid, DateTime) instead")]
+    public static GameSession Create(Guid gameId, DateTime? startedAt = null)
+    {
+        return new GameSession
+        {
+            Id = Guid.NewGuid(),
+            GameId = gameId,
+            StartedAt = startedAt ?? DateTime.UtcNow
+        };
+    }
 
     /// <summary>
     /// Gets the duration of this session using the specified current time for active sessions.
@@ -49,22 +89,30 @@ public class GameSession : EntityBase
 
     private GameSession() { } // EF Core
 
+
+
     /// <summary>
-    /// Creates a new game session for the specified game.
+    /// Ends this session with the specified reason using the provided time provider.
     /// </summary>
-    public static GameSession Create(Guid gameId, DateTime? startedAt = null)
+    public void End(SessionEndReason reason, ITimeProvider timeProvider)
     {
-        return new GameSession
-        {
-            Id = Guid.NewGuid(),
-            GameId = gameId,
-            StartedAt = startedAt ?? DateTime.UtcNow
-        };
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        End(reason, timeProvider.UtcNow);
     }
 
     /// <summary>
-    /// Ends this session with the specified reason.
+    /// Ends this session with the specified reason and explicit end time.
     /// </summary>
+    public void End(SessionEndReason reason, DateTime endedAt)
+    {
+        if (EndedAt.HasValue)
+            return; // Already ended
+
+        EndedAt = endedAt;
+        EndReason = reason;
+    }
+
+    [Obsolete("Use End(SessionEndReason, ITimeProvider) or End(SessionEndReason, DateTime) instead")]
     public void End(SessionEndReason reason, DateTime? endedAt = null)
     {
         if (EndedAt.HasValue)

@@ -232,7 +232,7 @@ public class SyncProgress
 /// </summary>
 public class SyncProgressEventArgs : EventArgs
 {
-    public SyncProgress Progress { get; set; } = null!;
+    public required SyncProgress Progress { get; init; }
 }
 
 /// <summary>
@@ -240,5 +240,5 @@ public class SyncProgressEventArgs : EventArgs
 /// </summary>
 public class SyncConflictEventArgs : EventArgs
 {
-    public SyncConflict Conflict { get; set; } = null!;
+    public required SyncConflict Conflict { get; init; }
 }

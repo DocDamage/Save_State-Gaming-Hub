@@ -89,27 +89,27 @@ public static class MetricDefinitions
     /// <summary>
     /// Observable gauge for CPU usage percentage.
     /// </summary>
-    public static ObservableGauge<double> CpuUsage { get; private set; } = null!;
+    public static ObservableGauge<double>? CpuUsage { get; private set; }
 
     /// <summary>
     /// Observable gauge for memory usage in bytes.
     /// </summary>
-    public static ObservableGauge<long> MemoryUsage { get; private set; } = null!;
+    public static ObservableGauge<long>? MemoryUsage { get; private set; }
 
     /// <summary>
     /// Observable gauge for disk usage in bytes.
     /// </summary>
-    public static ObservableGauge<long> DiskUsage { get; private set; } = null!;
+    public static ObservableGauge<long>? DiskUsage { get; private set; }
 
     /// <summary>
     /// Observable gauge for active sessions.
     /// </summary>
-    public static ObservableGauge<long> ActiveSessions { get; private set; } = null!;
+    public static ObservableGauge<long>? ActiveSessions { get; private set; }
 
     /// <summary>
     /// Observable gauge for attached processes.
     /// </summary>
-    public static ObservableGauge<long> AttachedProcesses { get; private set; } = null!;
+    public static ObservableGauge<long>? AttachedProcesses { get; private set; }
 
     /// <summary>
     /// Initializes system gauges with value providers.

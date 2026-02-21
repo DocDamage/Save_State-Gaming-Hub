@@ -30,7 +30,7 @@ public sealed class WindowsPointerPathFinder : IPointerPathFinder
         var paths = new List<PointerPath>();
 
         // 1. Get main module info
-        var baseAddressResult = await _memoryReader.GetModuleBaseAddressAsync(processId, null!, ct);
+        var baseAddressResult = await _memoryReader.GetModuleBaseAddressAsync(processId, null, ct);
         if (!baseAddressResult.IsSuccess) return baseAddressResult.ToResult<IReadOnlyList<PointerPath>>();
 
         long baseAddr = baseAddressResult.Value;

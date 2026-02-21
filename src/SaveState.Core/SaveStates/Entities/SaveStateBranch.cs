@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.SaveStates.Entities;
 
@@ -12,6 +13,21 @@ public class SaveStateBranch : EntityBase
 
     private SaveStateBranch() { }
 
+    public static SaveStateBranch Create(Guid rootStateId, string name, BranchType type, ITimeProvider timeProvider, string? description = null)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        return new SaveStateBranch
+        {
+            Id = Guid.NewGuid(),
+            RootStateId = rootStateId,
+            BranchName = Guard.Against.NullOrWhiteSpace(name, nameof(name)),
+            Description = description ?? string.Empty,
+            Type = type,
+            CreatedAt = timeProvider.UtcNow
+        };
+    }
+
+    [Obsolete("Use Create(Guid, string, BranchType, ITimeProvider, string?) instead")]
     public static SaveStateBranch Create(Guid rootStateId, string name, BranchType type, string? description = null)
     {
         return new SaveStateBranch

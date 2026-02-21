@@ -25,7 +25,7 @@ public class MemoryWatch : EntityBase
     /// <summary>
     /// Gets the memory address being watched.
     /// </summary>
-    public MemoryAddress Address { get; private set; } = null!;
+    public required MemoryAddress Address { get; init; }
 
     /// <summary>
     /// Gets the data type of the value.

@@ -1,7 +1,9 @@
 using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Plugins;
 using SaveState.Core.Social;
 using System.CommandLine;
@@ -21,6 +23,7 @@ public class DiscordIntegrationPlugin : IPlugin
 {
     private IPluginContext? _context;
     private ILogger? _logger;
+    private ITimeProvider? _timeProvider;
     private DiscordSocketClient? _discordClient;
     private IDiscordPresenceService? _presenceService;
     private bool _isBotConnected;
@@ -37,6 +40,7 @@ public class DiscordIntegrationPlugin : IPlugin
     {
         _context = context;
         _logger = context.Logger;
+        _timeProvider = context.Services.GetService<ITimeProvider>();
 
         _logger.LogInformation("Initializing Advanced Discord Integration plugin");
 
@@ -509,7 +513,7 @@ public class DiscordIntegrationPlugin : IPlugin
                 gameTitle: gameTitle,
                 details: details,
                 largeImageText: state ?? "Playing with SaveState Reborn",
-                startTimestamp: DateTime.UtcNow);
+                startTimestamp: _timeProvider?.UtcNow ?? DateTime.UtcNow);
 
             _logger?.LogInformation($"Discord presence set: Playing {gameTitle}");
         }

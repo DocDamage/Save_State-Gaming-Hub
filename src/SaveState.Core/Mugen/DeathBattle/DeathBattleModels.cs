@@ -16,12 +16,12 @@ public class DeathBattleMatch : EntityBase
     /// <summary>
     /// First combatant.
     /// </summary>
-    public DeathBattleCombatant Combatant1 { get; set; } = null!;
+    public required DeathBattleCombatant Combatant1 { get; set; }
     
     /// <summary>
     /// Second combatant.
     /// </summary>
-    public DeathBattleCombatant Combatant2 { get; set; } = null!;
+    public required DeathBattleCombatant Combatant2 { get; set; }
     
     /// <summary>
     /// Current state of the battle.

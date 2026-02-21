@@ -55,7 +55,7 @@ public class PerformanceHealthCheck : IHealthCheck
             EvaluateCurrentPerformance(snapshot, results, issues, criticalIssues, _timeProvider);
 
             // Analyze performance trends
-            AnalyzePerformanceTrends(snapshot, results, issues, criticalIssues);
+            AnalyzePerformanceTrends(snapshot, results, issues, criticalIssues, _timeProvider);
 
             // Evaluate system performance
             EvaluateSystemPerformance(snapshot, results, issues, criticalIssues, _timeProvider);
@@ -181,7 +181,8 @@ public class PerformanceHealthCheck : IHealthCheck
         MetricsSnapshot snapshot,
         Dictionary<string, object> results,
         List<string> issues,
-        List<string> criticalIssues)
+        List<string> criticalIssues,
+        ITimeProvider timeProvider)
     {
         lock (_historyLock)
         {
@@ -198,7 +199,7 @@ public class PerformanceHealthCheck : IHealthCheck
             // Analyze trends if we have enough historical data
             if (history.Snapshots.Count >= 3)
             {
-                var trend = history.GetTrendAnalysis();
+                var trend = history.GetTrendAnalysis(timeProvider);
                 results["PerformanceTrend"] = trend;
 
                 // Check for degrading trends
@@ -317,7 +318,7 @@ public class PerformanceHealthCheck : IHealthCheck
             Snapshots.Add(snapshot);
         }
 
-        public PerformanceTrend GetTrendAnalysis()
+        public PerformanceTrend GetTrendAnalysis(ITimeProvider timeProvider)
         {
             if (Snapshots.Count < 3)
                 return new PerformanceTrend();
@@ -330,7 +331,7 @@ public class PerformanceHealthCheck : IHealthCheck
             {
                 ResponseTimeIncreasing = newest.AverageResponseTime > oldest.AverageResponseTime,
                 ErrorRateIncreasing = CalculateErrorRate(newest) > CalculateErrorRate(oldest),
-                ThroughputDecreasing = CalculateThroughput(newest) < CalculateThroughput(oldest)
+                ThroughputDecreasing = CalculateThroughput(newest, timeProvider) < CalculateThroughput(oldest, timeProvider)
             };
         }
 
@@ -341,10 +342,10 @@ public class PerformanceHealthCheck : IHealthCheck
                 : 0;
         }
 
-        private static double CalculateThroughput(MetricsSnapshot snapshot)
+        private double CalculateThroughput(MetricsSnapshot snapshot, ITimeProvider timeProvider)
         {
             // Calculate approximate uptime based on timestamp
-            var uptime = DateTime.UtcNow - snapshot.Timestamp;
+            var uptime = timeProvider.UtcNow - snapshot.Timestamp;
             return uptime.TotalMinutes > 0
                 ? snapshot.TotalRequests / uptime.TotalMinutes
                 : 0;

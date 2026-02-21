@@ -16,7 +16,7 @@ public class MugenMatchupStats : EntityBase
     /// <summary>
     /// The first character in this matchup.
     /// </summary>
-    public MugenCharacter Character1 { get; private set; } = null!;
+    public MugenCharacter Character1 { get; private set; } = null;
 
     /// <summary>
     /// The ID of the second character in this matchup.
@@ -26,7 +26,7 @@ public class MugenMatchupStats : EntityBase
     /// <summary>
     /// The second character in this matchup.
     /// </summary>
-    public MugenCharacter Character2 { get; private set; } = null!;
+    public MugenCharacter Character2 { get; private set; } = null;
 
     /// <summary>
     /// Total number of matches played between these characters.

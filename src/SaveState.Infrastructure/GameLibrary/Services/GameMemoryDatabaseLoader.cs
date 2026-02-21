@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Infrastructure.GameLibrary.Services;
 
@@ -27,7 +28,7 @@ public sealed class GameMemoryDatabase
     /// Last update date in ISO format (YYYY-MM-DD).
     /// </summary>
     [JsonPropertyName("lastUpdated")]
-    public string LastUpdated { get; set; } = DateTime.UtcNow.ToString("yyyy-MM-dd");
+    public string LastUpdated { get; set; } = "";
 
     /// <summary>
     /// Collection of games with their memory signatures.
@@ -146,6 +147,7 @@ public sealed class GameMemoryDatabaseLoader
 {
     private readonly string _databasePath;
     private readonly ILogger<GameMemoryDatabaseLoader>? _logger;
+    private readonly ITimeProvider? _timeProvider;
     private GameMemoryDatabase? _cachedDatabase;
     private DateTime _lastLoadTime;
     private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(5);
@@ -155,10 +157,12 @@ public sealed class GameMemoryDatabaseLoader
     /// </summary>
     /// <param name="databasePath">Path to the JSON database file.</param>
     /// <param name="logger">Optional logger instance.</param>
-    public GameMemoryDatabaseLoader(string databasePath, ILogger<GameMemoryDatabaseLoader>? logger = null)
+    /// <param name="timeProvider">Optional time provider.</param>
+    public GameMemoryDatabaseLoader(string databasePath, ILogger<GameMemoryDatabaseLoader>? logger = null, ITimeProvider? timeProvider = null)
     {
         _databasePath = databasePath ?? throw new ArgumentNullException(nameof(databasePath));
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -177,7 +181,7 @@ public sealed class GameMemoryDatabaseLoader
             // Check cache
             if (!forceReload && _cachedDatabase is not null)
             {
-                var cacheAge = DateTime.UtcNow - _lastLoadTime;
+                var cacheAge = (_timeProvider?.UtcNow ?? DateTime.UtcNow) - _lastLoadTime;
                 if (cacheAge < _cacheDuration)
                 {
                     _logger?.LogDebug("Returning cached database (age: {CacheAge}s)", cacheAge.TotalSeconds);
@@ -217,7 +221,7 @@ public sealed class GameMemoryDatabaseLoader
 
             // Update cache
             _cachedDatabase = database;
-            _lastLoadTime = DateTime.UtcNow;
+            _lastLoadTime = _timeProvider?.UtcNow ?? DateTime.UtcNow;
 
             _logger?.LogInformation(
                 "Loaded database v{Version} with {GameCount} games (last updated: {LastUpdated})",
@@ -255,6 +259,7 @@ public sealed class GameMemoryDatabaseLoader
     /// </summary>
     /// <param name="forceReload">Force reload from disk.</param>
     /// <returns>Result containing the loaded database or error.</returns>
+    [Obsolete("Use LoadAsync instead to avoid blocking. This method may be removed in a future version.")]
     public Result<GameMemoryDatabase> Load(bool forceReload = false)
     {
         return LoadAsync(forceReload).GetAwaiter().GetResult();

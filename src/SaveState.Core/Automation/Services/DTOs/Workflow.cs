@@ -271,7 +271,7 @@ public sealed class WorkflowExecutionStartedEventArgs : EventArgs
 {
     public Guid ExecutionId { get; init; }
     public Guid WorkflowId { get; init; }
-    public WorkflowExecutionParameters Parameters { get; init; } = null!;
+    public required WorkflowExecutionParameters Parameters { get; init; }
 }
 
 /// <summary>
@@ -279,7 +279,7 @@ public sealed class WorkflowExecutionStartedEventArgs : EventArgs
 /// </summary>
 public sealed class WorkflowExecutionCompletedEventArgs : EventArgs
 {
-    public WorkflowExecutionResult Result { get; init; } = null!;
+    public required WorkflowExecutionResult Result { get; init; }
 }
 
 /// <summary>
@@ -288,5 +288,5 @@ public sealed class WorkflowExecutionCompletedEventArgs : EventArgs
 public sealed class WorkflowStepExecutedEventArgs : EventArgs
 {
     public Guid ExecutionId { get; init; }
-    public WorkflowStepResult StepResult { get; init; } = null!;
+    public required WorkflowStepResult StepResult { get; init; }
 }

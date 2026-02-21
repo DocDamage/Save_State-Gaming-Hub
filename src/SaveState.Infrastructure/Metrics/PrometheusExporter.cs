@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Metrics;
 using System.Text.Json;
 
@@ -35,11 +36,13 @@ public class PrometheusExporter
 {
     private readonly IMetricsReporter _metricsReporter;
     private readonly ILogger<PrometheusExporter> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public PrometheusExporter(IMetricsReporter metricsReporter, ILogger<PrometheusExporter> logger)
+    public PrometheusExporter(IMetricsReporter metricsReporter, ILogger<PrometheusExporter> logger, ITimeProvider timeProvider)
     {
         _metricsReporter = metricsReporter;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -166,7 +169,7 @@ public class PrometheusExporter
         var health = new
         {
             Status = isHealthy ? "healthy" : "degraded",
-            Timestamp = DateTime.UtcNow,
+            Timestamp = _timeProvider.UtcNow,
             Metrics = new
             {
                 ActiveSessions = snapshot.Gauges.GetValueOrDefault("sessions.active", 0),

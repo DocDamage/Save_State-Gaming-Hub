@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Social.Netplay;
 
@@ -135,12 +136,12 @@ public sealed class SpectatorJoinedEventArgs : EventArgs
     public string Username { get; }
     public DateTime JoinedAt { get; }
 
-    public SpectatorJoinedEventArgs(string relayId, string spectatorId, string username)
+    public SpectatorJoinedEventArgs(string relayId, string spectatorId, string username, ITimeProvider? timeProvider = null)
     {
         RelayId = relayId;
         SpectatorId = spectatorId;
         Username = username;
-        JoinedAt = DateTime.UtcNow;
+        JoinedAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     }
 }
 
@@ -154,11 +155,11 @@ public sealed class SpectatorLeftEventArgs : EventArgs
     public TimeSpan Duration { get; }
     public DateTime LeftAt { get; }
 
-    public SpectatorLeftEventArgs(string relayId, string spectatorId, TimeSpan duration)
+    public SpectatorLeftEventArgs(string relayId, string spectatorId, TimeSpan duration, ITimeProvider? timeProvider = null)
     {
         RelayId = relayId;
         SpectatorId = spectatorId;
         Duration = duration;
-        LeftAt = DateTime.UtcNow;
+        LeftAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     }
 }

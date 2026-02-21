@@ -344,7 +344,7 @@ public class ValidationReport
     /// <summary>
     /// The signature being validated.
     /// </summary>
-    public GameMemorySignature Signature { get; set; } = null!;
+    public required GameMemorySignature Signature { get; init; }
 
     /// <summary>
     /// Overall health score.

@@ -11,7 +11,7 @@ public class HealthCheckResponse
     public string Status { get; set; } = "unknown";
 
     [JsonPropertyName("timestamp")]
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; set; }
 
     [JsonPropertyName("durationMs")]
     public long DurationMs { get; set; }

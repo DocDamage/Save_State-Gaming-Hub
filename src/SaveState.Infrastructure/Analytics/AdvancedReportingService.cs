@@ -291,8 +291,8 @@ public record Report(
 public record ReportConfig(
     ReportType Type,
     DateRange DateRange,
-    List<string> Metrics = null!,
-    List<string> Dimensions = null!,
+    List<string>? Metrics = null,
+    List<string>? Dimensions = null,
     bool IncludeCharts = true)
 {
     public ReportConfig() : this(ReportType.Summary, new DateRange(), new(), new())

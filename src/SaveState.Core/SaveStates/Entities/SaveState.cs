@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.SaveStates.Entities;
 
@@ -20,6 +21,22 @@ public class SaveState : EntityBase
 
     private SaveState() { }
 
+    public static SaveState Create(Guid gameId, string filePath, TimeSpan playtimeAtSave, ITimeProvider timeProvider, bool isAutoSave = false)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        return new SaveState
+        {
+            Id = Guid.NewGuid(),
+            GameId = gameId,
+            FilePath = Guard.Against.NullOrWhiteSpace(filePath, nameof(filePath)),
+            CreatedAt = timeProvider.UtcNow,
+            PlaytimeAtSave = playtimeAtSave,
+            IsAutoSave = isAutoSave,
+            IsFavorite = false
+        };
+    }
+
+    [Obsolete("Use Create(Guid, string, TimeSpan, ITimeProvider, bool) instead")]
     public static SaveState Create(Guid gameId, string filePath, TimeSpan playtimeAtSave, bool isAutoSave = false)
     {
         return new SaveState

@@ -1,6 +1,8 @@
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Plugins;
 
 namespace SaveState.Plugins.MugenAchievements;
@@ -13,6 +15,7 @@ public class MugenAchievementSystemPlugin : IPlugin
 {
     private IPluginContext? _context;
     private ILogger? _logger;
+    private ITimeProvider? _timeProvider;
     private readonly PlayerProgress _playerProgress = new();
     private readonly List<MugenAchievement> _achievements = new();
     private readonly List<ProgressionGoal> _goals = new();
@@ -28,6 +31,7 @@ public class MugenAchievementSystemPlugin : IPlugin
     {
         _context = context;
         _logger = context.Logger;
+        _timeProvider = context.Services.GetService<ITimeProvider>();
 
         _logger.LogInformation("Initializing MUGEN Achievement System plugin");
 
@@ -313,7 +317,7 @@ public class MugenAchievementSystemPlugin : IPlugin
             }
 
             // Show daily/weekly reset timers
-            var now = DateTime.UtcNow;
+            var now = _timeProvider?.UtcNow ?? DateTime.UtcNow;
             var tomorrow = now.Date.AddDays(1);
             var nextWeek = now.Date.AddDays(7 - (int)now.DayOfWeek);
 

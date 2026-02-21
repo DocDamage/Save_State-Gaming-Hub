@@ -16,7 +16,7 @@ public class MugenDummyRecording : EntityBase
     /// <summary>
     /// The training session this recording belongs to.
     /// </summary>
-    public MugenTrainingSession TrainingSession { get; private set; } = null!;
+    public MugenTrainingSession TrainingSession { get; private set; } = null;
 
     /// <summary>
     /// The type of dummy behavior recorded.

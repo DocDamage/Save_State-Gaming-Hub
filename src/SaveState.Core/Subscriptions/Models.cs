@@ -1,3 +1,5 @@
+using SaveState.Core.Common.Services;
+
 namespace SaveState.Core.Subscriptions;
 
 /// <summary>
@@ -82,8 +84,8 @@ public class SubscriptionGame
     public List<SubscriptionServiceType> AvailableOn { get; set; } = new();
     public DateTime? AddedDate { get; set; }
     public DateTime? LeavingSoonDate { get; set; }
-    public bool IsLeavingSoon => IsLeavingSoonAt(DateTime.UtcNow);
-    public bool IsNewArrival => IsNewArrivalAt(DateTime.UtcNow);
+    public bool IsLeavingSoon(DateTime currentTime) => IsLeavingSoonAt(currentTime);
+    public bool IsNewArrival(DateTime currentTime) => IsNewArrivalAt(currentTime);
     
     public bool IsLeavingSoonAt(DateTime currentTime) => LeavingSoonDate.HasValue && LeavingSoonDate.Value <= currentTime.AddDays(14);
     public bool IsNewArrivalAt(DateTime currentTime) => AddedDate.HasValue && AddedDate.Value >= currentTime.AddDays(-30);
@@ -100,8 +102,8 @@ public class UserSubscriptionLibrary
     public List<SubscriptionServiceType> ActiveSubscriptions { get; set; } = new();
     public List<SubscriptionGame> Games { get; set; } = new();
     public int TotalGames => Games.Count;
-    public int LeavingSoonCount => Games.Count(g => g.IsLeavingSoon);
-    public int NewArrivalsCount => Games.Count(g => g.IsNewArrival);
+    public int GetLeavingSoonCount(DateTime currentTime) => Games.Count(g => g.IsLeavingSoonAt(currentTime));
+    public int GetNewArrivalsCount(DateTime currentTime) => Games.Count(g => g.IsNewArrivalAt(currentTime));
     public DateTime LastSyncDate { get; set; }
 }
 
@@ -110,7 +112,7 @@ public class UserSubscriptionLibrary
 /// </summary>
 public class SubscriptionRecommendation
 {
-    public SubscriptionGame Game { get; set; } = null!;
+    public required SubscriptionGame Game { get; set; }
     public double MatchScore { get; set; }
     public string Reason { get; set; } = string.Empty;
     public List<string> BasedOnGames { get; set; } = new();
@@ -133,11 +135,10 @@ public class SubscriptionComparison
 /// </summary>
 public class LeavingSoonAlert
 {
-    public SubscriptionGame Game { get; set; } = null!;
+    public required SubscriptionGame Game { get; set; }
     public DateTime LeavingDate { get; set; }
-    public int DaysRemaining => (LeavingDate - DateTime.UtcNow).Days;
     public int GetDaysRemaining(DateTime currentTime) => (LeavingDate - currentTime).Days;
-    public bool IsUrgent => DaysRemaining <= 7;
+    public bool IsUrgent(DateTime currentTime) => GetDaysRemaining(currentTime) <= 7;
 }
 
 /// <summary>

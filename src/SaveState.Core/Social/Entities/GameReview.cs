@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Entities;
 
 namespace SaveState.Core.Social.Entities;
@@ -16,7 +17,7 @@ public class GameReview : EntityBase
     /// <summary>
     /// Gets the game being reviewed.
     /// </summary>
-    public Game Game { get; private set; } = null!;
+    public Game? Game { get; private set; }
 
     /// <summary>
     /// Gets the rating given by the user (1-10 scale).
@@ -67,6 +68,32 @@ public class GameReview : EntityBase
         Guid gameId,
         int rating,
         TimeSpan playtimeAtReview,
+        bool isRecommended,
+        ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        if (rating < 1 || rating > 10)
+        {
+            throw new ArgumentOutOfRangeException(nameof(rating), "Rating must be between 1 and 10.");
+        }
+
+        return new GameReview
+        {
+            Id = Guid.NewGuid(),
+            GameId = gameId,
+            Rating = rating,
+            IsRecommended = isRecommended,
+            PlaytimeAtReview = playtimeAtReview,
+            CreatedAt = timeProvider.UtcNow,
+            ContainsSpoilers = false
+        };
+    }
+
+    [Obsolete("Use Create(Guid, int, TimeSpan, bool, ITimeProvider) instead")]
+    public static GameReview Create(
+        Guid gameId,
+        int rating,
+        TimeSpan playtimeAtReview,
         bool isRecommended)
     {
         if (rating < 1 || rating > 10)
@@ -89,6 +116,28 @@ public class GameReview : EntityBase
     /// <summary>
     /// Updates the review content.
     /// </summary>
+    public void Update(
+        ITimeProvider timeProvider,
+        int? rating = null,
+        string? title = null,
+        string? content = null,
+        bool? containsSpoilers = null)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        if (rating.HasValue && (rating.Value < 1 || rating.Value > 10))
+        {
+            throw new ArgumentOutOfRangeException(nameof(rating), "Rating must be between 1 and 10.");
+        }
+
+        if (rating.HasValue) Rating = rating.Value;
+        if (title is not null) Title = title;
+        if (content is not null) Content = content;
+        if (containsSpoilers.HasValue) ContainsSpoilers = containsSpoilers.Value;
+
+        UpdatedAt = timeProvider.UtcNow;
+    }
+
+    [Obsolete("Use Update(ITimeProvider, int?, string?, string?, bool?) instead")]
     public void Update(
         int? rating = null,
         string? title = null,

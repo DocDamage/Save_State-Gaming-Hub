@@ -15,7 +15,7 @@ public class TournamentParticipant : EntityBase
     /// <summary>
     /// The tournament this participant belongs to.
     /// </summary>
-    public MugenTournament Tournament { get; private set; } = null!;
+    public MugenTournament Tournament { get; private set; } = null;
 
     /// <summary>
     /// The matches this participant has played in.
@@ -30,7 +30,7 @@ public class TournamentParticipant : EntityBase
     /// <summary>
     /// The character this participant is using.
     /// </summary>
-    public MugenCharacter Character { get; private set; } = null!;
+    public MugenCharacter Character { get; private set; } = null;
 
     /// <summary>
     /// The participant's seed/position in the tournament bracket.

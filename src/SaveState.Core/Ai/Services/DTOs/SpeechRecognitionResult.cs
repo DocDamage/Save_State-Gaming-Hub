@@ -1,3 +1,5 @@
+using SaveState.Core.Common.Services;
+
 namespace SaveState.Core.Ai.Services.DTOs;
 
 /// <summary>
@@ -49,8 +51,13 @@ public sealed record MicrophoneStatus(
 /// </summary>
 public sealed class SpeechRecognizedEventArgs : EventArgs
 {
-    public SpeechRecognitionResult Result { get; init; } = null!;
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public required SpeechRecognitionResult Result { get; init; }
+    public DateTime Timestamp { get; init; }
+
+    public SpeechRecognizedEventArgs(ITimeProvider? timeProvider = null)
+    {
+        Timestamp = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
+    }
 }
 
 /// <summary>
@@ -60,5 +67,10 @@ public sealed class SpeechRecognitionErrorEventArgs : EventArgs
 {
     public string ErrorMessage { get; init; } = string.Empty;
     public Exception? Exception { get; init; }
-    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; init; }
+
+    public SpeechRecognitionErrorEventArgs(ITimeProvider? timeProvider = null)
+    {
+        Timestamp = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
+    }
 }

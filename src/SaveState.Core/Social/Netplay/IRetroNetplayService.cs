@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.RomManagement.Entities;
 
 namespace SaveState.Core.Social.Netplay;
@@ -225,13 +226,13 @@ public sealed class MatchFoundEventArgs : EventArgs
     public int AcceptTimeoutSeconds { get; }
     public DateTime FoundAt { get; }
 
-    public MatchFoundEventArgs(string matchId, string romHash, PlayerInfo opponent, int acceptTimeoutSeconds)
+    public MatchFoundEventArgs(string matchId, string romHash, PlayerInfo opponent, int acceptTimeoutSeconds, ITimeProvider? timeProvider = null)
     {
         MatchId = matchId;
         RomHash = romHash;
         Opponent = opponent;
         AcceptTimeoutSeconds = acceptTimeoutSeconds;
-        FoundAt = DateTime.UtcNow;
+        FoundAt = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
     }
 }
 

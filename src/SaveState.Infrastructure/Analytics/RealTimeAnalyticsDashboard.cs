@@ -291,7 +291,7 @@ public record AnalyticsQuery(
     string Metric,
     DateTime StartDate,
     DateTime EndDate,
-    List<string> Dimensions = null!,
+    List<string>? Dimensions = null,
     Dictionary<string, object>? Filters = null);
 
 /// <summary>
