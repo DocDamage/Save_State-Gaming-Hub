@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
@@ -10,6 +11,22 @@ namespace SaveState.Infrastructure.GameLibrary.Services;
 /// macOS implementation of game memory reading using Mach kernel APIs.
 /// Requires code signing with specific entitlements for memory access.
 /// </summary>
+/// <remarks>
+/// <para><b>macOS Security Limitations:</b></para>
+/// <para>Memory writing on macOS is heavily restricted by System Integrity Protection (SIP) and Hardened Runtime.</para>
+/// <para>Write operations will fail if:</para>
+/// <list type="bullet">
+/// <item>The target uses Hardened Runtime with library validation</item>
+/// <item>The target memory page is marked read-only and cannot be changed</item>
+/// <item>SIP is enabled and blocking the operation</item>
+/// </list>
+/// <para><b>To increase chances of success:</b></para>
+/// <list type="bullet">
+/// <item>Run with sudo (not recommended for regular use)</item>
+/// <item>Disable SIP (not recommended - reduces system security)</item>
+/// <item>Use Windows for full memory editing capabilities</item>
+/// </list>
+/// </remarks>
 public sealed class MacOSMemoryReader : IGameMemoryReader, IDisposable
 {
     private readonly ILogger<MacOSMemoryReader> _logger;
@@ -19,6 +36,18 @@ public sealed class MacOSMemoryReader : IGameMemoryReader, IDisposable
     private readonly Timer _monitoringTimer;
     public event EventHandler<GameStateChangedEventArgs>? StateChanged;
     public bool IsAttached => _isAttached;
+
+    // Track frozen values
+    private readonly ConcurrentDictionary<IntPtr, FrozenValue> _frozenValues = new();
+    private CancellationTokenSource? _freezeCts;
+    private Task? _freezeTask;
+
+    private class FrozenValue
+    {
+        public object Value { get; set; } = null!;
+        public string ValueType { get; set; } = string.Empty;
+        public CancellationTokenSource Cts { get; } = new();
+    }
 
     // Mach API Constants
     private const int KERN_SUCCESS = 0;
@@ -108,6 +137,10 @@ public sealed class MacOSMemoryReader : IGameMemoryReader, IDisposable
             }
 
             _logger.LogInformation("Detaching from process on macOS");
+
+            // Stop freeze loop
+            _freezeCts?.Cancel();
+            _frozenValues.Clear();
 
             _monitoringTimer.Change(Timeout.Infinite, Timeout.Infinite);
 
@@ -244,45 +277,374 @@ public sealed class MacOSMemoryReader : IGameMemoryReader, IDisposable
         }
     }
 
-    public Task<Result> WriteMemoryAsync(IntPtr address, int value, CancellationToken ct = default)
+    /// <summary>
+    /// Writes an integer value to the attached process's memory.
+    /// </summary>
+    /// <param name="address">The memory address to write to.</param>
+    /// <param name="value">The integer value to write.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Result indicating success or failure.</returns>
+    /// <remarks>
+    /// <para><b>macOS Limitations:</b></para>
+    /// <para>Memory writing on macOS is heavily restricted by System Integrity Protection (SIP) and Hardened Runtime.</para>
+    /// <para>This method will fail if:</para>
+    /// <list type="bullet">
+    /// <item>The target uses Hardened Runtime with library validation</item>
+    /// <item>The target memory page is marked read-only and cannot be changed</item>
+    /// <item>SIP is enabled and blocking the operation</item>
+    /// </list>
+    /// <para><b>To increase chances of success:</b></para>
+    /// <list type="bullet">
+    /// <item>Run with sudo (not recommended for regular use)</item>
+    /// <item>Disable SIP (not recommended - reduces system security)</item>
+    /// <item>Use Windows for full memory editing capabilities</item>
+    /// </list>
+    /// </remarks>
+    public async Task<Result> WriteMemoryAsync(IntPtr address, int value, CancellationToken ct = default)
     {
-        _logger.LogWarning(
-            "Write not implemented on macOS (address: {Address:X}, value: {Value})", 
-            address.ToInt64(), 
-            value);
-        // Memory writing on macOS requires VM_PROT_WRITE permission
-        // and is more restricted than reading
-        return Task.FromResult(Result.Failure(
-            "Memory writing on macOS is restricted. " +
-            "Consider using vm_protect to change protection first."));
+        if (!_isAttached || _task == IntPtr.Zero)
+        {
+            return Result.Failure("Not attached to any process");
+        }
+
+        try
+        {
+            _logger.LogDebug("Writing int value {Value} to address {Address} on macOS", value, address);
+
+            // Check if page is writable
+            if (!IsPageWritable(address))
+            {
+                _logger.LogWarning("Target page at {Address} is not writable. Attempting to change protection...", address);
+                
+                // Try to make page writable
+                var protectResult = vm_protect(_task, (ulong)address.ToInt64(), 4, false, VM_PROT_READ | VM_PROT_WRITE | VM_PROT_COPY);
+                
+                if (protectResult != KERN_SUCCESS)
+                {
+                    var error = GetMachErrorString(protectResult);
+                    _logger.LogError(
+                        "Cannot write to protected memory at {Address}. " +
+                        "The target may use Hardened Runtime or SIP may be enabled. " +
+                        "Error: {Error}",
+                        address, error);
+                    
+                    return Result.Failure(
+                        $"Cannot write to protected memory. The target application uses security features that prevent modification. " +
+                        $"Error: {error}. " +
+                        $"This is a limitation on macOS - consider using Windows for full memory editing.",
+                        ErrorType.Forbidden);
+                }
+            }
+
+            var bytes = BitConverter.GetBytes(value);
+            var handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+            
+            try
+            {
+                var result = vm_write(
+                    _task,
+                    (ulong)address.ToInt64(),
+                    handle.AddrOfPinnedObject(),
+                    bytes.Length);
+
+                if (result != KERN_SUCCESS)
+                {
+                    var error = GetMachErrorString(result);
+                    _logger.LogError("vm_write failed: {Error}", error);
+                    return Result.Failure($"Write failed: {error}");
+                }
+
+                _logger.LogDebug("Successfully wrote int value to address {Address}", address);
+                return Result.Success();
+            }
+            finally
+            {
+                handle.Free();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error writing memory on macOS");
+            return Result.Failure($"Write failed: {ex.Message}");
+        }
     }
 
-    public Task<Result> WriteMemoryAsync(IntPtr address, float value, CancellationToken ct = default)
+    /// <summary>
+    /// Writes a float value to the attached process's memory.
+    /// </summary>
+    /// <param name="address">The memory address to write to.</param>
+    /// <param name="value">The float value to write.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Result indicating success or failure.</returns>
+    /// <remarks>
+    /// <para><b>macOS Limitations:</b></para>
+    /// <para>Memory writing on macOS is heavily restricted by System Integrity Protection (SIP) and Hardened Runtime.</para>
+    /// <para>See <see cref="WriteMemoryAsync(IntPtr, int, CancellationToken)"/> for details.</para>
+    /// </remarks>
+    public async Task<Result> WriteMemoryAsync(IntPtr address, float value, CancellationToken ct = default)
     {
-        _logger.LogWarning(
-            "Write not implemented on macOS (address: {Address:X}, value: {Value})", 
-            address.ToInt64(), 
-            value);
-        return Task.FromResult(Result.Failure(
-            "Memory writing on macOS is restricted. " +
-            "Consider using vm_protect to change protection first."));
+        if (!_isAttached || _task == IntPtr.Zero)
+        {
+            return Result.Failure("Not attached to any process");
+        }
+
+        try
+        {
+            _logger.LogDebug("Writing float value {Value} to address {Address} on macOS", value, address);
+
+            if (!IsPageWritable(address))
+            {
+                var protectResult = vm_protect(_task, (ulong)address.ToInt64(), 4, false, VM_PROT_READ | VM_PROT_WRITE | VM_PROT_COPY);
+                
+                if (protectResult != KERN_SUCCESS)
+                {
+                    return Result.Failure(
+                        "Cannot write to protected memory. The target application uses security features that prevent modification.",
+                        ErrorType.Forbidden);
+                }
+            }
+
+            var bytes = BitConverter.GetBytes(value);
+            var handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+            
+            try
+            {
+                var result = vm_write(
+                    _task,
+                    (ulong)address.ToInt64(),
+                    handle.AddrOfPinnedObject(),
+                    bytes.Length);
+
+                if (result != KERN_SUCCESS)
+                {
+                    var error = GetMachErrorString(result);
+                    return Result.Failure($"Write failed: {error}");
+                }
+
+                return Result.Success();
+            }
+            finally
+            {
+                handle.Free();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error writing memory on macOS");
+            return Result.Failure($"Write failed: {ex.Message}");
+        }
     }
 
+    /// <summary>
+    /// Continuously writes a value to memory at the specified address.
+    /// </summary>
+    /// <param name="address">The memory address to freeze.</param>
+    /// <param name="value">The value to freeze (int or float).</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Result indicating success or failure.</returns>
+    /// <remarks>
+    /// <para><b>macOS Limitations:</b></para>
+    /// <para>Value freezing may not work if the target uses Hardened Runtime or SIP is enabled.</para>
+    /// <para>The freeze loop runs in the background and writes the value every 100ms.</para>
+    /// </remarks>
     public Task<Result> FreezeValueAsync(IntPtr address, object value, CancellationToken ct = default)
     {
-        _logger.LogInformation(
-            "Freeze value requested for address {Address} with value {Value} (not implemented on macOS)", 
-            address, 
-            value);
-        return Task.FromResult(Result.Failure("Value freezing not yet implemented on macOS"));
+        if (!_isAttached || _task == IntPtr.Zero)
+        {
+            return Task.FromResult(Result.Failure("Not attached to any process"));
+        }
+
+        try
+        {
+            // Check if we can write before starting freeze
+            if (!IsPageWritable(address))
+            {
+                var protectResult = vm_protect(_task, (ulong)address.ToInt64(), 4, false, VM_PROT_READ | VM_PROT_WRITE | VM_PROT_COPY);
+                
+                if (protectResult != KERN_SUCCESS)
+                {
+                    return Task.FromResult(Result.Failure(
+                        "Cannot freeze value: target page is protected. macOS security features prevent memory modification.",
+                        ErrorType.Forbidden));
+                }
+            }
+
+            // Unfreeze existing if present
+            UnfreezeValueAsync(address, ct).Wait(ct);
+
+            var frozenValue = new FrozenValue
+            {
+                Value = value,
+                ValueType = value.GetType().Name
+            };
+
+            if (!_frozenValues.TryAdd(address, frozenValue))
+            {
+                return Task.FromResult(Result.Failure("Failed to add freeze entry"));
+            }
+
+            // Start freeze loop if not already running
+            if (_freezeTask == null || _freezeTask.IsCompleted)
+            {
+                _freezeCts = new CancellationTokenSource();
+                _freezeTask = Task.Run(() => FreezeLoopAsync(_freezeCts.Token));
+            }
+
+            _logger.LogInformation(
+                "Started freezing value at address {Address} on macOS. " +
+                "Note: This may not work if the target uses Hardened Runtime or SIP.",
+                address);
+            
+            return Task.FromResult(Result.Success());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error freezing value on macOS");
+            return Task.FromResult(Result.Failure($"Freeze failed: {ex.Message}"));
+        }
     }
 
+    /// <summary>
+    /// Stops freezing the value at the specified address.
+    /// </summary>
+    /// <param name="address">The memory address to unfreeze.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Result indicating success or failure.</returns>
     public Task<Result> UnfreezeValueAsync(IntPtr address, CancellationToken ct = default)
     {
-        _logger.LogInformation(
-            "Unfreeze value requested for address {Address} (not implemented on macOS)", 
-            address);
-        return Task.FromResult(Result.Failure("Value freezing not yet implemented on macOS"));
+        try
+        {
+            if (_frozenValues.TryRemove(address, out var frozenValue))
+            {
+                frozenValue.Cts.Cancel();
+                _logger.LogInformation("Stopped freezing value at address {Address}", address);
+            }
+
+            if (_frozenValues.IsEmpty && _freezeCts != null)
+            {
+                _freezeCts.Cancel();
+                _freezeCts = null;
+            }
+
+            return Task.FromResult(Result.Success());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error unfreezing value on macOS");
+            return Task.FromResult(Result.Failure($"Unfreeze failed: {ex.Message}"));
+        }
+    }
+
+    /// <summary>
+    /// Checks the system security status and returns warnings if memory writing may be restricted.
+    /// </summary>
+    /// <returns>Result indicating security status. Returns Failure with ErrorType.None if there are concerns.</returns>
+    public Result CheckSystemSecurityStatus()
+    {
+        var warnings = new List<string>();
+        
+        // Check if running as root
+        if (Environment.UserName != "root")
+        {
+            warnings.Add("Not running as root - memory write may fail for protected processes");
+        }
+        
+        // Note: We can't programmatically check SIP status from user space
+        // But we can warn about common issues
+        
+        if (warnings.Any())
+        {
+            return Result.Failure(
+                "macOS security warnings:\n" + string.Join("\n", warnings) + 
+                "\n\nMemory writing is limited on macOS. Consider using Windows for full functionality.",
+                ErrorType.None);
+        }
+        
+        return Result.Success();
+    }
+
+    private async Task FreezeLoopAsync(CancellationToken ct)
+    {
+        _logger.LogInformation("Started macOS freeze loop");
+
+        try
+        {
+            while (!ct.IsCancellationRequested && !_frozenValues.IsEmpty)
+            {
+                foreach (var kvp in _frozenValues.ToArray())
+                {
+                    if (kvp.Value.Cts.IsCancellationRequested)
+                        continue;
+
+                    try
+                    {
+                        var address = kvp.Key;
+                        var value = kvp.Value.Value;
+
+                        byte[] bytes = value switch
+                        {
+                            int i => BitConverter.GetBytes(i),
+                            float f => BitConverter.GetBytes(f),
+                            _ => BitConverter.GetBytes(Convert.ToInt32(value))
+                        };
+
+                        var handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+                        try
+                        {
+                            _ = vm_write(_task, (ulong)address.ToInt64(), handle.AddrOfPinnedObject(), bytes.Length);
+                        }
+                        finally
+                        {
+                            handle.Free();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error writing frozen value at {Address}", kvp.Key);
+                    }
+                }
+
+                await Task.Delay(100, ct);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Freeze loop cancelled");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in freeze loop");
+        }
+    }
+
+    private bool IsPageWritable(IntPtr address)
+    {
+        try
+        {
+            ulong addr = (ulong)address.ToInt64();
+            var info = new vm_region_submap_info_64();
+            uint depth = 0;
+            uint infoCount = (uint)Marshal.SizeOf<vm_region_submap_info_64>() / sizeof(int);
+            ulong size = 0;
+
+            var result = vm_region_recurse_64(
+                _task,
+                ref addr,
+                ref size,
+                ref depth,
+                ref info,
+                ref infoCount);
+
+            if (result != KERN_SUCCESS)
+                return false;
+
+            // Check if page has write permission
+            return (info.protection & VM_PROT_WRITE) != 0;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public async Task<Result<long>> GetModuleBaseAddressAsync(string? moduleName = null, CancellationToken ct = default)
@@ -357,6 +719,21 @@ public sealed class MacOSMemoryReader : IGameMemoryReader, IDisposable
         ulong size,
         out IntPtr data,
         out int dataCnt);
+
+    [DllImport("/usr/lib/libSystem.dylib")]
+    private static extern int vm_write(
+        IntPtr target_task,
+        ulong address,
+        IntPtr data,
+        int dataCnt);
+
+    [DllImport("/usr/lib/libSystem.dylib")]
+    private static extern int vm_protect(
+        IntPtr target_task,
+        ulong address,
+        ulong size,
+        bool set_maximum,
+        int new_protection);
 
     [DllImport("/usr/lib/libSystem.dylib")]
     private static extern int vm_deallocate(IntPtr target_task, IntPtr address, uint size);

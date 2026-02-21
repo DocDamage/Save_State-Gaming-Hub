@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
@@ -8,7 +9,7 @@ using SaveState.Application.Common;
 namespace SaveState.Infrastructure.GameLibrary.Services;
 
 /// <summary>
-/// Linux implementation of game memory reading using ptrace and /proc/{pid}/mem.
+/// Linux implementation of game memory reading using ptrace, /proc/{pid}/mem, and process_vm_writev.
 /// </summary>
 public sealed class LinuxMemoryReader : IGameMemoryReader, IDisposable
 {
@@ -18,6 +19,20 @@ public sealed class LinuxMemoryReader : IGameMemoryReader, IDisposable
     private FileStream? _memStream;
     private Process? _attachedProcess;
     private readonly object _lock = new();
+    private Timer? _monitoringTimer;
+    private GameStateType _currentState = GameStateType.Unknown;
+
+    // Track frozen values for freeze functionality
+    private readonly ConcurrentDictionary<IntPtr, FrozenValue> _frozenValues = new();
+    private CancellationTokenSource? _freezeCts;
+    private Task? _freezeTask;
+
+    private class FrozenValue
+    {
+        public object Value { get; set; } = null!;
+        public string ValueType { get; set; } = string.Empty;
+        public CancellationTokenSource Cts { get; } = new();
+    }
 
     public event EventHandler<GameStateChangedEventArgs>? StateChanged;
     public bool IsAttached => _isAttached;
@@ -81,6 +96,9 @@ public sealed class LinuxMemoryReader : IGameMemoryReader, IDisposable
                 _processId = processId;
                 _isAttached = true;
 
+                // Start state monitoring
+                _monitoringTimer = new Timer(_ => MonitorGameState(), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+
                 _logger.LogInformation(
                     "Successfully attached to process {ProcessId} ({ProcessName}) on Linux",
                     processId,
@@ -105,7 +123,19 @@ public sealed class LinuxMemoryReader : IGameMemoryReader, IDisposable
     {
         try
         {
-            _logger.LogInformation("Detaching from process {ProcessId}", _processId);
+            _logger.LogInformation("Detaching from process on Linux");
+
+            // Stop freeze loop
+            _freezeCts?.Cancel();
+            _freezeCts?.Dispose();
+            _freezeCts = null;
+            _frozenValues.Clear();
+            _freezeTask = null;
+
+            // Stop monitoring timer
+            _monitoringTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+            _monitoringTimer?.Dispose();
+            _monitoringTimer = null;
             
             lock (_lock)
             {
@@ -120,14 +150,70 @@ public sealed class LinuxMemoryReader : IGameMemoryReader, IDisposable
             _attachedProcess = null;
             _processId = -1;
             _isAttached = false;
+            _currentState = GameStateType.Unknown;
 
-            _logger.LogInformation("Successfully detached from process");
+            _logger.LogInformation("Successfully detached from process on Linux");
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error detaching from process");
-            return Result.Failure($"Detach failed: {ex.Message}");
+            _logger.LogError(ex, "Error detaching from process on Linux");
+            return Result.Failure($"Failed to detach: {ex.Message}");
+        }
+    }
+
+    private void MonitorGameState()
+    {
+        if (_attachedProcess == null) return;
+
+        try
+        {
+            // Check if process is still running
+            if (_attachedProcess.HasExited)
+            {
+                if (_currentState != GameStateType.Unknown)
+                {
+                    _currentState = GameStateType.Unknown;
+                    StateChanged?.Invoke(this, new GameStateChangedEventArgs { StateType = _currentState });
+                    _logger.LogInformation("Process exited on Linux");
+                }
+                return;
+            }
+
+            // Check if process is suspended (stopped)
+            var statusPath = $"/proc/{_processId}/stat";
+            if (File.Exists(statusPath))
+            {
+                try
+                {
+                    var stat = File.ReadAllText(statusPath);
+                    var stateCode = stat.Split(')')[1].Trim().Split(' ')[0];
+                    
+                    var newState = stateCode switch
+                    {
+                        "T" => GameStateType.Paused,
+                        "R" => GameStateType.InGame,
+                        "S" => GameStateType.InGame,
+                        "D" => GameStateType.Paused,
+                        _ => GameStateType.Unknown
+                    };
+
+                    if (newState != _currentState)
+                    {
+                        _currentState = newState;
+                        StateChanged?.Invoke(this, new GameStateChangedEventArgs { StateType = _currentState, Data = DateTime.Now });
+                        _logger.LogInformation("Process state changed to {State} on Linux", _currentState);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to read process state from /proc/{Pid}/stat", _processId);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error monitoring game state on Linux");
         }
     }
 
@@ -189,33 +275,254 @@ public sealed class LinuxMemoryReader : IGameMemoryReader, IDisposable
         }
     }
 
-    public Task<Result> WriteMemoryAsync(IntPtr address, int value, CancellationToken ct = default)
+    /// <summary>
+    /// Writes an integer value to the attached process's memory.
+    /// </summary>
+    /// <remarks>
+    /// <para><b>Linux Requirements:</b></para>
+    /// <para>This method requires the CAP_SYS_PTRACE capability. Run with:</para>
+    /// <code>sudo setcap cap_sys_ptrace=eip ./SaveStateReborn</code>
+    /// <para>Or run with sudo (not recommended):</para>
+    /// <code>sudo ./SaveStateReborn</code>
+    /// <para>Note: process_vm_writev is more efficient than ptrace but still slower than Windows WriteProcessMemory.</para>
+    /// </remarks>
+    public async Task<Result> WriteMemoryAsync(IntPtr address, int value, CancellationToken ct = default)
     {
-        _logger.LogWarning("Write not implemented on Linux (address: {Address:X}, value: {Value})", address.ToInt64(), value);
-        return Task.FromResult(Result.Failure("Write not implemented on Linux"));
+        if (!_isAttached || _processId == -1)
+        {
+            return Result.Failure("Not attached to any process");
+        }
+
+        try
+        {
+            _logger.LogDebug("Writing int value {Value} to address {Address} on Linux", value, address);
+
+            var bytes = BitConverter.GetBytes(value);
+            var result = WriteMemoryBytes(address, bytes);
+
+            if (result)
+            {
+                _logger.LogDebug("Successfully wrote int value to address {Address}", address);
+                return Result.Success();
+            }
+            else
+            {
+                var error = Marshal.GetLastWin32Error();
+                _logger.LogWarning("Failed to write memory: errno {Error}", error);
+                return Result.Failure($"Failed to write memory (errno: {error}). Ensure CAP_SYS_PTRACE capability.");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error writing memory on Linux");
+            return Result.Failure($"Write failed: {ex.Message}");
+        }
     }
 
-    public Task<Result> WriteMemoryAsync(IntPtr address, float value, CancellationToken ct = default)
+    /// <summary>
+    /// Writes a float value to the attached process's memory.
+    /// </summary>
+    /// <remarks>
+    /// <para><b>Linux Requirements:</b></para>
+    /// <para>This method requires the CAP_SYS_PTRACE capability. Run with:</para>
+    /// <code>sudo setcap cap_sys_ptrace=eip ./SaveStateReborn</code>
+    /// <para>Or run with sudo (not recommended):</para>
+    /// <code>sudo ./SaveStateReborn</code>
+    /// <para>Note: process_vm_writev is more efficient than ptrace but still slower than Windows WriteProcessMemory.</para>
+    /// </remarks>
+    public async Task<Result> WriteMemoryAsync(IntPtr address, float value, CancellationToken ct = default)
     {
-        _logger.LogWarning("Write not implemented on Linux (address: {Address:X}, value: {Value})", address.ToInt64(), value);
-        return Task.FromResult(Result.Failure("Write not implemented on Linux"));
+        if (!_isAttached || _processId == -1)
+        {
+            return Result.Failure("Not attached to any process");
+        }
+
+        try
+        {
+            _logger.LogDebug("Writing float value {Value} to address {Address} on Linux", value, address);
+
+            var bytes = BitConverter.GetBytes(value);
+            var result = WriteMemoryBytes(address, bytes);
+
+            if (result)
+            {
+                _logger.LogDebug("Successfully wrote float value to address {Address}", address);
+                return Result.Success();
+            }
+            else
+            {
+                var error = Marshal.GetLastWin32Error();
+                return Result.Failure($"Failed to write memory (errno: {error}). Ensure CAP_SYS_PTRACE capability.");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error writing memory on Linux");
+            return Result.Failure($"Write failed: {ex.Message}");
+        }
     }
 
+    private bool WriteMemoryBytes(IntPtr address, byte[] bytes)
+    {
+        // Pin the byte array to get a pointer
+        var handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+        try
+        {
+            var localIov = new IoVec
+            {
+                iov_base = handle.AddrOfPinnedObject(),
+                iov_len = (IntPtr)bytes.Length
+            };
+
+            var remoteIov = new IoVec
+            {
+                iov_base = address,
+                iov_len = (IntPtr)bytes.Length
+            };
+
+            var result = process_vm_writev(
+                _processId,
+                new[] { localIov },
+                1,
+                new[] { remoteIov },
+                1,
+                0);
+
+            return result == bytes.Length;
+        }
+        finally
+        {
+            handle.Free();
+        }
+    }
+
+    /// <summary>
+    /// Freezes a value at the specified memory address, continuously writing it to prevent changes.
+    /// </summary>
+    /// <param name="address">Memory address to freeze</param>
+    /// <param name="value">Value to freeze (int or float)</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Result indicating success or failure</returns>
     public Task<Result> FreezeValueAsync(IntPtr address, object value, CancellationToken ct = default)
     {
-        _logger.LogInformation(
-            "Freeze value requested for address {Address} with value {Value} (not implemented on Linux)", 
-            address, 
-            value);
-        return Task.FromResult(Result.Failure("Freeze not implemented on Linux"));
+        if (!_isAttached || _processId == -1)
+        {
+            return Task.FromResult(Result.Failure("Not attached to any process"));
+        }
+
+        try
+        {
+            // Unfreeze existing if present
+            UnfreezeValueAsync(address, ct).Wait(ct);
+
+            var frozenValue = new FrozenValue
+            {
+                Value = value,
+                ValueType = value.GetType().Name
+            };
+
+            if (!_frozenValues.TryAdd(address, frozenValue))
+            {
+                return Task.FromResult(Result.Failure("Failed to add freeze entry"));
+            }
+
+            // Start freeze loop if not already running
+            if (_freezeTask == null || _freezeTask.IsCompleted)
+            {
+                _freezeCts = new CancellationTokenSource();
+                _freezeTask = Task.Run(() => FreezeLoopAsync(_freezeCts.Token));
+            }
+
+            _logger.LogInformation("Started freezing value at address {Address}", address);
+            return Task.FromResult(Result.Success());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error freezing value on Linux");
+            return Task.FromResult(Result.Failure($"Freeze failed: {ex.Message}"));
+        }
     }
 
+    /// <summary>
+    /// Unfreezes a previously frozen value at the specified memory address.
+    /// </summary>
+    /// <param name="address">Memory address to unfreeze</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Result indicating success or failure</returns>
     public Task<Result> UnfreezeValueAsync(IntPtr address, CancellationToken ct = default)
     {
-        _logger.LogInformation(
-            "Unfreeze value requested for address {Address} (not implemented on Linux)", 
-            address);
-        return Task.FromResult(Result.Failure("Unfreeze not implemented on Linux"));
+        try
+        {
+            if (_frozenValues.TryRemove(address, out var frozenValue))
+            {
+                frozenValue.Cts.Cancel();
+                frozenValue.Cts.Dispose();
+                _logger.LogInformation("Stopped freezing value at address {Address}", address);
+            }
+
+            // Stop freeze loop if no more frozen values
+            if (_frozenValues.IsEmpty && _freezeCts != null)
+            {
+                _freezeCts.Cancel();
+                _freezeCts.Dispose();
+                _freezeCts = null;
+                _freezeTask = null;
+            }
+
+            return Task.FromResult(Result.Success());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error unfreezing value on Linux");
+            return Task.FromResult(Result.Failure($"Unfreeze failed: {ex.Message}"));
+        }
+    }
+
+    private async Task FreezeLoopAsync(CancellationToken ct)
+    {
+        _logger.LogInformation("Started Linux freeze loop");
+
+        try
+        {
+            while (!ct.IsCancellationRequested && !_frozenValues.IsEmpty)
+            {
+                foreach (var kvp in _frozenValues.ToArray())
+                {
+                    if (kvp.Value.Cts.IsCancellationRequested)
+                        continue;
+
+                    try
+                    {
+                        var address = kvp.Key;
+                        var value = kvp.Value.Value;
+
+                        // Write the frozen value
+                        byte[] bytes = value switch
+                        {
+                            int i => BitConverter.GetBytes(i),
+                            float f => BitConverter.GetBytes(f),
+                            _ => BitConverter.GetBytes(Convert.ToInt32(value))
+                        };
+
+                        WriteMemoryBytes(address, bytes);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error writing frozen value at {Address}", kvp.Key);
+                    }
+                }
+
+                await Task.Delay(100, ct); // 100ms interval (slower than Windows due to syscall overhead)
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Freeze loop cancelled");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in freeze loop");
+        }
     }
 
     public async Task<Result<long>> GetModuleBaseAddressAsync(string? moduleName = null, CancellationToken ct = default)
@@ -284,6 +591,101 @@ public sealed class LinuxMemoryReader : IGameMemoryReader, IDisposable
                 return Result.Failure<long>($"Error getting module base address: {ex.Message}");
             }
         }, ct);
+    }
+
+    /// <summary>
+    /// Checks if the current process has the required permissions to write to process memory.
+    /// </summary>
+    /// <returns>
+    /// Success if permissions are available, otherwise a failure with instructions on how to enable.
+    /// </returns>
+    public Result CheckWritePermissions()
+    {
+        _logger.LogInformation("Checking Linux memory write permissions");
+        
+        // Try to read from ourselves to test if process_vm_readv works
+        var testValue = 42;
+        var testBytes = BitConverter.GetBytes(testValue);
+        
+        var localIov = new IoVec
+        {
+            iov_base = Marshal.AllocHGlobal(4),
+            iov_len = (IntPtr)4
+        };
+        
+        var remoteIov = new IoVec
+        {
+            iov_base = Marshal.AllocHGlobal(4),
+            iov_len = (IntPtr)4
+        };
+        
+        Marshal.Copy(testBytes, 0, remoteIov.iov_base, 4);
+        
+        var result = process_vm_readv(
+            Environment.ProcessId,
+            new[] { localIov },
+            1,
+            new[] { remoteIov },
+            1,
+            0);
+        
+        Marshal.FreeHGlobal(localIov.iov_base);
+        Marshal.FreeHGlobal(remoteIov.iov_base);
+        
+        if (result == -1)
+        {
+            var errno = Marshal.GetLastWin32Error();
+            if (errno == 1) // EPERM - Operation not permitted
+            {
+                _logger.LogWarning("CAP_SYS_PTRACE capability not available. Permission check failed.");
+                return Result.Failure(
+                    "CAP_SYS_PTRACE capability required. Run: sudo setcap cap_sys_ptrace=eip ./SaveStateReborn",
+                    ErrorType.Forbidden);
+            }
+            else if (errno == 3) // ESRCH - No such process (shouldn't happen for self)
+            {
+                _logger.LogWarning("process_vm_readv returned ESRCH during permission check");
+                return Result.Failure(
+                    "Unexpected error during permission check. Please try running with elevated permissions.",
+                    ErrorType.Internal);
+            }
+            else
+            {
+                _logger.LogWarning("process_vm_readv failed with errno {Errno} during permission check", errno);
+                return Result.Failure(
+                    $"Permission check failed with error code {errno}. Ensure the application has proper permissions.",
+                    ErrorType.Internal);
+            }
+        }
+        
+        _logger.LogInformation("Linux memory write permissions verified successfully");
+        return Result.Success();
+    }
+
+    // P/Invoke for process_vm_writev and process_vm_readv
+    [DllImport("libc", SetLastError = true)]
+    private static extern int process_vm_writev(
+        int pid,
+        [In] IoVec[] local_iov,
+        ulong liovcnt,
+        [In] IoVec[] remote_iov,
+        ulong riovcnt,
+        ulong flags);
+
+    [DllImport("libc", SetLastError = true)]
+    private static extern int process_vm_readv(
+        int pid,
+        [Out] IoVec[] local_iov,
+        ulong liovcnt,
+        [In] IoVec[] remote_iov,
+        ulong riovcnt,
+        ulong flags);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct IoVec
+    {
+        public IntPtr iov_base;
+        public IntPtr iov_len;
     }
 
     // P/Invoke for ptrace

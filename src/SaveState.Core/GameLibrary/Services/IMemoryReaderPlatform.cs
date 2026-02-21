@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.GameLibrary.Enums;
 
 namespace SaveState.Core.GameLibrary.Services;
 
@@ -24,49 +25,4 @@ public interface IMemoryReaderPlatform
     Result<IGameMemoryReader> CreateReader();
 }
 
-/// <summary>
-/// Supported platform types for memory reading.
-/// </summary>
-public enum PlatformType
-{
-    /// <summary>Windows platform.</summary>
-    Windows,
 
-    /// <summary>Linux platform (including Steam Deck).</summary>
-    Linux,
-
-    /// <summary>macOS platform.</summary>
-    MacOS,
-
-    /// <summary>Unknown or unsupported platform.</summary>
-    Unknown
-}
-
-/// <summary>
-/// Extension methods for PlatformType.
-/// </summary>
-public static class PlatformTypeExtensions
-{
-    /// <summary>
-    /// Converts PlatformType to a display name.
-    /// </summary>
-    public static string ToDisplayName(this PlatformType platform)
-    {
-        return platform switch
-        {
-            PlatformType.Windows => "Windows",
-            PlatformType.Linux => "Linux",
-            PlatformType.MacOS => "macOS",
-            PlatformType.Unknown => "Unknown",
-            _ => "Unknown"
-        };
-    }
-
-    /// <summary>
-    /// Checks if the platform supports memory reading operations.
-    /// </summary>
-    public static bool SupportsMemoryReading(this PlatformType platform)
-    {
-        return platform is PlatformType.Windows or PlatformType.Linux;
-    }
-}
