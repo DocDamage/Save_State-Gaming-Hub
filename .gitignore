@@ -69,6 +69,9 @@ src/SaveState.Presentation/log2.txt
 # Archived build/test logs
 archive/2026-02-21-docs-cleanup/**/build_logs/
 archive/2026-02-21-docs-cleanup/**/logs/
+docs/archive/logs/
+docs/reports/logs/
+full_build_log.txt
 
 # Embedded repositories in archived external knowledge dumps
 archive/2026-02-21-docs-cleanup/outdated-root-docs/knowledge/technical/30-seconds-of-code/
