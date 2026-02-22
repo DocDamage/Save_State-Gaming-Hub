@@ -122,13 +122,21 @@ public partial class ActivityFeedWidget : WidgetBase
 public record ActivityItem(string Message, DateTime Timestamp, ActivityType Type)
 {
     /// <summary>
-    /// Gets the formatted time string.
+    /// Gets the formatted time string relative to now.
     /// </summary>
-    public string TimeAgo => GetTimeAgo(Timestamp);
+    public string GetTimeAgo(ITimeProvider timeProvider) => 
+        FormatTimeAgo(Timestamp, timeProvider.UtcNow);
 
-    private static string GetTimeAgo(DateTime timestamp)
+    /// <summary>
+    /// Gets the formatted time string relative to a specific time (for binding).
+    /// Note: UI-only computed property. Uses DateTime.UtcNow directly for binding convenience.
+    /// For testable code paths, use GetTimeAgo(ITimeProvider) instead.
+    /// </summary>
+    public string TimeAgo => FormatTimeAgo(Timestamp, DateTime.UtcNow);  // UI-only
+
+    private static string FormatTimeAgo(DateTime timestamp, DateTime currentTime)
     {
-        var timeSpan = DateTime.UtcNow - timestamp.ToUniversalTime();
+        var timeSpan = currentTime - timestamp.ToUniversalTime();
 
         if (timeSpan.TotalMinutes < 1)
             return "Just now";

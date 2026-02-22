@@ -1,5 +1,6 @@
 using SaveState.Core.Common.Base;
 using SaveState.Core.Common.Interfaces;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.GameLibrary.Entities;
 
@@ -18,6 +19,34 @@ public class Achievement : EntityBase, IAggregateRoot
 
     protected Achievement() { } // EF Core
 
+    public Achievement(string name, string description, string iconPath, int points, AchievementType type, ITimeProvider timeProvider, int targetValue = 1, Guid? gameId = null)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        Name = Guard.Against.NullOrWhiteSpace(name, nameof(name));
+        Description = Guard.Against.NullOrWhiteSpace(description, nameof(description));
+        IconPath = Guard.Against.NullOrWhiteSpace(iconPath, nameof(iconPath));
+        Points = Guard.Against.Negative(points, nameof(points));
+        Type = type;
+        TargetValue = Guard.Against.NegativeOrZero(targetValue, nameof(targetValue));
+        GameId = gameId;
+        IsActive = true;
+        CreatedAt = timeProvider.UtcNow;
+    }
+
+    public Achievement(string name, string description, string iconPath, int points, AchievementType type, DateTime createdAt, int targetValue = 1, Guid? gameId = null)
+    {
+        Name = Guard.Against.NullOrWhiteSpace(name, nameof(name));
+        Description = Guard.Against.NullOrWhiteSpace(description, nameof(description));
+        IconPath = Guard.Against.NullOrWhiteSpace(iconPath, nameof(iconPath));
+        Points = Guard.Against.Negative(points, nameof(points));
+        Type = type;
+        TargetValue = Guard.Against.NegativeOrZero(targetValue, nameof(targetValue));
+        GameId = gameId;
+        IsActive = true;
+        CreatedAt = createdAt;
+    }
+
+    [Obsolete("Use constructor with ITimeProvider or DateTime parameter")]
     public Achievement(string name, string description, string iconPath, int points, AchievementType type, int targetValue = 1, Guid? gameId = null)
     {
         Name = Guard.Against.NullOrWhiteSpace(name, nameof(name));
@@ -28,7 +57,7 @@ public class Achievement : EntityBase, IAggregateRoot
         TargetValue = Guard.Against.NegativeOrZero(targetValue, nameof(targetValue));
         GameId = gameId;
         IsActive = true;
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 
     public void UpdateDetails(string description, string iconPath, int points)

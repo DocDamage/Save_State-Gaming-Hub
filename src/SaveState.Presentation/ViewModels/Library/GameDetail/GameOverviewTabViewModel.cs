@@ -150,7 +150,7 @@ public partial class GameOverviewTabViewModel : ObservableObject
             // Format last played
             if (game.LastPlayedAt.HasValue)
             {
-                var timeSince = DateTime.UtcNow - game.LastPlayedAt.Value;
+                var timeSince = _timeProvider.UtcNow - game.LastPlayedAt.Value;
                 if (timeSince.TotalDays < 1)
                     LastPlayedText = "Today";
                 else if (timeSince.TotalDays < 2)

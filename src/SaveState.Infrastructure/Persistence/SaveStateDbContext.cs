@@ -611,7 +611,7 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
         {
             entry.State = EntityState.Modified;
             entry.Entity.IsDeleted = true;
-            entry.Entity.DeletedAt = _timeProvider?.UtcNow ?? DateTime.UtcNow;
+            entry.Entity.DeletedAt = _timeProvider?.UtcNow ?? SystemTimeProvider.Instance.UtcNow;
         }
     }
 

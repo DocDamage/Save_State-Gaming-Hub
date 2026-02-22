@@ -44,6 +44,11 @@ dotnet_diagnostic.CA1707.severity = none
 # CA1707: Test method names with underscores are standard practice
 dotnet_diagnostic.CA1707.severity = none
 
+# Heuristic files - cyclomatic complexity is intentional for pattern matching
+[src/SaveState.Infrastructure/GameLibrary/Heuristics/**/*.cs]
+# CA1502: Cyclomatic complexity - heuristics need complex pattern matching to detect game values
+dotnet_diagnostic.CA1502.severity = warning
+
 # Performance warnings that are acceptable for non-hot-path code
 [*.cs]
 # CA1848: LoggerMessage delegates - being addressed progressively (750/2178 done)

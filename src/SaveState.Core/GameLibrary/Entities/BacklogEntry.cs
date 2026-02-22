@@ -38,7 +38,7 @@ public class BacklogEntry : EntityBase
             GameId = gameId,
             Status = BacklogStatus.NotStarted,
             Priority = Math.Clamp(priority, 1, 100),
-            AddedAt = DateTime.UtcNow
+            AddedAt = SystemTimeProvider.Instance.UtcNow
         };
     }
 

@@ -1,5 +1,6 @@
 using MediatR;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary;
 
@@ -11,10 +12,12 @@ namespace SaveState.Application.GameLibrary.Commands.Handlers;
 public class UpdateGameNoteCommandHandler : IRequestHandler<UpdateGameNoteCommand, Result>
 {
     private readonly IGameNoteRepository _noteRepository;
+    private readonly ITimeProvider _timeProvider;
 
-    public UpdateGameNoteCommandHandler(IGameNoteRepository noteRepository)
+    public UpdateGameNoteCommandHandler(IGameNoteRepository noteRepository, ITimeProvider timeProvider)
     {
         _noteRepository = noteRepository;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result> Handle(UpdateGameNoteCommand request, CancellationToken cancellationToken)
@@ -35,6 +38,7 @@ public class UpdateGameNoteCommandHandler : IRequestHandler<UpdateGameNoteComman
         note.Update(
             request.Title ?? note.Title,
             request.Content ?? note.Content,
+            _timeProvider,
             request.Category ?? note.Category,
             request.Tags ?? note.Tags);
 
@@ -42,11 +46,11 @@ public class UpdateGameNoteCommandHandler : IRequestHandler<UpdateGameNoteComman
         {
             if (request.IsPinned.Value && !note.IsPinned)
             {
-                note.TogglePin();
+                note.TogglePin(_timeProvider);
             }
             else if (!request.IsPinned.Value && note.IsPinned)
             {
-                note.TogglePin();
+                note.TogglePin(_timeProvider);
             }
         }
 

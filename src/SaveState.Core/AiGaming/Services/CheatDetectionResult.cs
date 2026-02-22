@@ -1,3 +1,5 @@
+using SaveState.Core.Common.Services;
+
 namespace SaveState.Core.AiGaming.Services;
 
 public class CheatDetectionResult
@@ -9,23 +11,23 @@ public class CheatDetectionResult
     public string? Reason { get; }
     public DateTime DetectedAt { get; }
 
-    private CheatDetectionResult(bool isCheating, double confidence, string? detectionMethod, IReadOnlyList<long> flaggedAddresses, string? reason)
+    private CheatDetectionResult(bool isCheating, double confidence, string? detectionMethod, IReadOnlyList<long> flaggedAddresses, string? reason, DateTime detectedAt)
     {
         IsCheating = isCheating;
         Confidence = confidence;
         DetectionMethod = detectionMethod;
         FlaggedAddresses = flaggedAddresses;
         Reason = reason;
-        DetectedAt = DateTime.UtcNow;
+        DetectedAt = detectedAt;
     }
 
-    public static CheatDetectionResult NoCheating()
+    public static CheatDetectionResult NoCheating(ITimeProvider timeProvider)
     {
-        return new CheatDetectionResult(false, 0.0, null, Array.Empty<long>(), null);
+        return new CheatDetectionResult(false, 0.0, null, Array.Empty<long>(), null, timeProvider.UtcNow);
     }
 
-    public static CheatDetectionResult CheatingDetected(double confidence, string detectionMethod, IReadOnlyList<long> flaggedAddresses, string reason)
+    public static CheatDetectionResult CheatingDetected(double confidence, string detectionMethod, IReadOnlyList<long> flaggedAddresses, string reason, ITimeProvider timeProvider)
     {
-        return new CheatDetectionResult(true, confidence, detectionMethod, flaggedAddresses, reason);
+        return new CheatDetectionResult(true, confidence, detectionMethod, flaggedAddresses, reason, timeProvider.UtcNow);
     }
 }

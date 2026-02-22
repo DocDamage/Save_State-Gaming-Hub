@@ -88,7 +88,7 @@ public class OAuthTokenResult
             AccessToken = accessToken,
             RefreshToken = refreshToken,
             ExpiresAt = expiresAt,
-            ObtainedAt = obtainedAt ?? DateTime.UtcNow
+            ObtainedAt = obtainedAt ?? SystemTimeProvider.Instance.UtcNow
         };
     }
 
@@ -166,5 +166,5 @@ public class OAuthTokens
     /// <summary>
     /// Gets whether the tokens have expired (including 5-minute grace period for early renewal).
     /// </summary>
-    public bool IsExpired => DateTime.UtcNow >= ExpiresAt.AddMinutes(-5);
+    public bool IsExpired => IsExpiredAt(SystemTimeProvider.Instance.UtcNow);
 }

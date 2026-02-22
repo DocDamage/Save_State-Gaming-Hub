@@ -315,7 +315,7 @@ public class MugenStreamingService : MugenStreamingServiceIMugenStreamingService
     private async Task<Result<MugenTournament>> ValidateTournamentAsync(string tournamentId, CancellationToken ct)
     {
         // Simplified - would check tournament repository
-        return Result.Success<MugenTournament>(new MugenTournament(Guid.Parse(tournamentId), "Sample Tournament"));
+        return Result.Success<MugenTournament>(new MugenTournament(Guid.Parse(tournamentId), "Sample Tournament", _timeProvider));
     }
 
     private string GenerateStreamUrl(string streamId, MugenStreamingServiceStreamingPlatform platform)

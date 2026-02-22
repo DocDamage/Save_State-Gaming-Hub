@@ -657,7 +657,7 @@ public class TwitchStreamingPlugin : IPlugin
 
         try
         {
-            var now = _timeProvider?.UtcNow ?? DateTime.UtcNow;
+            var now = _timeProvider?.UtcNow ?? SystemTimeProvider.Instance.UtcNow; // Uses injected ITimeProvider
             var response = await _twitchApi.Helix.Clips.GetClipsAsync(broadcasterId: broadcasterId, startedAt: now.AddDays(-7));
             _logger?.LogInformation($"Found {response.Clips.Length} clips from the last 7 days:");
 

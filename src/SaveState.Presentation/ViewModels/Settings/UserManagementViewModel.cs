@@ -1,9 +1,37 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SaveState.Core.Common;
 using SaveState.Presentation.Models.Security;
+using SaveState.Presentation.Services;
 using System.Collections.ObjectModel;
 
 namespace SaveState.Presentation.ViewModels.Settings;
+
+/// <summary>
+/// Service for user management operations.
+/// </summary>
+public interface IUserManagementService
+{
+    /// <summary>
+    /// Resets a user's password.
+    /// </summary>
+    Task<Result<string>> ResetPasswordAsync(Guid userId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Creates a new user account.
+    /// </summary>
+    Task<Result<UserAccount>> CreateUserAsync(string username, string email, string role, CancellationToken ct = default);
+
+    /// <summary>
+    /// Updates a user's active status.
+    /// </summary>
+    Task<Result> UpdateUserStatusAsync(Guid userId, bool isActive, CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets all user accounts.
+    /// </summary>
+    Task<Result<IReadOnlyList<UserAccount>>> GetUsersAsync(CancellationToken ct = default);
+}
 
 /// <summary>
 /// ViewModel for user management interface.
@@ -11,6 +39,10 @@ namespace SaveState.Presentation.ViewModels.Settings;
 /// </summary>
 public partial class UserManagementViewModel : ObservableObject
 {
+    private readonly IUserManagementService? _userManagementService;
+    private readonly IDialogService? _dialogService;
+    private readonly INotificationService? _notificationService;
+
     /// <summary>Collection of user accounts.</summary>
     [ObservableProperty]
     private ObservableCollection<UserAccount> _users = new();
@@ -39,10 +71,25 @@ public partial class UserManagementViewModel : ObservableObject
     public List<string> AvailableRoles { get; } = new() { "Admin", "User", "Guest" };
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="UserManagementViewModel"/> class.
+    /// Design-time constructor for XAML preview.
     /// </summary>
+    [Obsolete("Design-time constructor only. Use the parameterized constructor in production code.")]
     public UserManagementViewModel()
     {
+        InitializeSampleData();
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UserManagementViewModel"/> class.
+    /// </summary>
+    public UserManagementViewModel(
+        IUserManagementService? userManagementService = null,
+        IDialogService? dialogService = null,
+        INotificationService? notificationService = null)
+    {
+        _userManagementService = userManagementService;
+        _dialogService = dialogService;
+        _notificationService = notificationService;
         InitializeSampleData();
     }
 
@@ -50,8 +97,8 @@ public partial class UserManagementViewModel : ObservableObject
     {
         Users = new ObservableCollection<UserAccount>
         {
-            new() { Id = Guid.NewGuid(), Username = "admin", Email = "admin@savestate.local", Role = "Admin", CreatedAt = DateTime.Now.AddYears(-1), LastLogin = DateTime.Now.AddHours(-1), IsActive = true },
-            new() { Id = Guid.NewGuid(), Username = "gamer1", Email = "gamer@example.com", Role = "User", CreatedAt = DateTime.Now.AddMonths(-6), LastLogin = DateTime.Now.AddDays(-2), IsActive = true }
+            new() { Id = Guid.NewGuid(), Username = "admin", Email = "admin@savestate.local", Role = "Admin", CreatedAt = DateTimeOffset.UtcNow.AddYears(-1).DateTime, LastLogin = DateTimeOffset.UtcNow.AddHours(-1).DateTime, IsActive = true },
+            new() { Id = Guid.NewGuid(), Username = "gamer1", Email = "gamer@example.com", Role = "User", CreatedAt = DateTimeOffset.UtcNow.AddMonths(-6).DateTime, LastLogin = DateTimeOffset.UtcNow.AddDays(-2).DateTime, IsActive = true }
         };
     }
 
@@ -89,7 +136,7 @@ public partial class UserManagementViewModel : ObservableObject
             Username = NewUsername,
             Email = NewUserEmail,
             Role = NewUserRole,
-            CreatedAt = DateTime.Now,
+            CreatedAt = DateTimeOffset.UtcNow.DateTime,
             IsActive = true
         });
 
@@ -105,8 +152,43 @@ public partial class UserManagementViewModel : ObservableObject
     private async Task ResetPasswordAsync(UserAccount? user)
     {
         if (user is null) return;
-        // TODO: Reset password through service
-        await Task.CompletedTask;
+
+        try
+        {
+            if (_userManagementService is not null)
+            {
+                var confirmed = await (_dialogService?.ShowConfirmationAsync(
+                    "Reset Password",
+                    $"Are you sure you want to reset the password for {user.Username}?",
+                    "Reset",
+                    "Cancel") ?? Task.FromResult(false));
+
+                if (!confirmed) return;
+
+                var result = await _userManagementService.ResetPasswordAsync(user.Id);
+                if (result.IsSuccess)
+                {
+                    await (_dialogService?.ShowInformationAsync(
+                        "Password Reset",
+                        $"New temporary password for {user.Username}: {result.Value}") ?? Task.CompletedTask);
+                    _notificationService?.ShowSuccess($"Password reset for {user.Username}", "Password Reset");
+                }
+                else
+                {
+                    _notificationService?.ShowError($"Failed to reset password: {result.Error}");
+                }
+            }
+            else
+            {
+                _notificationService?.ShowNotificationAsync(
+                    "Password reset not available - service not configured",
+                    "Password Reset");
+            }
+        }
+        catch (Exception ex)
+        {
+            _notificationService?.ShowError($"Error resetting password: {ex.Message}");
+        }
     }
 
     /// <summary>

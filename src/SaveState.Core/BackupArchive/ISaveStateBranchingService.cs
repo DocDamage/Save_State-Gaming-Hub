@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.BackupArchive;
 
@@ -323,11 +324,16 @@ public sealed class BranchCreatedEventArgs : EventArgs
     public DateTime CreatedAt { get; }
 
     public BranchCreatedEventArgs(string gameId, string branchName, string? parentBranch)
+        : this(gameId, branchName, parentBranch, SystemTimeProvider.Instance.UtcNow)
+    {
+    }
+
+    public BranchCreatedEventArgs(string gameId, string branchName, string? parentBranch, DateTime createdAt)
     {
         GameId = gameId;
         BranchName = branchName;
         ParentBranch = parentBranch;
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = createdAt;
     }
 }
 
@@ -343,12 +349,17 @@ public sealed class CommitCreatedEventArgs : EventArgs
     public DateTime CreatedAt { get; }
 
     public CommitCreatedEventArgs(string gameId, string branchName, string commitHash, string message)
+        : this(gameId, branchName, commitHash, message, SystemTimeProvider.Instance.UtcNow)
+    {
+    }
+
+    public CommitCreatedEventArgs(string gameId, string branchName, string commitHash, string message, DateTime createdAt)
     {
         GameId = gameId;
         BranchName = branchName;
         CommitHash = commitHash;
         Message = message;
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = createdAt;
     }
 }
 
@@ -365,12 +376,17 @@ public sealed class BranchMergedEventArgs : EventArgs
     public DateTime MergedAt { get; }
 
     public BranchMergedEventArgs(string gameId, string targetBranch, string sourceBranch, string? mergeCommitHash, bool hasConflicts)
+        : this(gameId, targetBranch, sourceBranch, mergeCommitHash, hasConflicts, SystemTimeProvider.Instance.UtcNow)
+    {
+    }
+
+    public BranchMergedEventArgs(string gameId, string targetBranch, string sourceBranch, string? mergeCommitHash, bool hasConflicts, DateTime mergedAt)
     {
         GameId = gameId;
         TargetBranch = targetBranch;
         SourceBranch = sourceBranch;
         MergeCommitHash = mergeCommitHash;
         HasConflicts = hasConflicts;
-        MergedAt = DateTime.UtcNow;
+        MergedAt = mergedAt;
     }
 }

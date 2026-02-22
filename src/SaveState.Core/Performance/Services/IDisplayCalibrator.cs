@@ -79,7 +79,7 @@ public class DisplayProfile : EntityBase
     public Guid? GameId { get; private set; }
     public string Name { get; private set; } = string.Empty;
     public bool IsDefault { get; private set; }
-    public DisplaySettings Settings { get; set; } = null!; // Set via Create factory method
+    public required DisplaySettings Settings { get; set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? LastAppliedAt { get; private set; }
 

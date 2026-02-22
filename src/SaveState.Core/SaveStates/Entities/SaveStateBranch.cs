@@ -37,7 +37,7 @@ public class SaveStateBranch : EntityBase
             BranchName = Guard.Against.NullOrWhiteSpace(name, nameof(name)),
             Description = description ?? string.Empty,
             Type = type,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = SystemTimeProvider.Instance.UtcNow
         };
     }
 

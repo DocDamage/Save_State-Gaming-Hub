@@ -31,8 +31,7 @@ public sealed class LinuxMemoryReader : IGameMemoryReader, IDisposable
 
     private class FrozenValue
     {
-        // Value is set immediately after construction in FreezeValueAsync
-        public object Value { get; set; } = null!;
+        public required object Value { get; set; }
         public string ValueType { get; set; } = string.Empty;
         public CancellationTokenSource Cts { get; } = new();
     }

@@ -8,6 +8,7 @@ using SaveState.Core.RomManagement.Entities;
 using SaveState.Core.RomManagement.Enums;
 using SaveState.Core.RomManagement.RomValidation;
 using SaveState.Core.RomManagement.RomValidation.Services;
+using SaveState.Core.Common.Services;
 using SaveState.Core.RomManagement.ValueObjects;
 using Xunit;
 
@@ -38,11 +39,13 @@ public class RomValidationIntegrationTests : IClassFixture<IntegrationTestFixtur
         try
         {
             // Arrange - Persist a ROM so the handler can resolve it.
+            var timeProvider = _serviceProvider.GetRequiredService<ITimeProvider>();
             var romFile = new RomFile(
                 title: "Test ROM",
                 platformId: Guid.NewGuid(),
                 filePath: new FilePath(tempRomPath),
-                fileSize: new FileInfo(tempRomPath).Length);
+                fileSize: new FileInfo(tempRomPath).Length,
+                timeProvider: timeProvider);
             await romRepository.AddAsync(romFile);
 
             // Act
@@ -88,12 +91,14 @@ public class RomValidationIntegrationTests : IClassFixture<IntegrationTestFixtur
         {
             // Arrange
             var platformId = Guid.NewGuid();
+            var timeProvider2 = scope.ServiceProvider.GetRequiredService<ITimeProvider>();
 
             var romFile = new RomFile(
                 title: "Batch ROM",
                 platformId: platformId,
                 filePath: new FilePath(tempRomPath),
-                fileSize: new FileInfo(tempRomPath).Length);
+                fileSize: new FileInfo(tempRomPath).Length,
+                timeProvider: timeProvider2);
             await romRepository.AddAsync(romFile);
 
             var options = new RomValidationOptions

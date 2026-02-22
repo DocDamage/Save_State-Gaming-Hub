@@ -1,7 +1,7 @@
 using SaveState.Core.Assistant.Services;
 using SaveState.Core.Common;
 
-namespace SaveState.Core.AI.Assistant;
+namespace SaveState.Core.Ai.Assistant;
 
 /// <summary>
 /// Monitors game sessions in real-time and emits events for analysis.

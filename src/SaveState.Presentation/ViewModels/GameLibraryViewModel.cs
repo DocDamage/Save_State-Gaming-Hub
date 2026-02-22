@@ -35,12 +35,11 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
     private readonly ILogger<GameLibraryViewModel> _logger;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ITimeProvider _timeProvider;
-
     // Navigation state
     private GameId? _selectedGameId;
 
     // New Library Components
-    public LibraryViewModel LibraryViewModel { get; }
+    public required LibraryViewModel LibraryViewModel { get; init; }
     public LibrarySidebarViewModel SidebarViewModel => LibraryViewModel.SidebarViewModel;
     public LibraryToolbarViewModel ToolbarViewModel => LibraryViewModel.ToolbarViewModel;
 
@@ -77,7 +76,6 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
         _logger = logger;
         _loggerFactory = loggerFactory;
         _timeProvider = timeProvider;
-        LibraryViewModel = libraryViewModel;
 
         // Subscribe to natural language search requests
         WeakReferenceMessenger.Default.Register<SaveState.Presentation.Messages.NaturalLanguageSearchRequestedMessage>(this, (r, m) =>
@@ -90,27 +88,13 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
     }
 
     /// <summary>
-    /// Internal constructor for testing purposes only.
+    /// Design-time constructor for XAML preview.
     /// </summary>
-    internal GameLibraryViewModel()
+    [Obsolete("Design-time constructor only. Use the parameterized constructor in production code.")]
+    public GameLibraryViewModel()
     {
-        // Dependencies initialized via DI in production constructor; null-forgiving operator
-        // is used here for testing purposes only - this constructor should not be used in production code.
-        _mediator = null!;
-        _navigationService = null!;
-        _overlayService = null!;
-        _notificationService = null!;
-        _aiOrchestrator = null!;
-        _userContextService = null!;
-        _modService = null!;
-        _dialogService = null!;
-        _backlogService = null!;
-        _clipboardService = null!;
-        _gameContextService = null!;
-        _searchService = null!;
-        _logger = null!;
-        _loggerFactory = null!;
-        LibraryViewModel = null!;
+        // Dependencies are initialized by the framework at runtime
+        // LibraryViewModel is set by the source-generated property
     }
 
     public async Task ExecuteNaturalLanguageSearchAsync(string query)

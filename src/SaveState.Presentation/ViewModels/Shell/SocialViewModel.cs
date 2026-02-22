@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Social.Entities;
 using SaveState.Core.Social.Services;
 using System;
@@ -18,6 +19,7 @@ public partial class SocialViewModel : ObservableObject
 {
     private readonly IFriendActivityService _friendActivityService;
     private readonly ILogger<SocialViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private bool _isLoading;
@@ -61,10 +63,12 @@ public partial class SocialViewModel : ObservableObject
 
     public SocialViewModel(
         IFriendActivityService friendActivityService,
-        ILogger<SocialViewModel> logger)
+        ILogger<SocialViewModel> logger,
+        ITimeProvider timeProvider)
     {
         _friendActivityService = friendActivityService;
         _logger = logger;
+        _timeProvider = timeProvider;
 
         // Load data when ViewModel is created (fire-and-forget)
         _ = LoadSocialDataAsync();
@@ -127,7 +131,7 @@ public partial class SocialViewModel : ObservableObject
             ActivityFeed.Clear();
             foreach (var activity in result.Value)
             {
-                ActivityFeed.Add(new FriendActivityViewModel(activity));
+                ActivityFeed.Add(new FriendActivityViewModel(activity, _timeProvider));
             }
 
             TodayActivities = ActivityFeed.Count(a => a.IsToday);
@@ -149,7 +153,7 @@ public partial class SocialViewModel : ObservableObject
 
             foreach (var friend in result.Value)
             {
-                var friendVm = new FriendViewModel(friend);
+                var friendVm = new FriendViewModel(friend, _timeProvider);
                 AllFriends.Add(friendVm);
 
                 if (friend.IsOnline)
@@ -285,7 +289,7 @@ public partial class SocialViewModel : ObservableObject
 // View Models for nested data
 public class FriendActivityViewModel
 {
-    public FriendActivityViewModel(FriendActivity activity)
+    public FriendActivityViewModel(FriendActivity activity, ITimeProvider timeProvider)
     {
         FriendName = activity.Friend.Name;
         AvatarUrl = activity.Friend.AvatarUrl;
@@ -309,14 +313,14 @@ public class FriendActivityViewModel
         };
 
         // Format timestamp
-        var elapsed = DateTime.UtcNow - Timestamp;
+        var elapsed = timeProvider.UtcNow - Timestamp;
         TimeAgo = elapsed.TotalMinutes < 1 ? "just now" :
                   elapsed.TotalMinutes < 60 ? $"{(int)elapsed.TotalMinutes}m ago" :
                   elapsed.TotalHours < 24 ? $"{(int)elapsed.TotalHours}h ago" :
                   elapsed.TotalDays < 7 ? $"{(int)elapsed.TotalDays}d ago" :
                   Timestamp.ToString("MMM dd");
 
-        IsToday = Timestamp.Date == DateTime.UtcNow.Date;
+        IsToday = Timestamp.Date == timeProvider.UtcNow.Date;
 
         // Activity icon
         ActivityIcon = Type switch
@@ -355,7 +359,7 @@ public class FriendActivityViewModel
 
 public class FriendViewModel
 {
-    public FriendViewModel(Friend friend)
+    public FriendViewModel(Friend friend, ITimeProvider timeProvider)
     {
         Id = friend.Id;
         Name = friend.Name;
@@ -374,7 +378,7 @@ public class FriendViewModel
         }
         else if (LastSeenAt.HasValue)
         {
-            var elapsed = DateTime.UtcNow - LastSeenAt.Value;
+            var elapsed = timeProvider.UtcNow - LastSeenAt.Value;
             if (elapsed.TotalMinutes < 60)
                 StatusText = $"Last seen {(int)elapsed.TotalMinutes}m ago";
             else if (elapsed.TotalHours < 24)

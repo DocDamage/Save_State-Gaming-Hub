@@ -80,7 +80,7 @@ public partial class DialogService : IDialogService
         {
             var dialog = new GoalCreationDialog
             {
-                DataContext = new ViewModels.Dialogs.GoalCreationDialogViewModel()
+                DataContext = new ViewModels.Dialogs.GoalCreationDialogViewModel(_timeProvider)
             };
 
             var mainWindow = GetMainWindow();

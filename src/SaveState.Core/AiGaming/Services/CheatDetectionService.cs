@@ -1,10 +1,17 @@
 using SaveState.Core.AiGaming.Entities;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.AiGaming.Services;
 
 public class CheatDetectionService : ICheatDetectionService
 {
     private Dictionary<long, byte[]>? _baselinePatterns;
+    private readonly ITimeProvider _timeProvider;
+
+    public CheatDetectionService(ITimeProvider timeProvider)
+    {
+        _timeProvider = timeProvider;
+    }
 
     public Task<CheatDetectionResult> AnalyzeMemoryAsync(
         MemorySnapshot snapshot,
@@ -13,7 +20,7 @@ public class CheatDetectionService : ICheatDetectionService
     {
         if (_baselinePatterns is null)
         {
-            return Task.FromResult(CheatDetectionResult.NoCheating());
+            return Task.FromResult(CheatDetectionResult.NoCheating(_timeProvider));
         }
 
         var flaggedAddresses = new List<long>();
@@ -46,11 +53,12 @@ public class CheatDetectionService : ICheatDetectionService
                 cheatingConfidence,
                 "Pattern Analysis",
                 flaggedAddresses,
-                $"Memory patterns differ significantly from baseline at {flaggedAddresses.Count} addresses"
+                $"Memory patterns differ significantly from baseline at {flaggedAddresses.Count} addresses",
+                _timeProvider
             ));
         }
 
-        return Task.FromResult(CheatDetectionResult.NoCheating());
+        return Task.FromResult(CheatDetectionResult.NoCheating(_timeProvider));
     }
 
     public Task TrainAnomalyDetectorAsync(

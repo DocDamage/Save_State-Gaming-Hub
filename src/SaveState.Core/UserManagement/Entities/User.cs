@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.UserManagement.Entities;
 
@@ -24,18 +25,25 @@ public class User : EntityBase
 
     private User() { }
 
-    public static User Create(string username, string email, string passwordHash, string passwordSalt)
+    public static User Create(string username, string email, string passwordHash, string passwordSalt, ITimeProvider timeProvider)
     {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
         return new User
         {
             Username = Guard.Against.NullOrWhiteSpace(username, nameof(username)),
             Email = Guard.Against.NullOrWhiteSpace(email, nameof(email)),
             PasswordHash = Guard.Against.NullOrWhiteSpace(passwordHash, nameof(passwordHash)),
             PasswordSalt = Guard.Against.NullOrWhiteSpace(passwordSalt, nameof(passwordSalt)),
-            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = timeProvider.UtcNow,
             IsActive = true,
             IsEmailVerified = false
         };
+    }
+
+    [Obsolete("Use Create(string, string, string, string, ITimeProvider) instead")]
+    public static User Create(string username, string email, string passwordHash, string passwordSalt)
+    {
+        return Create(username, email, passwordHash, passwordSalt, SystemTimeProvider.Instance);
     }
 
     public void UpdateUsername(string username)
@@ -43,6 +51,13 @@ public class User : EntityBase
         Username = Guard.Against.NullOrWhiteSpace(username, nameof(username));
     }
 
+    public void UpdateLastLogin(ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        LastLoginAt = timeProvider.UtcNow;
+    }
+
+    [Obsolete("Use UpdateLastLogin(ITimeProvider) instead")]
     public void UpdateLastLogin()
     {
         LastLoginAt = DateTimeOffset.UtcNow;
@@ -100,9 +115,9 @@ public class User : EntityBase
         return _userRoles.Any(ur => roleNames.Contains(ur.Role.Name));
     }
 
-    public (ApiKey apiKey, string plainKey) CreateApiKey(string name, string description, DateTimeOffset? expiresAt = null)
+    public (ApiKey apiKey, string plainKey) CreateApiKey(string name, string description, ITimeProvider timeProvider, DateTimeOffset? expiresAt = null)
     {
-        var (apiKey, plainKey) = ApiKey.Create(this, name, description, expiresAt);
+        var (apiKey, plainKey) = ApiKey.Create(this, name, description, timeProvider, expiresAt);
         _apiKeys.Add(apiKey);
         return (apiKey, plainKey);
     }

@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.BackupArchive;
 
@@ -428,10 +429,15 @@ public sealed class BackupStartedEventArgs : EventArgs
     public DateTime StartedAt { get; }
 
     public BackupStartedEventArgs(string executionId, string jobId)
+        : this(executionId, jobId, SystemTimeProvider.Instance.UtcNow)
+    {
+    }
+
+    public BackupStartedEventArgs(string executionId, string jobId, DateTime startedAt)
     {
         ExecutionId = executionId;
         JobId = jobId;
-        StartedAt = DateTime.UtcNow;
+        StartedAt = startedAt;
     }
 }
 
@@ -448,13 +454,18 @@ public sealed class BackupCompletedEventArgs : EventArgs
     public DateTime CompletedAt { get; }
 
     public BackupCompletedEventArgs(string executionId, string jobId, bool success, long filesProcessed, TimeSpan duration)
+        : this(executionId, jobId, success, filesProcessed, duration, SystemTimeProvider.Instance.UtcNow)
+    {
+    }
+
+    public BackupCompletedEventArgs(string executionId, string jobId, bool success, long filesProcessed, TimeSpan duration, DateTime completedAt)
     {
         ExecutionId = executionId;
         JobId = jobId;
         Success = success;
         FilesProcessed = filesProcessed;
         Duration = duration;
-        CompletedAt = DateTime.UtcNow;
+        CompletedAt = completedAt;
     }
 }
 
@@ -470,11 +481,16 @@ public sealed class RestoreCompletedEventArgs : EventArgs
     public DateTime CompletedAt { get; }
 
     public RestoreCompletedEventArgs(string executionId, bool success, long filesRestored, TimeSpan duration)
+        : this(executionId, success, filesRestored, duration, SystemTimeProvider.Instance.UtcNow)
+    {
+    }
+
+    public RestoreCompletedEventArgs(string executionId, bool success, long filesRestored, TimeSpan duration, DateTime completedAt)
     {
         ExecutionId = executionId;
         Success = success;
         FilesRestored = filesRestored;
         Duration = duration;
-        CompletedAt = DateTime.UtcNow;
+        CompletedAt = completedAt;
     }
 }

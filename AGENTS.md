@@ -1076,18 +1076,61 @@ public Task InitializeAsync(IPluginContext context, ...)
 
 ## 🏗️ Service Refactoring: Manager Pattern
 
-### ✅ COMPLETED: February 20, 2026
+### ✅ COMPLETED: February 22, 2026 (Latest Batch)
 
-Three major services have been refactored using the **Manager Pattern** to improve maintainability and adhere to Single Responsibility Principle.
+Five major services have been refactored using the **Manager Pattern** and **Facade + Internal Classes** patterns to improve maintainability and adhere to Single Responsibility Principle.
 
-### Completed Refactorings
+### Completed Refactorings (February 2026)
 
-| Service | Before | After | Status |
-|---------|--------|-------|--------|
-| **IkemenGoService** | 1,486 lines | 150 lines + 8 managers | ✅ Complete |
-| **CharacterDiscoveryService** | 1,109 lines | 180 lines + 6 managers | ✅ Complete |
-| **AutomatedBalancingSystem** | 1,176 lines | 120 lines + 4 engines | ✅ Complete |
-| **TOTAL** | **3,771 lines** | **~450 lines + 18 components** | ✅ **88% reduction** |
+| Service | Before | After | Reduction | Pattern Used |
+|---------|--------|-------|-----------|--------------|
+| **AutoDiscoveryEngine** | 1,079 lines | 216 lines + 5 managers | **80%** | Manager Pattern |
+| **PatternPredictionModel** | 1,062 lines | 501 lines + 2 components | **53%** | Component Extraction |
+| **EmotionalResonanceService** | 1,073 lines | 415 lines + 4 engines | **61%** | Facade + Internal Classes |
+| **AdvancedReportingService** | 1,063 lines | 380 lines + 4 engines | **64%** | Facade + Internal Classes |
+| **ScreenFiltersEngine** | 1,062 lines | 555 lines + 3 engines | **48%** | Facade + Internal Classes |
+| **IkemenGoService** | 1,486 lines | 150 lines + 8 managers | **90%** | Manager Pattern |
+| **CharacterDiscoveryService** | 1,109 lines | 180 lines + 6 managers | **84%** | Manager Pattern |
+| **AutomatedBalancingSystem** | 1,176 lines | 120 lines + 4 engines | **90%** | Manager Pattern |
+| **TOTAL** | **8,110 lines** | **~2,517 lines + 36 components** | **69%** | ✅ **Complete** |
+
+### Two Refactoring Patterns
+
+#### Pattern 1: Manager Pattern (For Infrastructure Services)
+
+```
+Service (Coordinator - ~200 lines)
+├── Manager 1 (Single Responsibility)
+├── Manager 2 (Single Responsibility)
+└── Manager N (Single Responsibility)
+```
+
+**Used for:**
+- AutoDiscoveryEngine (5 managers)
+- IkemenGoService (8 managers)
+- CharacterDiscoveryService (6 managers)
+
+#### Pattern 2: Facade + Internal Classes (For Application Services with Complex Types)
+
+```
+Service (Coordinator - ~400 lines)
+├── EmotionalResonance/ (subdirectory)
+│   ├── Types.cs (data classes & enums)
+│   ├── Engine1.cs (internal)
+│   ├── Engine2.cs (internal)
+│   └── Engine3.cs (internal)
+```
+
+**Used for:**
+- EmotionalResonanceService (4 internal engines)
+- AdvancedReportingService (4 internal engines)
+- ScreenFiltersEngine (3 internal engines)
+
+**Benefits:**
+- Avoids naming conflicts with existing classes
+- Maintains backward compatibility
+- Keeps types in same namespace
+- Internal visibility prevents external misuse
 
 ### Manager Pattern Structure
 
@@ -1143,7 +1186,35 @@ Use this pattern when a service:
 - [ ] Register all managers in DI container
 - [ ] Update unit tests to test managers independently
 
-### New Manager Classes
+### New Manager Classes (February 2026)
+
+**AutoDiscoveryEngine Managers (5):**
+- `DiscoverySessionManager` - Session lifecycle (start/stop)
+- `MemoryScanningManager` - Memory scanning operations
+- `HeuristicAnalysisManager` - Heuristic scoring & ranking
+- `ChangeDetectionManager` - Change monitoring & filtering
+- `FeedbackLearningManager` - Feedback processing & learning
+
+**PatternPredictionModel Components (2):**
+- `EnginePatternDatabase` - Game engine pattern storage
+- `StatisticalPatternValidator` - Pattern validation using statistics
+
+**EmotionalResonance Internal Engines (4):**
+- `EmotionalResonanceEmotionEngine` - Emotional state processing
+- `EmotionalResonanceResonanceEngine` - Resonance field mechanics
+- `EmotionalResonanceSpectatorEngine` - Spectator influence
+- `EmotionalResonancePsychologicalEngine` - Breaking point detection
+
+**AdvancedReporting Internal Engines (4):**
+- `AdvancedReportingReportEngine` - Report generation & export
+- `AdvancedReportingDashboardBuilder` - Dashboard creation
+- `AdvancedReportingVisualizationEngine` - Chart generation
+- `AdvancedReportingReportScheduler` - Automated scheduling
+
+**ScreenFilters Internal Engines (3):**
+- `ScreenFiltersCRTEngine` - CRT emulation effects
+- `ScreenFiltersScanlineEngine` - Scanline generation
+- `ScreenFiltersPostProcessingEngine` - Post-processing pipeline
 
 **IKEMEN GO Managers (8):**
 - `IkemenGoInstallationManager` - Installation detection, version checking
@@ -1178,16 +1249,25 @@ Service (Coordinator - ~200 lines)
 ```
 
 **Example Services Using Manager Pattern:**
+
+*Infrastructure Layer:*
+- AutoDiscoveryEngine (5 managers: DiscoverySession, MemoryScanning, HeuristicAnalysis, ChangeDetection, FeedbackLearning)
+- PatternPredictionModel (2 components: EnginePatternDatabase, StatisticalPatternValidator)
 - SpriteAnimationService (6 managers)
 - PredictiveAnalyticsEngine (5 managers)
 - BlockchainService (4 managers)
-- AdvancedGraphicsEngine (5 managers)
 - ComboDatabaseService (8 managers)
 - SoundDesignStudio (7 managers)
 - StoryModeService (8 managers)
 - PerformanceProfilerService (6 managers)
 - SymbioticPartnerService (6 managers)
 - ReplayAnalysisService (6 managers)
+
+*Application Layer (Facade + Internal Classes):*
+- EmotionalResonanceService (4 internal engines in EmotionalResonance/ subdirectory)
+- AdvancedReportingService (4 internal engines in AdvancedReporting/ subdirectory)
+- ScreenFiltersEngine (3 internal engines in ScreenFilters/ subdirectory)
+- AdvancedGraphicsEngine (5 managers)
 
 **Manager Creation Checklist:**
 - [ ] Identify responsibility boundaries in the service

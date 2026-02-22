@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -118,8 +118,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SaveState.Plugins.RetroCRTTheme", "src\SaveState.Plugins.RetroCRTTheme\SaveState.Plugins.RetroCRTTheme.csproj", "{81a40849-1759-4f58-8bac-375ed025fcd6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SaveState.Plugins.RomHacks", "src\SaveState.Plugins.RomHacks\SaveState.Plugins.RomHacks.csproj", "{616ce8f4-3ec4-43e8-9864-81b0cc5a43d5}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SaveState.Plugins.ScreenshotCaptioner", "src\SaveState.Plugins.ScreenshotCaptioner\SaveState.Plugins.ScreenshotCaptioner.csproj", "{d6a34429-7605-44b7-abc1-1c8d6bbc8c13}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SaveState.Plugins.ScreenshotCapture", "src\SaveState.Plugins.ScreenshotCapture\SaveState.Plugins.ScreenshotCapture.csproj", "{bfd5edbb-ad16-46bc-9a64-8e4f1f485368}"
 EndProject
@@ -801,18 +799,6 @@ Global
     {616ce8f4-3ec4-43e8-9864-81b0cc5a43d5}.Release|x64.Build.0 = Debug|x64
     {616ce8f4-3ec4-43e8-9864-81b0cc5a43d5}.Release|x86.ActiveCfg = Debug|x86
     {616ce8f4-3ec4-43e8-9864-81b0cc5a43d5}.Release|x86.Build.0 = Debug|x86
-    {d6a34429-7605-44b7-abc1-1c8d6bbc8c13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-    {d6a34429-7605-44b7-abc1-1c8d6bbc8c13}.Debug|Any CPU.Build.0 = Debug|Any CPU
-    {d6a34429-7605-44b7-abc1-1c8d6bbc8c13}.Debug|x64.ActiveCfg = Debug|x64
-    {d6a34429-7605-44b7-abc1-1c8d6bbc8c13}.Debug|x64.Build.0 = Debug|x64
-    {d6a34429-7605-44b7-abc1-1c8d6bbc8c13}.Debug|x86.ActiveCfg = Debug|x86
-    {d6a34429-7605-44b7-abc1-1c8d6bbc8c13}.Debug|x86.Build.0 = Debug|x86
-    {d6a34429-7605-44b7-abc1-1c8d6bbc8c13}.Release|Any CPU.ActiveCfg = Debug|Any CPU
-    {d6a34429-7605-44b7-abc1-1c8d6bbc8c13}.Release|Any CPU.Build.0 = Debug|Any CPU
-    {d6a34429-7605-44b7-abc1-1c8d6bbc8c13}.Release|x64.ActiveCfg = Debug|x64
-    {d6a34429-7605-44b7-abc1-1c8d6bbc8c13}.Release|x64.Build.0 = Debug|x64
-    {d6a34429-7605-44b7-abc1-1c8d6bbc8c13}.Release|x86.ActiveCfg = Debug|x86
-    {d6a34429-7605-44b7-abc1-1c8d6bbc8c13}.Release|x86.Build.0 = Debug|x86
     {bfd5edbb-ad16-46bc-9a64-8e4f1f485368}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
     {bfd5edbb-ad16-46bc-9a64-8e4f1f485368}.Debug|Any CPU.Build.0 = Debug|Any CPU
     {bfd5edbb-ad16-46bc-9a64-8e4f1f485368}.Debug|x64.ActiveCfg = Debug|x64
@@ -1149,7 +1135,6 @@ Global
     {20460ef7-3316-486c-86f1-a127200aa222} = {8f875306-e6f0-4d37-bcb0-d1bd53184caf}
     {81a40849-1759-4f58-8bac-375ed025fcd6} = {8f875306-e6f0-4d37-bcb0-d1bd53184caf}
     {616ce8f4-3ec4-43e8-9864-81b0cc5a43d5} = {8f875306-e6f0-4d37-bcb0-d1bd53184caf}
-    {d6a34429-7605-44b7-abc1-1c8d6bbc8c13} = {8f875306-e6f0-4d37-bcb0-d1bd53184caf}
     {bfd5edbb-ad16-46bc-9a64-8e4f1f485368} = {8f875306-e6f0-4d37-bcb0-d1bd53184caf}
     {cba1de80-35be-4954-a46e-629ace94c8aa} = {8f875306-e6f0-4d37-bcb0-d1bd53184caf}
     {ae7c6be1-44e0-4df9-b2a5-47fd83cd5cb1} = {8f875306-e6f0-4d37-bcb0-d1bd53184caf}

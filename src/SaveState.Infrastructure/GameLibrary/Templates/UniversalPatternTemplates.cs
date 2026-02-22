@@ -729,7 +729,7 @@ public static class UniversalPatternTemplates
         string gameTitle = "*",
         ITimeProvider? timeProvider = null)
     {
-        var time = timeProvider?.UtcNow ?? DateTime.UtcNow;
+        var time = timeProvider?.UtcNow ?? SystemTimeProvider.Instance.UtcNow;
         return new GameMemorySignature
         {
             GameTitle = gameTitle,

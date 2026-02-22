@@ -44,7 +44,7 @@ public class SaveState : EntityBase
             Id = Guid.NewGuid(),
             GameId = gameId,
             FilePath = Guard.Against.NullOrWhiteSpace(filePath, nameof(filePath)),
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = SystemTimeProvider.Instance.UtcNow,
             PlaytimeAtSave = playtimeAtSave,
             IsAutoSave = isAutoSave,
             IsFavorite = false

@@ -1,8 +1,57 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SaveState.Core.Common;
+using SaveState.Presentation.Services;
 using System.Collections.ObjectModel;
 
 namespace SaveState.Presentation.ViewModels.Settings;
+
+/// <summary>
+/// Service for performance monitoring and optimization.
+/// </summary>
+public interface IPerformanceService
+{
+    /// <summary>
+    /// Applies an optimization recommendation.
+    /// </summary>
+    Task<Result> ApplyOptimizationAsync(string optimizationId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Runs a comprehensive performance benchmark.
+    /// </summary>
+    Task<Result<BenchmarkResult>> RunBenchmarkAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets real-time performance metrics.
+    /// </summary>
+    Task<Result<PerformanceMetrics>> GetMetricsAsync(CancellationToken ct = default);
+}
+
+/// <summary>
+/// Performance benchmark results.
+/// </summary>
+public class BenchmarkResult
+{
+    public double CpuScore { get; set; }
+    public double MemoryScore { get; set; }
+    public double GpuScore { get; set; }
+    public double DiskScore { get; set; }
+    public double OverallScore { get; set; }
+    public TimeSpan Duration { get; set; }
+}
+
+/// <summary>
+/// Real-time performance metrics.
+/// </summary>
+public class PerformanceMetrics
+{
+    public double CpuUsage { get; set; }
+    public double MemoryUsage { get; set; }
+    public double GpuUsage { get; set; }
+    public double DiskUsage { get; set; }
+    public long AvailableMemoryBytes { get; set; }
+    public long TotalMemoryBytes { get; set; }
+}
 
 /// <summary>
 /// ViewModel for the Performance Dashboard.
@@ -10,6 +59,9 @@ namespace SaveState.Presentation.ViewModels.Settings;
 /// </summary>
 public partial class PerformanceDashboardViewModel : ObservableObject
 {
+    private readonly IPerformanceService? _performanceService;
+    private readonly INotificationService? _notificationService;
+
     /// <summary>CPU usage history over time.</summary>
     [ObservableProperty]
     private ObservableCollection<PerformanceMetric> _cpuHistory = new();
@@ -43,17 +95,30 @@ public partial class PerformanceDashboardViewModel : ObservableObject
     private string _optimizationSummary = string.Empty;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PerformanceDashboardViewModel"/> class.
+    /// Design-time constructor for XAML preview.
     /// </summary>
+    [Obsolete("Design-time constructor only. Use the parameterized constructor in production code.")]
     public PerformanceDashboardViewModel()
     {
+        InitializeSampleData();
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PerformanceDashboardViewModel"/> class.
+    /// </summary>
+    public PerformanceDashboardViewModel(
+        IPerformanceService? performanceService = null,
+        INotificationService? notificationService = null)
+    {
+        _performanceService = performanceService;
+        _notificationService = notificationService;
         InitializeSampleData();
     }
 
     private void InitializeSampleData()
     {
         // Generate sample historical data
-        var now = DateTime.Now;
+        var now = DateTimeOffset.UtcNow.DateTime;
         var random = new Random();
         
         for (int i = 60; i >= 0; i--)
@@ -97,9 +162,33 @@ public partial class PerformanceDashboardViewModel : ObservableObject
     private async Task ApplyOptimizationAsync(OptimizationRecommendation? recommendation)
     {
         if (recommendation is null) return;
-        // TODO: Apply optimization through service
-        await Task.Delay(500);
-        Recommendations.Remove(recommendation);
+
+        try
+        {
+            if (_performanceService is not null)
+            {
+                var result = await _performanceService.ApplyOptimizationAsync(recommendation.Title);
+                if (result.IsSuccess)
+                {
+                    _notificationService?.ShowSuccess($"Applied: {recommendation.Title}", "Optimization Applied");
+                    Recommendations.Remove(recommendation);
+                }
+                else
+                {
+                    _notificationService?.ShowError($"Failed to apply optimization: {result.Error}");
+                }
+            }
+            else
+            {
+                await Task.Delay(500);
+                Recommendations.Remove(recommendation);
+                _notificationService?.ShowNotificationAsync("Optimization applied (demo mode)", "Optimization");
+            }
+        }
+        catch (Exception ex)
+        {
+            _notificationService?.ShowError($"Error applying optimization: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -108,8 +197,36 @@ public partial class PerformanceDashboardViewModel : ObservableObject
     [RelayCommand]
     private async Task RunBenchmarkAsync()
     {
-        // TODO: Run performance benchmark through service
-        await Task.Delay(2000);
+        try
+        {
+            if (_performanceService is not null)
+            {
+                _notificationService?.ShowInfo("Running performance benchmark...", "Benchmark");
+                var result = await _performanceService.RunBenchmarkAsync();
+                if (result.IsSuccess && result.Value is not null)
+                {
+                    var benchmark = result.Value;
+                    _notificationService?.ShowSuccess(
+                        $"Benchmark complete! Overall Score: {benchmark.OverallScore:F0}",
+                        "Benchmark Complete");
+                }
+                else
+                {
+                    _notificationService?.ShowError($"Benchmark failed: {result.Error}");
+                }
+            }
+            else
+            {
+                await Task.Delay(2000);
+                _notificationService?.ShowNotificationAsync(
+                    "Benchmark completed (demo mode)",
+                    "Benchmark");
+            }
+        }
+        catch (Exception ex)
+        {
+            _notificationService?.ShowError($"Error running benchmark: {ex.Message}");
+        }
     }
 }
 

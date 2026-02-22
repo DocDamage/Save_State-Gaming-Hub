@@ -81,7 +81,7 @@ public class GameGoal : EntityBase
     {
         if (!CompletedAt.HasValue)
         {
-            CompletedAt = DateTime.UtcNow;
+            CompletedAt = SystemTimeProvider.Instance.UtcNow;
         }
     }
 

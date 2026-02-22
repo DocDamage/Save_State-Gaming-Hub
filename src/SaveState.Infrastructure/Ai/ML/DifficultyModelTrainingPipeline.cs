@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Logging;
-using SaveState.Core.AI.Assistant;
+using SaveState.Core.Ai.Assistant;
 using SuggestedDifficulty = SaveState.Core.Assistant.Services.SuggestedDifficulty;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 
-namespace SaveState.Infrastructure.AI.ML;
+namespace SaveState.Infrastructure.Ai.ML;
 
 /// <summary>
 /// Training pipeline for the difficulty analysis ML model.

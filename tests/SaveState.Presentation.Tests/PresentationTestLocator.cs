@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using SaveState.Presentation;
 using SaveState.Presentation.ViewModels;
+using SaveState.Presentation.ViewModels.Library;
 
 namespace SaveState.Presentation.Tests;
 
@@ -22,7 +23,8 @@ internal static class PresentationTestLocator
         }
 
         var services = new ServiceCollection();
-        services.AddTransient<GameLibraryViewModel>(_ => new GameLibraryViewModel());
+        // Note: GameLibraryViewModel has complex dependencies and required members.
+        // Tests that need it should provide their own mock or use the full DI container.
         _serviceProvider = services.BuildServiceProvider();
         Locator.Current.SetServices(_serviceProvider);
     }

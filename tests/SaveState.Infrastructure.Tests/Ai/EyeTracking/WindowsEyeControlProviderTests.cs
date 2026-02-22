@@ -2,7 +2,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using SaveState.Core.Assistant.Services;
 using SaveState.Core.Common;
-using SaveState.Infrastructure.AI.EyeTracking;
+using SaveState.Infrastructure.Ai.EyeTracking;
 using SaveState.Tests.Infrastructure;
 
 namespace SaveState.Infrastructure.Tests.AI.EyeTracking;

@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Achievements;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Infrastructure.External;
 
@@ -300,7 +301,7 @@ public class RetroAchievementsClient : IRetroAchievementsClient
                     Title: item.GetProperty("Title").GetString() ?? "Unknown",
                     GameTitle: item.GetProperty("GameTitle").GetString() ?? "Unknown",
                     Points: item.GetProperty("Points").GetInt32(),
-                    EarnedAt: DateTime.Parse(item.GetProperty("Date").GetString() ?? DateTime.UtcNow.ToString()),
+                    EarnedAt: DateTime.Parse(item.GetProperty("Date").GetString() ?? SystemTimeProvider.Instance.UtcNow.ToString()),
                     IsHardcore: item.TryGetProperty("HardcoreMode", out var hc) && hc.GetInt32() == 1
                 ));
             }

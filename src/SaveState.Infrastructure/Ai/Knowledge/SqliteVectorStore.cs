@@ -12,17 +12,20 @@ public class SqliteVectorStore : IKnowledgeStore
     private readonly SaveStateDbContext _context;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ITaskRunner _taskRunner;
+    private readonly ITimeProvider _timeProvider;
     private readonly ILogger<SqliteVectorStore> _logger;
 
     public SqliteVectorStore(
         SaveStateDbContext context,
         IServiceScopeFactory scopeFactory,
         ITaskRunner taskRunner,
+        ITimeProvider timeProvider,
         ILogger<SqliteVectorStore> logger)
     {
         _context = context;
         _scopeFactory = scopeFactory;
         _taskRunner = taskRunner;
+        _timeProvider = timeProvider;
         _logger = logger;
     }
 
@@ -55,7 +58,7 @@ public class SqliteVectorStore : IKnowledgeStore
             .Select(record =>
             {
                 var similarity = CosineSimilarity(queryEmbedding, record.Embedding);
-                record.RecordAccess();
+                record.RecordAccess(_timeProvider);
                 return new KnowledgeHit(record.Id, record.Content, record.Metadata, similarity);
             })
             .Where(hit => hit.Relevance >= minRelevance)
@@ -77,7 +80,7 @@ public class SqliteVectorStore : IKnowledgeStore
 
             foreach (var record in recordsToUpdate)
             {
-                record.RecordAccess();
+                record.RecordAccess(_timeProvider);
             }
 
             await dbContext.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveState.Presentation.Models.Security;
+using SaveState.Presentation.Services;
 using System.Collections.ObjectModel;
 
 namespace SaveState.Presentation.ViewModels.Settings;
@@ -11,6 +12,9 @@ namespace SaveState.Presentation.ViewModels.Settings;
 /// </summary>
 public partial class ApiKeyManagerViewModel : ObservableObject
 {
+    private readonly IClipboardService? _clipboardService;
+    private readonly INotificationService? _notificationService;
+
     /// <summary>Collection of API keys.</summary>
     [ObservableProperty]
     private ObservableCollection<ApiKey> _apiKeys = new();
@@ -32,10 +36,23 @@ public partial class ApiKeyManagerViewModel : ObservableObject
     private string? _newlyGeneratedKey;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ApiKeyManagerViewModel"/> class.
+    /// Design-time constructor for XAML preview.
     /// </summary>
+    [Obsolete("Design-time constructor only. Use the parameterized constructor in production code.")]
     public ApiKeyManagerViewModel()
     {
+        InitializeSampleData();
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ApiKeyManagerViewModel"/> class.
+    /// </summary>
+    public ApiKeyManagerViewModel(
+        IClipboardService clipboardService,
+        INotificationService notificationService)
+    {
+        _clipboardService = clipboardService;
+        _notificationService = notificationService;
         InitializeSampleData();
     }
 
@@ -43,8 +60,8 @@ public partial class ApiKeyManagerViewModel : ObservableObject
     {
         ApiKeys = new ObservableCollection<ApiKey>
         {
-            new() { Id = "key_1", Name = "Plugin Dev", MaskedKey = "ssk_••••••••xxxx", CreatedAt = DateTime.Now.AddMonths(-1), LastUsed = DateTime.Now.AddDays(-1), Permissions = new() { "read:library", "write:games" } },
-            new() { Id = "key_2", Name = "External App", MaskedKey = "ssk_••••••••yyyy", CreatedAt = DateTime.Now.AddDays(-20), Permissions = new() { "read:library" } }
+            new() { Id = "key_1", Name = "Plugin Dev", MaskedKey = "ssk_••••••••xxxx", CreatedAt = DateTimeOffset.UtcNow.AddMonths(-1).DateTime, LastUsed = DateTimeOffset.UtcNow.AddDays(-1).DateTime, Permissions = new() { "read:library", "write:games" } },
+            new() { Id = "key_2", Name = "External App", MaskedKey = "ssk_••••••••yyyy", CreatedAt = DateTimeOffset.UtcNow.AddDays(-20).DateTime, Permissions = new() { "read:library" } }
         };
     }
 
@@ -86,7 +103,7 @@ public partial class ApiKeyManagerViewModel : ObservableObject
             Id = Guid.NewGuid().ToString(),
             Name = NewKeyName,
             MaskedKey = $"ssk_••••••••{newKey[^4..]}",
-            CreatedAt = DateTime.Now,
+            CreatedAt = DateTimeOffset.UtcNow.DateTime,
             Permissions = new() { "read:library" }
         });
 
@@ -97,10 +114,23 @@ public partial class ApiKeyManagerViewModel : ObservableObject
     /// Copies the newly generated key to clipboard.
     /// </summary>
     [RelayCommand]
-    private void CopyKeyToClipboard()
+    private async Task CopyKeyToClipboard()
     {
         if (NewlyGeneratedKey is null) return;
-        // TODO: Copy to clipboard through service
+
+        try
+        {
+            await _clipboardService.SetTextAsync(NewlyGeneratedKey);
+            _notificationService.ShowSuccess(
+                "API key copied to clipboard. Store it securely - it won't be shown again.",
+                "Key Copied");
+        }
+        catch (Exception ex)
+        {
+            _notificationService.ShowError(
+                $"Failed to copy to clipboard: {ex.Message}",
+                "Copy Failed");
+        }
     }
 
     /// <summary>

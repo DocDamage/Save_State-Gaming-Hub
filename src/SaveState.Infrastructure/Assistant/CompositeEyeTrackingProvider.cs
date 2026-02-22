@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Assistant.Services;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
-using SaveState.Infrastructure.AI.EyeTracking;
+using SaveState.Infrastructure.Ai.EyeTracking;
 
 namespace SaveState.Infrastructure.Assistant;
 

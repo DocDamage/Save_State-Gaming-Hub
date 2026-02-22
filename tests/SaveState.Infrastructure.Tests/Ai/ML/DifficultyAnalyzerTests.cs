@@ -1,8 +1,8 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
-using SaveState.Core.AI.Assistant;
+using SaveState.Core.Ai.Assistant;
 using SaveState.Core.Common;
-using SaveState.Infrastructure.AI.ML;
+using SaveState.Infrastructure.Ai.ML;
 using SaveState.Tests.Infrastructure;
 using SuggestedDifficulty = SaveState.Core.Assistant.Services.SuggestedDifficulty;
 

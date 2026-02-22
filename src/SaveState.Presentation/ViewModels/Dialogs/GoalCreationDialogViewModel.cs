@@ -14,6 +14,8 @@ namespace SaveState.Presentation.ViewModels.Dialogs;
 /// </summary>
 public partial class GoalCreationDialogViewModel : ObservableObject
 {
+    private readonly ITimeProvider _timeProvider;
+
     // Validation constants
     private const int MaxTitleLength = 100;
     private const int MaxDescriptionLength = 1000;
@@ -80,7 +82,7 @@ public partial class GoalCreationDialogViewModel : ObservableObject
     /// Gets whether the target date is valid (not in the past).
     /// </summary>
     public bool IsTargetDateValid => 
-        !TargetDate.HasValue || TargetDate.Value.Date >= DateTime.Today;
+        !TargetDate.HasValue || TargetDate.Value.Date >= _timeProvider.Today;
 
     /// <summary>
     /// Gets whether there are any validation errors.
@@ -96,8 +98,9 @@ public partial class GoalCreationDialogViewModel : ObservableObject
         !string.IsNullOrWhiteSpace(GoalType) &&
         !HasValidationErrors;
 
-    public GoalCreationDialogViewModel()
+    public GoalCreationDialogViewModel(ITimeProvider timeProvider)
     {
+        _timeProvider = timeProvider;
     }
 
     partial void OnTitleChanged(string value)

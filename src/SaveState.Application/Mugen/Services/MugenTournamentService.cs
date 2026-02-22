@@ -22,15 +22,19 @@ public class MugenTournamentService : IMugenTournamentService
     private readonly Dictionary<Guid, TournamentBracket> _activeBrackets = new();
     private readonly MugenTournamentServiceBracketGenerator _bracketGenerator;
 
+    private readonly ITimeProvider _timeProvider;
+
     public MugenTournamentService(
         ILogger<MugenTournamentService> logger,
         ILoggerFactory loggerFactory,
         IMugenTournamentRepository tournamentRepository,
-        ICacheService cache)
+        ICacheService cache,
+        ITimeProvider timeProvider)
     {
         _logger = logger;
         _tournamentRepository = tournamentRepository;
         _cache = cache;
+        _timeProvider = timeProvider;
         _bracketGenerator = new MugenTournamentServiceBracketGenerator(loggerFactory.CreateLogger<MugenTournamentServiceBracketGenerator>());
     }
 
@@ -48,7 +52,7 @@ public class MugenTournamentService : IMugenTournamentService
             }
 
             // Create tournament entity
-            var tournament = MugenTournament.Create(request.Name, request.Format);
+            var tournament = MugenTournament.Create(request.Name, request.Format, _timeProvider);
 
             // Add participants
             foreach (var participantId in request.ParticipantIds)
@@ -322,7 +326,7 @@ public class MugenTournamentService : IMugenTournamentService
 
                     if (winnerId != null)
                     {
-                        tournament.Complete(winnerId.Value);
+                        tournament.Complete(winnerId.Value, _timeProvider);
                         await _tournamentRepository.UpdateAsync(tournament, ct);
 
                         _logger.LogInformation("Tournament {Id} completed with winner {WinnerId}",

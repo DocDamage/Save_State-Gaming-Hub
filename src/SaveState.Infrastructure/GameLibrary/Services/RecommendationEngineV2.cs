@@ -450,7 +450,7 @@ public class RecommendationEngineV2 : IRecommendationEngineV2
                                gameGenres.Contains("Adventure", StringComparer.OrdinalIgnoreCase) ||
                                gameGenres.Contains("Open World", StringComparer.OrdinalIgnoreCase) ? 1.0f : 0.4f,
             Mood.Nostalgic => game.ReleaseDate.HasValue &&
-                             game.ReleaseDate.Value < DateOnly.FromDateTime(DateTime.Now.AddYears(-10)) ? 1.0f :
+                             game.ReleaseDate.Value < DateOnly.FromDateTime(_timeProvider.Now.AddYears(-10)) ? 1.0f :
                              gameGenres.Contains("Retro", StringComparer.OrdinalIgnoreCase) ? 1.0f : 0.3f,
             Mood.Social => game.Tags.Any(t => t.Contains("multiplayer", StringComparison.OrdinalIgnoreCase)) ? 1.0f : 0.2f,
             _ => 0.5f

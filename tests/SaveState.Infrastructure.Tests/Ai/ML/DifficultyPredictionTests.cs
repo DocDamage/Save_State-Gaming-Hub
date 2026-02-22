@@ -1,7 +1,7 @@
 using FluentAssertions;
-using SaveState.Core.AI.Assistant;
+using SaveState.Core.Ai.Assistant;
 using SuggestedDifficulty = SaveState.Core.Assistant.Services.SuggestedDifficulty;
-using SaveState.Infrastructure.AI.ML;
+using SaveState.Infrastructure.Ai.ML;
 
 namespace SaveState.Infrastructure.Tests.AI.ML;
 

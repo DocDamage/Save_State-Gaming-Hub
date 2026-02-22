@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Automation.Studio;
 
@@ -386,11 +387,16 @@ public sealed class WorkflowTriggeredEventArgs : EventArgs
     public DateTime TriggeredAt { get; }
 
     public WorkflowTriggeredEventArgs(string workflowId, string executionId, TriggerType triggerType)
+        : this(workflowId, executionId, triggerType, SystemTimeProvider.Instance.UtcNow)
+    {
+    }
+
+    public WorkflowTriggeredEventArgs(string workflowId, string executionId, TriggerType triggerType, DateTime triggeredAt)
     {
         WorkflowId = workflowId;
         ExecutionId = executionId;
         TriggerType = triggerType;
-        TriggeredAt = DateTime.UtcNow;
+        TriggeredAt = triggeredAt;
     }
 }
 
@@ -406,11 +412,16 @@ public sealed class WorkflowCompletedEventArgs : EventArgs
     public DateTime CompletedAt { get; }
 
     public WorkflowCompletedEventArgs(string workflowId, string executionId, bool success, TimeSpan duration)
+        : this(workflowId, executionId, success, duration, SystemTimeProvider.Instance.UtcNow)
+    {
+    }
+
+    public WorkflowCompletedEventArgs(string workflowId, string executionId, bool success, TimeSpan duration, DateTime completedAt)
     {
         WorkflowId = workflowId;
         ExecutionId = executionId;
         Success = success;
         Duration = duration;
-        CompletedAt = DateTime.UtcNow;
+        CompletedAt = completedAt;
     }
 }

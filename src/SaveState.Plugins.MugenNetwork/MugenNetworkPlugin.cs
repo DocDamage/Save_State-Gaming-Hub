@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SaveState.Core.Common;
@@ -20,6 +21,7 @@ public class MugenNetworkPlugin : IPlugin
     private IPluginContext? _context;
     private ILogger? _logger;
     private ITaskRunner? _taskRunner;
+    private ITimeProvider? _timeProvider;
     private readonly HttpClient _httpClient;
     private readonly MugenNetworkOptions _options;
     private NetworkStatus _networkStatus = NetworkStatus.Disconnected;
@@ -44,6 +46,7 @@ public class MugenNetworkPlugin : IPlugin
     {
         _context = context;
         _logger = context.Logger;
+        _timeProvider = context.Services.GetService<ITimeProvider>();
         _taskRunner = context.Services.GetService(typeof(ITaskRunner)) as ITaskRunner;
 
         if (!_options.Enabled)
@@ -530,7 +533,7 @@ public class MugenNetworkPlugin : IPlugin
                 FavoriteCharacters = new[] { "Ryu", "Ken", "Guile", "Chun-Li" },
                 UnlockedAchievements = new[] { "First Victory", "Combo Master", "Character Collector" },
                 UploadedItems = new List<WorkshopItem>(),
-                JoinDate = DateTime.UtcNow.AddMonths(-6)
+                JoinDate = (_timeProvider?.UtcNow ?? SystemTimeProvider.Instance.UtcNow).AddMonths(-6) // Uses injected ITimeProvider
             };
 
             _logger?.LogInformation("Loaded user profile for {User}", _currentUser.DisplayName);

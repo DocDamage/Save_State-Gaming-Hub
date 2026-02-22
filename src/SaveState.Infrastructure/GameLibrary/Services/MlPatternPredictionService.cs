@@ -24,11 +24,13 @@ public sealed class MlPatternPredictionService : IMlPatternPredictionService
     /// </summary>
     public MlPatternPredictionService(
         ITimeProvider timeProvider,
-        ILogger<MlPatternPredictionService> logger)
+        ILogger<MlPatternPredictionService> logger,
+        EnginePatternDatabase engineDatabase,
+        StatisticalPatternValidator validator)
     {
         _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _predictionModel = new PatternPredictionModel(timeProvider);
+        _predictionModel = new PatternPredictionModel(timeProvider, engineDatabase, validator);
         _genreClassifier = new GameGenreClassifier();
     }
 

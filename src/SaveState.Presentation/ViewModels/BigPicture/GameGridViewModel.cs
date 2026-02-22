@@ -24,6 +24,9 @@ public partial class GameGridViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private GameItemViewModel? selectedGame;
 
+    [ObservableProperty]
+    private bool isFilterEnabled = true;
+
     private int _selectedIndex = -1;
     private const int GamesPerRow = 5;
     private readonly ITimeProvider _timeProvider;
@@ -133,9 +136,59 @@ public partial class GameGridViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>
+    /// Toggles the filter on/off and applies filtering to the game collection.
+    /// </summary>
     [RelayCommand]
     private void ToggleFilter()
     {
+        IsFilterEnabled = !IsFilterEnabled;
+        ApplyFilter();
+    }
+
+    /// <summary>
+    /// Applies the current filter settings to the games collection based on selected collection.
+    /// </summary>
+    private void ApplyFilter()
+    {
+        if (!IsFilterEnabled || SelectedCollection == null || SelectedCollection.Id == "all")
+        {
+            // Show all games when filter is disabled or "All Games" is selected
+            foreach (var game in Games)
+            {
+                game.IsVisible = true;
+            }
+            return;
+        }
+
+        // Apply collection-based filtering
+        foreach (var game in Games)
+        {
+            game.IsVisible = SelectedCollection.Id switch
+            {
+                "recent" => game.LastPlayed > _timeProvider.Now.AddDays(-7),
+                "favorites" => game.Rating >= 4.5,
+                "action" => game.Title.Contains("Action", StringComparison.OrdinalIgnoreCase) ||
+                           game.Title is "Cyberpunk 2077" or "God of War Ragnarök",
+                "rpg" => game.Title.Contains("RPG", StringComparison.OrdinalIgnoreCase) ||
+                        game.Title.Contains("Final Fantasy") ||
+                        game.Title.Contains("Persona") ||
+                        game.Title.Contains("Baldur") ||
+                        game.Title is "Elden Ring" or "Stardew Valley",
+                _ => true
+            };
+        }
+
+        // Update selection after filtering
+        UpdateSelection();
+    }
+
+    /// <summary>
+    /// Called when the selected collection changes to reapply filters.
+    /// </summary>
+    partial void OnSelectedCollectionChanged(CollectionViewModel? value)
+    {
+        ApplyFilter();
     }
 
     public void Dispose()
@@ -175,6 +228,9 @@ public partial class GameItemViewModel : ObservableObject
 
     [ObservableProperty]
     private bool isFocused;
+
+    [ObservableProperty]
+    private bool isVisible = true;
 
     public double SelectionOpacity => IsSelected ? 0.3 : 0.0;
 }

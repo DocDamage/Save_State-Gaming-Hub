@@ -305,7 +305,7 @@ public class GoogleDriveSyncPlugin : IPlugin
             }
 
             // Simulate creating a backup archive
-            var now = _timeProvider?.UtcNow ?? DateTime.UtcNow;
+            var now = _timeProvider?.UtcNow ?? SystemTimeProvider.Instance.UtcNow; // Uses injected ITimeProvider
             var backupName = $"savestate_backup_{now:yyyy-MM-dd_HH-mm-ss}.zip";
 
             _logger?.LogInformation("Creating backup: {BackupName}", backupName);

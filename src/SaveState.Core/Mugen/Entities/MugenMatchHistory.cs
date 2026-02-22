@@ -1,6 +1,7 @@
 namespace SaveState.Core.Mugen.Entities;
 
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 /// <summary>
 /// Represents the history of a MUGEN match result.
@@ -63,7 +64,70 @@ public class MugenMatchHistory : EntityBase
     /// <param name="roundsP2">Rounds won by player 2.</param>
     /// <param name="duration">Match duration.</param>
     /// <param name="mode">Game mode.</param>
+    /// <param name="timeProvider">The time provider for timestamp generation.</param>
     /// <returns>A new MugenMatchHistory instance.</returns>
+    public static MugenMatchHistory Create(
+        Guid p1Id,
+        Guid p2Id,
+        MatchResult result,
+        int roundsP1,
+        int roundsP2,
+        TimeSpan duration,
+        GameMode mode,
+        ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        return new MugenMatchHistory
+        {
+            Id = Guid.NewGuid(),
+            Player1CharacterId = p1Id,
+            Player2CharacterId = p2Id,
+            Result = result,
+            RoundsWonP1 = roundsP1,
+            RoundsWonP2 = roundsP2,
+            MatchDuration = duration,
+            PlayedAt = timeProvider.UtcNow,
+            Mode = mode
+        };
+    }
+
+    /// <summary>
+    /// Creates a new match history record with explicit timestamp.
+    /// </summary>
+    /// <param name="p1Id">Player 1 character ID.</param>
+    /// <param name="p2Id">Player 2 character ID.</param>
+    /// <param name="result">Match result.</param>
+    /// <param name="roundsP1">Rounds won by player 1.</param>
+    /// <param name="roundsP2">Rounds won by player 2.</param>
+    /// <param name="duration">Match duration.</param>
+    /// <param name="mode">Game mode.</param>
+    /// <param name="playedAt">Match timestamp.</param>
+    /// <returns>A new MugenMatchHistory instance.</returns>
+    public static MugenMatchHistory Create(
+        Guid p1Id,
+        Guid p2Id,
+        MatchResult result,
+        int roundsP1,
+        int roundsP2,
+        TimeSpan duration,
+        GameMode mode,
+        DateTime playedAt)
+    {
+        return new MugenMatchHistory
+        {
+            Id = Guid.NewGuid(),
+            Player1CharacterId = p1Id,
+            Player2CharacterId = p2Id,
+            Result = result,
+            RoundsWonP1 = roundsP1,
+            RoundsWonP2 = roundsP2,
+            MatchDuration = duration,
+            PlayedAt = playedAt,
+            Mode = mode
+        };
+    }
+
+    [Obsolete("Use Create(Guid, Guid, MatchResult, int, int, TimeSpan, GameMode, ITimeProvider) or Create(Guid, Guid, MatchResult, int, int, TimeSpan, GameMode, DateTime) instead")]
     public static MugenMatchHistory Create(
         Guid p1Id,
         Guid p2Id,
@@ -82,7 +146,7 @@ public class MugenMatchHistory : EntityBase
             RoundsWonP1 = roundsP1,
             RoundsWonP2 = roundsP2,
             MatchDuration = duration,
-            PlayedAt = DateTime.UtcNow,
+            PlayedAt = SystemTimeProvider.Instance.UtcNow,
             Mode = mode
         };
     }

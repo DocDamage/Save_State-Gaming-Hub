@@ -1,6 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SaveState.Presentation.Models.RetroArch;
+using MediatR;
+using Microsoft.Extensions.Logging;
+using SaveState.Application.RetroArch.Commands;
+using SaveState.Core.RetroArch;
+using SaveState.Presentation.Services;
 using System.Collections.ObjectModel;
 
 namespace SaveState.Presentation.ViewModels.RetroArch;
@@ -10,6 +14,10 @@ namespace SaveState.Presentation.ViewModels.RetroArch;
 /// </summary>
 public partial class RetroArchTabViewModel : ObservableObject
 {
+    private readonly IMediator _mediator;
+    private readonly ILogger<RetroArchTabViewModel> _logger;
+    private readonly INotificationService _notificationService;
+
     [ObservableProperty]
     private ObservableCollection<RetroArchGame> _games = new();
 
@@ -34,6 +42,16 @@ public partial class RetroArchTabViewModel : ObservableObject
     [ObservableProperty]
     private bool _isScanning;
 
+    public RetroArchTabViewModel(
+        IMediator mediator,
+        ILogger<RetroArchTabViewModel> logger,
+        INotificationService notificationService)
+    {
+        _mediator = mediator;
+        _logger = logger;
+        _notificationService = notificationService;
+    }
+
     /// <summary>
     /// Launches a RetroArch game.
     /// </summary>
@@ -41,8 +59,24 @@ public partial class RetroArchTabViewModel : ObservableObject
     private async Task LaunchGameAsync(RetroArchGame? game)
     {
         if (game is null) return;
-        // TODO: Implement launch via mediator
-        await Task.CompletedTask;
+
+        try
+        {
+            var result = await _mediator.Send(new LaunchRetroArchGameCommand(game.Id, game.CoreName ?? string.Empty));
+            if (result.IsSuccess)
+            {
+                _notificationService.ShowSuccess($"Launched {game.Title}", "RetroArch");
+            }
+            else
+            {
+                _notificationService.ShowError(result.Error ?? "Failed to launch game", "Launch Failed");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to launch RetroArch game: {GameTitle}", game.Title);
+            _notificationService.ShowError("Failed to launch game. Please check RetroArch configuration.", "Launch Failed");
+        }
     }
 
     /// <summary>
@@ -51,12 +85,31 @@ public partial class RetroArchTabViewModel : ObservableObject
     [RelayCommand]
     private async Task ScanLibraryAsync()
     {
-        IsScanning = true;
-        ScanStatus = "Scanning...";
-        // TODO: Implement scan via mediator
-        await Task.Delay(1000);
-        IsScanning = false;
-        ScanStatus = "Ready";
+        try
+        {
+            IsScanning = true;
+            ScanStatus = "Scanning...";
+
+            var result = await _mediator.Send(new ScanLibraryCommand());
+            if (result.IsSuccess)
+            {
+                _notificationService.ShowSuccess($"Found {result.Value} new games", "Scan Complete");
+            }
+            else
+            {
+                _notificationService.ShowWarning(result.Error ?? "Scan completed with warnings", "Scan Warning");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to scan RetroArch library");
+            _notificationService.ShowError("Failed to scan library. Please try again.", "Scan Failed");
+        }
+        finally
+        {
+            IsScanning = false;
+            ScanStatus = "Ready";
+        }
     }
 
     /// <summary>
@@ -66,8 +119,24 @@ public partial class RetroArchTabViewModel : ObservableObject
     private async Task InstallCoreAsync(RetroArchCore? core)
     {
         if (core is null) return;
-        // TODO: Implement install via mediator
-        await Task.CompletedTask;
+
+        try
+        {
+            var result = await _mediator.Send(new InstallCoreCommand(core.Name));
+            if (result.IsSuccess)
+            {
+                _notificationService.ShowSuccess($"Installed {core.Name}", "Core Installed");
+            }
+            else
+            {
+                _notificationService.ShowError(result.Error ?? "Failed to install core", "Installation Failed");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to install RetroArch core: {CoreName}", core.Name);
+            _notificationService.ShowError("Failed to install core. Please check your internet connection.", "Installation Failed");
+        }
     }
 
     /// <summary>
@@ -77,8 +146,24 @@ public partial class RetroArchTabViewModel : ObservableObject
     private async Task JoinNetplayAsync(NetplayLobby? lobby)
     {
         if (lobby is null) return;
-        // TODO: Implement join via mediator
-        await Task.CompletedTask;
+
+        try
+        {
+            var result = await _mediator.Send(new JoinNetplayLobbyCommand(lobby.Id));
+            if (result.IsSuccess)
+            {
+                _notificationService.ShowSuccess($"Joined {lobby.HostName}'s lobby", "Netplay");
+            }
+            else
+            {
+                _notificationService.ShowError(result.Error ?? "Failed to join lobby", "Join Failed");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to join Netplay lobby: {LobbyId}", lobby.Id);
+            _notificationService.ShowError("Failed to join lobby. Please try again.", "Join Failed");
+        }
     }
 
     /// <summary>
@@ -87,7 +172,33 @@ public partial class RetroArchTabViewModel : ObservableObject
     [RelayCommand]
     private async Task HostNetplayAsync()
     {
-        // TODO: Implement host dialog via mediator
-        await Task.CompletedTask;
+        try
+        {
+            // For hosting, we need to select a game first
+            var selectedGame = Games.FirstOrDefault();
+            if (selectedGame is null)
+            {
+                _notificationService.ShowWarning("Please select a game first", "No Game Selected");
+                return;
+            }
+
+            var result = await _mediator.Send(new HostNetplayGameCommand(
+                selectedGame.Id,
+                selectedGame.CoreName ?? string.Empty));
+
+            if (result.IsSuccess)
+            {
+                _notificationService.ShowSuccess($"Lobby created: {result.Value}", "Netplay Host");
+            }
+            else
+            {
+                _notificationService.ShowError(result.Error ?? "Failed to host game", "Host Failed");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to host Netplay game");
+            _notificationService.ShowError("Failed to host game. Please try again.", "Host Failed");
+        }
     }
 }

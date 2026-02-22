@@ -1,6 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SaveState.Presentation.Models.RetroArch;
+using MediatR;
+using Microsoft.Extensions.Logging;
+using SaveState.Application.RetroArch.Commands;
+using SaveState.Core.RetroArch;
+using SaveState.Presentation.Services;
 using System.Collections.ObjectModel;
 
 namespace SaveState.Presentation.ViewModels.RetroArch;
@@ -10,11 +14,18 @@ namespace SaveState.Presentation.ViewModels.RetroArch;
 /// </summary>
 public partial class RetroArchCoreManagerViewModel : ObservableObject
 {
+    private readonly IMediator _mediator;
+    private readonly ILogger<RetroArchCoreManagerViewModel> _logger;
+    private readonly INotificationService _notificationService;
+
     [ObservableProperty]
     private ObservableCollection<RetroArchCore> _installedCores = new();
 
     [ObservableProperty]
     private ObservableCollection<RetroArchCore> _availableCores = new();
+
+    [ObservableProperty]
+    private ObservableCollection<RetroArchCore> _filteredCores = new();
 
     [ObservableProperty]
     private RetroArchCore? _selectedCore;
@@ -25,12 +36,38 @@ public partial class RetroArchCoreManagerViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLoading;
 
+    public RetroArchCoreManagerViewModel(
+        IMediator mediator,
+        ILogger<RetroArchCoreManagerViewModel> logger,
+        INotificationService notificationService)
+    {
+        _mediator = mediator;
+        _logger = logger;
+        _notificationService = notificationService;
+    }
+
     /// <summary>
     /// Filters cores when search query changes.
     /// </summary>
     partial void OnSearchQueryChanged(string value)
     {
-        // TODO: Filter cores based on search query
+        FilterCores();
+    }
+
+    private void FilterCores()
+    {
+        if (string.IsNullOrWhiteSpace(SearchQuery))
+        {
+            FilteredCores = new ObservableCollection<RetroArchCore>(AvailableCores);
+            return;
+        }
+
+        var query = SearchQuery.Trim().ToLowerInvariant();
+        var filtered = AvailableCores.Where(c =>
+            c.Name.ToLowerInvariant().Contains(query) ||
+            c.System.ToLowerInvariant().Contains(query)).ToList();
+
+        FilteredCores = new ObservableCollection<RetroArchCore>(filtered);
     }
 
     /// <summary>
@@ -40,10 +77,30 @@ public partial class RetroArchCoreManagerViewModel : ObservableObject
     private async Task InstallCoreAsync(RetroArchCore? core)
     {
         if (core is null) return;
-        IsLoading = true;
-        // TODO: Install core via mediator
-        await Task.Delay(500);
-        IsLoading = false;
+
+        try
+        {
+            IsLoading = true;
+
+            var result = await _mediator.Send(new InstallCoreCommand(core.Name));
+            if (result.IsSuccess)
+            {
+                _notificationService.ShowSuccess($"Installed {core.Name}", "Core Installed");
+            }
+            else
+            {
+                _notificationService.ShowError(result.Error ?? "Failed to install core", "Installation Failed");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to install RetroArch core: {CoreName}", core.Name);
+            _notificationService.ShowError("Failed to install core. Please try again.", "Installation Failed");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     /// <summary>
@@ -52,10 +109,29 @@ public partial class RetroArchCoreManagerViewModel : ObservableObject
     [RelayCommand]
     private async Task UpdateAllCoresAsync()
     {
-        IsLoading = true;
-        // TODO: Update all cores via mediator
-        await Task.Delay(1000);
-        IsLoading = false;
+        try
+        {
+            IsLoading = true;
+
+            var result = await _mediator.Send(new UpdateAllCoresCommand());
+            if (result.IsSuccess)
+            {
+                _notificationService.ShowSuccess("All cores updated to latest versions", "Update Complete");
+            }
+            else
+            {
+                _notificationService.ShowWarning(result.Error ?? "Some cores failed to update", "Update Warning");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update RetroArch cores");
+            _notificationService.ShowError("Failed to update cores. Please try again.", "Update Failed");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     /// <summary>
@@ -65,7 +141,23 @@ public partial class RetroArchCoreManagerViewModel : ObservableObject
     private async Task UninstallCoreAsync(RetroArchCore? core)
     {
         if (core is null) return;
-        // TODO: Uninstall core via mediator
-        await Task.CompletedTask;
+
+        try
+        {
+            var result = await _mediator.Send(new UninstallCoreCommand(core.Name));
+            if (result.IsSuccess)
+            {
+                _notificationService.ShowSuccess($"Uninstalled {core.Name}", "Core Uninstalled");
+            }
+            else
+            {
+                _notificationService.ShowError(result.Error ?? "Failed to uninstall core", "Uninstall Failed");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to uninstall RetroArch core: {CoreName}", core.Name);
+            _notificationService.ShowError("Failed to uninstall core. Please try again.", "Uninstall Failed");
+        }
     }
 }

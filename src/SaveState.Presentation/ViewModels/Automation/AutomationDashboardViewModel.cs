@@ -68,6 +68,7 @@ public partial class AutomationDashboardViewModel : ObservableObject
     private readonly IWorkflowAutomationService _workflowService;
     private readonly IMacroManager _macroManager;
     private readonly ILogger<AutomationDashboardViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public AutomationDashboardViewModel(
         Services.IDialogService dialogService,
@@ -83,6 +84,7 @@ public partial class AutomationDashboardViewModel : ObservableObject
         _workflowService = workflowService;
         _macroManager = macroManager;
         _logger = logger;
+        _timeProvider = timeProvider;
 
         MacroMarketplace = new MacroMarketplaceViewModel(mediator, macroManager, notificationService, timeProvider);
 
@@ -246,7 +248,7 @@ public partial class AutomationDashboardViewModel : ObservableObject
 
     private string GetTimeAgo(DateTime dateTime)
     {
-        var span = DateTime.UtcNow - dateTime;
+        var span = _timeProvider.UtcNow - dateTime;
         if (span.TotalMinutes < 1) return "Just now";
         if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes}m ago";
         if (span.TotalHours < 24) return $"{(int)span.TotalHours}h ago";

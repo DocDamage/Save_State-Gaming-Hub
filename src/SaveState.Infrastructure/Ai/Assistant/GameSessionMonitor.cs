@@ -1,13 +1,13 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using SaveState.Core.AI.Assistant;
+using SaveState.Core.Ai.Assistant;
 using SaveState.Core.Assistant.Services;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using SuggestedDifficulty = SaveState.Core.Assistant.Services.SuggestedDifficulty;
 using System.Collections.Concurrent;
 
-namespace SaveState.Infrastructure.AI.Assistant;
+namespace SaveState.Infrastructure.Ai.Assistant;
 
 /// <summary>
 /// Background service that monitors game sessions in real-time.

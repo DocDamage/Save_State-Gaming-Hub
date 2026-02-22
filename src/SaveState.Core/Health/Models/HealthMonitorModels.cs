@@ -1,3 +1,5 @@
+using SaveState.Core.Common.Services;
+
 namespace SaveState.Core.Health.Models;
 
 /// <summary>
@@ -160,13 +162,16 @@ public record HealthAlert
     /// Creates a new health alert.
     /// </summary>
     public static HealthAlert Create(string type, string message, AlertSeverity severity)
+        => Create(type, message, severity, SystemTimeProvider.Instance.UtcNow);
+
+    public static HealthAlert Create(string type, string message, AlertSeverity severity, DateTime triggeredAt)
     {
         return new HealthAlert
         {
             Id = Guid.NewGuid().ToString("N")[..8],
             Type = type,
             Message = message,
-            TriggeredAt = DateTime.UtcNow,
+            TriggeredAt = triggeredAt,
             IsAcknowledged = false,
             Severity = severity
         };

@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.IO;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Services;
 
 namespace SaveState.Presentation.ViewModels.Library.GameDetail;
@@ -25,6 +26,7 @@ public partial class GameAchievementsTabViewModel : ObservableObject
     private readonly IUserContextService _userContextService;
     private readonly IDialogService _dialogService;
     private readonly ILogger<GameAchievementsTabViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private string _achievementProgressText = "0/0 (0%)";
@@ -135,12 +137,14 @@ public partial class GameAchievementsTabViewModel : ObservableObject
         IMediator mediator,
         IUserContextService userContextService,
         IDialogService dialogService,
-        ILogger<GameAchievementsTabViewModel> logger)
+        ILogger<GameAchievementsTabViewModel> logger,
+        ITimeProvider timeProvider)
     {
         _mediator = mediator;
         _userContextService = userContextService;
         _dialogService = dialogService;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task LoadDataAsync(GameId gameId)
@@ -222,7 +226,7 @@ public partial class GameAchievementsTabViewModel : ObservableObject
 
                 // Add to recent unlocks if unlocked in last 7 days
                 if (achievement.IsUnlocked && achievement.UnlockedAt.HasValue &&
-                    (DateTime.UtcNow - achievement.UnlockedAt.Value).TotalDays <= 7)
+                    (_timeProvider.UtcNow - achievement.UnlockedAt.Value).TotalDays <= 7)
                 {
                     RecentUnlocks.Add(vm);
                 }
@@ -279,9 +283,9 @@ public partial class GameAchievementsTabViewModel : ObservableObject
         };
     }
 
-    private static string FormatDateTime(DateTime dateTime)
+    private string FormatDateTime(DateTime dateTime)
     {
-        var timeSince = DateTime.UtcNow - dateTime;
+        var timeSince = _timeProvider.UtcNow - dateTime;
         if (timeSince.TotalDays < 1)
             return "today";
         else if (timeSince.TotalDays < 2)

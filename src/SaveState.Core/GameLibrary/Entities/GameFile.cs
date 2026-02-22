@@ -35,7 +35,7 @@ public class GameFile : EntityBase, ISoftDelete
         Path = Guard.Against.NullOrWhiteSpace(path, nameof(path));
         FileName = fileName ?? System.IO.Path.GetFileName(path);
         FileSize = fileSize;
-        AddedAt = DateTime.UtcNow;
+        AddedAt = SystemTimeProvider.Instance.UtcNow;
     }
 
     public void UpdatePath(string newPath)

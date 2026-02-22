@@ -62,9 +62,15 @@ public class GameDeal
     public DateTime? DealEnd { get; set; }
 
     /// <summary>
-    /// Whether the deal is active.
+    /// Whether the deal is active at the specified time.
     /// </summary>
-    public bool IsActive => DealEnd == null || DealEnd.Value > SystemTimeProvider.Instance.UtcNow;
+    public bool IsActiveAt(DateTime currentTime) => DealEnd == null || DealEnd.Value > currentTime;
+
+    /// <summary>
+    /// Whether the deal is active (using system time).
+    /// </summary>
+    [Obsolete("Use IsActiveAt(DateTime) instead")]
+    public bool IsActive => IsActiveAt(SystemTimeProvider.Instance.UtcNow);
 
     /// <summary>
     /// Whether this is a historical low price.
@@ -84,7 +90,7 @@ public class GameDeal
     /// <summary>
     /// When the deal was last updated.
     /// </summary>
-    public DateTime LastUpdated { get; set; } = SystemTimeProvider.Instance.UtcNow;
+    public DateTime LastUpdated { get; set; } = DateTime.MinValue;
 
     /// <summary>
     /// Metacritic score if available.
@@ -241,7 +247,7 @@ public class PriceAlert
     /// <summary>
     /// When the alert was created.
     /// </summary>
-    public DateTime CreatedAt { get; set; } = SystemTimeProvider.Instance.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.MinValue;
 
     /// <summary>
     /// When the alert was last triggered.
@@ -254,10 +260,16 @@ public class PriceAlert
     public int MinHoursBetweenAlerts { get; set; } = 24;
 
     /// <summary>
-    /// Checks if enough time has passed since last alert.
+    /// Checks if enough time has passed since last alert at the specified time.
     /// </summary>
-    public bool CanTrigger => !LastTriggeredAt.HasValue ||
-        SystemTimeProvider.Instance.UtcNow >= LastTriggeredAt.Value.AddHours(MinHoursBetweenAlerts);
+    public bool CanTriggerAt(DateTime currentTime) => !LastTriggeredAt.HasValue ||
+        currentTime >= LastTriggeredAt.Value.AddHours(MinHoursBetweenAlerts);
+
+    /// <summary>
+    /// Checks if enough time has passed since last alert (using system time).
+    /// </summary>
+    [Obsolete("Use CanTriggerAt(DateTime) instead")]
+    public bool CanTrigger => CanTriggerAt(SystemTimeProvider.Instance.UtcNow);
 }
 
 /// <summary>

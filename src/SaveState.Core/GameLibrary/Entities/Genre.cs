@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.GameLibrary.Entities;
 
@@ -10,11 +11,27 @@ public class Genre : EntityBase
 
     protected Genre() { } // EF Core
 
+    public Genre(string name, ITimeProvider timeProvider, string? description = null)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        Name = Guard.Against.NullOrWhiteSpace(name, nameof(name));
+        Description = description;
+        CreatedAt = timeProvider.UtcNow;
+    }
+
+    public Genre(string name, DateTime createdAt, string? description = null)
+    {
+        Name = Guard.Against.NullOrWhiteSpace(name, nameof(name));
+        Description = description;
+        CreatedAt = createdAt;
+    }
+
+    [Obsolete("Use constructor with ITimeProvider or DateTime parameter")]
     public Genre(string name, string? description = null)
     {
         Name = Guard.Against.NullOrWhiteSpace(name, nameof(name));
         Description = description;
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 
     public void UpdateDescription(string description)

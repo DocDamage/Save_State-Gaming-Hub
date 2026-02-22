@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
-using SaveState.Core.AI.Assistant;
-using SaveState.Infrastructure.AI.Assistant;
+using SaveState.Core.Ai.Assistant;
+using SaveState.Infrastructure.Ai.Assistant;
 using SaveState.Tests.Infrastructure;
 
 namespace SaveState.Infrastructure.Tests.AI.Assistant;

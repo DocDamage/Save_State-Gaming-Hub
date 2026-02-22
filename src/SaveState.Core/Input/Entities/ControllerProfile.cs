@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 using System.Text.Json;
 
 namespace SaveState.Core.Input.Entities;
@@ -16,6 +17,34 @@ public class ControllerProfile : EntityBase
 
     private ControllerProfile() { }
 
+    public static ControllerProfile Create(string name, ControllerType type, ITimeProvider timeProvider, Guid? gameId = null)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        return new ControllerProfile
+        {
+            Id = Guid.NewGuid(),
+            Name = Guard.Against.NullOrWhiteSpace(name, nameof(name)),
+            Type = type,
+            GameId = gameId,
+            CreatedAt = timeProvider.UtcNow,
+            IsDefault = false
+        };
+    }
+
+    public static ControllerProfile Create(string name, ControllerType type, DateTime createdAt, Guid? gameId = null)
+    {
+        return new ControllerProfile
+        {
+            Id = Guid.NewGuid(),
+            Name = Guard.Against.NullOrWhiteSpace(name, nameof(name)),
+            Type = type,
+            GameId = gameId,
+            CreatedAt = createdAt,
+            IsDefault = false
+        };
+    }
+
+    [Obsolete("Use Create(string, ControllerType, ITimeProvider, Guid?) or Create(string, ControllerType, DateTime, Guid?) instead")]
     public static ControllerProfile Create(string name, ControllerType type, Guid? gameId = null)
     {
         return new ControllerProfile
@@ -24,7 +53,7 @@ public class ControllerProfile : EntityBase
             Name = Guard.Against.NullOrWhiteSpace(name, nameof(name)),
             Type = type,
             GameId = gameId,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = SystemTimeProvider.Instance.UtcNow,
             IsDefault = false
         };
     }
@@ -37,7 +66,21 @@ public class ControllerProfile : EntityBase
 
     public void SetAsDefault() => IsDefault = true;
     public void ClearDefault() => IsDefault = false;
-    public void RecordUsage() => LastUsedAt = DateTime.UtcNow;
+
+    public void RecordUsage(ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        LastUsedAt = timeProvider.UtcNow;
+    }
+
+    public void RecordUsage(DateTime timestamp)
+    {
+        LastUsedAt = timestamp;
+    }
+
+    [Obsolete("Use RecordUsage(ITimeProvider) or RecordUsage(DateTime) instead")]
+    public void RecordUsage() => LastUsedAt = SystemTimeProvider.Instance.UtcNow;
+
     public void Rename(string name) => Name = Guard.Against.NullOrWhiteSpace(name, nameof(name));
     public void SetControllerId(string? controllerId) => ControllerId = controllerId;
 }

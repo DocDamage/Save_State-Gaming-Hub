@@ -96,9 +96,9 @@ public sealed record CollectionFilter(
 public class VirtualCollectionGame
 {
     public Guid CollectionId { get; set; }
-    public VirtualCollection Collection { get; set; } = null!; // EF Core navigation property
+    public VirtualCollection? Collection { get; set; } // Set by EF Core
     public Guid GameId { get; set; }
-    public Game Game { get; set; } = null!; // EF Core navigation property
+    public Game? Game { get; set; } // Set by EF Core
     public int SortOrder { get; set; }
     public DateTime AddedAt { get; set; }
 
@@ -111,6 +111,7 @@ public class VirtualCollectionGame
         {
             CollectionId = collectionId,
             GameId = gameId,
+            // Collection and Game navigation properties are set by EF Core
             SortOrder = sortOrder,
             AddedAt = timeProvider.UtcNow
         };
@@ -123,8 +124,9 @@ public class VirtualCollectionGame
         {
             CollectionId = collectionId,
             GameId = gameId,
+            // Collection and Game navigation properties are set by EF Core
             SortOrder = sortOrder,
-            AddedAt = DateTime.UtcNow
+            AddedAt = SystemTimeProvider.Instance.UtcNow
         };
     }
 }

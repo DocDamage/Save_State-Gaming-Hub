@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Logging;
-using SaveState.Core.AI.Assistant;
+using SaveState.Core.Ai.Assistant;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using System.Collections.Concurrent;
 
-namespace SaveState.Infrastructure.AI.Assistant;
+namespace SaveState.Infrastructure.Ai.Assistant;
 
 /// <summary>
 /// Learns user preferences over time to personalize assistant behavior.

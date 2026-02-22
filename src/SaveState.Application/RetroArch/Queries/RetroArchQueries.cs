@@ -23,3 +23,13 @@ public record GetAvailableCoresQuery : IRequest<Result<IReadOnlyList<RetroArchCo
 /// Query to get RetroArch configuration.
 /// </summary>
 public record GetRetroArchConfigQuery : IRequest<Result<RetroArchConfig>>;
+
+/// <summary>
+/// Query to get available Netplay lobbies.
+/// </summary>
+public record GetNetplayLobbiesQuery : IRequest<Result<IReadOnlyList<NetplayLobby>>>;
+
+/// <summary>
+/// Query to get RetroArch playlists.
+/// </summary>
+public record GetRetroArchPlaylistsQuery : IRequest<Result<IReadOnlyList<RetroArchPlaylist>>>;

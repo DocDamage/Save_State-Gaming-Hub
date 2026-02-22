@@ -78,7 +78,7 @@ public class SharedCollection : EntityBase
             Description = description,
             ShareCode = GenerateShareCode(),
             IsPublic = isPublic,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = SystemTimeProvider.Instance.UtcNow,
             DownloadCount = 0
         };
     }
@@ -125,7 +125,7 @@ public class SharedCollection : EntityBase
             IsPublic = isPublic.Value;
         }
 
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 
     /// <summary>
@@ -168,7 +168,7 @@ public class SharedCollectionItem
     /// <summary>
     /// Gets the shared collection.
     /// </summary>
-    public SharedCollection Collection { get; set; } = null!; // EF Core navigation property
+    public required SharedCollection Collection { get; set; }  // Set by EF Core
 
     /// <summary>
     /// Gets the title of the game in this collection.

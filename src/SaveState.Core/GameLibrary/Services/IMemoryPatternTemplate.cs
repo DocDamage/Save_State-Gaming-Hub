@@ -172,7 +172,7 @@ public sealed class PotentialMatch
     /// <summary>
     /// The current value at this address.
     /// </summary>
-    public object Value { get; set; } = null!; // Set during scanning or updated during validation
+    public required object Value { get; set; }
 
     /// <summary>
     /// The data type of the value (int32, float, double, etc.).

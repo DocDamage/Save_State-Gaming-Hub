@@ -221,9 +221,9 @@ public partial class GameModsTabViewModel : ObservableObject
         return $"{bytes / (1024.0 * 1024.0 * 1024.0):F1} GB";
     }
 
-    private static string FormatDateTime(DateTime dateTime)
+    private string FormatDateTime(DateTime dateTime)
     {
-        var now = DateTime.UtcNow;
+        var now = _timeProvider.UtcNow;
         var diff = now - dateTime;
 
         if (diff.TotalMinutes < 1)

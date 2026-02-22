@@ -775,7 +775,7 @@ internal class TournamentEventServiceOperations : ITournamentEventService
         // Add byes if needed
         while (participants.Count < bracketSize)
         {
-            participants.Add(null!); // Placeholder for bye - filtered out in match creation
+            participants.Add(default!); // Placeholder for bye - filtered out in match creation
         }
 
         var matchNumber = 1;

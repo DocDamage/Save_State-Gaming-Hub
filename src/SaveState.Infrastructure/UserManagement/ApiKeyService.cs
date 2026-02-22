@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Constants;
+using SaveState.Core.Common.Services;
 using SaveState.Core.UserManagement.DTOs;
 using SaveState.Core.UserManagement.Entities;
 using SaveState.Core.UserManagement.Repositories;
@@ -15,15 +16,18 @@ public partial class ApiKeyService : IApiKeyService
 {
     private readonly IApiKeyRepository _apiKeyRepository;
     private readonly IUserRepository _userRepository;
+    private readonly ITimeProvider _timeProvider;
     private readonly ILogger<ApiKeyService> _logger;
 
     public ApiKeyService(
         IApiKeyRepository apiKeyRepository,
         IUserRepository userRepository,
+        ITimeProvider timeProvider,
         ILogger<ApiKeyService> logger)
     {
         _apiKeyRepository = apiKeyRepository;
         _userRepository = userRepository;
+        _timeProvider = timeProvider;
         _logger = logger;
     }
 
@@ -40,7 +44,7 @@ public partial class ApiKeyService : IApiKeyService
                 return Result.Failure<ApiKeyDto>(ErrorMessages.UserNotFound);
             }
 
-            var (apiKey, plainKey) = ApiKey.Create(user, name, description, expiresAt);
+            var (apiKey, plainKey) = ApiKey.Create(user, name, description, _timeProvider, expiresAt);
 
             await _apiKeyRepository.AddAsync(apiKey, ct);
 
@@ -53,7 +57,7 @@ public partial class ApiKeyService : IApiKeyService
                 apiKey.ExpiresAt,
                 apiKey.LastUsedAt,
                 apiKey.IsActive,
-                apiKey.IsExpired());
+                apiKey.IsExpired(_timeProvider));
 
             LogApiKeyCreated(_logger, userId, apiKey.Id, name);
             return Result.Success(dto);
@@ -81,7 +85,7 @@ public partial class ApiKeyService : IApiKeyService
                 ak.ExpiresAt,
                 ak.LastUsedAt,
                 ak.IsActive,
-                ak.IsExpired())).ToList();
+                ak.IsExpired(_timeProvider))).ToList();
 
             LogUserApiKeysRetrieved(_logger, userId, dtos.Count);
             return Result.Success<IReadOnlyList<ApiKeyDto>>(dtos);

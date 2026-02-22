@@ -4,7 +4,7 @@ using SaveState.Core.Assistant.Services;
 using SaveState.Core.Common.Services;
 using SaveState.Infrastructure.Assistant;
 
-namespace SaveState.Infrastructure.AI.EyeTracking;
+namespace SaveState.Infrastructure.Ai.EyeTracking;
 
 /// <summary>
 /// Factory for creating the best available eye-tracking provider.

@@ -96,7 +96,7 @@ public sealed class DiscordRPCPlugin : IPlugin
     private void OnGameLaunched(object? data)
     {
         _currentGameTitle = data?.ToString() ?? "Unknown Game";
-        _sessionStartTime = _timeProvider?.UtcNow ?? DateTime.UtcNow;
+        _sessionStartTime = _timeProvider?.UtcNow ?? SystemTimeProvider.Instance.UtcNow; // Uses injected ITimeProvider
         _achievementCount = 0;
         _totalAchievements = 0;
 

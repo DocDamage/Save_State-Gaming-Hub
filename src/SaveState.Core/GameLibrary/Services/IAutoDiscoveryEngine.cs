@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.GameLibrary.Services;
 
@@ -74,7 +75,7 @@ public sealed class DiscoverySession
     /// <summary>
     /// Gets or sets the timestamp when the session was created.
     /// </summary>
-    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; init; } = SystemTimeProvider.Instance.UtcNow;
 
     /// <summary>
     /// Gets or sets the current discovery pass number.
@@ -408,7 +409,7 @@ public sealed class DiscoveryFeedback
     /// <summary>
     /// Gets or sets when the feedback was submitted.
     /// </summary>
-    public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
+    public DateTime SubmittedAt { get; set; } = SystemTimeProvider.Instance.UtcNow;
 
     /// <summary>
     /// Gets or sets optional feedback notes.

@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.AiGaming.Entities;
 
@@ -24,7 +25,14 @@ public class AiModel : EntityBase
         MaxTokens = Guard.Against.Negative(maxTokens, nameof(maxTokens));
         Temperature = Guard.Against.OutOfRange(temperature, nameof(temperature), 0f, 2f);
         IsActive = true;
-        CreatedAt = DateTime.UtcNow;
+    }
+
+    public static AiModel Create(string name, string provider, string modelId, ITimeProvider timeProvider, int maxTokens = 2048, float temperature = 0.7f)
+    {
+        return new AiModel(name, provider, modelId, maxTokens, temperature)
+        {
+            CreatedAt = timeProvider.UtcNow
+        };
     }
 
     public void UpdateSettings(int? maxTokens = null, float? temperature = null)
@@ -45,9 +53,9 @@ public class AiModel : EntityBase
         Description = Guard.Against.NullOrWhiteSpace(description, nameof(description));
     }
 
-    public void MarkAsUsed()
+    public void MarkAsUsed(ITimeProvider timeProvider)
     {
-        LastUsedAt = DateTime.UtcNow;
+        LastUsedAt = timeProvider.UtcNow;
     }
 
     public void Deactivate()

@@ -96,7 +96,7 @@ public class GameMemorySignature
     /// When this signature was added.
     /// </summary>
     [JsonPropertyName("createdAt")]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
 
     /// <summary>
     /// Version of the game this signature works with (optional).

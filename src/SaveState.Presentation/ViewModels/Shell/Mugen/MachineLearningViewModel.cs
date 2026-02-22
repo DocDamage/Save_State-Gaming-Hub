@@ -252,7 +252,7 @@ public partial class MachineLearningViewModel : MugenSectionViewModelBase
                     Character2.DisplayName,
                     WinnerName,
                     PredictionConfidence,
-                    DateTime.UtcNow
+                    DateTimeOffset.UtcNow.DateTime
                 ));
 
                 if (PredictionHistoryList.Count > 50)

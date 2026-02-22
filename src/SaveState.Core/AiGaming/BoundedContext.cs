@@ -1,6 +1,7 @@
 namespace SaveState.Core.AiGaming;
 
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 /// <summary>
 /// AiGaming Bounded Context - handles AI-assisted gaming features, cheat detection, trainer generation, and memory analysis.
@@ -244,14 +245,14 @@ public class AiModel : EntityBase
 
     private AiModel() { }
 
-    public static AiModel Create(string name, string modelType, string version)
+    public static AiModel Create(string name, string modelType, string version, ITimeProvider timeProvider)
     {
         return new AiModel
         {
             Name = Guard.Against.NullOrWhiteSpace(name, nameof(name)),
             ModelType = Guard.Against.NullOrWhiteSpace(modelType, nameof(modelType)),
             Version = Guard.Against.NullOrWhiteSpace(version, nameof(version)),
-            TrainedAt = DateTime.UtcNow,
+            TrainedAt = timeProvider.UtcNow,
             Parameters = new Dictionary<string, string>()
         };
     }
@@ -289,14 +290,14 @@ public class Trainer : EntityBase
 
     private Trainer() { }
 
-    public static Trainer Create(string name, string targetProcess)
+    public static Trainer Create(string name, string targetProcess, ITimeProvider timeProvider)
     {
         return new Trainer
         {
             Name = Guard.Against.NullOrWhiteSpace(name, nameof(name)),
             TargetProcess = Guard.Against.NullOrWhiteSpace(targetProcess, nameof(targetProcess)),
             Cheats = new List<TrainerCheat>(),
-            GeneratedAt = DateTime.UtcNow
+            GeneratedAt = timeProvider.UtcNow
         };
     }
 }
@@ -321,7 +322,7 @@ public class MemoryScan : EntityBase
 
     private MemoryScan() { }
 
-    public static MemoryScan Create(AiGamingContext.ProcessId processId, string processName, AiGamingContext.MemoryAddress startAddress, AiGamingContext.MemoryAddress endAddress, string scanType)
+    public static MemoryScan Create(AiGamingContext.ProcessId processId, string processName, AiGamingContext.MemoryAddress startAddress, AiGamingContext.MemoryAddress endAddress, string scanType, ITimeProvider timeProvider)
     {
         if (endAddress <= startAddress)
             throw new ArgumentException("End address must be greater than start address");
@@ -334,7 +335,7 @@ public class MemoryScan : EntityBase
             EndAddress = Guard.Against.Null(endAddress, nameof(endAddress)),
             ScanType = Guard.Against.NullOrWhiteSpace(scanType, nameof(scanType)),
             Results = new List<MemoryScanResult>(),
-            ScannedAt = DateTime.UtcNow
+            ScannedAt = timeProvider.UtcNow
         };
     }
 }

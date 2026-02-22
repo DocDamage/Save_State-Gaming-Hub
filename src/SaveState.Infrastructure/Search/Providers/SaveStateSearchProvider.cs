@@ -4,6 +4,7 @@ using SaveState.Core.GameLibrary;
 using SaveState.Core.SaveStates;
 using SaveState.Core.Search.Models;
 using SaveState.Core.Search.Services;
+using SaveState.Core.Common.Services;
 using SaveStateEntity = SaveState.Core.SaveStates.Entities.SaveState;
 
 namespace SaveState.Infrastructure.Search.Providers;
@@ -15,15 +16,18 @@ public sealed class SaveStateSearchProvider : ISearchProvider
 {
     private readonly ISaveStateRepository _saveStateRepository;
     private readonly IGameRepository _gameRepository;
+    private readonly ITimeProvider _timeProvider;
     private readonly ILogger<SaveStateSearchProvider> _logger;
 
     public SaveStateSearchProvider(
         ISaveStateRepository saveStateRepository,
         IGameRepository gameRepository,
+        ITimeProvider timeProvider,
         ILogger<SaveStateSearchProvider> logger)
     {
         _saveStateRepository = saveStateRepository;
         _gameRepository = gameRepository;
+        _timeProvider = timeProvider;
         _logger = logger;
     }
 
@@ -185,7 +189,7 @@ public sealed class SaveStateSearchProvider : ISearchProvider
         return Math.Min(score, 1.0f);
     }
 
-    private static SearchResult CreateSearchResult(SaveStateEntity saveState, string gameTitle, float score)
+    private SearchResult CreateSearchResult(SaveStateEntity saveState, string gameTitle, float score)
     {
         var subtitle = BuildSubtitle(saveState, gameTitle);
 
@@ -207,7 +211,7 @@ public sealed class SaveStateSearchProvider : ISearchProvider
         };
     }
 
-    private static string BuildSubtitle(SaveStateEntity saveState, string gameTitle)
+    private string BuildSubtitle(SaveStateEntity saveState, string gameTitle)
     {
         var parts = new List<string> { gameTitle };
 
@@ -232,9 +236,9 @@ public sealed class SaveStateSearchProvider : ISearchProvider
         return string.Join(" • ", parts);
     }
 
-    private static string GetTimeAgo(DateTime dateTime)
+    private string GetTimeAgo(DateTime dateTime)
     {
-        var span = DateTime.UtcNow - dateTime;
+        var span = _timeProvider.UtcNow - dateTime;
 
         if (span.TotalMinutes < 1)
             return "Just now";

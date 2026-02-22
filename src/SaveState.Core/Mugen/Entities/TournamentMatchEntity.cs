@@ -1,6 +1,7 @@
 namespace SaveState.Core.Mugen.Entities;
 
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 /// <summary>
 /// Represents a match within a MUGEN tournament (Entity for persistence).
@@ -89,14 +90,45 @@ public class TournamentMatchEntity : EntityBase
     /// Marks the match as completed with a winner.
     /// </summary>
     /// <param name="winnerId">The winning character ID.</param>
+    /// <param name="timeProvider">The time provider for timestamp generation.</param>
     /// <param name="notes">Optional notes about the match.</param>
+    public void Complete(Guid winnerId, ITimeProvider timeProvider, string? notes = null)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        if (Status != MatchStatus.InProgress && Status != MatchStatus.Scheduled)
+            throw new InvalidOperationException("Match can only be completed from scheduled or in-progress state.");
+
+        WinnerId = winnerId;
+        CompletedAt = timeProvider.UtcNow;
+        Status = MatchStatus.Completed;
+        Notes = notes;
+    }
+
+    /// <summary>
+    /// Marks the match as completed with a winner and explicit timestamp.
+    /// </summary>
+    /// <param name="winnerId">The winning character ID.</param>
+    /// <param name="completedAt">Completion timestamp.</param>
+    /// <param name="notes">Optional notes about the match.</param>
+    public void Complete(Guid winnerId, DateTime completedAt, string? notes = null)
+    {
+        if (Status != MatchStatus.InProgress && Status != MatchStatus.Scheduled)
+            throw new InvalidOperationException("Match can only be completed from scheduled or in-progress state.");
+
+        WinnerId = winnerId;
+        CompletedAt = completedAt;
+        Status = MatchStatus.Completed;
+        Notes = notes;
+    }
+
+    [Obsolete("Use Complete(Guid, ITimeProvider, string?) or Complete(Guid, DateTime, string?) instead")]
     public void Complete(Guid winnerId, string? notes = null)
     {
         if (Status != MatchStatus.InProgress && Status != MatchStatus.Scheduled)
             throw new InvalidOperationException("Match can only be completed from scheduled or in-progress state.");
 
         WinnerId = winnerId;
-        CompletedAt = DateTime.UtcNow;
+        CompletedAt = SystemTimeProvider.Instance.UtcNow;
         Status = MatchStatus.Completed;
         Notes = notes;
     }

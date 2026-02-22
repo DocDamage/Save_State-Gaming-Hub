@@ -58,7 +58,7 @@ public sealed class GameBackupManagerPlugin : IPlugin
             // Mock Example:
             // var savePath = GetSavePath(gameTitle);
             // if (Directory.Exists(savePath)) {
-            //     var now = _timeProvider?.Now ?? DateTime.Now;
+            //     var now = _timeProvider?.Now ?? SystemTimeProvider.Instance.Now; // Uses injected ITimeProvider
             //     var zipPath = Path.Combine(_backupRoot, $"{gameTitle}_{now:yyyyMMddHHmmss}.zip");
             //     ZipFile.CreateFromDirectory(savePath, zipPath);
             // }

@@ -244,9 +244,9 @@ public partial class GameNotesTabViewModel : ObservableObject
         }
     }
 
-    private static string FormatDateTime(DateTime dateTime)
+    private string FormatDateTime(DateTime dateTime)
     {
-        var now = DateTime.UtcNow;
+        var now = _timeProvider.UtcNow;
         var diff = now - dateTime;
 
         if (diff.TotalMinutes < 1)

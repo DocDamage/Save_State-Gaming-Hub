@@ -77,16 +77,7 @@ public class FriendActivity : EntityBase
         SocialPlatform platform,
         string? details = null)
     {
-        return new FriendActivity
-        {
-            Id = Guid.NewGuid(),
-            FriendId = friendId,
-            Type = type,
-            GameTitle = Guard.Against.NullOrWhiteSpace(gameTitle, nameof(gameTitle)),
-            Platform = platform,
-            Details = details,
-            Timestamp = DateTime.UtcNow
-        };
+        return Create(friendId, type, gameTitle, platform, SystemTimeProvider.Instance, details);
     }
 }
 

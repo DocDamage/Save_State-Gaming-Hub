@@ -3,6 +3,7 @@ using SaveState.Core.Analytics;
 using SaveState.Core.Analytics.Entities;
 using SaveState.Core.Analytics.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Core.UserManagement.Services;
@@ -19,6 +20,7 @@ public class GoalService : IGoalService
     private readonly ISessionTrackingService _sessionTrackingService;
     private readonly IAchievementRepository _achievementRepository;
     private readonly IUserContextService _userContextService;
+    private readonly ITimeProvider _timeProvider;
     private readonly ILogger<GoalService> _logger;
 
     public GoalService(
@@ -26,12 +28,14 @@ public class GoalService : IGoalService
         ISessionTrackingService sessionTrackingService,
         IAchievementRepository achievementRepository,
         IUserContextService userContextService,
+        ITimeProvider timeProvider,
         ILogger<GoalService> logger)
     {
         _goalRepository = goalRepository;
         _sessionTrackingService = sessionTrackingService;
         _achievementRepository = achievementRepository;
         _userContextService = userContextService;
+        _timeProvider = timeProvider;
         _logger = logger;
     }
 
@@ -43,6 +47,7 @@ public class GoalService : IGoalService
                 request.Title,
                 request.Type,
                 request.TargetValue,
+                _timeProvider,
                 request.EndDate,
                 request.SpecificGameId);
 

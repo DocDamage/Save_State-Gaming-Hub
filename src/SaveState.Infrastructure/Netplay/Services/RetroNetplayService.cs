@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Netplay.Models;
 using SaveState.Core.Netplay.Services;
 using Microsoft.Extensions.Logging;
@@ -12,6 +13,7 @@ public class RetroNetplayService : IRetroNetplayService
     private readonly IRollbackNetcodeWrapper _rollbackWrapper;
     private readonly ISpectatorRelayService _spectatorRelay;
     private readonly ILogger<RetroNetplayService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly ConcurrentDictionary<string, NetplaySession> _activeSessions;
     private readonly ConcurrentDictionary<string, MatchmakingTicket> _activeTickets;
 
@@ -19,12 +21,14 @@ public class RetroNetplayService : IRetroNetplayService
         IMatchmakingQueue matchmakingQueue,
         IRollbackNetcodeWrapper rollbackWrapper,
         ISpectatorRelayService spectatorRelay,
-        ILogger<RetroNetplayService> logger)
+        ILogger<RetroNetplayService> logger,
+        ITimeProvider timeProvider)
     {
         _matchmakingQueue = matchmakingQueue;
         _rollbackWrapper = rollbackWrapper;
         _spectatorRelay = spectatorRelay;
         _logger = logger;
+        _timeProvider = timeProvider;
         _activeSessions = new ConcurrentDictionary<string, NetplaySession>();
         _activeTickets = new ConcurrentDictionary<string, MatchmakingTicket>();
     }
@@ -39,7 +43,7 @@ public class RetroNetplayService : IRetroNetplayService
             {
                 TicketId = Guid.NewGuid().ToString("N")[..8],
                 Request = request,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _timeProvider.UtcNow,
                 Status = MatchmakingStatus.Queued,
                 MatchedPeerId = null,
                 MatchedAt = null
@@ -96,7 +100,7 @@ public class RetroNetplayService : IRetroNetplayService
                 SessionId = Guid.NewGuid().ToString("N")[..8],
                 GameId = ticket.Request.GameId,
                 Peers = new List<NetplayPeer>(), // Populated by matchmaking
-                StartedAt = DateTime.UtcNow,
+                StartedAt = _timeProvider.UtcNow,
                 Status = NetplaySessionStatus.Connecting,
                 RollbackConfig = rollbackConfig
             };

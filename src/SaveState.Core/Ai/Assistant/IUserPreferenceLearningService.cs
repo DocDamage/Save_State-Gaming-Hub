@@ -1,6 +1,6 @@
 using SaveState.Core.Common;
 
-namespace SaveState.Core.AI.Assistant;
+namespace SaveState.Core.Ai.Assistant;
 
 /// <summary>
 /// Learns user preferences over time to personalize assistant behavior.

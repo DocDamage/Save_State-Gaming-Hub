@@ -1,17 +1,93 @@
+using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Models.Data;
 using SaveState.Presentation.Services;
 
 namespace SaveState.Presentation.ViewModels.Settings;
 
 /// <summary>
+/// Service for data management operations.
+/// </summary>
+public interface IDataManagementService
+{
+    /// <summary>
+    /// Generates an import preview from a file.
+    /// </summary>
+    Task<Result<ImportPreview>> GenerateImportPreviewAsync(string filePath, CancellationToken ct = default);
+
+    /// <summary>
+    /// Configures auto-backup settings.
+    /// </summary>
+    Task<Result<AutoBackupConfiguration>> ConfigureAutoBackupAsync(AutoBackupConfiguration config, CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets current auto-backup configuration.
+    /// </summary>
+    Task<Result<AutoBackupConfiguration>> GetAutoBackupConfigurationAsync(CancellationToken ct = default);
+}
+
+/// <summary>
+/// Auto-backup configuration settings.
+/// </summary>
+public class AutoBackupConfiguration
+{
+    public bool Enabled { get; set; }
+    public string Interval { get; set; } = "Daily";
+    public int MaxBackups { get; set; } = 7;
+    public string? BackupLocation { get; set; }
+    public bool CompressBackups { get; set; } = true;
+}
+
+/// <summary>
+/// ViewModel for auto-backup configuration dialog.
+/// </summary>
+public class AutoBackupConfigViewModel : ObservableObject
+{
+    private AutoBackupConfiguration _configuration;
+
+    public AutoBackupConfigViewModel(AutoBackupConfiguration configuration)
+    {
+        _configuration = configuration;
+        Enabled = configuration.Enabled;
+        Interval = configuration.Interval;
+        MaxBackups = configuration.MaxBackups;
+        BackupLocation = configuration.BackupLocation;
+        CompressBackups = configuration.CompressBackups;
+    }
+
+    public bool Enabled { get; set; }
+    public string Interval { get; set; } = "Daily";
+    public int MaxBackups { get; set; } = 7;
+    public string? BackupLocation { get; set; }
+    public bool CompressBackups { get; set; } = true;
+
+    public List<string> AvailableIntervals { get; } = new() { "Hourly", "Daily", "Weekly", "Monthly" };
+
+    public AutoBackupConfiguration GetConfiguration()
+    {
+        return new AutoBackupConfiguration
+        {
+            Enabled = Enabled,
+            Interval = Interval,
+            MaxBackups = MaxBackups,
+            BackupLocation = BackupLocation,
+            CompressBackups = CompressBackups
+        };
+    }
+}
+
+/// <summary>
 /// ViewModel for data management operations (export, import, backup).
 /// </summary>
 public partial class DataManagementViewModel : ObservableObject
 {
-    private readonly INotificationService _notificationService;
-    private readonly IDialogService _dialogService;
+    private readonly INotificationService? _notificationService;
+    private readonly IDialogService? _dialogService;
+    private readonly ITimeProvider _timeProvider;
+    private readonly IDataManagementService? _dataManagementService;
 
     [ObservableProperty]
     private ExportOptions _exportOptions = new();
@@ -47,13 +123,12 @@ public partial class DataManagementViewModel : ObservableObject
     private string _statusMessage = string.Empty;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DataManagementViewModel"/> class.
+    /// Design-time constructor for XAML preview.
     /// </summary>
+    [Obsolete("Design-time constructor only. Use the parameterized constructor in production code.")]
     public DataManagementViewModel()
     {
-        // Design-time constructor
-        _notificationService = null!;
-        _dialogService = null!;
+        _timeProvider = new SystemTimeProvider();
         InitializeDefaults();
     }
 
@@ -62,16 +137,20 @@ public partial class DataManagementViewModel : ObservableObject
     /// </summary>
     public DataManagementViewModel(
         INotificationService notificationService,
-        IDialogService dialogService)
+        IDialogService dialogService,
+        ITimeProvider timeProvider,
+        IDataManagementService? dataManagementService = null)
     {
         _notificationService = notificationService;
         _dialogService = dialogService;
+        _timeProvider = timeProvider;
+        _dataManagementService = dataManagementService;
         InitializeDefaults();
     }
 
     private void InitializeDefaults()
     {
-        LastBackupDate = DateTime.Now.AddDays(-3);
+        LastBackupDate = _timeProvider.Now.AddDays(-3);
         BackupLocation = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "SaveStateReborn",
@@ -192,25 +271,40 @@ public partial class DataManagementViewModel : ObservableObject
         {
             StatusMessage = "Generating preview...";
 
-            // TODO: Generate actual preview from file
-            await Task.Delay(500);
-
-            ImportPreview = new ImportPreview
+            if (_dataManagementService is not null)
             {
-                GamesToAdd = 42,
-                GamesToUpdate = 15,
-                SaveStatesToImport = 128,
-                AchievementsToImport = 256,
-                Conflicts = 3,
-                EstimatedDuration = TimeSpan.FromMinutes(2),
-                Warnings = new List<string>
+                var result = await _dataManagementService.GenerateImportPreviewAsync(SelectedImportPath);
+                if (result.IsSuccess && result.Value is not null)
                 {
-                    "Some save states may conflict with existing data",
-                    "Achievement data will be merged with existing records"
+                    ImportPreview = result.Value;
+                    StatusMessage = "Preview ready";
                 }
-            };
-
-            StatusMessage = "Preview ready";
+                else
+                {
+                    StatusMessage = $"Preview failed: {result.Error}";
+                    await _notificationService.ShowErrorAsync($"Failed to generate preview: {result.Error}");
+                }
+            }
+            else
+            {
+                // Fallback to sample data when service is not available
+                await Task.Delay(500);
+                ImportPreview = new ImportPreview
+                {
+                    GamesToAdd = 42,
+                    GamesToUpdate = 15,
+                    SaveStatesToImport = 128,
+                    AchievementsToImport = 256,
+                    Conflicts = 3,
+                    EstimatedDuration = TimeSpan.FromMinutes(2),
+                    Warnings = new List<string>
+                    {
+                        "Some save states may conflict with existing data",
+                        "Achievement data will be merged with existing records"
+                    }
+                };
+                StatusMessage = "Preview ready (sample data)";
+            }
         }
         catch (Exception ex)
         {
@@ -298,7 +392,7 @@ public partial class DataManagementViewModel : ObservableObject
                 await Task.Delay(150);
             }
 
-            LastBackupDate = DateTime.Now;
+            LastBackupDate = _timeProvider.Now;
             StatusMessage = "Backup created successfully!";
             await _notificationService.ShowNotificationAsync(
                 $"Backup created at {BackupLocation}",
@@ -363,10 +457,55 @@ public partial class DataManagementViewModel : ObservableObject
     [RelayCommand]
     private async Task ConfigureAutoBackupAsync()
     {
-        // TODO: Implement auto-backup configuration dialog
-        await _notificationService.ShowNotificationAsync(
-            "Auto-backup configuration coming soon",
-            "Not Implemented");
+        try
+        {
+            AutoBackupConfiguration? currentConfig = null;
+            if (_dataManagementService is not null)
+            {
+                var result = await _dataManagementService.GetAutoBackupConfigurationAsync();
+                if (result.IsSuccess)
+                {
+                    currentConfig = result.Value;
+                }
+            }
+
+            // Show configuration dialog
+            var dialog = new Views.Settings.AutoBackupConfigDialog
+            {
+                DataContext = new AutoBackupConfigViewModel(currentConfig ?? new AutoBackupConfiguration())
+            };
+
+            if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                var result = await dialog.ShowDialog<bool>(desktop.MainWindow!);
+                if (result && _dataManagementService is not null)
+                {
+                    var viewModel = (AutoBackupConfigViewModel)dialog.DataContext;
+                    var config = viewModel.GetConfiguration();
+                    var saveResult = await _dataManagementService.ConfigureAutoBackupAsync(config);
+                    if (saveResult.IsSuccess)
+                    {
+                        await _notificationService.ShowNotificationAsync(
+                            "Auto-backup configuration saved",
+                            "Configuration Updated");
+                    }
+                    else
+                    {
+                        await _notificationService.ShowErrorAsync($"Failed to save configuration: {saveResult.Error}");
+                    }
+                }
+            }
+            else
+            {
+                await _notificationService.ShowNotificationAsync(
+                    "Auto-backup configuration dialog requires desktop environment",
+                    "Not Available");
+            }
+        }
+        catch (Exception ex)
+        {
+            await _notificationService.ShowErrorAsync($"Error configuring auto-backup: {ex.Message}");
+        }
     }
 
     private List<string> GetExportItems()

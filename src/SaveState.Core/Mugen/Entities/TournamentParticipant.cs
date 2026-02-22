@@ -1,6 +1,7 @@
 namespace SaveState.Core.Mugen.Entities;
 
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 /// <summary>
 /// Represents a participant in a MUGEN tournament.
@@ -72,6 +73,8 @@ public class TournamentParticipant : EntityBase
         };
     }
 
+    // Note: TournamentParticipant.Create does not use DateTime, so no changes needed
+
     /// <summary>
     /// Records a win for this participant.
     /// </summary>
@@ -86,13 +89,38 @@ public class TournamentParticipant : EntityBase
     /// <summary>
     /// Eliminates this participant from the tournament.
     /// </summary>
+    /// <param name="timeProvider">The time provider for timestamp generation.</param>
+    public void Eliminate(ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        if (Status != ParticipantStatus.Active)
+            throw new InvalidOperationException("Participant is already eliminated.");
+
+        Status = ParticipantStatus.Eliminated;
+        EliminatedAt = timeProvider.UtcNow;
+    }
+
+    /// <summary>
+    /// Eliminates this participant from the tournament with explicit timestamp.
+    /// </summary>
+    /// <param name="eliminatedAt">Elimination timestamp.</param>
+    public void Eliminate(DateTime eliminatedAt)
+    {
+        if (Status != ParticipantStatus.Active)
+            throw new InvalidOperationException("Participant is already eliminated.");
+
+        Status = ParticipantStatus.Eliminated;
+        EliminatedAt = eliminatedAt;
+    }
+
+    [Obsolete("Use Eliminate(ITimeProvider) or Eliminate(DateTime) instead")]
     public void Eliminate()
     {
         if (Status != ParticipantStatus.Active)
             throw new InvalidOperationException("Participant is already eliminated.");
 
         Status = ParticipantStatus.Eliminated;
-        EliminatedAt = DateTime.UtcNow;
+        EliminatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 
     /// <summary>

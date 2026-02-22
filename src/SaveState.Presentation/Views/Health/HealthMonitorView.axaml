@@ -401,14 +401,27 @@
 
           <!-- Quick Actions -->
           <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+            <!-- Stop Monitoring Button (visible when monitoring) -->
             <Button Grid.Column="0"
-                    Content="{Binding IsMonitoring, Converter={StaticResource BoolToStringConverter}, ConverterParameter='Stop Monitoring|Start Monitoring'}"
-                    Command="{Binding IsMonitoring, Converter={StaticResource BoolToCommandConverter}, ConverterParameter={Binding StopMonitoringCommand}|{Binding StartMonitoringCommand}}"
-                    Background="{Binding IsMonitoring, Converter={StaticResource BoolToObjectConverter}, ConverterParameter=#33F44336|#334CAF50}"
+                    Content="Stop Monitoring"
+                    Command="{Binding StopMonitoringCommand}"
+                    Background="#33F44336"
                     Foreground="White"
                     CornerRadius="8"
                     Padding="16,10"
-                    FontWeight="SemiBold"/>
+                    FontWeight="SemiBold"
+                    IsVisible="{Binding IsMonitoring}"/>
+            
+            <!-- Start Monitoring Button (visible when not monitoring) -->
+            <Button Grid.Column="0"
+                    Content="Start Monitoring"
+                    Command="{Binding StartMonitoringCommand}"
+                    Background="#334CAF50"
+                    Foreground="White"
+                    CornerRadius="8"
+                    Padding="16,10"
+                    FontWeight="SemiBold"
+                    IsVisible="{Binding !IsMonitoring}"/>
             
             <Button Grid.Column="1"
                     Content="Refresh"

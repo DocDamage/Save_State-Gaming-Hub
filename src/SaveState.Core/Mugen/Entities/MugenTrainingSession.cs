@@ -1,6 +1,7 @@
 namespace SaveState.Core.Mugen.Entities;
 
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 /// <summary>
 /// Represents a MUGEN training session.
@@ -85,12 +86,45 @@ public class MugenTrainingSession : EntityBase
     /// <param name="opponentCharacterId">Opponent/dummy character ID.</param>
     /// <param name="userId">User ID conducting the training.</param>
     /// <param name="sessionType">Type of training session.</param>
+    /// <param name="timeProvider">The time provider for timestamp generation.</param>
     /// <returns>A new MugenTrainingSession instance.</returns>
     public static MugenTrainingSession Create(
         Guid characterId,
         Guid opponentCharacterId,
         Guid userId,
-        TrainingSessionType sessionType)
+        TrainingSessionType sessionType,
+        ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        return new MugenTrainingSession
+        {
+            Id = Guid.NewGuid(),
+            CharacterId = characterId,
+            OpponentCharacterId = opponentCharacterId,
+            UserId = userId,
+            SessionType = sessionType,
+            StartedAt = timeProvider.UtcNow,
+            RoundsPracticed = 0,
+            SuccessfulCombos = 0,
+            FailedCombos = 0
+        };
+    }
+
+    /// <summary>
+    /// Creates a new training session with explicit timestamp.
+    /// </summary>
+    /// <param name="characterId">Character being trained ID.</param>
+    /// <param name="opponentCharacterId">Opponent/dummy character ID.</param>
+    /// <param name="userId">User ID conducting the training.</param>
+    /// <param name="sessionType">Type of training session.</param>
+    /// <param name="startedAt">Session start timestamp.</param>
+    /// <returns>A new MugenTrainingSession instance.</returns>
+    public static MugenTrainingSession Create(
+        Guid characterId,
+        Guid opponentCharacterId,
+        Guid userId,
+        TrainingSessionType sessionType,
+        DateTime startedAt)
     {
         return new MugenTrainingSession
         {
@@ -99,11 +133,21 @@ public class MugenTrainingSession : EntityBase
             OpponentCharacterId = opponentCharacterId,
             UserId = userId,
             SessionType = sessionType,
-            StartedAt = DateTime.UtcNow,
+            StartedAt = startedAt,
             RoundsPracticed = 0,
             SuccessfulCombos = 0,
             FailedCombos = 0
         };
+    }
+
+    [Obsolete("Use Create(Guid, Guid, Guid, TrainingSessionType, ITimeProvider) or Create(Guid, Guid, Guid, TrainingSessionType, DateTime) instead")]
+    public static MugenTrainingSession Create(
+        Guid characterId,
+        Guid opponentCharacterId,
+        Guid userId,
+        TrainingSessionType sessionType)
+    {
+        return Create(characterId, opponentCharacterId, userId, sessionType, SystemTimeProvider.Instance);
     }
 
     /// <summary>
@@ -135,14 +179,36 @@ public class MugenTrainingSession : EntityBase
     /// <summary>
     /// Ends the training session.
     /// </summary>
+    /// <param name="timeProvider">The time provider for timestamp generation.</param>
     /// <param name="notes">Optional notes about the session.</param>
-    public void End(string? notes = null)
+    public void End(ITimeProvider timeProvider, string? notes = null)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        if (EndedAt.HasValue)
+            throw new InvalidOperationException("Session is already ended.");
+
+        EndedAt = timeProvider.UtcNow;
+        Notes = notes;
+    }
+
+    /// <summary>
+    /// Ends the training session with explicit timestamp.
+    /// </summary>
+    /// <param name="endedAt">Session end timestamp.</param>
+    /// <param name="notes">Optional notes about the session.</param>
+    public void End(DateTime endedAt, string? notes = null)
     {
         if (EndedAt.HasValue)
             throw new InvalidOperationException("Session is already ended.");
 
-        EndedAt = DateTime.UtcNow;
+        EndedAt = endedAt;
         Notes = notes;
+    }
+
+    [Obsolete("Use End(ITimeProvider, string?) or End(DateTime, string?) instead")]
+    public void End(string? notes = null)
+    {
+        End(SystemTimeProvider.Instance, notes);
     }
 
     /// <summary>

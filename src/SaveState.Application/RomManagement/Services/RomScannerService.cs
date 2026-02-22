@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.RomManagement;
 using SaveState.Core.RomManagement.Entities;
 using SaveState.Core.GameLibrary;
@@ -11,15 +12,18 @@ public class RomScannerService : IRomScannerService
 {
     private readonly IPlatformRepository _platformRepository;
     private readonly IPlatformExtensionRegistry _extensionRegistry;
+    private readonly ITimeProvider _timeProvider;
     private readonly ILogger<RomScannerService> _logger;
 
     public RomScannerService(
         IPlatformRepository platformRepository,
         IPlatformExtensionRegistry extensionRegistry,
+        ITimeProvider timeProvider,
         ILogger<RomScannerService> logger)
     {
         _platformRepository = platformRepository ?? throw new ArgumentNullException(nameof(platformRepository));
         _extensionRegistry = extensionRegistry ?? throw new ArgumentNullException(nameof(extensionRegistry));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -94,7 +98,8 @@ public class RomScannerService : IRomScannerService
                     romTitle,
                     platform.Id,
                     new FilePath(filePath),
-                    fileInfo.Length);
+                    fileInfo.Length,
+                    _timeProvider);
 
                 romFiles.Add(romFile);
                 processedCount++;

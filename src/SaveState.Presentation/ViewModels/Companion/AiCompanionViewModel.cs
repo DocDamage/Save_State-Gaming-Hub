@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.AiCoOp.Models;
 using SaveState.Core.AiCoOp.Services;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Services;
 
 namespace SaveState.Presentation.ViewModels.Companion;
@@ -15,6 +16,7 @@ namespace SaveState.Presentation.ViewModels.Companion;
 public partial class AiCompanionViewModel : ObservableObject
 {
     private readonly IAiCoOpCompanionService _companionService;
+    private readonly ITimeProvider _timeProvider;
     private readonly ILogger<AiCompanionViewModel> _logger;
 
     [ObservableProperty]
@@ -93,9 +95,11 @@ public partial class AiCompanionViewModel : ObservableObject
     /// </summary>
     public AiCompanionViewModel(
         IAiCoOpCompanionService companionService,
+        ITimeProvider timeProvider,
         ILogger<AiCompanionViewModel> logger)
     {
         _companionService = companionService ?? throw new ArgumentNullException(nameof(companionService));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -170,7 +174,7 @@ public partial class AiCompanionViewModel : ObservableObject
                 Id = Guid.NewGuid().ToString(),
                 Sender = "Player",
                 Message = message,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = _timeProvider.UtcNow,
                 IsVoice = false
             };
             ChatMessages.Add(playerMessage);
@@ -185,7 +189,7 @@ public partial class AiCompanionViewModel : ObservableObject
                     Id = Guid.NewGuid().ToString(),
                     Sender = "Companion",
                     Message = result.Value,
-                    Timestamp = DateTime.UtcNow,
+                    Timestamp = _timeProvider.UtcNow,
                     IsVoice = VoiceEnabled
                 };
                 ChatMessages.Add(companionMessage);
@@ -230,7 +234,7 @@ public partial class AiCompanionViewModel : ObservableObject
                     Id = Guid.NewGuid().ToString(),
                     Sender = "Companion",
                     Message = result.Value,
-                    Timestamp = DateTime.UtcNow,
+                    Timestamp = _timeProvider.UtcNow,
                     IsVoice = true
                 };
                 ChatMessages.Add(companionMessage);
@@ -284,7 +288,7 @@ public partial class AiCompanionViewModel : ObservableObject
                     Id = Guid.NewGuid().ToString(),
                     Sender = "Companion",
                     Message = result.Value.VoiceLine ?? result.Value.Description,
-                    Timestamp = DateTime.UtcNow,
+                    Timestamp = _timeProvider.UtcNow,
                     IsVoice = VoiceEnabled
                 };
                 ChatMessages.Add(companionMessage);

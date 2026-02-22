@@ -1,0 +1,77 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Settings"
+        x:Class="SaveState.Presentation.Views.Settings.AutoBackupConfigDialog"
+        x:DataType="vm:AutoBackupConfigViewModel"
+        Title="Auto-Backup Configuration"
+        Width="450"
+        Height="400"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+  <Border Padding="24">
+    <Grid RowDefinitions="Auto,*,Auto" VerticalAlignment="Stretch">
+      <!-- Header -->
+      <TextBlock Grid.Row="0"
+                 Text="Configure Automatic Backups"
+                 FontSize="18"
+                 FontWeight="Bold"
+                 Margin="0,0,0,20"/>
+
+      <!-- Settings -->
+      <StackPanel Grid.Row="1" Spacing="16">
+        <!-- Enable Auto-Backup -->
+        <CheckBox Content="Enable automatic backups"
+                  IsChecked="{Binding Enabled}"/>
+
+        <!-- Backup Interval -->
+        <StackPanel Spacing="4">
+          <TextBlock Text="Backup Interval"
+                     FontWeight="SemiBold"/>
+          <ComboBox ItemsSource="{Binding AvailableIntervals}"
+                    SelectedItem="{Binding Interval}"
+                    HorizontalAlignment="Stretch"
+                    IsEnabled="{Binding Enabled}"/>
+        </StackPanel>
+
+        <!-- Max Backups -->
+        <StackPanel Spacing="4">
+          <TextBlock Text="Maximum Backups to Keep"
+                     FontWeight="SemiBold"/>
+          <NumericUpDown Value="{Binding MaxBackups}"
+                         Minimum="1"
+                         Maximum="100"
+                         HorizontalAlignment="Left"
+                         IsEnabled="{Binding Enabled}"/>
+        </StackPanel>
+
+        <!-- Backup Location -->
+        <StackPanel Spacing="4">
+          <TextBlock Text="Backup Location"
+                     FontWeight="SemiBold"/>
+          <TextBox Text="{Binding BackupLocation}"
+                   Watermark="Leave empty for default location"
+                   IsEnabled="{Binding Enabled}"/>
+        </StackPanel>
+
+        <!-- Compress Backups -->
+        <CheckBox Content="Compress backup files to save space"
+                  IsChecked="{Binding CompressBackups}"
+                  IsEnabled="{Binding Enabled}"/>
+      </StackPanel>
+
+      <!-- Buttons -->
+      <StackPanel Grid.Row="2"
+                  Orientation="Horizontal"
+                  HorizontalAlignment="Right"
+                  Spacing="12"
+                  Margin="0,20,0,0">
+        <Button Content="Cancel"
+                Click="OnCancelClick"/>
+        <Button Content="Save"
+                Classes="accent"
+                Click="OnSaveClick"/>
+      </StackPanel>
+    </Grid>
+  </Border>
+</Window>

@@ -1,6 +1,7 @@
 namespace SaveState.Core.Mugen.Entities;
 
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 /// <summary>
 /// Represents a MUGEN tournament with bracket management and participant tracking.
@@ -52,9 +53,29 @@ public class MugenTournament : EntityBase
     /// </summary>
     /// <param name="name">Tournament name.</param>
     /// <param name="format">Tournament format.</param>
-    /// <param name="createdAt">Optional creation timestamp.</param>
+    /// <param name="timeProvider">The time provider for timestamp generation.</param>
     /// <returns>A new MugenTournament instance.</returns>
-    public static MugenTournament Create(string name, TournamentFormat format, DateTime? createdAt = null)
+    public static MugenTournament Create(string name, TournamentFormat format, ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        return new MugenTournament
+        {
+            Id = Guid.NewGuid(),
+            Name = Guard.Against.NullOrWhiteSpace(name, nameof(name)),
+            Format = format,
+            Status = TournamentStatus.Setup,
+            CreatedAt = timeProvider.UtcNow
+        };
+    }
+
+    /// <summary>
+    /// Creates a new tournament with explicit timestamp.
+    /// </summary>
+    /// <param name="name">Tournament name.</param>
+    /// <param name="format">Tournament format.</param>
+    /// <param name="createdAt">Creation timestamp.</param>
+    /// <returns>A new MugenTournament instance.</returns>
+    public static MugenTournament Create(string name, TournamentFormat format, DateTime createdAt)
     {
         return new MugenTournament
         {
@@ -62,9 +83,11 @@ public class MugenTournament : EntityBase
             Name = Guard.Against.NullOrWhiteSpace(name, nameof(name)),
             Format = format,
             Status = TournamentStatus.Setup,
-            CreatedAt = createdAt ?? DateTime.UtcNow
+            CreatedAt = createdAt
         };
     }
+
+
 
     /// <summary>
     /// Starts the tournament.
@@ -81,16 +104,34 @@ public class MugenTournament : EntityBase
     /// Completes the tournament with a winner.
     /// </summary>
     /// <param name="winnerId">The winning participant ID.</param>
-    /// <param name="completedAt">Optional completion timestamp.</param>
-    public void Complete(Guid winnerId, DateTime? completedAt = null)
+    /// <param name="timeProvider">The time provider for timestamp generation.</param>
+    public void Complete(Guid winnerId, ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        if (Status != TournamentStatus.InProgress)
+            throw new InvalidOperationException("Tournament can only be completed from in-progress state.");
+
+        WinnerId = winnerId;
+        CompletedAt = timeProvider.UtcNow;
+        Status = TournamentStatus.Completed;
+    }
+
+    /// <summary>
+    /// Completes the tournament with a winner and explicit timestamp.
+    /// </summary>
+    /// <param name="winnerId">The winning participant ID.</param>
+    /// <param name="completedAt">Completion timestamp.</param>
+    public void Complete(Guid winnerId, DateTime completedAt)
     {
         if (Status != TournamentStatus.InProgress)
             throw new InvalidOperationException("Tournament can only be completed from in-progress state.");
 
         WinnerId = winnerId;
-        CompletedAt = completedAt ?? DateTime.UtcNow;
+        CompletedAt = completedAt;
         Status = TournamentStatus.Completed;
     }
+
+
 
     /// <summary>
     /// Cancels the tournament.
@@ -106,13 +147,24 @@ public class MugenTournament : EntityBase
     // EF Core and Mock constructor
     public MugenTournament() { }
 
-    public MugenTournament(Guid id, string name, DateTime? createdAt = null)
+    public MugenTournament(Guid id, string name, ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        Id = id;
+        Name = name;
+        Status = TournamentStatus.Setup;
+        CreatedAt = timeProvider.UtcNow;
+    }
+
+    public MugenTournament(Guid id, string name, DateTime createdAt)
     {
         Id = id;
         Name = name;
         Status = TournamentStatus.Setup;
-        CreatedAt = createdAt ?? DateTime.UtcNow;
+        CreatedAt = createdAt;
     }
+
+
 }
 
 /// <summary>

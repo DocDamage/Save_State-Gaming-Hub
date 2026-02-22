@@ -102,17 +102,23 @@ public class LaunchProfile
     /// <summary>
     /// Initializes a new instance of the LaunchProfile class for EF Core.
     /// </summary>
+    [Obsolete("Use Create(ITimeProvider) factory method instead")]
     public LaunchProfile()
     {
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = DateTime.MinValue;
     }
 
     /// <summary>
-    /// Initializes a new instance of the LaunchProfile class with a time provider.
+    /// Creates a new LaunchProfile with the specified time provider.
     /// </summary>
-    public LaunchProfile(ITimeProvider timeProvider)
+    public static LaunchProfile Create(ITimeProvider timeProvider)
     {
-        CreatedAt = timeProvider.UtcNow;
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        return new LaunchProfile
+        {
+            Id = Guid.NewGuid(),
+            CreatedAt = timeProvider.UtcNow
+        };
     }
 
     /// <summary>
@@ -123,14 +129,17 @@ public class LaunchProfile
     /// <summary>
     /// Predefined profile types.
     /// </summary>
-    public static LaunchProfile CreatePerformanceProfile()
+    public static LaunchProfile CreatePerformanceProfile(ITimeProvider timeProvider)
     {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
         return new LaunchProfile
         {
+            Id = Guid.NewGuid(),
             Name = "Maximum Performance",
             Description = "Optimizes system for maximum gaming performance",
             Priority = ProcessPriority.RealTime,
             DisableFullscreenOptimizations = true,
+            CreatedAt = timeProvider.UtcNow,
             PerformanceSettings = new PerformanceSettings
             {
                 EnableMemoryOptimization = true,
@@ -147,13 +156,22 @@ public class LaunchProfile
         };
     }
 
-    public static LaunchProfile CreateBalancedProfile()
+    [Obsolete("Use CreatePerformanceProfile(ITimeProvider) instead")]
+    public static LaunchProfile CreatePerformanceProfile()
     {
+        return CreatePerformanceProfile(SystemTimeProvider.Instance);
+    }
+
+    public static LaunchProfile CreateBalancedProfile(ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
         return new LaunchProfile
         {
+            Id = Guid.NewGuid(),
             Name = "Balanced",
             Description = "Balanced performance with minimal system changes",
             Priority = ProcessPriority.High,
+            CreatedAt = timeProvider.UtcNow,
             PerformanceSettings = new PerformanceSettings
             {
                 EnableMemoryOptimization = true,
@@ -166,13 +184,22 @@ public class LaunchProfile
         };
     }
 
-    public static LaunchProfile CreatePowerSaverProfile()
+    [Obsolete("Use CreateBalancedProfile(ITimeProvider) instead")]
+    public static LaunchProfile CreateBalancedProfile()
     {
+        return CreateBalancedProfile(SystemTimeProvider.Instance);
+    }
+
+    public static LaunchProfile CreatePowerSaverProfile(ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
         return new LaunchProfile
         {
+            Id = Guid.NewGuid(),
             Name = "Power Saver",
             Description = "Optimizes for battery life on laptops",
             Priority = ProcessPriority.AboveNormal,
+            CreatedAt = timeProvider.UtcNow,
             PerformanceSettings = new PerformanceSettings
             {
                 EnableMemoryOptimization = true,
@@ -183,6 +210,12 @@ public class LaunchProfile
             },
             EstimatedPerformanceGain = -10
         };
+    }
+
+    [Obsolete("Use CreatePowerSaverProfile(ITimeProvider) instead")]
+    public static LaunchProfile CreatePowerSaverProfile()
+    {
+        return CreatePowerSaverProfile(SystemTimeProvider.Instance);
     }
 }
 
@@ -304,17 +337,25 @@ public class LaunchSession
     /// <summary>
     /// Initializes a new instance of the LaunchSession class for EF Core.
     /// </summary>
+    [Obsolete("Use Create(ITimeProvider) factory method instead")]
     public LaunchSession()
     {
-        StartedAt = DateTime.UtcNow;
+        StartedAt = DateTime.MinValue;
     }
 
     /// <summary>
-    /// Initializes a new instance of the LaunchSession class with a time provider.
+    /// Creates a new LaunchSession with the specified time provider.
     /// </summary>
-    public LaunchSession(ITimeProvider timeProvider)
+    public static LaunchSession Create(Guid gameId, string gameName, ITimeProvider timeProvider)
     {
-        StartedAt = timeProvider.UtcNow;
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        return new LaunchSession
+        {
+            Id = Guid.NewGuid(),
+            GameId = gameId,
+            GameName = gameName,
+            StartedAt = timeProvider.UtcNow
+        };
     }
 
     /// <summary>

@@ -307,7 +307,7 @@ public class AdvancedThemesPlugin : IPlugin, ITheme
         try
         {
             // In a real implementation, this would save to settings file
-            var preference = new ThemePreference(themeId, _timeProvider?.UtcNow ?? DateTime.UtcNow);
+            var preference = new ThemePreference(themeId, _timeProvider?.UtcNow ?? SystemTimeProvider.Instance.UtcNow); // Uses injected ITimeProvider
             var json = JsonSerializer.Serialize(preference);
 
             // Save to plugin data directory

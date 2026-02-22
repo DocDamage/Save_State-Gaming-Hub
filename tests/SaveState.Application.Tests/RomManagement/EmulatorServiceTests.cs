@@ -214,13 +214,14 @@ public class EmulatorServiceTests
         await _sut.KillEmulatorProcessAsync(romFileId, default);
     }
 
-    private static RomFileEntity CreateTestRomFile(Guid romFileId, Guid platformId)
+    private RomFileEntity CreateTestRomFile(Guid romFileId, Guid platformId)
     {
         var romFile = new RomFileEntity(
             "Test Game",
             platformId,
             new FilePath(@"C:\Games\test.nes"),
-            1024);
+            1024,
+            _mockTimeProvider.Object);
 
         // Set the ID for testing
         typeof(RomFileEntity).GetProperty("Id")?.SetValue(romFile, romFileId);

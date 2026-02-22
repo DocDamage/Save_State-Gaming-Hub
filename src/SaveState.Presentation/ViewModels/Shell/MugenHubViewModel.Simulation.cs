@@ -90,7 +90,7 @@ public partial class MugenHubViewModel
                     BetStatus = $"Bet lost. -{betAmount} credits.";
                 }
 
-                BetHistory.Insert(0, new BetRecord(betCharacter.Id, betName, betAmount, betWon, SpectatorCredits, DateTime.UtcNow));
+                BetHistory.Insert(0, new BetRecord(betCharacter.Id, betName, betAmount, betWon, SpectatorCredits, DateTimeOffset.UtcNow.DateTime));
                 if (BetHistory.Count > 20)
                     BetHistory.RemoveAt(BetHistory.Count - 1);
                 UpdateBetLeaderboard();

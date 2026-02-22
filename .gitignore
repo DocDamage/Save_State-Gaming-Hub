@@ -51,3 +51,12 @@ coverage/
 artifacts/
 *.db.bak
 *.bak
+build_errors*.txt
+build_output.txt
+nul
+
+# Security - never commit keys
+src/all_secret_keys.txt
+*.secret
+*.key
+secrets/

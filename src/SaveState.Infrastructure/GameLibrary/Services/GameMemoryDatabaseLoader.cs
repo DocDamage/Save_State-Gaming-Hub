@@ -162,7 +162,7 @@ public sealed class GameMemoryDatabaseLoader
     {
         _databasePath = databasePath ?? throw new ArgumentNullException(nameof(databasePath));
         _logger = logger;
-        _timeProvider = timeProvider;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
     }
 
     /// <summary>
@@ -181,7 +181,7 @@ public sealed class GameMemoryDatabaseLoader
             // Check cache
             if (!forceReload && _cachedDatabase is not null)
             {
-                var cacheAge = (_timeProvider?.UtcNow ?? DateTime.UtcNow) - _lastLoadTime;
+                var cacheAge = _timeProvider.UtcNow - _lastLoadTime;
                 if (cacheAge < _cacheDuration)
                 {
                     _logger?.LogDebug("Returning cached database (age: {CacheAge}s)", cacheAge.TotalSeconds);
@@ -221,7 +221,7 @@ public sealed class GameMemoryDatabaseLoader
 
             // Update cache
             _cachedDatabase = database;
-            _lastLoadTime = _timeProvider?.UtcNow ?? DateTime.UtcNow;
+            _lastLoadTime = _timeProvider.UtcNow;
 
             _logger?.LogInformation(
                 "Loaded database v{Version} with {GameCount} games (last updated: {LastUpdated})",
@@ -413,6 +413,11 @@ public sealed class GameMemoryDatabaseLoader
         _lastLoadTime = DateTime.MinValue;
         _logger?.LogDebug("Database cache cleared");
     }
+
+    /// <summary>
+    /// Gets the time provider used by this loader.
+    /// </summary>
+    internal ITimeProvider TimeProvider => _timeProvider;
 }
 
 /// <summary>
@@ -434,7 +439,8 @@ public static class GameMemoryDatabaseLoaderExtensions
         {
             var path = databasePath ?? GetDefaultDatabasePath();
             var logger = provider.GetService<ILogger<GameMemoryDatabaseLoader>>();
-            return new GameMemoryDatabaseLoader(path, logger);
+            var timeProvider = provider.GetRequiredService<ITimeProvider>();
+            return new GameMemoryDatabaseLoader(path, logger, timeProvider);
         });
 
         return services;

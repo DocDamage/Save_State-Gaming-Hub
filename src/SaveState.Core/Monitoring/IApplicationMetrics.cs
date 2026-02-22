@@ -2,6 +2,7 @@ namespace SaveState.Core.Monitoring;
 
 using SaveState.Core.Performance.Services;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 /// <summary>
 /// Interface for collecting and tracking application performance metrics.
@@ -57,7 +58,7 @@ public interface IApplicationMetrics
 /// </summary>
 public class MetricsSnapshot
 {
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; set; } = SystemTimeProvider.Instance.UtcNow;
 
     // Performance Metrics
     public TimeSpan AverageResponseTime { get; set; }

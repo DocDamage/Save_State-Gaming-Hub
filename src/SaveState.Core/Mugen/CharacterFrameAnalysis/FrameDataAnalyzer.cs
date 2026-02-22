@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Mugen.CharacterFrameAnalysis;
 
@@ -16,7 +17,7 @@ public class FrameDataAnalyzer
         var frameData = new CharacterFrameData
         {
             CharacterName = characterName,
-            LastUpdated = DateTime.UtcNow
+            LastUpdated = SystemTimeProvider.Instance.UtcNow
         };
 
         var airFilePath = Path.Combine(characterPath, $"{characterName}.air");

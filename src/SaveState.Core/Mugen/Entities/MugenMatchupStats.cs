@@ -1,6 +1,7 @@
 namespace SaveState.Core.Mugen.Entities;
 
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 /// <summary>
 /// Represents matchup statistics between two MUGEN characters.
@@ -73,8 +74,33 @@ public class MugenMatchupStats : EntityBase
     /// </summary>
     /// <param name="character1Id">First character ID.</param>
     /// <param name="character2Id">Second character ID.</param>
+    /// <param name="timeProvider">The time provider for timestamp generation.</param>
     /// <returns>A new MugenMatchupStats instance.</returns>
-    public static MugenMatchupStats Create(Guid character1Id, Guid character2Id)
+    public static MugenMatchupStats Create(Guid character1Id, Guid character2Id, ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        return new MugenMatchupStats
+        {
+            Id = Guid.NewGuid(),
+            Character1Id = character1Id,
+            Character2Id = character2Id,
+            TotalMatches = 0,
+            Character1Wins = 0,
+            Character2Wins = 0,
+            Draws = 0,
+            AverageMatchDuration = TimeSpan.Zero,
+            LastUpdated = timeProvider.UtcNow
+        };
+    }
+
+    /// <summary>
+    /// Creates matchup statistics for two characters with explicit timestamp.
+    /// </summary>
+    /// <param name="character1Id">First character ID.</param>
+    /// <param name="character2Id">Second character ID.</param>
+    /// <param name="createdAt">Creation timestamp.</param>
+    /// <returns>A new MugenMatchupStats instance.</returns>
+    public static MugenMatchupStats Create(Guid character1Id, Guid character2Id, DateTime createdAt)
     {
         return new MugenMatchupStats
         {
@@ -86,8 +112,14 @@ public class MugenMatchupStats : EntityBase
             Character2Wins = 0,
             Draws = 0,
             AverageMatchDuration = TimeSpan.Zero,
-            LastUpdated = DateTime.UtcNow
+            LastUpdated = createdAt
         };
+    }
+
+    [Obsolete("Use Create(Guid, Guid, ITimeProvider) or Create(Guid, Guid, DateTime) instead")]
+    public static MugenMatchupStats Create(Guid character1Id, Guid character2Id)
+    {
+        return Create(character1Id, character2Id, SystemTimeProvider.Instance);
     }
 
     /// <summary>
@@ -96,7 +128,47 @@ public class MugenMatchupStats : EntityBase
     /// <param name="character1Won">True if character 1 won, false if character 2 won.</param>
     /// <param name="wasDraw">True if the match was a draw.</param>
     /// <param name="matchDuration">The duration of the match.</param>
-    public void RecordMatch(bool character1Won, bool wasDraw, TimeSpan matchDuration)
+    /// <param name="timeProvider">The time provider for timestamp generation.</param>
+    public void RecordMatch(bool character1Won, bool wasDraw, TimeSpan matchDuration, ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        TotalMatches++;
+
+        if (wasDraw)
+        {
+            Draws++;
+        }
+        else if (character1Won)
+        {
+            Character1Wins++;
+        }
+        else
+        {
+            Character2Wins++;
+        }
+
+        // Update average duration using running average formula
+        if (TotalMatches == 1)
+        {
+            AverageMatchDuration = matchDuration;
+        }
+        else
+        {
+            var totalDuration = AverageMatchDuration * (TotalMatches - 1) + matchDuration;
+            AverageMatchDuration = totalDuration / TotalMatches;
+        }
+
+        LastUpdated = timeProvider.UtcNow;
+    }
+
+    /// <summary>
+    /// Records a match result and updates the statistics with explicit timestamp.
+    /// </summary>
+    /// <param name="character1Won">True if character 1 won, false if character 2 won.</param>
+    /// <param name="wasDraw">True if the match was a draw.</param>
+    /// <param name="matchDuration">The duration of the match.</param>
+    /// <param name="updatedAt">Update timestamp.</param>
+    public void RecordMatch(bool character1Won, bool wasDraw, TimeSpan matchDuration, DateTime updatedAt)
     {
         TotalMatches++;
 
@@ -124,7 +196,13 @@ public class MugenMatchupStats : EntityBase
             AverageMatchDuration = totalDuration / TotalMatches;
         }
 
-        LastUpdated = DateTime.UtcNow;
+        LastUpdated = updatedAt;
+    }
+
+    [Obsolete("Use RecordMatch(bool, bool, TimeSpan, ITimeProvider) or RecordMatch(bool, bool, TimeSpan, DateTime) instead")]
+    public void RecordMatch(bool character1Won, bool wasDraw, TimeSpan matchDuration)
+    {
+        RecordMatch(character1Won, wasDraw, matchDuration, SystemTimeProvider.Instance);
     }
 
     /// <summary>

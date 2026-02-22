@@ -110,7 +110,7 @@ public partial class BranchOptionViewModel : ObservableObject
 
     public string LastModifiedText => LastModified == default
         ? "Never"
-        : (DateTime.UtcNow - LastModified).TotalDays < 1
+        : (DateTimeOffset.UtcNow - LastModified).TotalDays < 1
             ? $"Today {LastModified:HH:mm}"
             : $"{LastModified:MMM d, yyyy}";
 

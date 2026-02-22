@@ -21,8 +21,9 @@ public class GameSession : EntityBase
     /// <summary>
     /// Gets the duration of this session.
     /// If session is still active, returns time since start.
+    /// Note: For active sessions, use <see cref="GetDuration(ITimeProvider)"/> for testable code.
     /// </summary>
-    public TimeSpan Duration => GetDuration(DateTime.UtcNow);
+    public TimeSpan Duration => GetDuration(SystemTimeProvider.Instance.UtcNow);
 
     /// <summary>
     /// Gets the duration of this session using the provided time provider.
@@ -68,7 +69,7 @@ public class GameSession : EntityBase
         {
             Id = Guid.NewGuid(),
             GameId = gameId,
-            StartedAt = startedAt ?? DateTime.UtcNow
+            StartedAt = startedAt ?? SystemTimeProvider.Instance.UtcNow
         };
     }
 
@@ -118,7 +119,7 @@ public class GameSession : EntityBase
         if (EndedAt.HasValue)
             return; // Already ended
 
-        EndedAt = endedAt ?? DateTime.UtcNow;
+        EndedAt = endedAt ?? SystemTimeProvider.Instance.UtcNow;
         EndReason = reason;
     }
 

@@ -34,11 +34,13 @@ public partial class ApiAuthService : IApiAuthService
             // Generate secure API key
             var keyString = GenerateSecureApiKey();
 
-            // Set expiration to 1 year from now by default
-            var expiresAt = _timeProvider.UtcNow.AddYears(1);
-
             // Create ApiKey entity
-            var apiKey = ApiKey.Create(keyString, appName, scopes, expiresAt);
+            var apiKey = ApiKey.Create(
+                keyString,
+                appName,
+                scopes,
+                _timeProvider,
+                _timeProvider.UtcNow.AddYears(1));
 
             // Save to database
             _dbContext.ExternalApiKeys.Add(apiKey);
@@ -69,14 +71,14 @@ public partial class ApiAuthService : IApiAuthService
             }
 
             // Check expiration
-            if (key.IsExpired())
+            if (key.IsExpired(_timeProvider))
             {
                 LogApiKeyExpired(_logger, key.AppName);
                 return Result.Failure<ApiKeyInfo>("API key has expired");
             }
 
             // Update last used timestamp
-            key.UpdateLastUsed();
+            key.UpdateLastUsed(_timeProvider);
             await _dbContext.SaveChangesAsync(ct);
 
             // Map to DTO

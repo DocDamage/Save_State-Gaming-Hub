@@ -178,14 +178,14 @@ public partial class AdvancedAnalyticsViewModel : ObservableObject
                 Description: $"You play most often on {topDay.Key}",
                 Percentage: dayPercentage,
                 AverageDuration: topDay.Value,
-                DiscoveredAt: DateTime.UtcNow));
+                DiscoveredAt: _timeProvider.UtcNow));
 
             PlayPatterns.Add(new PlayPatternInsight(
                 PatternName: "Peak Hour",
                 Description: $"Peak gaming hour is around {topHour.Key:00}:00",
                 Percentage: 100, // show as a highlight
                 AverageDuration: topHour.Value,
-                DiscoveredAt: DateTime.UtcNow));
+                DiscoveredAt: _timeProvider.UtcNow));
         }
         catch (Exception ex)
         {

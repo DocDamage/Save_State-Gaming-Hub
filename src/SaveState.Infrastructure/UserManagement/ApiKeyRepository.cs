@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SaveState.Core.Common.Services;
 using SaveState.Core.UserManagement.Entities;
 using SaveState.Core.UserManagement.Repositories;
 using SaveState.Infrastructure.Persistence;
@@ -12,15 +13,18 @@ namespace SaveState.Infrastructure.UserManagement;
 public class ApiKeyRepository : IApiKeyRepository
 {
     private readonly SaveStateDbContext _context;
+    private readonly ITimeProvider _timeProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ApiKeyRepository"/> class.
     /// </summary>
     /// <param name="context">The database context for data access operations.</param>
+    /// <param name="timeProvider">The time provider for date/time operations.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="context"/> is null.</exception>
-    public ApiKeyRepository(SaveStateDbContext context)
+    public ApiKeyRepository(SaveStateDbContext context, ITimeProvider timeProvider)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -136,13 +140,13 @@ public class ApiKeyRepository : IApiKeyRepository
                             .ThenInclude(rp => rp.Permission)
             .FirstOrDefaultAsync(ak => ak.KeyPrefix == prefix && ak.IsActive, ct);
 
-        if (apiKeyEntity == null || !apiKeyEntity.ValidateKey(apiKey))
+        if (apiKeyEntity == null || !apiKeyEntity.ValidateKey(apiKey, _timeProvider))
         {
             return null;
         }
 
         // Update last used timestamp
-        apiKeyEntity.UpdateLastUsed();
+        apiKeyEntity.UpdateLastUsed(_timeProvider);
         _context.Set<ApiKey>().Update(apiKeyEntity);
         await _context.SaveChangesAsync(ct);
 

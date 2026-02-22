@@ -55,7 +55,7 @@ public class TournamentEvent : EntityBase
     /// <summary>
     /// When the tournament was created.
     /// </summary>
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
     
     /// <summary>
     /// When the tournament starts.
@@ -213,7 +213,7 @@ public class TournamentParticipant : EntityBase
     /// <summary>
     /// Registration timestamp.
     /// </summary>
-    public DateTime RegisteredAt { get; set; } = DateTime.UtcNow;
+    public DateTime RegisteredAt { get; set; }
     
     /// <summary>
     /// Whether participant is checked in.

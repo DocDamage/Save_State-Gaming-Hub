@@ -95,12 +95,12 @@ public class ComboEntry : EntityBase
     /// <summary>
     /// When the combo was discovered/created.
     /// </summary>
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
     
     /// <summary>
     /// When the combo was last updated.
     /// </summary>
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; }
     
     /// <summary>
     /// Whether this is a community submission pending approval.

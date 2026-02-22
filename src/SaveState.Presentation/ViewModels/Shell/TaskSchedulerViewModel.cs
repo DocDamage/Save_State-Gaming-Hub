@@ -7,6 +7,7 @@ using SaveState.Application.Automation.Commands;
 using SaveState.Core.Automation.Services;
 using SaveState.Core.Automation.Services.DTOs;
 using SaveState.Core.Common.Enums;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Services;
 
 namespace SaveState.Presentation.ViewModels.Shell;
@@ -22,6 +23,7 @@ public partial class TaskSchedulerViewModel : ObservableObject
     private readonly INotificationService _notificationService;
     private readonly SaveState.Application.CloudServices.Services.IBackupService _backupService;
     private readonly ILogger<TaskSchedulerViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private bool _isLoading;
@@ -80,7 +82,8 @@ public partial class TaskSchedulerViewModel : ObservableObject
         IWorkflowAutomationService workflowService,
         INotificationService notificationService,
         SaveState.Application.CloudServices.Services.IBackupService backupService,
-        ILogger<TaskSchedulerViewModel> logger)
+        ILogger<TaskSchedulerViewModel> logger,
+        ITimeProvider timeProvider)
     {
         _mediator = mediator;
         _backupScheduler = backupScheduler;
@@ -88,6 +91,7 @@ public partial class TaskSchedulerViewModel : ObservableObject
         _notificationService = notificationService;
         _backupService = backupService;
         _logger = logger;
+        _timeProvider = timeProvider;
 
         Schedules = new ObservableCollection<Workflow>();
         BackupHistory = new ObservableCollection<BackupResult>();
@@ -172,7 +176,7 @@ public partial class TaskSchedulerViewModel : ObservableObject
                 SelectedFrequency == BackupFrequency.Weekly
                     ? new[] { DayOfWeek.Sunday }
                     : null,
-                DateTime.Today,
+                _timeProvider.Today,
                 null,
                 new BackupOptions(
                     IncludeSaveStates,

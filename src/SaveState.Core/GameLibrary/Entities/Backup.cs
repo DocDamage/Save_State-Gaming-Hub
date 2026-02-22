@@ -41,7 +41,7 @@ public class Backup : EntityBase, IAggregateRoot, ISoftDelete
         FilePath = Guard.Against.Null(filePath, nameof(filePath));
         FileSize = Guard.Against.Negative(fileSize, nameof(fileSize));
         Type = type;
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 
     public void UpdateDescription(string description)
@@ -66,7 +66,7 @@ public class Backup : EntityBase, IAggregateRoot, ISoftDelete
             return;
 
         IsDeleted = true;
-        DeletedAt = DateTime.UtcNow;
+        DeletedAt = SystemTimeProvider.Instance.UtcNow;
     }
 }
 

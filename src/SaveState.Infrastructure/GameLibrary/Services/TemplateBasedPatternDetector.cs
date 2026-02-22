@@ -200,7 +200,7 @@ public sealed class TemplateBasedPatternDetector : ITemplateBasedPatternDetector
                     OverallConfidence = 0,
                     Strategy = DetectionStrategy.UserTriggered,
                     DetectionTime = stopwatch.Elapsed,
-                    DetectedAt = DateTime.UtcNow
+                    DetectedAt = _timeProvider.UtcNow
                 });
             }
 
@@ -582,7 +582,7 @@ public sealed class TemplateBasedPatternDetector : ITemplateBasedPatternDetector
             OverallConfidence = combinedMatches.Count > 0 ? combinedMatches.Average(m => m.Confidence) : 0,
             Strategy = DetectionStrategy.Hybrid,
             DetectionTime = results.Aggregate(TimeSpan.Zero, (acc, r) => acc + r.DetectionTime),
-            DetectedAt = DateTime.UtcNow
+            DetectedAt = _timeProvider.UtcNow
         });
     }
 

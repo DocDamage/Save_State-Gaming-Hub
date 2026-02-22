@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Automation.Studio;
 
@@ -196,11 +197,16 @@ public sealed class WorkflowExecutionStartedEventArgs : EventArgs
     public DateTime StartedAt { get; }
 
     public WorkflowExecutionStartedEventArgs(string executionId, string workflowId, TriggerType triggerType)
+        : this(executionId, workflowId, triggerType, SystemTimeProvider.Instance.UtcNow)
+    {
+    }
+
+    public WorkflowExecutionStartedEventArgs(string executionId, string workflowId, TriggerType triggerType, DateTime startedAt)
     {
         ExecutionId = executionId;
         WorkflowId = workflowId;
         TriggerType = triggerType;
-        StartedAt = DateTime.UtcNow;
+        StartedAt = startedAt;
     }
 }
 
@@ -215,11 +221,16 @@ public sealed class ActionExecutionStartedEventArgs : EventArgs
     public DateTime StartedAt { get; }
 
     public ActionExecutionStartedEventArgs(string executionId, string actionId, ActionType type)
+        : this(executionId, actionId, type, SystemTimeProvider.Instance.UtcNow)
+    {
+    }
+
+    public ActionExecutionStartedEventArgs(string executionId, string actionId, ActionType type, DateTime startedAt)
     {
         ExecutionId = executionId;
         ActionId = actionId;
         Type = type;
-        StartedAt = DateTime.UtcNow;
+        StartedAt = startedAt;
     }
 }
 
@@ -236,12 +247,17 @@ public sealed class ActionExecutionCompletedEventArgs : EventArgs
     public DateTime CompletedAt { get; }
 
     public ActionExecutionCompletedEventArgs(string executionId, string actionId, ActionType type, bool success, TimeSpan duration)
+        : this(executionId, actionId, type, success, duration, SystemTimeProvider.Instance.UtcNow)
+    {
+    }
+
+    public ActionExecutionCompletedEventArgs(string executionId, string actionId, ActionType type, bool success, TimeSpan duration, DateTime completedAt)
     {
         ExecutionId = executionId;
         ActionId = actionId;
         Type = type;
         Success = success;
         Duration = duration;
-        CompletedAt = DateTime.UtcNow;
+        CompletedAt = completedAt;
     }
 }

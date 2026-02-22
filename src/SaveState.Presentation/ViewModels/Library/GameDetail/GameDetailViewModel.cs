@@ -140,7 +140,7 @@ public partial class GameDetailViewModel : ObservableObject
         // Initialize tab view models with dependencies
         OverviewTab = new GameOverviewTabViewModel(_mediator, _userContextService, _aiOrchestrator, _dialogService, _navigationService, _gameContextService, loggerFactory.CreateLogger<GameOverviewTabViewModel>(), timeProvider);
         SaveStatesTab = new GameSaveStatesTabViewModel(_mediator, _dialogService, _notificationService, loggerFactory.CreateLogger<GameSaveStatesTabViewModel>(), _timeProvider);
-        AchievementsTab = new GameAchievementsTabViewModel(_mediator, _userContextService, _dialogService, loggerFactory.CreateLogger<GameAchievementsTabViewModel>());
+        AchievementsTab = new GameAchievementsTabViewModel(_mediator, _userContextService, _dialogService, loggerFactory.CreateLogger<GameAchievementsTabViewModel>(), timeProvider);
         SessionsTab = new GameSessionsTabViewModel(_mediator, _dialogService, loggerFactory.CreateLogger<GameSessionsTabViewModel>(), _timeProvider);
         NotesTab = new GameNotesTabViewModel(_mediator, _userContextService, _dialogService, clipboardService, _notificationService, loggerFactory.CreateLogger<GameNotesTabViewModel>(), timeProvider);
         ModsTab = new GameModsTabViewModel(_mediator, _modService, _notificationService, _dialogService, loggerFactory.CreateLogger<GameModsTabViewModel>(), timeProvider);
@@ -150,7 +150,8 @@ public partial class GameDetailViewModel : ObservableObject
             Locator.Current.GetService<SaveState.Core.Sync.ISyncService>()!,
             clipboardService,
             Locator.Current.GetService<IImageAnalysisService>(),
-            loggerFactory.CreateLogger<GameMediaTabViewModel>());
+            loggerFactory.CreateLogger<GameMediaTabViewModel>(),
+            timeProvider);
         PerformanceTab = new GamePerformanceTabViewModel(_mediator, Locator.Current.GetService<IPerformanceMonitor>()!, loggerFactory.CreateLogger<GamePerformanceTabViewModel>(), timeProvider);
 
         InitializeTabs();

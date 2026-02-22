@@ -132,7 +132,7 @@ public class AudioProfile : EntityBase
     public Guid? GameId { get; private set; }
     public string Name { get; private set; } = string.Empty;
     public bool IsDefault { get; private set; }
-    public AudioSettings Settings { get; set; } = null!; // Set via Create factory method
+    public required AudioSettings Settings { get; set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? LastAppliedAt { get; private set; }
 

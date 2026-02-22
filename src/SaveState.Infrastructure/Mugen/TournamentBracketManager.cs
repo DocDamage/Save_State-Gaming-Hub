@@ -1,5 +1,6 @@
 namespace SaveState.Infrastructure.Mugen;
 
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Entities;
 
 /// <summary>
@@ -82,8 +83,9 @@ public class TournamentBracketManager
         }
         else if (isLastMatch(tournament, completedMatch))
         {
-            // Tournament completed
-            tournament.Complete(completedMatch.WinnerId.Value);
+            // Tournament completed - requires ITimeProvider from caller
+            // For now, use SystemTimeProvider as a fallback since this is a static method
+            tournament.Complete(completedMatch.WinnerId.Value, SystemTimeProvider.Instance);
         }
     }
 

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SaveState.Core.Assistant.Services;
 using SaveState.Core.Common.Services;
-using SaveState.Infrastructure.AI.EyeTracking;
+using SaveState.Infrastructure.Ai.EyeTracking;
 using SaveState.Infrastructure.Assistant;
 using SaveState.Tests.Infrastructure;
 

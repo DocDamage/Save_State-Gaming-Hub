@@ -301,13 +301,14 @@ public class RomValidationServiceTests
         capturedContent.Should().Contain("reports");
     }
 
-    private static RomFile CreateTestRomFile(Guid? id = null, string fileName = "test.nes")
+    private RomFile CreateTestRomFile(Guid? id = null, string fileName = "test.nes")
     {
         var romFile = new RomFile(
             "Test ROM",
             Guid.NewGuid(),
             new FilePath($@"C:\Roms\{fileName}"),
-            4096);
+            4096,
+            _mockTimeProvider.Object);
 
         if (id.HasValue)
         {

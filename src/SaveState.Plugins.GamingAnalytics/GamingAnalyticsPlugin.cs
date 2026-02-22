@@ -557,7 +557,7 @@ public class GamingAnalyticsPlugin : IPlugin
             _ => 30
         };
 
-        var now = _timeProvider?.UtcNow ?? DateTime.UtcNow;
+        var now = _timeProvider?.UtcNow ?? SystemTimeProvider.Instance.UtcNow; // Uses injected ITimeProvider
         var startDate = now.AddDays(-days);
         var periodSessions = _sessions.Where(s => s.StartTime >= startDate);
 
@@ -618,7 +618,7 @@ public class GamingAnalyticsPlugin : IPlugin
             var data = new AnalyticsData
             {
                 Sessions = _sessions.ToList(),
-                LastUpdated = _timeProvider?.UtcNow ?? DateTime.UtcNow
+                LastUpdated = _timeProvider?.UtcNow ?? SystemTimeProvider.Instance.UtcNow // Uses injected ITimeProvider
             };
 
             var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });

@@ -1,10 +1,10 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using SaveState.Core.AI.Assistant;
+using SaveState.Core.Ai.Assistant;
 using SaveState.Core.Assistant.Services;
 using SaveState.Core.Common;
-using SaveState.Infrastructure.AI.Assistant;
+using SaveState.Infrastructure.Ai.Assistant;
 using SaveState.Tests.Infrastructure;
 
 namespace SaveState.Infrastructure.Tests.AI.Assistant;

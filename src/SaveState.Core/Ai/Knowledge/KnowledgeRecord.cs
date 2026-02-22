@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Ai.Knowledge;
 
@@ -21,8 +22,15 @@ public class KnowledgeRecord : EntityBase
         Embedding = Guard.Against.Null(embedding, nameof(embedding));
         Content = Guard.Against.NullOrWhiteSpace(content, nameof(content));
         Metadata = metadata;
-        IndexedAt = DateTime.UtcNow;
         RelevanceScore = 1.0f;
+    }
+
+    public static KnowledgeRecord Create(string id, float[] embedding, string content, ITimeProvider timeProvider, string? metadata = null)
+    {
+        return new KnowledgeRecord(id, embedding, content, metadata)
+        {
+            IndexedAt = timeProvider.UtcNow
+        };
     }
 
     public void UpdateEmbedding(float[] newEmbedding)
@@ -40,9 +48,9 @@ public class KnowledgeRecord : EntityBase
         Metadata = newMetadata;
     }
 
-    public void RecordAccess()
+    public void RecordAccess(ITimeProvider timeProvider)
     {
-        LastAccessedAt = DateTime.UtcNow;
+        LastAccessedAt = timeProvider.UtcNow;
         AccessCount++;
     }
 

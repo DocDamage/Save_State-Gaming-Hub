@@ -1,6 +1,7 @@
 namespace SaveState.Core.GameLibrary.Entities;
 
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 
 /// <summary>
@@ -76,11 +77,12 @@ public class GameNote : EntityBase
         UserId userId,
         string title,
         string content,
+        ITimeProvider timeProvider,
         string? category = null,
-        IEnumerable<string>? tags = null,
-        DateTime? createdAt = null)
+        IEnumerable<string>? tags = null)
     {
-        var timestamp = createdAt ?? DateTime.UtcNow;
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        var timestamp = timeProvider.UtcNow;
         var note = new GameNote
         {
             Id = Guid.NewGuid(),
@@ -99,23 +101,81 @@ public class GameNote : EntityBase
     }
 
     /// <summary>
+    /// Creates a new game note with explicit timestamp.
+    /// </summary>
+    public static GameNote Create(
+        GameId gameId,
+        UserId userId,
+        string title,
+        string content,
+        DateTime createdAt,
+        string? category = null,
+        IEnumerable<string>? tags = null)
+    {
+        var note = new GameNote
+        {
+            Id = Guid.NewGuid(),
+            GameId = gameId,
+            UserId = userId,
+            Title = title,
+            Content = content,
+            Category = category,
+            Tags = tags?.ToList() ?? new List<string>(),
+            IsPinned = false,
+            CreatedAt = createdAt,
+            UpdatedAt = createdAt
+        };
+
+        return note;
+    }
+
+
+
+    /// <summary>
     /// Updates the note content and metadata.
     /// </summary>
-    public void Update(string title, string content, string? category = null, IEnumerable<string>? tags = null, DateTime? updatedAt = null)
+    public void Update(string title, string content, ITimeProvider timeProvider, string? category = null, IEnumerable<string>? tags = null)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        Title = title;
+        Content = content;
+        Category = category;
+        Tags = tags?.ToList() ?? new List<string>();
+        UpdatedAt = timeProvider.UtcNow;
+    }
+
+    /// <summary>
+    /// Updates the note content and metadata with explicit timestamp.
+    /// </summary>
+    public void Update(string title, string content, DateTime updatedAt, string? category = null, IEnumerable<string>? tags = null)
     {
         Title = title;
         Content = content;
         Category = category;
         Tags = tags?.ToList() ?? new List<string>();
-        UpdatedAt = updatedAt ?? DateTime.UtcNow;
+        UpdatedAt = updatedAt;
     }
+
+
 
     /// <summary>
     /// Toggles the pinned state of the note.
     /// </summary>
-    public void TogglePin(DateTime? updatedAt = null)
+    public void TogglePin(ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        IsPinned = !IsPinned;
+        UpdatedAt = timeProvider.UtcNow;
+    }
+
+    /// <summary>
+    /// Toggles the pinned state of the note with explicit timestamp.
+    /// </summary>
+    public void TogglePin(DateTime updatedAt)
     {
         IsPinned = !IsPinned;
-        UpdatedAt = updatedAt ?? DateTime.UtcNow;
+        UpdatedAt = updatedAt;
     }
+
+
 }

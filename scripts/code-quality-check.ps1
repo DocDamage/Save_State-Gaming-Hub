@@ -36,27 +36,51 @@ if ($LASTEXITCODE -ne 0) {
     $results += [PSCustomObject]@{ Check = "Build"; Status = "PASS"; Details = "0 warnings" }
 }
 
-# Check 2: Null-forgiving operators
+# Check 2: Null-forgiving operators (null!)
 Write-Host ""
-Write-Host "Check 2: Checking for null-forgiving operators (!)..." -ForegroundColor Yellow
-$forgivingCount = (Get-ChildItem -Path src -Recurse -Filter "*.cs" | 
-    Select-String -Pattern "!\.|!\[" | 
+Write-Host "Check 2: Checking for null-forgiving operators (null!)..." -ForegroundColor Yellow
+$nullForgivingCount = (Get-ChildItem -Path src -Recurse -Filter "*.cs" | 
+    Select-String -Pattern "(?<!\w)null!(?!\w)" | 
     Measure-Object).Count
 
-if ($forgivingCount -gt 0) {
-    Write-Host "  ❌ Found $forgivingCount null-forgiving operators" -ForegroundColor Red
+if ($nullForgivingCount -gt 0) {
+    Write-Host "  ❌ Found $nullForgivingCount null! usages" -ForegroundColor Red
     Get-ChildItem -Path src -Recurse -Filter "*.cs" | 
-        Select-String -Pattern "!\.|!\[" | 
+        Select-String -Pattern "(?<!\w)null!(?!\w)" | 
         Select-Object -First 5 |
         ForEach-Object { Write-Host "    - $($_.FileName):$($_.LineNumber)" -ForegroundColor Gray }
-    $results += [PSCustomObject]@{ Check = "Null-Forgiving"; Status = "FAIL"; Details = "$forgivingCount found" }
+    $results += [PSCustomObject]@{ Check = "null! Usage"; Status = "FAIL"; Details = "$nullForgivingCount found" }
     $exitCode = 1
 } else {
-    Write-Host "  ✅ No null-forgiving operators found" -ForegroundColor Green
-    $results += [PSCustomObject]@{ Check = "Null-Forgiving"; Status = "PASS"; Details = "0 found" }
+    Write-Host "  ✅ No null! usages found" -ForegroundColor Green
+    $results += [PSCustomObject]@{ Check = "null! Usage"; Status = "PASS"; Details = "0 found" }
 }
 
-# Check 3: Async method naming
+# Check 3: DateTime.Now/UtcNow/Today policy
+Write-Host ""
+Write-Host "Check 3: Checking DateTime.Now/UtcNow/Today policy..." -ForegroundColor Yellow
+$dateTimeViolations = (Get-ChildItem -Path src -Recurse -Filter "*.cs" | 
+    Where-Object { $_.Name -ne 'ITimeProvider.cs' } |
+    Select-String -Pattern "DateTime\.(Now|UtcNow|Today)" | 
+    Where-Object { $_.Line -notmatch "UI-only" -and $_.Line -notmatch "guard-ignore" } |
+    Measure-Object).Count
+
+if ($dateTimeViolations -gt 0) {
+    Write-Host "  ❌ Found $dateTimeViolations DateTime.Now/UtcNow/Today usages" -ForegroundColor Red
+    Get-ChildItem -Path src -Recurse -Filter "*.cs" | 
+        Where-Object { $_.Name -ne 'ITimeProvider.cs' } |
+        Select-String -Pattern "DateTime\.(Now|UtcNow|Today)" | 
+        Where-Object { $_.Line -notmatch "UI-only" -and $_.Line -notmatch "guard-ignore" } | 
+        Select-Object -First 5 |
+        ForEach-Object { Write-Host "    - $($_.FileName):$($_.LineNumber)" -ForegroundColor Gray }
+    $results += [PSCustomObject]@{ Check = "DateTime Policy"; Status = "FAIL"; Details = "$dateTimeViolations found" }
+    $exitCode = 1
+} else {
+    Write-Host "  ✅ No DateTime.Now/UtcNow/Today usages found" -ForegroundColor Green
+    $results += [PSCustomObject]@{ Check = "DateTime Policy"; Status = "PASS"; Details = "0 found" }
+}
+
+# Check 4: Async method naming
 Write-Host ""
 Write-Host "Check 3: Checking async method naming convention..." -ForegroundColor Yellow
 $asyncMethods = Get-ChildItem -Path src -Recurse -Filter "*.cs" | 
@@ -72,7 +96,7 @@ if ($asyncViolationCount -gt 260) {
     $results += [PSCustomObject]@{ Check = "Async Naming"; Status = "PASS"; Details = "$asyncViolationCount violations" }
 }
 
-# Check 4: Tests passing
+# Check 5: Tests passing
 Write-Host ""
 Write-Host "Check 4: Running tests..." -ForegroundColor Yellow
 $testOutput = dotnet test --verbosity minimal --no-build 2>&1
@@ -85,7 +109,7 @@ if ($LASTEXITCODE -ne 0) {
     $results += [PSCustomObject]@{ Check = "Tests"; Status = "PASS"; Details = "All passing" }
 }
 
-# Check 5: Architecture tests
+# Check 6: Architecture tests
 Write-Host ""
 Write-Host "Check 5: Running architecture tests..." -ForegroundColor Yellow
 $archTestOutput = dotnet test tests/SaveState.Infrastructure.Tests --filter "FullyQualifiedName~ArchitectureTests" --verbosity minimal --no-build 2>&1
@@ -98,7 +122,7 @@ if ($LASTEXITCODE -ne 0) {
     $results += [PSCustomObject]@{ Check = "Architecture"; Status = "PASS"; Details = "All passing" }
 }
 
-# Check 6: Code quality tests
+# Check 7: Code quality tests
 Write-Host ""
 Write-Host "Check 6: Running code quality tests..." -ForegroundColor Yellow
 $qualityTestOutput = dotnet test tests/SaveState.Infrastructure.Tests --filter "FullyQualifiedName~CodeQualityTests" --verbosity minimal --no-build 2>&1

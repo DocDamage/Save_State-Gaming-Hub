@@ -3,7 +3,7 @@ using SaveState.Core.Assistant.Services;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 
-namespace SaveState.Infrastructure.AI.EyeTracking;
+namespace SaveState.Infrastructure.Ai.EyeTracking;
 
 /// <summary>
 /// Windows Eye Control API provider implementation for Smart Pause.

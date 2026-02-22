@@ -317,7 +317,7 @@ public class MugenAchievementSystemPlugin : IPlugin
             }
 
             // Show daily/weekly reset timers
-            var now = _timeProvider?.UtcNow ?? DateTime.UtcNow;
+            var now = _timeProvider?.UtcNow ?? SystemTimeProvider.Instance.UtcNow; // Uses injected ITimeProvider
             var tomorrow = now.Date.AddDays(1);
             var nextWeek = now.Date.AddDays(7 - (int)now.DayOfWeek);
 

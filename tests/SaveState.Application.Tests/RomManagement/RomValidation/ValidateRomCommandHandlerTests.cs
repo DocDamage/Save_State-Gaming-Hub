@@ -9,6 +9,7 @@ using SaveState.Core.RomManagement;
 using SaveState.Core.RomManagement.Entities;
 using SaveState.Core.RomManagement.RomValidation;
 using SaveState.Core.RomManagement.RomValidation.Services;
+using SaveState.Core.Common.Services;
 using SaveState.Core.RomManagement.ValueObjects;
 
 namespace SaveState.Application.Tests.RomManagement.RomValidation;
@@ -18,10 +19,12 @@ public class ValidateRomCommandHandlerTests
     private readonly Mock<IRomValidationService> _mockValidationService = new();
     private readonly Mock<IRomFileRepository> _mockRomRepository = new();
     private readonly Mock<ILogger<ValidateRomCommandHandler>> _mockLogger = new();
+    private readonly Mock<ITimeProvider> _mockTimeProvider = new();
     private readonly ValidateRomCommandHandler _sut;
 
     public ValidateRomCommandHandlerTests()
     {
+        _mockTimeProvider.Setup(t => t.UtcNow).Returns(DateTime.UtcNow);
         _sut = new ValidateRomCommandHandler(
             _mockValidationService.Object,
             _mockRomRepository.Object,
@@ -160,13 +163,14 @@ public class ValidateRomCommandHandlerTests
         result.Error.Should().Contain("Test exception");
     }
 
-    private static RomFile CreateTestRomFile(Guid id)
+    private RomFile CreateTestRomFile(Guid id)
     {
         var romFile = new RomFile(
             "Test ROM",
             Guid.NewGuid(),
             new FilePath(@"C:\Roms\test.nes"),
-            4096);
+            4096,
+            _mockTimeProvider.Object);
 
         typeof(RomFile).GetProperty("Id")?.SetValue(romFile, id);
         return romFile;

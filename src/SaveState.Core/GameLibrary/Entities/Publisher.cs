@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.GameLibrary.Entities;
 
@@ -13,12 +14,30 @@ public class Publisher : EntityBase
 
     protected Publisher() { } // EF Core
 
+    public Publisher(string name, ITimeProvider timeProvider, string? country = null, DateTime? foundedDate = null)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        Name = Guard.Against.NullOrWhiteSpace(name, nameof(name));
+        Country = country;
+        FoundedDate = foundedDate;
+        CreatedAt = timeProvider.UtcNow;
+    }
+
+    public Publisher(string name, DateTime createdAt, string? country = null, DateTime? foundedDate = null)
+    {
+        Name = Guard.Against.NullOrWhiteSpace(name, nameof(name));
+        Country = country;
+        FoundedDate = foundedDate;
+        CreatedAt = createdAt;
+    }
+
+    [Obsolete("Use constructor with ITimeProvider or DateTime parameter")]
     public Publisher(string name, string? country = null, DateTime? foundedDate = null)
     {
         Name = Guard.Against.NullOrWhiteSpace(name, nameof(name));
         Country = country;
         FoundedDate = foundedDate;
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 
     public void UpdateDetails(string? country, DateTime? foundedDate, string? website, string? description)

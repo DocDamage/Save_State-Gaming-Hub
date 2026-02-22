@@ -101,7 +101,7 @@ public class MugenTrainingModePlugin : IPlugin
             _currentSession = new TrainingSession
             {
                 Id = Guid.NewGuid(),
-                StartTime = _timeProvider?.UtcNow ?? DateTime.UtcNow,
+                StartTime = _timeProvider!.UtcNow, // Uses injected ITimeProvider
                 CharacterName = "Training Mode",
                 OpponentName = "Dummy",
                 TrainingGoals = new List<string> { "Practice combos", "Analyze frame data", "Improve timing" }
@@ -291,7 +291,7 @@ public class MugenTrainingModePlugin : IPlugin
             {
                 var frameData = new FrameDataEntry
                 {
-                    Timestamp = _timeProvider?.UtcNow ?? DateTime.UtcNow,
+                    Timestamp = _timeProvider!.UtcNow, // Uses injected ITimeProvider
                     MoveName = GetRandomMoveName(),
                     FrameAdvantage = Random.Shared.Next(-10, 15),
                     Damage = Random.Shared.Next(10, 150),
@@ -311,7 +311,7 @@ public class MugenTrainingModePlugin : IPlugin
             // Update current session
             if (_currentSession != null)
             {
-                _currentSession.Duration = (_timeProvider?.UtcNow ?? DateTime.UtcNow) - _currentSession.StartTime;
+                _currentSession.Duration = _timeProvider!.UtcNow - _currentSession.StartTime; // Uses injected ITimeProvider
                 _currentSession.CombosPracticed = _recordedCombos.Count;
             }
         }
@@ -326,7 +326,7 @@ public class MugenTrainingModePlugin : IPlugin
         try
         {
             var sessionData = JsonSerializer.Serialize(session);
-            var fileName = $"training_session_{session.Id}_{(_timeProvider?.UtcNow ?? DateTime.UtcNow):yyyyMMdd_HHmmss}.json";
+            var fileName = $"training_session_{session.Id}_{_timeProvider!.UtcNow:yyyyMMdd_HHmmss}.json"; // Uses injected ITimeProvider
 
             if (_context != null)
             {

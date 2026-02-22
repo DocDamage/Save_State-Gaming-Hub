@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Analytics.Entities;
 
@@ -17,7 +18,7 @@ public class GamingGoal : EntityBase
 
     private GamingGoal() { }
 
-    public static GamingGoal Create(string title, GoalType type, int targetValue, DateOnly? endDate = null, Guid? gameId = null)
+    public static GamingGoal Create(string title, GoalType type, int targetValue, ITimeProvider timeProvider, DateOnly? endDate = null, Guid? gameId = null)
     {
         return new GamingGoal
         {
@@ -26,7 +27,7 @@ public class GamingGoal : EntityBase
             Type = type,
             TargetValue = Guard.Against.NegativeOrZero(targetValue, nameof(targetValue)),
             CurrentValue = 0,
-            StartDate = DateOnly.FromDateTime(DateTime.UtcNow),
+            StartDate = DateOnly.FromDateTime(timeProvider.UtcNow),
             EndDate = endDate,
             SpecificGameId = gameId,
             Status = GoalStatus.Active

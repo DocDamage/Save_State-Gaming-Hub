@@ -17,7 +17,7 @@ public record GeneratedQuest
     public string? NarrativeContext { get; init; }
     public IReadOnlyList<string> Prerequisites { get; init; } = Array.Empty<string>();
     public TimeSpan? TimeLimit { get; init; }
-    public DateTime GeneratedAt { get; init; } = DateTime.UtcNow;
+    public DateTime GeneratedAt { get; init; }
 }
 
 /// <summary>
@@ -274,7 +274,7 @@ public record NarrativeState
     public IReadOnlyList<string> ActiveFlags { get; init; } = Array.Empty<string>();
     public IReadOnlyDictionary<string, int> CharacterRelationships { get; init; } = new Dictionary<string, int>();
     public int TotalPlayTimeMinutes { get; init; }
-    public DateTime LastUpdated { get; init; } = DateTime.UtcNow;
+    public DateTime LastUpdated { get; init; }
 }
 
 /// <summary>

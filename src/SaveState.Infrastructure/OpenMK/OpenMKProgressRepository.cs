@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SaveState.Core.Common.Services;
 using SaveState.Core.OpenMK.Entities;
 using SaveState.Core.OpenMK.Repositories;
 using SaveState.Infrastructure.Persistence;
@@ -11,10 +12,12 @@ namespace SaveState.Infrastructure.OpenMK;
 public class OpenMKProgressRepository : IOpenMKProgressRepository
 {
     private readonly SaveStateDbContext _context;
+    private readonly ITimeProvider _timeProvider;
 
-    public OpenMKProgressRepository(SaveStateDbContext context)
+    public OpenMKProgressRepository(SaveStateDbContext context, ITimeProvider timeProvider)
     {
         _context = context;
+        _timeProvider = timeProvider;
     }
 
     public async Task<IReadOnlyList<OpenMKCharacter>> GetUnlockedCharactersAsync(Guid userId, CancellationToken ct = default)
@@ -67,7 +70,7 @@ public class OpenMKProgressRepository : IOpenMKProgressRepository
             return;
         }
 
-        var unlock = new OpenMKCharacterUnlock(userId, characterId);
+        var unlock = new OpenMKCharacterUnlock(userId, characterId, _timeProvider);
         _context.Set<OpenMKCharacterUnlock>().Add(unlock);
         await _context.SaveChangesAsync(ct);
     }
@@ -81,7 +84,7 @@ public class OpenMKProgressRepository : IOpenMKProgressRepository
     public async Task AddKoinsAsync(Guid userId, int amount, CancellationToken ct = default)
     {
         var progress = await GetOrCreateUserProgressAsync(userId, ct);
-        progress.AddKoins(amount);
+        progress.AddKoins(amount, _timeProvider);
         _context.Set<OpenMKUserProgress>().Update(progress);
         await _context.SaveChangesAsync(ct);
     }
@@ -89,7 +92,7 @@ public class OpenMKProgressRepository : IOpenMKProgressRepository
     public async Task<bool> SpendKoinsAsync(Guid userId, int amount, CancellationToken ct = default)
     {
         var progress = await GetOrCreateUserProgressAsync(userId, ct);
-        var spent = progress.TrySpendKoins(amount);
+        var spent = progress.TrySpendKoins(amount, _timeProvider);
         if (!spent)
         {
             return false;
@@ -110,7 +113,7 @@ public class OpenMKProgressRepository : IOpenMKProgressRepository
             return progress;
         }
 
-        progress = new OpenMKUserProgress(userId);
+        progress = new OpenMKUserProgress(userId, _timeProvider);
         _context.Set<OpenMKUserProgress>().Add(progress);
         await _context.SaveChangesAsync(ct);
         return progress;

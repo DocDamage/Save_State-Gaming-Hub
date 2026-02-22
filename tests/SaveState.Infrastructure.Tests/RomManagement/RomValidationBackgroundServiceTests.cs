@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.RomManagement;
 using SaveState.Core.RomManagement.Entities;
 using SaveState.Core.RomManagement.RomValidation;
@@ -23,6 +24,7 @@ public class RomValidationBackgroundServiceTests
     private readonly Mock<IMediator> _mediatorMock;
     private readonly Mock<IRomFileRepository> _romFileRepositoryMock;
     private readonly Mock<IRomValidationService> _validationServiceMock;
+    private readonly Mock<ITimeProvider> _timeProviderMock;
 
     public RomValidationBackgroundServiceTests()
     {
@@ -34,6 +36,8 @@ public class RomValidationBackgroundServiceTests
         _mediatorMock = new Mock<IMediator>();
         _romFileRepositoryMock = new Mock<IRomFileRepository>();
         _validationServiceMock = new Mock<IRomValidationService>();
+        _timeProviderMock = new Mock<ITimeProvider>();
+        _timeProviderMock.Setup(t => t.UtcNow).Returns(DateTime.UtcNow);
 
         _optionsMock.Setup(o => o.Value).Returns(new RomValidationOptions());
 
@@ -106,7 +110,8 @@ public class RomValidationBackgroundServiceTests
             title: "test.rom",
             platformId: Guid.NewGuid(),
             filePath: new SaveState.Core.RomManagement.ValueObjects.FilePath("/roms/test.rom"),
-            fileSize: 1024
+            fileSize: 1024,
+            timeProvider: _timeProviderMock.Object
         );
 
         _romFileRepositoryMock

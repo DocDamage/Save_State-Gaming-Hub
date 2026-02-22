@@ -589,12 +589,12 @@ public record AudioPreset
     /// <summary>
     /// Creation timestamp.
     /// </summary>
-    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; init; }
 
     /// <summary>
     /// Last modified timestamp.
     /// </summary>
-    public DateTime ModifiedAt { get; init; } = DateTime.UtcNow;
+    public DateTime ModifiedAt { get; init; }
 
     /// <summary>
     /// Audio mix configuration.

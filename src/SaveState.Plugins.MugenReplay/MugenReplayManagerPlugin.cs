@@ -1,8 +1,10 @@
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Plugins;
 
 namespace SaveState.Plugins.MugenReplay;
@@ -15,6 +17,7 @@ public class MugenReplayManagerPlugin : IPlugin
 {
     private IPluginContext? _context;
     private ILogger? _logger;
+    private ITimeProvider? _timeProvider;
     private readonly Dictionary<Guid, ReplayRecording> _activeRecordings = new();
     private readonly List<ReplayMetadata> _replayLibrary = new();
 
@@ -30,6 +33,7 @@ public class MugenReplayManagerPlugin : IPlugin
     {
         _context = context;
         _logger = context.Logger;
+        _timeProvider = context.Services.GetRequiredService<ITimeProvider>();
 
         _logger.LogInformation("Initializing MUGEN Replay Manager plugin");
 
@@ -107,7 +111,7 @@ public class MugenReplayManagerPlugin : IPlugin
             var recording = new ReplayRecording
             {
                 Id = sessionId,
-                StartTime = DateTime.UtcNow,
+                StartTime = _timeProvider!.UtcNow, // Uses injected ITimeProvider
                 IsRecording = true,
                 Player1Character = "Unknown",
                 Player2Character = "Unknown",
@@ -144,7 +148,7 @@ public class MugenReplayManagerPlugin : IPlugin
                 // Capture game state every frame
                 var frame = new InputFrame
                 {
-                    Timestamp = DateTime.UtcNow,
+                    Timestamp = _timeProvider!.UtcNow, // Uses injected ITimeProvider
                     FrameNumber = inputBuffer.Count,
                     Player1Inputs = GenerateRandomInputs(),
                     Player2Inputs = GenerateRandomInputs(),
@@ -181,7 +185,7 @@ public class MugenReplayManagerPlugin : IPlugin
     {
         try
         {
-            recording.EndTime = DateTime.UtcNow;
+            recording.EndTime = _timeProvider!.UtcNow; // Uses injected ITimeProvider
             recording.Duration = recording.EndTime - recording.StartTime;
             recording.FrameCount = frames.Count;
 

@@ -1,5 +1,6 @@
 using MediatR;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
@@ -13,10 +14,12 @@ namespace SaveState.Application.GameLibrary.Commands.Handlers;
 public class CreateGameNoteCommandHandler : IRequestHandler<CreateGameNoteCommand, Result<Guid>>
 {
     private readonly IGameNoteRepository _noteRepository;
+    private readonly ITimeProvider _timeProvider;
 
-    public CreateGameNoteCommandHandler(IGameNoteRepository noteRepository)
+    public CreateGameNoteCommandHandler(IGameNoteRepository noteRepository, ITimeProvider timeProvider)
     {
         _noteRepository = noteRepository;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<Guid>> Handle(CreateGameNoteCommand request, CancellationToken cancellationToken)
@@ -29,12 +32,13 @@ public class CreateGameNoteCommandHandler : IRequestHandler<CreateGameNoteComman
             userId,
             request.Title,
             request.Content,
+            _timeProvider,
             request.Category,
             request.Tags);
 
         if (request.IsPinned)
         {
-            note.TogglePin();
+            note.TogglePin(_timeProvider);
         }
 
         await _noteRepository.AddAsync(note, cancellationToken).ConfigureAwait(false);
@@ -42,4 +46,3 @@ public class CreateGameNoteCommandHandler : IRequestHandler<CreateGameNoteComman
         return Result.Success<Guid>(note.Id);
     }
 }
-

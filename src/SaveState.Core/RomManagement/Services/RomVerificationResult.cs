@@ -37,18 +37,18 @@ public class RomVerificationResult
     [Obsolete("Use Valid(string, string, DateTime) with explicit timestamp")]
     public static RomVerificationResult Valid(string expectedChecksum, string actualChecksum)
     {
-        return new RomVerificationResult(true, expectedChecksum, actualChecksum, null, DateTime.UtcNow);
+        return new RomVerificationResult(true, expectedChecksum, actualChecksum, null, SystemTimeProvider.Instance.UtcNow);
     }
 
     [Obsolete("Use Invalid(string, string, string, DateTime) with explicit timestamp")]
     public static RomVerificationResult Invalid(string expectedChecksum, string actualChecksum, string errorMessage)
     {
-        return new RomVerificationResult(false, expectedChecksum, actualChecksum, errorMessage, DateTime.UtcNow);
+        return new RomVerificationResult(false, expectedChecksum, actualChecksum, errorMessage, SystemTimeProvider.Instance.UtcNow);
     }
 
     [Obsolete("Use Error(string, DateTime) with explicit timestamp")]
     public static RomVerificationResult Error(string errorMessage)
     {
-        return new RomVerificationResult(false, null, null, errorMessage, DateTime.UtcNow);
+        return new RomVerificationResult(false, null, null, errorMessage, SystemTimeProvider.Instance.UtcNow);
     }
 }

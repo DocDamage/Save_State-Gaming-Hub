@@ -1,6 +1,7 @@
 namespace SaveState.Core.Mugen.Entities;
 
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 /// <summary>
 /// Represents a recording of dummy behavior during a MUGEN training session.
@@ -71,9 +72,71 @@ public class MugenDummyRecording : EntityBase
     /// <param name="behaviorType">The type of dummy behavior.</param>
     /// <param name="actionSequence">The sequence of actions (JSON).</param>
     /// <param name="duration">The duration of the recording.</param>
+    /// <param name="timeProvider">The time provider for timestamp generation.</param>
     /// <param name="description">Optional description.</param>
     /// <param name="isSuccessful">Whether this was a successful recording.</param>
     /// <returns>A new MugenDummyRecording instance.</returns>
+    public static MugenDummyRecording Create(
+        Guid trainingSessionId,
+        DummyBehaviorType behaviorType,
+        string actionSequence,
+        TimeSpan duration,
+        ITimeProvider timeProvider,
+        string? description = null,
+        bool isSuccessful = false)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        return new MugenDummyRecording
+        {
+            Id = Guid.NewGuid(),
+            TrainingSessionId = trainingSessionId,
+            BehaviorType = behaviorType,
+            ActionSequence = Guard.Against.NullOrWhiteSpace(actionSequence, nameof(actionSequence)),
+            Duration = duration,
+            Description = description,
+            IsSuccessful = isSuccessful,
+            CreatedAt = timeProvider.UtcNow,
+            ComboHits = 0,
+            ComboDamage = 0
+        };
+    }
+
+    /// <summary>
+    /// Creates a new dummy recording with explicit timestamp.
+    /// </summary>
+    /// <param name="trainingSessionId">The training session ID.</param>
+    /// <param name="behaviorType">The type of dummy behavior.</param>
+    /// <param name="actionSequence">The sequence of actions (JSON).</param>
+    /// <param name="duration">The duration of the recording.</param>
+    /// <param name="createdAt">Creation timestamp.</param>
+    /// <param name="description">Optional description.</param>
+    /// <param name="isSuccessful">Whether this was a successful recording.</param>
+    /// <returns>A new MugenDummyRecording instance.</returns>
+    public static MugenDummyRecording Create(
+        Guid trainingSessionId,
+        DummyBehaviorType behaviorType,
+        string actionSequence,
+        TimeSpan duration,
+        DateTime createdAt,
+        string? description = null,
+        bool isSuccessful = false)
+    {
+        return new MugenDummyRecording
+        {
+            Id = Guid.NewGuid(),
+            TrainingSessionId = trainingSessionId,
+            BehaviorType = behaviorType,
+            ActionSequence = Guard.Against.NullOrWhiteSpace(actionSequence, nameof(actionSequence)),
+            Duration = duration,
+            Description = description,
+            IsSuccessful = isSuccessful,
+            CreatedAt = createdAt,
+            ComboHits = 0,
+            ComboDamage = 0
+        };
+    }
+
+    [Obsolete("Use Create(Guid, DummyBehaviorType, string, TimeSpan, ITimeProvider, string?, bool) or Create(Guid, DummyBehaviorType, string, TimeSpan, DateTime, string?, bool) instead")]
     public static MugenDummyRecording Create(
         Guid trainingSessionId,
         DummyBehaviorType behaviorType,
@@ -91,7 +154,7 @@ public class MugenDummyRecording : EntityBase
             Duration = duration,
             Description = description,
             IsSuccessful = isSuccessful,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = SystemTimeProvider.Instance.UtcNow,
             ComboHits = 0,
             ComboDamage = 0
         };

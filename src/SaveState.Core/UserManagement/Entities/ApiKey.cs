@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.UserManagement.Entities;
 
@@ -8,7 +9,7 @@ namespace SaveState.Core.UserManagement.Entities;
 public class ApiKey : EntityBase
 {
     public Guid UserId { get; private set; }
-    public User User { get; private set; } = null!; // Set via Create factory method
+    public required User User { get; init; }
 
     public string Name { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
@@ -21,7 +22,7 @@ public class ApiKey : EntityBase
 
     private ApiKey() { }
 
-    public static (ApiKey apiKey, string plainKey) Create(User user, string name, string description, DateTimeOffset? expiresAt = null)
+    public static (ApiKey apiKey, string plainKey) Create(User user, string name, string description, ITimeProvider timeProvider, DateTimeOffset? expiresAt = null)
     {
         Guard.Against.Null(user, nameof(user));
 
@@ -36,7 +37,7 @@ public class ApiKey : EntityBase
             Description = Guard.Against.NullOrWhiteSpace(description, nameof(description)),
             KeyHash = keyHash,
             KeyPrefix = keyPrefix,
-            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = timeProvider.UtcNow,
             ExpiresAt = expiresAt,
             IsActive = true
         };
@@ -44,9 +45,14 @@ public class ApiKey : EntityBase
         return (apiKey, plainKey);
     }
 
-    public bool IsExpired()
+    public bool IsExpired(ITimeProvider timeProvider)
     {
-        return ExpiresAt.HasValue && DateTimeOffset.UtcNow > ExpiresAt.Value;
+        return ExpiresAt.HasValue && timeProvider.UtcNow > ExpiresAt.Value;
+    }
+
+    public bool IsExpired(DateTimeOffset comparisonTime)
+    {
+        return ExpiresAt.HasValue && comparisonTime > ExpiresAt.Value;
     }
 
     public void Revoke()
@@ -54,14 +60,14 @@ public class ApiKey : EntityBase
         IsActive = false;
     }
 
-    public void UpdateLastUsed()
+    public void UpdateLastUsed(ITimeProvider timeProvider)
     {
-        LastUsedAt = DateTimeOffset.UtcNow;
+        LastUsedAt = timeProvider.UtcNow;
     }
 
-    public bool ValidateKey(string providedKey)
+    public bool ValidateKey(string providedKey, ITimeProvider timeProvider)
     {
-        if (!IsActive || IsExpired())
+        if (!IsActive || IsExpired(timeProvider))
             return false;
 
         var (providedHash, providedPrefix) = HashApiKey(providedKey);

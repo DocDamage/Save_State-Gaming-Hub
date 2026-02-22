@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.Api.Entities;
 
@@ -17,7 +18,7 @@ public class ApiKey : EntityBase
 
     private ApiKey() { }
 
-    public static ApiKey Create(string key, string appName, string[] scopes, DateTime? expiresAt = null, DateTime? createdAt = null)
+    public static ApiKey Create(string key, string appName, string[] scopes, ITimeProvider timeProvider, DateTime? expiresAt = null, DateTime? createdAt = null)
     {
         Guard.Against.NullOrWhiteSpace(key, nameof(key));
         Guard.Against.NullOrWhiteSpace(appName, nameof(appName));
@@ -28,16 +29,20 @@ public class ApiKey : EntityBase
             Key = key,
             AppName = appName,
             Scopes = scopes,
-            CreatedAt = createdAt ?? DateTime.UtcNow,
+            CreatedAt = createdAt ?? timeProvider.UtcNow,
             ExpiresAt = expiresAt,
             IsActive = true
         };
     }
 
-    public bool IsExpired(DateTime? comparisonTime = null)
+    public bool IsExpired(DateTime comparisonTime)
     {
-        var now = comparisonTime ?? DateTime.UtcNow;
-        return ExpiresAt.HasValue && now > ExpiresAt.Value;
+        return ExpiresAt.HasValue && comparisonTime > ExpiresAt.Value;
+    }
+
+    public bool IsExpired(ITimeProvider timeProvider)
+    {
+        return ExpiresAt.HasValue && timeProvider.UtcNow > ExpiresAt.Value;
     }
 
     public void Revoke()
@@ -45,9 +50,9 @@ public class ApiKey : EntityBase
         IsActive = false;
     }
 
-    public void UpdateLastUsed(DateTime? lastUsedAt = null)
+    public void UpdateLastUsed(ITimeProvider timeProvider)
     {
-        LastUsedAt = lastUsedAt ?? DateTime.UtcNow;
+        LastUsedAt = timeProvider.UtcNow;
     }
 
     public bool ValidateScopes(string[] requiredScopes)

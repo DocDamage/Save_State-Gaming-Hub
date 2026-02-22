@@ -1,6 +1,7 @@
 namespace SaveState.Infrastructure.Mugen;
 
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Mugen.Entities;
 using SaveState.Core.Mugen.Services;
 using SaveState.Core.Mugen.ValueObjects;
@@ -14,15 +15,18 @@ public class MugenTournamentService : IMugenTournamentService
     private readonly SaveState.Core.Mugen.IMugenCharacterRepository _characterRepository;
     private readonly IMugenStatsService _statsService;
     private readonly SaveState.Core.Mugen.IMugenTournamentRepository _tournamentRepository;
+    private readonly ITimeProvider _timeProvider;
 
     public MugenTournamentService(
         SaveState.Core.Mugen.IMugenCharacterRepository characterRepository,
         IMugenStatsService statsService,
-        SaveState.Core.Mugen.IMugenTournamentRepository tournamentRepository)
+        SaveState.Core.Mugen.IMugenTournamentRepository tournamentRepository,
+        ITimeProvider timeProvider)
     {
         _characterRepository = characterRepository;
         _statsService = statsService;
         _tournamentRepository = tournamentRepository;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<MugenTournament>> CreateTournamentAsync(
@@ -46,7 +50,7 @@ public class MugenTournamentService : IMugenTournamentService
                 return Result.Failure<MugenTournament>("Tournament must have at least 2 participants");
 
             // Create tournament
-            var tournament = MugenTournament.Create(request.Name, request.Format);
+            var tournament = MugenTournament.Create(request.Name, request.Format, _timeProvider);
 
             // Persist tournament to database
             await _tournamentRepository.AddAsync(tournament, ct);

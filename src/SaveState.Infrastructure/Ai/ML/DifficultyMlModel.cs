@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Logging;
-using SaveState.Core.AI.Assistant;
+using SaveState.Core.Ai.Assistant;
 using SaveState.Core.Assistant.Services;
 using SuggestedDifficulty = SaveState.Core.Assistant.Services.SuggestedDifficulty;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using System.Text.Json;
 
-namespace SaveState.Infrastructure.AI.ML;
+namespace SaveState.Infrastructure.Ai.ML;
 
 /// <summary>
 /// ML-based difficulty analysis model using a weighted scoring approach.

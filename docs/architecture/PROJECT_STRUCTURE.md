@@ -356,6 +356,14 @@ C:\USERS\DOC\DESKTOP\SAVESTATEREBORN\SRC
 |   |       |   AdvancedGraphicsEngine.cs
 |   |       |   AdvancedPhysicsCombatService.cs
 |   |       |   AdvancedReportingService.cs
+|   |       |   
+|   |       +---AdvancedReporting
+|   |       |       AdvancedReportingDashboardBuilder.cs
+|   |       |       AdvancedReportingReportEngine.cs
+|   |       |       AdvancedReportingReportScheduler.cs
+|   |       |       AdvancedReportingTypes.cs
+|   |       |       AdvancedReportingVisualizationEngine.cs
+|   |       |       
 |   |       |   AiOpponentsService.cs
 |   |       |   ApiIntegrationService.cs
 |   |       |   AutomatedBalancingSystem.cs
@@ -373,6 +381,14 @@ C:\USERS\DOC\DESKTOP\SAVESTATEREBORN\SRC
 |   |       |   EducationalContentService.cs
 |   |       |   EmergingTechnologiesService.cs
 |   |       |   EmotionalResonanceService.cs
+|   |       |   
+|   |       +---EmotionalResonance
+|   |       |       EmotionalResonanceEmotionEngine.cs
+|   |       |       EmotionalResonancePsychologicalEngine.cs
+|   |       |       EmotionalResonanceResonanceEngine.cs
+|   |       |       EmotionalResonanceSpectatorEngine.cs
+|   |       |       EmotionalResonanceTypes.cs
+|   |       |       
 |   |       |   EnterpriseSecurityService.cs
 |   |       |   MatchAnalyticsService.cs
 |   |       |   MatchmakingEngine.cs
@@ -394,6 +410,13 @@ C:\USERS\DOC\DESKTOP\SAVESTATEREBORN\SRC
 |   |       |   RealityWarpingService.cs
 |   |       |   RecommendationEngine.cs
 |   |       |   ScreenFiltersEngine.cs
+|   |       |   
+|   |       +---ScreenFilters
+|   |       |       ScreenFiltersCRTEngine.cs
+|   |       |       ScreenFiltersPostProcessingEngine.cs
+|   |       |       ScreenFiltersScanlineEngine.cs
+|   |       |       ScreenFiltersTypes.cs
+|   |       |       
 |   |       |   SocialFeaturesService.cs
 |   |       |   SoundDesignStudio.cs
 |   |       |   SpectatorModeService.cs
@@ -1808,16 +1831,29 @@ C:\USERS\DOC\DESKTOP\SAVESTATEREBORN\SRC
 |   |   |       GogLibraryScanner.cs
 |   |   |       SteamLibraryScanner.cs
 |   |   |       
+|   |   +---ML
+|   |   |       EnginePatternDatabase.cs
+|   |   |       GameGenreClassifier.cs
+|   |   |       PatternPredictionModel.cs
+|   |   |       PatternPredictionTypes.cs
+|   |   |       StatisticalPatternValidator.cs
+|   |   |       
 |   |   \---Services
 |   |           AchievementService.cs
 |   |           AiCoachService.cs
+|   |           AutoDiscoveryEngine.cs
 |   |           BacklogService.cs
+|   |           ChangeDetectionManager.cs
+|   |           DiscoverySessionManager.cs
+|   |           FeedbackLearningManager.cs
 |   |           GameBriefingService.cs
 |   |           GameContextService.cs
 |   |           GameMediaService.cs
 |   |           GameMemoryReader.cs
+|   |           HeuristicAnalysisManager.cs
 |   |           LaunchExperienceManager.cs
 |   |           MemoryPatternDatabase.cs
+|   |           MemoryScanningManager.cs
 |   |           ModManagementService.cs
 |   |           PerformanceMetricsCollector.cs
 |   |           PerformanceProfiler.cs

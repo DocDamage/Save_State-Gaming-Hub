@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
 using SaveState.Core.Search.Models;
 using SaveState.Core.Search.Services;
+using SaveState.Core.Common.Services;
 using System.Collections.Concurrent;
 
 namespace SaveState.Infrastructure.Search.Providers;
@@ -12,11 +13,13 @@ namespace SaveState.Infrastructure.Search.Providers;
 public sealed class ActionSearchProvider : ISearchProvider
 {
     private readonly ILogger<ActionSearchProvider> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly ConcurrentDictionary<string, SearchableAction> _actions;
 
-    public ActionSearchProvider(ILogger<ActionSearchProvider> logger)
+    public ActionSearchProvider(ILogger<ActionSearchProvider> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         _actions = new ConcurrentDictionary<string, SearchableAction>();
         InitializeDefaultActions();
     }
@@ -58,7 +61,7 @@ public sealed class ActionSearchProvider : ISearchProvider
             Content = $"{a.Title} {a.Description} {string.Join(" ", a.Keywords)}",
             Embedding = new List<float>(),
             Tags = new List<string> { a.Category },
-            LastUpdated = DateTime.UtcNow
+            LastUpdated = _timeProvider.UtcNow
         }).ToList();
 
         return Task.FromResult<IReadOnlyList<SearchIndexEntry>>(entries);

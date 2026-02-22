@@ -2,7 +2,7 @@ using SaveState.Core.Assistant.Services;
 using SaveState.Core.Common;
 using SuggestedDifficulty = SaveState.Core.Assistant.Services.SuggestedDifficulty;
 
-namespace SaveState.Core.AI.Assistant;
+namespace SaveState.Core.Ai.Assistant;
 
 /// <summary>
 /// Analyzes gameplay metrics using ML models to provide difficulty suggestions.

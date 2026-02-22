@@ -1,6 +1,7 @@
 namespace SaveState.Core.Mugen.Entities;
 
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 /// <summary>
 /// Represents the association between a MUGEN collection and a character.
@@ -47,8 +48,45 @@ public class MugenCollectionCharacter : EntityBase
     /// </summary>
     /// <param name="collectionId">The collection ID.</param>
     /// <param name="characterId">The character ID.</param>
+    /// <param name="timeProvider">The time provider for timestamp generation.</param>
     /// <param name="notes">Optional notes.</param>
     /// <returns>A new MugenCollectionCharacter instance.</returns>
+    public static MugenCollectionCharacter Create(Guid collectionId, Guid characterId, ITimeProvider timeProvider, string? notes = null)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        return new MugenCollectionCharacter
+        {
+            Id = Guid.NewGuid(),
+            CollectionId = collectionId,
+            CharacterId = characterId,
+            Notes = notes,
+            IsFavorite = false,
+            AddedAt = timeProvider.UtcNow
+        };
+    }
+
+    /// <summary>
+    /// Creates a new collection-character association with explicit timestamp.
+    /// </summary>
+    /// <param name="collectionId">The collection ID.</param>
+    /// <param name="characterId">The character ID.</param>
+    /// <param name="addedAt">Addition timestamp.</param>
+    /// <param name="notes">Optional notes.</param>
+    /// <returns>A new MugenCollectionCharacter instance.</returns>
+    public static MugenCollectionCharacter Create(Guid collectionId, Guid characterId, DateTime addedAt, string? notes = null)
+    {
+        return new MugenCollectionCharacter
+        {
+            Id = Guid.NewGuid(),
+            CollectionId = collectionId,
+            CharacterId = characterId,
+            Notes = notes,
+            IsFavorite = false,
+            AddedAt = addedAt
+        };
+    }
+
+    [Obsolete("Use Create(Guid, Guid, ITimeProvider, string?) or Create(Guid, Guid, DateTime, string?) instead")]
     public static MugenCollectionCharacter Create(Guid collectionId, Guid characterId, string? notes = null)
     {
         return new MugenCollectionCharacter
@@ -58,7 +96,7 @@ public class MugenCollectionCharacter : EntityBase
             CharacterId = characterId,
             Notes = notes,
             IsFavorite = false,
-            AddedAt = DateTime.UtcNow
+            AddedAt = SystemTimeProvider.Instance.UtcNow
         };
     }
 

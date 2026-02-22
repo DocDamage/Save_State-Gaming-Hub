@@ -12,6 +12,7 @@ using SaveState.Core.GameLibrary.ValueObjects;
 using SaveState.Application.RomManagement.Services;
 using SaveState.Core.RomManagement.Entities;
 using SaveState.Core.RomManagement.ValueObjects;
+using SaveState.Core.Common.Services;
 using SaveState.Core.RomManagement;
 
 public class RomScannerServiceTests
@@ -19,6 +20,7 @@ public class RomScannerServiceTests
     private readonly Mock<IPlatformRepository> _mockPlatformRepository = new();
     private readonly Mock<IPlatformExtensionRegistry> _mockExtensionRegistry = new();
     private readonly Mock<ILogger<RomScannerService>> _mockLogger = new();
+    private readonly Mock<ITimeProvider> _mockTimeProvider = new();
     private readonly RomScannerService _sut;
 
     public RomScannerServiceTests()
@@ -36,9 +38,12 @@ public class RomScannerServiceTests
         _mockExtensionRegistry.Setup(r => r.GetExtensions("Nintendo 64"))
             .Returns(new[] { ".n64", ".z64", ".v64", ".rom" });
 
+        _mockTimeProvider.Setup(t => t.UtcNow).Returns(DateTime.UtcNow);
+
         _sut = new RomScannerService(
             _mockPlatformRepository.Object,
             _mockExtensionRegistry.Object,
+            _mockTimeProvider.Object,
             _mockLogger.Object);
     }
 

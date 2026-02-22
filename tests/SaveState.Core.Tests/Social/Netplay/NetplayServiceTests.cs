@@ -152,13 +152,14 @@ public class NetplayServiceTests
         result.ErrorType.Should().Be(ErrorType.Validation);
     }
 
-    private static RomFile CreateRomFile(string checksum)
+    private RomFile CreateRomFile(string checksum)
     {
         var rom = new RomFile(
             title: "Test ROM",
             platformId: Guid.NewGuid(),
             filePath: new FilePath(@"C:\roms\test.nes"),
-            fileSize: 1024);
+            fileSize: 1024,
+            timeProvider: _timeProviderMock.Object);
         rom.SetChecksum(checksum);
         return rom;
     }

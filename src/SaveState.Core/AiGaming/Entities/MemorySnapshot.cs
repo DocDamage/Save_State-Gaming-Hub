@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.AiGaming.Entities;
 
@@ -18,7 +19,14 @@ public class MemorySnapshot : EntityBase
         Data = Guard.Against.Null(data, nameof(data));
         ProcessName = processName;
         ProcessId = processId;
-        CapturedAt = DateTime.UtcNow;
+    }
+
+    public static MemorySnapshot Create(long address, byte[] data, string? processName, int processId, ITimeProvider timeProvider)
+    {
+        return new MemorySnapshot(address, data, processName, processId)
+        {
+            CapturedAt = timeProvider.UtcNow
+        };
     }
 
     public void UpdateData(byte[] newData)

@@ -1,4 +1,5 @@
 using SaveState.Core.Common.Base;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.GameLibrary.Entities;
 
@@ -13,12 +14,30 @@ public class User : EntityBase
 
     protected User() { } // EF Core
 
+    public User(string username, string email, ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        Username = Guard.Against.NullOrWhiteSpace(username, nameof(username));
+        Email = Guard.Against.NullOrWhiteSpace(email, nameof(email));
+        IsActive = true;
+        CreatedAt = timeProvider.UtcNow;
+    }
+
+    public User(string username, string email, DateTime createdAt)
+    {
+        Username = Guard.Against.NullOrWhiteSpace(username, nameof(username));
+        Email = Guard.Against.NullOrWhiteSpace(email, nameof(email));
+        IsActive = true;
+        CreatedAt = createdAt;
+    }
+
+    [Obsolete("Use constructor with ITimeProvider or DateTime parameter")]
     public User(string username, string email)
     {
         Username = Guard.Against.NullOrWhiteSpace(username, nameof(username));
         Email = Guard.Against.NullOrWhiteSpace(email, nameof(email));
         IsActive = true;
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 
     public void UpdateDisplayName(string displayName)
@@ -31,9 +50,21 @@ public class User : EntityBase
         Email = Guard.Against.NullOrWhiteSpace(email, nameof(email));
     }
 
+    public void RecordLogin(ITimeProvider timeProvider)
+    {
+        Guard.Against.Null(timeProvider, nameof(timeProvider));
+        LastLoginAt = timeProvider.UtcNow;
+    }
+
+    public void RecordLogin(DateTime timestamp)
+    {
+        LastLoginAt = timestamp;
+    }
+
+    [Obsolete("Use RecordLogin(ITimeProvider) or RecordLogin(DateTime) instead")]
     public void RecordLogin()
     {
-        LastLoginAt = DateTime.UtcNow;
+        LastLoginAt = SystemTimeProvider.Instance.UtcNow;
     }
 
     public void Deactivate()

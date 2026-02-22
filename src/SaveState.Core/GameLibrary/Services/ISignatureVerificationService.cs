@@ -1,4 +1,5 @@
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary.Entities;
 
 namespace SaveState.Core.GameLibrary.Services;
@@ -148,7 +149,7 @@ public class VerificationResult
     /// <summary>
     /// Timestamp of verification.
     /// </summary>
-    public DateTime VerifiedAt { get; set; } = DateTime.UtcNow;
+    public DateTime VerifiedAt { get; set; } = SystemTimeProvider.Instance.UtcNow;
 
     /// <summary>
     /// Game version that was tested.
@@ -369,7 +370,7 @@ public class ValidationReport
     /// <summary>
     /// Timestamp of the report.
     /// </summary>
-    public DateTime GeneratedAt { get; set; } = DateTime.UtcNow;
+    public DateTime GeneratedAt { get; set; } = SystemTimeProvider.Instance.UtcNow;
 }
 
 /// <summary>

@@ -1,4 +1,4 @@
-using System;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Core.OpenMK.Entities;
 
@@ -9,12 +9,12 @@ public class OpenMKCharacterUnlock
 {
     private OpenMKCharacterUnlock() { }
 
-    public OpenMKCharacterUnlock(Guid userId, Guid characterId)
+    public OpenMKCharacterUnlock(Guid userId, Guid characterId, ITimeProvider timeProvider)
     {
         Id = Guid.NewGuid();
         UserId = userId;
         CharacterId = characterId;
-        UnlockedAt = DateTime.UtcNow;
+        UnlockedAt = timeProvider.UtcNow;
     }
 
     public Guid Id { get; private set; }

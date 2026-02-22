@@ -15,6 +15,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.IO;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Services;
 using SaveState.Core.Sync;
 
@@ -96,6 +97,7 @@ public partial class GameMediaTabViewModel : ObservableObject
     private ObservableCollection<string> _detectedTags = new();
 
     private readonly ISyncService _syncService;
+    private readonly ITimeProvider _timeProvider;
 
     public GameMediaTabViewModel(
         IMediator mediator,
@@ -106,7 +108,8 @@ public partial class GameMediaTabViewModel : ObservableObject
         ISyncService syncService,
         IClipboardService clipboardService,
         IImageAnalysisService? imageAnalysisService,
-        ILogger<GameMediaTabViewModel> logger)
+        ILogger<GameMediaTabViewModel> logger,
+        ITimeProvider timeProvider)
     {
         _mediator = mediator;
         _userContextService = userContextService;
@@ -117,6 +120,7 @@ public partial class GameMediaTabViewModel : ObservableObject
         _clipboardService = clipboardService;
         _imageAnalysisService = imageAnalysisService;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task LoadDataAsync(GameId gameId)
@@ -222,9 +226,9 @@ public partial class GameMediaTabViewModel : ObservableObject
         return $"{bytes / (1024.0 * 1024.0 * 1024.0):F1} GB";
     }
 
-    private static string FormatDateTime(DateTime dateTime)
+    private string FormatDateTime(DateTime dateTime)
     {
-        var now = DateTime.UtcNow;
+        var now = _timeProvider.UtcNow;
         var diff = now - dateTime;
 
         if (diff.TotalMinutes < 1)

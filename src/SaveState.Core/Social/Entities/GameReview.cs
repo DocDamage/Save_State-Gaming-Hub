@@ -108,7 +108,7 @@ public class GameReview : EntityBase
             Rating = rating,
             IsRecommended = isRecommended,
             PlaytimeAtReview = playtimeAtReview,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = SystemTimeProvider.Instance.UtcNow,
             ContainsSpoilers = false
         };
     }
@@ -154,6 +154,6 @@ public class GameReview : EntityBase
         if (content is not null) Content = content;
         if (containsSpoilers.HasValue) ContainsSpoilers = containsSpoilers.Value;
 
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = SystemTimeProvider.Instance.UtcNow;
     }
 }
