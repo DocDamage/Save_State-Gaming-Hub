@@ -8,6 +8,27 @@
 
 ---
 
+## February 22, 2026 Progress Update (Post-Audit)
+
+This file is still the February 21, 2026 audit snapshot, but the following
+remediation progress was completed after the audit timestamp:
+
+- Avalonia XAML remediation work is complete for the identified
+  `src/SaveState.Presentation` compile blockers.
+- Startup stability guards were added around failing seed/save initialization
+  paths so the UI can continue for smoke validation.
+- `SelectPlaylistCommand` gap in `RetroArchPlaylistViewModel` was fixed.
+- Interactive smoke checks are now implemented and passing for:
+  - Workflow Editor
+  - Recommendations
+  - Playlist
+  - Health Monitor
+- Validation results captured on February 22, 2026:
+  - `dotnet build src/SaveState.Presentation/SaveState.Presentation.csproj -v minimal` passed.
+  - `dotnet test tests/SaveState.Presentation.UITests/SaveState.Presentation.UITests.csproj --filter "FullyQualifiedName~TouchedViewsSmokeTests" -v minimal` passed (4/4).
+
+---
+
 ## Executive Summary
 
 | Category | Claimed (Prior Audits) | Actual (This Scan) | Current Status (Feb 22) |
@@ -185,6 +206,11 @@ Affected ViewModels include:
 - `RecommendationsViewModel` — 4 TODOs (recently played, preferred genres, just finished, filter)
 - `ErrorLogViewerDialogViewModel` — 3 TODOs (filter, export, clear)
 - `NaturalLanguageSaveSearch.cs` — 1 TODO (embedding search not implemented)
+
+**Status update (February 22, 2026):**
+- `RetroArchPlaylistViewModel` command binding gap (`SelectPlaylistCommand`) was remediated post-audit.
+- Touched Workflow/Recommendations/Playlist/Health views now pass targeted interactive smoke tests (4/4).
+- The numeric TODO inventory above is retained as the original February 21 snapshot.
 
 These are stub commands that show UI but silently do nothing. Users of the RetroArch tab in particular will experience 100% of actions being no-ops.
 

@@ -26,9 +26,32 @@
 
 ---
 
+## Progress Update (February 22, 2026)
+
+- [x] **P1 - IPerformanceProfilerService.cs** interface segregation completed
+- [x] Split monolithic contract into focused interfaces (`IProfilingSessionService`, `IPerformanceMetricsService`, `ICharacterProfilingService`, `IBattleProfilingService`, `IBottleneckAnalysisService`, `IOptimizationService`, `IBenchmarkService`, `IPerformanceReportingService`, `IPerformanceAlertService`)
+- [x] Moved profiling DTOs/enums to `src/SaveState.Core/Mugen/Services/PerformanceProfilerModels.cs`
+- [x] Reduced `IPerformanceProfilerService.cs` from ~878 lines to **175 lines** (current)
+- [x] **P1 - IStoryModeService.cs** interface/model split completed
+- [x] Extracted story contracts from monolithic file into focused contracts file + `StoryModeModels.cs`
+- [x] Reduced `IStoryModeService.cs` from **1,027 lines** to **426 lines**
+- [x] Updated Story Mode service registration to expose all focused interfaces through `StoryModeService`
+- [x] **P1 - RomValidationService.cs** extracted helper responsibilities into `src/SaveState.Infrastructure/RomManagement/Validation/RomValidationManagers.cs`
+- [x] **P1 - RomValidationService.cs** orchestration split completed using manager pattern
+- [x] `RomValidationService` now acts as coordinator delegating to:
+  `RomHashWorkflowManager`, `RomDatMatchingManager`, `RomValidationOrchestrationManager`, `RomValidationInsightsManager`
+- [x] Reduced `RomValidationService.cs` from ~918 lines to **136 lines** (current)
+- [x] Validation: `dotnet build src/SaveState.Core/SaveState.Core.csproj` and `dotnet build src/SaveState.Infrastructure/SaveState.Infrastructure.csproj` both pass
+- [x] Targeted regression tests: `RomValidationServiceTests` passing (11/11) and ROM validation integration tests passing (10/10)
+- [x] Cross-plan dependency update: Avalonia XAML remediation completed; Presentation build and targeted UI smoke checks are passing.
+- [ ] Next target: `SaveStateCloudService.cs` (currently 1006 lines)
+- [x] Oversized file count reduced in this session from **14** to **11** (`>800` lines)
+
+---
+
 ## Detailed Refactoring Plans
 
-### P1: RomValidationService.cs (1,032 lines)
+### P1: RomValidationService.cs (PARTIALLY COMPLETED - February 22, 2026)
 
 **Location:** `src/SaveState.Infrastructure/RomManagement/RomValidationService.cs`
 
@@ -77,16 +100,23 @@ RomValidationService (Coordinator, ~200 lines)
 - `RomManagement/Validation/BackgroundValidationManager.cs`
 - `RomManagement/Validation/Calculators/*.cs`
 
+**Current Progress:**
+- Extracted hash/matching helpers, DAT parsing helpers, export helpers, and header analysis into `RomManagement/Validation/RomValidationManagers.cs`
+- Split orchestration into dedicated managers:
+  `RomHashWorkflowManager`, `RomDatMatchingManager`, `RomValidationOrchestrationManager`, `RomValidationInsightsManager`
+- `RomValidationService.cs` is now a thin coordinator (136 lines)
+- Remaining work: optional renaming/alignment of manager filenames to the original target naming scheme (`HashCalculationManager`, `ValidationReportManager`, etc.)
+
 ---
 
-### P1: IStoryModeService.cs (1,027 lines)
+### P1: IStoryModeService.cs (COMPLETED - February 22, 2026)
 
 **Location:** `src/SaveState.Core/Mugen/Services/IStoryModeService.cs`
 
-**Current State:**
-- Interface with 40+ methods
-- Already partially split according to audit, but still 1027 lines
-- Mix of project, chapter, scene, dialogue, branching, battle integration
+**Current State (Before):**
+- Interface + model definitions in one file
+- 1,027 lines total with 9 focused interfaces and 50+ story models/enums
+- Mix of contracts and DTO/value types in the same compilation unit
 
 **Proposed Structure - Interface Segregation (already started):**
 
@@ -103,18 +133,21 @@ IStoryModeService (Marker interface)
 └── IStoryAssetService (Asset management)
 ```
 
-**Refactoring Steps:**
-1. Verify all focused interfaces exist from previous refactor
-2. Remove method definitions from IStoryModeService (keep as marker)
-3. Update implementations to implement specific interfaces
-4. Update DI registration to register all interfaces
-5. Update consumers to use specific interfaces
+**Completed Changes:**
+1. Kept `IStoryModeService` and all focused interfaces in `IStoryModeService.cs`
+2. Moved all story request/response models and enums to `StoryModeModels.cs`
+3. Updated `StoryModeService` to implement all focused interfaces explicitly
+4. Updated DI to register all focused interfaces via the same scoped `StoryModeService` instance
+5. Fixed pre-existing signature mismatch for asset optimization (`StoryAssetOptimizationOptions`)
 
-**Note:** The audit claimed this was already split, but file is still 1027 lines. May need to verify split was completed or if original file still contains implementations.
+**Validation Notes:**
+- `dotnet build src/SaveState.Core/SaveState.Core.csproj` ✅
+- `dotnet build src/SaveState.Infrastructure/SaveState.Infrastructure.csproj` ✅
+- `IStoryModeService.cs` reduced to **426 lines** (from 1,027)
 
 ---
 
-### P1: IPerformanceProfilerService.cs (1,009 lines)
+### P1: IPerformanceProfilerService.cs (COMPLETED - February 22, 2026)
 
 **Location:** `src/SaveState.Core/Mugen/Services/IPerformanceProfilerService.cs`
 
@@ -138,11 +171,17 @@ IPerformanceProfilerService (Marker/Coordinator)
 └── IOptimizationRecommender
 ```
 
-**Refactoring Steps:**
-1. Extract individual profiler interfaces
-2. Create implementation classes in Infrastructure
-3. Update DI registration
-4. Update consumers
+**Completed Changes:**
+1. Extracted focused service interfaces by responsibility area
+2. Kept `IPerformanceProfilerService` as composite marker interface for backward compatibility
+3. Moved all profiling request/response models into `PerformanceProfilerModels.cs`
+4. Verified existing implementation (`PerformanceProfilerService`) remains compatible without DI changes
+
+**Validation Notes:**
+- `dotnet build src/SaveState.Core/SaveState.Core.csproj` ✅
+- `dotnet build src/SaveState.Infrastructure/SaveState.Infrastructure.csproj` ✅
+- `dotnet build src/SaveState.Presentation/SaveState.Presentation.csproj -v minimal` âœ…
+- Targeted interactive smoke tests for touched views are passing (`WorkflowEditor`, `Recommendations`, `Playlist`, `HealthMonitor`)
 
 ---
 
@@ -316,9 +355,9 @@ SignatureVerificationService (~200 lines)
 ## Implementation Strategy
 
 ### Phase 1: High-Priority (P1) - Week 1
-1. **RomValidationService.cs** - Start with this as it has clear separation
-2. **IPerformanceProfilerService.cs** - Interface segregation
-3. Verify **IStoryModeService.cs** split status
+1. **RomValidationService.cs** - Manager pattern extraction ✅ Completed (February 22, 2026)
+2. **IPerformanceProfilerService.cs** - Interface segregation ✅ Completed (February 22, 2026)
+3. **IStoryModeService.cs** - Interface/model split and focused interface registration âœ… Completed (February 22, 2026)
 
 ### Phase 2: Medium-Priority (P2) - Week 2
 1. **SaveStateCloudService.cs**
