@@ -41,3 +41,34 @@ secrets.json
 # Coverage
 coverage/
 *.coverage
+
+# Build artifacts
+artifacts/
+*.db.bak
+*.bak
+build_errors*.txt
+build_output.txt
+nul
+
+# Security - never commit keys
+src/all_secret_keys.txt
+*.secret
+*.key
+secrets/
+
+# Runtime/session logs
+logs/
+src/SaveState.Presentation/build_log.txt
+src/SaveState.Presentation/log2.txt
+
+# Archived build/test logs
+archive/2026-02-21-docs-cleanup/**/build_logs/
+archive/2026-02-21-docs-cleanup/**/logs/
+docs/archive/logs/
+docs/reports/logs/
+full_build_log.txt
+
+# Embedded repositories in archived external knowledge dumps
+archive/2026-02-21-docs-cleanup/outdated-root-docs/knowledge/technical/30-seconds-of-code/
+archive/2026-02-21-docs-cleanup/outdated-root-docs/knowledge/technical/csharp/examples/
+archive/2026-02-21-docs-cleanup/outdated-root-docs/knowledge/technical/csharp/snippets/
