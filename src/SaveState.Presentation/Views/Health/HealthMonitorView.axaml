@@ -371,8 +371,7 @@
                         <StackPanel Grid.Column="0" Spacing="2">
                           <TextBlock Text="{Binding Type, StringFormat='{}{0}'}"
                                      Foreground="#88FFFFFF"
-                                     FontSize="10"
-                                     TextTransform="Uppercase"/>
+                                     FontSize="10"/>
                           <TextBlock Text="{Binding Message}"
                                      Foreground="White"
                                      FontSize="12"
@@ -442,42 +441,47 @@
               <TextBlock Text="Simulate Posture (Debug)" 
                          Foreground="#66FFFFFF" 
                          FontSize="10"/>
-              <WrapPanel Orientation="Horizontal" Spacing="6">
+              <WrapPanel Orientation="Horizontal">
                 <Button Content="Excellent"
                         Command="{Binding SimulatePostureCommand}"
                         CommandParameter="excellent"
                         Background="#224CAF50"
                         Foreground="White"
                         Padding="8,4"
-                        FontSize="10"/>
+                        FontSize="10"
+                        Margin="0,0,6,6"/>
                 <Button Content="Good"
                         Command="{Binding SimulatePostureCommand}"
                         CommandParameter="good"
                         Background="#228BC34A"
                         Foreground="White"
                         Padding="8,4"
-                        FontSize="10"/>
+                        FontSize="10"
+                        Margin="0,0,6,6"/>
                 <Button Content="Slouching"
                         Command="{Binding SimulatePostureCommand}"
                         CommandParameter="slouching"
                         Background="#22FFC107"
                         Foreground="White"
                         Padding="8,4"
-                        FontSize="10"/>
+                        FontSize="10"
+                        Margin="0,0,6,6"/>
                 <Button Content="Poor"
                         Command="{Binding SimulatePostureCommand}"
                         CommandParameter="poor"
                         Background="#22FF9800"
                         Foreground="White"
                         Padding="8,4"
-                        FontSize="10"/>
+                        FontSize="10"
+                        Margin="0,0,6,6"/>
                 <Button Content="Critical"
                         Command="{Binding SimulatePostureCommand}"
                         CommandParameter="critical"
                         Background="#22F44336"
                         Foreground="White"
                         Padding="8,4"
-                        FontSize="10"/>
+                        FontSize="10"
+                        Margin="0,0,6,6"/>
               </WrapPanel>
             </StackPanel>
           </Border>

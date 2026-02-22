@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.GameLibrary"
+             xmlns:rec="clr-namespace:SaveState.Core.GameLibrary.Models.Recommendations;assembly=SaveState.Core"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="SaveState.Presentation.Views.GameLibrary.RecommendationsView"
              x:DataType="vm:SmartRecommendationsViewModel">
@@ -28,12 +29,14 @@
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Margin" Value="16,24,16,12" />
     </Style>
-    <Style Selector="TextBlock.ReasonBadge">
-      <Setter Property="FontSize" Value="11" />
+    <Style Selector="Border.ReasonBadge">
       <Setter Property="Padding" Value="8,4" />
       <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource AccentForegroundBrush}" />
       <Setter Property="CornerRadius" Value="4" />
+    </Style>
+    <Style Selector="TextBlock.ReasonBadge">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentForegroundBrush}" />
     </Style>
     <Style Selector="TextBlock.ScoreText">
       <Setter Property="FontSize" Value="14" />
@@ -105,9 +108,9 @@
 
         <!-- Player Count -->
         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" Margin="12,0">
-          <RadioButton Content="Solo" IsChecked="{Binding PlayerCount, Converter={x:Static ObjectConverters.Equals}, ConverterParameter=1}"
+          <RadioButton Content="Solo" IsChecked="{Binding PlayerCount, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=1}"
                        Command="{Binding SetSoloPlayCommand}" />
-          <RadioButton Content="Multiplayer" IsChecked="{Binding PlayerCount, Converter={x:Static ObjectConverters.Equals}, ConverterParameter=2}"
+          <RadioButton Content="Multiplayer" IsChecked="{Binding PlayerCount, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=2}"
                        Command="{Binding SetMultiplayerCommand}" />
         </StackPanel>
 
@@ -143,7 +146,7 @@
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
-            <DataTemplate DataType="{x:Type vm:GameRecommendation}">
+            <DataTemplate DataType="rec:GameRecommendation">
               <Border Classes="RecommendationCard" Width="280">
                 <Grid RowDefinitions="Auto,Auto,Auto,*">
                   <!-- Cover Image -->
@@ -172,8 +175,9 @@
                              FontSize="16" Margin="0,8,0,4" TextTrimming="CharacterEllipsis" />
 
                   <!-- Reason Badge -->
-                  <TextBlock Grid.Row="2" Text="{Binding Reason}" Classes="ReasonBadge"
-                             HorizontalAlignment="Left" />
+                  <Border Grid.Row="2" Classes="ReasonBadge" HorizontalAlignment="Left">
+                    <TextBlock Text="{Binding Reason}" Classes="ReasonBadge"/>
+                  </Border>
 
                   <!-- Factors -->
                   <StackPanel Grid.Row="3" Margin="0,8,0,0" Spacing="2">
@@ -210,7 +214,7 @@
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
-            <DataTemplate DataType="{x:Type vm:GameRecommendation}">
+            <DataTemplate DataType="rec:GameRecommendation">
               <Border Classes="RecommendationCard" Width="200">
                 <StackPanel Spacing="4">
                   <TextBlock Text="{Binding GameTitle}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
@@ -239,7 +243,7 @@
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
-            <DataTemplate DataType="{x:Type vm:GameRecommendation}">
+            <DataTemplate DataType="rec:GameRecommendation">
               <Border Classes="RecommendationCard" Width="200">
                 <StackPanel Spacing="4">
                   <TextBlock Text="{Binding GameTitle}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
@@ -267,7 +271,7 @@
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
-            <DataTemplate DataType="{x:Type vm:GameRecommendation}">
+            <DataTemplate DataType="rec:GameRecommendation">
               <Border Classes="RecommendationCard" Width="200">
                 <StackPanel Spacing="4">
                   <TextBlock Text="{Binding GameTitle}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />

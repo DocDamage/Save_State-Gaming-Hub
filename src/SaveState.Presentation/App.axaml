@@ -38,6 +38,15 @@
       <converters:IsDisconnectedConverter x:Key="IsDisconnectedConverter" />
       <converters:EnumToItemsConverter x:Key="EnumToItemsConverter" />
       <converters:IntToStatusBrushConverter x:Key="IntToStatusBrushConverter" />
+      <converters:ObjectToBoolConverter x:Key="ObjectToBoolConverter" />
+      <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+      <converters:SelectedBackgroundConverter x:Key="SelectedBackgroundConverter" />
+      <converters:BoolToEnabledBrushConverter x:Key="BoolToEnabledBrushConverter" />
+      <converters:BoolToStringConverter x:Key="BoolToStringConverter" />
+      <converters:BoolToIntConverter x:Key="BoolToIntConverter" />
+      <converters:EnumToIntConverter x:Key="EnumToIntConverter" />
+      <converters:EnumEqualsConverter x:Key="EnumEqualsConverter" />
+      <converters:AlertSeverityToBrushConverter x:Key="AlertSeverityToBrushConverter" />
 
       <converters:HealthStatusToBrushConverter x:Key="HealthStatusToBrushConverter" />
       <converters:ErrorSeverityToBrushConverter x:Key="ErrorSeverityToBrushConverter" />

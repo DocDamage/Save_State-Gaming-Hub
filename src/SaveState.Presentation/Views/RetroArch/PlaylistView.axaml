@@ -99,7 +99,7 @@
           <ItemsControl.ItemTemplate>
             <DataTemplate>
               <Border Classes="Card" Margin="8">
-                <Grid ColumnDefinitions="{Binding IsGridView, Converter={StaticResource BoolToStringConverter}, ConverterParameter='*|Auto,Auto'}">
+                <Grid ColumnDefinitions="*,Auto">
                   <StackPanel Grid.Column="0" Spacing="4">
                     <Border Background="{DynamicResource HoverBackgroundBrush}" 
                             Height="{Binding IsGridView, Converter={StaticResource BoolToIntConverter}, ConverterParameter='120|48'}"

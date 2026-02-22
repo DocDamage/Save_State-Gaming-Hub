@@ -53,6 +53,15 @@ public partial class RetroArchPlaylistViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Selects a playlist to display its games in the details panel.
+    /// </summary>
+    [RelayCommand]
+    private void SelectPlaylist(RetroArchPlaylist? playlist)
+    {
+        SelectedPlaylist = playlist;
+    }
+
+    /// <summary>
     /// Adds a game to the selected playlist.
     /// </summary>
     [RelayCommand]

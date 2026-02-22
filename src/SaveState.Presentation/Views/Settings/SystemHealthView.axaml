@@ -128,7 +128,7 @@
                                      RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                             CommandParameter="{Binding}"
                             IsVisible="{Binding Status,
-                                      Converter={x:Static ObjectConverters.AreNotEqual},
+                                      Converter={x:Static ObjectConverters.NotEqual},
                                       ConverterParameter={x:Static health:HealthStatus.Healthy}}"/>
                   </Grid>
                 </DataTemplate>

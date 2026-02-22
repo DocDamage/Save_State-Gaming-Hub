@@ -36,10 +36,10 @@ public class NavigationService : ObservableObject, INavigationService
         IServiceProvider serviceProvider,
         ITimeProvider timeProvider)
     {
-        _logger.LogDebug("NavigationService constructor starting");
         _logger = logger;
         _serviceProvider = serviceProvider;
         _timeProvider = timeProvider;
+        _logger.LogDebug("NavigationService constructor starting");
 
         // Don't resolve ViewModels here - defer until first actual navigation
         // This avoids blocking during DI resolution chain

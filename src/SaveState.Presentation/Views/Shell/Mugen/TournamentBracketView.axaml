@@ -6,8 +6,7 @@
 
   <!-- 
     PERFORMANCE OPTIMIZATION NOTES:
-    - Uses ListBox with VirtualizingPanel for efficient rendering of large tournaments
-    - VirtualizingPanel.IsVirtualizing="True" ensures only visible items are rendered
+    - Uses ListBox for efficient rendering of large tournaments
     - Nested ItemsControls optimized for typical bracket sizes
   -->
 
@@ -28,8 +27,6 @@
                   VerticalScrollBarVisibility="Auto">
       <ListBox ItemsSource="{Binding Rounds, Mode=OneWay}" 
                Margin="20"
-               VirtualizingPanel.IsVirtualizing="True"
-               VirtualizingPanel.VirtualizationMode="Recycling"
                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                ScrollViewer.VerticalScrollBarVisibility="Disabled"
                Background="Transparent"

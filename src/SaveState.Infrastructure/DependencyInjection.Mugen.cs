@@ -166,7 +166,17 @@ public static partial class DependencyInjection
         services.AddScoped<StoryBattleManager>();
         services.AddScoped<StoryTestingManager>();
         services.AddScoped<StoryAssetManager>();
-        services.AddScoped<IStoryModeService, StoryModeService>();
+        services.AddScoped<StoryModeService>();
+        services.AddScoped<IStoryModeService>(sp => sp.GetRequiredService<StoryModeService>());
+        services.AddScoped<IStoryProjectService>(sp => sp.GetRequiredService<StoryModeService>());
+        services.AddScoped<IStoryChapterService>(sp => sp.GetRequiredService<StoryModeService>());
+        services.AddScoped<IStorySceneService>(sp => sp.GetRequiredService<StoryModeService>());
+        services.AddScoped<IStoryDialogueService>(sp => sp.GetRequiredService<StoryModeService>());
+        services.AddScoped<IStoryCutsceneService>(sp => sp.GetRequiredService<StoryModeService>());
+        services.AddScoped<IStoryBranchingService>(sp => sp.GetRequiredService<StoryModeService>());
+        services.AddScoped<IStoryBattleIntegrationService>(sp => sp.GetRequiredService<StoryModeService>());
+        services.AddScoped<IStoryTestingService>(sp => sp.GetRequiredService<StoryModeService>());
+        services.AddScoped<IStoryAssetService>(sp => sp.GetRequiredService<StoryModeService>());
 
         // Performance Profiler - Manager Pattern
         services.AddScoped<ProfilingSessionManager>();

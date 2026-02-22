@@ -9,9 +9,7 @@
 
   <!-- 
     PERFORMANCE OPTIMIZATION NOTES:
-    - Uses ListBox with VirtualizingPanel for efficient rendering of large collections
-    - VirtualizingPanel.IsVirtualizing="True" ensures only visible items are rendered
-    - VirtualizingPanel.VirtualizationMode="Recycling" reuses containers for better performance
+    - Uses ListBox for efficient rendering of large collections
     - 10-foot UI optimized with larger touch targets and reduced visual effects
   -->
 
@@ -64,8 +62,6 @@
                   VerticalScrollBarVisibility="Auto">
       <ListBox ItemsSource="{Binding Games, Mode=OneWay}" 
                Margin="0,0,-20,0"
-               VirtualizingPanel.IsVirtualizing="True"
-               VirtualizingPanel.VirtualizationMode="Recycling"
                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                ScrollViewer.VerticalScrollBarVisibility="Disabled"
                Background="Transparent"

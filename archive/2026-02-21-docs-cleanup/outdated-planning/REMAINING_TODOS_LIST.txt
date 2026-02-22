@@ -1,0 +1,7 @@
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Application\Api\Queries\GetLibraryStatsApiQueryHandler.cs:50:GamesCompleted: 0, // TODO: Implement game completion tracking
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Infrastructure\GameLibrary\Services\PerformanceMetricsCollector.cs:352:return Convert.ToDouble(obj["TotalPhysicalMemory"]) / (1024 * 1024);
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Infrastructure\Social\ChallengeProgressService.cs:141:var numericValue = Convert.ToDouble(statValue);
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Presentation\Services\DialogService.cs:731:// TODO: Create proper LaunchConfigurationDialog view and viewmodel
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Presentation\ViewModels\Library\GameDetail\GameDetailViewModel.cs:288:// TODO: Persist launch configuration to game entity via UpdateGameCommand
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Presentation\ViewModels\Library\GameDetail\GameSaveStatesTabViewModel.cs:257:// TODO: Persist settings to backend via command
+C:\Users\Doc\Desktop\SaveStateReborn\src\SaveState.Presentation\ViewModels\Library\GameDetail\GameSaveStatesTabViewModel.cs:568:// TODO: Create UpdateSaveStateMetadataCommand

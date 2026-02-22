@@ -127,7 +127,7 @@ public class StoryAssetManager
     /// <param name="ct">Cancellation token.</param>
     /// <returns>Result containing the optimization result.</returns>
     public Task<Result<StoryAssetOptimizationResult>> OptimizeAssetsAsync(
-        OptimizationOptions options,
+        StoryAssetOptimizationOptions options,
         CancellationToken ct = default)
     {
         try

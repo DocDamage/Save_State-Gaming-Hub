@@ -125,7 +125,6 @@
     <!-- Semantic Brushes for Consistency -->
     <SolidColorBrush x:Key="DialogBackgroundBrush" Color="#1A1B1E" />
     <SolidColorBrush x:Key="InputBorderBrush" Color="#2C2E33" />
-    <SolidColorBrush x:Key="InputBackgroundBrush" Color="#2C2E33" />
     <SolidColorBrush x:Key="ForegroundBrush" Color="#FFFFFF" />
 
     <!-- Tag-specific brushes (used in TagEditorDialog) -->

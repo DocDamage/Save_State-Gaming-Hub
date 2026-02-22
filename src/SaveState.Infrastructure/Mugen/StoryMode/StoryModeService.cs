@@ -11,7 +11,17 @@ namespace SaveState.Infrastructure.Mugen.StoryMode;
 /// Provides comprehensive tools for creating narrative-driven gameplay.
 /// Acts as a thin coordinator delegating to specialized managers.
 /// </summary>
-public class StoryModeService : IStoryModeService
+public class StoryModeService :
+    IStoryModeService,
+    IStoryProjectService,
+    IStoryChapterService,
+    IStorySceneService,
+    IStoryDialogueService,
+    IStoryCutsceneService,
+    IStoryBranchingService,
+    IStoryBattleIntegrationService,
+    IStoryTestingService,
+    IStoryAssetService
 {
     private readonly ILogger<StoryModeService> _logger;
     private readonly ITimeProvider _timeProvider;
@@ -460,7 +470,7 @@ public class StoryModeService : IStoryModeService
 
     /// <inheritdoc />
     public Task<Result<StoryAssetOptimizationResult>> OptimizeAssetsAsync(
-        OptimizationOptions options,
+        StoryAssetOptimizationOptions options,
         CancellationToken ct = default)
         => _assetManager.OptimizeAssetsAsync(options, ct);
 

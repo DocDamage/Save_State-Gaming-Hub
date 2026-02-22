@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using SaveState.Presentation;
 
 [assembly: AvaloniaTestApplication(typeof(SaveState.Presentation.UITests.TestAppBuilder))]
 
@@ -18,11 +19,11 @@ public class TestAppBuilder
 /// <summary>
 /// Application class for headless tests.
 /// </summary>
-public class TestApp : Avalonia.Application
+public class TestApp : App
 {
-    public override void Initialize()
+    public override void OnFrameworkInitializationCompleted()
     {
-        // Minimal initialization for tests
+        // Skip desktop shell bootstrapping for isolated view tests.
     }
 }
 

@@ -10,17 +10,13 @@
 
     <!-- 
         PERFORMANCE OPTIMIZATION NOTES:
-        - Uses ListBox with VirtualizingPanel for efficient rendering of large collections
-        - VirtualizingPanel.IsVirtualizing="True" ensures only visible items are rendered
-        - VirtualizingPanel.VirtualizationMode="Recycling" reuses containers for better performance
+        - Uses ListBox for efficient rendering of large collections
         - ScrollViewer.HorizontalScrollBarVisibility="Disabled" to prevent dual scrolling
     -->
     <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                   VerticalScrollBarVisibility="Auto">
         <ListBox ItemsSource="{Binding Games, Mode=OneWay}"
                  Margin="20"
-                 VirtualizingPanel.IsVirtualizing="True"
-                 VirtualizingPanel.VirtualizationMode="Recycling"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  Background="Transparent"

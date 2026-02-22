@@ -9,9 +9,7 @@
 
     <!-- 
         PERFORMANCE OPTIMIZATION NOTES:
-        - Uses ListBox with VirtualizingPanel for efficient rendering of large collections
-        - VirtualizingPanel.IsVirtualizing="True" ensures only visible items are rendered
-        - VirtualizingPanel.VirtualizationMode="Recycling" reuses containers for better performance
+        - Uses ListBox for efficient rendering of large collections
         - Images use async loading to prevent UI blocking
     -->
     <Border Classes="GlassContainer" Margin="20" Padding="0">
@@ -41,8 +39,6 @@
                           HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto">
                 <ListBox ItemsSource="{Binding Games, Mode=OneWay}"
-                         VirtualizingPanel.IsVirtualizing="True"
-                         VirtualizingPanel.VirtualizationMode="Recycling"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                          ScrollViewer.VerticalScrollBarVisibility="Disabled"
                          Background="Transparent"

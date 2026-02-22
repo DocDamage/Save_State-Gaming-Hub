@@ -752,6 +752,7 @@ public sealed class WorkflowNodeViewModel : ObservableObject
     public required string Icon { get; set; }
     public int? DelaySeconds { get; set; }
 
+    public string TypeDisplay => Type.ToString().ToUpperInvariant();
     public bool HasDelay => DelaySeconds.HasValue && DelaySeconds.Value > 0;
     public string DelayText => HasDelay ? $"{DelaySeconds}s delay" : string.Empty;
 }
