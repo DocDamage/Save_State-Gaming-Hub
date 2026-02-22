@@ -95,11 +95,10 @@ namespace SaveState.Infrastructure;
 public static partial class DependencyInjection
 {
     /// <summary>
-    /// Adds configuration options with validation.
+    /// Adds AI provider configuration options with validation.
     /// </summary>
-    private static void AddConfigurationOptions(IServiceCollection services, IConfiguration configuration)
+    private static void AddAiProviderOptions(IServiceCollection services, IConfiguration configuration)
     {
-        // Configuration with validation
         services.AddOptions<OpenAiOptions>()
             .Bind(configuration.GetSection("OpenAi"))
             .ValidateDataAnnotations()
@@ -123,6 +122,51 @@ public static partial class DependencyInjection
                        Uri.IsWellFormedUriString(options.BaseUrl, UriKind.Absolute);
             }, "Invalid Groq configuration")
             .ValidateOnStart();
+
+        services.AddOptions<KimiOptions>()
+            .Bind(configuration.GetSection(KimiOptions.SectionName))
+            .ValidateDataAnnotations()
+            .Validate(options =>
+            {
+                return !string.IsNullOrEmpty(options.BaseUrl) &&
+                       !string.IsNullOrEmpty(options.ApiKey) &&
+                       !string.IsNullOrEmpty(options.DefaultModel) &&
+                       Uri.IsWellFormedUriString(options.BaseUrl, UriKind.Absolute);
+            }, "Invalid Kimi configuration")
+            .ValidateOnStart();
+
+        services.AddOptions<GeminiOptions>()
+            .Bind(configuration.GetSection(GeminiOptions.SectionName))
+            .ValidateDataAnnotations()
+            .Validate(options =>
+            {
+                return !string.IsNullOrEmpty(options.BaseUrl) &&
+                       !string.IsNullOrEmpty(options.ApiKey) &&
+                       !string.IsNullOrEmpty(options.DefaultModel) &&
+                       Uri.IsWellFormedUriString(options.BaseUrl, UriKind.Absolute);
+            }, "Invalid Gemini configuration")
+            .ValidateOnStart();
+
+        services.AddOptions<GlmOptions>()
+            .Bind(configuration.GetSection(GlmOptions.SectionName))
+            .ValidateDataAnnotations()
+            .Validate(options =>
+            {
+                return !string.IsNullOrEmpty(options.BaseUrl) &&
+                       !string.IsNullOrEmpty(options.ApiKey) &&
+                       !string.IsNullOrEmpty(options.DefaultModel) &&
+                       Uri.IsWellFormedUriString(options.BaseUrl, UriKind.Absolute);
+            }, "Invalid GLM configuration")
+            .ValidateOnStart();
+    }
+
+    /// <summary>
+    /// Adds configuration options with validation.
+    /// </summary>
+    private static void AddConfigurationOptions(IServiceCollection services, IConfiguration configuration)
+    {
+        // AI Provider configurations
+        AddAiProviderOptions(services, configuration);
 
         services.AddOptions<SaveState.Core.Common.Configuration.AiOptions>()
             .Bind(configuration.GetSection("Ai"))

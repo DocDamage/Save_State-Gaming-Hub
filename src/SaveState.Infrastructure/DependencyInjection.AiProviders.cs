@@ -113,6 +113,27 @@ public static partial class DependencyInjection
         })
         .AddResiliencePolicies("Groq");
 
+        services.AddHttpClient<ILlmProvider, KimiProvider>((sp, client) =>
+        {
+            var options = sp.GetRequiredService<IOptions<KimiOptions>>().Value;
+            client.BaseAddress = new Uri(options.BaseUrl);
+        })
+        .AddResiliencePolicies("Kimi");
+
+        services.AddHttpClient<ILlmProvider, GeminiProvider>((sp, client) =>
+        {
+            var options = sp.GetRequiredService<IOptions<GeminiOptions>>().Value;
+            client.BaseAddress = new Uri(options.BaseUrl);
+        })
+        .AddResiliencePolicies("Gemini");
+
+        services.AddHttpClient<ILlmProvider, GlmProvider>((sp, client) =>
+        {
+            var options = sp.GetRequiredService<IOptions<GlmOptions>>().Value;
+            client.BaseAddress = new Uri(options.BaseUrl);
+        })
+        .AddResiliencePolicies("GLM");
+
         services.AddSingleton<ILlmProvider, LocalEmbeddedProvider>();
     }
 }
