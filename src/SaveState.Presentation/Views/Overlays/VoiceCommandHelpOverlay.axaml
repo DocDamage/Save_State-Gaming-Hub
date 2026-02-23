@@ -1,0 +1,454 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Overlays"
+             x:Class="SaveState.Presentation.Views.Overlays.VoiceCommandHelpOverlay"
+             x:DataType="vm:VoiceVisualizerViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.overlay-panel">
+            <Setter Property="Background" Value="#E6000000" />
+        </Style>
+
+        <Style Selector="Border.content-panel">
+            <Setter Property="Background" Value="{StaticResource OverlayBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource OverlayBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="BoxShadow" Value="0 16 48 #60000000" />
+        </Style>
+
+        <Style Selector="Button.close">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+
+        <Style Selector="Button.close:pointerover">
+            <Setter Property="Background" Value="#20FFFFFF" />
+        </Style>
+
+        <Style Selector="Border.command-category">
+            <Setter Property="Background" Value="#10FFFFFF" />
+            <Setter Property="BorderBrush" Value="#20FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+
+        <Style Selector="Border.command-item">
+            <Setter Property="Background" Value="#08FFFFFF" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+    </UserControl.Styles>
+
+    <!-- Dimming Background -->
+    <Border Classes="overlay-panel"
+            PointerPressed="OnCloseClick">
+
+        <!-- Content Panel -->
+        <Border Classes="content-panel"
+                Width="700"
+                Height="600"
+                MaxWidth="900"
+                MaxHeight="800">
+
+            <Grid RowDefinitions="Auto,*">
+                <!-- Header -->
+                <Grid Grid.Row="0"
+                      ColumnDefinitions="*,Auto"
+                      Margin="24,20,20,16">
+                    <StackPanel Grid.Column="0" Spacing="4">
+                        <TextBlock Text="🎤 Voice Commands"
+                                  FontSize="24"
+                                  FontWeight="Bold"
+                                  Foreground="White" />
+                        <TextBlock Text="Say 'Hey SaveState' followed by any command"
+                                  FontSize="14"
+                                  Opacity="0.7"
+                                  Foreground="White" />
+                    </StackPanel>
+
+                    <Button Grid.Column="1"
+                           Classes="close"
+                           Content="✕"
+                           Click="OnCloseClick"
+                           VerticalAlignment="Top" />
+                </Grid>
+
+                <!-- Content -->
+                <ScrollViewer Grid.Row="1" Margin="24,0,24,24">
+                    <StackPanel Spacing="16">
+                        <!-- Quick Tips -->
+                        <Border Background="#10FFFFFF"
+                               BorderBrush="#204CAF50"
+                               BorderThickness="1"
+                               CornerRadius="8"
+                               Padding="16">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <TextBlock Grid.Column="0"
+                                          Text="💡"
+                                          FontSize="24"
+                                          Margin="0,0,12,0" />
+                                <StackPanel Grid.Column="1" Spacing="4">
+                                    <TextBlock Text="Tips for Best Results"
+                                              FontSize="14"
+                                              FontWeight="SemiBold"
+                                              Foreground="White" />
+                                    <TextBlock Text="• Speak clearly and at a normal pace&#x0A;• Use the exact phrases shown below&#x0A;• Wait for the listening indicator before speaking&#x0A;• You can press Ctrl+Shift+V to toggle the visualizer"
+                                              FontSize="13"
+                                              Opacity="0.7"
+                                              Foreground="White"
+                                              TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Game Launch Commands -->
+                        <Border Classes="command-category">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+                                    <TextBlock Text="🎮" FontSize="20" />
+                                    <TextBlock Text="Game Launch"
+                                              FontSize="16"
+                                              FontWeight="SemiBold"
+                                              Foreground="White" />
+                                </StackPanel>
+
+                                <StackPanel Spacing="8">
+                                    <Border Classes="command-item">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="Launch [game name]"
+                                                          FontSize="14"
+                                                          FontWeight="Medium"
+                                                          Foreground="#4CAF50" />
+                                                <TextBlock Text="Launch a specific game from your library"
+                                                          FontSize="12"
+                                                          Opacity="0.6"
+                                                          Foreground="White" />
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1"
+                                                      Text="Example: &quot;Launch Elden Ring&quot;"
+                                                      FontSize="11"
+                                                      Opacity="0.5"
+                                                      Foreground="White"
+                                                      FontStyle="Italic" />
+                                        </Grid>
+                                    </Border>
+
+                                    <Border Classes="command-item">
+                                        <StackPanel>
+                                            <TextBlock Text="Play [game name] / Start [game name]"
+                                                      FontSize="14"
+                                                      FontWeight="Medium"
+                                                      Foreground="#4CAF50" />
+                                            <TextBlock Text="Alternative phrases to launch a game"
+                                                      FontSize="12"
+                                                      Opacity="0.6"
+                                                      Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Classes="command-item">
+                                        <StackPanel>
+                                            <TextBlock Text="Resume last game"
+                                                      FontSize="14"
+                                                      FontWeight="Medium"
+                                                      Foreground="#4CAF50" />
+                                            <TextBlock Text="Continue playing your most recently played game"
+                                                      FontSize="12"
+                                                      Opacity="0.6"
+                                                      Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Classes="command-item">
+                                        <StackPanel>
+                                            <TextBlock Text="Close game"
+                                                      FontSize="14"
+                                                      FontWeight="Medium"
+                                                      Foreground="#4CAF50" />
+                                            <TextBlock Text="Close the currently running game"
+                                                      FontSize="12"
+                                                      Opacity="0.6"
+                                                      Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Save State Commands -->
+                        <Border Classes="command-category">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+                                    <TextBlock Text="💾" FontSize="20" />
+                                    <TextBlock Text="Save States"
+                                              FontSize="16"
+                                              FontWeight="SemiBold"
+                                              Foreground="White" />
+                                </StackPanel>
+
+                                <StackPanel Spacing="8">
+                                    <Border Classes="command-item">
+                                        <StackPanel>
+                                            <TextBlock Text="Create save state / Save state / Quick save"
+                                                      FontSize="14"
+                                                      FontWeight="Medium"
+                                                      Foreground="#2196F3" />
+                                            <TextBlock Text="Create a new save state for the current game"
+                                                      FontSize="12"
+                                                      Opacity="0.6"
+                                                      Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Classes="command-item">
+                                        <StackPanel>
+                                            <TextBlock Text="Load save state / Quick load"
+                                                      FontSize="14"
+                                                      FontWeight="Medium"
+                                                      Foreground="#2196F3" />
+                                            <TextBlock Text="Load the most recent or quick save state"
+                                                      FontSize="12"
+                                                      Opacity="0.6"
+                                                      Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Classes="command-item">
+                                        <StackPanel>
+                                            <TextBlock Text="Load save [number]"
+                                                      FontSize="14"
+                                                      FontWeight="Medium"
+                                                      Foreground="#2196F3" />
+                                            <TextBlock Text="Load a specific save state by number"
+                                                      FontSize="12"
+                                                      Opacity="0.6"
+                                                      Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Media Commands -->
+                        <Border Classes="command-category">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+                                    <TextBlock Text="📷" FontSize="20" />
+                                    <TextBlock Text="Media &amp; Recording"
+                                              FontSize="16"
+                                              FontWeight="SemiBold"
+                                              Foreground="White" />
+                                </StackPanel>
+
+                                <StackPanel Spacing="8">
+                                    <Border Classes="command-item">
+                                        <StackPanel>
+                                            <TextBlock Text="Take screenshot / Screenshot"
+                                                      FontSize="14"
+                                                      FontWeight="Medium"
+                                                      Foreground="#9C27B0" />
+                                            <TextBlock Text="Capture a screenshot of the current game"
+                                                      FontSize="12"
+                                                      Opacity="0.6"
+                                                      Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Classes="command-item">
+                                        <StackPanel>
+                                            <TextBlock Text="Start recording"
+                                                      FontSize="14"
+                                                      FontWeight="Medium"
+                                                      Foreground="#9C27B0" />
+                                            <TextBlock Text="Begin recording gameplay video"
+                                                      FontSize="12"
+                                                      Opacity="0.6"
+                                                      Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Classes="command-item">
+                                        <StackPanel>
+                                            <TextBlock Text="Stop recording"
+                                                      FontSize="14"
+                                                      FontWeight="Medium"
+                                                      Foreground="#9C27B0" />
+                                            <TextBlock Text="Stop the current gameplay recording"
+                                                      FontSize="12"
+                                                      Opacity="0.6"
+                                                      Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Classes="command-item">
+                                        <StackPanel>
+                                            <TextBlock Text="Clip that"
+                                                      FontSize="14"
+                                                      FontWeight="Medium"
+                                                      Foreground="#9C27B0" />
+                                            <TextBlock Text="Save the last gameplay clip (if replay buffer is active)"
+                                                      FontSize="12"
+                                                      Opacity="0.6"
+                                                      Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Navigation Commands -->
+                        <Border Classes="command-category">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+                                    <TextBlock Text="🧭" FontSize="20" />
+                                    <TextBlock Text="Navigation"
+                                              FontSize="16"
+                                              FontWeight="SemiBold"
+                                              Foreground="White" />
+                                </StackPanel>
+
+                                <StackPanel Spacing="8">
+                                    <Border Classes="command-item">
+                                        <StackPanel>
+                                            <TextBlock Text="Go to library"
+                                                      FontSize="14"
+                                                      FontWeight="Medium"
+                                                      Foreground="#FF9800" />
+                                            <TextBlock Text="Navigate to your game library"
+                                                      FontSize="12"
+                                                      Opacity="0.6"
+                                                      Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Classes="command-item">
+                                        <StackPanel>
+                                            <TextBlock Text="Show recent"
+                                                      FontSize="14"
+                                                      FontWeight="Medium"
+                                                      Foreground="#FF9800" />
+                                            <TextBlock Text="Display recently played games"
+                                                      FontSize="12"
+                                                      Opacity="0.6"
+                                                      Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Classes="command-item">
+                                        <StackPanel>
+                                            <TextBlock Text="Show favorites"
+                                                      FontSize="14"
+                                                      FontWeight="Medium"
+                                                      Foreground="#FF9800" />
+                                            <TextBlock Text="Display your favorite games"
+                                                      FontSize="12"
+                                                      Opacity="0.6"
+                                                      Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Classes="command-item">
+                                        <StackPanel>
+                                            <TextBlock Text="Search for [query]"
+                                                      FontSize="14"
+                                                      FontWeight="Medium"
+                                                      Foreground="#FF9800" />
+                                            <TextBlock Text="Search your game library"
+                                                      FontSize="12"
+                                                      Opacity="0.6"
+                                                      Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- System Commands -->
+                        <Border Classes="command-category">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+                                    <TextBlock Text="⚙️" FontSize="20" />
+                                    <TextBlock Text="System"
+                                              FontSize="16"
+                                              FontWeight="SemiBold"
+                                              Foreground="White" />
+                                </StackPanel>
+
+                                <StackPanel Spacing="8">
+                                    <Border Classes="command-item">
+                                        <StackPanel>
+                                            <TextBlock Text="Mute / Unmute"
+                                                      FontSize="14"
+                                                      FontWeight="Medium"
+                                                      Foreground="#607D8B" />
+                                            <TextBlock Text="Toggle microphone mute state"
+                                                      FontSize="12"
+                                                      Opacity="0.6"
+                                                      Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Classes="command-item">
+                                        <StackPanel>
+                                            <TextBlock Text="Volume up / Volume down"
+                                                      FontSize="14"
+                                                      FontWeight="Medium"
+                                                      Foreground="#607D8B" />
+                                            <TextBlock Text="Adjust system volume"
+                                                      FontSize="12"
+                                                      Opacity="0.6"
+                                                      Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Classes="command-item">
+                                        <StackPanel>
+                                            <TextBlock Text="Open settings"
+                                                      FontSize="14"
+                                                      FontWeight="Medium"
+                                                      Foreground="#607D8B" />
+                                            <TextBlock Text="Open application settings"
+                                                      FontSize="12"
+                                                      Opacity="0.6"
+                                                      Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Classes="command-item">
+                                        <StackPanel>
+                                            <TextBlock Text="What can I say"
+                                                      FontSize="14"
+                                                      FontWeight="Medium"
+                                                      Foreground="#607D8B" />
+                                            <TextBlock Text="Show this help dialog"
+                                                      FontSize="12"
+                                                      Opacity="0.6"
+                                                      Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Footer -->
+                        <TextBlock Text="Press Ctrl+Shift+V to toggle the voice visualizer"
+                                  FontSize="12"
+                                  Opacity="0.5"
+                                  Foreground="White"
+                                  TextAlignment="Center"
+                                  Margin="0,8,0,0" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+    </Border>
+</UserControl>

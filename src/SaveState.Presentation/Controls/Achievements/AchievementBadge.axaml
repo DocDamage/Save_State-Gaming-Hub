@@ -1,0 +1,166 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="using:SaveState.Presentation.Converters"
+             xmlns:local="using:SaveState.Presentation.Controls.Achievements"
+             x:Class="SaveState.Presentation.Controls.Achievements.AchievementBadge"
+             x:Name="Root"
+             Width="72"
+             Height="72">
+
+    <Design.PreviewWith>
+        <StackPanel Orientation="Horizontal" Spacing="16" Margin="20">
+            <local:AchievementBadge BadgeUrl="" Rarity="Common" Points="10" />
+            <local:AchievementBadge BadgeUrl="" Rarity="Uncommon" Points="25" />
+            <local:AchievementBadge BadgeUrl="" Rarity="Rare" Points="50" IsUnlocked="True" />
+            <local:AchievementBadge BadgeUrl="" Rarity="Epic" Points="100" IsHardcore="True" />
+            <local:AchievementBadge BadgeUrl="" Rarity="Legendary" Points="200" IsUnlocked="True" IsHardcore="True" />
+        </StackPanel>
+    </Design.PreviewWith>
+
+    <UserControl.Resources>
+        <!-- Converters are defined at Application level -->
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <!-- Badge Hover Effect -->
+        <Style Selector="Border.achievement-badge">
+            <Setter Property="Opacity" Value="0.6" />
+            <Setter Property="RenderTransform" Value="scale(1)" />
+        </Style>
+
+        <Style Selector="Border.achievement-badge:unlocked">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+
+        <Style Selector="Border.achievement-badge:pointerover">
+            <Style.Animations>
+                <Animation Duration="0:0:0.2" Easing="CubicEaseOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                        <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="ScaleTransform.ScaleX" Value="1.1" />
+                        <Setter Property="ScaleTransform.ScaleY" Value="1.1" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <!-- Hardcore Glow Effect -->
+        <Style Selector="Border.hardcore-glow">
+            <Setter Property="Opacity" Value="0" />
+        </Style>
+
+        <Style Selector="Border.hardcore-glow:visible">
+            <Setter Property="Opacity" Value="0.3" />
+            <Style.Animations>
+                <Animation Duration="0:0:2" IterationCount="Infinite" Easing="SineEaseInOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Opacity" Value="0.2" />
+                    </KeyFrame>
+                    <KeyFrame Cue="50%">
+                        <Setter Property="Opacity" Value="0.5" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="0.2" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Classes="achievement-badge"
+           Background="#15FFFFFF"
+           BorderBrush="{Binding Rarity, ElementName=Root, Converter={StaticResource AchievementRarityToBorderColorConverter}}"
+           BorderThickness="{Binding BorderThickness, ElementName=Root}"
+           CornerRadius="8"
+           Width="72"
+           Height="72"
+           Cursor="Hand"
+           ToolTip.Tip="{Binding TooltipText, ElementName=Root}"
+           RenderTransformOrigin="0.5,0.5">
+
+        <Border.Styles>
+            <Style Selector="Border.achievement-badge:unlocked">
+                <Setter Property="BorderThickness" Value="3" />
+            </Style>
+            <Style Selector="Border.achievement-badge:not(:unlocked)">
+                <Setter Property="BorderThickness" Value="1" />
+            </Style>
+        </Border.Styles>
+
+        <Grid>
+            <!-- Hardcore Glow Effect -->
+            <Border Classes="hardcore-glow"
+                   Background="#FF5722"
+                   CornerRadius="8"
+                   IsVisible="{Binding IsHardcore, ElementName=Root}"
+                   Margin="-4"
+                   Classes.visible="{Binding IsHardcore, ElementName=Root}" />
+
+            <!-- Main Badge Container -->
+            <Grid RowDefinitions="*,Auto">
+                <!-- Badge Image Area -->
+                <Panel Grid.Row="0">
+                    <!-- Locked State Overlay -->
+                    <Border Background="#80000000"
+                           CornerRadius="8,8,0,0"
+                           IsVisible="{Binding IsUnlocked, ElementName=Root, Converter={x:Static converters:InverseBoolConverter.Instance}}">
+                        <TextBlock Text="🔒"
+                                  FontSize="24"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  Opacity="0.5" />
+                    </Border>
+
+                    <!-- Badge Image -->
+                    <Image Source="{Binding BadgeUrl, ElementName=Root}"
+                          Stretch="Uniform"
+                          Width="48"
+                          Height="48"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          IsVisible="{Binding BadgeUrl, ElementName=Root, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                    <!-- Fallback Icon -->
+                    <TextBlock Text="🎖️"
+                              FontSize="32"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              IsVisible="{Binding BadgeUrl, ElementName=Root, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+
+                    <!-- Hardcore Indicator -->
+                    <Border Background="#FF5722"
+                           CornerRadius="10"
+                           Width="20"
+                           Height="20"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Top"
+                           Margin="4"
+                           IsVisible="{Binding IsHardcore, ElementName=Root}"
+                           ToolTip.Tip="Hardcore Mode Unlock">
+                        <TextBlock Text="🔥"
+                                  FontSize="12"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center" />
+                    </Border>
+                </Panel>
+
+                <!-- Points Badge -->
+                <Border Grid.Row="1"
+                       Background="{Binding Rarity, ElementName=Root, Converter={StaticResource AchievementRarityToColorConverter}}"
+                       CornerRadius="0,0,6,6"
+                       Height="18"
+                       Margin="1,0,1,1">
+                    <TextBlock Text="{Binding Points, ElementName=Root, StringFormat='{}{0}'}"
+                              FontSize="10"
+                              FontWeight="Bold"
+                              Foreground="White"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center" />
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

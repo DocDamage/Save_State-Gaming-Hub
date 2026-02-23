@@ -1,0 +1,152 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.QuickActions;assembly=SaveState.Presentation"
+             mc:Ignorable="d"
+             d:DesignWidth="400"
+             d:DesignHeight="56"
+             x:Class="SaveState.Presentation.Views.QuickActions.QuickActionBar"
+             x:DataType="vm:QuickActionBarViewModel">
+
+    <UserControl.Styles>
+        <!-- Quick Action Button Style -->
+        <Style Selector="Button.quick-action">
+            <Setter Property="Width" Value="48" />
+            <Setter Property="Height" Value="48" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="ToolTip.ShowDelay" Value="300" />
+        </Style>
+
+        <Style Selector="Button.quick-action:pointerover">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+        </Style>
+
+        <Style Selector="Button.quick-action:pressed">
+            <Setter Property="Background" Value="{StaticResource AccentBrushLight}" />
+        </Style>
+
+        <!-- Icon Text Style -->
+        <Style Selector="TextBlock.action-icon">
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Label Text Style -->
+        <Style Selector="TextBlock.action-label">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,4,0,0" />
+            <Setter Property="Opacity" Value="0.8" />
+        </Style>
+
+        <!-- Container Style -->
+        <Style Selector="Border.container">
+            <Setter Property="Background" Value="{StaticResource BackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="BoxShadow" Value="0 2 12 0 #40000000" />
+            <Setter Property="Padding" Value="8" />
+        </Style>
+    </UserControl.Styles>
+
+    <Border Classes="container"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Bottom"
+            Margin="0,0,0,16">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <!-- Launch Game -->
+            <Button Classes="quick-action"
+                    Command="{Binding LaunchGameCommand}"
+                    IsEnabled="{Binding CanLaunchGame}"
+                    ToolTip.Tip="Launch Game (Enter)">
+                <StackPanel>
+                    <TextBlock Text="🎮" Classes="action-icon" />
+                    <TextBlock Text="Launch" Classes="action-label" />
+                </StackPanel>
+            </Button>
+
+            <!-- Quick Save -->
+            <Button Classes="quick-action"
+                    Command="{Binding QuickSaveCommand}"
+                    IsEnabled="{Binding CanQuickSave}"
+                    ToolTip.Tip="Quick Save (F5)">
+                <StackPanel>
+                    <TextBlock Text="💾" Classes="action-icon" />
+                    <TextBlock Text="Save" Classes="action-label" />
+                </StackPanel>
+            </Button>
+
+            <!-- Screenshot -->
+            <Button Classes="quick-action"
+                    Command="{Binding TakeScreenshotCommand}"
+                    ToolTip.Tip="Take Screenshot (PrtSc)">
+                <StackPanel>
+                    <TextBlock Text="📷" Classes="action-icon" />
+                    <TextBlock Text="SS" Classes="action-label" />
+                </StackPanel>
+            </Button>
+
+            <!-- Recording -->
+            <Button Classes="quick-action"
+                    Command="{Binding ToggleRecordingCommand}"
+                    ToolTip.Tip="Toggle Recording">
+                <StackPanel>
+                    <TextBlock Text="🎥" Classes="action-icon" />
+                    <TextBlock Text="Rec" Classes="action-label" />
+                </StackPanel>
+            </Button>
+
+            <!-- Tools -->
+            <Button Classes="quick-action"
+                    Command="{Binding OpenToolsCommand}"
+                    ToolTip.Tip="Tools">
+                <StackPanel>
+                    <TextBlock Text="🔧" Classes="action-icon" />
+                    <TextBlock Text="Tools" Classes="action-label" />
+                </StackPanel>
+            </Button>
+
+            <!-- Help -->
+            <Button Classes="quick-action"
+                    Command="{Binding OpenHelpCommand}"
+                    ToolTip.Tip="Help (?)">
+                <StackPanel>
+                    <TextBlock Text="❓" Classes="action-icon" />
+                    <TextBlock Text="Help" Classes="action-label" />
+                </StackPanel>
+            </Button>
+
+            <!-- Separator -->
+            <Rectangle Width="1"
+                       Height="40"
+                       Fill="{StaticResource BorderBrush}"
+                       Margin="4,0" />
+
+            <!-- Collapse Button -->
+            <Button Classes="quick-action"
+                    Command="{Binding ToggleCollapsedCommand}"
+                    Width="32"
+                    Height="48"
+                    ToolTip.Tip="Collapse/Expand">
+                <TextBlock Text="◀"
+                           FontSize="12"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           RenderTransformOrigin="0.5,0.5">
+                    <TextBlock.RenderTransform>
+                        <RotateTransform Angle="{Binding CollapseArrowRotation}" />
+                    </TextBlock.RenderTransform>
+                </TextBlock>
+            </Button>
+        </StackPanel>
+    </Border>
+</UserControl>

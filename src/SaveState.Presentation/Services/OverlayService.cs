@@ -28,6 +28,7 @@ public class OverlayService : ObservableObject, IOverlayService
     private bool _showSessionDetails;
     private bool _showAchievementDetails;
     private bool _showModDetails;
+    private bool _showVoiceVisualizer;
     private Guid? _currentSessionGameId;
     private Guid? _currentAchievementId;
     private Guid? _currentModId;
@@ -70,6 +71,13 @@ public class OverlayService : ObservableObject, IOverlayService
     {
         get => _showPerformanceHud;
         private set => SetProperty(ref _showPerformanceHud, value);
+    }
+
+    /// <inheritdoc />
+    public bool ShowVoiceVisualizer
+    {
+        get => _showVoiceVisualizer;
+        private set => SetProperty(ref _showVoiceVisualizer, value);
     }
 
     /// <inheritdoc />
@@ -169,7 +177,7 @@ public class OverlayService : ObservableObject, IOverlayService
     public bool ShowDim => ShowCommandPalette || ShowQuickSearch || ShowUniversalSearch || ShowAiAssistant || ShowNotifications || ShowUserProfile ||
                            ShowNetworkDiagnostics || ShowSyncStatus || ShowConflictsResolution ||
                            ShowProviderConfiguration || ShowDashboardCustomization || ShowCreateCollection ||
-                           ShowSessionDetails || ShowAchievementDetails || ShowModDetails;
+                           ShowSessionDetails || ShowAchievementDetails || ShowModDetails || ShowVoiceVisualizer;
 
     /// <inheritdoc />
     public void ShowCommandPaletteOverlay()
@@ -302,6 +310,31 @@ public class OverlayService : ObservableObject, IOverlayService
         IsVoiceActive = isActive;
         _logger.LogDebug("Voice indicator set to: {IsActive}", isActive);
         OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("VoiceIndicator", isActive));
+    }
+
+    /// <inheritdoc />
+    public void ShowVoiceVisualizerOverlay()
+    {
+        ShowVoiceVisualizer = true;
+        _logger.LogInformation("Showing voice visualizer overlay");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("VoiceVisualizer", true));
+    }
+
+    /// <inheritdoc />
+    public void HideVoiceVisualizerOverlay()
+    {
+        ShowVoiceVisualizer = false;
+        _logger.LogInformation("Hiding voice visualizer overlay");
+        OverlayChanged?.Invoke(this, new OverlayChangedEventArgs("VoiceVisualizer", false));
+    }
+
+    /// <inheritdoc />
+    public void ToggleVoiceVisualizerOverlay()
+    {
+        if (ShowVoiceVisualizer)
+            HideVoiceVisualizerOverlay();
+        else
+            ShowVoiceVisualizerOverlay();
     }
 
     /// <inheritdoc />
@@ -543,6 +576,7 @@ public class OverlayService : ObservableObject, IOverlayService
         ShowSessionDetails = false;
         ShowAchievementDetails = false;
         ShowModDetails = false;
+        ShowVoiceVisualizer = false;
         IsVoiceActive = false;
 
         if (hadOverlays)

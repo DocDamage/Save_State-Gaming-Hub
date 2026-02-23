@@ -1,0 +1,164 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.QuickActions;assembly=SaveState.Presentation"
+        mc:Ignorable="d"
+        d:DesignWidth="600"
+        d:DesignHeight="700"
+        x:Class="SaveState.Presentation.Views.QuickActions.KeyboardShortcutsHelp"
+        x:DataType="vm:KeyboardShortcutsHelpViewModel"
+        Title="Keyboard Shortcuts"
+        Width="600"
+        Height="700"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+
+    <Window.Styles>
+        <!-- Category Header Style -->
+        <Style Selector="TextBlock.category-header">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Margin" Value="0,20,0,8" />
+        </Style>
+
+        <!-- Shortcut Item Style -->
+        <Style Selector="Grid.shortcut-item">
+            <Setter Property="Margin" Value="0,4" />
+        </Style>
+
+        <!-- Key Style -->
+        <Style Selector="Border.key">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="MinWidth" Value="32" />
+        </Style>
+
+        <Style Selector="TextBlock.key-text">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontFamily" Value="Consolas, monospace" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Description Style -->
+        <Style Selector="TextBlock.description">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Search Style -->
+        <Style Selector="TextBox.search">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="Watermark" Value="Search shortcuts..." />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <!-- Title -->
+        <Border Grid.Row="0"
+                Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="20,16">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                    <TextBlock Text="⌨️"
+                               FontSize="24"
+                               VerticalAlignment="Center" />
+                    <TextBlock Text="Keyboard Shortcuts"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+                <Button Grid.Column="1"
+                        Command="{Binding CloseCommand}"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Padding="8"
+                        ToolTip.Tip="Close">
+                    <TextBlock Text="✕" FontSize="14" />
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Search -->
+        <TextBox Grid.Row="1"
+                 Classes="search"
+                 Text="{Binding SearchQuery}"
+                 Margin="20,12" />
+
+        <!-- Shortcuts List -->
+        <ScrollViewer Grid.Row="2" Margin="20,0">
+            <ItemsControl ItemsSource="{Binding ShortcutCategories}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <!-- Category Header -->
+                            <TextBlock Text="{Binding Name}"
+                                       Classes="category-header" />
+
+                            <!-- Shortcuts -->
+                            <ItemsControl ItemsSource="{Binding Shortcuts}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Classes="shortcut-item"
+                                              ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{Binding Description}"
+                                                       Classes="description" />
+                                            <StackPanel Grid.Column="1"
+                                                        Orientation="Horizontal"
+                                                        Spacing="4">
+                                                <!-- Keys -->
+                                                <ItemsControl ItemsSource="{Binding Keys}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <StackPanel Orientation="Horizontal"
+                                                                        Spacing="4" />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border Classes="key">
+                                                                <TextBlock Text="{Binding}"
+                                                                           Classes="key-text" />
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Footer Buttons -->
+        <Border Grid.Row="3"
+                Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="20,12">
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="12">
+                <Button Content="Reset to Defaults"
+                        Command="{Binding ResetDefaultsCommand}"
+                        Padding="16,8" />
+                <Button Content="Close"
+                        Command="{Binding CloseCommand}"
+                        Padding="16,8"
+                        IsDefault="True" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

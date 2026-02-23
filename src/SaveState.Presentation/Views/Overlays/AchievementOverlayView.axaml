@@ -1,0 +1,432 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Overlays"
+             xmlns:models="using:SaveState.Presentation.Models.Achievements"
+             xmlns:converters="using:SaveState.Presentation.Converters"
+             x:Class="SaveState.Presentation.Views.Overlays.AchievementOverlayView"
+             x:DataType="vm:AchievementOverlayViewModel"
+             IsVisible="{Binding IsVisible}"
+             x:Name="Root">
+
+    <Design.DataContext>
+        <vm:AchievementOverlayViewModel />
+    </Design.DataContext>
+
+    <UserControl.Resources>
+        <!-- Converters are defined at Application level -->
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <!-- Achievement Toast Animation -->
+        <Style Selector="Border.achievement-toast">
+            <Style.Animations>
+                <Animation Duration="0:0:0.3" Easing="CubicEaseOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Opacity" Value="0" />
+                        <Setter Property="TranslateTransform.Y" Value="-20" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="1" />
+                        <Setter Property="TranslateTransform.Y" Value="0" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <!-- Corner Popup Animation -->
+        <Style Selector="Border.corner-popup">
+            <Style.Animations>
+                <Animation Duration="0:0:0.4" Easing="CubicEaseOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Opacity" Value="0" />
+                        <Setter Property="TranslateTransform.X" Value="100" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="1" />
+                        <Setter Property="TranslateTransform.X" Value="0" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <!-- Progress Bar Animation -->
+        <Style Selector="Border.progress-fill">
+            <Style.Animations>
+                <Animation Duration="0:0:0.5" Easing="CubicEaseOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Width" Value="0" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <!-- Button Styles -->
+        <Style Selector="Button.achievement-action">
+            <Setter Property="Background" Value="#20FFFFFF" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+
+        <Style Selector="Button.achievement-action:pointerover">
+            <Setter Property="Background" Value="#30FFFFFF" />
+        </Style>
+
+        <Style Selector="Button.dismiss-button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Padding" Value="4" />
+            <Setter Property="Opacity" Value="0.6" />
+        </Style>
+
+        <Style Selector="Button.dismiss-button:pointerover">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid>
+        <!-- Main Achievement Toast Panel (Center) -->
+        <Border Background="#E6000000"
+                IsVisible="{Binding ActiveNotifications.Count, Converter={x:Static converters:ObjectToBoolConverter.Instance}}"
+                PointerPressed="OnBackgroundClick">
+
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                         VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="16"
+                           Margin="24"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center">
+
+                    <!-- Header -->
+                    <StackPanel Orientation="Horizontal"
+                               HorizontalAlignment="Center"
+                               Spacing="12">
+                        <TextBlock Text="🏆"
+                                  FontSize="32" />
+                        <TextBlock Text="ACHIEVEMENT UNLOCKED!"
+                                  FontSize="24"
+                                  FontWeight="Bold"
+                                  Foreground="White" />
+                    </StackPanel>
+
+                    <!-- Achievement List -->
+                    <ItemsControl ItemsSource="{Binding ActiveNotifications}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="models:AchievementNotificationViewModel">
+                                <Border Classes="achievement-toast"
+                                       Background="#F0151515"
+                                       BorderBrush="{Binding Notification.Rarity, Converter={StaticResource AchievementRarityToBorderColorConverter}}"
+                                       BorderThickness="2"
+                                       CornerRadius="12"
+                                       Padding="24"
+                                       Margin="0,8"
+                                       MinWidth="500"
+                                       MaxWidth="700"
+                                       Opacity="{Binding Opacity}">
+                                    <Border.RenderTransform>
+                                        <TranslateTransform Y="0" />
+                                    </Border.RenderTransform>
+
+                                    <Grid RowDefinitions="Auto,*">
+                                        <!-- Achievement Card -->
+                                        <Grid Grid.Row="0"
+                                              ColumnDefinitions="Auto,*">
+                                            <!-- Badge Icon -->
+                                            <Border Grid.Column="0"
+                                                   Width="80"
+                                                   Height="80"
+                                                   Background="#20FFFFFF"
+                                                   BorderBrush="{Binding Notification.Rarity, Converter={StaticResource AchievementRarityToBorderColorConverter}}"
+                                                   BorderThickness="3"
+                                                   CornerRadius="8"
+                                                   Margin="0,0,16,0">
+                                                <Grid>
+                                                    <!-- Badge Image (if available) -->
+                                                    <Image Source="{Binding Notification.BadgeUrl}"
+                                                          Stretch="Uniform"
+                                                          Width="64"
+                                                          Height="64"
+                                                          IsVisible="{Binding Notification.BadgeUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                                                    <!-- Fallback Icon -->
+                                                    <TextBlock Text="🎖️"
+                                                              FontSize="40"
+                                                              HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center"
+                                                              IsVisible="{Binding Notification.BadgeUrl, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                                                </Grid>
+                                            </Border>
+
+                                            <!-- Achievement Info -->
+                                            <StackPanel Grid.Column="1"
+                                                       Spacing="8"
+                                                       VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal"
+                                                           Spacing="8"
+                                                           VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Notification.Title}"
+                                                              FontSize="20"
+                                                              FontWeight="Bold"
+                                                              Foreground="White" />
+
+                                                    <!-- Hardcore Indicator -->
+                                                    <Border Background="#FF5722"
+                                                           CornerRadius="4"
+                                                           Padding="6,2"
+                                                           IsVisible="{Binding Notification.IsHardcore}">
+                                                        <TextBlock Text="🔥 Hardcore"
+                                                                  FontSize="10"
+                                                                  FontWeight="SemiBold"
+                                                                  Foreground="White" />
+                                                    </Border>
+                                                </StackPanel>
+
+                                                <TextBlock Text="{Binding Notification.Description}"
+                                                          FontSize="13"
+                                                          Foreground="#B0FFFFFF"
+                                                          TextWrapping="Wrap" />
+
+                                                <StackPanel Orientation="Horizontal"
+                                                           Spacing="12">
+                                                    <TextBlock Text="{Binding Notification.Points, Converter={StaticResource AchievementPointsConverter}}"
+                                                              FontSize="12"
+                                                              Foreground="#FFD700"
+                                                              FontWeight="SemiBold" />
+
+                                                    <StackPanel Orientation="Horizontal"
+                                                               Spacing="4">
+                                                        <TextBlock Text="{Binding Notification.Rarity, Converter={StaticResource AchievementRarityToIconConverter}}"
+                                                                  FontSize="12"
+                                                                  Foreground="{Binding Notification.Rarity, Converter={StaticResource AchievementRarityToColorConverter}}" />
+                                                        <TextBlock Text="{Binding RarityDisplayName}"
+                                                                  FontSize="12"
+                                                                  Foreground="{Binding Notification.Rarity, Converter={StaticResource AchievementRarityToColorConverter}}"
+                                                                  FontWeight="SemiBold" />
+                                                    </StackPanel>
+
+                                                    <TextBlock Text="{Binding UnlockPercentageText}"
+                                                              FontSize="12"
+                                                              Foreground="#80FFFFFF" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Game Name -->
+                                        <TextBlock Grid.Row="1"
+                                                  Text="{Binding Notification.GameName}"
+                                                  FontSize="12"
+                                                  Foreground="#60FFFFFF"
+                                                  Margin="0,12,0,0" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Progress Section -->
+                    <Border Background="#F0151515"
+                           BorderBrush="#30FFFFFF"
+                           BorderThickness="1"
+                           CornerRadius="12"
+                           Padding="24"
+                           IsVisible="{Binding ShowProgressBar}">
+                        <StackPanel Spacing="12">
+                            <!-- Progress Header -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0"
+                                           Orientation="Horizontal"
+                                           Spacing="8">
+                                    <TextBlock Text="PROGRESS:"
+                                              FontSize="14"
+                                              FontWeight="Bold"
+                                              Foreground="White" />
+                                    <TextBlock FontSize="14"
+                                              Foreground="White">
+                                        <Run Text="{Binding CurrentProgress.UnlockedAchievements}" />
+                                        <Run Text="/" />
+                                        <Run Text="{Binding CurrentProgress.TotalAchievements}" />
+                                        <Run Text="Achievements" />
+                                    </TextBlock>
+                                    <TextBlock Text="{Binding CurrentProgress.CompletionPercentage, StringFormat='({0:F0}%)'}"
+                                              FontSize="14"
+                                              Foreground="#4CAF50"
+                                              FontWeight="SemiBold" />
+                                </StackPanel>
+
+                                <TextBlock Grid.Column="1"
+                                          FontSize="14"
+                                          Foreground="#FFD700">
+                                    <Run Text="{Binding CurrentProgress.CurrentPoints}" />
+                                    <Run Text="/" />
+                                    <Run Text="{Binding CurrentProgress.TotalPoints}" />
+                                    <Run Text="Points" />
+                                </TextBlock>
+                            </Grid>
+
+                            <!-- Progress Bar -->
+                            <Border Background="#10FFFFFF"
+                                   CornerRadius="6"
+                                   Height="12">
+                                <Grid>
+                                    <Border Background="{Binding CurrentProgress.CompletionPercentage, Converter={StaticResource CompletionPercentageToColorConverter}}"
+                                           CornerRadius="6"
+                                           HorizontalAlignment="Left">
+                                        <Border.Width>
+                                            <MultiBinding Converter="{StaticResource PercentageToWidthConverter}">
+                                                <Binding Path="CurrentProgress.CompletionPercentage" />
+                                                <Binding Path="Bounds.Width" RelativeSource="{RelativeSource AncestorType=Border}" />
+                                            </MultiBinding>
+                                        </Border.Width>
+                                    </Border>
+                                </Grid>
+                            </Border>
+
+                            <!-- Recent Unlocks -->
+                            <StackPanel Orientation="Horizontal"
+                                       Spacing="8"
+                                       IsVisible="{Binding CurrentProgress.RecentUnlocks.Count, Converter={x:Static converters:ObjectToBoolConverter.Instance}}">
+                                <TextBlock Text="Recent:"
+                                          FontSize="12"
+                                          Foreground="#80FFFFFF" />
+                                <TextBlock Text="{Binding CurrentProgress.RecentUnlocks, Converter={x:Static StringConverters.Join}}"
+                                          FontSize="12"
+                                          Foreground="#B0FFFFFF" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Actions -->
+                    <StackPanel Orientation="Horizontal"
+                               HorizontalAlignment="Center"
+                               Spacing="12">
+                        <Button Content="Dismiss All"
+                               Classes="achievement-action"
+                               Command="{Binding DismissAllCommand}" />
+                        <Button Content="View All Achievements"
+                               Classes="achievement-action"
+                               Command="{Binding ViewAchievementDetailsCommand}"
+                               CommandParameter="{Binding CurrentNotification}" />
+                    </StackPanel>
+
+                    <!-- Keyboard Hint -->
+                    <TextBlock Text="Press ESC to dismiss"
+                              FontSize="12"
+                              Foreground="#40FFFFFF"
+                              HorizontalAlignment="Center" />
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Corner Popup (Auto-dismissing notification) -->
+        <Border Classes="corner-popup"
+               Background="#F0151515"
+               BorderBrush="{Binding CornerPopupNotification.Notification.Rarity, Converter={StaticResource AchievementRarityToBorderColorConverter}}"
+               BorderThickness="2"
+               CornerRadius="12"
+               Padding="16"
+               Margin="0,80,24,0"
+               HorizontalAlignment="Right"
+               VerticalAlignment="Top"
+               MinWidth="320"
+               MaxWidth="400"
+               IsVisible="{Binding IsCornerPopupVisible}"
+               RenderTransformOrigin="1,0">
+            <Border.RenderTransform>
+                <TranslateTransform X="0" />
+            </Border.RenderTransform>
+
+            <Panel>
+                <!-- Close Button -->
+                <Button Classes="dismiss-button"
+                       Command="{Binding DismissCornerPopupCommand}"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Top"
+                       Margin="0,-8,-8,0"
+                       ToolTip.Tip="Dismiss">
+                    <TextBlock Text="✕" />
+                </Button>
+
+                <StackPanel Spacing="12">
+                    <!-- Header -->
+                    <StackPanel Orientation="Horizontal"
+                               Spacing="8"
+                               VerticalAlignment="Center">
+                        <TextBlock Text="🏆"
+                                  FontSize="20" />
+                        <TextBlock Text="Achievement Unlocked!"
+                                  FontSize="14"
+                                  FontWeight="SemiBold"
+                                  Foreground="White" />
+                    </StackPanel>
+
+                    <!-- Achievement Content -->
+                    <Grid ColumnDefinitions="Auto,*"
+                         DataContext="{Binding CornerPopupNotification}"
+                         IsVisible="{Binding CornerPopupNotification, Converter={x:Static converters:ObjectToBoolConverter.Instance}}">
+                        <!-- Badge -->
+                        <Border Grid.Column="0"
+                               Width="56"
+                               Height="56"
+                               Background="#20FFFFFF"
+                               BorderBrush="{Binding Notification.Rarity, Converter={StaticResource AchievementRarityToBorderColorConverter}}"
+                               BorderThickness="2"
+                               CornerRadius="8"
+                               Margin="0,0,12,0">
+                            <TextBlock Text="🎖️"
+                                      FontSize="28"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+                        </Border>
+
+                        <!-- Info -->
+                        <StackPanel Grid.Column="1"
+                                   Spacing="4"
+                                   VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Notification.Title}"
+                                      FontSize="16"
+                                      FontWeight="SemiBold"
+                                      Foreground="White"
+                                      TextTrimming="CharacterEllipsis" />
+
+                            <TextBlock Text="{Binding Notification.Description}"
+                                      FontSize="12"
+                                      Foreground="#B0FFFFFF"
+                                      TextWrapping="Wrap"
+                                      MaxHeight="40"
+                                      TextTrimming="WordEllipsis" />
+
+                            <StackPanel Orientation="Horizontal"
+                                       Spacing="8">
+                                <TextBlock Text="{Binding Notification.Points, Converter={StaticResource AchievementPointsConverter}}"
+                                          FontSize="11"
+                                          Foreground="#FFD700" />
+                                <TextBlock Text="•"
+                                          FontSize="11"
+                                          Foreground="#60FFFFFF" />
+                                <TextBlock Text="{Binding RarityDisplayName}"
+                                          FontSize="11"
+                                          Foreground="{Binding Notification.Rarity, Converter={StaticResource AchievementRarityToColorConverter}}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Actions -->
+                    <StackPanel Orientation="Horizontal"
+                               Spacing="8">
+                        <Button Content="View"
+                               Classes="achievement-action"
+                               Command="{Binding ViewAchievementDetailsCommand}"
+                               CommandParameter="{Binding CornerPopupNotification}" />
+                        <Button Content="Share"
+                               Classes="achievement-action"
+                               Command="{Binding ShareAchievementCommand}"
+                               CommandParameter="{Binding CornerPopupNotification}" />
+                    </StackPanel>
+                </StackPanel>
+            </Panel>
+        </Border>
+    </Grid>
+</UserControl>

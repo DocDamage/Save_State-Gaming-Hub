@@ -38,6 +38,11 @@ public interface IOverlayService
     bool IsVoiceActive { get; }
 
     /// <summary>
+    /// Gets whether the voice visualizer overlay is visible.
+    /// </summary>
+    bool ShowVoiceVisualizer { get; }
+
+    /// <summary>
     /// Gets whether any overlay is dimming the background.
     /// </summary>
     bool ShowDim { get; }
@@ -152,6 +157,21 @@ public interface IOverlayService
     /// </summary>
     /// <param name="isActive">Whether voice recognition is active.</param>
     void SetVoiceActive(bool isActive);
+
+    /// <summary>
+    /// Shows the voice visualizer overlay.
+    /// </summary>
+    void ShowVoiceVisualizerOverlay();
+
+    /// <summary>
+    /// Hides the voice visualizer overlay.
+    /// </summary>
+    void HideVoiceVisualizerOverlay();
+
+    /// <summary>
+    /// Toggles the voice visualizer overlay.
+    /// </summary>
+    void ToggleVoiceVisualizerOverlay();
 
     /// <summary>
     /// Shows the session details overlay for a specific game.

@@ -206,6 +206,10 @@ public static class Program
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.PerformanceHudViewModel>();
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.VoiceIndicatorViewModel>();
 
+            // Voice Visualizer Services
+            builder.Services.AddSingleton<SaveState.Presentation.Services.Voice.IVoiceVisualizerService, SaveState.Presentation.Services.Voice.VoiceVisualizerService>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Overlays.VoiceVisualizerViewModel>();
+
             // Add dashboard widgets
             builder.Services.AddTransient<SaveState.Presentation.Services.Dashboard.Widgets.QuickActionsWidget>();
             builder.Services.AddTransient<SaveState.Presentation.Services.Dashboard.Widgets.TodaysStatsWidget>();

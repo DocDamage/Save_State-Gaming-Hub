@@ -1,0 +1,216 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.QuickActions;assembly=SaveState.Presentation"
+             xmlns:models="clr-namespace:SaveState.Presentation.Models.QuickActions;assembly=SaveState.Presentation"
+             mc:Ignorable="d"
+             d:DesignWidth="320"
+             d:DesignHeight="500"
+             x:Class="SaveState.Presentation.Views.QuickActions.QuickActionMenuView"
+             x:DataType="vm:QuickActionMenuViewModel">
+
+    <UserControl.Styles>
+        <!-- Search TextBox Style -->
+        <Style Selector="TextBox.search">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Watermark" Value="Search actions..." />
+        </Style>
+
+        <!-- Group Header Style -->
+        <Style Selector="TextBlock.group-header">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+            <Setter Property="Margin" Value="12,16,12,8" />
+            <Setter Property="Opacity" Value="0.8" />
+        </Style>
+
+        <!-- Action Item Style -->
+        <Style Selector="Button.action-item">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+
+        <Style Selector="Button.action-item:pointerover">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        </Style>
+
+        <Style Selector="Button.action-item:disabled">
+            <Setter Property="Opacity" Value="0.4" />
+        </Style>
+
+        <!-- Selected Action Style -->
+        <Style Selector="Button.action-item.selected">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+        </Style>
+
+        <!-- Shortcut Text Style -->
+        <Style Selector="TextBlock.shortcut">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+            <Setter Property="Opacity" Value="0.7" />
+        </Style>
+
+        <!-- Icon Style -->
+        <Style Selector="TextBlock.icon">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="{StaticResource BackgroundBrush}"
+            BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="8"
+            BoxShadow="0 4 16 0 #40000000"
+            Width="320"
+            MaxHeight="500">
+        <Grid RowDefinitions="Auto,Auto,*,Auto">
+            <!-- Header -->
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="12,8">
+                <TextBlock Grid.Column="0"
+                           Text="Quick Actions"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center" />
+                <Button Grid.Column="1"
+                        Command="{Binding CloseMenuCommand}"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Padding="4"
+                        ToolTip.Tip="Close (Esc)">
+                    <TextBlock Text="✕" FontSize="12" />
+                </Button>
+            </Grid>
+
+            <!-- Search Box -->
+            <TextBox Grid.Row="1"
+                     Classes="search"
+                     Text="{Binding SearchQuery}"
+                     IsFocused="{Binding IsSearchFocused}" />
+
+            <!-- Content Area -->
+            <ScrollViewer Grid.Row="2"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <Panel>
+                    <!-- Grouped View (when no search) -->
+                    <ItemsControl ItemsSource="{Binding ActionGroups}"
+                                  IsVisible="{Binding !HasFilteredActions}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="models:QuickActionGroup">
+                                <StackPanel>
+                                    <!-- Group Header -->
+                                    <Grid ColumnDefinitions="Auto,*" Margin="12,16,12,8">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Icon}"
+                                                   FontSize="12"
+                                                   Margin="0,0,6,0"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Name}"
+                                                   Classes="group-header"
+                                                   Margin="0" />
+                                    </Grid>
+
+                                    <!-- Actions -->
+                                    <ItemsControl ItemsSource="{Binding Actions}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="models:QuickAction">
+                                                <Button Classes="action-item"
+                                                        Command="{Binding DataContext.ExecuteActionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        IsEnabled="{Binding IsEnabled}">
+                                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                                        <TextBlock Grid.Column="0"
+                                                                   Text="{Binding Icon}"
+                                                                   Classes="icon" />
+                                                        <StackPanel Grid.Column="1" Orientation="Vertical">
+                                                            <TextBlock Text="{Binding Label}"
+                                                                       FontSize="13" />
+                                                            <TextBlock Text="{Binding Description}"
+                                                                       FontSize="11"
+                                                                       Opacity="0.6"
+                                                                       TextTrimming="CharacterEllipsis"
+                                                                       IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="2"
+                                                                   Text="{Binding KeyboardShortcut}"
+                                                                   Classes="shortcut"
+                                                                   Margin="8,0,0,0" />
+                                                    </Grid>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Flat List View (when searching) -->
+                    <ItemsControl ItemsSource="{Binding FilteredActions}"
+                                  IsVisible="{Binding HasFilteredActions}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="models:QuickAction">
+                                <Button Classes="action-item"
+                                        Command="{Binding DataContext.ExecuteActionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}"
+                                        IsEnabled="{Binding IsEnabled}">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Icon}"
+                                                   Classes="icon" />
+                                        <StackPanel Grid.Column="1" Orientation="Vertical">
+                                            <TextBlock Text="{Binding Label}"
+                                                       FontSize="13" />
+                                            <TextBlock Text="{Binding Description}"
+                                                       FontSize="11"
+                                                       Opacity="0.6"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding KeyboardShortcut}"
+                                                   Classes="shortcut"
+                                                   Margin="8,0,0,0" />
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- No Results -->
+                    <TextBlock Text="No actions found"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Opacity="0.5"
+                               IsVisible="{Binding !HasFilteredActions}" />
+                </Panel>
+            </ScrollViewer>
+
+            <!-- Status Bar -->
+            <Border Grid.Row="3"
+                    Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="0,1,0,0"
+                    Padding="12,8"
+                    IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding StatusMessage}"
+                           FontSize="11"
+                           Opacity="0.8"
+                           TextTrimming="CharacterEllipsis" />
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>
