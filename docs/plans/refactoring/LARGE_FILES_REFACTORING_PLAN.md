@@ -26,7 +26,7 @@
 
 ---
 
-## Progress Update (February 22, 2026)
+## Progress Update (February 23, 2026)
 
 - [x] **P1 - IPerformanceProfilerService.cs** interface segregation completed
 - [x] Split monolithic contract into focused interfaces (`IProfilingSessionService`, `IPerformanceMetricsService`, `ICharacterProfilingService`, `IBattleProfilingService`, `IBottleneckAnalysisService`, `IOptimizationService`, `IBenchmarkService`, `IPerformanceReportingService`, `IPerformanceAlertService`)
@@ -44,8 +44,65 @@
 - [x] Validation: `dotnet build src/SaveState.Core/SaveState.Core.csproj` and `dotnet build src/SaveState.Infrastructure/SaveState.Infrastructure.csproj` both pass
 - [x] Targeted regression tests: `RomValidationServiceTests` passing (11/11) and ROM validation integration tests passing (10/10)
 - [x] Cross-plan dependency update: Avalonia XAML remediation completed; Presentation build and targeted UI smoke checks are passing.
-- [ ] Next target: `SaveStateCloudService.cs` (currently 1006 lines)
-- [x] Oversized file count reduced in this session from **14** to **11** (`>800` lines)
+- [x] **P2 - SaveStateCloudService.cs** manager extraction completed
+- [x] Extracted provider/payload/path responsibilities into `src/SaveState.Infrastructure/SaveStates/SaveStateCloudManagers.cs`
+- [x] `SaveStateCloudService.cs` reduced from **892 lines** to **701 lines**
+- [x] Validation: `dotnet build src/SaveState.Infrastructure/SaveState.Infrastructure.csproj -c Release` passed
+- [x] Targeted regression tests: `SaveStateCloudServiceTests` passing (8/8)
+- [x] **P2 - MacOSMemoryReader.cs** structural split completed
+- [x] Extracted Mach interop/constants/error translation into `src/SaveState.Infrastructure/GameLibrary/Services/MacOSMemoryReader.Interop.cs`
+- [x] `MacOSMemoryReader.cs` reduced from **881 lines** to **771 lines**
+- [x] Validation: `dotnet build src/SaveState.Infrastructure/SaveState.Infrastructure.csproj -c Release` passed
+- [x] **P3 - CertificationSystem.cs** manager/contract/model split completed
+- [x] Extracted interface to `src/SaveState.Application/Mugen/Services/CertificationSystem.Contracts.cs`
+- [x] Extracted models/enums to `src/SaveState.Application/Mugen/Services/CertificationSystem.Models.cs`
+- [x] Extracted helper classes to `src/SaveState.Application/Mugen/Services/CertificationSystem.Managers.cs`
+- [x] `CertificationSystem.cs` reduced from **976 lines** to **615 lines**
+- [x] Validation: `dotnet build src/SaveState.Application/SaveState.Application.csproj -c Release` passed
+- [x] Targeted test run: `dotnet test tests/SaveState.Application.Tests/SaveState.Application.Tests.csproj -c Release --filter "FullyQualifiedName~Mugen"` completed (no matching tests found)
+- [x] **P3 - SignatureTestRunner.cs** model/type extraction completed
+- [x] Extracted test runner DTOs/enums into `src/SaveState.Infrastructure/GameLibrary/Testing/SignatureTestRunner.Models.cs`
+- [x] `SignatureTestRunner.cs` reduced from **971 lines** to **475 lines**
+- [x] Validation: `dotnet build src/SaveState.Infrastructure/SaveState.Infrastructure.csproj -c Release` passed (warnings only; no new errors)
+- [x] **P3 - MemoryPatternDatabase.cs** seed-data split completed
+- [x] Extracted signature seed catalog into `src/SaveState.Infrastructure/GameLibrary/Services/MemoryPatternDatabase.SeedData.cs`
+- [x] `MemoryPatternDatabase.cs` reduced from **960 lines** to **471 lines**
+- [x] Validation: `dotnet build src/SaveState.Infrastructure/SaveState.Infrastructure.csproj -c Release` passed (warnings only; no new errors)
+- [x] Targeted regression tests: `dotnet test tests/SaveState.Infrastructure.Tests/SaveState.Infrastructure.Tests.csproj -c Release --filter "FullyQualifiedName~MemoryPatternDatabase"` passed (5/5)
+- [x] **P3 - SignatureVerificationService.cs** private-method pipeline split completed
+- [x] Extracted verification pipeline/private helper methods into `src/SaveState.Infrastructure/GameLibrary/Services/SignatureVerificationService.VerificationMethods.cs`
+- [x] `SignatureVerificationService.cs` reduced from **950 lines** to **318 lines**
+- [x] Validation: `dotnet build src/SaveState.Infrastructure/SaveState.Infrastructure.csproj -c Release` passed (warnings only; no new errors)
+- [x] Regression safety run: `dotnet test tests/SaveState.Infrastructure.Tests/SaveState.Infrastructure.Tests.csproj -c Release --filter "FullyQualifiedName~Memory"` passed (20/20)
+- [x] **P2 - InputRecordingService.cs** maintenance/storage split completed
+- [x] Extracted maintenance, validation, and storage/export helpers into `src/SaveState.Infrastructure/InputRecording/InputRecordingService.MaintenanceAndStorage.cs`
+- [x] `InputRecordingService.cs` reduced from **983 lines** to **702 lines**
+- [x] Validation: `dotnet build src/SaveState.Infrastructure/SaveState.Infrastructure.csproj -c Release` passed (warnings only; no new errors)
+- [x] Targeted regression tests: `dotnet test tests/SaveState.Infrastructure.Tests/SaveState.Infrastructure.Tests.csproj -c Release --filter "FullyQualifiedName~InputRecordingServiceFacadeTests"` passed (2/2)
+- [x] **P3 - MugenEsportsService.cs** manager/contract/model split completed
+- [x] Extracted contracts to `src/SaveState.Application/Mugen/Services/MugenEsportsService.Contracts.cs`
+- [x] Extracted models/enums to `src/SaveState.Application/Mugen/Services/MugenEsportsService.Models.cs`
+- [x] Extracted ranking/sponsorship helper classes to `src/SaveState.Application/Mugen/Services/MugenEsportsService.Managers.cs`
+- [x] `MugenEsportsService.cs` reduced from **943 lines** to **376 lines**
+- [x] Validation: `dotnet build src/SaveState.Application/SaveState.Application.csproj -c Release` passed
+- [x] **Continuation - NetworkQualityMonitor.cs** measurement/diagnostics split completed
+- [x] Extracted measurement/diagnostics/helper methods to `src/SaveState.Infrastructure/Sync/NetworkQualityMonitor.Measurements.cs`
+- [x] `NetworkQualityMonitor.cs` reduced from **815 lines** to **386 lines**
+- [x] Validation: `dotnet build src/SaveState.Infrastructure/SaveState.Infrastructure.csproj -c Release` passed (warnings only; no new errors)
+- [x] **Continuation - MugenPrizePoolService.cs** manager/contract/model split completed
+- [x] Extracted contracts to `src/SaveState.Application/Mugen/Services/MugenPrizePoolService.Contracts.cs`
+- [x] Extracted models/enums to `src/SaveState.Application/Mugen/Services/MugenPrizePoolService.Models.cs`
+- [x] Extracted payment/distribution helper classes to `src/SaveState.Application/Mugen/Services/MugenPrizePoolService.Managers.cs`
+- [x] `MugenPrizePoolService.cs` reduced from **809 lines** to **381 lines**
+- [x] Validation: `dotnet build src/SaveState.Application/SaveState.Application.csproj -c Release` passed
+- [x] **Continuation - QuantumSuperpositionService.cs** manager/contract/model split completed
+- [x] Extracted contracts to `src/SaveState.Application/Mugen/Services/QuantumSuperpositionService.Contracts.cs`
+- [x] Extracted models/enums to `src/SaveState.Application/Mugen/Services/QuantumSuperpositionService.Models.cs`
+- [x] Extracted quantum engine helper classes to `src/SaveState.Application/Mugen/Services/QuantumSuperpositionService.Managers.cs`
+- [x] `QuantumSuperpositionService.cs` reduced from **801 lines** to **349 lines**
+- [x] Validation: `dotnet build src/SaveState.Application/SaveState.Application.csproj -c Release` passed
+- [x] `>800` remediation target complete: no non-migration source files remain above 800 lines
+- [x] Oversized file count reduced in this session from **11** to **0** (`>800` lines, excluding migrations)
 
 ---
 
@@ -185,7 +242,7 @@ IPerformanceProfilerService (Marker/Coordinator)
 
 ---
 
-### P2: SaveStateCloudService.cs (1,006 lines)
+### P2: SaveStateCloudService.cs (COMPLETED - February 23, 2026)
 
 **Location:** `src/SaveState.Infrastructure/SaveStates/SaveStateCloudService.cs`
 
@@ -197,21 +254,28 @@ IPerformanceProfilerService (Marker/Coordinator)
 - Sync scheduling
 - Quota management
 
-**Proposed Structure - Manager Pattern:**
+**Completed Structure - Manager Pattern:**
 
+```text
+SaveStateCloudService (Coordinator, 701 lines)
+- SaveStateCloudProviderResolver
+- SaveStateCloudPayloadManager
+- SaveStateCloudHelpers (static path/name/cleanup utilities)
 ```
-SaveStateCloudService (Coordinator, ~200 lines)
-├── CloudUploadManager (~180 lines)
-├── CloudDownloadManager (~180 lines)
-├── SyncConflictManager (~180 lines)
-├── CloudEncryptionManager (~150 lines)
-├── SyncScheduleManager (~150 lines)
-└── QuotaManager (~100 lines)
-```
+
+**Completed Changes:**
+1. Extracted provider selection/authentication logic into `SaveStateCloudProviderResolver`.
+2. Extracted payload encryption/decryption and upload/download preparation into `SaveStateCloudPayloadManager`.
+3. Extracted path and cleanup helpers into `SaveStateCloudHelpers`.
+4. Preserved public behavior while reducing the service file below the >800-line threshold.
+
+**Validation Notes:**
+- `dotnet build src/SaveState.Infrastructure/SaveState.Infrastructure.csproj -c Release` passed.
+- `dotnet test tests/SaveState.Infrastructure.Tests/SaveState.Infrastructure.Tests.csproj -c Release --filter "FullyQualifiedName~SaveStateCloudServiceTests"` passed (8/8).
 
 ---
 
-### P2: InputRecordingService.cs (983 lines)
+### P2: InputRecordingService.cs (COMPLETED - February 23, 2026)
 
 **Location:** `src/SaveState.Infrastructure/InputRecording/InputRecordingService.cs`
 
@@ -222,20 +286,25 @@ SaveStateCloudService (Coordinator, ~200 lines)
 - Replay analysis
 - Macro generation
 
-**Proposed Structure - Manager Pattern:**
+**Completed Structure - Partial-Class Maintenance Split:**
 
+```text
+InputRecordingService.cs (core recording/playback/query flows, 702 lines)
+InputRecordingService.MaintenanceAndStorage.cs (statistics/validation/repair + frame persistence/export/import helpers)
 ```
-InputRecordingService (Coordinator, ~180 lines)
-├── InputCaptureManager (~200 lines)
-├── RecordingStorageManager (~200 lines)
-├── PlaybackManager (~200 lines)
-├── ReplayAnalysisManager (~180 lines)
-└── MacroGenerationManager (~150 lines)
-```
+
+**Completed Changes:**
+1. Converted `InputRecordingServiceOperations` to a partial class.
+2. Moved maintenance/statistics/validation/repair responsibilities and storage/export/import helper methods into `InputRecordingService.MaintenanceAndStorage.cs`.
+3. Preserved facade wiring and public service behavior while reducing the main file below the >800 threshold.
+
+**Validation Notes:**
+- `dotnet build src/SaveState.Infrastructure/SaveState.Infrastructure.csproj -c Release` passed (warnings only; no new errors).
+- `dotnet test tests/SaveState.Infrastructure.Tests/SaveState.Infrastructure.Tests.csproj -c Release --filter "FullyQualifiedName~InputRecordingServiceFacadeTests"` passed (2/2).
 
 ---
 
-### P2: MacOSMemoryReader.cs (979 lines)
+### P2: MacOSMemoryReader.cs (COMPLETED - February 23, 2026)
 
 **Location:** `src/SaveState.Infrastructure/GameLibrary/Services/MacOSMemoryReader.cs`
 
@@ -245,21 +314,24 @@ InputRecordingService (Coordinator, ~180 lines)
 - Permission handling
 - Error handling for SIP
 
-**Proposed Structure - Platform Abstraction:**
+**Completed Structure - Partial-Class Split:**
 
-```
-MacOSMemoryReader (~300 lines - thin wrapper)
-├── MachKernelApi (~250 lines)
-├── MacOSPermissionHandler (~200 lines)
-├── MacOSErrorTranslator (~150 lines)
-└── SipDetector (~100 lines)
+```text
+MacOSMemoryReader.cs (771 lines - behavior/orchestration)
+MacOSMemoryReader.Interop.cs (114 lines - Mach interop/constants/error map)
 ```
 
-**Note:** This is platform-specific code. Consider extracting into `CrossPlatform/MacOS/` namespace.
+**Completed Changes:**
+1. Converted `MacOSMemoryReader` to a partial class to separate interop concerns from runtime behavior.
+2. Moved Mach constants, P/Invoke declarations, region struct, and Mach error translation into `MacOSMemoryReader.Interop.cs`.
+3. Preserved existing method signatures and runtime behavior while reducing main file complexity below the >800 threshold.
+
+**Validation Notes:**
+- `dotnet build src/SaveState.Infrastructure/SaveState.Infrastructure.csproj -c Release` passed.
 
 ---
 
-### P3: CertificationSystem.cs (976 lines)
+### P3: CertificationSystem.cs (COMPLETED - February 23, 2026)
 
 **Location:** `src/SaveState.Application/Mugen/Services/CertificationSystem.cs`
 
@@ -270,20 +342,27 @@ MacOSMemoryReader (~300 lines - thin wrapper)
 - Compliance checking
 - Certificate generation
 
-**Proposed Structure - Manager Pattern:**
+**Completed Structure - Manager Pattern + Type Split:**
 
 ```
-CertificationSystem (Coordinator, ~180 lines)
-├── CharacterCertificationManager (~200 lines)
-├── StageCertificationManager (~200 lines)
-├── ContentValidationManager (~200 lines)
-├── ComplianceChecker (~150 lines)
-└── CertificateGenerator (~150 lines)
+CertificationSystem.cs (coordinator/orchestration, 615 lines)
+CertificationSystem.Contracts.cs (service contract)
+CertificationSystem.Models.cs (DTOs/enums)
+CertificationSystem.Managers.cs (assessment/badge/progress helper classes)
 ```
+
+**Completed Changes:**
+1. Reduced the main coordinator file by moving contracts, models, and helper classes into dedicated files.
+2. Preserved service behavior and signatures for all public certification APIs.
+3. Kept manager/helper classes available without altering existing call paths.
+
+**Validation Notes:**
+- `dotnet build src/SaveState.Application/SaveState.Application.csproj -c Release` passed.
+- `dotnet test tests/SaveState.Application.Tests/SaveState.Application.Tests.csproj -c Release --filter "FullyQualifiedName~Mugen"` completed (no matching tests in current suite).
 
 ---
 
-### P3: SignatureTestRunner.cs (971 lines)
+### P3: SignatureTestRunner.cs (COMPLETED - February 23, 2026)
 
 **Location:** `src/SaveState.Infrastructure/GameLibrary/Testing/SignatureTestRunner.cs`
 
@@ -294,19 +373,24 @@ CertificationSystem (Coordinator, ~180 lines)
 - Test case management
 - Performance measurement
 
-**Proposed Structure - Test Infrastructure:**
+**Completed Structure - Type Extraction:**
 
 ```
-SignatureTestRunner (~300 lines)
-├── TestExecutionEngine (~250 lines)
-├── TestResultCollector (~200 lines)
-├── TestReportGenerator (~150 lines)
-└── TestCaseRepository (~150 lines)
+SignatureTestRunner.cs (orchestration/export helpers, 475 lines)
+SignatureTestRunner.Models.cs (test suite options/results/progress/report DTOs + enums)
 ```
+
+**Completed Changes:**
+1. Moved embedded test suite models/enums to `SignatureTestRunner.Models.cs`.
+2. Kept runner public APIs and behavior unchanged while reducing file size below the >800 threshold.
+3. Left verification/execution logic in the coordinator file for minimal risk.
+
+**Validation Notes:**
+- `dotnet build src/SaveState.Infrastructure/SaveState.Infrastructure.csproj -c Release` passed (warnings only; no new errors).
 
 ---
 
-### P3: MemoryPatternDatabase.cs (960 lines)
+### P3: MemoryPatternDatabase.cs (COMPLETED - February 23, 2026)
 
 **Location:** `src/SaveState.Infrastructure/GameLibrary/Services/MemoryPatternDatabase.cs`
 
@@ -317,19 +401,25 @@ SignatureTestRunner (~300 lines)
 - Pattern validation
 - Database operations
 
-**Proposed Structure - Data Access Pattern:**
+**Completed Structure - Seed Data Split:**
 
 ```
-MemoryPatternDatabase (~250 lines)
-├── PatternStorageService (~200 lines)
-├── PatternRetrievalService (~200 lines)
-├── SignatureManager (~200 lines)
-└── PatternValidator (~150 lines)
+MemoryPatternDatabase.cs (runtime behavior/query/persistence, 471 lines)
+MemoryPatternDatabase.SeedData.cs (built-in signature catalog initialization)
 ```
+
+**Completed Changes:**
+1. Converted `MemoryPatternDatabase` to a partial class and moved `InitializeKnownPatterns()` into `MemoryPatternDatabase.SeedData.cs`.
+2. Preserved all public APIs and database behavior while reducing the main file below the >800 threshold.
+3. Kept all seed signatures unchanged to avoid behavior drift.
+
+**Validation Notes:**
+- `dotnet build src/SaveState.Infrastructure/SaveState.Infrastructure.csproj -c Release` passed (warnings only; no new errors).
+- `dotnet test tests/SaveState.Infrastructure.Tests/SaveState.Infrastructure.Tests.csproj -c Release --filter "FullyQualifiedName~MemoryPatternDatabase"` passed (5/5).
 
 ---
 
-### P3: SignatureVerificationService.cs (950 lines)
+### P3: SignatureVerificationService.cs (COMPLETED - February 23, 2026)
 
 **Location:** `src/SaveState.Infrastructure/GameLibrary/Services/SignatureVerificationService.cs`
 
@@ -339,16 +429,21 @@ MemoryPatternDatabase (~250 lines)
 - Health scoring
 - Result reporting
 
-**Proposed Structure - Pipeline Pattern:**
+**Completed Structure - Private Pipeline Split:**
 
 ```
-SignatureVerificationService (~200 lines)
-├── VerificationPipeline (~200 lines)
-├── StaticAnalysisStage (~150 lines)
-├── DynamicAnalysisStage (~150 lines)
-├── StabilityTestStage (~150 lines)
-└── HealthScoreCalculator (~150 lines)
+SignatureVerificationService.cs (public orchestration APIs, 318 lines)
+SignatureVerificationService.VerificationMethods.cs (private verification/validation pipeline helpers, 642 lines)
 ```
+
+**Completed Changes:**
+1. Converted `SignatureVerificationService` to a partial class.
+2. Moved all private verification and validation helper methods (static/dynamic/stability checks, scan/read helpers, scoring/validation suggestions) into `SignatureVerificationService.VerificationMethods.cs`.
+3. Preserved public API behavior and signatures while reducing the main service file below the >800 threshold.
+
+**Validation Notes:**
+- `dotnet build src/SaveState.Infrastructure/SaveState.Infrastructure.csproj -c Release` passed (warnings only; no new errors).
+- `dotnet test tests/SaveState.Infrastructure.Tests/SaveState.Infrastructure.Tests.csproj -c Release --filter "FullyQualifiedName~Memory"` passed (20/20).
 
 ---
 
@@ -360,15 +455,15 @@ SignatureVerificationService (~200 lines)
 3. **IStoryModeService.cs** - Interface/model split and focused interface registration âœ… Completed (February 22, 2026)
 
 ### Phase 2: Medium-Priority (P2) - Week 2
-1. **SaveStateCloudService.cs**
-2. **InputRecordingService.cs**
-3. **MacOSMemoryReader.cs** (consider platform extraction)
+1. **SaveStateCloudService.cs** - Completed (February 23, 2026)
+2. **MacOSMemoryReader.cs** - Completed (February 23, 2026)
+3. **InputRecordingService.cs** - Completed (February 23, 2026)
 
 ### Phase 3: Lower-Priority (P3) - Week 3
-1. **CertificationSystem.cs**
-2. **SignatureTestRunner.cs**
-3. **MemoryPatternDatabase.cs**
-4. **SignatureVerificationService.cs**
+1. **CertificationSystem.cs** - Completed (February 23, 2026)
+2. **SignatureTestRunner.cs** - Completed (February 23, 2026)
+3. **MemoryPatternDatabase.cs** - Completed (February 23, 2026)
+4. **SignatureVerificationService.cs** - Completed (February 23, 2026)
 
 ### Per-File Refactoring Checklist
 
@@ -451,3 +546,8 @@ public class MainService : IMainService { }
 ---
 
 *Document created based on COMPREHENSIVE_TECHNICAL_DEBT_AUDIT_2026_02_21_FRESH.md*
+
+
+
+
+

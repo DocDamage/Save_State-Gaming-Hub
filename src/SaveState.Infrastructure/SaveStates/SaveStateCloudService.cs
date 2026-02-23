@@ -15,8 +15,6 @@ namespace SaveState.Infrastructure.SaveStates;
 /// </summary>
 public sealed class SaveStateCloudService : ISaveStateCloudService
 {
-    private const string CloudRootPath = "savestates";
-
     private readonly ISaveStateRepository _saveStateRepository;
     private readonly IUserPreferencesService _preferencesService;
     private readonly IReadOnlyList<ICloudStorageProvider> _cloudProviders;
@@ -24,6 +22,8 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
     private readonly ILogger<SaveStateCloudService> _logger;
     private readonly ITimeProvider _timeProvider;
     private readonly SaveStateCloudVersionStore _versionStore;
+    private readonly SaveStateCloudProviderResolver _providerResolver;
+    private readonly SaveStateCloudPayloadManager _payloadManager;
 
     public SaveStateCloudService(
         ISaveStateRepository saveStateRepository,
@@ -54,6 +54,8 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
             logger,
             resolvedVersionHistoryRootPath,
             jsonOptions);
+        _providerResolver = new SaveStateCloudProviderResolver(_preferencesService, _cloudProviders);
+        _payloadManager = new SaveStateCloudPayloadManager(_encryptionService);
     }
 
     /// <inheritdoc />
@@ -64,7 +66,7 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
     {
         metadata ??= new SaveStateCloudMetadata();
 
-        var providerResult = await ResolveProviderAsync(ct).ConfigureAwait(false);
+        var providerResult = await _providerResolver.ResolveProviderAsync(ct).ConfigureAwait(false);
         if (providerResult.IsFailure || providerResult.Value is null)
         {
             return Result.Failure<SaveStateCloudSyncStatus>(
@@ -84,7 +86,7 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
 
         var localSave = localSaveResult.Value;
         var isEncrypted = !string.IsNullOrWhiteSpace(metadata.EncryptionKey);
-        var keyFingerprintResult = ResolveEncryptionKeyFingerprint(metadata.EncryptionKey);
+        var keyFingerprintResult = _payloadManager.ResolveEncryptionKeyFingerprint(metadata.EncryptionKey);
         if (keyFingerprintResult.IsFailure)
         {
             return Result.Failure<SaveStateCloudSyncStatus>(
@@ -125,7 +127,7 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
 
         try
         {
-            var uploadPathResult = await ResolveUploadPayloadPathAsync(
+            var uploadPathResult = await _payloadManager.ResolveUploadPayloadPathAsync(
                 localSave.FilePath,
                 metadata.EncryptionKey,
                 tempFiles,
@@ -177,7 +179,7 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
         {
             foreach (var tempFile in tempFiles)
             {
-                TryDelete(tempFile);
+                SaveStateCloudHelpers.TryDelete(tempFile);
             }
         }
     }
@@ -240,57 +242,12 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
         };
     }
 
-    private Result<string?> ResolveEncryptionKeyFingerprint(string? encryptionKey)
-    {
-        if (string.IsNullOrWhiteSpace(encryptionKey))
-        {
-            return Result.Success<string?>(null);
-        }
-
-        var fingerprintResult = _encryptionService.GetKeyFingerprint(encryptionKey);
-        if (fingerprintResult.IsFailure)
-        {
-            return Result.Failure<string?>(
-                fingerprintResult.Error ?? "Failed to compute encryption key fingerprint.",
-                fingerprintResult.ErrorType);
-        }
-
-        return Result.Success<string?>(fingerprintResult.Value);
-    }
-
-    private async Task<Result<string>> ResolveUploadPayloadPathAsync(
-        string localSavePath,
-        string? encryptionKey,
-        ICollection<string> tempFiles,
-        CancellationToken ct)
-    {
-        if (string.IsNullOrWhiteSpace(encryptionKey))
-        {
-            return Result.Success(localSavePath);
-        }
-
-        var encryptionResult = await _encryptionService.EncryptFileAsync(
-            localSavePath,
-            encryptionKey,
-            ct).ConfigureAwait(false);
-
-        if (encryptionResult.IsFailure || string.IsNullOrWhiteSpace(encryptionResult.Value))
-        {
-            return Result.Failure<string>(
-                encryptionResult.Error ?? "Failed to encrypt save state.",
-                encryptionResult.ErrorType);
-        }
-
-        tempFiles.Add(encryptionResult.Value);
-        return Result.Success(encryptionResult.Value);
-    }
-
     /// <inheritdoc />
     public async Task<Result<SaveStateConflictResolution>> DetectConflictsAsync(
         Guid gameId,
         CancellationToken ct = default)
     {
-        var providerResult = await ResolveProviderAsync(ct).ConfigureAwait(false);
+        var providerResult = await _providerResolver.ResolveProviderAsync(ct).ConfigureAwait(false);
         if (providerResult.IsFailure || providerResult.Value is null)
         {
             return Result.Failure<SaveStateConflictResolution>(
@@ -363,7 +320,7 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
         var version = localVersionResult.Value;
         await _versionStore.AppendVersionAsync(gameId, version, ct).ConfigureAwait(false);
 
-        var providerResult = await ResolveProviderAsync(ct).ConfigureAwait(false);
+        var providerResult = await _providerResolver.ResolveProviderAsync(ct).ConfigureAwait(false);
         if (providerResult.IsSuccess && providerResult.Value is not null)
         {
             await _versionStore.UploadVersionMetadataAsync(providerResult.Value, version, ct).ConfigureAwait(false);
@@ -437,7 +394,7 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
         SaveStateCloudMetadata metadata,
         CancellationToken ct)
     {
-        var providerResult = await ResolveProviderAsync(ct).ConfigureAwait(false);
+        var providerResult = await _providerResolver.ResolveProviderAsync(ct).ConfigureAwait(false);
         if (providerResult.IsFailure || providerResult.Value is null)
         {
             return Result.Failure<SaveStateCloudSyncStatus>(
@@ -497,7 +454,7 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
         {
             foreach (var tempFile in tempFiles)
             {
-                TryDelete(tempFile);
+                SaveStateCloudHelpers.TryDelete(tempFile);
             }
         }
     }
@@ -539,7 +496,7 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
         var downloadPath = Path.Combine(Path.GetTempPath(), $"savestate-cloud-download-{Guid.NewGuid():N}.bin");
         tempFiles.Add(downloadPath);
 
-        var payloadPathResult = await DownloadCloudPayloadAsync(
+        var payloadPathResult = await _payloadManager.DownloadCloudPayloadAsync(
             provider,
             cloudVersion,
             metadata,
@@ -641,74 +598,6 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
         return localVersionResult.IsSuccess ? localVersionResult.Value : null;
     }
 
-    private async Task<Result<string>> DownloadCloudPayloadAsync(
-        ICloudStorageProvider provider,
-        SaveStateCloudVersion cloudVersion,
-        SaveStateCloudMetadata metadata,
-        string downloadPath,
-        ICollection<string> tempFiles,
-        CancellationToken ct)
-    {
-        var downloadResult = await provider.DownloadFileAsync(
-            cloudVersion.StoragePath,
-            downloadPath,
-            ct).ConfigureAwait(false);
-
-        if (downloadResult.IsFailure || !downloadResult.Value || !File.Exists(downloadPath))
-        {
-            return Result.Failure<string>(
-                downloadResult.Error ?? $"Failed to download save state from {provider.ProviderName}.",
-                downloadResult.IsFailure ? downloadResult.ErrorType : ErrorType.External);
-        }
-
-        if (!cloudVersion.IsEncrypted)
-        {
-            return Result.Success(downloadPath);
-        }
-
-        if (string.IsNullOrWhiteSpace(metadata.EncryptionKey))
-        {
-            return Result.Failure<string>(
-                "Cloud save state is encrypted but no encryption key was provided.",
-                ErrorType.Validation);
-        }
-
-        if (!string.IsNullOrWhiteSpace(cloudVersion.EncryptionKeyFingerprint))
-        {
-            var fingerprintResult = _encryptionService.GetKeyFingerprint(metadata.EncryptionKey);
-            if (fingerprintResult.IsFailure || string.IsNullOrWhiteSpace(fingerprintResult.Value))
-            {
-                return Result.Failure<string>(
-                    fingerprintResult.Error ?? "Failed to validate encryption key fingerprint.",
-                    fingerprintResult.ErrorType);
-            }
-
-            if (!string.Equals(
-                    fingerprintResult.Value,
-                    cloudVersion.EncryptionKeyFingerprint,
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                return Result.Failure<string>(
-                    "Provided encryption key does not match cloud payload fingerprint.",
-                    ErrorType.Validation);
-            }
-        }
-
-        var decryptResult = await _encryptionService.DecryptFileAsync(
-            downloadPath,
-            metadata.EncryptionKey,
-            ct).ConfigureAwait(false);
-        if (decryptResult.IsFailure || string.IsNullOrWhiteSpace(decryptResult.Value))
-        {
-            return Result.Failure<string>(
-                decryptResult.Error ?? "Failed to decrypt cloud save state payload.",
-                decryptResult.ErrorType);
-        }
-
-        tempFiles.Add(decryptResult.Value);
-        return Result.Success(decryptResult.Value);
-    }
-
     private async Task<SaveStateEntity?> ResolveTrackedLocalSaveStateAsync(
         Guid gameId,
         Guid? saveStateId,
@@ -727,49 +616,6 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
         return saveStates
             .OrderByDescending(s => s.CreatedAt)
             .FirstOrDefault();
-    }
-
-    private async Task<Result<ICloudStorageProvider>> ResolveProviderAsync(CancellationToken ct)
-    {
-        if (_cloudProviders.Count == 0)
-        {
-            return Result.Failure<ICloudStorageProvider>(
-                "No cloud storage provider is registered.",
-                ErrorType.NotFound);
-        }
-
-        var preferredProviderName = await _preferencesService.GetPreferredCloudProviderAsync(ct).ConfigureAwait(false);
-        var normalizedPreferredProviderName = NormalizeProviderName(preferredProviderName);
-        var provider = !string.IsNullOrWhiteSpace(normalizedPreferredProviderName)
-            ? _cloudProviders.FirstOrDefault(p =>
-                string.Equals(
-                    NormalizeProviderName(p.ProviderName),
-                    normalizedPreferredProviderName,
-                    StringComparison.Ordinal))
-            : null;
-
-        provider ??= _cloudProviders.FirstOrDefault(p => !IsLocalProvider(p.ProviderName))
-                    ?? _cloudProviders.FirstOrDefault();
-
-        if (provider is null)
-        {
-            return Result.Failure<ICloudStorageProvider>(
-                "No compatible cloud provider is available.",
-                ErrorType.NotFound);
-        }
-
-        if (!provider.IsAuthenticated)
-        {
-            var authenticated = await provider.AuthenticateAsync(ct).ConfigureAwait(false);
-            if (!authenticated)
-            {
-                return Result.Failure<ICloudStorageProvider>(
-                    $"Authentication failed for cloud provider '{provider.ProviderName}'.",
-                    ErrorType.Unauthorized);
-            }
-        }
-
-        return Result.Success(provider);
     }
 
     private async Task<Result<SaveStateEntity>> ResolveLocalSaveStateAsync(
@@ -866,7 +712,7 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
             GameId = saveState.GameId,
             SaveStateId = saveState.Id,
             VersionName = versionName,
-            StoragePath = BuildCloudSavePath(saveState, isEncrypted),
+            StoragePath = SaveStateCloudHelpers.BuildCloudSavePath(saveState, isEncrypted),
             ContentHash = hash.Value,
             FileSizeBytes = new FileInfo(saveState.FilePath).Length,
             CreatedAtUtc = versionCreatedAt,
@@ -897,46 +743,12 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
 
     private string BuildLocalRestorePath(Guid gameId, SaveStateCloudVersion cloudVersion)
     {
-        var extension = ResolveRestoreExtension(cloudVersion.StoragePath, cloudVersion.IsEncrypted);
+        var extension = SaveStateCloudHelpers.ResolveRestoreExtension(cloudVersion.StoragePath, cloudVersion.IsEncrypted);
         var directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SaveStates", gameId.ToString());
         Directory.CreateDirectory(directory);
 
         var fileName = $"savestate_cloud_{_timeProvider.UtcNow:yyyyMMdd_HHmmss}_{cloudVersion.Id:N}{extension}";
         return Path.Combine(directory, fileName);
-    }
-
-    private static string ResolveRestoreExtension(string storagePath, bool isEncrypted)
-    {
-        var fileName = Path.GetFileName(storagePath.Replace('\\', '/'));
-        if (string.IsNullOrWhiteSpace(fileName))
-        {
-            return ".state";
-        }
-
-        if (isEncrypted && fileName.EndsWith(".enc", StringComparison.OrdinalIgnoreCase))
-        {
-            fileName = Path.GetFileNameWithoutExtension(fileName);
-        }
-
-        var extension = Path.GetExtension(fileName);
-        return string.IsNullOrWhiteSpace(extension) ? ".state" : extension;
-    }
-
-    private static string BuildCloudSavePath(SaveStateEntity saveState, bool isEncrypted)
-    {
-        var extension = Path.GetExtension(saveState.FilePath);
-        if (string.IsNullOrWhiteSpace(extension))
-        {
-            extension = ".state";
-        }
-
-        var fileName = $"{saveState.Id}{extension}";
-        if (isEncrypted)
-        {
-            fileName += ".enc";
-        }
-
-        return $"{CloudRootPath}/{saveState.GameId}/{fileName}";
     }
 
     private SaveStateConflictType DetermineConflictType(
@@ -969,38 +781,4 @@ public sealed class SaveStateCloudService : ISaveStateCloudService
             : SaveStateConflictType.CloudNewer;
     }
 
-    private static void TryDelete(string path)
-    {
-        try
-        {
-            if (File.Exists(path))
-            {
-                File.Delete(path);
-            }
-        }
-        catch
-        {
-            // Best effort cleanup.
-        }
-    }
-
-    private static string NormalizeProviderName(string? providerName)
-    {
-        if (string.IsNullOrWhiteSpace(providerName))
-        {
-            return string.Empty;
-        }
-
-        var normalizedChars = providerName
-            .Where(char.IsLetterOrDigit)
-            .Select(char.ToLowerInvariant)
-            .ToArray();
-        return new string(normalizedChars);
-    }
-
-    private static bool IsLocalProvider(string? providerName)
-    {
-        var normalizedName = NormalizeProviderName(providerName);
-        return normalizedName is "local" or "localstorage" or "filesystem";
-    }
 }
