@@ -1,0 +1,43 @@
+<ContentControl xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                x:Class="SaveState.Presentation.Controls.TransitionHost"
+                xmlns:local="using:SaveState.Presentation.Controls"
+                xmlns:animation="using:SaveState.Presentation.Services.Animation">
+    
+    <Design.PreviewWith>
+        <Border Width="400" Height="300">
+            <local:TransitionHost Transition="Slide">
+                <Border Background="LightBlue" CornerRadius="8">
+                    <TextBlock Text="Page Content" 
+                               HorizontalAlignment="Center" 
+                               VerticalAlignment="Center"/>
+                </Border>
+            </local:TransitionHost>
+        </Border>
+    </Design.PreviewWith>
+
+    <ContentControl.Styles>
+        <!-- Default style -->
+        <Style Selector="local|TransitionHost">
+            <Setter Property="ClipToBounds" Value="True"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Panel x:Name="PART_ContainerPanel">
+                        <!-- Old content (for transitions) -->
+                        <ContentPresenter x:Name="PART_OldContentPresenter"
+                                          Content="{TemplateBinding OldContent}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          IsVisible="False"/>
+                        
+                        <!-- Current content -->
+                        <ContentPresenter x:Name="PART_ContentPresenter"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                    </Panel>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+    </ContentControl.Styles>
+</ContentControl>

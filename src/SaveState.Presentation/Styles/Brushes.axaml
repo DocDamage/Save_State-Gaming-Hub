@@ -130,4 +130,20 @@
     <!-- Tag-specific brushes (used in TagEditorDialog) -->
     <SolidColorBrush x:Key="TagBackgroundBrush" Color="#2C2E33" />
     <SolidColorBrush x:Key="TagBorderBrush" Color="#3F3F46" />
+
+    <!-- =========================================================================
+         HIGH CONTRAST ACCESSIBILITY BRUSHES
+         ========================================================================= -->
+    
+    <!-- High Contrast Theme - Black on White -->
+    <SolidColorBrush x:Key="HighContrastBackgroundBrush" Color="#000000" />
+    <SolidColorBrush x:Key="HighContrastForegroundBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="HighContrastBorderBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="HighContrastHighlightBrush" Color="#FFFF00" />
+    <SolidColorBrush x:Key="HighContrastSelectedBrush" Color="#00FFFF" />
+    
+    <!-- Focus indicators for high contrast -->
+    <SolidColorBrush x:Key="HighContrastFocusBrush" Color="#FFFF00" />
+    <SolidColorBrush x:Key="HighContrastFocusBorderBrush" Color="#FFFFFF" />
+
 </ResourceDictionary>

@@ -1,0 +1,127 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SaveState.Presentation.Controls.Loading.ProgressIndicator"
+             xmlns:local="using:SaveState.Presentation.Controls.Loading">
+    
+    <Design.PreviewWith>
+        <StackPanel Spacing="20" Margin="20" Width="300">
+            <local:ProgressIndicator CurrentStep="0" TotalSteps="4" 
+                                     StepLabels="Step 1,Step 2,Step 3,Step 4"/>
+            <local:ProgressIndicator CurrentStep="1" TotalSteps="4" 
+                                     StepLabels="Download,Install,Configure,Launch"/>
+            <local:ProgressIndicator CurrentStep="2" TotalSteps="4"
+                                     IsIndeterminate="True"
+                                     Message="Processing..."/>
+        </StackPanel>
+    </Design.PreviewWith>
+
+    <UserControl.Styles>
+        <!-- Indeterminate animation -->
+        <Style Selector="local|ProgressIndicator:indeterminate ProgressBar">
+            <Style.Animations>
+                <Animation Duration="0:0:2" IterationCount="Infinite">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Value" Value="0"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="50%">
+                        <Setter Property="Value" Value="70"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Value" Value="100"/>
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <!-- Step dot styles -->
+        <Style Selector="Ellipse.step-dot">
+            <Setter Property="Width" Value="12"/>
+            <Setter Property="Height" Value="12"/>
+            <Setter Property="Fill" Value="#E0E0E0"/>
+        </Style>
+
+        <Style Selector="Ellipse.step-dot.completed">
+            <Setter Property="Fill" Value="#4CAF50"/>
+            <Style.Animations>
+                <Animation Duration="0:0:0.3" Easing="ElasticEaseOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="ScaleTransform.ScaleX" Value="0"/>
+                        <Setter Property="ScaleTransform.ScaleY" Value="0"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                        <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <Style Selector="Ellipse.step-dot.current">
+            <Setter Property="Fill" Value="#2196F3"/>
+            <Setter Property="Stroke" Value="#1976D2"/>
+            <Setter Property="StrokeThickness" Value="2"/>
+        </Style>
+
+        <!-- Step label styles -->
+        <Style Selector="TextBlock.step-label">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Opacity" Value="0.6"/>
+        </Style>
+
+        <Style Selector="TextBlock.step-label.active">
+            <Setter Property="Opacity" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </UserControl.Styles>
+
+    <StackPanel Orientation="Vertical" Spacing="12">
+        <!-- Header with message and percentage -->
+        <Grid ColumnDefinitions="*,Auto">
+            <TextBlock x:Name="MessageTextBlock"
+                       Text="{Binding Message, RelativeSource={RelativeSource AncestorType=local:ProgressIndicator}}"
+                       FontSize="14"
+                       VerticalAlignment="Center"/>
+            <TextBlock x:Name="PercentageTextBlock"
+                       Grid.Column="1"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding ShowPercentage, RelativeSource={RelativeSource AncestorType=local:ProgressIndicator}}"/>
+        </Grid>
+
+        <!-- Linear progress bar (for continuous progress) -->
+        <ProgressBar x:Name="MainProgressBar"
+                     Minimum="0"
+                     Maximum="100"
+                     Height="8"
+                     CornerRadius="4"
+                     IsIndeterminate="{Binding IsIndeterminate, RelativeSource={RelativeSource AncestorType=local:ProgressIndicator}}"
+                     Value="{Binding ProgressPercentage, RelativeSource={RelativeSource AncestorType=local:ProgressIndicator}}"/>
+
+        <!-- Multi-step indicator -->
+        <Grid x:Name="StepsContainer"
+              IsVisible="{Binding ShowSteps, RelativeSource={RelativeSource AncestorType=local:ProgressIndicator}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Step dots and connecting lines -->
+            <Grid x:Name="StepsDotsGrid"
+                  Row="0"
+                  Margin="0,8"/>
+
+            <!-- Step labels -->
+            <Grid x:Name="StepsLabelsGrid"
+                  Row="1"/>
+        </Grid>
+
+        <!-- Estimated time remaining -->
+        <TextBlock x:Name="TimeRemainingTextBlock"
+                   Text="{Binding TimeRemaining, RelativeSource={RelativeSource AncestorType=local:ProgressIndicator}}"
+                   FontSize="11"
+                   Opacity="0.6"
+                   IsVisible="{Binding ShowTimeRemaining, RelativeSource={RelativeSource AncestorType=local:ProgressIndicator}}"/>
+    </StackPanel>
+</UserControl>

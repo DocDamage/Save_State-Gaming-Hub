@@ -1,0 +1,207 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.RgbSync"
+             xmlns:interactivity="using:Avalonia.Xaml.Interactivity"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.RgbSync.RgbDeviceEditorView"
+             x:DataType="vm:RgbDeviceEditorViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.LedButton">
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#20FFFFFF"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Border.LedButton:pointerover">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BoxShadow" Value="0 0 8 {Binding Color, Converter={x:Static vm:ColorToBrushConverter.Instance}}"/>
+        </Style>
+
+        <Style Selector="Border.ZoneCard">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto, *" Margin="0,15,0,0">
+        <!-- Device Header -->
+        <Border Grid.Row="0" Background="{StaticResource CardBackgroundBrush}" 
+                CornerRadius="8"
+                Padding="15"
+                Margin="0,0,0,15">
+            <Grid ColumnDefinitions="*, Auto, Auto">
+                <StackPanel Grid.Column="0" Spacing="4">
+                    <TextBlock Text="{Binding Device.Name, FallbackValue='No Device Selected'}"
+                               FontWeight="Bold"
+                               FontSize="16"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="{Binding Device.Vendor}"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBlock Text="•" Foreground="{StaticResource TextTertiaryBrush}"/>
+                        <TextBlock Text="{Binding Device.Type}"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBlock Text="•" Foreground="{StaticResource TextTertiaryBrush}"/>
+                        <TextBlock Text="{Binding Device.LedCount, StringFormat='{}{0} LEDs'}"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <TextBlock Grid.Column="1"
+                           Text="{Binding DeviceStatus}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,15,0"
+                           Foreground="{StaticResource TextSecondaryBrush}"/>
+
+                <ToggleButton Grid.Column="2"
+                              Content="Direct Mode"
+                              IsChecked="{Binding IsDirectModeEnabled}"
+                              Command="{Binding ToggleDirectModeCommand}"
+                              Classes="Secondary"/>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, 300">
+            <!-- Left: LED Map -->
+            <Border Grid.Column="0" Classes="GlassContainer" Padding="20" Margin="0,0,15,0">
+                <Grid RowDefinitions="Auto, *">
+                    <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,15">
+                        <TextBlock Text="LED Layout" FontWeight="SemiBold"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                            <Button Content="Clear All" 
+                                    Command="{Binding ClearAllLedsCommand}"
+                                    Classes="Small Secondary"/>
+                            <Button Content="Set All White" 
+                                    Command="{Binding SetAllLedsCommand}"
+                                    CommandParameter="{x:Static vm:RGBWhite}"
+                                    Classes="Small Secondary"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- LED Grid -->
+                    <ScrollViewer Grid.Row="1" 
+                                  IsVisible="{Binding ShowLedMap}"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Leds}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="10" Margin="5"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:RgbLedViewModel">
+                                    <Border Classes="LedButton"
+                                            Background="{Binding Color, Converter={x:Static vm:ColorToBrushConverter.Instance}}"
+                                            Margin="2"
+                                            ToolTip.Tip="{Binding Name}">
+                                        <Interaction.Behaviors>
+                                            <EventTriggerBehavior EventName="PointerPressed">
+                                                <InvokeCommandAction Command="{Binding $parent[ItemsControl].((vm:RgbDeviceEditorViewModel)DataContext).PickColorForLedCommand}"
+                                                                    CommandParameter="{Binding}"/>
+                                            </EventTriggerBehavior>
+                                        </Interaction.Behaviors>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Right: Zone Control -->
+            <StackPanel Grid.Column="1" Spacing="15">
+                <!-- Zone Configuration -->
+                <Border Classes="GlassContainer" Padding="15">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="ZONES" Classes="Caption" FontWeight="Bold"/>
+                        
+                        <ComboBox ItemsSource="{Binding Zones}"
+                                  SelectedItem="{Binding SelectedZone}"
+                                  DisplayMemberBinding="{Binding Name}"
+                                  PlaceholderText="Select a zone..."
+                                  HorizontalAlignment="Stretch"/>
+
+                        <StackPanel IsVisible="{Binding SelectedZone, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                    Spacing="10">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <TextBlock Text="Zone Color" VerticalAlignment="Center"/>
+                                <Border Grid.Column="1"
+                                        Width="40"
+                                        Height="40"
+                                        CornerRadius="6"
+                                        Background="{Binding ZoneColor, Converter={x:Static vm:ColorToBrushConverter.Instance}}"
+                                        BorderThickness="1"
+                                        BorderBrush="#30FFFFFF"
+                                        Cursor="Hand">
+                                    <Interaction.Behaviors>
+                                        <EventTriggerBehavior EventName="PointerPressed">
+                                            <InvokeCommandAction Command="{Binding PickColorForZoneCommand}"/>
+                                        </EventTriggerBehavior>
+                                    </Interaction.Behaviors>
+                                </Border>
+                            </Grid>
+
+                            <Button Content="Apply to Zone" 
+                                    Command="{Binding ApplyZoneColorCommand}"
+                                    Classes="Primary Small"
+                                    HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Effects -->
+                <Border Classes="GlassContainer" Padding="15">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="EFFECTS" Classes="Caption" FontWeight="Bold"/>
+                        
+                        <ComboBox ItemsSource="{Binding AvailableEffects}"
+                                  SelectedItem="{Binding SelectedEffect}"
+                                  DisplayMemberBinding="{Binding Name}"
+                                  PlaceholderText="Select effect..."
+                                  HorizontalAlignment="Stretch"/>
+
+                        <Button Content="Apply to Selected Zone" 
+                                Command="{Binding ApplyEffectToZoneCommand}"
+                                Classes="Secondary Small"
+                                HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Brightness -->
+                <Border Classes="GlassContainer" Padding="15">
+                    <StackPanel Spacing="10">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Text="BRIGHTNESS" Classes="Caption" FontWeight="Bold"/>
+                            <TextBlock Grid.Column="1" 
+                                       Text="{Binding Brightness, StringFormat='{}{0}%'}"
+                                       Classes="Caption"/>
+                        </Grid>
+                        <Slider Value="{Binding Brightness}"
+                                Minimum="0"
+                                Maximum="100"
+                                TickFrequency="5"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Save Button -->
+                <Button Content="💾 Save Configuration"
+                        Command="{Binding SaveDeviceConfigurationCommand}"
+                        Classes="Primary"
+                        HorizontalAlignment="Stretch"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

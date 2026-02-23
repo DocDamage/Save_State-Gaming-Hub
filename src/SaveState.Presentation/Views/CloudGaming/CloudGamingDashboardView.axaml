@@ -1,0 +1,420 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.CloudGaming;assembly=SaveState.Presentation"
+             xmlns:models="clr-namespace:SaveState.Presentation.Models.CloudGaming;assembly=SaveState.Presentation"
+             x:Class="SaveState.Presentation.Views.CloudGaming.CloudGamingDashboardView"
+             x:DataType="vm:CloudGamingDashboardViewModel">
+
+    <UserControl.Styles>
+        <!-- Provider Badge Style -->
+        <Style Selector="Border.provider-badge">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="16,12" />
+            <Setter Property="MinWidth" Value="180" />
+        </Style>
+
+        <Style Selector="Border.provider-badge:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+        </Style>
+
+        <!-- Game Card Style -->
+        <Style Selector="Border.game-card">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Width" Value="160" />
+            <Setter Property="Height" Value="220" />
+            <Setter Property="ClipToBounds" Value="True" />
+            <Setter Property="BoxShadow" Value="0 4 12 #20000000" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.2" />
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <Style Selector="Border.game-card:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+            <Setter Property="BoxShadow" Value="0 8 24 #40000000" />
+            <Setter Property="RenderTransform" Value="translateY(-4px)" />
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+        </Style>
+
+        <!-- Section Header Style -->
+        <Style Selector="TextBlock.section-header">
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Margin" Value="0,24,0,12" />
+        </Style>
+
+        <!-- Provider Icon Styles -->
+        <Style Selector="TextBlock.provider-icon">
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Connection Status Styles -->
+        <Style Selector="Border.connection-status">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="16" />
+        </Style>
+
+        <!-- Action Button Style -->
+        <Style Selector="Button.action-button">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+
+        <Style Selector="Button.action-button:pointerover">
+            <Setter Property="Background" Value="{StaticResource PrimaryHoverBrush}" />
+        </Style>
+
+        <!-- Secondary Button Style -->
+        <Style Selector="Button.secondary-button">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+
+        <Style Selector="Button.secondary-button:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Header -->
+        <Border Grid.Row="0" Padding="24,20">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="☁️ Cloud Gaming" 
+                               FontSize="32" 
+                               FontWeight="Heavy" 
+                               Foreground="White"/>
+                    <TextBlock Text="Stream your favorite games from the cloud"
+                               FontSize="14"
+                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                </StackPanel>
+
+                <Button Grid.Column="1" 
+                        Classes="secondary-button"
+                        Command="{Binding OpenSettingsCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="⚙️" VerticalAlignment="Center"/>
+                        <TextBlock Text="Settings" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="1" 
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="24,0,24,24" Spacing="8">
+                
+                <!-- Connected Providers Section -->
+                <TextBlock Text="CONNECTED PROVIDERS" Classes="section-header"/>
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" 
+                              VerticalScrollBarVisibility="Disabled">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <ItemsControl ItemsSource="{Binding Providers}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="12"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="models:ProviderStatus">
+                                    <Border Classes="provider-badge">
+                                        <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,*">
+                                            <TextBlock Grid.Row="0" Grid.Column="0"
+                                                       Text="{Binding Provider, Converter={StaticResource ProviderToIconConverter}}"
+                                                       Classes="provider-icon"
+                                                       Margin="0,0,12,0"/>
+                                            <StackPanel Grid.Row="0" Grid.Column="1">
+                                                <TextBlock Text="{Binding Provider}"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                <TextBlock Text="{Binding SubscriptionTier}"
+                                                           FontSize="12"
+                                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            </StackPanel>
+                                            
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                                       Margin="0,8,0,0">
+                                                <TextBlock.Text>
+                                                    <MultiBinding StringFormat="{}{0} games • {1}h played">
+                                                        <Binding Path="GamesInLibrary"/>
+                                                        <Binding Path="HoursPlayedThisMonth"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                            
+                                            <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                                       Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                                                <Ellipse Width="8" Height="8"
+                                                        Fill="{Binding IsConnected, Converter={StaticResource BoolToConnectionColorConverter}}"/>
+                                                <TextBlock Text="{Binding IsConnected, Converter={StaticResource BoolToStatusConverter}}"
+                                                          FontSize="12"
+                                                          Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        
+                        <!-- Add Provider Button -->
+                        <Button Classes="secondary-button" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="+" FontSize="18"/>
+                                <TextBlock Text="Connect" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Active Stream Banner -->
+                <Border IsVisible="{Binding IsStreaming}"
+                        Background="{StaticResource PrimaryBrush}"
+                        CornerRadius="12"
+                        Padding="16"
+                        Margin="0,8">
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="🎮 Currently Streaming"
+                                       FontWeight="SemiBold"
+                                       Foreground="White"/>
+                            <TextBlock Text="{Binding ActiveSession.Game.Title}"
+                                       FontSize="14"
+                                       Foreground="White"
+                                       Opacity="0.9"/>
+                        </StackPanel>
+                        <TextBlock Grid.Column="1" 
+                                   Text="{Binding ActiveSession.Provider}"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,16,0"
+                                   Foreground="White"
+                                   Opacity="0.8"/>
+                        <Button Grid.Column="2"
+                                Background="#FF4444"
+                                Foreground="White"
+                                Padding="12,8"
+                                CornerRadius="8"
+                                Command="{Binding StopStreamingCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="⏹" VerticalAlignment="Center"/>
+                                <TextBlock Text="Stop" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Search & Filters -->
+                <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,16,0,0">
+                    <TextBox Grid.Column="0"
+                             Watermark="🔍 Search cloud games..."
+                             Text="{Binding SearchQuery}"
+                             Margin="0,0,12,0"/>
+                    
+                    <ComboBox Grid.Column="1" 
+                              Width="140"
+                              Margin="0,0,8,0"
+                              SelectedItem="{Binding SelectedProvider}">
+                        <ComboBox.Items>
+                            <models:CloudProvider>GeForceNow</models:CloudProvider>
+                            <models:CloudProvider>XboxCloudGaming</models:CloudProvider>
+                            <models:CloudProvider>AmazonLuna</models:CloudProvider>
+                        </ComboBox.Items>
+                    </ComboBox>
+                    
+                    <ComboBox Grid.Column="2" Width="120" Margin="0,0,8,0">
+                        <ComboBoxItem>All Genres</ComboBoxItem>
+                        <ComboBoxItem>Action</ComboBoxItem>
+                        <ComboBoxItem>RPG</ComboBoxItem>
+                        <ComboBoxItem>Shooter</ComboBoxItem>
+                    </ComboBox>
+                    
+                    <ComboBox Grid.Column="3" Width="120">
+                        <ComboBoxItem>Sort: Recent</ComboBoxItem>
+                        <ComboBoxItem>Sort: Name</ComboBoxItem>
+                        <ComboBoxItem>Sort: Rating</ComboBoxItem>
+                    </ComboBox>
+                </Grid>
+
+                <!-- Cloud Library -->
+                <TextBlock Text="MY CLOUD LIBRARY" Classes="section-header"/>
+                <ItemsControl ItemsSource="{Binding FilteredGames}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel HorizontalAlignment="Left"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="models:CloudGame">
+                            <Border Classes="game-card" Margin="0,0,16,16">
+                                <Grid RowDefinitions="*,Auto,Auto,Auto">
+                                    <!-- Cover Image Placeholder -->
+                                    <Border Grid.Row="0" 
+                                            Background="{StaticResource ControlBackgroundBrush}"
+                                            Margin="8,8,8,0"
+                                            CornerRadius="8">
+                                        <TextBlock Text="🎮"
+                                                   FontSize="48"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   Opacity="0.5"/>
+                                    </Border>
+                                    
+                                    <!-- Title -->
+                                    <TextBlock Grid.Row="1" 
+                                               Text="{Binding Title}"
+                                               FontWeight="SemiBold"
+                                               FontSize="14"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               Margin="12,8,12,4"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    
+                                    <!-- Provider Badge -->
+                                    <Border Grid.Row="2"
+                                            Background="{StaticResource ControlBackgroundBrush}"
+                                            CornerRadius="4"
+                                            Padding="6,2"
+                                            HorizontalAlignment="Left"
+                                            Margin="12,0,12,4">
+                                        <TextBlock Text="{Binding Provider}"
+                                                   FontSize="11"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    </Border>
+                                    
+                                    <!-- Actions -->
+                                    <Grid Grid.Row="3" 
+                                          ColumnDefinitions="*,Auto"
+                                          Margin="12,0,12,8">
+                                        <Button Grid.Column="0"
+                                                Classes="action-button"
+                                                HorizontalAlignment="Stretch"
+                                                Command="{Binding #Root.((vm:CloudGamingDashboardViewModel)DataContext).LaunchGameCommand}"
+                                                CommandParameter="{Binding}">
+                                            <TextBlock Text="▶ Launch" HorizontalAlignment="Center"/>
+                                        </Button>
+                                        <Button Grid.Column="1"
+                                                Classes="secondary-button"
+                                                Margin="8,0,0,0"
+                                                Command="{Binding #Root.((vm:CloudGamingDashboardViewModel)DataContext).ToggleFavoriteCommand}"
+                                                CommandParameter="{Binding}">
+                                            <TextBlock Text="{Binding IsFavorite, Converter={StaticResource BoolToStarConverter}}"/>
+                                        </Button>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Recently Played Section -->
+                <TextBlock Text="RECENTLY PLAYED" Classes="section-header"/>
+                <Border Background="{StaticResource CardBackgroundBrush}"
+                        BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="12">
+                    <ItemsControl ItemsSource="{Binding RecentSessions}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="models:CloudSession">
+                                <Grid ColumnDefinitions="Auto,*,Auto,Auto" Padding="16,12">
+                                    <TextBlock Grid.Column="0" 
+                                               Text="🎮"
+                                               FontSize="20"
+                                               Margin="0,0,12,0"
+                                               VerticalAlignment="Center"/>
+                                    <StackPanel Grid.Column="1" Spacing="2">
+                                        <TextBlock Text="{Binding Game.Title}"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                                        <TextBlock>
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="{}{0} • {1:F1}h played">
+                                                    <Binding Path="Provider"/>
+                                                    <Binding Path="Duration.TotalHours"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2"
+                                               Text="{Binding StartedAt, Converter={StaticResource RelativeTimeConverter}}"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,16,0"/>
+                                    <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8">
+                                        <Button Classes="action-button"
+                                                Command="{Binding #Root.((vm:CloudGamingDashboardViewModel)DataContext).ResumeSessionCommand}"
+                                                CommandParameter="{Binding}">
+                                            <TextBlock Text="Resume"/>
+                                        </Button>
+                                        <Button Classes="secondary-button">
+                                            <TextBlock Text="Details"/>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+
+                <!-- Connection Status Section -->
+                <TextBlock Text="CONNECTION STATUS" Classes="section-header"/>
+                <Border Classes="connection-status">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="24">
+                            <StackPanel>
+                                <TextBlock Text="🟢 Optimal for 4K streaming"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Ping: 12ms • Jitter: 2ms • Packet Loss: 0.1%"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           FontSize="12"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                            <Button Classes="secondary-button"
+                                    Command="{Binding TestConnectionCommand}"
+                                    IsEnabled="{Binding !IsTestingConnection}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="🔄" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Test Connection" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Classes="secondary-button">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="📍" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Change Server" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Classes="secondary-button">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="📊" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Stats" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

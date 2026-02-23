@@ -1,0 +1,273 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.PluginStore;assembly=SaveState.Presentation"
+             xmlns:models="clr-namespace:SaveState.Presentation.Models.PluginStore;assembly=SaveState.Presentation"
+             x:Class="SaveState.Presentation.Views.PluginStore.PluginReviewView"
+             x:DataType="vm:PluginReviewViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.section-header">
+      <Setter Property="FontSize" Value="20" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="Margin" Value="0,0,0,16" />
+    </Style>
+
+    <Style Selector="Border.review-card">
+      <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="20" />
+      <Setter Property="Margin" Value="0,0,0,16" />
+    </Style>
+
+    <Style Selector="Border.rating-bar">
+      <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Height" Value="8" />
+      <Setter Property="Width" Value="200" />
+    </Style>
+
+    <Style Selector="Border.rating-fill">
+      <Setter Property="Background" Value="#FFB800" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Height" Value="8" />
+    </Style>
+
+    <Style Selector="Button.helpful-button">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="16" />
+      <Setter Property="Padding" Value="12,6" />
+    </Style>
+
+    <Style Selector="Button.helpful-button:pointerover">
+      <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+    </Style>
+
+    <Style Selector="Button.write-review-button">
+      <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="20,12" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="TextBlock.rating-stars">
+      <Setter Property="FontSize" Value="16" />
+      <Setter Property="Foreground" Value="#FFB800" />
+    </Style>
+
+    <Style Selector="TextBlock.review-text">
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="LineHeight" Value="22" />
+    </Style>
+  </UserControl.Styles>
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <Grid ColumnDefinitions="300, *" Margin="20">
+      <!-- Left Column - Rating Summary -->
+      <StackPanel Grid.Column="0" Margin="0,0,20,0">
+        <TextBlock Text="Reviews" Classes="section-header" />
+
+        <Border Background="{StaticResource CardBackgroundBrush}"
+                CornerRadius="12"
+                Padding="20">
+          <StackPanel Spacing="16">
+            <!-- Overall Rating -->
+            <StackPanel HorizontalAlignment="Center">
+              <TextBlock Text="{Binding AverageRating, StringFormat='{}{0:F1}'}"
+                         FontSize="48"
+                         FontWeight="Bold"
+                         Foreground="White"
+                         HorizontalAlignment="Center" />
+              <TextBlock Text="{Binding OverallStars, FallbackValue='★★★★★'}"
+                         Classes="rating-stars"
+                         HorizontalAlignment="Center" />
+              <TextBlock Text="{Binding TotalReviews, StringFormat='{}{0:N0} reviews'}"
+                         FontSize="14"
+                         Foreground="{StaticResource TextSecondaryBrush}"
+                         HorizontalAlignment="Center"
+                         Margin="0,8,0,0" />
+            </StackPanel>
+
+            <!-- Rating Distribution -->
+            <StackPanel Spacing="8">
+              <ItemsControl ItemsSource="{Binding RatingDistribution}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Grid ColumnDefinitions="30, *, Auto" VerticalAlignment="Center">
+                      <TextBlock Grid.Column="0"
+                                 Text="{Binding Stars, StringFormat='{}{0}★'}"
+                                 FontSize="12"
+                                 Foreground="{StaticResource TextSecondaryBrush}"
+                                 VerticalAlignment="Center" />
+                      <Border Grid.Column="1"
+                              Classes="rating-bar"
+                              Margin="8,0">
+                        <Border Classes="rating-fill"
+                                Width="{Binding Percentage, Converter={StaticResource PercentageToWidthConverter}}" />
+                      </Border>
+                      <TextBlock Grid.Column="2"
+                                 Text="{Binding Count}"
+                                 FontSize="12"
+                                 Foreground="{StaticResource TextSecondaryBrush}"
+                                 VerticalAlignment="Center" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <!-- Write Review Button -->
+            <Button Classes="write-review-button"
+                    Command="{Binding WriteReviewCommand}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    Margin="0,8,0,0">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="✏️" />
+                <TextBlock Text="Write a Review" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+
+      <!-- Right Column - Reviews List -->
+      <StackPanel Grid.Column="1">
+        <!-- Sort & Filter -->
+        <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,16">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <ComboBox SelectedIndex="{Binding SelectedSortIndex}"
+                      Width="150">
+              <ComboBoxItem>Most Helpful</ComboBoxItem>
+              <ComboBoxItem>Newest First</ComboBoxItem>
+              <ComboBoxItem>Highest Rated</ComboBoxItem>
+              <ComboBoxItem>Lowest Rated</ComboBoxItem>
+            </ComboBox>
+            <ComboBox SelectedIndex="{Binding SelectedFilterIndex}"
+                      Width="120">
+              <ComboBoxItem>All Stars</ComboBoxItem>
+              <ComboBoxItem>5 Stars</ComboBoxItem>
+              <ComboBoxItem>4 Stars</ComboBoxItem>
+              <ComboBoxItem>3 Stars</ComboBoxItem>
+              <ComboBoxItem>2 Stars</ComboBoxItem>
+              <ComboBoxItem>1 Star</ComboBoxItem>
+            </ComboBox>
+          </StackPanel>
+
+          <TextBlock Grid.Column="1"
+                     Text="{Binding FilteredReviews.Count, StringFormat='{}{0} reviews'}"
+                     VerticalAlignment="Center"
+                     Foreground="{StaticResource TextSecondaryBrush}" />
+        </Grid>
+
+        <!-- Reviews List -->
+        <ItemsControl ItemsSource="{Binding FilteredReviews}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="models:PluginReview">
+              <Border Classes="review-card">
+                <StackPanel Spacing="12">
+                  <!-- Review Header -->
+                  <Grid ColumnDefinitions="Auto, *, Auto">
+                    <Border Grid.Column="0"
+                            Background="{StaticResource AccentBrush}"
+                            CornerRadius="20"
+                            Width="40"
+                            Height="40"
+                            Margin="0,0,12,0">
+                      <TextBlock Text="{Binding AuthorAvatar, FallbackValue='👤'}"
+                                 FontSize="20"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Author}"
+                                 FontSize="14"
+                                 FontWeight="SemiBold"
+                                 Foreground="White" />
+                      <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:MMM dd, yyyy}'}"
+                                 FontSize="12"
+                                 Foreground="{StaticResource TextSecondaryBrush}" />
+                    </StackPanel>
+
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding StarRating}"
+                               Classes="rating-stars"
+                               VerticalAlignment="Center" />
+                  </Grid>
+
+                  <!-- Review Title -->
+                  <TextBlock Text="{Binding Title}"
+                             FontSize="16"
+                             FontWeight="SemiBold"
+                             Foreground="White"
+                             IsVisible="{Binding Title, Converter={StaticResource StringIsNotNullOrEmptyConverter}}" />
+
+                  <!-- Review Content -->
+                  <TextBlock Text="{Binding Content}"
+                             Classes="review-text" />
+
+                  <!-- Developer Response -->
+                  <Border Background="{StaticResource AccentBrush}"
+                          CornerRadius="8"
+                          Padding="16"
+                          IsVisible="{Binding IsDeveloperResponse}"
+                          Opacity="0.9">
+                    <StackPanel Spacing="8">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="🛡️" FontSize="14" />
+                        <TextBlock Text="Developer Response"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   Foreground="White" />
+                      </StackPanel>
+                      <TextBlock Text="{Binding DeveloperResponse}"
+                                 FontSize="13"
+                                 Foreground="White"
+                                 TextWrapping="Wrap"
+                                 LineHeight="20" />
+                    </StackPanel>
+                  </Border>
+
+                  <!-- Helpful Button -->
+                  <StackPanel Orientation="Horizontal" Spacing="16">
+                    <Button Classes="helpful-button"
+                            Command="{Binding #Root.((vm:PluginReviewViewModel)DataContext).MarkHelpfulCommand}"
+                            CommandParameter="{Binding}">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="👍" FontSize="14" />
+                        <TextBlock Text="{Binding HelpfulCount, StringFormat='Helpful ({0})'}"
+                                   FontSize="13" />
+                      </StackPanel>
+                    </Button>
+
+                    <Button Classes="helpful-button"
+                            Command="{Binding #Root.((vm:PluginReviewViewModel)DataContext).ReportReviewCommand}"
+                            CommandParameter="{Binding}">
+                      <TextBlock Text="Report" FontSize="13" />
+                    </Button>
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Load More Button -->
+        <Button Content="Load More Reviews"
+                Classes="Secondary"
+                Command="{Binding LoadMoreCommand}"
+                HorizontalAlignment="Center"
+                Margin="0,16"
+                IsVisible="{Binding HasMoreReviews}" />
+      </StackPanel>
+    </Grid>
+  </ScrollViewer>
+</UserControl>

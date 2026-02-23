@@ -132,6 +132,40 @@ public static class Program
             builder.Services.AddSingleton<IQRCodeService, QRCodeService>();
             builder.Services.AddSingleton<IMobileConnectionManager, MobileConnectionManager>();
 
+            // Tier 4: RGB Sync
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.RgbSync.RgbControlPanelViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.RgbSync.RgbColorPickerViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.RgbSync.RgbDeviceEditorViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.RgbSync.RgbProfileManagerViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.RgbSync.RgbSyncGroupEditorViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.RgbSync.RgbGameStateConfigViewModel>();
+
+            // Tier 4: Theme Builder
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Theme.ThemeBuilderViewModel>();
+            
+            // Tier 4: Accessibility
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Settings.ShortcutEditorViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Settings.AccessibilitySettingsViewModel>();
+            
+            // Tier 4: Cloud Gaming
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.CloudGaming.CloudGamingDashboardViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.CloudGaming.CloudGameDetailViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.CloudGaming.StreamLauncherViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.CloudGaming.ConnectionTestViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.ProviderLoginDialogViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Overlays.StreamOverlayViewModel>();
+            
+            // Tier 4: Replay Theater
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Replay.ReplayTheaterViewModel>();
+            
+            // Tier 4: Advanced Search
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Search.AdvancedSearchViewModel>();
+            
+            // Tier 4: Plugin Store
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.PluginStore.PluginStoreViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.PluginInstallDialogViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.PluginStore.PluginReviewViewModel>();
+
             // Add theme service
             builder.Services.AddSingleton<IThemeService, ThemeService>();
 

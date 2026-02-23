@@ -1,0 +1,190 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:rgb="using:SaveState.Core.RgbSync.Models"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.RgbSync"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="300"
+             x:Class="SaveState.Presentation.Controls.RgbSync.RgbEffectPreview">
+
+    <UserControl.Styles>
+        <Style Selector="Border.DevicePreview">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        </Style>
+
+        <Style Selector="Border.ZoneLed">
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="Height" Value="8"/>
+            <Setter Property="CornerRadius" Value="2"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <SolidColorBrushTransition Property="Background" Duration="0:0:0.1"/>
+                </Transitions>
+            </Transitions>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,10">
+            <TextBlock Text="Effect Preview" 
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"/>
+            <StackPanel Grid.Column="1" 
+                        Orientation="Horizontal" 
+                        Spacing="10"
+                        VerticalAlignment="Center">
+                <ToggleButton Content="▶ Play"
+                              IsChecked="{Binding IsPlaying, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              Classes="Small Secondary"/>
+                <TextBlock Text="{Binding CurrentFrame, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat='Frame: {0}'}"
+                           Classes="Caption"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Preview Canvas -->
+        <Border Grid.Row="1" 
+                Background="{StaticResource InputBackgroundBrush}"
+                CornerRadius="12"
+                ClipToBounds="True">
+            <Grid x:Name="PreviewContainer" Margin="20">
+                <!-- Keyboard Preview -->
+                <Border Classes="DevicePreview" 
+                        Padding="15"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                    <Grid RowDefinitions="Auto, Auto, Auto, Auto">
+                        <TextBlock Grid.Row="0" 
+                                   Text="⌨️ Keyboard Preview"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,10"
+                                   Classes="Caption"/>
+                        
+                        <!-- Simplified keyboard layout -->
+                        <UniformGrid Grid.Row="1" Columns="15" Rows="5" Margin="5">
+                            <!-- Row 1: Function keys -->
+                            <Border Classes="ZoneLed" Background="#FF4444"/>
+                            <Border Classes="ZoneLed" Background="#FF6644"/>
+                            <Border Classes="ZoneLed" Background="#FF8844"/>
+                            <Border Classes="ZoneLed" Background="#FFAA44"/>
+                            <Border Classes="ZoneLed" Background="#FFCC44"/>
+                            <Border Classes="ZoneLed" Background="#FFEE44"/>
+                            <Border Classes="ZoneLed" Background="#DDFF44"/>
+                            <Border Classes="ZoneLed" Background="#BBFF44"/>
+                            <Border Classes="ZoneLed" Background="#99FF44"/>
+                            <Border Classes="ZoneLed" Background="#77FF44"/>
+                            <Border Classes="ZoneLed" Background="#55FF44"/>
+                            <Border Classes="ZoneLed" Background="#44FF66"/>
+                            <Border Classes="ZoneLed" Background="#44FF88"/>
+                            <Border Classes="ZoneLed" Background="#44FFAA"/>
+                            <Border Classes="ZoneLed" Background="#44FFCC"/>
+
+                            <!-- Row 2: Number row -->
+                            <Border Classes="ZoneLed" Background="#FF4444"/>
+                            <Border Classes="ZoneLed" Background="#FF5555"/>
+                            <Border Classes="ZoneLed" Background="#FF6666"/>
+                            <Border Classes="ZoneLed" Background="#FF7777"/>
+                            <Border Classes="ZoneLed" Background="#FF8888"/>
+                            <Border Classes="ZoneLed" Background="#FF9999"/>
+                            <Border Classes="ZoneLed" Background="#FFAAAA"/>
+                            <Border Classes="ZoneLed" Background="#FFBBBB"/>
+                            <Border Classes="ZoneLed" Background="#FFCCCC"/>
+                            <Border Classes="ZoneLed" Background="#FFDDDD"/>
+                            <Border Classes="ZoneLed" Background="#44FF55"/>
+                            <Border Classes="ZoneLed" Background="#44FF66"/>
+                            <Border Classes="ZoneLed" Background="#44FF77"/>
+                            <Border Classes="ZoneLed" Background="#44FF88"/>
+                            <Border Classes="ZoneLed" Background="#44FF99"/>
+
+                            <!-- Row 3: QWERTY -->
+                            <Border Classes="ZoneLed" Background="#FF4444"/>
+                            <Border Classes="ZoneLed" Background="#FF5050"/>
+                            <Border Classes="ZoneLed" Background="#FF6060"/>
+                            <Border Classes="ZoneLed" Background="#FF7070"/>
+                            <Border Classes="ZoneLed" Background="#FF8080"/>
+                            <Border Classes="ZoneLed" Background="#FF9090"/>
+                            <Border Classes="ZoneLed" Background="#44FF55"/>
+                            <Border Classes="ZoneLed" Background="#44FF66"/>
+                            <Border Classes="ZoneLed" Background="#44FF77"/>
+                            <Border Classes="ZoneLed" Background="#44FF88"/>
+                            <Border Classes="ZoneLed" Background="#4444FF"/>
+                            <Border Classes="ZoneLed" Background="#5555FF"/>
+                            <Border Classes="ZoneLed" Background="#6666FF"/>
+                            <Border Classes="ZoneLed" Background="#7777FF"/>
+                            <Border Classes="ZoneLed" Background="#8888FF"/>
+
+                            <!-- Row 4: ASDF -->
+                            <Border Classes="ZoneLed" Background="#FF3333"/>
+                            <Border Classes="ZoneLed" Background="#FF4444"/>
+                            <Border Classes="ZoneLed" Background="#FF5555"/>
+                            <Border Classes="ZoneLed" Background="#44FF55"/>
+                            <Border Classes="ZoneLed" Background="#44FF66"/>
+                            <Border Classes="ZoneLed" Background="#44FF77"/>
+                            <Border Classes="ZoneLed" Background="#44FF88"/>
+                            <Border Classes="ZoneLed" Background="#44FF99"/>
+                            <Border Classes="ZoneLed" Background="#4444FF"/>
+                            <Border Classes="ZoneLed" Background="#5555FF"/>
+                            <Border Classes="ZoneLed" Background="#6666FF"/>
+                            <Border Classes="ZoneLed" Background="#7777FF"/>
+                            <Border Classes="ZoneLed" Background="#8888FF"/>
+                            <Border Classes="ZoneLed" Background="#9999FF"/>
+                            <Border Classes="ZoneLed" Background="#AAAAFF"/>
+
+                            <!-- Row 5: ZXCV -->
+                            <Border Classes="ZoneLed" Width="40" HorizontalAlignment="Left" Background="#FF2222"/>
+                            <Border Classes="ZoneLed" Background="#FF3333"/>
+                            <Border Classes="ZoneLed" Background="#44FF55"/>
+                            <Border Classes="ZoneLed" Background="#44FF66"/>
+                            <Border Classes="ZoneLed" Background="#44FF77"/>
+                            <Border Classes="ZoneLed" Background="#44FF88"/>
+                            <Border Classes="ZoneLed" Width="60" Background="#4444FF"/>
+                            <Border Classes="ZoneLed" Background="#5555FF"/>
+                            <Border Classes="ZoneLed" Background="#6666FF"/>
+                            <Border Classes="ZoneLed" Background="#7777FF"/>
+                            <Border Classes="ZoneLed" Background="#8888FF"/>
+                            <Border Classes="ZoneLed" Background="#9999FF"/>
+                            <Border Classes="ZoneLed" Width="40" Background="#AAAAFF"/>
+                            <Border Classes="ZoneLed" Background="#BBBBFF"/>
+                            <Border Classes="ZoneLed" Background="#CCCCFF"/>
+                        </UniformGrid>
+                    </Grid>
+                </Border>
+
+                <!-- Strip Preview -->
+                <Border Classes="DevicePreview" 
+                        Padding="10"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Bottom"
+                        Margin="0,20,0,0">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="💡 LED Strip Preview"
+                                   HorizontalAlignment="Center"
+                                   Classes="Caption"/>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Border Width="20" Height="20" CornerRadius="10" Background="#FF0000"/>
+                            <Border Width="20" Height="20" CornerRadius="10" Background="#FF3300"/>
+                            <Border Width="20" Height="20" CornerRadius="10" Background="#FF6600"/>
+                            <Border Width="20" Height="20" CornerRadius="10" Background="#FF9900"/>
+                            <Border Width="20" Height="20" CornerRadius="10" Background="#FFCC00"/>
+                            <Border Width="20" Height="20" CornerRadius="10" Background="#FFFF00"/>
+                            <Border Width="20" Height="20" CornerRadius="10" Background="#CCFF00"/>
+                            <Border Width="20" Height="20" CornerRadius="10" Background="#99FF00"/>
+                            <Border Width="20" Height="20" CornerRadius="10" Background="#66FF00"/>
+                            <Border Width="20" Height="20" CornerRadius="10" Background="#33FF00"/>
+                            <Border Width="20" Height="20" CornerRadius="10" Background="#00FF00"/>
+                            <Border Width="20" Height="20" CornerRadius="10" Background="#00FF33"/>
+                            <Border Width="20" Height="20" CornerRadius="10" Background="#00FF66"/>
+                            <Border Width="20" Height="20" CornerRadius="10" Background="#00FF99"/>
+                            <Border Width="20" Height="20" CornerRadius="10" Background="#00FFCC"/>
+                            <Border Width="20" Height="20" CornerRadius="10" Background="#00FFFF"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,214 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.RgbSync"
+             xmlns:rgb="using:SaveState.Core.RgbSync.Models"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.RgbSync.RgbProfileManagerView"
+             x:DataType="vm:RgbProfileManagerViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.ProfileCard">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
+                </Transitions>
+            </Transitions>
+        </Style>
+
+        <Style Selector="Border.ProfileCard:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+        </Style>
+
+        <Style Selector="Border.ProfileCard.Active">
+            <Setter Property="BorderBrush" Value="{StaticResource SuccessBrush}"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+
+        <Style Selector="Border.ProfileCard.Default">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto, *, Auto" Margin="0,15,0,0">
+        <!-- Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,15">
+            <StackPanel Grid.Column="0" Spacing="5">
+                <TextBlock Text="💾 Saved Profiles" FontWeight="SemiBold" FontSize="16"/>
+                <TextBlock Text="{Binding StatusMessage}" 
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="12"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                <Button Content="📥 Import" 
+                        Command="{Binding ImportProfileCommand}"
+                        Classes="Secondary Small"/>
+                <Button Content="➕ New Profile" 
+                        Command="{Binding CreateProfileCommand}"
+                        Classes="Primary Small"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Profile Grid -->
+        <ScrollViewer Grid.Row="1">
+            <ItemsControl ItemsSource="{Binding Profiles}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel ItemWidth="280" ItemHeight="160"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="rgb:RgbProfile">
+                        <Border Classes="ProfileCard"
+                                Margin="8"
+                                Classes.Default="{Binding IsDefault}"
+                                Classes.Active="{Binding $parent[ItemsControl].((vm:RgbProfileManagerViewModel)DataContext).SelectedProfile.Id == Id}">
+                            <Grid RowDefinitions="Auto, *, Auto">
+                                <!-- Header -->
+                                <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
+                                    <StackPanel Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontWeight="SemiBold"
+                                                   FontSize="15"/>
+                                        <TextBlock Text="{Binding DeviceEffects.Count, StringFormat='{}{0} devices'}"
+                                                   FontSize="11"
+                                                   Foreground="{StaticResource TextTertiaryBrush}"/>
+                                    </StackPanel>
+                                    <Border Grid.Column="1"
+                                            IsVisible="{Binding IsDefault}"
+                                            Background="{StaticResource AccentBrush}"
+                                            CornerRadius="4"
+                                            Padding="6,2">
+                                        <TextBlock Text="DEFAULT"
+                                                   FontSize="9"
+                                                   FontWeight="Bold"
+                                                   Foreground="White"/>
+                                    </Border>
+                                </Grid>
+
+                                <!-- Preview Colors -->
+                                <StackPanel Grid.Row="1" 
+                                            Orientation="Horizontal" 
+                                            Spacing="4"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Center"
+                                            Margin="0,10">
+                                    <Border Width="32" Height="32" CornerRadius="6" Background="#FF0000"/>
+                                    <Border Width="32" Height="32" CornerRadius="6" Background="#00FF00"/>
+                                    <Border Width="32" Height="32" CornerRadius="6" Background="#0000FF"/>
+                                    <Border Width="32" Height="32" CornerRadius="6" Background="#FFFF00"/>
+                                    <Border Width="32" Height="32" CornerRadius="6" Background="#FF00FF"/>
+                                </StackPanel>
+
+                                <!-- Actions -->
+                                <Grid Grid.Row="2" ColumnDefinitions="*, *, *, *">
+                                    <Button Grid.Column="0"
+                                            Content="▶"
+                                            ToolTip.Tip="Apply"
+                                            Command="{Binding $parent[ItemsControl].((vm:RgbProfileManagerViewModel)DataContext).ApplyProfileCommand}"
+                                            CommandParameter="{Binding}"
+                                            Classes="Ghost Small"
+                                            HorizontalAlignment="Center"/>
+                                    <Button Grid.Column="1"
+                                            Content="📋"
+                                            ToolTip.Tip="Duplicate"
+                                            Command="{Binding $parent[ItemsControl].((vm:RgbProfileManagerViewModel)DataContext).DuplicateProfileCommand}"
+                                            CommandParameter="{Binding}"
+                                            Classes="Ghost Small"
+                                            HorizontalAlignment="Center"/>
+                                    <Button Grid.Column="2"
+                                            Content="📤"
+                                            ToolTip.Tip="Export"
+                                            Command="{Binding $parent[ItemsControl].((vm:RgbProfileManagerViewModel)DataContext).ExportProfileCommand}"
+                                            CommandParameter="{Binding}"
+                                            Classes="Ghost Small"
+                                            HorizontalAlignment="Center"/>
+                                    <Button Grid.Column="3"
+                                            Content="🗑️"
+                                            ToolTip.Tip="Delete"
+                                            Command="{Binding $parent[ItemsControl].((vm:RgbProfileManagerViewModel)DataContext).DeleteProfileCommand}"
+                                            CommandParameter="{Binding}"
+                                            Classes="Ghost Small"
+                                            HorizontalAlignment="Center"/>
+                                </Grid>
+                            </Grid>
+
+                            <Interaction.Behaviors>
+                                <EventTriggerBehavior EventName="PointerPressed">
+                                    <InvokeCommandAction Command="{Binding $parent[ItemsControl].((vm:RgbProfileManagerViewModel)DataContext).SetPropertyCommand}"
+                                                        CommandParameter="SelectedProfile"/>
+                                </EventTriggerBehavior>
+                            </Interaction.Behaviors>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Auto-Switch Rules -->
+        <Border Grid.Row="2" 
+                Classes="GlassContainer" 
+                Padding="15" 
+                Margin="0,15,0,0">
+            <Grid RowDefinitions="Auto, *">
+                <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,10">
+                    <TextBlock Grid.Column="0" 
+                               Text="🔄 Auto-Switch Rules" 
+                               FontWeight="SemiBold"/>
+                    <Button Grid.Column="1"
+                            Content="➕ Add Rule"
+                            Command="{Binding CreateAutoSwitchRuleCommand}"
+                            Classes="Small Secondary"/>
+                </Grid>
+
+                <ItemsControl Grid.Row="1" ItemsSource="{Binding AutoSwitchRules}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AutoSwitchRule">
+                            <Border Classes="list-item" Padding="10,8">
+                                <Grid ColumnDefinitions="*, *, *, Auto">
+                                    <TextBlock Grid.Column="0" 
+                                               Text="{Binding Name}"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" 
+                                               Text="{Binding TriggerType}"
+                                               Classes="Caption"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" 
+                                               Text="{Binding TargetProfileName}"
+                                               Classes="Caption"
+                                               Foreground="{StaticResource AccentBrush}"
+                                               VerticalAlignment="Center"/>
+                                    <StackPanel Grid.Column="3" 
+                                                Orientation="Horizontal" 
+                                                Spacing="5">
+                                        <ToggleButton Content="✓"
+                                                      IsChecked="{Binding IsEnabled}"
+                                                      Classes="Small"/>
+                                        <Button Content="✎"
+                                                Command="{Binding $parent[ItemsControl].((vm:RgbProfileManagerViewModel)DataContext).EditAutoSwitchRuleCommand}"
+                                                CommandParameter="{Binding}"
+                                                Classes="Ghost Small"/>
+                                        <Button Content="🗑️"
+                                                Command="{Binding $parent[ItemsControl].((vm:RgbProfileManagerViewModel)DataContext).DeleteAutoSwitchRuleCommand}"
+                                                CommandParameter="{Binding}"
+                                                Classes="Ghost Small"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

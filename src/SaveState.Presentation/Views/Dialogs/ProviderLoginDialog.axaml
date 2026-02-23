@@ -1,0 +1,206 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Dialogs;assembly=SaveState.Presentation"
+        x:Class="SaveState.Presentation.Views.Dialogs.ProviderLoginDialog"
+        x:DataType="vm:ProviderLoginDialogViewModel"
+        Title="Connect Provider"
+        Width="480"
+        Height="520"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+
+    <Window.Styles>
+        <Style Selector="TextBlock.header">
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+
+        <Style Selector="TextBlock.subtitle">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style Selector="TextBlock.error">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{StaticResource ErrorBrush}" />
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style Selector="Border.provider-icon">
+            <Setter Property="Width" Value="80" />
+            <Setter Property="Height" Value="80" />
+            <Setter Property="CornerRadius" Value="40" />
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+
+        <Style Selector="TextBox.input-field">
+            <Setter Property="Height" Value="44" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Margin" Value="0,8" />
+        </Style>
+
+        <Style Selector="Button.primary-button">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Padding" Value="24,14" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+
+        <Style Selector="Button.primary-button:pointerover">
+            <Setter Property="Background" Value="{StaticResource PrimaryHoverBrush}" />
+        </Style>
+
+        <Style Selector="Button.secondary-button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector="Button.oauth-button">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Padding" Value="20,14" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+
+        <Style Selector="Button.oauth-button:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+        </Style>
+
+        <Style Selector="ProgressBar.loading">
+            <Setter Property="Height" Value="4" />
+            <Setter Property="IsIndeterminate" Value="True" />
+            <Setter Property="Margin" Value="0,16,0,0" />
+        </Style>
+    </Window.Styles>
+
+    <Border Background="{StaticResource DialogBackgroundBrush}" Padding="32">
+        <Grid RowDefinitions="Auto,*,Auto">
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Spacing="16" HorizontalAlignment="Center">
+                <Border Classes="provider-icon">
+                    <TextBlock Text="{Binding ProviderIcon}"
+                               FontSize="40"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+                </Border>
+                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding ProviderDisplayName}" Classes="header" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Connect your account to access your cloud game library"
+                               Classes="subtitle"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Content -->
+            <StackPanel Grid.Row="1" Spacing="16" Margin="0,24">
+                <!-- Error Message -->
+                <Border Background="{StaticResource ErrorBrushTransparent}"
+                        CornerRadius="8"
+                        Padding="12"
+                        IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNullOrEmptyToBoolConverter}, ConverterParameter=Invert}">
+                    <TextBlock Text="{Binding ErrorMessage}" Classes="error"/>
+                </Border>
+
+                <!-- OAuth Mode -->
+                <StackPanel IsVisible="{Binding UseOAuth}" Spacing="16">
+                    <Border Background="{StaticResource CardBackgroundBrush}"
+                            CornerRadius="12"
+                            Padding="20"
+                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="🔒 Secure OAuth Login" 
+                                       FontWeight="SemiBold"
+                                       FontSize="16"/>
+                            <TextBlock Text="{Binding LoginDescription}" Classes="subtitle"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Button Classes="oauth-button" Command="{Binding LoginCommand}">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
+                            <TextBlock Text="🔗"/>
+                            <TextBlock Text="Connect with OAuth"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- Credentials Mode -->
+                <StackPanel IsVisible="{Binding !UseOAuth}" Spacing="12">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Username or Email" FontSize="13"/>
+                        <TextBox Classes="input-field"
+                                 Text="{Binding Username}"
+                                 Watermark="Enter your username"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Password" FontSize="13"/>
+                        <TextBox Classes="input-field"
+                                 Text="{Binding Password}"
+                                 Watermark="Enter your password"
+                                 PasswordChar="●"/>
+                    </StackPanel>
+
+                    <CheckBox Content="Remember me"
+                              IsChecked="{Binding RememberMe}"
+                              Margin="0,8"/>
+
+                    <Button Classes="primary-button" 
+                            Command="{Binding LoginCommand}"
+                            IsEnabled="{Binding IsValid}">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+                            <TextBlock Text="🔐"/>
+                            <TextBlock Text="Sign In"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- Loading Indicator -->
+                <ProgressBar Classes="loading" IsVisible="{Binding IsLoggingIn}"/>
+
+                <!-- Toggle Method Link -->
+                <Button Classes="secondary-button"
+                        Command="{Binding ToggleLoginMethodCommand}"
+                        IsEnabled="{Binding !IsLoggingIn}">
+                    <TextBlock>
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0}">
+                                <Binding Path="UseOAuth" Converter="{StaticResource BoolToAuthMethodConverter}"/>
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                </Button>
+            </StackPanel>
+
+            <!-- Footer -->
+            <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="0,8,0,0">
+                <Button Grid.Column="0"
+                        Classes="secondary-button"
+                        HorizontalAlignment="Left"
+                        Command="{Binding CreateAccountCommand}"
+                        IsEnabled="{Binding !IsLoggingIn}">
+                    <TextBlock Text="Create Account"/>
+                </Button>
+                <Button Grid.Column="1"
+                        Classes="secondary-button"
+                        HorizontalAlignment="Right"
+                        Command="{Binding CancelCommand}"
+                        IsEnabled="{Binding !IsLoggingIn}">
+                    <TextBlock Text="Cancel"/>
+                </Button>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

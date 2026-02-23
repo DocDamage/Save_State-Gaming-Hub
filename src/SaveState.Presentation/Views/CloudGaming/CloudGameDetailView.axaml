@@ -1,0 +1,307 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.CloudGaming;assembly=SaveState.Presentation"
+             xmlns:models="clr-namespace:SaveState.Presentation.Models.CloudGaming;assembly=SaveState.Presentation"
+             x:Class="SaveState.Presentation.Views.CloudGaming.CloudGameDetailView"
+             x:DataType="vm:CloudGameDetailViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.header-large">
+            <Setter Property="FontSize" Value="32" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+
+        <Style Selector="TextBlock.section-title">
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Margin" Value="0,24,0,12" />
+        </Style>
+
+        <Style Selector="TextBlock.label">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        </Style>
+
+        <Style Selector="TextBlock.value">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="FontWeight" Value="Medium" />
+        </Style>
+
+        <Style Selector="Button.primary-action">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Padding" Value="24,14" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style Selector="Button.primary-action:pointerover">
+            <Setter Property="Background" Value="{StaticResource PrimaryHoverBrush}" />
+        </Style>
+
+        <Style Selector="Button.secondary-action">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+
+        <Style Selector="Button.secondary-action:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+        </Style>
+
+        <Style Selector="Border.info-card">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="16" />
+        </Style>
+
+        <Style Selector="Border.provider-badge-small">
+            <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="8,4" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Header -->
+        <Border Grid.Row="0" Padding="32,24">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Button Grid.Column="0" 
+                        Classes="secondary-action"
+                        Command="{Binding CloseCommand}">
+                    <TextBlock Text="← Back"/>
+                </Button>
+                
+                <TextBlock Grid.Column="1" 
+                           Text="Game Details"
+                           HorizontalAlignment="Center"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"/>
+                
+                <Button Grid.Column="2"
+                        Classes="secondary-action"
+                        Command="{Binding ToggleFavoriteCommand}">
+                    <TextBlock Text="{Binding Game.IsFavorite, Converter={StaticResource BoolToStarConverter}, FallbackValue='☆'}"
+                               FontSize="20"/>
+                </Button>
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid ColumnDefinitions="400,*" Margin="32,0,32,32">
+                <!-- Left Column: Cover & Quick Info -->
+                <StackPanel Grid.Column="0" Spacing="16">
+                    <!-- Cover Image Placeholder -->
+                    <Border Background="{StaticResource ControlBackgroundBrush}"
+                            CornerRadius="16"
+                            Height="500"
+                            Width="350"
+                            HorizontalAlignment="Left">
+                        <Grid>
+                            <TextBlock Text="🎮"
+                                       FontSize="120"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Opacity="0.3"/>
+                            <Border Background="{StaticResource PrimaryBrush}"
+                                    CornerRadius="8"
+                                    Padding="12,6"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Margin="16">
+                                <TextBlock Text="{Binding ProviderDisplayName}"
+                                           Foreground="White"
+                                           FontWeight="SemiBold"/>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <!-- Quick Actions -->
+                    <StackPanel Spacing="12">
+                        <Button Classes="primary-action"
+                                HorizontalAlignment="Stretch"
+                                IsEnabled="{Binding CanLaunch}"
+                                Command="{Binding LaunchGameCommand}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+                                <TextBlock Text="▶" FontSize="16"/>
+                                <TextBlock Text="Launch Game" FontSize="16"/>
+                            </StackPanel>
+                        </Button>
+                        
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <Button Grid.Column="0"
+                                    Classes="secondary-action"
+                                    HorizontalAlignment="Stretch"
+                                    Command="{Binding ViewOnStoreCommand}">
+                                <TextBlock Text="View on Store" HorizontalAlignment="Center"/>
+                            </Button>
+                            <Button Grid.Column="1"
+                                    Classes="secondary-action"
+                                    HorizontalAlignment="Stretch">
+                                <TextBlock Text="Share" HorizontalAlignment="Center"/>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Provider Availability -->
+                    <Border Classes="info-card">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Also Available On" FontWeight="SemiBold"/>
+                            <ItemsControl ItemsSource="{Binding AvailableOnProviders}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="8"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="models:CloudProvider">
+                                        <Button Classes="secondary-action"
+                                                Command="{Binding #Root.((vm:CloudGameDetailViewModel)DataContext).SwitchProviderCommand}"
+                                                CommandParameter="{Binding}">
+                                            <TextBlock Text="{Binding}"/>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Right Column: Details -->
+                <StackPanel Grid.Column="1" Margin="32,0,0,0" Spacing="8">
+                    <!-- Title & Meta -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{Binding Game.Title, FallbackValue='Game Title'}"
+                                   Classes="header-large"/>
+                        
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Border Classes="provider-badge-small">
+                                <TextBlock Text="{Binding ProviderDisplayName}"/>
+                            </Border>
+                            <TextBlock Text="{Binding Game.MetacriticScore, StringFormat='Metacritic: {0}/100', FallbackValue=''}"
+                                       VerticalAlignment="Center"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       IsVisible="{Binding Game.MetacriticScore, Converter={StaticResource NullToBoolConverter}}"/>
+                        </StackPanel>
+
+                        <TextBlock Text="{Binding Game.Description, FallbackValue='No description available.'}"
+                                   TextWrapping="Wrap"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Margin="0,8,0,0"/>
+                    </StackPanel>
+
+                    <!-- Stats Grid -->
+                    <Grid ColumnDefinitions="*,*,*" Margin="0,16,0,0">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="Total Play Time" Classes="label"/>
+                            <TextBlock Text="{Binding FormattedPlayTime, FallbackValue='0h played'}" Classes="value"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="4">
+                            <TextBlock Text="Last Played" Classes="label"/>
+                            <TextBlock Text="{Binding LastPlayedRelative, FallbackValue='Never'}" Classes="value"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="4">
+                            <TextBlock Text="User Rating" Classes="label"/>
+                            <TextBlock Text="{Binding Game.UserRating, StringFormat='★ {0:F1}/5', FallbackValue='Not rated'}" Classes="value"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Genres -->
+                    <TextBlock Text="Genres" Classes="section-title"/>
+                    <ItemsControl ItemsSource="{Binding Game.Genres}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="8"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Border Background="{StaticResource ControlBackgroundBrush}"
+                                        CornerRadius="16"
+                                        Padding="12,6">
+                                    <TextBlock Text="{Binding}" FontSize="12"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Stream Quality Recommendation -->
+                    <Border Classes="info-card" Margin="0,16,0,0">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Stream Quality Recommendation" FontWeight="SemiBold"/>
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <TextBlock Grid.Column="0" 
+                                           Text="{Binding RecommendedQuality, StringFormat='Recommended: {0}'}"
+                                           VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="2"
+                                           Text="Based on your connection test"
+                                           FontSize="12"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+                            <ProgressBar Value="75" 
+                                         Maximum="100"
+                                         Height="8"
+                                         CornerRadius="4"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Session History -->
+                    <TextBlock Text="Recent Sessions" Classes="section-title"/>
+                    <Border Classes="info-card">
+                        <ItemsControl ItemsSource="{Binding SessionHistory}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="models:CloudSession">
+                                    <Grid ColumnDefinitions="*,Auto,Auto" Padding="0,8">
+                                        <StackPanel Grid.Column="0" Spacing="2">
+                                            <TextBlock Text="{Binding StartedAt, StringFormat='{}{0:g}'}"/>
+                                            <TextBlock Text="{Binding Duration, StringFormat='Duration: {0:hh\\:mm\\:ss}'}"
+                                                       FontSize="12"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" 
+                                                   Text="{Binding Quality}"
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,0,16,0"/>
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding AverageLatency, StringFormat='{}{0:F0}ms'}"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
+
+                    <!-- System Requirements -->
+                    <TextBlock Text="Connection Requirements" Classes="section-title"/>
+                    <Border Classes="info-card">
+                        <Grid ColumnDefinitions="*,*">
+                            <StackPanel Grid.Column="0" Spacing="8">
+                                <TextBlock Text="Minimum" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <TextBlock Text="• 15 Mbps download" FontSize="13"/>
+                                <TextBlock Text="• 40ms ping or less" FontSize="13"/>
+                                <TextBlock Text="• 5GHz Wi-Fi or Ethernet" FontSize="13"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="8">
+                                <TextBlock Text="Recommended" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <TextBlock Text="• 40+ Mbps download" FontSize="13"/>
+                                <TextBlock Text="• 20ms ping or less" FontSize="13"/>
+                                <TextBlock Text="• Ethernet connection" FontSize="13"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

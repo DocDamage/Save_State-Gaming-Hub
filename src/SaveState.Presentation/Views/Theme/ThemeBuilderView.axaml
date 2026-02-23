@@ -1,0 +1,425 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Theme"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="SaveState.Presentation.Views.Theme.ThemeBuilderView"
+             x:DataType="vm:ThemeBuilderViewModel">
+
+  <Grid ColumnDefinitions="300, *" Margin="20">
+    
+    <!-- Left Panel: Theme List -->
+    <Border Grid.Column="0" 
+            Classes="Card" 
+            Margin="0,0,20,0"
+            Padding="16">
+      <Grid RowDefinitions="Auto, *, Auto">
+        
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Spacing="12" Margin="0,0,0,16">
+          <TextBlock Text="{Binding Title}" 
+                     Classes="Header" 
+                     FontSize="24"/>
+          <TextBlock Text="{Binding Subtitle}" 
+                     Classes="Caption"
+                     TextWrapping="Wrap"/>
+          
+          <!-- Import Button -->
+          <Button Content="📥 Import Theme"
+                  Command="{Binding ImportThemeCommand}"
+                  Classes="Secondary"
+                  HorizontalAlignment="Stretch"/>
+        </StackPanel>
+        
+        <!-- Theme List -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+          <ItemsControl ItemsSource="{Binding Themes}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Classes="ListItem" 
+                        Padding="12"
+                        Margin="0,4">
+                  <Grid ColumnDefinitions="*, Auto">
+                    <StackPanel Grid.Column="0" Spacing="4">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding Name}" 
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="🔒" 
+                                   IsVisible="{Binding IsBuiltIn}"
+                                   FontSize="12"
+                                   Opacity="0.5"/>
+                      </StackPanel>
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Ellipse Width="12" 
+                                 Height="12" 
+                                 Fill="{Binding Colors.Primary, Converter={StaticResource HexToBrushConverter}}"/>
+                        <Ellipse Width="12" 
+                                 Height="12" 
+                                 Fill="{Binding Colors.Secondary, Converter={StaticResource HexToBrushConverter}}"/>
+                        <Ellipse Width="12" 
+                                 Height="12" 
+                                 Fill="{Binding Colors.Tertiary, Converter={StaticResource HexToBrushConverter}}"/>
+                        <TextBlock Text="{Binding IsDark, Converter={StaticResource BoolToStringConverter}, ConverterParameter='Dark|Light'}"
+                                   Classes="Caption"
+                                   Opacity="0.6"/>
+                      </StackPanel>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" 
+                                Orientation="Horizontal" 
+                                Spacing="4">
+                      <Button Content="✎"
+                              Command="{Binding $parent[ItemsControl].((vm:ThemeBuilderViewModel)DataContext).ToggleEditingCommand}"
+                              IsVisible="{Binding !$parent[ItemsControl].((vm:ThemeBuilderViewModel)DataContext).SelectedTheme.IsBuiltIn}"
+                              Classes="Ghost"
+                              ToolTip.Tip="Edit Theme"
+                              Padding="8,4"/>
+                      <Button Content="📋"
+                              Command="{Binding $parent[ItemsControl].((vm:ThemeBuilderViewModel)DataContext).DuplicateThemeCommand}"
+                              CommandParameter="{Binding}"
+                              Classes="Ghost"
+                              ToolTip.Tip="Duplicate Theme"
+                              Padding="8,4"/>
+                      <Button Content="▶"
+                              Command="{Binding $parent[ItemsControl].((vm:ThemeBuilderViewModel)DataContext).ApplyThemeCommand}"
+                              CommandParameter="{Binding}"
+                              Classes="Ghost"
+                              ToolTip.Tip="Apply Theme"
+                              Padding="8,4"/>
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+        
+        <!-- Create New -->
+        <StackPanel Grid.Row="2" Spacing="8" Margin="0,16,0,0">
+          <TextBlock Text="Create New Theme" Classes="Label"/>
+          <TextBox Text="{Binding NewThemeName}" 
+                   Watermark="Theme Name"
+                   x:Name="NewThemeNameBox"/>
+          <Button Content="+ Create New Theme"
+                  Command="{Binding CreateNewThemeCommand}"
+                  Classes="Primary"
+                  HorizontalAlignment="Stretch"
+                  IsEnabled="{Binding NewThemeName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+    
+    <!-- Right Panel: Editor & Preview -->
+    <Grid Grid.Column="1" RowDefinitions="Auto, *, Auto">
+      
+      <!-- Editor Header -->
+      <Border Grid.Row="0" Classes="Card" Padding="16" Margin="0,0,0,16">
+        <Grid ColumnDefinitions="*, Auto">
+          <StackPanel Grid.Column="0" Spacing="4">
+            <TextBlock Text="{Binding SelectedTheme.Name}" 
+                       Classes="Header"
+                       FontSize="20"/>
+            <StackPanel Orientation="Horizontal" Spacing="16">
+              <ToggleSwitch Content="Dark Theme" 
+                           IsChecked="{Binding IsDarkTheme}"
+                           IsEnabled="{Binding CanEditSelectedTheme}"/>
+              <ToggleSwitch Content="Preview Mode" 
+                           IsChecked="{Binding IsPreviewMode}"
+                           Command="{Binding PreviewThemeCommand}"/>
+            </StackPanel>
+          </StackPanel>
+          <StackPanel Grid.Column="1" 
+                      Orientation="Horizontal" 
+                      Spacing="8"
+                      VerticalAlignment="Top">
+            <Button Content="💾 Save"
+                    Command="{Binding SaveThemeCommand}"
+                    Classes="Primary"
+                    IsEnabled="{Binding CanEditSelectedTheme}"/>
+            <Button Content="📤 Export"
+                    Command="{Binding ExportThemeCommand}"
+                    CommandParameter="{Binding SelectedTheme}"
+                    Classes="Secondary"/>
+            <Button Content="🗑️ Delete"
+                    Command="{Binding DeleteThemeCommand}"
+                    CommandParameter="{Binding SelectedTheme}"
+                    Classes="Danger"
+                    IsEnabled="{Binding CanDeleteSelectedTheme}"/>
+          </StackPanel>
+        </Grid>
+      </Border>
+      
+      <!-- Color Editor & Preview -->
+      <Grid Grid.Row="1" ColumnDefinitions="*, 400" Margin="0,0,0,16">
+        
+        <!-- Color Editor -->
+        <Border Grid.Column="0" Classes="Card" Padding="16" Margin="0,0,16,0">
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="16">
+              
+              <!-- Quick Actions -->
+              <StackPanel Spacing="8">
+                <TextBlock Text="Quick Actions" Classes="Label"/>
+                <StackPanel Orientation="Horizontal" Spacing="8" Wrap="Wrap">
+                  <TextBox Text="{Binding SeedColor}" 
+                           Watermark="Seed Color (#RRGGBB)"
+                           Width="120"/>
+                  <Button Content="🎨 Generate from Seed"
+                          Command="{Binding GenerateFromSeedCommand}"
+                          Classes="Secondary"/>
+                  <Button Content="🖼️ Extract from Image"
+                          Command="{Binding GenerateFromImageCommand}"
+                          Classes="Secondary"/>
+                  <Button Content="🔄 Reset"
+                          Command="{Binding ResetToDefaultCommand}"
+                          Classes="Ghost"/>
+                </StackPanel>
+              </StackPanel>
+              
+              <!-- Primary Colors -->
+              <StackPanel Spacing="8">
+                <TextBlock Text="Primary Colors" Classes="Label"/>
+                <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto">
+                  <ColorPicker Grid.Row="0" Grid.Column="0"
+                              Header="Primary"
+                              Color="{Binding PrimaryColor, Mode=TwoWay}"
+                              IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  <ColorPicker Grid.Row="0" Grid.Column="1"
+                              Header="On Primary"
+                              Color="{Binding Colors.OnPrimary, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
+                              IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  <ColorPicker Grid.Row="1" Grid.Column="0"
+                              Header="Primary Container"
+                              Color="{Binding Colors.PrimaryContainer, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
+                              IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  <ColorPicker Grid.Row="1" Grid.Column="1"
+                              Header="On Primary Container"
+                              Color="{Binding Colors.OnPrimaryContainer, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
+                              IsEnabled="{Binding CanEditSelectedTheme}"/>
+                </Grid>
+              </StackPanel>
+              
+              <!-- Secondary Colors -->
+              <StackPanel Spacing="8">
+                <TextBlock Text="Secondary Colors" Classes="Label"/>
+                <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto">
+                  <ColorPicker Grid.Row="0" Grid.Column="0"
+                              Header="Secondary"
+                              Color="{Binding SecondaryColor, Mode=TwoWay}"
+                              IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  <ColorPicker Grid.Row="0" Grid.Column="1"
+                              Header="On Secondary"
+                              Color="{Binding Colors.OnSecondary, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
+                              IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  <ColorPicker Grid.Row="1" Grid.Column="0"
+                              Header="Secondary Container"
+                              Color="{Binding Colors.SecondaryContainer, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
+                              IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  <ColorPicker Grid.Row="1" Grid.Column="1"
+                              Header="On Secondary Container"
+                              Color="{Binding Colors.OnSecondaryContainer, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
+                              IsEnabled="{Binding CanEditSelectedTheme}"/>
+                </Grid>
+              </StackPanel>
+              
+              <!-- Background & Surface -->
+              <StackPanel Spacing="8">
+                <TextBlock Text="Background &amp; Surface" Classes="Label"/>
+                <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto">
+                  <ColorPicker Grid.Row="0" Grid.Column="0"
+                              Header="Background"
+                              Color="{Binding BackgroundColor, Mode=TwoWay}"
+                              IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  <ColorPicker Grid.Row="0" Grid.Column="1"
+                              Header="On Background"
+                              Color="{Binding Colors.OnBackground, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
+                              IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  <ColorPicker Grid.Row="1" Grid.Column="0"
+                              Header="Surface"
+                              Color="{Binding SurfaceColor, Mode=TwoWay}"
+                              IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  <ColorPicker Grid.Row="1" Grid.Column="1"
+                              Header="On Surface"
+                              Color="{Binding Colors.OnSurface, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
+                              IsEnabled="{Binding CanEditSelectedTheme}"/>
+                </Grid>
+              </StackPanel>
+              
+              <!-- Error Colors -->
+              <StackPanel Spacing="8">
+                <TextBlock Text="Error Colors" Classes="Label"/>
+                <Grid ColumnDefinitions="*, *" RowDefinitions="Auto">
+                  <ColorPicker Grid.Row="0" Grid.Column="0"
+                              Header="Error"
+                              Color="{Binding ErrorColor, Mode=TwoWay}"
+                              IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  <ColorPicker Grid.Row="0" Grid.Column="1"
+                              Header="On Error"
+                              Color="{Binding Colors.OnError, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
+                              IsEnabled="{Binding CanEditSelectedTheme}"/>
+                </Grid>
+              </StackPanel>
+              
+              <!-- Accessibility Info -->
+              <StackPanel Spacing="8">
+                <TextBlock Text="Accessibility" Classes="Label"/>
+                <Grid ColumnDefinitions="Auto, *, Auto">
+                  <TextBlock Grid.Column="0" Text="Primary Contrast:"/>
+                  <TextBlock Grid.Column="1" 
+                            Text="{Binding PrimaryContrastRatio, StringFormat='{}{0:F2}:1'}"
+                            Margin="8,0"/>
+                  <Border Grid.Column="2" 
+                         Background="{Binding PrimaryComplianceLevel, Converter={StaticResource ComplianceLevelToBrushConverter}}"
+                         Padding="8,2"
+                         CornerRadius="4">
+                    <TextBlock Text="{Binding PrimaryComplianceLevel}"
+                              Foreground="White"
+                              FontSize="12"/>
+                  </Border>
+                </Grid>
+                <Button Content="🔍 Analyze Accessibility"
+                        Command="{Binding AnalyzeAccessibilityCommand}"
+                        Classes="Secondary"
+                        HorizontalAlignment="Left"/>
+              </StackPanel>
+              
+              <!-- Color Blindness Simulation -->
+              <StackPanel Spacing="8">
+                <TextBlock Text="Color Blindness Simulation" Classes="Label"/>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <ComboBox ItemsSource="{Binding ColorBlindnessTypes}"
+                           SelectedItem="{Binding SelectedColorBlindnessType}"
+                           Width="180"/>
+                  <Button Content="Apply Filter"
+                          Command="{Binding ApplyColorBlindnessFilterCommand}"
+                          Classes="Secondary"/>
+                </StackPanel>
+              </StackPanel>
+              
+              <!-- Color Harmonies -->
+              <StackPanel Spacing="8">
+                <TextBlock Text="Color Harmonies" Classes="Label"/>
+                <StackPanel Orientation="Horizontal" Spacing="8" Wrap="Wrap">
+                  <Button Content="Analogous"
+                          Command="{Binding GenerateAnalogousColorsCommand}"
+                          Classes="Ghost"/>
+                  <Button Content="Complementary"
+                          Command="{Binding GenerateComplementaryColorsCommand}"
+                          Classes="Ghost"/>
+                  <Button Content="Triadic"
+                          Command="{Binding GenerateTriadicColorsCommand}"
+                          Classes="Ghost"/>
+                  <Button Content="Harmonize"
+                          Command="{Binding HarmonizeColorsCommand}"
+                          Classes="Ghost"/>
+                </StackPanel>
+              </StackPanel>
+              
+            </StackPanel>
+          </ScrollViewer>
+        </Border>
+        
+        <!-- Preview Panel -->
+        <Border Grid.Column="1" Classes="Card" Padding="16">
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="16">
+              <TextBlock Text="Preview" Classes="Header"/>
+              
+              <!-- Button Samples -->
+              <StackPanel Spacing="8">
+                <TextBlock Text="Buttons" Classes="Label" Opacity="0.6"/>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="Primary" Classes="Primary"/>
+                  <Button Content="Secondary" Classes="Secondary"/>
+                  <Button Content="Danger" Classes="Danger"/>
+                </StackPanel>
+              </StackPanel>
+              
+              <!-- Card Sample -->
+              <Border Classes="Card" Padding="16">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Sample Card" Classes="Header" FontSize="16"/>
+                  <TextBlock Text="This is how your theme looks on cards and surfaces."
+                            Classes="Body"
+                            TextWrapping="Wrap"/>
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Content="Action 1" Classes="Primary"/>
+                    <Button Content="Action 2" Classes="Ghost"/>
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+              
+              <!-- Input Sample -->
+              <StackPanel Spacing="8">
+                <TextBlock Text="Input Fields" Classes="Label" Opacity="0.6"/>
+                <TextBox Watermark="Text input..." Text="Sample text"/>
+                <ComboBox PlaceholderText="Select option..."/>
+              </StackPanel>
+              
+              <!-- Alert Samples -->
+              <StackPanel Spacing="8">
+                <TextBlock Text="Alerts &amp; Messages" Classes="Label" Opacity="0.6"/>
+                <Border Background="{Binding Colors.ErrorContainer, Converter={StaticResource HexToBrushConverter}}"
+                       Padding="12"
+                       CornerRadius="8">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="⚠" 
+                              Foreground="{Binding Colors.OnErrorContainer, Converter={StaticResource HexToBrushConverter}}"/>
+                    <TextBlock Text="Error message example"
+                              Foreground="{Binding Colors.OnErrorContainer, Converter={StaticResource HexToBrushConverter}}"/>
+                  </StackPanel>
+                </Border>
+                <Border Background="{Binding Colors.PrimaryContainer, Converter={StaticResource HexToBrushConverter}}"
+                       Padding="12"
+                       CornerRadius="8">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="ℹ" 
+                              Foreground="{Binding Colors.OnPrimaryContainer, Converter={StaticResource HexToBrushConverter}}"/>
+                    <TextBlock Text="Info message example"
+                              Foreground="{Binding Colors.OnPrimaryContainer, Converter={StaticResource HexToBrushConverter}}"/>
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+              
+              <!-- Typography Sample -->
+              <StackPanel Spacing="4">
+                <TextBlock Text="Typography" Classes="Label" Opacity="0.6"/>
+                <TextBlock Text="Display Large" Classes="DisplayLarge"/>
+                <TextBlock Text="Display Medium" Classes="DisplayMedium"/>
+                <TextBlock Text="Headline Large" Classes="HeadlineLarge"/>
+                <TextBlock Text="Body Large" Classes="BodyLarge"/>
+                <TextBlock Text="Body Medium" Classes="BodyMedium"/>
+                <TextBlock Text="Label Large" Classes="LabelLarge"/>
+              </StackPanel>
+              
+            </StackPanel>
+          </ScrollViewer>
+        </Border>
+        
+      </Grid>
+      
+      <!-- Bottom Actions -->
+      <Border Grid.Row="2" Classes="Card" Padding="16">
+        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
+          <Button Content="🎨 Generate from Seed"
+                  Command="{Binding GenerateFromSeedCommand}"
+                  Classes="Secondary"/>
+          <Button Content="🖼️ Extract from Image"
+                  Command="{Binding GenerateFromImageCommand}"
+                  Classes="Secondary"/>
+          <Button Content="🔄 Reset to Default"
+                  Command="{Binding ResetToDefaultCommand}"
+                  Classes="Ghost"/>
+          <Button Content="💾 Save Changes"
+                  Command="{Binding SaveThemeCommand}"
+                  Classes="Primary"
+                  IsEnabled="{Binding CanEditSelectedTheme}"/>
+        </StackPanel>
+      </Border>
+      
+    </Grid>
+    
+  </Grid>
+  
+</UserControl>

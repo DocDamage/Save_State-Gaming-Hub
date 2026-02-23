@@ -1,0 +1,298 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.Overlays;assembly=SaveState.Presentation"
+             x:Class="SaveState.Presentation.Views.Overlays.StreamOverlay"
+             x:DataType="vm:StreamOverlayViewModel"
+             IsVisible="{Binding IsVisible}">
+
+    <UserControl.Styles>
+        <!-- Compact Stat Style -->
+        <Style Selector="Border.stat-pill">
+            <Setter Property="Background" Value="#CC000000" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="Margin" Value="4" />
+        </Style>
+
+        <Style Selector="TextBlock.stat-value">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <Style Selector="TextBlock.stat-label">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="Foreground" Value="#AAAAAA" />
+        </Style>
+
+        <!-- Panel Style -->
+        <Style Selector="Border.overlay-panel">
+            <Setter Property="Background" Value="#CC1A1A1A" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="8" />
+            <Setter Property="BoxShadow" Value="0 4 16 #40000000" />
+        </Style>
+
+        <!-- Quick Action Button -->
+        <Style Selector="Button.overlay-button">
+            <Setter Property="Background" Value="#33FFFFFF" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Width" Value="44" />
+            <Setter Property="Height" Value="44" />
+        </Style>
+
+        <Style Selector="Button.overlay-button:pointerover">
+            <Setter Property="Background" Value="#55FFFFFF" />
+        </Style>
+
+        <!-- Graph Bar -->
+        <Style Selector="Rectangle.graph-bar">
+            <Setter Property="Fill" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="Width" Value="4" />
+        </Style>
+
+        <!-- Issue Indicator -->
+        <Style Selector="Border.issue-banner">
+            <Setter Property="Background" Value="#CCFF4444" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="Margin" Value="8" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid>
+        <!-- Toggle Visibility Button (when overlay is hidden) -->
+        <Button IsVisible="{Binding !IsVisible}"
+                Command="{Binding ToggleVisibilityCommand}"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Margin="16"
+                Classes="overlay-button">
+            <TextBlock Text="📊" FontSize="20" HorizontalAlignment="Center"/>
+        </Button>
+
+        <!-- Main Overlay Content -->
+        <Grid IsVisible="{Binding IsVisible}">
+            <!-- Top Bar - Quick Stats -->
+            <StackPanel Orientation="Horizontal" 
+                        HorizontalAlignment="Left" 
+                        VerticalAlignment="Top"
+                        Margin="16">
+                <Border Classes="stat-pill">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="📶" FontSize="16"/>
+                        <StackPanel>
+                            <TextBlock Text="{Binding CurrentLatency, StringFormat='{}{0:F0}ms'}" Classes="stat-value"/>
+                            <TextBlock Text="Latency" Classes="stat-label"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="stat-pill">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="🎮" FontSize="16"/>
+                        <StackPanel>
+                            <TextBlock Text="{Binding CurrentFps}" Classes="stat-value"/>
+                            <TextBlock Text="FPS" Classes="stat-label"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="stat-pill">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="📡" FontSize="16"/>
+                        <StackPanel>
+                            <TextBlock Text="{Binding CurrentBitrate, StringFormat='{}{0:F0}'}" Classes="stat-value"/>
+                            <TextBlock Text="Mbps" Classes="stat-label"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="stat-pill">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="⏱" FontSize="16"/>
+                        <StackPanel>
+                            <TextBlock Text="{Binding SessionDuration}" Classes="stat-value"/>
+                            <TextBlock Text="Session" Classes="stat-label"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Top Right - Controls -->
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="16">
+                <Button Classes="overlay-button"
+                        Command="{Binding ToggleMicrophoneCommand}">
+                    <TextBlock Text="🎤" FontSize="20" HorizontalAlignment="Center"/>
+                </Button>
+                <Button Classes="overlay-button"
+                        Command="{Binding TakeScreenshotCommand}">
+                    <TextBlock Text="📸" FontSize="20" HorizontalAlignment="Center"/>
+                </Button>
+                <Button Classes="overlay-button"
+                        Command="{Binding ToggleQuickSettingsCommand}">
+                    <TextBlock Text="⚙️" FontSize="20" HorizontalAlignment="Center"/>
+                </Button>
+                <Button Classes="overlay-button"
+                        Command="{Binding ToggleVisibilityCommand}">
+                    <TextBlock Text="👁" FontSize="20" HorizontalAlignment="Center"/>
+                </Button>
+            </StackPanel>
+
+            <!-- Issue Warning Banner -->
+            <Border Classes="issue-banner"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Margin="0,70,0,0"
+                    IsVisible="{Binding HasIssues}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="⚠️" FontSize="16"/>
+                    <TextBlock Text="Connection issues detected - quality may be reduced"
+                               FontWeight="SemiBold"
+                               Foreground="White"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Bottom Left - Expanded Stats -->
+            <Border Classes="overlay-panel"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom"
+                    Margin="16"
+                    IsVisible="{Binding IsStatsExpanded}"
+                    Width="300">
+                <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="Performance Stats" 
+                                   FontWeight="SemiBold"
+                                   Foreground="White"/>
+                        <Button Grid.Column="1"
+                                Classes="overlay-button"
+                                Width="32"
+                                Height="32"
+                                Padding="4"
+                                Command="{Binding ToggleStatsCommand}">
+                            <TextBlock Text="✕" FontSize="14" HorizontalAlignment="Center"/>
+                        </Button>
+                    </Grid>
+
+                    <!-- Latency Graph -->
+                    <StackPanel Spacing="4">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="Latency History" 
+                                       FontSize="12"
+                                       Foreground="#AAAAAA"/>
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding ConnectionQuality}"
+                                       FontSize="12"
+                                       Foreground="{Binding QualityColor, Converter={StaticResource ColorToBrushConverter}}"/>
+                        </Grid>
+                        <Border Height="60" 
+                                Background="#33000000" 
+                                CornerRadius="4"
+                                ClipToBounds="True">
+                            <ItemsControl ItemsSource="{Binding LatencyHistory}"
+                                          VerticalAlignment="Bottom">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" 
+                                                    Spacing="2"
+                                                    VerticalAlignment="Bottom"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Rectangle Classes="graph-bar"
+                                                   Height="{Binding Converter={StaticResource LatencyToHeightConverter}}"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Detailed Stats -->
+                    <Grid ColumnDefinitions="*,*">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="Packet Loss" Classes="stat-label"/>
+                            <TextBlock Text="{Binding CurrentPacketLoss, StringFormat='{}{0:F2}%'}" 
+                                       Classes="stat-value"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="4">
+                            <TextBlock Text="Resolution" Classes="stat-label"/>
+                            <TextBlock Text="{Binding Resolution}" Classes="stat-value"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Bottom Center - Quick Actions when minimized -->
+            <Border Classes="overlay-panel"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Margin="16"
+                    IsVisible="{Binding !IsStatsExpanded}">
+                <Button Classes="overlay-button"
+                        Command="{Binding ToggleStatsCommand}">
+                    <TextBlock Text="📊" FontSize="20"/>
+                </Button>
+            </Border>
+
+            <!-- Right Side - Quick Settings Panel -->
+            <Border Classes="overlay-panel"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Margin="16"
+                    IsVisible="{Binding ShowQuickSettings}"
+                    Width="200">
+                <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="Quick Settings" 
+                                   FontWeight="SemiBold"
+                                   Foreground="White"/>
+                        <Button Grid.Column="1"
+                                Classes="overlay-button"
+                                Width="32"
+                                Height="32"
+                                Padding="4"
+                                Command="{Binding ToggleQuickSettingsCommand}">
+                            <TextBlock Text="✕" FontSize="14" HorizontalAlignment="Center"/>
+                        </Button>
+                    </Grid>
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Quality" FontSize="12" Foreground="#AAAAAA"/>
+                        <ComboBox SelectedItem="{Binding Session.Quality}" HorizontalAlignment="Stretch">
+                            <ComboBoxItem>Low</ComboBoxItem>
+                            <ComboBoxItem>Medium</ComboBoxItem>
+                            <ComboBoxItem>High</ComboBoxItem>
+                            <ComboBoxItem>Ultra</ComboBoxItem>
+                            <ComboBoxItem>Adaptive</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <Separator Background="#33FFFFFF" Margin="0,8"/>
+
+                    <StackPanel Spacing="8">
+                        <Button Classes="overlay-button"
+                                HorizontalAlignment="Stretch"
+                                Height="36"
+                                Command="{Binding OpenMenuCommand}">
+                            <TextBlock Text="🎮 Game Menu" Foreground="White"/>
+                        </Button>
+                        <Button Classes="overlay-button"
+                                HorizontalAlignment="Stretch"
+                                Height="36"
+                                Background="#44FF4444"
+                                Command="{Binding DisconnectCommand}">
+                            <TextBlock Text="⏹ Disconnect" Foreground="#FF4444"/>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

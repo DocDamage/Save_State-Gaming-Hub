@@ -1,0 +1,353 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.PluginStore;assembly=SaveState.Presentation"
+             xmlns:models="clr-namespace:SaveState.Presentation.Models.PluginStore;assembly=SaveState.Presentation"
+             x:Class="SaveState.Presentation.Views.PluginStore.PluginDetailView"
+             x:DataType="vm:PluginStoreViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.section-header">
+      <Setter Property="FontSize" Value="20" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="Margin" Value="0,0,0,12" />
+    </Style>
+
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.value">
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <Style Selector="Border.detail-card">
+      <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="20" />
+      <Setter Property="Margin" Value="0,0,0,16" />
+    </Style>
+
+    <Style Selector="Button.primary-action">
+      <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="24,12" />
+      <Setter Property="FontSize" Value="16" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Button.secondary-action">
+      <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="20,12" />
+      <Setter Property="FontSize" Value="16" />
+    </Style>
+
+    <Style Selector="Border.screenshot">
+      <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Width" Value="280" />
+      <Setter Property="Height" Value="160" />
+      <Setter Property="Margin" Value="0,0,12,0" />
+    </Style>
+
+    <Style Selector="Border.tag">
+      <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="8,4" />
+      <Setter Property="Margin" Value="0,0,8,8" />
+    </Style>
+  </UserControl.Styles>
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <Grid RowDefinitions="Auto, Auto, *" Margin="20">
+      <!-- Header -->
+      <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto" Margin="0,0,0,20">
+        <!-- Plugin Icon -->
+        <Border Grid.Column="0"
+                Background="{StaticResource PrimaryBrush}"
+                CornerRadius="16"
+                Width="100"
+                Height="100"
+                Margin="0,0,20,0">
+          <TextBlock Text="{Binding SelectedPlugin.Icon, FallbackValue='🧩'}"
+                     FontSize="56"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center" />
+        </Border>
+
+        <!-- Plugin Info -->
+        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+          <TextBlock Text="{Binding SelectedPlugin.Name, FallbackValue='Plugin Name'}"
+                     FontSize="32"
+                     FontWeight="Heavy"
+                     Foreground="White" />
+          <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,8,0,0">
+            <TextBlock Text="{Binding SelectedPlugin.StarRating, FallbackValue='★★★★★'}"
+                       FontSize="18"
+                       Foreground="#FFB800" />
+            <TextBlock Text="{Binding SelectedPlugin.ReviewCount, StringFormat='({0} reviews)'}"
+                       FontSize="14"
+                       Foreground="{StaticResource TextSecondaryBrush}" />
+            <TextBlock Text="•" Foreground="{StaticResource TextSecondaryBrush}" />
+            <TextBlock Text="{Binding SelectedPlugin.FormattedDownloads, StringFormat='{0} downloads'}"
+                       FontSize="14"
+                       Foreground="{StaticResource TextSecondaryBrush}" />
+          </StackPanel>
+          <TextBlock Text="{Binding SelectedPlugin.Author, StringFormat='by {0}'}"
+                     FontSize="14"
+                     Foreground="{StaticResource TextSecondaryBrush}"
+                     Margin="0,4,0,0" />
+        </StackPanel>
+
+        <!-- Action Buttons -->
+        <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="12">
+          <Button Classes="primary-action"
+                  Command="{Binding InstallPluginCommand}"
+                  CommandParameter="{Binding SelectedPlugin}"
+                  IsVisible="{Binding !SelectedPlugin.IsInstalled}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="⬇️" />
+              <TextBlock Text="{Binding SelectedPlugin.Pricing.DisplayPrice, FallbackValue='Install'}" />
+            </StackPanel>
+          </Button>
+
+          <Button Classes="primary-action"
+                  Command="{Binding UpdatePluginCommand}"
+                  CommandParameter="{Binding SelectedPlugin}"
+                  IsVisible="{Binding SelectedPlugin.IsUpdateAvailable}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="⬆️" />
+              <TextBlock Text="Update" />
+            </StackPanel>
+          </Button>
+
+          <Button Classes="secondary-action"
+                  Command="{Binding UninstallPluginCommand}"
+                  CommandParameter="{Binding SelectedPlugin}"
+                  IsVisible="{Binding SelectedPlugin.IsInstalled}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="🗑️" />
+              <TextBlock Text="Uninstall" />
+            </StackPanel>
+          </Button>
+
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+            <ToggleButton Content="{Binding SelectedPlugin.IsEnabled, Converter={StaticResource BoolToEnabledConverter}}"
+                          IsChecked="{Binding SelectedPlugin.IsEnabled}"
+                          Command="{Binding TogglePluginCommand}"
+                          CommandParameter="{Binding SelectedPlugin}"
+                          IsVisible="{Binding SelectedPlugin.IsInstalled}" />
+          </StackPanel>
+        </StackPanel>
+      </Grid>
+
+      <!-- Screenshots Gallery -->
+      <Border Grid.Row="1"
+              Classes="detail-card"
+              IsVisible="{Binding SelectedPlugin.Screenshots.Count}">
+        <StackPanel>
+          <TextBlock Text="Screenshots" Classes="section-header" />
+          <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                        VerticalScrollBarVisibility="Disabled">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <ItemsControl ItemsSource="{Binding SelectedPlugin.Screenshots}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Classes="screenshot">
+                      <Image Source="{Binding}"
+                             Stretch="UniformToFill"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center" />
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </ScrollViewer>
+        </StackPanel>
+      </Border>
+
+      <!-- Main Content -->
+      <Grid Grid.Row="2" ColumnDefinitions="2*, *" ColumnSpacing="20">
+        <!-- Left Column -->
+        <StackPanel Grid.Column="0">
+          <!-- Description -->
+          <Border Classes="detail-card">
+            <StackPanel>
+              <TextBlock Text="Description" Classes="section-header" />
+              <TextBlock Text="{Binding SelectedPlugin.Description, FallbackValue='No description available.'}"
+                         FontSize="14"
+                         TextWrapping="Wrap"
+                         Foreground="{StaticResource TextSecondaryBrush}"
+                         LineHeight="22" />
+            </StackPanel>
+          </Border>
+
+          <!-- Changelog -->
+          <Border Classes="detail-card">
+            <StackPanel>
+              <TextBlock Text="Changelog" Classes="section-header" />
+              <StackPanel>
+                <TextBlock Text="{Binding SelectedPlugin.Version, StringFormat='Version {0}'}"
+                           FontWeight="SemiBold"
+                           Foreground="White" />
+                <TextBlock Text="{Binding SelectedPlugin.UpdatedAt, StringFormat='Released: {0:MMM dd, yyyy}'}"
+                           FontSize="13"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,4,0,0" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- Reviews Preview -->
+          <Border Classes="detail-card">
+            <StackPanel>
+              <Grid ColumnDefinitions="*, Auto">
+                <TextBlock Text="Reviews" Classes="section-header" />
+                <Button Grid.Column="1"
+                        Content="View All"
+                        Classes="action-button"
+                        FontSize="13" />
+              </Grid>
+              <TextBlock Text="Reviews will be displayed here."
+                         FontSize="14"
+                         Foreground="{StaticResource TextSecondaryBrush}"
+                         Opacity="0.6"
+                         Margin="0,8,0,0" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- Right Column - Info Panel -->
+        <StackPanel Grid.Column="1">
+          <Border Classes="detail-card">
+            <StackPanel Spacing="12">
+              <TextBlock Text="Plugin Info" Classes="section-header" />
+
+              <Grid ColumnDefinitions="*, *">
+                <StackPanel>
+                  <TextBlock Text="Version" Classes="label" />
+                  <TextBlock Text="{Binding SelectedPlugin.Version, FallbackValue='1.0.0'}"
+                             Classes="value" />
+                </StackPanel>
+                <StackPanel>
+                  <TextBlock Text="License" Classes="label" />
+                  <TextBlock Text="{Binding SelectedPlugin.Pricing.Type, FallbackValue='Free'}"
+                             Classes="value" />
+                </StackPanel>
+              </Grid>
+
+              <StackPanel>
+                <TextBlock Text="Author" Classes="label" />
+                <TextBlock Text="{Binding SelectedPlugin.Author, FallbackValue='Unknown'}"
+                           Classes="value" />
+              </StackPanel>
+
+              <StackPanel>
+                <TextBlock Text="Published" Classes="label" />
+                <TextBlock Text="{Binding SelectedPlugin.PublishedAt, StringFormat='{}{0:MMM dd, yyyy}', FallbackValue='Unknown'}"
+                           Classes="value" />
+              </StackPanel>
+
+              <StackPanel>
+                <TextBlock Text="File Size" Classes="label" />
+                <TextBlock Text="{Binding SelectedPlugin.FormattedFileSize, FallbackValue='Unknown'}"
+                           Classes="value" />
+              </StackPanel>
+
+              <StackPanel IsVisible="{Binding SelectedPlugin.MinimumAppVersion}">
+                <TextBlock Text="Minimum App Version" Classes="label" />
+                <TextBlock Text="{Binding SelectedPlugin.MinimumAppVersion}"
+                           Classes="value" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- Categories & Tags -->
+          <Border Classes="detail-card">
+            <StackPanel Spacing="12">
+              <StackPanel IsVisible="{Binding SelectedPlugin.Categories.Count}">
+                <TextBlock Text="Categories" Classes="label" Margin="0,0,0,8" />
+                <WrapPanel>
+                  <ItemsControl ItemsSource="{Binding SelectedPlugin.Categories}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <WrapPanel />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Border Classes="tag">
+                          <TextBlock Text="{Binding}"
+                                     FontSize="12"
+                                     Foreground="White" />
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </WrapPanel>
+              </StackPanel>
+
+              <StackPanel IsVisible="{Binding SelectedPlugin.Tags.Count}">
+                <TextBlock Text="Tags" Classes="label" Margin="0,0,0,8" />
+                <WrapPanel>
+                  <ItemsControl ItemsSource="{Binding SelectedPlugin.Tags}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <WrapPanel />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Border Background="{StaticResource CardBackgroundBrush}"
+                                CornerRadius="12"
+                                Padding="8,4"
+                                Margin="0,0,8,8">
+                          <TextBlock Text="{Binding}"
+                                     FontSize="12"
+                                     Foreground="{StaticResource TextSecondaryBrush}" />
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </WrapPanel>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- Dependencies -->
+          <Border Classes="detail-card"
+                  IsVisible="{Binding SelectedPlugin.Dependencies.Count}">
+            <StackPanel>
+              <TextBlock Text="Dependencies" Classes="section-header" />
+              <ItemsControl ItemsSource="{Binding SelectedPlugin.Dependencies}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4">
+                      <TextBlock Text="•" Foreground="{StaticResource TextSecondaryBrush}" />
+                      <TextBlock Text="{Binding}"
+                                 FontSize="14"
+                                 Foreground="{StaticResource TextSecondaryBrush}" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Grid>
+    </Grid>
+  </ScrollViewer>
+</UserControl>

@@ -121,6 +121,30 @@ public partial class DialogService : IDialogService
         }
     }
 
+    public async Task<string?> ShowOpenFileDialogAsync(string title, string filterName, string[] filterPatterns)
+    {
+        try
+        {
+            var mainWindow = GetMainWindow();
+            if (mainWindow == null) return null;
+
+            var options = new FilePickerOpenOptions
+            {
+                Title = title,
+                AllowMultiple = false,
+                FileTypeFilter = new[] { new FilePickerFileType(filterName) { Patterns = filterPatterns } }.ToList()
+            };
+
+            var files = await mainWindow.StorageProvider.OpenFilePickerAsync(options);
+            return files.FirstOrDefault()?.Path.LocalPath;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show open file dialog");
+            return null;
+        }
+    }
+
     public async Task<EmulatorEditorResult?> ShowEmulatorEditorAsync(SaveState.Core.RomManagement.Entities.Emulator? existingEmulator = null)
     {
         try

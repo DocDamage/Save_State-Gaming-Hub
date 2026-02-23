@@ -1,0 +1,96 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SaveState.Presentation.Controls.Loading.LoadingSpinner"
+             xmlns:local="using:SaveState.Presentation.Controls.Loading">
+    
+    <Design.PreviewWith>
+        <StackPanel Spacing="20" Margin="20">
+            <local:LoadingSpinner Size="Small" />
+            <local:LoadingSpinner Size="Normal" />
+            <local:LoadingSpinner Size="Large" />
+            <local:LoadingSpinner Size="Normal" Message="Loading..." />
+        </StackPanel>
+    </Design.PreviewWith>
+
+    <UserControl.Styles>
+        <!-- Spinner rotation animation -->
+        <Style Selector="local|LoadingSpinner Path.spinner-arc">
+            <Style.Animations>
+                <Animation Duration="0:0:1" IterationCount="Infinite">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="RotateTransform.Angle" Value="0"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="RotateTransform.Angle" Value="360"/>
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <!-- Small size -->
+        <Style Selector="local|LoadingSpinner.small">
+            <Setter Property="Width" Value="16"/>
+            <Setter Property="Height" Value="16"/>
+        </Style>
+
+        <!-- Normal size -->
+        <Style Selector="local|LoadingSpinner.normal">
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+        </Style>
+
+        <!-- Large size -->
+        <Style Selector="local|LoadingSpinner.large">
+            <Setter Property="Width" Value="64"/>
+            <Setter Property="Height" Value="64"/>
+        </Style>
+    </UserControl.Styles>
+
+    <StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Center">
+        <!-- Spinner SVG -->
+        <Viewbox Width="{Binding Width, RelativeSource={RelativeSource AncestorType=local:LoadingSpinner}}"
+                 Height="{Binding Height, RelativeSource={RelativeSource AncestorType=local:LoadingSpinner}}">
+            <Canvas Width="32" Height="32">
+                <!-- Background track -->
+                <Ellipse Width="28" 
+                         Height="28" 
+                         Canvas.Left="2" 
+                         Canvas.Top="2"
+                         Stroke="#E0E0E0" 
+                         StrokeThickness="3"
+                         Fill="Transparent"/>
+                
+                <!-- Animated arc -->
+                <Path x:Name="SpinnerArc"
+                      Classes="spinner-arc"
+                      Fill="Transparent"
+                      Stroke="{Binding SpinnerColor, RelativeSource={RelativeSource AncestorType=local:LoadingSpinner}}"
+                      StrokeThickness="3"
+                      StrokeStartLineCap="Round"
+                      StrokeEndLineCap="Round"
+                      RenderTransformOrigin="16,16">
+                    <Path.RenderTransform>
+                        <RotateTransform Angle="0"/>
+                    </Path.RenderTransform>
+                    <Path.Data>
+                        <PathGeometry>
+                            <PathFigure StartPoint="16,2" IsClosed="False">
+                                <ArcSegment Point="30,16" 
+                                           Size="14,14" 
+                                           SweepDirection="Clockwise"/>
+                            </PathFigure>
+                        </PathGeometry>
+                    </Path.Data>
+                </Path>
+            </Canvas>
+        </Viewbox>
+        
+        <!-- Loading message -->
+        <TextBlock x:Name="MessageTextBlock"
+                   Text="{Binding Message, RelativeSource={RelativeSource AncestorType=local:LoadingSpinner}}"
+                   IsVisible="{Binding ShowMessage, RelativeSource={RelativeSource AncestorType=local:LoadingSpinner}}"
+                   HorizontalAlignment="Center"
+                   FontSize="12"
+                   Opacity="0.7"/>
+    </StackPanel>
+</UserControl>

@@ -1,0 +1,318 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.RgbSync"
+             xmlns:rgb="using:SaveState.Core.RgbSync.Models"
+             xmlns:interactivity="using:Avalonia.Xaml.Interactivity"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="900"
+             x:Class="SaveState.Presentation.Views.RgbSync.RgbControlPanelView"
+             x:DataType="vm:RgbControlPanelViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Button.DeviceAction">
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="CornerRadius" Value="6"/>
+        </Style>
+
+        <Style Selector="Border.ColorSwatch">
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="#30FFFFFF"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Border.ColorSwatch:pointerover">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="RenderTransform" Value="scale(1.1)"/>
+        </Style>
+
+        <Style Selector="Border.ProviderCard">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        </Style>
+
+        <Style Selector="Border.ProviderCard:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}"/>
+        </Style>
+
+        <Style Selector="Border.ProviderCard[IsEnabled=True]">
+            <Setter Property="BorderBrush" Value="{StaticResource SuccessBrush}"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Border Grid.Row="0" Classes="GlassContainer" Padding="20" Margin="0,0,0,15">
+            <Grid ColumnDefinitions="*, Auto">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="🌈 RGB SYNC CONTROL" Classes="H2" FontWeight="Bold"/>
+                    <StackPanel Orientation="Horizontal" Spacing="15">
+                        <TextBlock Text="{Binding StatusMessage}" 
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center"/>
+                        <ProgressBar IsIndeterminate="True" 
+                                     IsVisible="{Binding IsLoading}"
+                                     Width="100" 
+                                     Height="4"
+                                     VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <ToggleButton Grid.Column="1"
+                              IsChecked="{Binding IsSyncEnabled}"
+                              Content="{Binding IsSyncEnabled, Converter={x:Static vm:ToggleTextConverter.Instance}, ConverterParameter='On|Off'}"
+                              Classes="Primary"
+                              VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1">
+            <Grid ColumnDefinitions="300, *" Margin="0,0,0,20">
+                <!-- Left Panel: Providers & Devices -->
+                <StackPanel Grid.Column="0" Spacing="15" Margin="0,0,15,0">
+                    <!-- Providers -->
+                    <Border Classes="GlassContainer" Padding="15">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="PROVIDERS" Classes="Caption" FontWeight="Bold"/>
+                            
+                            <ItemsControl ItemsSource="{Binding Providers}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="rgb:RgbProviderInfo">
+                                        <Border Classes="ProviderCard" Margin="0,4">
+                                            <Grid ColumnDefinitions="Auto, *, Auto">
+                                                <Ellipse Grid.Column="0" 
+                                                         Width="8" 
+                                                         Height="8"
+                                                         Fill="{Binding IsAvailable, Converter={x:Static vm:BoolToBrushConverter.Instance}}"
+                                                         Margin="0,0,8,0"
+                                                         VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="1" 
+                                                           Text="{Binding Name}"
+                                                           VerticalAlignment="Center"/>
+                                                <CheckBox Grid.Column="2"
+                                                          IsChecked="{Binding IsEnabled}"
+                                                          Command="{Binding $parent[ItemsControl].((vm:RgbControlPanelViewModel)DataContext).ToggleProviderCommand}"
+                                                          CommandParameter="{Binding}"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Devices -->
+                    <Border Classes="GlassContainer" Padding="15">
+                        <StackPanel Spacing="12">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <TextBlock Text="DEVICES" Classes="Caption" FontWeight="Bold"/>
+                                <Button Grid.Column="1"
+                                        Content="🔄"
+                                        Command="{Binding RefreshDevicesCommand}"
+                                        Classes="Ghost Small"
+                                        ToolTip.Tip="Refresh Devices"/>
+                            </Grid>
+
+                            <TextBox Text="{Binding SearchQuery}" 
+                                     Watermark="🔍 Search devices..."
+                                     Classes="Ghost"/>
+
+                            <ItemsControl ItemsSource="{Binding Devices}" 
+                                          MaxHeight="300">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="rgb:RgbDevice">
+                                        <Border Classes="list-item" 
+                                                Background="{Binding $parent[ItemsControl].((vm:RgbControlPanelViewModel)DataContext).SelectedDevice, Converter={x:Static vm:DeviceSelectionConverter.Instance}, ConverterParameter={Binding}}">
+                                            <Grid ColumnDefinitions="Auto, *, Auto, Auto">
+                                                <TextBlock Grid.Column="0" 
+                                                           Text="{Binding Type, Converter={x:Static vm:DeviceIconConverter.Instance}}"
+                                                           FontSize="16"
+                                                           Margin="0,0,8,0"/>
+                                                <StackPanel Grid.Column="1" Spacing="2">
+                                                    <TextBlock Text="{Binding Name}"
+                                                               FontWeight="Medium"/>
+                                                    <TextBlock Text="{Binding Vendor}"
+                                                               FontSize="11"
+                                                               Foreground="{StaticResource TextTertiaryBrush}"/>
+                                                </StackPanel>
+                                                <Button Grid.Column="2"
+                                                        Content="⚙️"
+                                                        Classes="DeviceAction Ghost"
+                                                        ToolTip.Tip="Configure Device"
+                                                        Command="{Binding $parent[ItemsControl].((vm:RgbControlPanelViewModel)DataContext).SetPropertyCommand}"
+                                                        CommandParameter="SelectedTabIndex:1"/>
+                                                <Button Grid.Column="3"
+                                                        Content="🎨"
+                                                        Classes="DeviceAction Ghost"
+                                                        ToolTip.Tip="Quick Color"
+                                                        Command="{Binding $parent[ItemsControl].((vm:RgbControlPanelViewModel)DataContext).PickColorCommand}"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Right Panel: Tabs -->
+                <Border Grid.Column="1" Classes="GlassContainer" Padding="20">
+                    <TabControl SelectedIndex="{Binding SelectedTabIndex}">
+                        <!-- Tab 1: Effect Configuration -->
+                        <TabItem Header="🎨 Effects">
+                            <Grid RowDefinitions="Auto, *, Auto" Margin="0,15,0,0">
+                                <!-- Effect Type & Parameters -->
+                                <StackPanel Grid.Row="0" Spacing="20">
+                                    <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto, Auto">
+                                        <!-- Effect Type -->
+                                        <StackPanel Grid.Row="0" Grid.Column="0" Spacing="8" Margin="0,0,15,0">
+                                            <TextBlock Text="Effect Type" Classes="Caption" FontWeight="SemiBold"/>
+                                            <ComboBox SelectedItem="{Binding SelectedEffectType}"
+                                                      ItemsSource="{x:Static rgb:EffectTypeValues.Values}"
+                                                      HorizontalAlignment="Stretch"/>
+                                        </StackPanel>
+
+                                        <!-- Direction -->
+                                        <StackPanel Grid.Row="0" Grid.Column="1" Spacing="8">
+                                            <TextBlock Text="Direction" Classes="Caption" FontWeight="SemiBold"/>
+                                            <ComboBox SelectedItem="{Binding EffectDirection}"
+                                                      ItemsSource="{x:Static rgb:DirectionValues.Values}"
+                                                      HorizontalAlignment="Stretch"/>
+                                        </StackPanel>
+
+                                        <!-- Speed Slider -->
+                                        <StackPanel Grid.Row="1" Grid.Column="0" Spacing="8" Margin="0,15,15,0">
+                                            <Grid ColumnDefinitions="*, Auto">
+                                                <TextBlock Text="Speed" Classes="Caption" FontWeight="SemiBold"/>
+                                                <TextBlock Grid.Column="1" 
+                                                           Text="{Binding EffectSpeed, StringFormat='{}{0:P0}'}"
+                                                           Classes="Caption"/>
+                                            </Grid>
+                                            <Slider Value="{Binding EffectSpeed}"
+                                                    Minimum="0.1"
+                                                    Maximum="3.0"
+                                                    TickFrequency="0.1"/>
+                                        </StackPanel>
+
+                                        <!-- Brightness Slider -->
+                                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="8" Margin="0,15,0,0">
+                                            <Grid ColumnDefinitions="*, Auto">
+                                                <TextBlock Text="Brightness" Classes="Caption" FontWeight="SemiBold"/>
+                                                <TextBlock Grid.Column="1" 
+                                                           Text="{Binding EffectBrightness, StringFormat='{}{0:P0}'}"
+                                                           Classes="Caption"/>
+                                            </Grid>
+                                            <Slider Value="{Binding EffectBrightness}"
+                                                    Minimum="0.1"
+                                                    Maximum="1.0"
+                                                    TickFrequency="0.05"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Colors -->
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="Colors" Classes="Caption" FontWeight="SemiBold"/>
+                                        <ItemsControl ItemsSource="{Binding EffectColors}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal" Spacing="8"/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="rgb:RgbColor">
+                                                    <Border Classes="ColorSwatch"
+                                                            Background="{Binding Converter={x:Static vm:ColorToBrushConverter.Instance}}">
+                                                        <Button Classes="Ghost"
+                                                                Command="{Binding $parent[ItemsControl].((vm:RgbControlPanelViewModel)DataContext).RemoveColorCommand}"
+                                                                CommandParameter="{Binding}"
+                                                                VerticalAlignment="Top"
+                                                                HorizontalAlignment="Right"
+                                                                Padding="2"
+                                                                Width="16"
+                                                                Height="16">
+                                                            <TextBlock Text="×" FontSize="10"/>
+                                                        </Button>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <Button Content="+ Add Color" 
+                                                Command="{Binding AddColorCommand}"
+                                                Classes="Outline Small"
+                                                HorizontalAlignment="Left"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Preview Area -->
+                                <Border Grid.Row="1" 
+                                        Background="{StaticResource InputBackgroundBrush}"
+                                        CornerRadius="12"
+                                        Margin="0,20"
+                                        ClipToBounds="True">
+                                    <Grid>
+                                        <TextBlock Text="Preview"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{StaticResource TextTertiaryBrush}"/>
+                                        <!-- Effect preview visualization would go here -->
+                                    </Grid>
+                                </Border>
+
+                                <!-- Action Buttons -->
+                                <StackPanel Grid.Row="2" 
+                                            Orientation="Horizontal" 
+                                            HorizontalAlignment="Center"
+                                            Spacing="12">
+                                    <Button Content="🎨 Pick Color"
+                                            Command="{Binding PickColorCommand}"
+                                            Classes="Secondary"/>
+                                    <Button Content="👁️ Preview"
+                                            Command="{Binding PreviewEffectCommand}"
+                                            Classes="Secondary">
+                                        <Button.Content>
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <TextBlock Text="{Binding IsPreviewActive, Converter={x:Static vm:BoolToTextConverter.Instance}, ConverterParameter='⏹ Stop|👁️ Preview'}"/>
+                                            </StackPanel>
+                                        </Button.Content>
+                                    </Button>
+                                    <Button Content="✅ Apply Effect"
+                                            Command="{Binding ApplyEffectCommand}"
+                                            Classes="Primary"/>
+                                </StackPanel>
+                            </Grid>
+                        </TabItem>
+
+                        <!-- Tab 2: Device Editor -->
+                        <TabItem Header="⚙️ Device Editor">
+                            <ContentControl x:Name="DeviceEditorContent"/>
+                        </TabItem>
+
+                        <!-- Tab 3: Profiles -->
+                        <TabItem Header="💾 Profiles">
+                            <ContentControl x:Name="ProfileManagerContent"/>
+                        </TabItem>
+
+                        <!-- Tab 4: Sync Groups -->
+                        <TabItem Header="🔗 Sync Groups">
+                            <ContentControl x:Name="SyncGroupEditorContent"/>
+                        </TabItem>
+
+                        <!-- Tab 5: Game State -->
+                        <TabItem Header="🎮 Game State">
+                            <ContentControl x:Name="GameStateConfigContent"/>
+                        </TabItem>
+                    </TabControl>
+                </Border>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

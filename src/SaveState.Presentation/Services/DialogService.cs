@@ -123,6 +123,32 @@ public partial class DialogService : IDialogService
         }
     }
 
+    public async Task ShowErrorAsync(string message)
+    {
+        await ShowErrorAsync("Error", message);
+    }
+
+    public async Task ShowSuccessAsync(string message)
+    {
+        try
+        {
+            var dialog = new MessageDialog
+            {
+                DataContext = new ViewModels.Dialogs.MessageDialogViewModel("Success", message, MessageDialogType.Information)
+            };
+
+            var mainWindow = GetMainWindow();
+            if (mainWindow != null)
+            {
+                await dialog.ShowDialog(mainWindow);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show success dialog");
+        }
+    }
+
     public async Task ShowWarningAsync(string title, string message)
     {
         try

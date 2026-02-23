@@ -1,0 +1,305 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Replay"
+             xmlns:replay="using:SaveState.Presentation.Models.Replay"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="SaveState.Presentation.Views.Replay.ReplayTheaterView"
+             x:DataType="vm:ReplayTheaterViewModel">
+
+    <Design.DataContext>
+        <vm:ReplayTheaterViewModel />
+    </Design.DataContext>
+
+    <UserControl.Styles>
+        <!-- Playback Button Style -->
+        <Style Selector="Button.playback-button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        </Style>
+        <Style Selector="Button.playback-button:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+        </Style>
+
+        <!-- Bookmark Item Style -->
+        <Style Selector="Button.bookmark-item">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="8,6" />
+        </Style>
+        <Style Selector="Button.bookmark-item:pointerover">
+            <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+        </Style>
+
+        <!-- Replay Card Style -->
+        <Style Selector="Button.replay-card">
+            <Setter Property="Background" Value="{DynamicResource BackgroundSecondaryBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style Selector="Button.replay-card:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+        </Style>
+        <Style Selector="Button.replay-card.selected">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="Background" Value="{DynamicResource AccentBrushTransparent}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Border Grid.Row="0" Classes="GlassContainer" Padding="15" Margin="0,0,0,15">
+            <Grid ColumnDefinitions="*, Auto">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="🎬 REPLAY THEATER" Classes="Subtitle" FontWeight="Bold"/>
+                    <TextBlock Text="Watch, manage, and share your save state replays" 
+                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                    <TextBox Text="{Binding SearchText}" 
+                             Watermark="🔍 Search replays..." 
+                             Width="250"
+                             VerticalAlignment="Center"/>
+                    <Button Content="⬆️ Upload" Classes="Primary" Command="{Binding UploadReplayCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="300, *" Margin="0,0,0,20">
+            <!-- Replay List Sidebar -->
+            <Border Grid.Column="0" Classes="GlassContainer" Margin="0,0,15,0" Padding="0">
+                <Grid RowDefinitions="Auto, *">
+                    <!-- Sidebar Header -->
+                    <Border Grid.Row="0" Padding="15,12" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Text="YOUR REPLAYS" Classes="Caption" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Replays.Count, StringFormat='{}{0} total'}" 
+                                       Classes="Caption" Foreground="{DynamicResource TextSecondaryBrush}" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Replay List -->
+                    <ScrollViewer Grid.Row="1">
+                        <ItemsControl ItemsSource="{Binding Replays}" Margin="10">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="replay:SaveStateReplay">
+                                    <Button Classes="replay-card"
+                                            Classes.selected="{Binding ., Converter={StaticResource EqualsConverter}, ConverterParameter={Binding $parent[ItemsControl].((vm:ReplayTheaterViewModel)DataContext).SelectedReplay}}"
+                                            Command="{Binding $parent[ItemsControl].((vm:ReplayTheaterViewModel)DataContext).SetPropertyCommand}"
+                                            CommandParameter="{Binding}">
+                                        <Grid RowDefinitions="Auto, Auto, Auto" Margin="12,10">
+                                            <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
+                                                <TextBlock Text="{Binding Title}" 
+                                                           FontWeight="SemiBold" 
+                                                           TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Grid.Column="1" Text="⭐" 
+                                                           IsVisible="{Binding IsFavorite}" 
+                                                           Foreground="{DynamicResource AccentBrush}" />
+                                            </Grid>
+                                            <TextBlock Grid.Row="1" Text="{Binding GameName}" 
+                                                       FontSize="12" 
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                                            <Grid Grid.Row="2" Margin="0,4,0,0">
+                                                <TextBlock Text="{Binding Duration, StringFormat='{}{0:h\\:mm\\:ss}'}" 
+                                                           FontSize="11" 
+                                                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                                            </Grid>
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Player & Details Area -->
+            <Grid Grid.Column="1" RowDefinitions="*, Auto, Auto" IsEnabled="{Binding SelectedReplay, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <!-- Video Player -->
+                <Border Grid.Row="0" Classes="GlassContainer" Margin="0,0,0,15" Padding="0">
+                    <Grid Background="#000">
+                        <!-- Placeholder for Video Player -->
+                        <Panel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                            <TextBlock Text="🎥" FontSize="64" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.3"/>
+                            <TextBlock Text="{Binding SelectedReplay.Title}" 
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                       Margin="0,80,0,0"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        </Panel>
+
+                        <!-- Center Play Button (shown when paused) -->
+                        <Button Content="▶️" 
+                                Classes="Ghost"
+                                FontSize="48"
+                                HorizontalAlignment="Center" 
+                                VerticalAlignment="Center"
+                                IsVisible="{Binding !IsPlaying}"
+                                Command="{Binding PlayCommand}"/>
+
+                        <!-- Playback Controls Overlay -->
+                        <Border VerticalAlignment="Bottom" 
+                                Background="#CC000000" 
+                                Padding="15,10">
+                            <Grid RowDefinitions="Auto, Auto">
+                                <!-- Progress Bar -->
+                                <Grid Grid.Row="0" Margin="0,0,0,10">
+                                    <Slider Value="{Binding ProgressPercentage}" 
+                                            Minimum="0" 
+                                            Maximum="100"
+                                            IsEnabled="True"/>
+                                </Grid>
+
+                                <!-- Controls -->
+                                <Grid Grid.Row="1" ColumnDefinitions="Auto, Auto, Auto, Auto, Auto, *, Auto, Auto, Auto">
+                                    <!-- Playback Controls -->
+                                    <Button Grid.Column="0" Content="⏪" Classes="playback-button" Command="{Binding SkipBackwardCommand}"/>
+                                    <Button Grid.Column="1" Content="⏮️" Classes="playback-button" Command="{Binding StopCommand}"/>
+                                    <Button Grid.Column="2" 
+                                            Content="{Binding IsPlaying, Converter={StaticResource BoolToPlayPauseConverter}}" 
+                                            Classes="playback-button"
+                                            Command="{Binding PlayCommand}"
+                                            IsVisible="{Binding !IsPlaying}"/>
+                                    <Button Grid.Column="2" 
+                                            Content="⏸️" 
+                                            Classes="playback-button"
+                                            Command="{Binding PauseCommand}"
+                                            IsVisible="{Binding IsPlaying}"/>
+                                    <Button Grid.Column="3" Content="⏹️" Classes="playback-button" Command="{Binding StopCommand}"/>
+                                    <Button Grid.Column="4" Content="⏩" Classes="playback-button" Command="{Binding SkipForwardCommand}"/>
+
+                                    <!-- Time Display -->
+                                    <TextBlock Grid.Column="5" 
+                                               Text="{Binding CurrentPositionText}" 
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Center"
+                                               FontFamily="Courier New"/>
+
+                                    <!-- Speed Control -->
+                                    <DropDownButton Grid.Column="6" Content="{Binding PlaybackSpeed, StringFormat='{}{0}x'}" Margin="10,0">
+                                        <DropDownButton.Flyout>
+                                            <MenuFlyout>
+                                                <MenuItem Header="0.5x" Command="{Binding SetPlaybackSpeedCommand}" CommandParameter="0.5"/>
+                                                <MenuItem Header="1.0x" Command="{Binding SetPlaybackSpeedCommand}" CommandParameter="1.0"/>
+                                                <MenuItem Header="1.5x" Command="{Binding SetPlaybackSpeedCommand}" CommandParameter="1.5"/>
+                                                <MenuItem Header="2.0x" Command="{Binding SetPlaybackSpeedCommand}" CommandParameter="2.0"/>
+                                            </MenuFlyout>
+                                        </DropDownButton.Flyout>
+                                    </DropDownButton>
+
+                                    <!-- Volume -->
+                                    <Button Grid.Column="7" 
+                                            Content="{Binding IsMuted, Converter={StaticResource BoolToVolumeIconConverter}}" 
+                                            Classes="playback-button"
+                                            Command="{Binding ToggleMuteCommand}"/>
+
+                                    <!-- Fullscreen -->
+                                    <Button Grid.Column="8" 
+                                            Content="⛶" 
+                                            Classes="playback-button"
+                                            Command="{Binding ToggleFullscreenCommand}"/>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Info & Actions Panel -->
+                <Border Grid.Row="1" Classes="GlassContainer" Padding="15" Margin="0,0,0,15">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel Grid.Column="0" Spacing="5">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="{Binding SelectedReplay.Title}" 
+                                           FontWeight="Bold" 
+                                           FontSize="16"/>
+                                <Button Content="✏️" Classes="Ghost Small" ToolTip.Tip="Edit Title"/>
+                                <Button Content="🗑️" Classes="Ghost Small" ToolTip.Tip="Delete" 
+                                        Command="{Binding DeleteReplayCommand}" 
+                                        CommandParameter="{Binding SelectedReplay}"/>
+                                <Button Content="{Binding SelectedReplay.IsFavorite, Converter={StaticResource BoolToStarConverter}}" 
+                                        Classes="Ghost Small" 
+                                        ToolTip.Tip="Toggle Favorite"
+                                        Command="{Binding ToggleFavoriteCommand}"/>
+                                <Button Content="📤" Classes="Ghost Small" ToolTip.Tip="Share" Command="{Binding ShareCommand}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="15">
+                                <TextBlock Text="{Binding SelectedReplay.CreatedAt, StringFormat='Created: {0:MMM d, yyyy}'}" 
+                                           Foreground="{DynamicResource TextSecondaryBrush}" 
+                                           FontSize="12"/>
+                                <TextBlock Text="{Binding SelectedReplay.Duration, StringFormat='Duration: {0:h\\:mm\\:ss}'}" 
+                                           Foreground="{DynamicResource TextSecondaryBrush}" 
+                                           FontSize="12"/>
+                                <TextBlock Text="{Binding SelectedReplay.FileSize, StringFormat='Size: {0:N0} MB'}" 
+                                           Foreground="{DynamicResource TextSecondaryBrush}" 
+                                           FontSize="12"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="15" 
+                                        IsVisible="{Binding SelectedReplay.Metadata.PlayTimeAtSave, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <TextBlock Text="{Binding SelectedReplay.Metadata.PlayTimeAtSave, StringFormat='Play time at save: {0}h'}" 
+                                           Foreground="{DynamicResource TextSecondaryBrush}" 
+                                           FontSize="12"/>
+                                <TextBlock Text="{Binding SelectedReplay.Metadata.PlayerLevel, StringFormat='Level: {0}'}" 
+                                           Foreground="{DynamicResource TextSecondaryBrush}" 
+                                           FontSize="12"/>
+                                <TextBlock Text="{Binding SelectedReplay.Metadata.Location, StringFormat='Location: {0}'}" 
+                                           Foreground="{DynamicResource TextSecondaryBrush}" 
+                                           FontSize="12"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                            <Button Content="📥 Export MP4" Command="{Binding ExportCommand}" CommandParameter="{x:Static replay:ReplayExportFormat.Mp4}"/>
+                            <Button Content="🎁 Export GIF" Classes="Secondary" Command="{Binding ExportCommand}" CommandParameter="{x:Static replay:ReplayExportFormat.Gif}"/>
+                            <Button Content="📦 Export Package" Classes="Secondary" Command="{Binding ExportCommand}" CommandParameter="{x:Static replay:ReplayExportFormat.Zip}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Bookmarks Panel -->
+                <Border Grid.Row="2" Classes="GlassContainer" Padding="15" IsVisible="{Binding ShowBookmarksPanel}">
+                    <Grid RowDefinitions="Auto, *">
+                        <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,10">
+                            <TextBlock Text="BOOKMARKS" Classes="Caption" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <Button Grid.Column="1" Content="➕ Add Bookmark" Classes="Small" Command="{Binding AddBookmarkCommand}"/>
+                        </Grid>
+
+                        <ItemsControl Grid.Row="1" ItemsSource="{Binding Bookmarks}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="replay:ReplayBookmark">
+                                    <Button Classes="bookmark-item">
+                                        <Grid ColumnDefinitions="Auto, *, Auto">
+                                            <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:mm\\:ss}'}" 
+                                                       FontFamily="Courier New" 
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,15,0"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Title}" VerticalAlignment="Center"/>
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5">
+                                                <Button Content="🖼️" Classes="Ghost Small" ToolTip.Tip="Set Thumbnail"/>
+                                                <Button Content="✏️" Classes="Ghost Small" ToolTip.Tip="Edit"
+                                                        Command="{Binding $parent[ItemsControl].((vm:ReplayTheaterViewModel)DataContext).EditBookmarkCommand}"
+                                                        CommandParameter="{Binding}"/>
+                                                <Button Content="🗑️" Classes="Ghost Small" ToolTip.Tip="Delete"
+                                                        Command="{Binding $parent[ItemsControl].((vm:ReplayTheaterViewModel)DataContext).DeleteBookmarkCommand}"
+                                                        CommandParameter="{Binding}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

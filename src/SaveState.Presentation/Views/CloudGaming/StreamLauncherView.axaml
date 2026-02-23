@@ -1,0 +1,288 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.CloudGaming;assembly=SaveState.Presentation"
+             xmlns:models="clr-namespace:SaveState.Presentation.Models.CloudGaming;assembly=SaveState.Presentation"
+             x:Class="SaveState.Presentation.Views.CloudGaming.StreamLauncherView"
+             x:DataType="vm:StreamLauncherViewModel"
+             Width="600">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.header">
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+
+        <Style Selector="TextBlock.section-header">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Margin" Value="0,20,0,12" />
+        </Style>
+
+        <Style Selector="TextBlock.setting-label">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+
+        <Style Selector="Border.settings-card">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="20" />
+        </Style>
+
+        <Style Selector="Button.quality-button">
+            <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Padding" Value="16,12" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+
+        <Style Selector="Button.quality-button:checked">
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="Background" Value="{StaticResource PrimaryBrushTransparent}" />
+        </Style>
+
+        <Style Selector="Button.quality-button:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+        </Style>
+
+        <Style Selector="Button.launch-button">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Padding" Value="32,16" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="16" />
+        </Style>
+
+        <Style Selector="Button.launch-button:pointerover">
+            <Setter Property="Background" Value="{StaticResource PrimaryHoverBrush}" />
+        </Style>
+
+        <Style Selector="Button.secondary-button">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+
+        <Style Selector="Button.secondary-button:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+        </Style>
+
+        <Style Selector="Slider.quality-slider">
+            <Setter Property="Minimum" Value="10" />
+            <Setter Property="Maximum" Value="150" />
+            <Setter Property="TickFrequency" Value="5" />
+            <Setter Property="IsSnapToTickEnabled" Value="True" />
+        </Style>
+
+        <Style Selector="CheckBox.setting-checkbox">
+            <Setter Property="Margin" Value="0,8" />
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="{StaticResource DialogBackgroundBrush}"
+            CornerRadius="16"
+            Padding="32"
+            BoxShadow="0 8 32 #40000000">
+        <StackPanel Spacing="16">
+            <!-- Header -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Launching Game" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"/>
+                <TextBlock Text="{Binding Game.Title, FallbackValue='Game Title'}" Classes="header"/>
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                    <Border Background="{StaticResource ControlBackgroundBrush}"
+                            CornerRadius="4"
+                            Padding="6,2">
+                        <TextBlock Text="{Binding Game.Provider}" FontSize="11"/>
+                    </Border>
+                    <TextBlock Text="{Binding QualityDescription}"
+                               FontSize="12"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Stream Quality Section -->
+            <TextBlock Text="STREAM QUALITY" Classes="section-header"/>
+            <Border Classes="settings-card">
+                <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="8">
+                        <Button Grid.Column="0" 
+                                Classes="quality-button"
+                                Command="{Binding ChangeQualityCommand}"
+                                CommandParameter="{x:Static models:SessionQuality.Low}">
+                            <StackPanel HorizontalAlignment="Center" Spacing="4">
+                                <TextBlock Text="Low" FontWeight="SemiBold"/>
+                                <TextBlock Text="720p 30fps" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Grid.Column="1" 
+                                Classes="quality-button"
+                                Command="{Binding ChangeQualityCommand}"
+                                CommandParameter="{x:Static models:SessionQuality.Medium}">
+                            <StackPanel HorizontalAlignment="Center" Spacing="4">
+                                <TextBlock Text="Medium" FontWeight="SemiBold"/>
+                                <TextBlock Text="1080p 30fps" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Grid.Column="2" 
+                                Classes="quality-button"
+                                Command="{Binding ChangeQualityCommand}"
+                                CommandParameter="{x:Static models:SessionQuality.High}">
+                            <StackPanel HorizontalAlignment="Center" Spacing="4">
+                                <TextBlock Text="High" FontWeight="SemiBold"/>
+                                <TextBlock Text="1080p 60fps" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Grid.Column="3" 
+                                Classes="quality-button"
+                                IsVisible="{Binding CanStream4K}"
+                                Command="{Binding ChangeQualityCommand}"
+                                CommandParameter="{x:Static models:SessionQuality.Ultra}">
+                            <StackPanel HorizontalAlignment="Center" Spacing="4">
+                                <TextBlock Text="⚡ Ultra" FontWeight="SemiBold"/>
+                                <TextBlock Text="4K 60fps" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Grid.Column="4" 
+                                Classes="quality-button"
+                                Command="{Binding ChangeQualityCommand}"
+                                CommandParameter="{x:Static models:SessionQuality.Adaptive}">
+                            <StackPanel HorizontalAlignment="Center" Spacing="4">
+                                <TextBlock Text="Adaptive" FontWeight="SemiBold"/>
+                                <TextBlock Text="Auto" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <!-- Recommendation Banner -->
+                    <Border Background="{StaticResource PrimaryBrushTransparent}"
+                            CornerRadius="8"
+                            Padding="12"
+                            IsVisible="{Binding ConnectionTest, Converter={StaticResource NullToBoolConverter}}">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBlock Text="Recommended based on your connection test"
+                                           FontSize="12"
+                                           FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding ConnectionTest.RecommendedQuality, StringFormat='Optimal setting: {0}'}"
+                                           FontSize="11"
+                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                            <Button Grid.Column="1"
+                                    Classes="secondary-button"
+                                    Padding="12,6"
+                                    Command="{Binding UseRecommendedQualityCommand}">
+                                <TextBlock Text="Apply" FontSize="12"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Performance Settings -->
+            <TextBlock Text="PERFORMANCE SETTINGS" Classes="section-header"/>
+            <Border Classes="settings-card">
+                <StackPanel Spacing="16">
+                    <!-- Checkboxes Row -->
+                    <StackPanel Orientation="Horizontal" Spacing="24">
+                        <CheckBox Classes="setting-checkbox"
+                                  Content="V-Sync"
+                                  IsChecked="{Binding Settings.VSync}"/>
+                        <CheckBox Classes="setting-checkbox"
+                                  Content="HDR"
+                                  IsChecked="{Binding Settings.HDR}"
+                                  IsEnabled="False"/>
+                        <CheckBox Classes="setting-checkbox"
+                                  Content="Reduce Motion"
+                                  IsChecked="{Binding Settings.ReduceMotion}"/>
+                    </StackPanel>
+
+                    <!-- Bitrate Slider -->
+                    <StackPanel Spacing="8">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="Bitrate" Classes="setting-label"/>
+                            <TextBlock Text="{Binding Settings.BitrateMbps, StringFormat='{}{0} Mbps'}"/>
+                        </Grid>
+                        <Slider Classes="quality-slider"
+                                Value="{Binding Settings.BitrateMbps}"/>
+                    </StackPanel>
+
+                    <!-- Dropdowns -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="Microphone" Classes="setting-label"/>
+                            <ComboBox ItemsSource="{Binding AvailableMicrophones}"
+                                      SelectedItem="{Binding Settings.SelectedController}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="4">
+                            <TextBlock Text="Controller" Classes="setting-label"/>
+                            <ComboBox ItemsSource="{Binding AvailableControllers}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Connection Section -->
+            <TextBlock Text="CONNECTION" Classes="section-header"/>
+            <Border Classes="settings-card">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Spacing="4">
+                        <TextBlock Text="Data Center" Classes="setting-label"/>
+                        <TextBlock Text="{Binding DataCenterDisplay}"
+                                   FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Classes="secondary-button"
+                            VerticalAlignment="Center"
+                            Command="{Binding ChangeDataCenterCommand}">
+                        <TextBlock Text="Change Server"/>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Save as Default -->
+            <CheckBox Content="Save as default settings for this provider"
+                      IsChecked="{Binding SaveAsDefault}"
+                      Margin="0,8"/>
+
+            <!-- Action Buttons -->
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12" Margin="0,16,0,0">
+                <Button Grid.Column="0"
+                        Classes="secondary-button"
+                        HorizontalAlignment="Left"
+                        Command="{Binding CancelCommand}">
+                    <TextBlock Text="❌ Cancel"/>
+                </Button>
+                <Button Grid.Column="1"
+                        Classes="secondary-button"
+                        Command="{Binding TestConnectionCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="🔄"/>
+                        <TextBlock Text="Test Connection"/>
+                    </StackPanel>
+                </Button>
+                <Button Grid.Column="2"
+                        Classes="launch-button"
+                        Command="{Binding LaunchCommand}"
+                        IsEnabled="{Binding !IsLaunching}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="🚀"/>
+                        <TextBlock Text="{Binding IsLaunching, Converter={StaticResource BoolToLaunchTextConverter}, FallbackValue='Launch Game'}"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </StackPanel>
+    </Border>
+</UserControl>

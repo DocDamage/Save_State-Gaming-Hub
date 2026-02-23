@@ -355,6 +355,11 @@ public static partial class DependencyInjection
         // Register OpenAPI Documentation
         services.AddOpenApiDocumentation();
 
+        // Theme Builder Services
+        services.AddSingleton<SaveState.Core.Theme.Services.IThemeService, Theme.Services.ThemeService>();
+        services.AddSingleton<SaveState.Infrastructure.Theme.Services.IMaterialYouService, SaveState.Infrastructure.Theme.Services.MaterialYouService>();
+        services.AddSingleton<SaveState.Infrastructure.Theme.Services.IThemeImportExportService, SaveState.Infrastructure.Theme.Services.ThemeImportExportService>();
+
         return services;
     }
 

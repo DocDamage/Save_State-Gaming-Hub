@@ -1,0 +1,176 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- =========================================================================
+       ACCESSIBILITY FOCUS STYLES
+       High-visibility focus indicators for keyboard navigation
+       ========================================================================= -->
+
+  <!-- High Contrast Focus Rectangle -->
+  <Style Selector="Button:focus-visible, TextBox:focus, ComboBox:focus, ListBoxItem:focus">
+    <Setter Property="BorderBrush" Value="{DynamicResource FocusBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="3"/>
+  </Style>
+
+  <!-- Button Focus Animation -->
+  <Style Selector="Button:focus-visible">
+    <Style.Animations>
+      <Animation Duration="0:0:0.5" IterationCount="Infinite" PlaybackDirection="Alternate">
+        <KeyFrame Cue="0%">
+          <Setter Property="BorderBrush" Value="{DynamicResource FocusBorderBrush}"/>
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}"/>
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+  </Style>
+
+  <!-- TextBox Focus -->
+  <Style Selector="TextBox:focus /template/ Border#BorderElement">
+    <Setter Property="BorderBrush" Value="{DynamicResource FocusBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="2"/>
+  </Style>
+
+  <!-- TextBox Focus Animation -->
+  <Style Selector="TextBox:focus">
+    <Style.Animations>
+      <Animation Duration="0:0:0.2">
+        <KeyFrame Cue="0%">
+          <Setter Property="BoxShadow" Value="0 0 0 0 transparent"/>
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="BoxShadow" Value="0 0 0 2 {DynamicResource FocusBorderBrush}"/>
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+  </Style>
+
+  <!-- ComboBox Focus -->
+  <Style Selector="ComboBox:focus /template/ Border#Background">
+    <Setter Property="BorderBrush" Value="{DynamicResource FocusBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="2"/>
+  </Style>
+
+  <!-- ListBox Item Focus -->
+  <Style Selector="ListBoxItem:focus">
+    <Setter Property="Background" Value="{DynamicResource FocusBorderBrush}"/>
+    <Setter Property="Opacity" Value="0.3"/>
+  </Style>
+
+  <!-- ListBox Item Focus with Animation -->
+  <Style Selector="ListBoxItem:focus-visible">
+    <Style.Animations>
+      <Animation Duration="0:0:0.3">
+        <KeyFrame Cue="0%">
+          <Setter Property="Background" Value="transparent"/>
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="Background" Value="{DynamicResource FocusBorderBrush}"/>
+          <Setter Property="Opacity" Value="0.2"/>
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+  </Style>
+
+  <!-- CheckBox Focus -->
+  <Style Selector="CheckBox:focus-visible /template/ Border#NormalRectangle">
+    <Setter Property="BorderBrush" Value="{DynamicResource FocusBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="2"/>
+  </Style>
+
+  <!-- RadioButton Focus -->
+  <Style Selector="RadioButton:focus-visible /template/ Ellipse#NormalEllipse">
+    <Setter Property="Stroke" Value="{DynamicResource FocusBorderBrush}"/>
+    <Setter Property="StrokeThickness" Value="2"/>
+  </Style>
+
+  <!-- Slider Focus -->
+  <Style Selector="Slider:focus-visible /template/ Thumb">
+    <Setter Property="BorderBrush" Value="{DynamicResource FocusBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="2"/>
+  </Style>
+
+  <!-- TabItem Focus -->
+  <Style Selector="TabItem:focus-visible">
+    <Setter Property="BorderBrush" Value="{DynamicResource FocusBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="0,0,0,3"/>
+  </Style>
+
+  <!-- MenuItem Focus -->
+  <Style Selector="MenuItem:focus-visible">
+    <Setter Property="Background" Value="{DynamicResource FocusBorderBrush}"/>
+    <Setter Property="Opacity" Value="0.3"/>
+  </Style>
+
+  <!-- Hyperlink Focus -->
+  <Style Selector="TextBlock.hyperlink:focus-visible">
+    <Setter Property="TextDecorations" Value="Underline"/>
+    <Setter Property="Foreground" Value="{DynamicResource FocusBorderBrush}"/>
+  </Style>
+
+  <!-- High Contrast Mode Overrides -->
+  <Style Selector=":is(Control).high-contrast">
+    <Setter Property="BorderBrush" Value="{DynamicResource HighContrastBorderBrush}"/>
+  </Style>
+
+  <!-- Reduced Motion - Disable Animations -->
+  <Style Selector=":is(Control).reduce-motion">
+    <Setter Property="Transitions">
+      <Transitions>
+        <!-- Empty transitions to disable animations -->
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <!-- Focus Visual for Custom Controls -->
+  <Style Selector=":is(Control).custom-focus:focus-visible">
+    <Setter Property="(AccessText.ShowAccessKey)" Value="True"/>
+  </Style>
+
+  <!-- Game Card Focus -->
+  <Style Selector="Border.GameCard:focus-visible">
+    <Setter Property="BorderBrush" Value="{DynamicResource FocusBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="3"/>
+    <Setter Property="BoxShadow" Value="0 0 20 {DynamicResource FocusBorderBrush}"/>
+  </Style>
+
+  <!-- Game Card Focus Animation -->
+  <Style Selector="Border.GameCard:focus-visible">
+    <Style.Animations>
+      <Animation Duration="0:0:0.5" IterationCount="Infinite" PlaybackDirection="Alternate">
+        <KeyFrame Cue="0%">
+          <Setter Property="BoxShadow" Value="0 0 10 {DynamicResource FocusBorderBrush}"/>
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="BoxShadow" Value="0 0 25 {DynamicResource AccentBrush}"/>
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+  </Style>
+
+  <!-- Skip Link (Hidden until focused) -->
+  <Style Selector="Button.skip-link">
+    <Setter Property="Opacity" Value="0"/>
+    <Setter Property="Position" Value="Absolute"/>
+    <Setter Property="ZIndex" Value="10000"/>
+  </Style>
+
+  <Style Selector="Button.skip-link:focus-visible">
+    <Setter Property="Opacity" Value="1"/>
+    <Setter Property="Background" Value="{DynamicResource FocusBorderBrush}"/>
+    <Setter Property="Foreground" Value="White"/>
+    <Setter Property="Padding" Value="16,8"/>
+  </Style>
+
+  <!-- Keyboard Shortcuts Display -->
+  <Style Selector="TextBlock.keyboard-shortcut">
+    <Setter Property="FontFamily" Value="Consolas, monospace"/>
+    <Setter Property="FontSize" Value="11"/>
+    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+    <Setter Property="Padding" Value="4,2"/>
+    <Setter Property="CornerRadius" Value="3"/>
+  </Style>
+
+</Styles>

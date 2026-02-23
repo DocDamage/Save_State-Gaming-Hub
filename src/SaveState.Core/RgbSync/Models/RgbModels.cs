@@ -1,90 +1,111 @@
-using SaveState.Core.Common;
-
 namespace SaveState.Core.RgbSync.Models;
 
-/// <summary>
-/// Represents an RGB device vendor.
-/// </summary>
-public enum RgbVendor
-{
-    Razer,
-    Corsair,
-    Logitech,
-    SteelSeries,
-    CoolerMaster,
-    Asus,
-    Msi,
-    Gigabyte,
-    Unknown
-}
-
-/// <summary>
-/// Represents an RGB device.
-/// </summary>
-public record RgbDevice
-{
-    public string Id { get; init; } = Guid.NewGuid().ToString();
-    public string DeviceId { get; init; } = string.Empty;
-    public string Name { get; init; } = string.Empty;
-    public RgbVendor Vendor { get; init; }
-    public RgbDeviceType Type { get; init; }
-    public int LedCount { get; init; }
-    public bool IsConnected { get; init; }
-    public IReadOnlyList<RgbLed> Leds { get; init; } = Array.Empty<RgbLed>();
-    public RgbRectangle? Bounds { get; init; }
-}
-
-/// <summary>
-/// Types of RGB devices.
-/// </summary>
 public enum RgbDeviceType
 {
     Keyboard,
     Mouse,
-    Mousepad,
     Headset,
+    Mousepad,
     HeadsetStand,
+    Keypad,
+    Lightbar,
     Memory,
+    Gpu,
     Motherboard,
-    GraphicsCard,
-    Cooler,
     LedStrip,
-    Fan,
+    Cooler,
     Case,
+    Fan,
+    Psu,
     Speaker,
-    Monitor
+    Monitor,
+    Chair,
+    Speakerpad
 }
 
-/// <summary>
-/// Represents an individual RGB LED.
-/// </summary>
+public enum RgbEffectType
+{
+    Static,
+    Breathing,
+    Flashing,
+    ColorCycle,
+    Rainbow,
+    Wave,
+    Ripple,
+    Reactive,
+    Starlight,
+    Gradient,
+    SpectrumCycle,
+    Pulse,
+    Temperature,
+    GameState,
+    AudioVisualizer,
+    ScreenSync
+}
+
+public record RgbDevice
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Vendor { get; set; } = string.Empty;
+    public RgbDeviceType Type { get; set; }
+    public int LedCount { get; set; }
+    public List<RgbLed> Leds { get; set; } = new();
+    public RgbZone[] Zones { get; set; } = Array.Empty<RgbZone>();
+    public bool IsConnected { get; set; }
+    public bool SupportsDirectMode { get; set; }
+    public string? ProviderId { get; set; }
+}
+
 public record RgbLed
 {
-    public int Index { get; init; }
-    public string Name { get; init; } = string.Empty;
-    public RgbColor Color { get; init; } = new();
-    public float X { get; init; }
-    public float Y { get; init; }
+    public int Index { get; set; }
+    public string? Name { get; set; }
+    public RgbColor Color { get; set; } = new(0, 0, 0);
+    public float Brightness { get; set; } = 1.0f;
 }
 
-/// <summary>
-/// RGB color representation.
-/// </summary>
+public record RgbZone
+{
+    public string Name { get; set; } = string.Empty;
+    public int StartLedIndex { get; set; }
+    public int LedCount { get; set; }
+}
+
 public record RgbColor
 {
-    public byte R { get; init; }
-    public byte G { get; init; }
-    public byte B { get; init; }
-
-    public RgbColor() { }
-
-    public RgbColor(byte r, byte g, byte b)
+    public byte R { get; set; }
+    public byte G { get; set; }
+    public byte B { get; set; }
+    
+    public RgbColor() {}
+    public RgbColor(byte r, byte g, byte b) { R = r; G = g; B = b; }
+    
+    public static RgbColor FromHex(string hex)
     {
-        R = r;
-        G = g;
-        B = b;
+        if (string.IsNullOrWhiteSpace(hex))
+            return new RgbColor(0, 0, 0);
+        
+        hex = hex.Trim().Replace("#", "");
+        
+        if (hex.Length != 6)
+            return new RgbColor(0, 0, 0);
+        
+        try
+        {
+            byte r = Convert.ToByte(hex.Substring(0, 2), 16);
+            byte g = Convert.ToByte(hex.Substring(2, 2), 16);
+            byte b = Convert.ToByte(hex.Substring(4, 2), 16);
+            return new RgbColor(r, g, b);
+        }
+        catch
+        {
+            return new RgbColor(0, 0, 0);
+        }
     }
-
+    
+    public string ToHex() => $"#{R:X2}{G:X2}{B:X2}";
+    
     public static RgbColor Black => new(0, 0, 0);
     public static RgbColor White => new(255, 255, 255);
     public static RgbColor Red => new(255, 0, 0);
@@ -93,151 +114,83 @@ public record RgbColor
     public static RgbColor Yellow => new(255, 255, 0);
     public static RgbColor Cyan => new(0, 255, 255);
     public static RgbColor Magenta => new(255, 0, 255);
+    public static RgbColor Orange => new(255, 165, 0);
+    public static RgbColor Purple => new(128, 0, 128);
 }
 
-/// <summary>
-/// Rectangle bounds for device positioning.
-/// </summary>
-public record RgbRectangle
-{
-    public float X { get; init; }
-    public float Y { get; init; }
-    public float Width { get; init; }
-    public float Height { get; init; }
-}
-
-/// <summary>
-/// Represents an RGB lighting effect.
-/// </summary>
 public record RgbEffect
 {
-    public string Id { get; init; } = Guid.NewGuid().ToString();
-    public string Name { get; init; } = string.Empty;
-    public RgbEffectType Type { get; init; }
-    public IReadOnlyList<RgbColor> Colors { get; init; } = Array.Empty<RgbColor>();
-    public float Speed { get; init; } = 1.0f;
-    public float Brightness { get; init; } = 1.0f;
-    public RgbEffectDirection Direction { get; init; } = RgbEffectDirection.LeftToRight;
-    public IReadOnlyDictionary<string, object> Parameters { get; init; } = new Dictionary<string, object>();
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public RgbEffectType Type { get; set; }
+    public List<RgbColor> Colors { get; set; } = new();
+    public float Speed { get; set; } = 1.0f;
+    public float Brightness { get; set; } = 1.0f;
+    public RgbDirection Direction { get; set; } = RgbDirection.Forward;
+    public Dictionary<string, object> Parameters { get; set; } = new();
+    public bool IsEnabled { get; set; } = true;
 }
 
-/// <summary>
-/// Types of RGB effects.
-/// </summary>
-public enum RgbEffectType
+public enum RgbDirection
 {
-    Static,
-    Breathing,
-    Flashing,
-    SpectrumCycle,
-    Rainbow,
-    Wave,
-    Ripple,
-    Reactive,
-    Starlight,
-    Custom
+    Forward,
+    Backward,
+    Up,
+    Down,
+    Inward,
+    Outward
 }
 
-/// <summary>
-/// Direction for RGB effects.
-/// </summary>
-public enum RgbEffectDirection
+public record RgbProfile
 {
-    LeftToRight,
-    RightToLeft,
-    TopToBottom,
-    BottomToTop,
-    CenterOut,
-    OutCenter,
-    Clockwise,
-    CounterClockwise
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public bool IsDefault { get; set; }
+    public Dictionary<Guid, RgbEffect> DeviceEffects { get; set; } = new();
+    public DateTime CreatedAt { get; set; }
+    public DateTime ModifiedAt { get; set; }
 }
 
-/// <summary>
-/// Represents a game event that triggers RGB effects.
-/// </summary>
-public record GameRgbEvent
+public record RgbSyncGroup
 {
-    public string Id { get; init; } = Guid.NewGuid().ToString();
-    public string EventType { get; init; } = string.Empty;
-    public string? GameId { get; init; }
-    public RgbColor PrimaryColor { get; init; } = RgbColor.White;
-    public RgbColor SecondaryColor { get; init; } = RgbColor.Black;
-    public float Intensity { get; init; } = 1.0f;
-    public TimeSpan Duration { get; init; } = TimeSpan.FromSeconds(1);
-    public IReadOnlyDictionary<string, object> Metadata { get; init; } = new Dictionary<string, object>();
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public List<Guid> DeviceIds { get; set; } = new();
+    public RgbEffect SharedEffect { get; set; } = new();
 }
 
-/// <summary>
-/// Predefined game event types for RGB sync.
-/// </summary>
-public static class GameRgbEventTypes
+public enum GameStateRgbTrigger
 {
-    public const string GameStart = "GameStart";
-    public const string GameEnd = "GameEnd";
-    public const string AchievementUnlocked = "AchievementUnlocked";
-    public const string LevelUp = "LevelUp";
-    public const string HealthLow = "HealthLow";
-    public const string HealthCritical = "HealthCritical";
-    public const string ManaLow = "ManaLow";
-    public const string DamageTaken = "DamageTaken";
-    public const string EnemyKilled = "EnemyKilled";
-    public const string ComboStreak = "ComboStreak";
-    public const string Victory = "Victory";
-    public const string Defeat = "Defeat";
-    public const string Loading = "Loading";
-    public const string Cutscene = "Cutscene";
+    HealthLow,
+    HealthCritical,
+    ManaLow,
+    LevelUp,
+    AchievementUnlocked,
+    SaveStateCreated,
+    BossEncounter,
+    GameOver,
+    Victory,
+    Loading,
+    Menu,
+    Playing
 }
 
-/// <summary>
-/// Represents health indicator configuration for RGB devices.
-/// </summary>
-public record HealthIndicatorConfig
+public record GameStateRgbConfig
 {
-    public bool Enabled { get; init; } = true;
-    public string TargetDeviceId { get; init; } = string.Empty;
-    public RgbColor FullHealthColor { get; init; } = RgbColor.Green;
-    public RgbColor MediumHealthColor { get; init; } = RgbColor.Yellow;
-    public RgbColor LowHealthColor { get; init; } = RgbColor.Red;
-    public RgbColor CriticalHealthColor { get; init; } = new RgbColor(255, 0, 0);
-    public int MediumHealthThreshold { get; init; } = 60;
-    public int LowHealthThreshold { get; init; } = 30;
-    public int CriticalHealthThreshold { get; init; } = 10;
-    public HealthIndicatorStyle Style { get; init; } = HealthIndicatorStyle.Progressive;
+    public GameStateRgbTrigger Trigger { get; set; }
+    public RgbEffect Effect { get; set; } = new();
+    public int DurationMs { get; set; } = 3000;
+    public bool Interruptible { get; set; } = true;
+    public int Priority { get; set; } = 1;
 }
 
-/// <summary>
-/// Styles for health indicators.
-/// </summary>
-public enum HealthIndicatorStyle
+public record RgbProviderInfo
 {
-    Progressive,
-    Pulsing,
-    Flashing,
-    Solid
-}
-
-/// <summary>
-/// Configuration for RGB sync.
-/// </summary>
-public record RgbSyncConfiguration
-{
-    public bool Enabled { get; init; } = true;
-    public bool SyncWithGameEvents { get; init; } = true;
-    public bool HealthIndicatorEnabled { get; init; } = true;
-    public HealthIndicatorConfig HealthIndicator { get; init; } = new();
-    public RgbEffect DefaultEffect { get; init; } = new() { Type = RgbEffectType.SpectrumCycle };
-    public IReadOnlyDictionary<string, RgbEffect> GameSpecificEffects { get; init; } = new Dictionary<string, RgbEffect>();
-    public float GlobalBrightness { get; init; } = 1.0f;
-}
-
-/// <summary>
-/// Represents RGB device SDK information.
-/// </summary>
-public record RgbSdkInfo
-{
-    public RgbVendor Vendor { get; init; }
-    public string Version { get; init; } = string.Empty;
-    public bool IsAvailable { get; init; }
-    public string? ErrorMessage { get; init; }
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string? Version { get; set; }
+    public bool IsAvailable { get; set; }
+    public bool IsEnabled { get; set; }
+    public int DeviceCount { get; set; }
+    public string? ConnectionStatus { get; set; }
 }

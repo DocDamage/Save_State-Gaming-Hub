@@ -63,6 +63,11 @@ public interface IDialogService
     Task<string?> ShowOpenFileDialogAsync(string title, string[] extensions);
 
     /// <summary>
+    /// Shows a file open dialog with filter name and patterns.
+    /// </summary>
+    Task<string?> ShowOpenFileDialogAsync(string title, string filterName, string[] filterPatterns);
+
+    /// <summary>
     /// Shows a confirmation dialog.
     /// </summary>
     Task<bool> ShowConfirmationAsync(string title, string message, string confirmText = "OK", string cancelText = "Cancel");
@@ -76,6 +81,16 @@ public interface IDialogService
     /// Shows an error dialog.
     /// </summary>
     Task ShowErrorAsync(string title, string message);
+
+    /// <summary>
+    /// Shows a simple error dialog with just a message.
+    /// </summary>
+    Task ShowErrorAsync(string message);
+
+    /// <summary>
+    /// Shows a success dialog.
+    /// </summary>
+    Task ShowSuccessAsync(string message);
 
     /// <summary>
     /// Shows a warning dialog.

@@ -225,6 +225,82 @@ var results = await _universalSearch
 
 ---
 
+## ♿ Accessibility & Keyboard Navigation
+
+SaveStateReborn includes comprehensive accessibility features for WCAG 2.1 AA compliance.
+
+### Services
+
+| Service | Purpose | Location |
+|---------|---------|----------|
+| `IAccessibilityService` | Screen reader, focus management, visual aids | `Services/Accessibility/` |
+| `IKeyboardNavigationService` | Keyboard shortcuts, navigation | `Services/Keyboard/` |
+| `AccessibilityAuditor` | Automated WCAG compliance auditing | `Services/Accessibility/` |
+| `ColorContrastChecker` | WCAG contrast ratio calculations | `Services/Accessibility/` |
+| `IScreenReaderService` | Cross-platform screen reader integration | `Infrastructure/Accessibility/` |
+
+### Views
+
+| View | Purpose | Location |
+|------|---------|----------|
+| `AccessibilitySettingsView` | Accessibility configuration UI | `Views/Settings/` |
+| `ShortcutEditorView` | Keyboard shortcut customization | `Views/Settings/` |
+
+### Usage Patterns
+
+**Screen Reader Announcements:**
+```csharp
+await _accessibilityService.AnnounceAsync("Game saved successfully", AccessibilityPriority.Normal);
+```
+
+**Focus Management:**
+```csharp
+await _accessibilityService.SetFocusAsync(targetControl);
+await _accessibilityService.TrapFocusAsync(dialogContainer);
+```
+
+**Keyboard Navigation:**
+```csharp
+_keyboardService.RegisterHotkey(
+    new Hotkey { Key = Key.S, Modifiers = KeyModifiers.Control },
+    async () => await SaveAsync());
+```
+
+**Contrast Checking:**
+```csharp
+var result = ColorContrastChecker.ValidateContrast(foreground, background, isLargeText);
+if (!result.MeetsAA) { /* Adjust colors */ }
+```
+
+**Accessibility Behaviors:**
+```xml
+<Button>
+    <Interaction.Behaviors>
+        <behaviors:AccessibleButtonBehavior />
+    </Interaction.Behaviors>
+</Button>
+```
+
+### Features
+
+- **Screen Reader Support**: Windows Narrator, NVDA, JAWS, VoiceOver, Orca
+- **Focus Management**: Focus trapping, directional navigation, focus visualization
+- **High Contrast Mode**: Full theme support for high contrast
+- **Reduced Motion**: Disable animations for motion-sensitive users
+- **Color Filters**: Protanopia, Deuteranopia, Tritanopia, Achromatopsia support
+- **Text Scaling**: 75% to 200% text size adjustment
+- **Keyboard Navigation**: Full application control via keyboard
+- **Shortcut Editor**: Customizable keyboard shortcuts with import/export
+- **Automated Auditing**: WCAG 2.1 compliance checking with reports
+
+### Registration
+
+```csharp
+services.AddAccessibilityServices();
+```
+
+---
+
 ## 🎨 UI Components Reference
 
 ### Main Views

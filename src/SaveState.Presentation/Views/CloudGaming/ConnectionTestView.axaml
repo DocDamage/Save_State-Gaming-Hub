@@ -1,0 +1,286 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.CloudGaming;assembly=SaveState.Presentation"
+             xmlns:models="clr-namespace:SaveState.Presentation.Models.CloudGaming;assembly=SaveState.Presentation"
+             x:Class="SaveState.Presentation.Views.CloudGaming.ConnectionTestView"
+             x:DataType="vm:ConnectionTestViewModel"
+             Width="700">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.header">
+            <Setter Property="FontSize" Value="28" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+
+        <Style Selector="TextBlock.section-title">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Margin" Value="0,20,0,12" />
+        </Style>
+
+        <Style Selector="TextBlock.stat-value">
+            <Setter Property="FontSize" Value="32" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+
+        <Style Selector="TextBlock.stat-label">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        </Style>
+
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="20" />
+        </Style>
+
+        <Style Selector="Border.result-card">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="16" />
+        </Style>
+
+        <Style Selector="Button.action-button">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Padding" Value="24,12" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style Selector="Button.action-button:pointerover">
+            <Setter Property="Background" Value="{StaticResource PrimaryHoverBrush}" />
+        </Style>
+
+        <Style Selector="Button.secondary-button">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+
+        <Style Selector="Button.secondary-button:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+        </Style>
+
+        <Style Selector="ProgressBar.test-progress">
+            <Setter Property="Height" Value="8" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+
+        <Style Selector="Border.data-center-item">
+            <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="12" />
+        </Style>
+
+        <Style Selector="Border.data-center-item:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="{StaticResource DialogBackgroundBrush}"
+            CornerRadius="16"
+            Padding="32"
+            BoxShadow="0 8 32 #40000000">
+        <Grid RowDefinitions="Auto,*,Auto">
+            <!-- Header -->
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Spacing="4">
+                    <TextBlock Text="Connection Test" Classes="header"/>
+                    <TextBlock Text="Test your connection to cloud gaming servers"
+                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                </StackPanel>
+                <ComboBox Grid.Column="1"
+                          Width="180"
+                          VerticalAlignment="Top"
+                          ItemsSource="{Binding AvailableProviders}"
+                          SelectedItem="{Binding SelectedProvider}"/>
+            </Grid>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,16">
+                <StackPanel Spacing="16">
+                    <!-- Testing Progress -->
+                    <Border Classes="card" IsVisible="{Binding IsTesting}">
+                        <StackPanel Spacing="12">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="Testing in progress..." FontWeight="SemiBold"/>
+                                <TextBlock Grid.Column="1" Text="{Binding TestProgress, StringFormat='{}{0}%'}"/>
+                            </Grid>
+                            <ProgressBar Classes="test-progress"
+                                         Value="{Binding TestProgress}"
+                                         Maximum="100"/>
+                            <TextBlock Text="{Binding TestPhase}"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       FontSize="13"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Results Summary -->
+                    <Border Classes="result-card" 
+                            Background="{Binding ConnectionColor, Converter={StaticResource ColorToBrushConverter}}"
+                            IsVisible="{Binding HasResults}"
+                            Opacity="0.1"/>
+                    <Border Classes="card" IsVisible="{Binding HasResults}">
+                        <StackPanel Spacing="16">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0" Spacing="4">
+                                    <TextBlock Text="Connection Quality" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding ConnectionRating}" 
+                                               FontSize="24" 
+                                               FontWeight="Bold"
+                                               Foreground="{Binding ConnectionColor, Converter={StaticResource ColorToBrushConverter}}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                    <Button Classes="secondary-button"
+                                            Command="{Binding SaveResultsCommand}">
+                                        <TextBlock Text="💾 Save"/>
+                                    </Button>
+                                    <Button Classes="secondary-button"
+                                            Command="{Binding CopyResultsCommand}">
+                                        <TextBlock Text="📋 Copy"/>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Stats Grid -->
+                            <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto" RowSpacing="16" ColumnSpacing="16">
+                                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
+                                    <TextBlock Text="{Binding CurrentResult.Ping}" Classes="stat-value"/>
+                                    <TextBlock Text="Ping (ms)" Classes="stat-label"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
+                                    <TextBlock Text="{Binding CurrentResult.Jitter, StringFormat='{}{0:F1}'}" Classes="stat-value"/>
+                                    <TextBlock Text="Jitter (ms)" Classes="stat-label"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="0" Grid.Column="2" Spacing="4">
+                                    <TextBlock Text="{Binding CurrentResult.PacketLoss, StringFormat='{}{0:F2}%'}" Classes="stat-value"/>
+                                    <TextBlock Text="Packet Loss" Classes="stat-label"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4">
+                                    <TextBlock Text="{Binding CurrentResult.DownloadSpeed, StringFormat='{}{0:F1}'}" Classes="stat-value"/>
+                                    <TextBlock Text="Download (Mbps)" Classes="stat-label"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+                                    <TextBlock Text="{Binding CurrentResult.UploadSpeed, StringFormat='{}{0:F1}'}" Classes="stat-value"/>
+                                    <TextBlock Text="Upload (Mbps)" Classes="stat-label"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="2" Spacing="4">
+                                    <TextBlock Text="{Binding CurrentResult.RecommendedQuality}" Classes="stat-value"/>
+                                    <TextBlock Text="Recommended" Classes="stat-label"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- 4K Badge -->
+                            <Border Background="{StaticResource SuccessBrushTransparent}"
+                                    CornerRadius="8"
+                                    Padding="12"
+                                    IsVisible="{Binding CurrentResult.CanStream4K}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="✅" FontSize="20"/>
+                                    <TextBlock Text="Your connection supports 4K streaming!"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Data Centers -->
+                    <TextBlock Text="DATA CENTERS" Classes="section-title"/>
+                    <ItemsControl ItemsSource="{Binding DataCenters}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="models:DataCenter">
+                                <Border Classes="data-center-item" Margin="0,0,0,8">
+                                    <Grid ColumnDefinitions="*,Auto,Auto">
+                                        <StackPanel Grid.Column="0" Spacing="2">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                                <Border Background="{StaticResource PrimaryBrush}"
+                                                        CornerRadius="4"
+                                                        Padding="6,2"
+                                                        IsVisible="{Binding IsRecommended}">
+                                                    <TextBlock Text="Recommended" 
+                                                               FontSize="10" 
+                                                               Foreground="White"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Region}" 
+                                                       FontSize="12" 
+                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" 
+                                                   Text="{Binding Ping, StringFormat='{}{0}ms'}"
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,0,16,0"
+                                                   FontWeight="SemiBold"/>
+                                        <Button Grid.Column="2"
+                                                Classes="secondary-button"
+                                                Padding="12,6"
+                                                Command="{Binding #Root.((vm:ConnectionTestViewModel)DataContext).TestDataCenterCommand}"
+                                                CommandParameter="{Binding}">
+                                            <TextBlock Text="Test" FontSize="12"/>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Test History -->
+                    <TextBlock Text="TEST HISTORY" Classes="section-title" IsVisible="{Binding TestHistory.Count}"/>
+                    <Border Classes="card" IsVisible="{Binding TestHistory.Count}">
+                        <StackPanel Spacing="8">
+                            <ItemsControl ItemsSource="{Binding TestHistory}" MaxHeight="150">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="models:ConnectionTestResult">
+                                        <Grid ColumnDefinitions="*,*,*,Auto" Padding="8,4">
+                                            <TextBlock Grid.Column="0" Text="{Binding TestedAt, StringFormat='{}{0:g}'}"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Ping, StringFormat='{}{0}ms'}"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding RecommendedQuality}"/>
+                                            <Button Grid.Column="3" Classes="secondary-button" Padding="8,4">
+                                                <TextBlock Text="View" FontSize="11"/>
+                                            </Button>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button Classes="secondary-button"
+                                    HorizontalAlignment="Center"
+                                    Padding="12,6"
+                                    Command="{Binding ClearHistoryCommand}">
+                                <TextBlock Text="Clear History" FontSize="12"/>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Footer Actions -->
+            <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,16,0,0">
+                <Button Grid.Column="0"
+                        Classes="secondary-button"
+                        HorizontalAlignment="Left"
+                        Command="{Binding CloseCommand}">
+                    <TextBlock Text="Close"/>
+                </Button>
+                <Button Grid.Column="1"
+                        Classes="action-button"
+                        Command="{Binding RunTestCommand}"
+                        IsEnabled="{Binding !IsTesting}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="🔄"/>
+                        <TextBlock Text="{Binding IsTesting, Converter={StaticResource BoolToTestTextConverter}, FallbackValue='Run Test'}"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

@@ -1,0 +1,299 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.RgbSync"
+             xmlns:rgb="using:SaveState.Core.RgbSync.Models"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="700"
+             x:Class="SaveState.Presentation.Views.RgbSync.RgbGameStateConfigView"
+             x:DataType="vm:RgbGameStateConfigViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.TriggerCard">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2"/>
+                </Transitions>
+            </Transitions>
+        </Style>
+
+        <Style Selector="Border.TriggerCard.Active">
+            <Setter Property="BorderBrush" Value="{StaticResource SuccessBrush}"/>
+            <Setter Property="BoxShadow" Value="0 0 20 #2010B981"/>
+        </Style>
+
+        <Style Selector="Border.HealthPreview">
+            <Setter Property="Width" Value="60"/>
+            <Setter Property="Height" Value="60"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="#30FFFFFF"/>
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer Margin="0,15,0,0">
+        <StackPanel Spacing="20">
+            <!-- Header -->
+            <Grid ColumnDefinitions="*, Auto">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="🎮 Game State Integration" FontWeight="SemiBold" FontSize="16"/>
+                    <TextBlock Text="{Binding StatusMessage}" 
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontSize="12"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                    <Button Content="📥 Import" 
+                            Command="{Binding ImportConfigCommand}"
+                            Classes="Secondary Small"/>
+                    <Button Content="📤 Export" 
+                            Command="{Binding ExportConfigCommand}"
+                            Classes="Secondary Small"/>
+                    <Button Content="💾 Save All" 
+                            Command="{Binding SaveConfigurationCommand}"
+                            Classes="Primary Small"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Health Indicator Section -->
+            <Border Classes="GlassContainer" Padding="20">
+                <StackPanel Spacing="15">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="❤️ Health Indicator" FontWeight="SemiBold" FontSize="15"/>
+                            <TextBlock Text="Change lighting based on in-game health"
+                                       FontSize="12"
+                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                        <ToggleButton Grid.Column="1"
+                                      IsChecked="{Binding IsHealthIndicatorEnabled}"
+                                      Classes="Secondary Small"/>
+                    </Grid>
+
+                    <StackPanel IsVisible="{Binding IsHealthIndicatorEnabled}" Spacing="20">
+                        <!-- Health Preview -->
+                        <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
+                            <StackPanel Spacing="5">
+                                <Border Classes="HealthPreview"
+                                        Background="{Binding HealthCriticalColor, Converter={x:Static vm:ColorToBrushConverter.Instance}}"/>
+                                <TextBlock Text="Critical" 
+                                           FontSize="11" 
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource TextTertiaryBrush}"/>
+                                <TextBlock Text="{Binding HealthCriticalThreshold, StringFormat='{}{0}%'}"
+                                           FontSize="10"
+                                           HorizontalAlignment="Center"
+                                           Classes="Caption"/>
+                            </StackPanel>
+                            <StackPanel Spacing="5">
+                                <Border Classes="HealthPreview"
+                                        Background="{Binding HealthLowColor, Converter={x:Static vm:ColorToBrushConverter.Instance}}"/>
+                                <TextBlock Text="Low" 
+                                           FontSize="11" 
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource TextTertiaryBrush}"/>
+                                <TextBlock Text="{Binding HealthLowThreshold, StringFormat='{}{0}%'}"
+                                           FontSize="10"
+                                           HorizontalAlignment="Center"
+                                           Classes="Caption"/>
+                            </StackPanel>
+                            <StackPanel Spacing="5">
+                                <Border Classes="HealthPreview"
+                                        Background="{Binding HealthNormalColor, Converter={x:Static vm:ColorToBrushConverter.Instance}}"/>
+                                <TextBlock Text="Normal" 
+                                           FontSize="11" 
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource TextTertiaryBrush}"/>
+                                <TextBlock Text="100%"
+                                           FontSize="10"
+                                           HorizontalAlignment="Center"
+                                           Classes="Caption"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Threshold Sliders -->
+                        <Grid ColumnDefinitions="*, *" ColumnSpacing="20">
+                            <StackPanel Spacing="8">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="Critical Threshold" Classes="Caption" FontWeight="SemiBold"/>
+                                    <TextBlock Grid.Column="1" 
+                                               Text="{Binding HealthCriticalThreshold, StringFormat='{}{0}%'}"
+                                               Classes="Caption"/>
+                                </Grid>
+                                <Slider Value="{Binding HealthCriticalThreshold}"
+                                        Minimum="5"
+                                        Maximum="50"
+                                        TickFrequency="5"/>
+                            </StackPanel>
+                            <StackPanel Spacing="8">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="Low Threshold" Classes="Caption" FontWeight="SemiBold"/>
+                                    <TextBlock Grid.Column="1" 
+                                               Text="{Binding HealthLowThreshold, StringFormat='{}{0}%'}"
+                                               Classes="Caption"/>
+                                </Grid>
+                                <Slider Value="{Binding HealthLowThreshold}"
+                                        Minimum="30"
+                                        Maximum="80"
+                                        TickFrequency="5"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Color Pickers -->
+                        <Grid ColumnDefinitions="*, *, *" ColumnSpacing="15">
+                            <Button Command="{Binding PickHealthColorCommand}"
+                                    CommandParameter="critical"
+                                    Classes="Outline Small"
+                                    HorizontalAlignment="Stretch">
+                                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                    <Border Width="16" 
+                                            Height="16" 
+                                            CornerRadius="4"
+                                            Background="{Binding HealthCriticalColor, Converter={x:Static vm:ColorToBrushConverter.Instance}}"/>
+                                    <TextBlock Text="Critical Color"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding PickHealthColorCommand}"
+                                    CommandParameter="low"
+                                    Classes="Outline Small"
+                                    HorizontalAlignment="Stretch">
+                                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                    <Border Width="16" 
+                                            Height="16" 
+                                            CornerRadius="4"
+                                            Background="{Binding HealthLowColor, Converter={x:Static vm:ColorToBrushConverter.Instance}}"/>
+                                    <TextBlock Text="Low Color"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding PickHealthColorCommand}"
+                                    CommandParameter="normal"
+                                    Classes="Outline Small"
+                                    HorizontalAlignment="Stretch">
+                                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                    <Border Width="16" 
+                                            Height="16" 
+                                            CornerRadius="4"
+                                            Background="{Binding HealthNormalColor, Converter={x:Static vm:ColorToBrushConverter.Instance}}"/>
+                                    <TextBlock Text="Normal Color"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <Button Content="🧪 Test Health Indicator"
+                                Command="{Binding TestHealthIndicatorCommand}"
+                                Classes="Secondary Small"
+                                HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Event Triggers -->
+            <Border Classes="GlassContainer" Padding="20">
+                <StackPanel Spacing="15">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <TextBlock Text="⚡ Event Triggers" FontWeight="SemiBold" FontSize="15"/>
+                        <Button Grid.Column="1"
+                                Content="➕ Add Custom"
+                                Command="{Binding AddCustomTriggerCommand}"
+                                Classes="Secondary Small"/>
+                    </Grid>
+
+                    <ItemsControl ItemsSource="{Binding GameStateConfigs}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="rgb:GameStateRgbConfig">
+                                <Border Classes="TriggerCard"
+                                        Margin="0,6"
+                                        Classes.Active="{Binding $parent[ItemsControl].((vm:RgbGameStateConfigViewModel)DataContext).PreviewingTrigger, Converter={x:Static vm:TriggerActiveConverter.Instance}, ConverterParameter={Binding Trigger}}">
+                                    <Grid ColumnDefinitions="Auto, *, Auto">
+                                        <!-- Icon -->
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Trigger, Converter={x:Static vm:TriggerIconConverter.Instance}}"
+                                                   FontSize="24"
+                                                   Margin="0,0,12,0"
+                                                   VerticalAlignment="Center"/>
+
+                                        <!-- Info -->
+                                        <StackPanel Grid.Column="1" Spacing="4">
+                                            <TextBlock Text="{Binding Trigger, Converter={x:Static vm:TriggerDisplayNameConverter.Instance}}"
+                                                       FontWeight="SemiBold"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                                <TextBlock Text="{Binding Effect.Type}"
+                                                           Classes="Caption"
+                                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="•" 
+                                                           Foreground="{StaticResource TextTertiaryBrush}"
+                                                           Classes="Caption"/>
+                                                <TextBlock Text="{Binding DurationMs, StringFormat='{}{0}ms'}"
+                                                           Classes="Caption"
+                                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <Border IsVisible="{Binding Interruptible}"
+                                                        Background="{StaticResource SuccessBrush}"
+                                                        CornerRadius="3"
+                                                        Padding="4,1">
+                                                    <TextBlock Text="INTERRUPTIBLE"
+                                                               FontSize="8"
+                                                               FontWeight="Bold"
+                                                               Foreground="White"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <!-- Color Preview -->
+                                            <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,4,0,0">
+                                                <ItemsControl ItemsSource="{Binding Effect.Colors}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <StackPanel Orientation="Horizontal"/>
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="rgb:RgbColor">
+                                                            <Border Width="20" 
+                                                                    Height="20" 
+                                                                    CornerRadius="4"
+                                                                    Background="{Binding Converter={x:Static vm:ColorToBrushConverter.Instance}}"
+                                                                    Margin="2"/>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <!-- Actions -->
+                                        <StackPanel Grid.Column="2" 
+                                                    Orientation="Horizontal" 
+                                                    Spacing="5">
+                                            <Button Content="▶"
+                                                    ToolTip.Tip="Preview"
+                                                    Command="{Binding $parent[ItemsControl].((vm:RgbGameStateConfigViewModel)DataContext).PreviewEffectCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Classes="Ghost Small"/>
+                                            <Button Content="✎"
+                                                    ToolTip.Tip="Edit"
+                                                    Command="{Binding $parent[ItemsControl].((vm:RgbGameStateConfigViewModel)DataContext).EditConfigCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Classes="Ghost Small"/>
+                                            <Button Content="🗑️"
+                                                    ToolTip.Tip="Remove"
+                                                    Command="{Binding $parent[ItemsControl].((vm:RgbGameStateConfigViewModel)DataContext).RemoveConfigCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Classes="Ghost Small"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Reset Button -->
+            <Button Content="↺ Reset to Defaults"
+                    Command="{Binding ResetToDefaultsCommand}"
+                    Classes="Secondary"
+                    HorizontalAlignment="Center"/>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

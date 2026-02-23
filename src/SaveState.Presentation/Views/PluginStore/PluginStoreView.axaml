@@ -1,0 +1,420 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.PluginStore;assembly=SaveState.Presentation"
+             xmlns:models="clr-namespace:SaveState.Presentation.Models.PluginStore;assembly=SaveState.Presentation"
+             x:Class="SaveState.Presentation.Views.PluginStore.PluginStoreView"
+             x:DataType="vm:PluginStoreViewModel">
+
+  <UserControl.Styles>
+    <!-- Section Header Style -->
+    <Style Selector="TextBlock.section-header">
+      <Setter Property="FontSize" Value="20" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <!-- Plugin Card Style -->
+    <Style Selector="Border.plugin-card">
+      <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="16" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="BoxShadow" Value="0 4 12 #20000000" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.2" />
+          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" />
+        </Transitions>
+      </Setter>
+    </Style>
+
+    <Style Selector="Border.plugin-card:pointerover">
+      <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+      <Setter Property="BoxShadow" Value="0 8 24 #40000000" />
+      <Setter Property="RenderTransform" Value="translateY(-2px)" />
+    </Style>
+
+    <!-- Category Button Style -->
+    <Style Selector="Button.category-button">
+      <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="20" />
+      <Setter Property="Padding" Value="16,10" />
+      <Setter Property="Margin" Value="0,0,8,8" />
+    </Style>
+
+    <Style Selector="Button.category-button:pointerover">
+      <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <!-- Action Button Styles -->
+    <Style Selector="Button.action-button">
+      <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="12,8" />
+    </Style>
+
+    <!-- Rating Stars -->
+    <Style Selector="TextBlock.rating-stars">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="#FFB800" />
+    </Style>
+
+    <!-- Installed Plugin Item -->
+    <Style Selector="Border.installed-item">
+      <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="16" />
+      <Setter Property="Margin" Value="0,4" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto, *">
+    <!-- Header -->
+    <Border Grid.Row="0" Margin="20,20,20,10">
+      <Grid ColumnDefinitions="*, Auto">
+        <StackPanel>
+          <TextBlock Text="🧩 Plugin Store"
+                     FontSize="32"
+                     FontWeight="Heavy"
+                     Foreground="White" />
+          <TextBlock Text="Browse, install, and manage plugins"
+                     FontSize="16"
+                     Foreground="{StaticResource TextSecondaryBrush}" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="1"
+                    Orientation="Horizontal"
+                    Spacing="10"
+                    VerticalAlignment="Center">
+          <Button Classes="action-button"
+                  Command="{Binding RefreshCommand}"
+                  ToolTip.Tip="Refresh plugins">
+            <TextBlock Text="🔄" />
+          </Button>
+          <Border Background="{StaticResource PrimaryBrush}"
+                  CornerRadius="20"
+                  Padding="12,6"
+                  IsVisible="{Binding HasUpdates}">
+            <TextBlock Text="{Binding UpdateAvailablePlugins.Count, StringFormat='Updates: {0}'}"
+                       Foreground="White"
+                       FontWeight="SemiBold" />
+          </Border>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Main Content -->
+    <ScrollViewer Grid.Row="1"
+                  Margin="20,0,20,20"
+                  VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="24">
+
+        <!-- Search Bar -->
+        <Border Background="{StaticResource CardBackgroundBrush}"
+                CornerRadius="12"
+                Padding="16">
+          <Grid ColumnDefinitions="*, Auto, Auto">
+            <TextBox Grid.Column="0"
+                     Text="{Binding SearchQuery}"
+                     Watermark="🔍 Search plugins..."
+                     FontSize="16"
+                     VerticalAlignment="Center" />
+            <Button Grid.Column="1"
+                    Content="Browse ▼"
+                    Classes="action-button"
+                    Margin="8,0" />
+            <Button Grid.Column="2"
+                    Content="Sort: Popular ▼"
+                    Classes="action-button" />
+          </Grid>
+        </Border>
+
+        <!-- Categories -->
+        <StackPanel>
+          <TextBlock Text="Categories" Classes="section-header" Margin="0,0,0,12" />
+          <WrapPanel>
+            <ItemsControl ItemsSource="{Binding Categories}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="models:PluginCategory">
+                  <Button Classes="category-button"
+                          Command="{Binding #Root.((vm:PluginStoreViewModel)DataContext).BrowseCategoryCommand}"
+                          CommandParameter="{Binding}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <TextBlock Text="{Binding Icon}" FontSize="18" />
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                    </StackPanel>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </WrapPanel>
+        </StackPanel>
+
+        <!-- Featured Plugins -->
+        <StackPanel IsVisible="{Binding FeaturedPlugins.Count}">
+          <TextBlock Text="Featured" Classes="section-header" Margin="0,0,0,12" />
+          <Grid ColumnDefinitions="*, *" ColumnSpacing="16">
+            <ItemsControl ItemsSource="{Binding FeaturedPlugins}" Grid.ColumnSpan="2">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <UniformGrid Columns="2" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="models:PluginListing">
+                  <Border Classes="plugin-card"
+                          Height="120"
+                          Margin="0,0,0,16"
+                          Background="{StaticResource PrimaryBrush}">
+                    <Grid ColumnDefinitions="Auto, *">
+                      <TextBlock Text="{Binding Icon, FallbackValue='🧩'}"
+                                 FontSize="48"
+                                 Margin="0,0,16,0"
+                                 VerticalAlignment="Center" />
+                      <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Name}"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="White" />
+                        <TextBlock Text="{Binding Description}"
+                                   FontSize="14"
+                                   Opacity="0.8"
+                                   TextWrapping="Wrap"
+                                   MaxLines="2"
+                                   Foreground="White" />
+                        <TextBlock Text="{Binding Pricing.DisplayPrice}"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Margin="0,8,0,0"
+                                   Foreground="White" />
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </Grid>
+        </StackPanel>
+
+        <!-- Trending Plugins -->
+        <StackPanel IsVisible="{Binding TrendingPlugins.Count}">
+          <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,12">
+            <TextBlock Text="Trending" Classes="section-header" />
+            <Button Grid.Column="1"
+                    Content="View All →"
+                    Classes="action-button"
+                    FontSize="14" />
+          </Grid>
+          <ItemsControl ItemsSource="{Binding TrendingPlugins}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="models:PluginListing">
+                <Border Classes="plugin-card"
+                        Width="280"
+                        Margin="0,0,16,16">
+                  <StackPanel>
+                    <Grid ColumnDefinitions="Auto, *">
+                      <TextBlock Text="{Binding Icon, FallbackValue='🧩'}"
+                                 FontSize="40"
+                                 Margin="0,0,12,0" />
+                      <StackPanel Grid.Column="1">
+                        <TextBlock Text="{Binding Name}"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="White"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding StarRating}"
+                                   Classes="rating-stars" />
+                        <TextBlock Text="{Binding FormattedDownloads, StringFormat='{0} downloads'}"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                      </StackPanel>
+                    </Grid>
+                    <TextBlock Text="{Binding Pricing.DisplayPrice}"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               HorizontalAlignment="Right"
+                               Margin="0,12,0,0" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <!-- New Plugins -->
+        <StackPanel IsVisible="{Binding NewPlugins.Count}">
+          <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,12">
+            <TextBlock Text="New Arrivals" Classes="section-header" />
+            <Button Grid.Column="1"
+                    Content="View All →"
+                    Classes="action-button"
+                    FontSize="14" />
+          </Grid>
+          <ItemsControl ItemsSource="{Binding NewPlugins}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="models:PluginListing">
+                <Border Classes="plugin-card"
+                        Width="280"
+                        Margin="0,0,16,16">
+                  <StackPanel>
+                    <Grid ColumnDefinitions="Auto, *">
+                      <TextBlock Text="{Binding Icon, FallbackValue='🧩'}"
+                                 FontSize="40"
+                                 Margin="0,0,12,0" />
+                      <StackPanel Grid.Column="1">
+                        <TextBlock Text="{Binding Name}"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="White"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding StarRating}"
+                                   Classes="rating-stars" />
+                        <TextBlock Text="{Binding PublishedAt, StringFormat='{}{0:MMM dd, yyyy}'}"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                      </StackPanel>
+                    </Grid>
+                    <TextBlock Text="{Binding Pricing.DisplayPrice}"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               HorizontalAlignment="Right"
+                               Margin="0,12,0,0" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <!-- Installed Plugins -->
+        <StackPanel IsVisible="{Binding TotalInstalled}">
+          <Grid ColumnDefinitions="*, Auto, Auto" Margin="0,0,0,12">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="Installed Plugins" Classes="section-header" />
+              <TextBlock Text="{Binding TotalInstalled, StringFormat='({0})'}"
+                         FontSize="16"
+                         Foreground="{StaticResource TextSecondaryBrush}"
+                         VerticalAlignment="Center" />
+            </StackPanel>
+            <Button Grid.Column="1"
+                    Content="Check Updates"
+                    Classes="action-button"
+                    Command="{Binding CheckUpdatesCommand}"
+                    Margin="0,0,8,0" />
+            <Button Grid.Column="2"
+                    Content="Update All"
+                    Classes="Primary"
+                    Command="{Binding UpdateAllCommand}"
+                    IsVisible="{Binding HasUpdates}" />
+          </Grid>
+
+          <ItemsControl ItemsSource="{Binding InstalledPlugins}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="models:PluginListing">
+                <Border Classes="installed-item">
+                  <Grid ColumnDefinitions="Auto, *, Auto, Auto">
+                    <TextBlock Text="{Binding Icon, FallbackValue='🧩'}"
+                               FontSize="24"
+                               Margin="0,0,12,0" />
+
+                    <StackPanel Grid.Column="1">
+                      <TextBlock Text="{Binding Name}"
+                                 FontSize="16"
+                                 FontWeight="SemiBold"
+                                 Foreground="White" />
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding InstalledVersion, StringFormat='v{0}'}"
+                                   FontSize="13"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                        <Border Background="{StaticResource SuccessBrush}"
+                                CornerRadius="4"
+                                Padding="6,2"
+                                IsVisible="{Binding IsEnabled}">
+                          <TextBlock Text="✓ Enabled"
+                                     FontSize="11"
+                                     Foreground="White" />
+                        </Border>
+                        <Border Background="{StaticResource ErrorBrush}"
+                                CornerRadius="4"
+                                Padding="6,2"
+                                IsVisible="{Binding !IsEnabled}">
+                          <TextBlock Text="✗ Disabled"
+                                     FontSize="11"
+                                     Foreground="White" />
+                        </Border>
+                      </StackPanel>
+                    </StackPanel>
+
+                    <Button Grid.Column="2"
+                            Classes="action-button"
+                            Margin="0,0,8,0"
+                            IsVisible="{Binding IsUpdateAvailable}"
+                            Command="{Binding #Root.((vm:PluginStoreViewModel)DataContext).UpdatePluginCommand}"
+                            CommandParameter="{Binding}">
+                      <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="⬇️" />
+                        <TextBlock Text="Update" />
+                      </StackPanel>
+                    </Button>
+
+                    <Button Grid.Column="3"
+                            Content="Latest"
+                            Classes="action-button"
+                            IsEnabled="False"
+                            IsVisible="{Binding !IsUpdateAvailable}" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <!-- Footer Actions -->
+        <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,16">
+          <Button Classes="action-button"
+                  Command="{Binding InstallFromFileCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="📁" />
+              <TextBlock Text="Install from File" />
+            </StackPanel>
+          </Button>
+          <Button Classes="action-button"
+                  Command="{Binding ManageSourcesCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="⚙️" />
+              <TextBlock Text="Manage Sources" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

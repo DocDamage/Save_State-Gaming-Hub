@@ -1,0 +1,286 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.RgbSync"
+             xmlns:rgb="using:SaveState.Core.RgbSync.Models"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SaveState.Presentation.Views.RgbSync.RgbSyncGroupEditor"
+             x:DataType="vm:RgbSyncGroupEditorViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.DeviceItem">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.1"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.1"/>
+                </Transitions>
+            </Transitions>
+        </Style>
+
+        <Style Selector="Border.DeviceItem:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+        </Style>
+
+        <Style Selector="Border.DeviceItem.Selected">
+            <Setter Property="BorderBrush" Value="{StaticResource SuccessBrush}"/>
+            <Setter Property="Background" Value="#10B98120"/>
+        </Style>
+
+        <Style Selector="Border.GroupCard">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        </Style>
+
+        <Style Selector="Border.DropZone">
+            <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="#30FFFFFF"/>
+            <Setter Property="BorderDashArray" Value="4,4"/>
+            <Setter Property="CornerRadius" Value="8"/>
+        </Style>
+
+        <Style Selector="Border.DropZone.DragOver">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Background" Value="#10B98120"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto, *" Margin="0,15,0,0">
+        <!-- Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,15">
+            <StackPanel Grid.Column="0" Spacing="5">
+                <TextBlock Text="🔗 Sync Groups" FontWeight="SemiBold" FontSize="16"/>
+                <TextBlock Text="{Binding StatusMessage}" 
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="12"/>
+            </StackPanel>
+            <Button Grid.Column="1"
+                    Content="➕ Create Group"
+                    Command="{Binding CreateNewGroupCommand}"
+                    Classes="Primary Small"/>
+        </Grid>
+
+        <!-- Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="250, *">
+            <!-- Left: Available Devices -->
+            <Border Grid.Column="0" Classes="GlassContainer" Padding="15" Margin="0,0,15,0">
+                <Grid RowDefinitions="Auto, *">
+                    <TextBlock Grid.Row="0" 
+                               Text="Available Devices" 
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,10"/>
+                    <ScrollViewer Grid.Row="1">
+                        <ItemsControl ItemsSource="{Binding AvailableDevices}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="rgb:RgbDevice">
+                                    <Border Classes="DeviceItem"
+                                            Margin="0,4"
+                                            ToolTip.Tip="Drag to add to group">
+                                        <Grid ColumnDefinitions="Auto, *">
+                                            <TextBlock Grid.Column="0" 
+                                                       Text="{Binding Type, Converter={x:Static vm:DeviceIconConverter.Instance}}"
+                                                       FontSize="16"
+                                                       Margin="0,0,8,0"/>
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontSize="13"/>
+                                                <TextBlock Text="{Binding Vendor}"
+                                                           FontSize="11"
+                                                           Foreground="{StaticResource TextTertiaryBrush}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Right: Groups & Editor -->
+            <Grid Grid.Column="1" RowDefinitions="*, Auto">
+                <!-- Groups List or New Group Editor -->
+                <Border Grid.Row="0" Classes="GlassContainer" Padding="20">
+                    <Grid IsVisible="{Binding IsCreatingNew}">
+                        <Grid RowDefinitions="Auto, *, Auto">
+                            <!-- New Group Header -->
+                            <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,15">
+                                <TextBlock Text="Create New Sync Group" FontWeight="SemiBold" FontSize="15"/>
+                                <TextBox Text="{Binding GroupName}" 
+                                         Watermark="Group name..."
+                                         MaxLength="50"/>
+                            </StackPanel>
+
+                            <!-- Selected Devices Drop Zone -->
+                            <Border Grid.Row="1" Classes="DropZone" Padding="15">
+                                <Grid RowDefinitions="Auto, *">
+                                    <TextBlock Grid.Row="0" 
+                                               Text="Selected Devices (drag from left)"
+                                               Classes="Caption"
+                                               Margin="0,0,0,10"/>
+                                    <ScrollViewer Grid.Row="1">
+                                        <ItemsControl ItemsSource="{Binding SelectedDevices}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="rgb:RgbDevice">
+                                                    <Border Classes="DeviceItem Selected"
+                                                            Margin="0,4">
+                                                        <Grid ColumnDefinitions="*, Auto">
+                                                            <StackPanel Spacing="2">
+                                                                <TextBlock Text="{Binding Name}"
+                                                                           FontWeight="Medium"/>
+                                                                <TextBlock Text="{Binding Type}"
+                                                                           FontSize="11"
+                                                                           Foreground="{StaticResource TextTertiaryBrush}"/>
+                                                            </StackPanel>
+                                                            <Button Grid.Column="1"
+                                                                    Content="✕"
+                                                                    Command="{Binding $parent[ItemsControl].((vm:RgbSyncGroupEditorViewModel)DataContext).RemoveDeviceFromGroupCommand}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Classes="Ghost Small"
+                                                                    VerticalAlignment="Center"/>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Border>
+
+                            <!-- Actions -->
+                            <StackPanel Grid.Row="2" 
+                                        Orientation="Horizontal" 
+                                        HorizontalAlignment="Right"
+                                        Spacing="10"
+                                        Margin="0,15,0,0">
+                                <Button Content="Cancel"
+                                        Command="{Binding CancelCreateCommand}"
+                                        Classes="Secondary"/>
+                                <Button Content="Create Group"
+                                        Command="{Binding SaveGroupCommand}"
+                                        Classes="Primary"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+
+                    <Grid IsVisible="{Binding !IsCreatingNew}">
+                        <StackPanel Spacing="15">
+                            <TextBlock Text="Existing Groups" FontWeight="SemiBold" FontSize="15"/>
+                            
+                            <ItemsControl ItemsSource="{Binding SyncGroups}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="rgb:RgbSyncGroup">
+                                        <Border Classes="GroupCard" Margin="0,8">
+                                            <Grid RowDefinitions="Auto, Auto, Auto">
+                                                <!-- Header -->
+                                                <Grid ColumnDefinitions="*, Auto">
+                                                    <StackPanel Spacing="2">
+                                                        <TextBlock Text="{Binding Name}"
+                                                                   FontWeight="SemiBold"
+                                                                   FontSize="15"/>
+                                                        <TextBlock Text="{Binding DeviceIds.Count, StringFormat='{}{0} devices'}"
+                                                                   FontSize="12"
+                                                                   Foreground="{StaticResource TextTertiaryBrush}"/>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1" 
+                                                                Orientation="Horizontal" 
+                                                                Spacing="5">
+                                                        <Button Content="▶"
+                                                                ToolTip.Tip="Apply Effect"
+                                                                Command="{Binding $parent[ItemsControl].((vm:RgbSyncGroupEditorViewModel)DataContext).ApplyGroupEffectCommand}"
+                                                                CommandParameter="{Binding}"
+                                                                Classes="Ghost Small"/>
+                                                        <Button Content="✎"
+                                                                ToolTip.Tip="Edit"
+                                                                Command="{Binding $parent[ItemsControl].((vm:RgbSyncGroupEditorViewModel)DataContext).EditGroupEffectCommand}"
+                                                                CommandParameter="{Binding}"
+                                                                Classes="Ghost Small"/>
+                                                        <Button Content="📋"
+                                                                ToolTip.Tip="Clone"
+                                                                Command="{Binding $parent[ItemsControl].((vm:RgbSyncGroupEditorViewModel)DataContext).CloneGroupCommand}"
+                                                                CommandParameter="{Binding}"
+                                                                Classes="Ghost Small"/>
+                                                        <Button Content="🗑️"
+                                                                ToolTip.Tip="Delete"
+                                                                Command="{Binding $parent[ItemsControl].((vm:RgbSyncGroupEditorViewModel)DataContext).DeleteGroupCommand}"
+                                                                CommandParameter="{Binding}"
+                                                                Classes="Ghost Small"/>
+                                                    </StackPanel>
+                                                </Grid>
+
+                                                <!-- Device Icons -->
+                                                <StackPanel Grid.Row="1" 
+                                                            Orientation="Horizontal" 
+                                                            Spacing="8"
+                                                            Margin="0,10">
+                                                    <Border Background="{StaticResource InputBackgroundBrush}"
+                                                            CornerRadius="6"
+                                                            Padding="8,4">
+                                                        <TextBlock Text="{Binding SharedEffect.Type}"
+                                                                   FontSize="12"
+                                                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                    </Border>
+                                                </StackPanel>
+
+                                                <!-- Preview Colors -->
+                                                <StackPanel Grid.Row="2" 
+                                                            Orientation="Horizontal" 
+                                                            Spacing="4">
+                                                    <ItemsControl ItemsSource="{Binding SharedEffect.Colors}">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <StackPanel Orientation="Horizontal"/>
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate x:DataType="rgb:RgbColor">
+                                                                <Border Width="24" 
+                                                                        Height="24" 
+                                                                        CornerRadius="4"
+                                                                        Background="{Binding Converter={x:Static vm:ColorToBrushConverter.Instance}}"
+                                                                        Margin="2"/>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <!-- Empty State -->
+                            <Border IsVisible="{Binding SyncGroups.Count, Converter={x:Static ObjectConverters.IsNullOrEmpty}}"
+                                    Background="{StaticResource InputBackgroundBrush}"
+                                    CornerRadius="8"
+                                    Padding="40"
+                                    HorizontalAlignment="Center">
+                                <StackPanel Spacing="10" HorizontalAlignment="Center">
+                                    <TextBlock Text="🔗" FontSize="32" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="No sync groups yet"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Create a group to synchronize multiple devices"
+                                               FontSize="12"
+                                               Foreground="{StaticResource TextTertiaryBrush}"
+                                               HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

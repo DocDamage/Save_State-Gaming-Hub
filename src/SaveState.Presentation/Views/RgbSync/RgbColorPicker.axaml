@@ -1,0 +1,258 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.RgbSync"
+        xmlns:rgb="using:SaveState.Core.RgbSync.Models"
+        xmlns:interactivity="using:Avalonia.Xaml.Interactivity"
+        mc:Ignorable="d" d:DesignWidth="450" d:DesignHeight="600"
+        x:Class="SaveState.Presentation.Views.RgbSync.RgbColorPicker"
+        x:DataType="vm:RgbColorPickerViewModel"
+        Title="Pick Color"
+        Width="450" Height="600"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="Transparent"
+        TransparencyLevelHint="Mica">
+
+    <Window.Styles>
+        <Style Selector="Border.ColorSwatchLarge">
+            <Setter Property="Width" Value="48"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1"/>
+                </Transitions>
+            </Transitions>
+        </Style>
+
+        <Style Selector="Border.ColorSwatchLarge:pointerover">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="RenderTransform" Value="scale(1.1)"/>
+        </Style>
+
+        <Style Selector="Border.ColorPreview">
+            <Setter Property="Width" Value="80"/>
+            <Setter Property="Height" Value="80"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="#30FFFFFF"/>
+        </Style>
+
+        <Style Selector="Slider.RgbSlider">
+            <Setter Property="Height" Value="24"/>
+        </Style>
+    </Window.Styles>
+
+    <Panel>
+        <!-- Background -->
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"
+                    TintColor="#1e1e1e"
+                    TintOpacity="0.95"
+                    MaterialOpacity="0.85" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+
+        <Border BorderBrush="{DynamicResource SurfaceStrokeColorDefault}"
+                BorderThickness="1"
+                CornerRadius="8"
+                ClipToBounds="True">
+            <Grid RowDefinitions="Auto,*,Auto">
+                <!-- Header -->
+                <Border Grid.Row="0" Padding="24,20" Background="#252525">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Pick Color"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="White"/>
+                        <TextBlock Text="Choose a color for your RGB effect"
+                                   FontSize="12"
+                                   Foreground="#aaaaaa"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Content -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="24" Spacing="24">
+                        <!-- Color Preview -->
+                        <Border Classes="GlassContainer" Padding="20">
+                            <Grid ColumnDefinitions="Auto, *">
+                                <Border Grid.Column="0" 
+                                        Classes="ColorPreview"
+                                        Background="{Binding SelectedColor, Converter={x:Static vm:ColorToBrushConverter.Instance}}"
+                                        Margin="0,0,20,0"/>
+                                <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
+                                    <TextBlock Text="Selected Color" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding SelectedColor, Converter={x:Static vm:ColorToHexConverter.Instance}}"
+                                               FontFamily="Consolas,Monospace"
+                                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding SelectedColor, Converter={x:Static vm:ColorToRgbTextConverter.Instance}}"
+                                               FontSize="12"
+                                               Foreground="{StaticResource TextTertiaryBrush}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Color Wheel (Simplified) -->
+                        <Border Classes="GlassContainer" Padding="20">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="Color Wheel" FontWeight="SemiBold"/>
+                                <Grid Height="200" HorizontalAlignment="Center">
+                                    <Ellipse Fill="{StaticResource CardBackgroundBrush}" Width="200" Height="200"/>
+                                    <!-- Simplified color wheel visualization -->
+                                    <Canvas Width="200" Height="200">
+                                        <Ellipse Canvas.Left="90" Canvas.Top="0" Width="20" Height="20" Fill="#FF0000"/>
+                                        <Ellipse Canvas.Left="160" Canvas.Top="25" Width="20" Height="20" Fill="#FF7F00"/>
+                                        <Ellipse Canvas.Left="180" Canvas.Top="90" Width="20" Height="20" Fill="#FFFF00"/>
+                                        <Ellipse Canvas.Left="160" Canvas.Top="155" Width="20" Height="20" Fill="#00FF00"/>
+                                        <Ellipse Canvas.Left="90" Canvas.Top="180" Width="20" Height="20" Fill="#0000FF"/>
+                                        <Ellipse Canvas.Left="20" Canvas.Top="155" Width="20" Height="20" Fill="#4B0082"/>
+                                        <Ellipse Canvas.Left="0" Canvas.Top="90" Width="20" Height="20" Fill="#9400D3"/>
+                                        <Ellipse Canvas.Left="20" Canvas.Top="25" Width="20" Height="20" Fill="#FF00FF"/>
+                                    </Canvas>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- RGB Sliders -->
+                        <Border Classes="GlassContainer" Padding="20">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="RGB Values" FontWeight="SemiBold"/>
+                                
+                                <!-- Red -->
+                                <Grid ColumnDefinitions="40,*,50">
+                                    <TextBlock Grid.Column="0" Text="R" Foreground="#FF6666" FontWeight="Bold"/>
+                                    <Slider Grid.Column="1" 
+                                            Value="{Binding Red}"
+                                            Maximum="255"
+                                            Classes="RgbSlider"/>
+                                    <TextBox Grid.Column="2" 
+                                             Text="{Binding Red}"
+                                             Width="50"
+                                             HorizontalAlignment="Right"/>
+                                </Grid>
+
+                                <!-- Green -->
+                                <Grid ColumnDefinitions="40,*,50">
+                                    <TextBlock Grid.Column="0" Text="G" Foreground="#66FF66" FontWeight="Bold"/>
+                                    <Slider Grid.Column="1" 
+                                            Value="{Binding Green}"
+                                            Maximum="255"
+                                            Classes="RgbSlider"/>
+                                    <TextBox Grid.Column="2" 
+                                             Text="{Binding Green}"
+                                             Width="50"
+                                             HorizontalAlignment="Right"/>
+                                </Grid>
+
+                                <!-- Blue -->
+                                <Grid ColumnDefinitions="40,*,50">
+                                    <TextBlock Grid.Column="0" Text="B" Foreground="#6666FF" FontWeight="Bold"/>
+                                    <Slider Grid.Column="1" 
+                                            Value="{Binding Blue}"
+                                            Maximum="255"
+                                            Classes="RgbSlider"/>
+                                    <TextBox Grid.Column="2" 
+                                             Text="{Binding Blue}"
+                                             Width="50"
+                                             HorizontalAlignment="Right"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- HEX Input -->
+                        <Border Classes="GlassContainer" Padding="20">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="HEX Value" FontWeight="SemiBold"/>
+                                <TextBox Text="{Binding HexValue}"
+                                         FontFamily="Consolas,Monospace"
+                                         MaxLength="7"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Preset Colors -->
+                        <Border Classes="GlassContainer" Padding="20">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="Presets" FontWeight="SemiBold"/>
+                                <ItemsControl ItemsSource="{Binding PresetColors}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel ItemWidth="48" ItemHeight="48"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="rgb:RgbColor">
+                                            <Border Classes="ColorSwatchLarge"
+                                                    Background="{Binding Converter={x:Static vm:ColorToBrushConverter.Instance}}"
+                                                    Margin="4"
+                                                    ToolTip.Tip="{Binding Converter={x:Static vm:ColorToHexConverter.Instance}}">
+                                                <Interaction.Behaviors>
+                                                    <EventTriggerBehavior EventName="PointerPressed">
+                                                        <InvokeCommandAction Command="{Binding $parent[ItemsControl].((vm:RgbColorPickerViewModel)DataContext).SelectPresetCommand}"
+                                                                            CommandParameter="{Binding}"/>
+                                                    </EventTriggerBehavior>
+                                                </Interaction.Behaviors>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Recent Colors -->
+                        <Border Classes="GlassContainer" Padding="20">
+                            <StackPanel Spacing="15">
+                                <TextBlock Text="Recent Colors" FontWeight="SemiBold"/>
+                                <ItemsControl ItemsSource="{Binding RecentColors}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="rgb:RgbColor">
+                                            <Border Classes="ColorSwatchLarge"
+                                                    Background="{Binding Converter={x:Static vm:ColorToBrushConverter.Instance}}"
+                                                    Margin="4"
+                                                    ToolTip.Tip="{Binding Converter={x:Static vm:ColorToHexConverter.Instance}}">
+                                                <Interaction.Behaviors>
+                                                    <EventTriggerBehavior EventName="PointerPressed">
+                                                        <InvokeCommandAction Command="{Binding $parent[ItemsControl].((vm:RgbColorPickerViewModel)DataContext).SelectRecentCommand}"
+                                                                            CommandParameter="{Binding}"/>
+                                                    </EventTriggerBehavior>
+                                                </Interaction.Behaviors>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Footer -->
+                <Border Grid.Row="2" 
+                        Padding="24,16" 
+                        Background="#252525"
+                        BorderBrush="{DynamicResource SurfaceStrokeColorDefault}" 
+                        BorderThickness="0,1,0,0">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12">
+                        <Button Content="Cancel"
+                                Command="{Binding CancelCommand}"
+                                Classes="secondary"/>
+                        <Button Content="Apply Color"
+                                Command="{Binding ApplyColorCommand}"
+                                Classes="primary"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+    </Panel>
+</Window>

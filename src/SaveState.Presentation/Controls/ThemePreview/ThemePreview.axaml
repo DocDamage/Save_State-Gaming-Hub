@@ -1,0 +1,265 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Core.Theme.Models"
+             mc:Ignorable="d"
+             x:Class="SaveState.Presentation.Controls.ThemePreview.ThemePreview"
+             x:DataType="vm:ThemeDefinition">
+
+  <UserControl.Styles>
+    <Style Selector="Border.PreviewCard">
+      <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource OutlineBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="12"/>
+      <Setter Property="Padding" Value="16"/>
+      <Setter Property="Margin" Value="0,0,0,16"/>
+    </Style>
+  </UserControl.Styles>
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Spacing="16" Margin="16">
+      
+      <!-- Header -->
+      <TextBlock Text="Theme Preview" Classes="Header" FontSize="20"/>
+      
+      <!-- Buttons Section -->
+      <Border Classes="PreviewCard">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Buttons" Classes="Label" Opacity="0.6"/>
+          <StackPanel Orientation="Horizontal" Spacing="8" Wrap="Wrap">
+            <Button Content="Primary" Classes="Primary"/>
+            <Button Content="Secondary" Classes="Secondary"/>
+            <Button Content="Danger" Classes="Danger"/>
+            <Button Content="Ghost" Classes="Ghost"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+      
+      <!-- Cards Section -->
+      <Border Classes="PreviewCard">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Cards" Classes="Label" Opacity="0.6"/>
+          
+          <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto" ColumnSpacing="12" RowSpacing="12">
+            <!-- Primary Card -->
+            <Border Grid.Row="0" Grid.Column="0"
+                   Background="{DynamicResource PrimaryContainerBrush}"
+                   CornerRadius="8"
+                   Padding="16">
+              <StackPanel Spacing="8">
+                <TextBlock Text="Primary Container"
+                          Foreground="{DynamicResource OnPrimaryContainerBrush}"
+                          FontWeight="SemiBold"/>
+                <TextBlock Text="This demonstrates the primary container color."
+                          Foreground="{DynamicResource OnPrimaryContainerBrush}"
+                          TextWrapping="Wrap"/>
+              </StackPanel>
+            </Border>
+            
+            <!-- Secondary Card -->
+            <Border Grid.Row="0" Grid.Column="1"
+                   Background="{DynamicResource SecondaryContainerBrush}"
+                   CornerRadius="8"
+                   Padding="16">
+              <StackPanel Spacing="8">
+                <TextBlock Text="Secondary Container"
+                          Foreground="{DynamicResource OnSecondaryContainerBrush}"
+                          FontWeight="SemiBold"/>
+                <TextBlock Text="This demonstrates the secondary container color."
+                          Foreground="{DynamicResource OnSecondaryContainerBrush}"
+                          TextWrapping="Wrap"/>
+              </StackPanel>
+            </Border>
+            
+            <!-- Surface Cards -->
+            <Border Grid.Row="1" Grid.Column="0"
+                   Background="{DynamicResource SurfaceContainerBrush}"
+                   CornerRadius="8"
+                   Padding="16">
+              <StackPanel Spacing="8">
+                <TextBlock Text="Surface Container"
+                          Foreground="{DynamicResource OnSurfaceBrush}"
+                          FontWeight="SemiBold"/>
+                <TextBlock Text="Surface container for elevated content."
+                          Foreground="{DynamicResource OnSurfaceBrush}"
+                          TextWrapping="Wrap"/>
+              </StackPanel>
+            </Border>
+            
+            <Border Grid.Row="1" Grid.Column="1"
+                   Background="{DynamicResource SurfaceContainerHighBrush}"
+                   CornerRadius="8"
+                   Padding="16">
+              <StackPanel Spacing="8">
+                <TextBlock Text="Surface Container High"
+                          Foreground="{DynamicResource OnSurfaceBrush}"
+                          FontWeight="SemiBold"/>
+                <TextBlock Text="Higher elevation surface container."
+                          Foreground="{DynamicResource OnSurfaceBrush}"
+                          TextWrapping="Wrap"/>
+              </StackPanel>
+            </Border>
+          </Grid>
+        </StackPanel>
+      </Border>
+      
+      <!-- Inputs Section -->
+      <Border Classes="PreviewCard">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Input Fields" Classes="Label" Opacity="0.6"/>
+          
+          <Grid ColumnDefinitions="*, *" ColumnSpacing="16">
+            <StackPanel Grid.Column="0" Spacing="12">
+              <TextBox Watermark="Text input..." Text="Sample text"/>
+              <TextBox Watermark="Password" PasswordChar="•"/>
+              <ComboBox PlaceholderText="Select option...">
+                <ComboBoxItem>Option 1</ComboBoxItem>
+                <ComboBoxItem>Option 2</ComboBoxItem>
+                <ComboBoxItem>Option 3</ComboBoxItem>
+              </ComboBox>
+            </StackPanel>
+            
+            <StackPanel Grid.Column="1" Spacing="12">
+              <ToggleSwitch Content="Toggle switch"/>
+              <CheckBox Content="Checkbox option"/>
+              <RadioButton Content="Radio button option"/>
+              <Slider Value="50" Minimum="0" Maximum="100"/>
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </Border>
+      
+      <!-- Alerts Section -->
+      <Border Classes="PreviewCard">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Alerts &amp; Messages" Classes="Label" Opacity="0.6"/>
+          
+          <StackPanel Spacing="8">
+            <!-- Error Alert -->
+            <Border Background="{DynamicResource ErrorContainerBrush}"
+                   BorderBrush="{DynamicResource ErrorBrush}"
+                   BorderThickness="1"
+                   CornerRadius="8"
+                   Padding="12">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="⚠" 
+                          FontSize="20"
+                          Foreground="{DynamicResource OnErrorContainerBrush}"/>
+                <StackPanel>
+                  <TextBlock Text="Error Alert"
+                            Foreground="{DynamicResource OnErrorContainerBrush}"
+                            FontWeight="SemiBold"/>
+                  <TextBlock Text="This is an error message example."
+                            Foreground="{DynamicResource OnErrorContainerBrush}"/>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+            
+            <!-- Success Alert -->
+            <Border Background="{DynamicResource SuccessContainerBrush}"
+                   BorderBrush="{DynamicResource SuccessBrush}"
+                   BorderThickness="1"
+                   CornerRadius="8"
+                   Padding="12">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="✓" 
+                          FontSize="20"
+                          Foreground="{DynamicResource OnSuccessContainerBrush}"/>
+                <StackPanel>
+                  <TextBlock Text="Success Alert"
+                            Foreground="{DynamicResource OnSuccessContainerBrush}"
+                            FontWeight="SemiBold"/>
+                  <TextBlock Text="This is a success message example."
+                            Foreground="{DynamicResource OnSuccessContainerBrush}"/>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+            
+            <!-- Info Alert -->
+            <Border Background="{DynamicResource PrimaryContainerBrush}"
+                   BorderBrush="{DynamicResource PrimaryBrush}"
+                   BorderThickness="1"
+                   CornerRadius="8"
+                   Padding="12">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="ℹ" 
+                          FontSize="20"
+                          Foreground="{DynamicResource OnPrimaryContainerBrush}"/>
+                <StackPanel>
+                  <TextBlock Text="Info Alert"
+                            Foreground="{DynamicResource OnPrimaryContainerBrush}"
+                            FontWeight="SemiBold"/>
+                  <TextBlock Text="This is an informational message example."
+                            Foreground="{DynamicResource OnPrimaryContainerBrush}"/>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+      
+      <!-- Typography Section -->
+      <Border Classes="PreviewCard">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Typography" Classes="Label" Opacity="0.6"/>
+          
+          <StackPanel Spacing="4">
+            <TextBlock Text="Display Large" Classes="DisplayLarge"/>
+            <TextBlock Text="Display Medium" Classes="DisplayMedium"/>
+            <TextBlock Text="Display Small" Classes="DisplaySmall"/>
+            <TextBlock Text="Headline Large" Classes="HeadlineLarge"/>
+            <TextBlock Text="Headline Medium" Classes="HeadlineMedium"/>
+            <TextBlock Text="Headline Small" Classes="HeadlineSmall"/>
+            <TextBlock Text="Title Large" Classes="TitleLarge"/>
+            <TextBlock Text="Title Medium" Classes="TitleMedium"/>
+            <TextBlock Text="Body Large" Classes="BodyLarge"/>
+            <TextBlock Text="Body Medium" Classes="BodyMedium"/>
+            <TextBlock Text="Label Large" Classes="LabelLarge"/>
+            <TextBlock Text="Label Medium" Classes="LabelMedium"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+      
+      <!-- Color Palette -->
+      <Border Classes="PreviewCard">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Color Palette" Classes="Label" Opacity="0.6"/>
+          
+          <Grid ColumnDefinitions="*, *, *, *, *, *" RowDefinitions="Auto, Auto, Auto" RowSpacing="8" ColumnSpacing="4">
+            <Border Grid.Row="0" Grid.Column="0" Height="40" Background="{DynamicResource PrimaryBrush}"/>
+            <Border Grid.Row="0" Grid.Column="1" Height="40" Background="{DynamicResource SecondaryBrush}"/>
+            <Border Grid.Row="0" Grid.Column="2" Height="40" Background="{DynamicResource TertiaryBrush}"/>
+            <Border Grid.Row="0" Grid.Column="3" Height="40" Background="{DynamicResource ErrorBrush}"/>
+            <Border Grid.Row="0" Grid.Column="4" Height="40" Background="{DynamicResource BackgroundBrush}"/>
+            <Border Grid.Row="0" Grid.Column="5" Height="40" Background="{DynamicResource SurfaceBrush}"/>
+            
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Primary" HorizontalAlignment="Center" Classes="Caption"/>
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="Secondary" HorizontalAlignment="Center" Classes="Caption"/>
+            <TextBlock Grid.Row="1" Grid.Column="2" Text="Tertiary" HorizontalAlignment="Center" Classes="Caption"/>
+            <TextBlock Grid.Row="1" Grid.Column="3" Text="Error" HorizontalAlignment="Center" Classes="Caption"/>
+            <TextBlock Grid.Row="1" Grid.Column="4" Text="Background" HorizontalAlignment="Center" Classes="Caption"/>
+            <TextBlock Grid.Row="1" Grid.Column="5" Text="Surface" HorizontalAlignment="Center" Classes="Caption"/>
+            
+            <Border Grid.Row="2" Grid.Column="0" Height="40" Background="{DynamicResource OutlineBrush}"/>
+            <Border Grid.Row="2" Grid.Column="1" Height="40" Background="{DynamicResource OutlineVariantBrush}"/>
+            <Border Grid.Row="2" Grid.Column="2" Height="40" Background="{DynamicResource SurfaceVariantBrush}"/>
+            <Border Grid.Row="2" Grid.Column="3" Height="40" Background="{DynamicResource InverseSurfaceBrush}"/>
+            <Border Grid.Row="2" Grid.Column="4" Height="40" Background="{DynamicResource InversePrimaryBrush}"/>
+            <Border Grid.Row="2" Grid.Column="5" Height="40" Background="{DynamicResource GlassBorderBrush}"/>
+            
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Outline" HorizontalAlignment="Center" Classes="Caption"/>
+            <TextBlock Grid.Row="3" Grid.Column="1" Text="Outline Var" HorizontalAlignment="Center" Classes="Caption"/>
+            <TextBlock Grid.Row="3" Grid.Column="2" Text="Surface Var" HorizontalAlignment="Center" Classes="Caption"/>
+            <TextBlock Grid.Row="3" Grid.Column="3" Text="Inv Surface" HorizontalAlignment="Center" Classes="Caption"/>
+            <TextBlock Grid.Row="3" Grid.Column="4" Text="Inv Primary" HorizontalAlignment="Center" Classes="Caption"/>
+            <TextBlock Grid.Row="3" Grid.Column="5" Text="Glass" HorizontalAlignment="Center" Classes="Caption"/>
+          </Grid>
+        </StackPanel>
+      </Border>
+      
+    </StackPanel>
+  </ScrollViewer>
+  
+</UserControl>
