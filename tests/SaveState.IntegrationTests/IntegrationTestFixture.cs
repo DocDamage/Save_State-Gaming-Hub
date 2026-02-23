@@ -138,4 +138,13 @@ public class IntegrationTestFixture : IDisposable, IAsyncLifetime
     {
         return Task.CompletedTask;
     }
+
+    /// <summary>
+    /// Resets the cloud gaming connections to ensure clean state for tests.
+    /// </summary>
+    public void ResetCloudGamingConnections()
+    {
+        var cloudGamingManager = ServiceProvider.GetService<FakeCloudGamingManagerForTests>();
+        cloudGamingManager?.ResetConnections();
+    }
 }

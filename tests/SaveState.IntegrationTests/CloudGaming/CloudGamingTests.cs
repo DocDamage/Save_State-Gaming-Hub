@@ -109,7 +109,9 @@ public class CloudGamingTests : IClassFixture<IntegrationTestFixture>
     [Fact]
     public async Task IsProviderConnected_ReturnsConnectionState()
     {
-        // Arrange
+        // Arrange - Reset to ensure clean state
+        _fixture.ResetCloudGamingConnections();
+        
         var providers = await _cloudGamingManager.GetAvailableProvidersAsync();
         providers.IsSuccess.Should().BeTrue();
         var provider = providers.Value.First();
