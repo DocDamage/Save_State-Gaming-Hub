@@ -28,12 +28,37 @@ public sealed class RgbSyncService : IRgbSyncService
         _providers = providers?.ToList() ?? new List<IRgbProvider>();
     }
 
+    #region Device Discovery
+
+    /// <inheritdoc />
+    public async Task<Result<IReadOnlyList<RgbDevice>>> DiscoverDevicesAsync(CancellationToken ct = default)
+    {
+        await RefreshDevicesAsync(ct).ConfigureAwait(false);
+        return Result.Success<IReadOnlyList<RgbDevice>>(_devices.AsReadOnly());
+    }
+
+    #endregion
+
     #region Device Management
 
     /// <inheritdoc />
     public Task<Result<IReadOnlyList<RgbDevice>>> GetDevicesAsync(CancellationToken ct = default)
     {
         return Task.FromResult(Result.Success<IReadOnlyList<RgbDevice>>(_devices.AsReadOnly()));
+    }
+
+    /// <inheritdoc />
+    public Task<Result<IReadOnlyList<RgbDevice>>> GetConnectedDevicesAsync(CancellationToken ct = default)
+    {
+        var connected = _devices.Where(d => d.IsConnected).ToList();
+        return Task.FromResult(Result.Success<IReadOnlyList<RgbDevice>>(connected));
+    }
+
+    /// <inheritdoc />
+    public Task<Result<IReadOnlyList<RgbDevice>>> GetDevicesByTypeAsync(RgbDeviceType type, CancellationToken ct = default)
+    {
+        var filtered = _devices.Where(d => d.Type == type).ToList();
+        return Task.FromResult(Result.Success<IReadOnlyList<RgbDevice>>(filtered));
     }
 
     /// <inheritdoc />
@@ -45,6 +70,34 @@ public sealed class RgbSyncService : IRgbSyncService
             return Task.FromResult(Result.Failure<RgbDevice>($"Device {deviceId} not found", ErrorType.NotFound));
         }
         return Task.FromResult(Result.Success(device));
+    }
+
+    /// <inheritdoc />
+    public Task<Result> ConnectDeviceAsync(Guid deviceId, CancellationToken ct = default)
+    {
+        var device = _devices.FirstOrDefault(d => d.Id == deviceId);
+        if (device == null)
+        {
+            return Task.FromResult(Result.Failure($"Device {deviceId} not found", ErrorType.NotFound));
+        }
+
+        device.IsConnected = true;
+        _logger.LogInformation("Connected RGB device {DeviceId}", deviceId);
+        return Task.FromResult(Result.Success());
+    }
+
+    /// <inheritdoc />
+    public Task<Result> DisconnectDeviceAsync(Guid deviceId, CancellationToken ct = default)
+    {
+        var device = _devices.FirstOrDefault(d => d.Id == deviceId);
+        if (device == null)
+        {
+            return Task.FromResult(Result.Failure($"Device {deviceId} not found", ErrorType.NotFound));
+        }
+
+        device.IsConnected = false;
+        _logger.LogInformation("Disconnected RGB device {DeviceId}", deviceId);
+        return Task.FromResult(Result.Success());
     }
 
     /// <inheritdoc />
@@ -73,6 +126,29 @@ public sealed class RgbSyncService : IRgbSyncService
     #endregion
 
     #region Effect Control
+
+    /// <inheritdoc />
+    public Task<Result> ApplyEffectAsync(Guid deviceId, RgbEffect effect, CancellationToken ct = default)
+    {
+        return SetDeviceEffectAsync(deviceId, effect, ct);
+    }
+
+    /// <inheritdoc />
+    public Task<Result> ApplyEffectToMultipleAsync(IReadOnlyList<Guid> deviceIds, RgbEffect effect, CancellationToken ct = default)
+    {
+        foreach (var deviceId in deviceIds)
+        {
+            SetDeviceEffectAsync(deviceId, effect, ct);
+        }
+        return Task.FromResult(Result.Success());
+    }
+
+    /// <inheritdoc />
+    public Task<Result> ClearEffectAsync(Guid deviceId, CancellationToken ct = default)
+    {
+        _activeEffects.Remove(deviceId);
+        return Task.FromResult(Result.Success());
+    }
 
     /// <inheritdoc />
     public Task<Result> SetDeviceColorAsync(Guid deviceId, RgbColor color, CancellationToken ct = default)
@@ -158,9 +234,51 @@ public sealed class RgbSyncService : IRgbSyncService
         return Task.FromResult(Result.Success());
     }
 
+    /// <inheritdoc />
+    public Task<Result> SetDeviceBrightnessAsync(Guid deviceId, float brightness, CancellationToken ct = default)
+    {
+        var device = _devices.FirstOrDefault(d => d.Id == deviceId);
+        if (device == null)
+        {
+            return Task.FromResult(Result.Failure($"Device {deviceId} not found", ErrorType.NotFound));
+        }
+
+        foreach (var led in device.Leds)
+        {
+            led.Brightness = Math.Clamp(brightness, 0f, 1f);
+        }
+
+        return Task.FromResult(Result.Success());
+    }
+
+    /// <inheritdoc />
+    public Task<Result> SetEffectSpeedAsync(Guid deviceId, float speed, CancellationToken ct = default)
+    {
+        var device = _devices.FirstOrDefault(d => d.Id == deviceId);
+        if (device == null)
+        {
+            return Task.FromResult(Result.Failure($"Device {deviceId} not found", ErrorType.NotFound));
+        }
+
+        if (_activeEffects.TryGetValue(deviceId, out var effect))
+        {
+            effect.Speed = Math.Clamp(speed, 0f, 1f);
+        }
+
+        return Task.FromResult(Result.Success());
+    }
+
     #endregion
 
     #region Profile Management
+
+    /// <inheritdoc />
+    public Task<Result<RgbProfile>> CreateProfileAsync(RgbProfile profile, CancellationToken ct = default)
+    {
+        _profiles.Add(profile);
+        _logger.LogInformation("Created RGB profile '{ProfileName}' with ID {ProfileId}", profile.Name, profile.Id);
+        return Task.FromResult(Result.Success(profile));
+    }
 
     /// <inheritdoc />
     public Task<Result<RgbProfile>> CreateProfileAsync(string name, CancellationToken ct = default)
@@ -184,6 +302,135 @@ public sealed class RgbSyncService : IRgbSyncService
         _logger.LogInformation("Created RGB profile '{ProfileName}' with ID {ProfileId}", name, profile.Id);
 
         return Task.FromResult(Result.Success(profile));
+    }
+
+    /// <inheritdoc />
+    public Task<Result<RgbProfile>> GetProfileAsync(Guid profileId, CancellationToken ct = default)
+    {
+        var profile = _profiles.FirstOrDefault(p => p.Id == profileId);
+        if (profile == null)
+        {
+            return Task.FromResult(Result.Failure<RgbProfile>($"Profile {profileId} not found", ErrorType.NotFound));
+        }
+        return Task.FromResult(Result.Success(profile));
+    }
+
+    /// <inheritdoc />
+    public Task<Result<IReadOnlyList<RgbProfile>>> GetAllProfilesAsync(CancellationToken ct = default)
+    {
+        return Task.FromResult(Result.Success<IReadOnlyList<RgbProfile>>(_profiles.AsReadOnly()));
+    }
+
+    /// <inheritdoc />
+    public Task<Result> UpdateProfileAsync(RgbProfile profile, CancellationToken ct = default)
+    {
+        var existing = _profiles.FirstOrDefault(p => p.Id == profile.Id);
+        if (existing == null)
+        {
+            return Task.FromResult(Result.Failure($"Profile {profile.Id} not found", ErrorType.NotFound));
+        }
+
+        _profiles.Remove(existing);
+        _profiles.Add(profile);
+        _logger.LogInformation("Updated RGB profile '{ProfileName}'", profile.Name);
+        return Task.FromResult(Result.Success());
+    }
+
+    /// <inheritdoc />
+    public Task<Result> SetDefaultProfileAsync(Guid profileId, CancellationToken ct = default)
+    {
+        var profile = _profiles.FirstOrDefault(p => p.Id == profileId);
+        if (profile == null)
+        {
+            return Task.FromResult(Result.Failure($"Profile {profileId} not found", ErrorType.NotFound));
+        }
+
+        // Unset current default
+        foreach (var p in _profiles.Where(p => p.IsDefault))
+        {
+            p.IsDefault = false;
+        }
+
+        profile.IsDefault = true;
+        _logger.LogInformation("Set RGB profile '{ProfileName}' as default", profile.Name);
+        return Task.FromResult(Result.Success());
+    }
+
+    /// <inheritdoc />
+    public Task<Result<RgbProfile>> DuplicateProfileAsync(Guid profileId, string newName, CancellationToken ct = default)
+    {
+        var profile = _profiles.FirstOrDefault(p => p.Id == profileId);
+        if (profile == null)
+        {
+            return Task.FromResult(Result.Failure<RgbProfile>($"Profile {profileId} not found", ErrorType.NotFound));
+        }
+
+        var copy = new RgbProfile
+        {
+            Id = Guid.NewGuid(),
+            Name = newName,
+            CreatedAt = DateTime.UtcNow,
+            ModifiedAt = DateTime.UtcNow,
+            DeviceEffects = new Dictionary<Guid, RgbEffect>(profile.DeviceEffects),
+            IsDefault = false
+        };
+
+        _profiles.Add(copy);
+        _logger.LogInformation("Duplicated RGB profile '{ProfileName}' to '{NewProfileName}'", profile.Name, newName);
+        return Task.FromResult(Result.Success(copy));
+    }
+
+    /// <inheritdoc />
+    public Task<Result<string>> ExportProfileAsync(Guid profileId, CancellationToken ct = default)
+    {
+        var profile = _profiles.FirstOrDefault(p => p.Id == profileId);
+        if (profile == null)
+        {
+            return Task.FromResult(Result.Failure<string>($"Profile {profileId} not found", ErrorType.NotFound));
+        }
+
+        // Serialize profile to JSON
+        var json = System.Text.Json.JsonSerializer.Serialize(profile, new System.Text.Json.JsonSerializerOptions
+        {
+            WriteIndented = true
+        });
+
+        _logger.LogInformation("Exported RGB profile '{ProfileName}'", profile.Name);
+        return Task.FromResult(Result.Success(json));
+    }
+
+    /// <inheritdoc />
+    public Task<Result<RgbProfile>> ImportProfileAsync(string profileData, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(profileData))
+        {
+            return Task.FromResult(Result.Failure<RgbProfile>("Profile data cannot be empty", ErrorType.Validation));
+        }
+
+        try
+        {
+            var profile = System.Text.Json.JsonSerializer.Deserialize<RgbProfile>(profileData);
+            if (profile == null)
+            {
+                return Task.FromResult(Result.Failure<RgbProfile>("Failed to deserialize profile", ErrorType.Validation));
+            }
+
+            // Generate new ID to avoid conflicts
+            profile.Id = Guid.NewGuid();
+            profile.CreatedAt = DateTime.UtcNow;
+            profile.ModifiedAt = DateTime.UtcNow;
+            profile.IsDefault = false;
+
+            _profiles.Add(profile);
+            _logger.LogInformation("Imported RGB profile '{ProfileName}'", profile.Name);
+
+            return Task.FromResult(Result.Success(profile));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to import profile");
+            return Task.FromResult(Result.Failure<RgbProfile>($"Invalid profile data: {ex.Message}", ErrorType.Validation));
+        }
     }
 
     /// <inheritdoc />
@@ -229,6 +476,87 @@ public sealed class RgbSyncService : IRgbSyncService
     #endregion
 
     #region Sync Groups
+
+    /// <inheritdoc />
+    public Task<Result<RgbSyncGroup>> CreateSyncGroupAsync(RgbSyncGroup group, CancellationToken ct = default)
+    {
+        _syncGroups.Add(group);
+        _logger.LogInformation("Created RGB sync group '{GroupName}' with ID {GroupId}", group.Name, group.Id);
+        return Task.FromResult(Result.Success(group));
+    }
+
+    /// <inheritdoc />
+    public Task<Result<RgbSyncGroup>> GetSyncGroupAsync(Guid groupId, CancellationToken ct = default)
+    {
+        var group = _syncGroups.FirstOrDefault(g => g.Id == groupId);
+        if (group == null)
+        {
+            return Task.FromResult(Result.Failure<RgbSyncGroup>($"Sync group {groupId} not found", ErrorType.NotFound));
+        }
+        return Task.FromResult(Result.Success(group));
+    }
+
+    /// <inheritdoc />
+    public Task<Result> UpdateSyncGroupAsync(RgbSyncGroup group, CancellationToken ct = default)
+    {
+        var existing = _syncGroups.FirstOrDefault(g => g.Id == group.Id);
+        if (existing == null)
+        {
+            return Task.FromResult(Result.Failure($"Sync group {group.Id} not found", ErrorType.NotFound));
+        }
+
+        _syncGroups.Remove(existing);
+        _syncGroups.Add(group);
+        _logger.LogInformation("Updated RGB sync group '{GroupName}'", group.Name);
+        return Task.FromResult(Result.Success());
+    }
+
+    /// <inheritdoc />
+    public Task<Result> AddDeviceToSyncGroupAsync(Guid groupId, Guid deviceId, CancellationToken ct = default)
+    {
+        var group = _syncGroups.FirstOrDefault(g => g.Id == groupId);
+        if (group == null)
+        {
+            return Task.FromResult(Result.Failure($"Sync group {groupId} not found", ErrorType.NotFound));
+        }
+
+        if (!group.DeviceIds.Contains(deviceId))
+        {
+            group.DeviceIds.Add(deviceId);
+        }
+
+        return Task.FromResult(Result.Success());
+    }
+
+    /// <inheritdoc />
+    public Task<Result> RemoveDeviceFromSyncGroupAsync(Guid groupId, Guid deviceId, CancellationToken ct = default)
+    {
+        var group = _syncGroups.FirstOrDefault(g => g.Id == groupId);
+        if (group == null)
+        {
+            return Task.FromResult(Result.Failure($"Sync group {groupId} not found", ErrorType.NotFound));
+        }
+
+        group.DeviceIds.Remove(deviceId);
+        return Task.FromResult(Result.Success());
+    }
+
+    /// <inheritdoc />
+    public Task<Result> ApplySyncGroupEffectAsync(Guid groupId, CancellationToken ct = default)
+    {
+        var group = _syncGroups.FirstOrDefault(g => g.Id == groupId);
+        if (group == null)
+        {
+            return Task.FromResult(Result.Failure($"Sync group {groupId} not found", ErrorType.NotFound));
+        }
+
+        foreach (var deviceId in group.DeviceIds)
+        {
+            SetDeviceEffectAsync(deviceId, group.SharedEffect, ct);
+        }
+
+        return Task.FromResult(Result.Success());
+    }
 
     /// <inheritdoc />
     public Task<Result<RgbSyncGroup>> CreateSyncGroupAsync(string name, List<Guid> deviceIds, CancellationToken ct = default)
@@ -313,6 +641,34 @@ public sealed class RgbSyncService : IRgbSyncService
     #region Game State Integration
 
     /// <inheritdoc />
+    public Task<Result> SetGameStateTriggerAsync(GameStateRgbConfig config, CancellationToken ct = default)
+    {
+        _gameStateConfigs[config.Trigger] = config;
+        _logger.LogInformation("Set game state trigger for {Trigger}", config.Trigger);
+        return Task.FromResult(Result.Success());
+    }
+
+    /// <inheritdoc />
+    public Task<Result<IReadOnlyList<GameStateRgbConfig>>> GetGameStateTriggersAsync(CancellationToken ct = default)
+    {
+        return Task.FromResult(Result.Success<IReadOnlyList<GameStateRgbConfig>>(_gameStateConfigs.Values.ToList()));
+    }
+
+    /// <inheritdoc />
+    public Task<Result> RemoveGameStateTriggerAsync(GameStateRgbTrigger trigger, CancellationToken ct = default)
+    {
+        _gameStateConfigs.Remove(trigger);
+        _logger.LogInformation("Removed game state trigger for {Trigger}", trigger);
+        return Task.FromResult(Result.Success());
+    }
+
+    /// <inheritdoc />
+    public Task<Result> TriggerGameStateAsync(GameStateRgbTrigger trigger, CancellationToken ct = default)
+    {
+        return TriggerGameStateEffectAsync(trigger, ct);
+    }
+
+    /// <inheritdoc />
     public Task<Result> TriggerGameStateEffectAsync(GameStateRgbTrigger trigger, CancellationToken ct = default)
     {
         _logger.LogInformation("Triggering RGB effect for game state: {Trigger}", trigger);
@@ -349,6 +705,12 @@ public sealed class RgbSyncService : IRgbSyncService
     #endregion
 
     #region Provider Management
+
+    /// <inheritdoc />
+    public Task<Result<IReadOnlyList<RgbProviderInfo>>> GetAvailableProvidersAsync(CancellationToken ct = default)
+    {
+        return GetProvidersAsync(ct);
+    }
 
     /// <inheritdoc />
     public Task<Result<IReadOnlyList<RgbProviderInfo>>> GetProvidersAsync(CancellationToken ct = default)

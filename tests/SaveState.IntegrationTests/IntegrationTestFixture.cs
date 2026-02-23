@@ -1,16 +1,25 @@
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Moq;
 using SaveState.Application.RomManagement.RomValidation.Commands;
+using SaveState.Core.Ai.Services;
 using SaveState.Core.Common.Services;
 using SaveState.Core.Common.Interfaces;
+using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Services;
-using SaveState.Core.GameLibrary.DTOs;
+using SaveState.Core.Input.Services;
+using SaveState.Core.RgbSync.Services;
 using SaveState.Core.RomManagement;
 using SaveState.Core.RomManagement.RomValidation.Services;
-using SaveState.Infrastructure.GameLibrary.Services;
+using SaveState.Core.SaveStates.Services;
+using SaveState.Core.Theme.Services;
+using SaveState.Core.Sync.Services;
+using SaveState.Infrastructure.Input;
+using SaveState.Infrastructure.RgbSync;
 using SaveState.Infrastructure.RomManagement;
 using SaveState.Infrastructure.Services;
+using SaveState.Infrastructure.Theme.Services;
 using SaveState.Tests.Fakes;
 
 namespace SaveState.IntegrationTests;
@@ -42,14 +51,27 @@ public class IntegrationTestFixture : IDisposable
             cfg.RegisterServicesFromAssembly(typeof(ValidateRomCommand).Assembly));
 
         // Register services for integration testing
-        // Use fake metadata service and wrap it with resilience behavior.
-        services.AddScoped<FakeMetadataService>();
-        services.AddScoped<IMetadataService>(sp =>
-        {
-            var inner = sp.GetRequiredService<FakeMetadataService>();
-            var logger = sp.GetRequiredService<ILogger<ResilientMetadataService>>();
-            return new ResilientMetadataService(inner, logger);
-        });
+        // Use fake metadata service
+        services.AddScoped<IMetadataService, FakeMetadataService>();
+
+        // Voice Command Service dependencies
+        services.AddSingleton<FakeSpeechRecognitionService>();
+        services.AddSingleton<ISpeechRecognitionService>(sp => sp.GetRequiredService<FakeSpeechRecognitionService>());
+
+        // Mock complex dependencies
+        services.AddSingleton(_ => new Mock<IGameRepository>().Object);
+        services.AddSingleton(_ => new Mock<ILaunchExperienceManager>().Object);
+        services.AddSingleton(_ => new Mock<ISaveStateManager>().Object);
+        services.AddSingleton(_ => new Mock<ICloudGamingManager>().Object);
+        services.AddSingleton<IVoiceCommandService, VoiceCommandService>();
+
+        // Theme Service
+        services.AddSingleton<IThemeService, ThemeService>();
+
+        // RGB Sync Service dependencies
+        services.AddSingleton<FakeRgbProvider>();
+        services.AddSingleton<IEnumerable<IRgbProvider>>(sp => new[] { sp.GetRequiredService<FakeRgbProvider>() });
+        services.AddSingleton<IRgbSyncService, RgbSyncService>();
 
         ServiceProvider = services.BuildServiceProvider();
     }

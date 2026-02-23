@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -10,6 +9,8 @@ using System.Diagnostics;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.ValueObjects;
 using SaveState.Core.GameLibrary.Enums;
+using SaveState.EndToEndTests.Infrastructure;
+using Splat;
 
 
 namespace SaveState.EndToEndTests;
@@ -58,11 +59,17 @@ public class IntegrationTestFixture : IDisposable
                 // Register all application services (same as production)
                 services.AddInfrastructure(configuration);
                 services.AddApplicationServices();
+                
+                // Register all presentation services required for E2E tests
+                services.AddPresentationServicesForE2E();
 
                 // Override with test-specific services if needed
                 services.AddSingleton<ILoggerFactory, TestLoggerFactory>();
             })
             .Build();
+        
+        // Configure Splat Locator for Avalonia (required by ViewModels)
+        Locator.Current.SetServices(_host.Services);
 
         _services = _host.Services;
 
