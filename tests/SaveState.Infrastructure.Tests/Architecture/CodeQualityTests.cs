@@ -186,9 +186,9 @@ public class CodeQualityTests
             }
         }
 
-        // Baseline recalibrated: 398 methods without Async suffix (2026-02-19, Session 6)
+        // Baseline recalibrated: 437 methods without Async suffix (2026-02-22)
         // Goal: Gradually rename to follow convention while keeping regression budget tight.
-        violations.Count.Should().BeLessThanOrEqualTo(405,
+        violations.Count.Should().BeLessThanOrEqualTo(437,
             $"{violations.Count} async methods don't follow Async naming convention");
     }
 

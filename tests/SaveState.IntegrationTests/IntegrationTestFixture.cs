@@ -16,9 +16,12 @@ using SaveState.Core.SaveStates.Services;
 using SaveState.Core.Sync.Services;
 using SaveState.Core.WebBrowser.Services;
 // Note: Using fake services from SaveState.Tests.Fakes instead of infrastructure implementations
+using SaveState.Core.Esports.Services;
+using SaveState.Core.Theme.Services;
 using SaveState.Infrastructure.Input;
 using SaveState.Infrastructure.RgbSync;
 using SaveState.Infrastructure.RomManagement;
+using SaveState.Infrastructure.Theme.Services;
 using SaveState.Tests.Fakes;
 
 namespace SaveState.IntegrationTests;
@@ -77,6 +80,13 @@ public class IntegrationTestFixture : IDisposable
         services.AddSingleton<INetworkQualityMonitor>(sp => sp.GetRequiredService<FakeNetworkQualityMonitor>());
         services.AddSingleton<FakeCloudCatalogService>(sp => new FakeCloudCatalogService(sp.GetRequiredService<ICloudGamingManager>()));
         services.AddSingleton<ICloudCatalogService>(sp => sp.GetRequiredService<FakeCloudCatalogService>());
+
+        // Theme Service - use real implementation for integration tests
+        services.AddSingleton<IThemeService, ThemeService>();
+
+        // Tournament Service - use fake implementation for integration tests
+        services.AddSingleton<FakeTournamentService>();
+        services.AddSingleton<ITournamentService>(sp => sp.GetRequiredService<FakeTournamentService>());
 
         ServiceProvider = services.BuildServiceProvider();
     }

@@ -211,7 +211,12 @@ public partial class DataManagementViewModel : ObservableObject
 
     private async Task LoadBackupsAsync()
     {
-        if (_dataManagementService is null) return;
+        if (_dataManagementService is null)
+        {
+            // Load sample data for design-time or when service is not available
+            LoadSampleBackups();
+            return;
+        }
 
         try
         {
