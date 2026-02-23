@@ -23,11 +23,6 @@
             <Setter Property="BorderThickness" Value="2"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1"/>
-                </Transitions>
-            </Transitions>
         </Style>
 
         <Style Selector="Border.ColorSwatchLarge:pointerover">

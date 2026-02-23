@@ -187,7 +187,7 @@ public static class ViewModelLoadingExtensions
     /// <returns>The result of the operation.</returns>
     public static async Task<T> WithProgressAsync<T>(
         this ObservableObject viewModel,
-        Func<IProgress&lt;ProgressReport&gt;, Task<T>> action,
+        Func<IProgress<ProgressReport>, Task<T>> action,
         ProgressIndicator progress,
         int totalSteps,
         ILogger? logger = null)

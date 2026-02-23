@@ -16,12 +16,6 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
-                </Transitions>
-            </Transitions>
         </Style>
 
         <Style Selector="Border.ProfileCard:pointerover">

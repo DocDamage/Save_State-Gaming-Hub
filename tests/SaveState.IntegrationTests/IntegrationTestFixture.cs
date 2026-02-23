@@ -15,6 +15,9 @@ using SaveState.Tests.Fakes;
 
 namespace SaveState.IntegrationTests;
 
+/// <summary>
+/// Shared fixture for integration tests providing configured services and test data.
+/// </summary>
 public class IntegrationTestFixture : IDisposable
 {
     public IServiceProvider ServiceProvider { get; }

@@ -88,7 +88,7 @@
             </Border>
 
             <Border Grid.Column="2"
-                    Classes.warning-badge
+                    Classes="warning-badge"
                     VerticalAlignment="Center"
                     IsVisible="{Binding IsSelfSigned}">
                 <TextBlock Text="Self-Signed"

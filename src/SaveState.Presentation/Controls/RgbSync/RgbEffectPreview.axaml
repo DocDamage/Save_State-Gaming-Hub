@@ -19,11 +19,6 @@
             <Setter Property="Width" Value="8"/>
             <Setter Property="Height" Value="8"/>
             <Setter Property="CornerRadius" Value="2"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <SolidColorBrushTransition Property="Background" Duration="0:0:0.1"/>
-                </Transitions>
-            </Transitions>
         </Style>
     </UserControl.Styles>
 

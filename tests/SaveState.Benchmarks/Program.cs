@@ -10,6 +10,10 @@ Console.WriteLine();
 BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 
 // Or run specific benchmarks:
+// BenchmarkRunner.Run<GameLibraryBenchmarks>();
 // BenchmarkRunner.Run<GameSearchBenchmarks>();
 // BenchmarkRunner.Run<SaveStateBenchmarks>();
+// BenchmarkRunner.Run<SaveStateBranchingBenchmarks>();
 // BenchmarkRunner.Run<CloudSyncBenchmarks>();
+// BenchmarkRunner.Run<SearchBenchmarks>();
+// BenchmarkRunner.Run<ResultPatternBenchmarks>();

@@ -8,8 +8,12 @@
     <NoWarn>CA2007,CA1822</NoWarn>
   </PropertyGroup>
 
-  <!-- TODO: These tests need updating to match new interface/DTO changes -->
+  <!-- Avalonia Headless Testing -->
   <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Headless" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,11 +34,16 @@
     <ProjectReference Include="..\..\src\SaveState.Core\SaveState.Core.csproj" />
     <ProjectReference Include="..\..\src\SaveState.Application\SaveState.Application.csproj" />
     <ProjectReference Include="..\..\src\SaveState.Infrastructure\SaveState.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\SaveState.Presentation\SaveState.Presentation.csproj" />
     <ProjectReference Include="..\SaveState.Tests.Fakes\SaveState.Tests.Fakes.csproj" />
+    <ProjectReference Include="..\SaveState.Tests.Infrastructure\SaveState.Tests.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="Avalonia" />
+    <Using Include="Avalonia.Controls" />
+    <Using Include="Avalonia.Headless" />
   </ItemGroup>
 
   <ItemGroup>

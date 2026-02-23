@@ -15,11 +15,6 @@
             <Setter Property="Padding" Value="16"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.2"/>
-                </Transitions>
-            </Transitions>
         </Style>
 
         <Style Selector="Border.TriggerCard.Active">
