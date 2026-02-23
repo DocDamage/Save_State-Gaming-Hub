@@ -1,5 +1,8 @@
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Layout;
 using Avalonia.LogicalTree;
 using Avalonia.VisualTree;
 
@@ -100,13 +103,20 @@ public static class ControlExtensions
             tcs.TrySetResult(true);
         }
 
-        control.LayoutUpdated += OnLayoutUpdated;
+        // LayoutUpdated is on Control, not Visual
+        if (control is Control ctrl)
+        {
+            ctrl.LayoutUpdated += OnLayoutUpdated;
+        }
         
         try
         {
-            // Trigger layout
-            control.InvalidateMeasure();
-            control.InvalidateArrange();
+            // Trigger layout - InvalidateMeasure/InvalidateArrange are on Layoutable
+            if (control is Layoutable layoutable)
+            {
+                layoutable.InvalidateMeasure();
+                layoutable.InvalidateArrange();
+            }
             
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(TimeSpan.FromSeconds(5));
@@ -115,7 +125,10 @@ public static class ControlExtensions
         }
         finally
         {
-            control.LayoutUpdated -= OnLayoutUpdated;
+            if (control is Control ctrl2)
+            {
+                ctrl2.LayoutUpdated -= OnLayoutUpdated;
+            }
         }
     }
 

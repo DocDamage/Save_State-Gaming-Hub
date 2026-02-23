@@ -1,7 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless;
+using Avalonia.Input;
 using Microsoft.Extensions.DependencyInjection;
+using SaveState.Presentation;
 
 namespace SaveState.EndToEndTests.Infrastructure;
 
@@ -25,7 +28,7 @@ public static class AvaloniaTestApp
         {
             if (_initialized) return;
 
-            _appBuilder = AppBuilder.Configure<Application>()
+            _appBuilder = AppBuilder.Configure<App>()
                 .UseHeadless(new AvaloniaHeadlessPlatformOptions
                 {
                     UseHeadlessDrawing = true
@@ -101,7 +104,7 @@ public class AvaloniaTestHost : IAsyncDisposable
 
         return await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
         {
-            var pixelSize = _mainWindow.Bounds.Size.ToPixel(1);
+            var pixelSize = PixelSize.FromSize(_mainWindow.Bounds.Size, 1);
             if (pixelSize.Width <= 0 || pixelSize.Height <= 0)
                 return Array.Empty<byte>();
 
@@ -135,7 +138,7 @@ public class AvaloniaTestHost : IAsyncDisposable
         await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
         {
             textBox.Text = text;
-            textBox.RaiseEvent(new Avalonia.Controls.TextInputEventArgs
+            textBox.RaiseEvent(new TextInputEventArgs
             {
                 RoutedEvent = InputElement.TextInputEvent,
                 Text = text

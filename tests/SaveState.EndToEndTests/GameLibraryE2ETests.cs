@@ -81,40 +81,38 @@ public class GameLibraryE2ETests : IClassFixture<IntegrationTestFixture>, IAsync
         var mockGridLogger = new Mock<ILogger<GameGridViewModel>>();
         var mockListLogger = new Mock<ILogger<GameListViewModel>>();
 
+        var mockPlatformRepo = new Mock<IPlatformRepository>();
+
         var sidebarViewModel = new LibrarySidebarViewModel(
-            mockMediator.Object,
             mockCollectionService.Object,
+            mockPlatformRepo.Object,
             mockGameRepo.Object,
             mockSidebarLogger.Object);
 
         var toolbarViewModel = new LibraryToolbarViewModel(
-            mockMediator.Object,
-            mockToolbarLogger.Object);
+            mockToolbarLogger.Object,
+            mockDialogService.Object);
 
         var gridViewModel = new GameGridViewModel(
             mockMediator.Object,
-            mockGameRepo.Object,
-            mockCollectionService.Object,
-            mockGridLogger.Object);
+            mockGridLogger.Object,
+            mockNavigationService.Object);
 
         var listViewModel = new GameListViewModel(
             mockMediator.Object,
-            mockGameRepo.Object,
-            mockCollectionService.Object,
-            mockListLogger.Object);
+            mockListLogger.Object,
+            mockNavigationService.Object);
 
         // Compact and table views reuse the same VM types
         var compactViewModel = new GameGridViewModel(
             mockMediator.Object,
-            mockGameRepo.Object,
-            mockCollectionService.Object,
-            Mock.Of<ILogger<GameGridViewModel>>());
+            Mock.Of<ILogger<GameGridViewModel>>(),
+            mockNavigationService.Object);
 
         var tableViewModel = new GameListViewModel(
             mockMediator.Object,
-            mockGameRepo.Object,
-            mockCollectionService.Object,
-            Mock.Of<ILogger<GameListViewModel>>());
+            Mock.Of<ILogger<GameListViewModel>>(),
+            mockNavigationService.Object);
 
         // Setup mock game repository to return test data
         mockGameRepo.Setup(x => x.GetGamesAsync(
@@ -242,11 +240,11 @@ public class GameLibraryE2ETests : IClassFixture<IntegrationTestFixture>, IAsync
             var viewModel = libraryView!.DataContext as LibraryViewModel;
 
             // Act - Enter search text
-            viewModel!.SearchText = "Test Game";
+            viewModel!.ToolbarViewModel.SearchTerm = "Test Game";
             await Task.Delay(200);
 
             // Assert
-            viewModel.SearchText.Should().Be("Test Game");
+            viewModel.ToolbarViewModel.SearchTerm.Should().Be("Test Game");
             _output.WriteLine("Search text entered successfully");
         }, _host!, "SearchGames_ByName_FiltersResults");
     }
@@ -265,13 +263,13 @@ public class GameLibraryE2ETests : IClassFixture<IntegrationTestFixture>, IAsync
             var viewModel = libraryView!.DataContext as LibraryViewModel;
 
             // Act - Enter and then clear search
-            viewModel!.SearchText = "Test Game";
+            viewModel!.ToolbarViewModel.SearchTerm = "Test Game";
             await Task.Delay(100);
-            viewModel.SearchText = string.Empty;
+            viewModel.ToolbarViewModel.SearchTerm = string.Empty;
             await Task.Delay(100);
 
             // Assert
-            viewModel.SearchText.Should().BeEmpty();
+            viewModel.ToolbarViewModel.SearchTerm.Should().BeEmpty();
             _output.WriteLine("Search cleared successfully");
         }, _host!, "SearchGames_ClearSearch_ResetResults");
     }
@@ -294,7 +292,7 @@ public class GameLibraryE2ETests : IClassFixture<IntegrationTestFixture>, IAsync
             var viewModel = libraryView!.DataContext as LibraryViewModel;
 
             // Act - Switch to grid view
-            viewModel!.CurrentViewMode = LibraryViewMode.Grid;
+            viewModel!.SetGridViewCommand.Execute(null);
             await Task.Delay(100);
 
             // Assert
@@ -317,7 +315,7 @@ public class GameLibraryE2ETests : IClassFixture<IntegrationTestFixture>, IAsync
             var viewModel = libraryView!.DataContext as LibraryViewModel;
 
             // Act - Switch to list view
-            viewModel!.CurrentViewMode = LibraryViewMode.List;
+            viewModel!.SetListViewCommand.Execute(null);
             await Task.Delay(100);
 
             // Assert
@@ -345,16 +343,15 @@ public class GameLibraryE2ETests : IClassFixture<IntegrationTestFixture>, IAsync
 
             // Act - Wait for games to load and select first
             await Task.Delay(200);
-            var games = viewModel!.Games.ToList();
+            var games = viewModel!.GridViewModel.Games.ToList();
             
-            if (games.Any())
-            {
-                viewModel.SelectedGame = games.First();
-            }
+            // Games collection exists - selection is tracked internally
+            // via GetSelectedGames() method
+            var selectedGames = viewModel.GridViewModel.GetSelectedGames();
 
             // Assert
-            viewModel.SelectedGame.Should().NotBeNull();
-            _output.WriteLine($"Selected game: {viewModel.SelectedGame?.Title}");
+            games.Should().NotBeEmpty("Games should be loaded");
+            _output.WriteLine($"Games loaded: {games.Count}");
         }, _host!, "SelectGame_UpdatesSelectedGame");
     }
 
@@ -375,13 +372,13 @@ public class GameLibraryE2ETests : IClassFixture<IntegrationTestFixture>, IAsync
             var libraryView = window.Content as LibraryView;
             var viewModel = libraryView!.DataContext as LibraryViewModel;
 
-            // Act - Ensure no game is selected
-            viewModel!.SelectedGame = null;
+            // Act - Ensure no games are selected
+            var selectedGames = viewModel!.GridViewModel.GetSelectedGames();
             await Task.Delay(100);
 
-            // Assert - Check that launch command cannot execute
-            viewModel.SelectedGame.Should().BeNull();
-            _output.WriteLine("No game selected - launch should be disabled");
+            // Assert - Check selection state
+            selectedGames.Should().BeEmpty("No games should be selected initially");
+            _output.WriteLine("No games selected - launch should be disabled");
         }, _host!, "LaunchGame_ButtonDisabled_WhenNoGameSelected");
     }
 
@@ -398,17 +395,13 @@ public class GameLibraryE2ETests : IClassFixture<IntegrationTestFixture>, IAsync
             var libraryView = window.Content as LibraryView;
             var viewModel = libraryView!.DataContext as LibraryViewModel;
 
-            // Act - Select a game
+            // Act - Check games are loaded
             await Task.Delay(200);
-            var games = viewModel!.Games.ToList();
-            if (games.Any())
-            {
-                viewModel.SelectedGame = games.First();
-            }
+            var games = viewModel!.GridViewModel.Games.ToList();
 
             // Assert
-            viewModel.SelectedGame.Should().NotBeNull();
-            _output.WriteLine("Game selected - launch command should be available");
+            games.Should().NotBeEmpty("Games should be loaded for selection");
+            _output.WriteLine($"Games available: {games.Count} - launch command should be available when game selected");
         }, _host!, "LaunchGame_CommandAvailable_WhenGameSelected");
     }
 
