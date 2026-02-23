@@ -9,6 +9,7 @@
       <ResourceDictionary.MergedDictionaries>
         <!-- Brushes must be loaded at application level for all controls to access them -->
         <ResourceInclude Source="avares://SaveState.Presentation/Styles/Brushes.axaml" />
+        <ResourceInclude Source="avares://SaveState.Presentation/Styles/MobileStyles.axaml" />
       </ResourceDictionary.MergedDictionaries>
 
       <!-- Converters -->
@@ -51,6 +52,16 @@
       <converters:ProviderToDisplayNameConverter x:Key="ProviderToDisplayNameConverter" />
       <converters:PlatformToIconConverter x:Key="PlatformToIconConverter" />
       <converters:BoolToYesNoConverter x:Key="BoolToYesNoConverter" />
+
+      <!-- Mobile Companion Converters -->
+      <converters:DeviceTypeToEmojiConverter x:Key="DeviceTypeToEmojiConverter" />
+      <converters:TimeAgoConverter x:Key="TimeAgoConverter" />
+      <converters:FileSizeConverter x:Key="FileSizeConverter" />
+      <converters:NotificationTypeToEmojiConverter x:Key="NotificationTypeToEmojiConverter" />
+      <converters:EnumToBoolConverter x:Key="EnumToBoolConverter" />
+      <converters:CpuUsageToBrushConverter x:Key="CpuUsageToBrushConverter" />
+      <converters:RamUsageToBrushConverter x:Key="RamUsageToBrushConverter" />
+      <converters:TemperatureToBrushConverter x:Key="TemperatureToBrushConverter" />
 
       <converters:HealthStatusToBrushConverter x:Key="HealthStatusToBrushConverter" />
       <converters:ErrorSeverityToBrushConverter x:Key="ErrorSeverityToBrushConverter" />

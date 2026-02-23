@@ -1,0 +1,193 @@
+<!--
+    PairingDialog.axaml
+    
+    Desktop dialog for confirming mobile device pairing requests.
+    Displays device information and requested permissions.
+    
+    Binding Context: PairingDialogViewModel
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        x:Class="SaveState.Presentation.Views.Dialogs.PairingDialog"
+        x:DataType="vm:PairingDialogViewModel"
+        Title="📱 Pair New Device"
+        Width="420"
+        Height="520"
+        MinWidth="400"
+        MinHeight="480"
+        MaxWidth="500"
+        MaxHeight="600"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="{StaticResource DialogBackgroundBrush}">
+
+    <Grid RowDefinitions="*,Auto" Margin="24">
+        <!-- Content -->
+        <ScrollViewer Grid.Row="0">
+            <StackPanel Spacing="20">
+                <!-- Header with Device Icon -->
+                <StackPanel Spacing="16" HorizontalAlignment="Center">
+                    <Border Width="80"
+                           Height="80"
+                           CornerRadius="40"
+                           Background="{StaticResource AccentBrush}"
+                           Opacity="0.2">
+                        <TextBlock Text="{Binding DeviceIcon}"
+                                  FontSize="40"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="New Device Request"
+                                  FontSize="20"
+                                  FontWeight="Bold"
+                                  TextAlignment="Center"
+                                  Foreground="{StaticResource TextPrimaryBrush}" />
+                        <TextBlock Text="{Binding Request.DeviceName}"
+                                  FontSize="16"
+                                  TextAlignment="Center"
+                                  Foreground="{StaticResource TextSecondaryBrush}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Message -->
+                <TextBlock Text="This device wants to connect to your SaveState hub. Review the details below before allowing access."
+                          FontSize="14"
+                          TextWrapping="Wrap"
+                          TextAlignment="Center"
+                          Foreground="{StaticResource TextSecondaryBrush}" />
+
+                <!-- Device Info Card -->
+                <Border Background="{StaticResource CardBackgroundBrush}"
+                       CornerRadius="12"
+                       Padding="16">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Device Information"
+                                  FontSize="13"
+                                  FontWeight="SemiBold"
+                                  Foreground="{StaticResource TextPrimaryBrush}" />
+                        
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+                            <TextBlock Grid.Row="0" Grid.Column="0"
+                                      Text="Type:"
+                                      FontSize="13"
+                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      Margin="0,0,16,0" />
+                            <TextBlock Grid.Row="0" Grid.Column="1"
+                                      Text="{Binding Request.DeviceType}"
+                                      FontSize="13"
+                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                            
+                            <TextBlock Grid.Row="1" Grid.Column="0"
+                                      Text="OS:"
+                                      FontSize="13"
+                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      Margin="0,0,16,0" />
+                            <TextBlock Grid.Row="1" Grid.Column="1"
+                                      Text="{Binding Request.OsVersion}"
+                                      FontSize="13"
+                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                            
+                            <TextBlock Grid.Row="2" Grid.Column="0"
+                                      Text="App:"
+                                      FontSize="13"
+                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      Margin="0,0,16,0" />
+                            <TextBlock Grid.Row="2" Grid.Column="1"
+                                      Text="{Binding Request.AppVersion}"
+                                      FontSize="13"
+                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                            
+                            <TextBlock Grid.Row="3" Grid.Column="0"
+                                      Text="Code:"
+                                      FontSize="13"
+                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      Margin="0,0,16,0" />
+                            <TextBlock Grid.Row="3" Grid.Column="1"
+                                      Text="{Binding Request.PairingCode}"
+                                      FontSize="13"
+                                      FontFamily="{StaticResource MonospaceFont}"
+                                      FontWeight="Bold"
+                                      Foreground="{StaticResource AccentBrush}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Permissions -->
+                <Border Background="{StaticResource CardBackgroundBrush}"
+                       CornerRadius="12"
+                       Padding="16">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Permissions Requested"
+                                  FontSize="13"
+                                  FontWeight="SemiBold"
+                                  Foreground="{StaticResource TextPrimaryBrush}" />
+                        
+                        <ItemsControl ItemsSource="{Binding Permissions}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="Auto,*" Margin="0,6">
+                                        <CheckBox Grid.Column="0"
+                                                 IsChecked="{Binding IsGranted}"
+                                                 Margin="0,0,12,0" />
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Name}"
+                                                      FontSize="13"
+                                                      FontWeight="SemiBold"
+                                                      Foreground="{StaticResource TextPrimaryBrush}" />
+                                            <TextBlock Text="{Binding Description}"
+                                                      FontSize="11"
+                                                      TextWrapping="Wrap"
+                                                      Foreground="{StaticResource TextTertiaryBrush}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Security Note -->
+                <Border Background="{StaticResource WarningBrush}"
+                       Opacity="0.1"
+                       CornerRadius="8"
+                       Padding="12">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="⚠️"
+                                  FontSize="16"
+                                  VerticalAlignment="Center" />
+                        <TextBlock Text="Only allow devices you trust. You can revoke access at any time from Settings."
+                                  FontSize="12"
+                                  TextWrapping="Wrap"
+                                  Foreground="{StaticResource WarningBrush}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Buttons -->
+        <Grid Grid.Row="1"
+              ColumnDefinitions="*,Auto,Auto"
+              Margin="0,20,0,0">
+            <Panel Grid.Column="0" />
+
+            <Button Grid.Column="1"
+                   Content="Decline"
+                   Command="{Binding DeclineCommand}"
+                   Classes="Secondary"
+                   Margin="0,0,12,0"
+                   Width="100"
+                   Height="40"
+                   ToolTip.Tip="Reject this pairing request" />
+
+            <Button Grid.Column="2"
+                   Content="Allow"
+                   Command="{Binding AllowCommand}"
+                   Classes="Primary"
+                   Width="100"
+                   Height="40"
+                   ToolTip.Tip="Accept and pair with this device" />
+        </Grid>
+    </Grid>
+</Window>

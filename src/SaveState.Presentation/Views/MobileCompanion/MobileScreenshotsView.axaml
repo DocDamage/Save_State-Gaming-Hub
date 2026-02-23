@@ -1,0 +1,226 @@
+<!--
+    MobileScreenshotsView.axaml
+    
+    Screenshots gallery for mobile companion app.
+    View, download, and share screenshots remotely.
+    
+    Binding Context: MobileScreenshotsViewModel
+-->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.MobileCompanion"
+             xmlns:models="using:SaveState.Presentation.Models.Mobile"
+             x:Class="SaveState.Presentation.Views.MobileCompanion.MobileScreenshotsView"
+             x:DataType="vm:MobileScreenshotsViewModel"
+             Background="{StaticResource BackgroundBrush}">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <!-- Header -->
+        <Grid Grid.Row="0"
+              ColumnDefinitions="Auto,*,Auto,Auto"
+              Margin="16,12"
+              VerticalAlignment="Center">
+            <Button Grid.Column="0"
+                   Command="{Binding GoBackCommand}"
+                   Classes="IconButton">
+                <TextBlock Text="←" FontSize="24" />
+            </Button>
+
+            <TextBlock Grid.Column="1"
+                      Text="Screenshots"
+                      FontSize="17"
+                      FontWeight="SemiBold"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      Foreground="{StaticResource TextPrimaryBrush}" />
+
+            <Button Grid.Column="2"
+                   Command="{Binding RefreshScreenshotsCommand}"
+                   Classes="IconButton"
+                   Margin="0,0,8,0">
+                <TextBlock Text="🔄" FontSize="20" />
+            </Button>
+
+            <Button Grid.Column="3"
+                   Command="{Binding TakeScreenshotCommand}"
+                   Classes="IconButton">
+                <TextBlock Text="📷" FontSize="20" />
+            </Button>
+        </Grid>
+
+        <!-- Game Filter -->
+        <ComboBox Grid.Row="1"
+                 ItemsSource="{Binding AvailableGames}"
+                 SelectedItem="{Binding SelectedGame}"
+                 HorizontalAlignment="Stretch"
+                 Margin="16,0,16,12"
+                 PlaceholderText="All Games"
+                 Classes="MobileComboBox" />
+
+        <!-- Screenshots Grid -->
+        <ScrollViewer Grid.Row="2" Margin="16,0">
+            <StackPanel Spacing="8">
+                <!-- Loading Indicator -->
+                <ProgressBar IsVisible="{Binding IsLoading}"
+                            IsIndeterminate="True"
+                            HorizontalAlignment="Stretch"
+                            Height="4"
+                            Margin="0,8" />
+
+                <!-- Empty State -->
+                <StackPanel IsVisible="{Binding FilteredScreenshots.Count, Converter={x:Static BoolConverters.Equal}, ConverterParameter=0}"
+                           Spacing="16"
+                           Margin="0,48"
+                           HorizontalAlignment="Center">
+                    <TextBlock Text="📸"
+                              FontSize="64"
+                              HorizontalAlignment="Center"
+                              Opacity="0.5" />
+                    <TextBlock Text="No screenshots yet"
+                              FontSize="16"
+                              Foreground="{StaticResource TextTertiaryBrush}"
+                              HorizontalAlignment="Center" />
+                    <Button Command="{Binding TakeScreenshotCommand}"
+                           Classes="Secondary MobileButton"
+                           Content="Take Screenshot" />
+                </StackPanel>
+
+                <!-- Screenshot Grid -->
+                <ItemsControl ItemsSource="{Binding FilteredScreenshots}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="2" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:ScreenshotInfo">
+                            <Button Command="{Binding $parent[ItemsControl].((vm:MobileScreenshotsViewModel)DataContext).ViewScreenshotCommand}"
+                                   CommandParameter="{Binding}"
+                                   Classes="ScreenshotCard"
+                                   Margin="4">
+                                <Grid>
+                                    <Border Aspect="16/9"
+                                           CornerRadius="8"
+                                           Background="{StaticResource SurfaceBrush}">
+                                        <Image Source="{Binding ImageUrl, FallbackValue={StaticResource DefaultScreenshot}}"
+                                              Stretch="UniformToFill" />
+                                    </Border>
+                                    <Border VerticalAlignment="Bottom"
+                                           Background="#80000000"
+                                           CornerRadius="0,0,8,8"
+                                           Padding="8,4">
+                                        <TextBlock Text="{Binding GameTitle}"
+                                                  FontSize="11"
+                                                  TextTrimming="CharacterEllipsis"
+                                                  Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </Border>
+                                </Grid>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Image Viewer Overlay -->
+        <Grid Grid.Row="0" Grid.RowSpan="4"
+             IsVisible="{Binding IsViewerOpen}"
+             Background="{StaticResource BackgroundBrush}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Viewer Header -->
+            <Grid Grid.Row="0"
+                  ColumnDefinitions="Auto,*,Auto,Auto"
+                  Margin="16,12"
+                  VerticalAlignment="Center">
+                <Button Grid.Column="0"
+                       Command="{Binding CloseViewerCommand}"
+                       Classes="IconButton">
+                    <TextBlock Text="✕" FontSize="24" />
+                </Button>
+
+                <TextBlock Grid.Column="1"
+                          Text="{Binding SelectedScreenshot.GameTitle}"
+                          FontSize="16"
+                          FontWeight="SemiBold"
+                          TextTrimming="CharacterEllipsis"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          Foreground="{StaticResource TextPrimaryBrush}" />
+
+                <Button Grid.Column="2"
+                       Command="{Binding ToggleFullscreenCommand}"
+                       Classes="IconButton"
+                       Margin="0,0,8,0">
+                    <TextBlock Text="⛶" FontSize="20" />
+                </Button>
+
+                <DropDownButton Grid.Column="3"
+                               Classes="IconButton">
+                    <TextBlock Text="⋮" FontSize="20" />
+                    <DropDownButton.Flyout>
+                        <MenuFlyout>
+                            <MenuItem Header="💾 Download"
+                                     Command="{Binding DownloadScreenshotCommand}"
+                                     CommandParameter="{Binding SelectedScreenshot}" />
+                            <MenuItem Header="📤 Share"
+                                     Command="{Binding ShareScreenshotCommand}"
+                                     CommandParameter="{Binding SelectedScreenshot}" />
+                            <MenuItem Header="-" IsEnabled="False" />
+                            <MenuItem Header="🗑️ Delete"
+                                     Command="{Binding DeleteScreenshotCommand}"
+                                     CommandParameter="{Binding SelectedScreenshot}" />
+                        </MenuFlyout>
+                    </DropDownButton.Flyout>
+                </DropDownButton>
+            </Grid>
+
+            <!-- Image Display -->
+            <Border Grid.Row="1"
+                   Background="{StaticResource SurfaceBrush}"
+                   Margin="16,8">
+                <Image Source="{Binding SelectedScreenshot.ImageUrl}"
+                      Stretch="Uniform" />
+            </Border>
+
+            <!-- Viewer Footer -->
+            <StackPanel Grid.Row="2"
+                       Spacing="8"
+                       Margin="16,8,16,16">
+                <TextBlock Text="{Binding SelectedScreenshot.CapturedAt, StringFormat='Captured: {0:MMM dd, yyyy HH:mm}'}"
+                          FontSize="12"
+                          Foreground="{StaticResource TextSecondaryBrush}"
+                          HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding SelectedScreenshot.Resolution}"
+                          FontSize="12"
+                          Foreground="{StaticResource TextTertiaryBrush}"
+                          HorizontalAlignment="Center" />
+
+                <!-- Navigation -->
+                <Grid ColumnDefinitions="*,Auto,*" Margin="0,8">
+                    <Button Grid.Column="0"
+                           Command="{Binding PreviousImageCommand}"
+                           HorizontalAlignment="Left"
+                           Classes="RoundButton">
+                        <TextBlock Text="◀" FontSize="20" />
+                    </Button>
+                    <TextBlock Grid.Column="1"
+                              Text="{Binding CurrentImageIndex, StringFormat='{}{0} / {1}', FallbackValue='1 / 1'}"
+                              FontSize="14"
+                              VerticalAlignment="Center"
+                              Foreground="{StaticResource TextSecondaryBrush}" />
+                    <Button Grid.Column="2"
+                           Command="{Binding NextImageCommand}"
+                           HorizontalAlignment="Right"
+                           Classes="RoundButton">
+                        <TextBlock Text="▶" FontSize="20" />
+                    </Button>
+                </Grid>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

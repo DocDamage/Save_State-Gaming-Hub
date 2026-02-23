@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  
+  <!-- Mobile Companion -->
+  <data name="Mobile_Title" xml:space="preserve"><value>Mobile Companion</value></data>
+  <data name="Mobile_Welcome" xml:space="preserve"><value>Welcome! Connect to your gaming hub remotely.</value></data>
+  <data name="Mobile_PairingCode" xml:space="preserve"><value>Pairing Code</value></data>
+  <data name="Mobile_EnterCode" xml:space="preserve"><value>Enter 6-digit code</value></data>
+  <data name="Mobile_ScanQR" xml:space="preserve"><value>Scan QR Code</value></data>
+  <data name="Mobile_Connect" xml:space="preserve"><value>Connect</value></data>
+  <data name="Mobile_HowToPair" xml:space="preserve"><value>How to pair?</value></data>
+  
+  <!-- Dashboard -->
+  <data name="Mobile_NowPlaying" xml:space="preserve"><value>Now Playing</value></data>
+  <data name="Mobile_QuickActions" xml:space="preserve"><value>Quick Actions</value></data>
+  <data name="Mobile_RecentlyPlayed" xml:space="preserve"><value>Recently Played</value></data>
+  <data name="Mobile_SystemStatus" xml:space="preserve"><value>System Status</value></data>
+  <data name="Mobile_ViewAll" xml:space="preserve"><value>View All</value></data>
+  
+  <!-- Remote Control -->
+  <data name="Remote_Title" xml:space="preserve"><value>Remote Control</value></data>
+  <data name="Remote_Gamepad" xml:space="preserve"><value>Gamepad</value></data>
+  <data name="Remote_Touchpad" xml:space="preserve"><value>Touchpad</value></data>
+  <data name="Remote_Media" xml:space="preserve"><value>Media</value></data>
+  <data name="Remote_Keyboard" xml:space="preserve"><value>Keyboard</value></data>
+  <data name="Remote_VoiceCommand" xml:space="preserve"><value>Voice Command</value></data>
+  <data name="Remote_TouchToControl" xml:space="preserve"><value>Touch to control mouse cursor</value></data>
+  <data name="Remote_ShowKeyboard" xml:space="preserve"><value>Show Keyboard</value></data>
+  
+  <!-- Notifications -->
+  <data name="Notifications_Title" xml:space="preserve"><value>Notifications</value></data>
+  <data name="Notifications_ClearAll" xml:space="preserve"><value>Clear All</value></data>
+  <data name="Notifications_NoNotifications" xml:space="preserve"><value>No notifications</value></data>
+  <data name="Notifications_MarkAsRead" xml:space="preserve"><value>Mark as Read</value></data>
+  
+  <!-- Save States -->
+  <data name="SaveStates_Title" xml:space="preserve"><value>Save States</value></data>
+  <data name="SaveStates_Create" xml:space="preserve"><value>Create Save State</value></data>
+  <data name="SaveStates_Load" xml:space="preserve"><value>Load</value></data>
+  <data name="SaveStates_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="SaveStates_Share" xml:space="preserve"><value>Share</value></data>
+  
+  <!-- Screenshots -->
+  <data name="Screenshots_Title" xml:space="preserve"><value>Screenshots</value></data>
+  <data name="Screenshots_Take" xml:space="preserve"><value>Take Screenshot</value></data>
+  <data name="Screenshots_Download" xml:space="preserve"><value>Download</value></data>
+  <data name="Screenshots_NoScreenshots" xml:space="preserve"><value>No screenshots yet</value></data>
+  
+  <!-- Pairing Dialog -->
+  <data name="Pairing_Title" xml:space="preserve"><value>Pair New Device</value></data>
+  <data name="Pairing_Request" xml:space="preserve"><value>wants to connect to your SaveState hub.</value></data>
+  <data name="Pairing_DeviceInfo" xml:space="preserve"><value>Device Info</value></data>
+  <data name="Pairing_Type" xml:space="preserve"><value>Type</value></data>
+  <data name="Pairing_OS" xml:space="preserve"><value>OS</value></data>
+  <data name="Pairing_AppVersion" xml:space="preserve"><value>App Version</value></data>
+  <data name="Pairing_Permissions" xml:space="preserve"><value>Permissions requested</value></data>
+  <data name="Pairing_LaunchGames" xml:space="preserve"><value>Launch games</value></data>
+  <data name="Pairing_ControlMedia" xml:space="preserve"><value>Control media</value></data>
+  <data name="Pairing_ManageSaves" xml:space="preserve"><value>Manage save states</value></data>
+  <data name="Pairing_StreamGameplay" xml:space="preserve"><value>Stream gameplay</value></data>
+  <data name="Pairing_Decline" xml:space="preserve"><value>Decline</value></data>
+  <data name="Pairing_Allow" xml:space="preserve"><value>Allow</value></data>
+  
+  <!-- Connection Status -->
+  <data name="Status_Connected" xml:space="preserve"><value>Connected</value></data>
+  <data name="Status_Connecting" xml:space="preserve"><value>Connecting...</value></data>
+  <data name="Status_Disconnected" xml:space="preserve"><value>Disconnected</value></data>
+  <data name="Status_Error" xml:space="preserve"><value>Connection Error</value></data>
+  <data name="Status_Disconnect" xml:space="preserve"><value>Disconnect</value></data>
+  
+  <!-- Errors -->
+  <data name="Err_InvalidPairingCode" xml:space="preserve"><value>Invalid pairing code. Please enter 6 digits.</value></data>
+  <data name="Err_ConnectionFailed" xml:space="preserve"><value>Failed to connect. Please try again.</value></data>
+  <data name="Err_NotConnected" xml:space="preserve"><value>Not connected to hub.</value></data>
+  
+  <!-- Actions -->
+  <data name="Action_Launch" xml:space="preserve"><value>Launch</value></data>
+  <data name="Action_Play" xml:space="preserve"><value>Play</value></data>
+  <data name="Action_Pause" xml:space="preserve"><value>Pause</value></data>
+  <data name="Action_Stop" xml:space="preserve"><value>Stop</value></data>
+  <data name="Action_VolumeUp" xml:space="preserve"><value>Volume Up</value></data>
+  <data name="Action_VolumeDown" xml:space="preserve"><value>Volume Down</value></data>
+  <data name="Action_Mute" xml:space="preserve"><value>Mute</value></data>
+</root>

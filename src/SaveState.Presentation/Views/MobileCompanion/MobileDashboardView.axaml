@@ -1,0 +1,306 @@
+<!--
+    MobileDashboardView.axaml
+    
+    Main dashboard for mobile companion app.
+    Shows system status, currently playing game, recent games, and quick actions.
+    
+    Binding Context: MobileDashboardViewModel
+-->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.MobileCompanion"
+             xmlns:models="using:SaveState.Presentation.Models.Mobile"
+             x:Class="SaveState.Presentation.Views.MobileCompanion.MobileDashboardView"
+             x:DataType="vm:MobileDashboardViewModel"
+             Background="{StaticResource BackgroundBrush}">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- Header -->
+        <Grid Grid.Row="0"
+              ColumnDefinitions="Auto,*,Auto,Auto"
+              Margin="16,12"
+              VerticalAlignment="Center">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                <Ellipse Width="8"
+                        Height="8"
+                        Fill="{StaticResource SuccessBrush}"
+                        VerticalAlignment="Center" />
+                <TextBlock Text="Connected"
+                          FontSize="14"
+                          FontWeight="SemiBold"
+                          Foreground="{StaticResource SuccessBrush}"
+                          VerticalAlignment="Center" />
+            </StackPanel>
+
+            <Button Grid.Column="2"
+                   Command="{Binding OpenSettingsCommand}"
+                   Classes="IconButton"
+                   Margin="0,0,8,0">
+                <TextBlock Text="⚙️" FontSize="20" />
+            </Button>
+
+            <Button Grid.Column="3"
+                   Command="{Binding DisconnectCommand}"
+                   Classes="IconButton">
+                <TextBlock Text="🔌" FontSize="20" />
+            </Button>
+        </Grid>
+
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1"
+                     Margin="0,0,0,8">
+            <StackPanel Spacing="16" Margin="16,0">
+                <!-- Now Playing Card -->
+                <Border IsVisible="{Binding CurrentlyPlaying, Converter={x:Static ObjectConverters.IsNotNull}}"
+                       Background="{StaticResource CardBackgroundBrush}"
+                       CornerRadius="16"
+                       Padding="16"
+                       BoxShadow="0 4 20 0 #40000000">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="NOW PLAYING"
+                                  FontSize="12"
+                                  FontWeight="Bold"
+                                  Foreground="{StaticResource AccentBrush}" />
+                        
+                        <Grid ColumnDefinitions="80,*" RowDefinitions="Auto,Auto,Auto">
+                            <!-- Game Cover -->
+                            <Border Grid.Row="0" Grid.RowSpan="3"
+                                   Grid.Column="0"
+                                   Width="72"
+                                   Height="96"
+                                   CornerRadius="8"
+                                   Background="{StaticResource SurfaceBrush}">
+                                <Image Source="{Binding CurrentlyPlaying.CoverImageUrl, FallbackValue={StaticResource DefaultGameCover}}"
+                                      Stretch="UniformToFill"
+                                      VerticalAlignment="Center"
+                                      HorizontalAlignment="Center" />
+                            </Border>
+
+                            <!-- Game Title -->
+                            <TextBlock Grid.Row="0"
+                                      Grid.Column="1"
+                                      Text="{Binding CurrentlyPlaying.Title}"
+                                      FontSize="18"
+                                      FontWeight="Bold"
+                                      TextTrimming="CharacterEllipsis"
+                                      Foreground="{StaticResource TextPrimaryBrush}"
+                                      Margin="12,0,0,4" />
+
+                            <!-- Play Time -->
+                            <TextBlock Grid.Row="1"
+                                      Grid.Column="1"
+                                      Text="{Binding CurrentlyPlaying.TotalPlayTime, StringFormat='⏱️ {0:h\\:mm} played'}"
+                                      FontSize="13"
+                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                      Margin="12,0,0,8" />
+
+                            <!-- Quick Controls -->
+                            <StackPanel Grid.Row="2"
+                                       Grid.Column="1"
+                                       Orientation="Horizontal"
+                                       Spacing="12"
+                                       Margin="12,0,0,0">
+                                <Button Command="{Binding PauseGameCommand}"
+                                       Classes="RoundButton Small"
+                                       ToolTip.Tip="Pause">
+                                    <TextBlock Text="⏸️" FontSize="18" />
+                                </Button>
+                                <Button Command="{Binding TakeScreenshotCommand}"
+                                       Classes="RoundButton Small"
+                                       ToolTip.Tip="Screenshot">
+                                    <TextBlock Text="📷" FontSize="18" />
+                                </Button>
+                                <Button Command="{Binding ToggleRecordingCommand}"
+                                       Classes="RoundButton Small"
+                                       ToolTip.Tip="Record">
+                                    <TextBlock Text="🎥" FontSize="18" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Quick Actions -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="QUICK ACTIONS"
+                              FontSize="12"
+                              FontWeight="Bold"
+                              Foreground="{StaticResource TextTertiaryBrush}" />
+                    
+                    <UniformGrid Columns="3">
+                        <Button Command="{Binding OpenRemoteControlCommand}"
+                               Classes="QuickActionButton"
+                               Height="80"
+                               Margin="0,0,8,0">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="🎮" FontSize="28" HorizontalAlignment="Center" />
+                                <TextBlock Text="Remote" FontSize="12" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Command="{Binding OpenSaveStatesCommand}"
+                               Classes="QuickActionButton"
+                               Height="80"
+                               Margin="4,0">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="💾" FontSize="28" HorizontalAlignment="Center" />
+                                <TextBlock Text="Saves" FontSize="12" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Command="{Binding OpenScreenshotsCommand}"
+                               Classes="QuickActionButton"
+                               Height="80"
+                               Margin="8,0,0,0">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="📸" FontSize="28" HorizontalAlignment="Center" />
+                                <TextBlock Text="Photos" FontSize="12" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </UniformGrid>
+                </StackPanel>
+
+                <!-- Recently Played -->
+                <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="RECENTLY PLAYED"
+                                  FontSize="12"
+                                  FontWeight="Bold"
+                                  Foreground="{StaticResource TextTertiaryBrush}" />
+                        <Button Grid.Column="1"
+                               Content="View All"
+                               Classes="TextButton Small"
+                               Foreground="{StaticResource AccentBrush}" />
+                    </Grid>
+
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                 VerticalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{Binding RecentGames}"
+                                     VerticalAlignment="Top">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="12" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:GameSummary">
+                                    <Button Command="{Binding $parent[ItemsControl].((vm:MobileDashboardViewModel)DataContext).LaunchGameCommand}"
+                                           CommandParameter="{Binding}"
+                                           Classes="GameCard"
+                                           Width="90">
+                                        <StackPanel Spacing="6">
+                                            <Border Width="90"
+                                                   Height="120"
+                                                   CornerRadius="8"
+                                                   Background="{StaticResource SurfaceBrush}">
+                                                <Image Source="{Binding CoverImageUrl, FallbackValue={StaticResource DefaultGameCover}}"
+                                                      Stretch="UniformToFill" />
+                                            </Border>
+                                            <TextBlock Text="{Binding Title}"
+                                                      FontSize="11"
+                                                      TextTrimming="CharacterEllipsis"
+                                                      MaxLines="1"
+                                                      TextAlignment="Center"
+                                                      Foreground="{StaticResource TextPrimaryBrush}" />
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </StackPanel>
+
+                <!-- System Status -->
+                <Border Background="{StaticResource CardBackgroundBrush}"
+                       CornerRadius="12"
+                       Padding="16">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="SYSTEM STATUS"
+                                  FontSize="12"
+                                  FontWeight="Bold"
+                                  Foreground="{StaticResource TextTertiaryBrush}" />
+                        
+                        <UniformGrid Columns="3">
+                            <!-- CPU -->
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding SystemStatus.CpuUsage, StringFormat='{}{0:F0}%'}"
+                                          FontSize="20"
+                                          FontWeight="Bold"
+                                          Foreground="{Binding SystemStatus.CpuUsage, Converter={StaticResource CpuUsageToBrushConverter}}"
+                                          HorizontalAlignment="Center" />
+                                <TextBlock Text="CPU"
+                                          FontSize="11"
+                                          Foreground="{StaticResource TextTertiaryBrush}"
+                                          HorizontalAlignment="Center" />
+                            </StackPanel>
+
+                            <!-- RAM -->
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding SystemStatus.RamUsage, StringFormat='{}{0:F0}%'}"
+                                          FontSize="20"
+                                          FontWeight="Bold"
+                                          Foreground="{Binding SystemStatus.RamUsage, Converter={StaticResource RamUsageToBrushConverter}}"
+                                          HorizontalAlignment="Center" />
+                                <TextBlock Text="RAM"
+                                          FontSize="11"
+                                          Foreground="{StaticResource TextTertiaryBrush}"
+                                          HorizontalAlignment="Center" />
+                            </StackPanel>
+
+                            <!-- Temperature -->
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding SystemStatus.Temperature, StringFormat='{}{0:F0}°C'}"
+                                          FontSize="20"
+                                          FontWeight="Bold"
+                                          Foreground="{Binding SystemStatus.Temperature, Converter={StaticResource TemperatureToBrushConverter}}"
+                                          HorizontalAlignment="Center" />
+                                <TextBlock Text="TEMP"
+                                          FontSize="11"
+                                          Foreground="{StaticResource TextTertiaryBrush}"
+                                          HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </UniformGrid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Bottom Navigation -->
+        <Grid Grid.Row="2"
+              Background="{StaticResource SurfaceBrush}"
+              Height="64">
+            <UniformGrid Columns="4">
+                <Button Classes="NavButton Active">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="🏠" FontSize="22" HorizontalAlignment="Center" />
+                        <TextBlock Text="Home" FontSize="10" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <Button Command="{Binding OpenRemoteControlCommand}"
+                       Classes="NavButton">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="🎮" FontSize="22" HorizontalAlignment="Center" />
+                        <TextBlock Text="Remote" FontSize="10" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <Button Command="{Binding OpenSaveStatesCommand}"
+                       Classes="NavButton">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="💾" FontSize="22" HorizontalAlignment="Center" />
+                        <TextBlock Text="Saves" FontSize="10" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <Button Command="{Binding OpenNotificationsCommand}"
+                       Classes="NavButton">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="🔔" FontSize="22" HorizontalAlignment="Center" />
+                        <TextBlock Text="More" FontSize="10" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </UniformGrid>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -46,6 +46,7 @@ using SaveState.Core.Mugen.TournamentEvents;
 using SaveState.Core.Mugen.AiBattleAnalysis;
 using SaveState.Core.AutoSave;
 using SaveState.Infrastructure.Mugen.Services;
+using SaveState.Infrastructure.MobileCompanion.Services;
 
 namespace SaveState.Infrastructure.Persistence;
 
@@ -168,6 +169,9 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
 
     // Input Recording
     public DbSet<Core.InputRecording.InputRecording> InputRecordings { get; set; }
+
+    // Mobile Companion
+    public DbSet<MobileDeviceEntity> MobileDevices { get; set; }
 
     public SaveStateDbContext(DbContextOptions<SaveStateDbContext> options)
         : base(options)
@@ -546,6 +550,23 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
         modelBuilder.Entity<LaunchSession>()
             .HasIndex(s => s.StartedAt)
             .HasDatabaseName("IX_LaunchSessions_StartedAt");
+
+        // Mobile Companion indexes
+        modelBuilder.Entity<MobileDeviceEntity>()
+            .HasIndex(d => d.DeviceName)
+            .HasDatabaseName("IX_MobileDevices_DeviceName");
+
+        modelBuilder.Entity<MobileDeviceEntity>()
+            .HasIndex(d => d.DeviceType)
+            .HasDatabaseName("IX_MobileDevices_DeviceType");
+
+        modelBuilder.Entity<MobileDeviceEntity>()
+            .HasIndex(d => d.IsConnected)
+            .HasDatabaseName("IX_MobileDevices_IsConnected");
+
+        modelBuilder.Entity<MobileDeviceEntity>()
+            .HasIndex(d => d.PairedAt)
+            .HasDatabaseName("IX_MobileDevices_PairedAt");
     }
 
     private static void IgnoreUnkeyedNonOwnedTypes(ModelBuilder modelBuilder)

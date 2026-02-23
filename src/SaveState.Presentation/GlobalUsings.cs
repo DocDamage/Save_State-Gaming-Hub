@@ -23,3 +23,8 @@ global using SaveState.Presentation.Views.Analytics;
 // Phase 2 - Search
 global using SaveState.Presentation.ViewModels.Search;
 global using SaveState.Presentation.Views.Search;
+
+// Mobile Companion App
+global using SaveState.Presentation.ViewModels.MobileCompanion;
+global using SaveState.Presentation.Views.MobileCompanion;
+global using SaveState.Presentation.Models.Mobile;

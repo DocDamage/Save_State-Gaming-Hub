@@ -1,0 +1,248 @@
+<!--
+    MobileNotificationsView.axaml
+    
+    Notifications center for mobile companion app.
+    View and manage notifications from the gaming hub.
+    
+    Binding Context: MobileNotificationsViewModel
+-->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.MobileCompanion"
+             xmlns:models="using:SaveState.Presentation.Models.Mobile"
+             x:Class="SaveState.Presentation.Views.MobileCompanion.MobileNotificationsView"
+             x:DataType="vm:MobileNotificationsViewModel"
+             Background="{StaticResource BackgroundBrush}">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <!-- Header -->
+        <Grid Grid.Row="0"
+              ColumnDefinitions="Auto,*,Auto,Auto"
+              Margin="16,12"
+              VerticalAlignment="Center">
+            <Button Grid.Column="0"
+                   Command="{Binding GoBackCommand}"
+                   Classes="IconButton">
+                <TextBlock Text="←" FontSize="24" />
+            </Button>
+
+            <StackPanel Grid.Column="1" 
+                       Orientation="Horizontal" 
+                       Spacing="8"
+                       HorizontalAlignment="Center">
+                <TextBlock Text="Notifications"
+                          FontSize="17"
+                          FontWeight="SemiBold"
+                          VerticalAlignment="Center"
+                          Foreground="{StaticResource TextPrimaryBrush}" />
+                <Border IsVisible="{Binding HasUnread}"
+                       Background="{StaticResource ErrorBrush}"
+                       CornerRadius="10"
+                       Padding="6,2"
+                       VerticalAlignment="Center">
+                    <TextBlock Text="{Binding UnreadCount}"
+                              FontSize="12"
+                              FontWeight="Bold"
+                              Foreground="White" />
+                </Border>
+            </StackPanel>
+
+            <Button Grid.Column="2"
+                   Command="{Binding RefreshCommand}"
+                   Classes="IconButton"
+                   Margin="0,0,8,0">
+                <TextBlock Text="🔄" FontSize="20" />
+            </Button>
+
+            <Button Grid.Column="3"
+                   Command="{Binding MarkAllAsReadCommand}"
+                   IsEnabled="{Binding HasUnread}"
+                   Classes="IconButton">
+                <TextBlock Text="✓" FontSize="20" />
+            </Button>
+        </Grid>
+
+        <!-- Filter Tabs -->
+        <ScrollViewer Grid.Row="1"
+                     HorizontalScrollBarVisibility="Auto"
+                     VerticalScrollBarVisibility="Disabled"
+                     Margin="16,0,16,12">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <ItemsControl ItemsSource="{Binding AvailableFilters}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="8" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <ToggleButton Content="{Binding}"
+                                         IsChecked="{Binding $parent[ItemsControl].((vm:MobileNotificationsViewModel)DataContext).SelectedFilter, Converter={StaticResource EqualityConverter}, ConverterParameter={Binding}}"
+                                         Command="{Binding $parent[ItemsControl].((vm:MobileNotificationsViewModel)DataContext).ApplyFilterCommand}"
+                                         Classes="FilterChip" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Notifications List -->
+        <ScrollViewer Grid.Row="2" Margin="16,0">
+            <StackPanel Spacing="8">
+                <!-- Loading Indicator -->
+                <ProgressBar IsVisible="{Binding IsLoading}"
+                            IsIndeterminate="True"
+                            HorizontalAlignment="Stretch"
+                            Height="4"
+                            Margin="0,8" />
+
+                <!-- Empty State -->
+                <StackPanel IsVisible="{Binding FilteredNotifications.Count, Converter={x:Static BoolConverters.Equal}, ConverterParameter=0}"
+                           Spacing="16"
+                           Margin="0,48"
+                           HorizontalAlignment="Center">
+                    <TextBlock Text="🔔"
+                              FontSize="64"
+                              HorizontalAlignment="Center"
+                              Opacity="0.5" />
+                    <TextBlock Text="No notifications"
+                              FontSize="16"
+                              Foreground="{StaticResource TextTertiaryBrush}"
+                              HorizontalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Notification Items -->
+                <ItemsControl ItemsSource="{Binding FilteredNotifications}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:CompanionNotification">
+                            <SwipeControl RightItems="{Binding SwipeItems}">
+                                <SwipeControl.RightItems>
+                                    <SwipeItems>
+                                        <SwipeItem Text="Delete"
+                                                  Background="{StaticResource ErrorBrush}"
+                                                  Command="{Binding $parent[ItemsControl].((vm:MobileNotificationsViewModel)DataContext).DeleteNotificationCommand}"
+                                                  CommandParameter="{Binding}" />
+                                    </SwipeItems>
+                                </SwipeControl.RightItems>
+                                
+                                <Button Command="{Binding $parent[ItemsControl].((vm:MobileNotificationsViewModel)DataContext).OpenNotificationCommand}"
+                                       CommandParameter="{Binding}"
+                                       HorizontalAlignment="Stretch"
+                                       Classes="NotificationCard"
+                                       Margin="0,4">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <!-- Icon -->
+                                        <TextBlock Grid.Column="0"
+                                                  Text="{Binding Type, Converter={StaticResource NotificationTypeToEmojiConverter}}"
+                                                  FontSize="24"
+                                                  Margin="0,0,12,0"
+                                                  VerticalAlignment="Center" />
+
+                                        <!-- Content -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="{Binding Title}"
+                                                          FontSize="14"
+                                                          FontWeight="SemiBold"
+                                                          TextTrimming="CharacterEllipsis"
+                                                          Foreground="{StaticResource TextPrimaryBrush}" />
+                                                <Border IsVisible="{Binding !IsRead}"
+                                                       Background="{StaticResource AccentBrush}"
+                                                       Width="6"
+                                                       Height="6"
+                                                       CornerRadius="3"
+                                                       VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Message}"
+                                                      FontSize="12"
+                                                      TextTrimming="CharacterEllipsis"
+                                                      MaxLines="2"
+                                                      Foreground="{StaticResource TextSecondaryBrush}"
+                                                      Margin="0,2,0,0" />
+                                            <TextBlock Text="{Binding Timestamp, Converter={StaticResource TimeAgoConverter}}"
+                                                      FontSize="11"
+                                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                                      Margin="0,4,0,0" />
+                                        </StackPanel>
+
+                                        <!-- Chevron -->
+                                        <TextBlock Grid.Column="2"
+                                                  Text="›"
+                                                  FontSize="20"
+                                                  Foreground="{StaticResource TextTertiaryBrush}"
+                                                  VerticalAlignment="Center"
+                                                  Margin="8,0,0,0" />
+                                    </Grid>
+                                </Button>
+                            </SwipeControl>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Clear All Button -->
+        <Button Grid.Row="3"
+               Command="{Binding ClearAllCommand}"
+               IsEnabled="{Binding Notifications.Count, Converter={x:Static BoolConverters.NotEqual}, ConverterParameter=0}"
+               HorizontalAlignment="Stretch"
+               Height="48"
+               Classes="Secondary MobileButton"
+               Margin="16,12">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="🗑️" FontSize="18" />
+                <TextBlock Text="Clear All" VerticalAlignment="Center" />
+            </StackPanel>
+        </Button>
+
+        <!-- Notification Detail Overlay -->
+        <Border Grid.Row="0" Grid.RowSpan="4"
+               IsVisible="{Binding IsDetailOpen}"
+               Background="{StaticResource OverlayBackgroundBrush}"
+               PointerPressed="{Binding CloseDetailCommand}">
+            <Border Width="320"
+                   Background="{StaticResource CardBackgroundBrush}"
+                   CornerRadius="16"
+                   Padding="24"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="{Binding SelectedNotification.Type, Converter={StaticResource NotificationTypeToEmojiConverter}}"
+                              FontSize="48"
+                              HorizontalAlignment="Center" />
+                    
+                    <TextBlock Text="{Binding SelectedNotification.Title}"
+                              FontSize="18"
+                              FontWeight="Bold"
+                              TextWrapping="Wrap"
+                              TextAlignment="Center"
+                              Foreground="{StaticResource TextPrimaryBrush}" />
+                    
+                    <TextBlock Text="{Binding SelectedNotification.Message}"
+                              FontSize="14"
+                              TextWrapping="Wrap"
+                              TextAlignment="Center"
+                              Foreground="{StaticResource TextSecondaryBrush}" />
+                    
+                    <TextBlock Text="{Binding SelectedNotification.Timestamp, StringFormat='{}{0:MMM dd, yyyy HH:mm}'}"
+                              FontSize="12"
+                              Foreground="{StaticResource TextTertiaryBrush}"
+                              HorizontalAlignment="Center" />
+
+                    <StackPanel Spacing="8" Margin="0,8,0,0">
+                        <Button IsVisible="{Binding SelectedNotification.ActionUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                               HorizontalAlignment="Stretch"
+                               Height="48"
+                               Classes="Primary MobileButton"
+                               Content="Open" />
+                        <Button Command="{Binding CloseDetailCommand}"
+                               HorizontalAlignment="Stretch"
+                               Height="48"
+                               Classes="Secondary MobileButton"
+                               Content="Close" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

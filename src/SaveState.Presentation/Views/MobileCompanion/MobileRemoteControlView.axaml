@@ -1,0 +1,509 @@
+<!--
+    MobileRemoteControlView.axaml
+    
+    Multi-mode remote control for mobile companion app.
+    Supports Gamepad, Touchpad, Media, and Keyboard modes.
+    
+    Binding Context: MobileRemoteControlViewModel
+-->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.MobileCompanion"
+             xmlns:models="using:SaveState.Presentation.Models.Mobile"
+             x:Class="SaveState.Presentation.Views.MobileCompanion.MobileRemoteControlView"
+             x:DataType="vm:MobileRemoteControlViewModel"
+             Background="{StaticResource BackgroundBrush}">
+
+    <UserControl.Styles>
+        <Style Selector="Button.GamepadButton">
+            <Setter Property="Width" Value="56" />
+            <Setter Property="Height" Value="56" />
+            <Setter Property="CornerRadius" Value="28" />
+            <Setter Property="Background" value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="Foreground" value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+        <Style Selector="Button.GamepadButton:pointerover">
+            <Setter Property="Background" value="{StaticResource CardHoverBrush}" />
+        </Style>
+        <Style Selector="Button.GamepadButton:pressed">
+            <Setter Property="Background" value="{StaticResource AccentBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- Header -->
+        <Grid Grid.Row="0"
+              ColumnDefinitions="Auto,*,Auto"
+              Margin="16,12"
+              VerticalAlignment="Center">
+            <Button Grid.Column="0"
+                   Command="{Binding GoBackCommand}"
+                   Classes="IconButton">
+                <TextBlock Text="←" FontSize="24" />
+            </Button>
+
+            <TextBlock Grid.Column="1"
+                      Text="{Binding CurrentMode, StringFormat='{}{0} Control'}"
+                      FontSize="17"
+                      FontWeight="SemiBold"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      Foreground="{StaticResource TextPrimaryBrush}" />
+
+            <DropDownButton Grid.Column="2"
+                           Content="⚙️"
+                           FontSize="20"
+                           Classes="IconButton">
+                <DropDownButton.Flyout>
+                    <MenuFlyout Placement="BottomEdgeAlignedRight">
+                        <MenuItem Header="🎮 Gamepad"
+                                 Command="{Binding SwitchModeCommand}"
+                                 CommandParameter="Gamepad" />
+                        <MenuItem Header="👆 Touchpad"
+                                 Command="{Binding SwitchModeCommand}"
+                                 CommandParameter="Touchpad" />
+                        <MenuItem Header="🎵 Media"
+                                 Command="{Binding SwitchModeCommand}"
+                                 CommandParameter="Media" />
+                        <MenuItem Header="⌨️ Keyboard"
+                                 Command="{Binding SwitchModeCommand}"
+                                 CommandParameter="Keyboard" />
+                        <MenuItem Header="-" IsEnabled="False" />
+                        <MenuItem Header="Haptic Feedback"
+                                 IsCheckable="True"
+                                 IsChecked="{Binding HapticFeedbackEnabled}" />
+                    </MenuFlyout>
+                </DropDownButton.Flyout>
+            </DropDownButton>
+        </Grid>
+
+        <!-- Gamepad Mode -->
+        <Grid Grid.Row="1"
+              IsVisible="{Binding CurrentMode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Gamepad}"
+              Margin="16,8"
+              RowDefinitions="Auto,*,Auto">
+            
+            <!-- Triggers Row -->
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto,*" Margin="0,0,0,16">
+                <StackPanel Grid.Column="0" HorizontalAlignment="Left" Spacing="8">
+                    <Button Command="{Binding SendButtonPressCommand}"
+                           CommandParameter="LB"
+                           Classes="GamepadButton"
+                           Width="64"
+                           Height="36"
+                           CornerRadius="18">
+                        <TextBlock Text="LB" FontSize="14" FontWeight="Bold" />
+                    </Button>
+                    <Button Command="{Binding SendButtonPressCommand}"
+                           CommandParameter="LT"
+                           Classes="GamepadButton"
+                           Width="64"
+                           Height="36"
+                           CornerRadius="18">
+                        <TextBlock Text="LT" FontSize="14" FontWeight="Bold" />
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" HorizontalAlignment="Right" Spacing="8">
+                    <Button Command="{Binding SendButtonPressCommand}"
+                           CommandParameter="RB"
+                           Classes="GamepadButton"
+                           Width="64"
+                           Height="36"
+                           CornerRadius="18">
+                        <TextBlock Text="RB" FontSize="14" FontWeight="Bold" />
+                    </Button>
+                    <Button Command="{Binding SendButtonPressCommand}"
+                           CommandParameter="RT"
+                           Classes="GamepadButton"
+                           Width="64"
+                           Height="36"
+                           CornerRadius="18">
+                        <TextBlock Text="RT" FontSize="14" FontWeight="Bold" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- Main Controls -->
+            <Grid Grid.Row="1" ColumnDefinitions="*,Auto,*">
+                <!-- Left Stick -->
+                <Border Grid.Column="0"
+                       Width="120"
+                       Height="120"
+                       CornerRadius="60"
+                       Background="{StaticResource CardBackgroundBrush}"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Center">
+                    <Grid>
+                        <Ellipse Fill="{StaticResource SurfaceBrush}" Margin="8" />
+                        <Button Classes="GamepadButton"
+                               Width="44"
+                               Height="44"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center">
+                            <TextBlock Text="L" FontSize="16" FontWeight="Bold" />
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Center Buttons -->
+                <StackPanel Grid.Column="1" Spacing="12" VerticalAlignment="Center">
+                    <Button Command="{Binding SendButtonPressCommand}"
+                           CommandParameter="Home"
+                           Classes="GamepadButton"
+                           Width="48"
+                           Height="48"
+                           CornerRadius="24">
+                        <TextBlock Text="🏠" FontSize="16" />
+                    </Button>
+                    <Button Command="{Binding SendButtonPressCommand}"
+                           CommandParameter="Menu"
+                           Classes="GamepadButton"
+                           Width="48"
+                           Height="48"
+                           CornerRadius="24">
+                        <TextBlock Text="☰" FontSize="16" />
+                    </Button>
+                </StackPanel>
+
+                <!-- Right Stick + ABXY -->
+                <Grid Grid.Column="2" HorizontalAlignment="Right">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- ABXY Buttons -->
+                    <Grid Grid.Row="0" Width="140" Height="140">
+                        <Button Command="{Binding SendButtonPressCommand}"
+                               CommandParameter="Y"
+                               Classes="GamepadButton"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Top"
+                               Background="#F59E0B">
+                            <TextBlock Text="Y" FontWeight="Bold" />
+                        </Button>
+                        <Button Command="{Binding SendButtonPressCommand}"
+                               CommandParameter="B"
+                               Classes="GamepadButton"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center"
+                               Background="#EF4444">
+                            <TextBlock Text="B" FontWeight="Bold" />
+                        </Button>
+                        <Button Command="{Binding SendButtonPressCommand}"
+                               CommandParameter="A"
+                               Classes="GamepadButton"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Bottom"
+                               Background="#10B981">
+                            <TextBlock Text="A" FontWeight="Bold" />
+                        </Button>
+                        <Button Command="{Binding SendButtonPressCommand}"
+                               CommandParameter="X"
+                               Classes="GamepadButton"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center"
+                               Background="#3B82F6">
+                            <TextBlock Text="X" FontWeight="Bold" />
+                        </Button>
+                    </Grid>
+
+                    <!-- Right Stick -->
+                    <Border Grid.Row="1"
+                           Width="100"
+                           Height="100"
+                           CornerRadius="50"
+                           Background="{StaticResource CardBackgroundBrush}"
+                           HorizontalAlignment="Center"
+                           Margin="0,16,0,0">
+                        <Grid>
+                            <Ellipse Fill="{StaticResource SurfaceBrush}" Margin="8" />
+                            <Button Classes="GamepadButton"
+                                   Width="40"
+                                   Height="40"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center">
+                                <TextBlock Text="R" FontSize="14" FontWeight="Bold" />
+                            </Button>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <!-- D-Pad -->
+            <Grid Grid.Row="2" Height="120" HorizontalAlignment="Left" Margin="0,16,0,0">
+                <Button Command="{Binding SendButtonPressCommand}"
+                       CommandParameter="DpadUp"
+                       Classes="GamepadButton"
+                       Width="40"
+                       Height="40"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Top">
+                    <TextBlock Text="▲" FontSize="14" />
+                </Button>
+                <Button Command="{Binding SendButtonPressCommand}"
+                       CommandParameter="DpadRight"
+                       Classes="GamepadButton"
+                       Width="40"
+                       Height="40"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Center">
+                    <TextBlock Text="▶" FontSize="14" />
+                </Button>
+                <Button Command="{Binding SendButtonPressCommand}"
+                       CommandParameter="DpadDown"
+                       Classes="GamepadButton"
+                       Width="40"
+                       Height="40"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Bottom">
+                    <TextBlock Text="▼" FontSize="14" />
+                </Button>
+                <Button Command="{Binding SendButtonPressCommand}"
+                       CommandParameter="DpadLeft"
+                       Classes="GamepadButton"
+                       Width="40"
+                       Height="40"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Center">
+                    <TextBlock Text="◀" FontSize="14" />
+                </Button>
+            </Grid>
+
+            <!-- Voice Command -->
+            <Button Grid.Row="2"
+                   Command="{Binding ActivateVoiceCommandCommand}"
+                   HorizontalAlignment="Stretch"
+                   Height="48"
+                   Classes="Secondary MobileButton"
+                   Margin="0,16,0,0">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="🎤" FontSize="18" />
+                    <TextBlock Text="Voice Command" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <!-- Touchpad Mode -->
+        <Grid Grid.Row="1"
+              IsVisible="{Binding CurrentMode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Touchpad}"
+              Margin="16"
+              RowDefinitions="*,Auto,Auto">
+            
+            <!-- Touchpad Area -->
+            <Border Grid.Row="0"
+                   Background="{StaticResource CardBackgroundBrush}"
+                   CornerRadius="12"
+                   Margin="0,0,0,16">
+                <Grid>
+                    <TextBlock Text="Touch to control mouse cursor"
+                              FontSize="14"
+                              Foreground="{StaticResource TextTertiaryBrush}"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center" />
+                    <!-- Touch input area would have gesture handlers -->
+                </Grid>
+            </Border>
+
+            <!-- Mouse Buttons -->
+            <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,16">
+                <Button Command="{Binding SendTouchTapCommand}"
+                       CommandParameter="Left"
+                       Classes="QuickActionButton"
+                       Height="56"
+                       Margin="0,0,4,0">
+                    <TextBlock Text="LMB" FontSize="12" FontWeight="SemiBold" />
+                </Button>
+                <Button Command="{Binding SendTouchTapCommand}"
+                       CommandParameter="Middle"
+                       Classes="QuickActionButton"
+                       Height="56"
+                       Margin="4,0">
+                    <TextBlock Text="Scroll" FontSize="12" FontWeight="SemiBold" />
+                </Button>
+                <Button Command="{Binding SendTouchTapCommand}"
+                       CommandParameter="Right"
+                       Classes="QuickActionButton"
+                       Height="56"
+                       Margin="4,0,0,0">
+                    <TextBlock Text="RMB" FontSize="12" FontWeight="SemiBold" />
+                </Button>
+            </UniformGrid>
+
+            <!-- Keyboard Button -->
+            <Button Grid.Row="2"
+                   Command="{Binding ShowKeyboardCommand}"
+                   HorizontalAlignment="Stretch"
+                   Height="48"
+                   Classes="Secondary MobileButton">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="⌨️" FontSize="18" />
+                    <TextBlock Text="Show Keyboard" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <!-- Media Mode -->
+        <Grid Grid.Row="1"
+              IsVisible="{Binding CurrentMode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Media}"
+              Margin="16"
+              RowDefinitions="Auto,Auto,Auto,*">
+            
+            <!-- Album Art -->
+            <Border Grid.Row="0"
+                   Width="240"
+                   Height="240"
+                   CornerRadius="16"
+                   Background="{StaticResource CardBackgroundBrush}"
+                   HorizontalAlignment="Center"
+                   Margin="0,24,0,24">
+                <Grid>
+                    <TextBlock Text="🎵"
+                              FontSize="80"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center" />
+                    <StackPanel VerticalAlignment="Bottom" Margin="16">
+                        <TextBlock Text="{Binding TrackTitle, FallbackValue='Now Playing'}"
+                                  FontSize="16"
+                                  FontWeight="SemiBold"
+                                  TextTrimming="CharacterEllipsis"
+                                  Foreground="{StaticResource TextPrimaryBrush}" />
+                        <TextBlock Text="{Binding TrackArtist, FallbackValue='Artist'}"
+                                  FontSize="13"
+                                  TextTrimming="CharacterEllipsis"
+                                  Foreground="{StaticResource TextSecondaryBrush}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Playback Controls -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="24">
+                <Button Command="{Binding MediaPreviousCommand}"
+                       Classes="GamepadButton"
+                       Width="56"
+                       Height="56">
+                    <TextBlock Text="⏮️" FontSize="24" />
+                </Button>
+                <Button Command="{Binding MediaPlayCommand}"
+                       IsVisible="{Binding !IsPlaying}"
+                       Classes="GamepadButton"
+                       Width="72"
+                       Height="72"
+                       CornerRadius="36"
+                       Background="{StaticResource AccentBrush}">
+                    <TextBlock Text="▶️" FontSize="32" />
+                </Button>
+                <Button Command="{Binding MediaPauseCommand}"
+                       IsVisible="{Binding IsPlaying}"
+                       Classes="GamepadButton"
+                       Width="72"
+                       Height="72"
+                       CornerRadius="36"
+                       Background="{StaticResource AccentBrush}">
+                    <TextBlock Text="⏸️" FontSize="32" />
+                </Button>
+                <Button Command="{Binding MediaNextCommand}"
+                       Classes="GamepadButton"
+                       Width="56"
+                       Height="56">
+                    <TextBlock Text="⏭️" FontSize="24" />
+                </Button>
+            </StackPanel>
+
+            <!-- Volume Control -->
+            <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto" Margin="16,24">
+                <TextBlock Grid.Column="0" Text="🔊" FontSize="20" VerticalAlignment="Center" />
+                <Slider Grid.Column="1"
+                       Value="{Binding VolumeLevel}"
+                       Minimum="0"
+                       Maximum="100"
+                       Margin="12,0" />
+                <TextBlock Grid.Column="2"
+                          Text="{Binding VolumeLevel, StringFormat='{}{0:F0}'}"
+                          FontSize="14"
+                          Width="32"
+                          VerticalAlignment="Center"
+                          Foreground="{StaticResource TextSecondaryBrush}" />
+            </Grid>
+
+            <!-- Extra Controls -->
+            <UniformGrid Grid.Row="3" Columns="3" VerticalAlignment="Bottom">
+                <Button Command="{Binding MuteToggleCommand}"
+                       Classes="QuickActionButton"
+                       Height="56"
+                       Margin="0,0,4,0">
+                    <TextBlock Text="🔇" FontSize="22" />
+                </Button>
+                <Button Command="{Binding TakeScreenshotCommand}"
+                       Classes="QuickActionButton"
+                       Height="56"
+                       Margin="4,0">
+                    <TextBlock Text="📷" FontSize="22" />
+                </Button>
+                <Button Command="{Binding ToggleRecordingCommand}"
+                       Classes="QuickActionButton"
+                       Height="56"
+                       Margin="4,0,0,0">
+                    <TextBlock Text="🎥" FontSize="22" />
+                </Button>
+            </UniformGrid>
+        </Grid>
+
+        <!-- Keyboard Mode -->
+        <Grid Grid.Row="1"
+              IsVisible="{Binding CurrentMode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Keyboard}"
+              Margin="16">
+            <StackPanel Spacing="16">
+                <TextBox Text="{Binding KeyboardInput}"
+                        Watermark="Type here..."
+                        Height="120"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        Classes="MobileInput" />
+                
+                <Button Command="{Binding SendKeyboardInputCommand}"
+                       HorizontalAlignment="Stretch"
+                       Height="48"
+                       Classes="Primary MobileButton"
+                       Content="Send" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Bottom Navigation -->
+        <Grid Grid.Row="2"
+              Background="{StaticResource SurfaceBrush}"
+              Height="64">
+            <UniformGrid Columns="4">
+                <Button Command="{Binding GoBackCommand}"
+                       Classes="NavButton">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="🏠" FontSize="22" HorizontalAlignment="Center" />
+                        <TextBlock Text="Home" FontSize="10" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <Button Classes="NavButton Active">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="🎮" FontSize="22" HorizontalAlignment="Center" />
+                        <TextBlock Text="Remote" FontSize="10" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <Button Classes="NavButton">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="💾" FontSize="22" HorizontalAlignment="Center" />
+                        <TextBlock Text="Saves" FontSize="10" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <Button Classes="NavButton">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="🔔" FontSize="22" HorizontalAlignment="Center" />
+                        <TextBlock Text="More" FontSize="10" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </UniformGrid>
+        </Grid>
+    </Grid>
+</UserControl>

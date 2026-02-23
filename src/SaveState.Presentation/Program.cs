@@ -119,6 +119,19 @@ public static class Program
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.CreateTournamentDialogViewModel>();
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.MatchResultDialogViewModel>();
 
+            // Phase 5: Mobile Companion
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.MobileCompanion.MobileLandingViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.MobileCompanion.MobileDashboardViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.MobileCompanion.MobileRemoteControlViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.MobileCompanion.MobileSaveStatesViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.MobileCompanion.MobileScreenshotsViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.MobileCompanion.MobileNotificationsViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.PairingDialogViewModel>();
+            
+            // Mobile Companion Services
+            builder.Services.AddSingleton<IQRCodeService, QRCodeService>();
+            builder.Services.AddSingleton<IMobileConnectionManager, MobileConnectionManager>();
+
             // Add theme service
             builder.Services.AddSingleton<IThemeService, ThemeService>();
 

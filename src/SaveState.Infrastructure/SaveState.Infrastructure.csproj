@@ -61,6 +61,15 @@
     <PackageReference Include="NSwag.Generation" />
     <PackageReference Include="NSwag.Core" />
     <PackageReference Include="NJsonSchema" />
+
+    <!-- SignalR for Real-time Communication -->
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.Json" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" />
+
+    <!-- Push Notifications -->
+    <PackageReference Include="FirebaseAdmin" />
+    <PackageReference Include="CorePush" />
   </ItemGroup>
 
 </Project>

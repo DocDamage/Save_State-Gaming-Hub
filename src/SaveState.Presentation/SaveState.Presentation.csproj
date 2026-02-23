@@ -52,7 +52,15 @@
     
     <!-- OpenAPI/Swagger Documentation -->
     <PackageReference Include="NSwag.Generation" />
-    
+
+    <!-- SignalR for Real-time Communication -->
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.Json" />
+
+    <!-- QR Code Generation -->
+    <PackageReference Include="QRCoder" />
+    <PackageReference Include="ZXing.Net" />
+
     <!-- LiveCharts - Real-time Charts -->
     <PackageReference Include="LiveChartsCore" />
     <PackageReference Include="LiveChartsCore.SkiaSharpView" />
