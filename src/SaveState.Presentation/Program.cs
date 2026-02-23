@@ -173,7 +173,7 @@ public static class Program
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.WebBrowser.GameGuideViewModel>();
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.WebBrowser.DocumentationBrowserViewModel>();
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.WebBrowser.CommunityBrowserViewModel>();
-            builder.Services.AddTransient<SaveState.Presentation.ViewModels.WebBrowser.StreamingBrowserOverlayViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Overlays.StreamingBrowserOverlayViewModel>();
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.DownloadManagerDialogViewModel>();
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.CertificateViewerDialogViewModel>();
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Settings.BrowserSettingsViewModel>();

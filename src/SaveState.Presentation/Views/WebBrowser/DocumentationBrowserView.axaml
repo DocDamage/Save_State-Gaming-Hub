@@ -3,6 +3,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SaveState.Presentation.ViewModels.WebBrowser"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="SaveState.Presentation.Views.WebBrowser.DocumentationBrowserView"
              x:DataType="vm:DocumentationBrowserViewModel">
@@ -93,8 +95,12 @@
                             <ItemsControl ItemsSource="{Binding SearchResults}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Classes="doc-section"
-                                                PointerPressed="{Binding $parent[ItemsControl].((vm:DocumentationBrowserViewModel)DataContext).SelectArticleCommand}">
+                                        <Border Classes="doc-section">
+                                            <Interaction.Behaviors>
+                                                <EventTriggerBehavior EventName="PointerPressed">
+                                                    <InvokeCommandAction Command="{Binding $parent[ItemsControl].((vm:DocumentationBrowserViewModel)DataContext).SelectArticleCommand}" CommandParameter="{Binding}" />
+                                                </EventTriggerBehavior>
+                                            </Interaction.Behaviors>
                                             <TextBlock Text="{Binding Title}" Classes="doc-article"/>
                                         </Border>
                                     </DataTemplate>
@@ -110,8 +116,12 @@
                                     <StackPanel Spacing="4">
                                         <!-- Section Header -->
                                         <Border Classes="doc-section"
-                                                Background="{Binding $self.((vm:DocumentationSection)DataContext), Converter={StaticResource SectionToBackgroundConverter}}"
-                                                PointerPressed="{Binding $parent[ItemsControl].((vm:DocumentationBrowserViewModel)DataContext).SelectSectionCommand}">
+                                                Background="{Binding $self.((vm:DocumentationSection)DataContext), Converter={StaticResource SectionToBackgroundConverter}}">
+                                            <Interaction.Behaviors>
+                                                <EventTriggerBehavior EventName="PointerPressed">
+                                                    <InvokeCommandAction Command="{Binding $parent[ItemsControl].((vm:DocumentationBrowserViewModel)DataContext).SelectSectionCommand}" CommandParameter="{Binding}" />
+                                                </EventTriggerBehavior>
+                                            </Interaction.Behaviors>
                                             <StackPanel Orientation="Horizontal" Spacing="8">
                                                 <TextBlock Text="{Binding Icon}" FontSize="16"/>
                                                 <TextBlock Text="{Binding Title}" Classes="doc-title"/>
@@ -120,12 +130,16 @@
 
                                         <!-- Articles (when selected) -->
                                         <ItemsControl ItemsSource="{Binding Articles}"
-                                                      IsVisible="{Binding $parent[Border].((vm:DocumentationSection)DataContext) == $parent[ItemsControl].((vm:DocumentationBrowserViewModel)DataContext).SelectedSection}">
+                                                      IsVisible="{Binding $parent[Border].((vm:DocumentationSection)DataContext), Converter={StaticResource EqualsConverter}, ConverterParameter={Binding $parent[ItemsControl].((vm:DocumentationBrowserViewModel)DataContext).SelectedSection}}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
                                                     <Border Classes="doc-section"
-                                                            Margin="16,2,0,2"
-                                                            PointerPressed="{Binding $parent[ItemsControl].((vm:DocumentationBrowserViewModel)DataContext).SelectArticleCommand}">
+                                                            Margin="16,2,0,2">
+                                                        <Interaction.Behaviors>
+                                                            <EventTriggerBehavior EventName="PointerPressed">
+                                                                <InvokeCommandAction Command="{Binding $parent[ItemsControl].((vm:DocumentationBrowserViewModel)DataContext).SelectArticleCommand}" CommandParameter="{Binding}" />
+                                                            </EventTriggerBehavior>
+                                                        </Interaction.Behaviors>
                                                         <TextBlock Text="{Binding Title}" Classes="doc-article"/>
                                                     </Border>
                                                 </DataTemplate>

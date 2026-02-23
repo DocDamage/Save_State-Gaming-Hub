@@ -98,7 +98,7 @@ public class WebBrowserTests : IClassFixture<IntegrationTestFixture>
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Count.Should().BeGreaterOrEqualTo(3);
+        result.Value.Count.Should().BeGreaterThanOrEqualTo(3);
     }
 
     [Fact]
@@ -411,7 +411,7 @@ public class WebBrowserTests : IClassFixture<IntegrationTestFixture>
 
         // Assert
         // This might fail if download doesn't exist, which is expected behavior
-        result.IsSuccess.Should().BeOneOf(true, false);
+        (result.IsSuccess == true || result.IsSuccess == false).Should().BeTrue();
     }
 
     [Fact]
@@ -424,7 +424,7 @@ public class WebBrowserTests : IClassFixture<IntegrationTestFixture>
         var result = await _browserService.PauseDownloadAsync(downloadId);
 
         // Assert
-        result.IsSuccess.Should().BeOneOf(true, false);
+        (result.IsSuccess == true || result.IsSuccess == false).Should().BeTrue();
     }
 
     [Fact]
@@ -437,7 +437,7 @@ public class WebBrowserTests : IClassFixture<IntegrationTestFixture>
         var result = await _browserService.ResumeDownloadAsync(downloadId);
 
         // Assert
-        result.IsSuccess.Should().BeOneOf(true, false);
+        (result.IsSuccess == true || result.IsSuccess == false).Should().BeTrue();
     }
 
     [Fact]
@@ -465,9 +465,11 @@ public class WebBrowserTests : IClassFixture<IntegrationTestFixture>
     public async Task UpdateDownloadSettings_UpdatesSettings()
     {
         // Arrange
-        var settings = TestDataSeeder.CreateSampleBrowserSettings();
-        settings.DownloadPath = Path.Combine(Path.GetTempPath(), "TestDownloads");
-        settings.EnableDownloads = true;
+        var settings = new DownloadSettings
+        {
+            DownloadPath = Path.Combine(Path.GetTempPath(), "TestDownloads"),
+            EnableDownloads = true
+        };
 
         // Act
         var result = await _browserService.UpdateDownloadSettingsAsync(settings);
@@ -741,7 +743,7 @@ public class WebBrowserTests : IClassFixture<IntegrationTestFixture>
 
         // Assert
         // This will likely fail without an actual extension, but tests the API
-        result.IsSuccess.Should().BeOneOf(true, false);
+        (result.IsSuccess == true || result.IsSuccess == false).Should().BeTrue();
     }
 
     [Fact]
@@ -754,7 +756,7 @@ public class WebBrowserTests : IClassFixture<IntegrationTestFixture>
         var result = await _browserService.EnableExtensionAsync(extensionId);
 
         // Assert
-        result.IsSuccess.Should().BeOneOf(true, false);
+        (result.IsSuccess == true || result.IsSuccess == false).Should().BeTrue();
     }
 
     [Fact]
@@ -767,7 +769,7 @@ public class WebBrowserTests : IClassFixture<IntegrationTestFixture>
         var result = await _browserService.DisableExtensionAsync(extensionId);
 
         // Assert
-        result.IsSuccess.Should().BeOneOf(true, false);
+        (result.IsSuccess == true || result.IsSuccess == false).Should().BeTrue();
     }
 
     #endregion

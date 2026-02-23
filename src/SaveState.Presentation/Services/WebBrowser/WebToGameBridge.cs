@@ -4,9 +4,11 @@ using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Services;
+using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.SaveStates;
 using SaveState.Core.SaveStates.Services;
 using SaveState.Core.WebBrowser.Services;
+using SaveState.Core.SaveStates.Entities;
 
 namespace SaveState.Presentation.Services.WebBrowser;
 
@@ -62,7 +64,13 @@ public class WebToGameBridge : IWebToGameBridge
                 return Result.Failure("Invalid game ID format", ErrorType.Validation);
             }
 
-            var game = await _gameRepository.GetByIdAsync(id);
+            // Parse gameId as Guid (since GameId uses Guid, not int)
+            if (!Guid.TryParse(gameId, out var gameGuid))
+            {
+                return Result.Failure("Invalid game ID format", ErrorType.Validation);
+            }
+            
+            var game = await _gameRepository.GetByIdAsync(GameId.From(gameGuid));
             if (game == null)
             {
                 return Result.Failure("Game not found", ErrorType.NotFound);
@@ -96,7 +104,13 @@ public class WebToGameBridge : IWebToGameBridge
                 return Result<string>.Failure("Invalid game ID format", ErrorType.Validation);
             }
 
-            var game = await _gameRepository.GetByIdAsync(id);
+            // Parse gameId as Guid (since GameId uses Guid, not int)
+            if (!Guid.TryParse(gameId, out var gameGuid))
+            {
+                return Result<string>.Failure("Invalid game ID format", ErrorType.Validation);
+            }
+            
+            var game = await _gameRepository.GetByIdAsync(GameId.From(gameGuid));
             if (game == null)
             {
                 return Result<string>.Failure("Game not found", ErrorType.NotFound);
@@ -110,11 +124,12 @@ public class WebToGameBridge : IWebToGameBridge
             });
 
             // Create the save state
+            var createRequest = new CreateSaveStateRequest(
+                Description: description,
+                CaptureScreenshot: true);
             var result = await _saveStateManager.CreateSaveStateAsync(
                 game.Id,
-                description,
-                SaveStateBranch.Create("default", "Auto-created from web").Id,
-                includeScreenshot: true);
+                createRequest);
 
             if (result.IsSuccess)
             {
@@ -138,7 +153,7 @@ public class WebToGameBridge : IWebToGameBridge
         {
             _logger.LogInformation("Web bridge: Loading save state {SaveStateId}", saveStateId);
 
-            if (!int.TryParse(saveStateId, out var id))
+            if (!Guid.TryParse(saveStateId, out var saveStateGuid))
             {
                 return Result.Failure("Invalid save state ID format", ErrorType.Validation);
             }
@@ -149,7 +164,7 @@ public class WebToGameBridge : IWebToGameBridge
                 AutoLaunch = true
             });
 
-            var result = await _saveStateManager.LoadSaveStateAsync(id);
+            var result = await _saveStateManager.RestoreSaveStateAsync(saveStateGuid);
             if (result.IsSuccess)
             {
                 _notificationService.ShowSuccess("Save state loaded");
@@ -172,14 +187,14 @@ public class WebToGameBridge : IWebToGameBridge
         {
             _logger.LogInformation("Web bridge: Taking screenshot");
 
-            var currentGame = _gameContextService.CurrentGame;
-            if (currentGame == null)
+            var currentGameId = _gameContextService.GetCurrentGameId();
+            if (currentGameId == null)
             {
                 return Result<string>.Failure("No game currently running", ErrorType.Validation);
             }
 
             // Screenshot logic would go here
-            var screenshotPath = $"screenshots/{currentGame.Title}_{_timeProvider.Now:yyyyMMdd_HHmmss}.png";
+            var screenshotPath = $"screenshots/game_{currentGameId}_{_timeProvider.Now:yyyyMMdd_HHmmss}.png";
 
             _notificationService.ShowSuccess("Screenshot captured");
             return Result<string>.Success(screenshotPath);
@@ -198,8 +213,8 @@ public class WebToGameBridge : IWebToGameBridge
         {
             _logger.LogInformation("Web bridge: Starting recording");
 
-            var currentGame = _gameContextService.CurrentGame;
-            if (currentGame == null)
+            var currentGameId = _gameContextService.GetCurrentGameId();
+            if (currentGameId == null)
             {
                 return Task.FromResult(Result.Failure("No game currently running", ErrorType.Validation));
             }
@@ -237,8 +252,8 @@ public class WebToGameBridge : IWebToGameBridge
     /// <inheritdoc />
     public Task<string?> GetCurrentlyPlayingGameAsync()
     {
-        var currentGame = _gameContextService.CurrentGame;
-        return Task.FromResult(currentGame?.Id.ToString());
+        var currentGameId = _gameContextService.GetCurrentGameId();
+        return Task.FromResult(currentGameId?.ToString());
     }
 
     /// <inheritdoc />
@@ -251,8 +266,17 @@ public class WebToGameBridge : IWebToGameBridge
                 return null;
             }
 
-            var saveStates = await _saveStateManager.GetSaveStatesByGameAsync(id);
-            var lastSaveState = saveStates
+            if (!Guid.TryParse(gameId, out var gameGuid))
+            {
+                return null;
+            }
+            
+            var saveStatesResult = await _saveStateManager.GetSaveStatesAsync(gameGuid);
+            if (!saveStatesResult.IsSuccess)
+            {
+                return null;
+            }
+            var lastSaveState = saveStatesResult.Value
                 .OrderByDescending(s => s.CreatedAt)
                 .FirstOrDefault();
 
@@ -275,21 +299,27 @@ public class WebToGameBridge : IWebToGameBridge
                 return null;
             }
 
-            var game = await _gameRepository.GetByIdAsync(id);
+            if (!Guid.TryParse(gameId, out var gameGuid))
+            {
+                return null;
+            }
+            
+            var game = await _gameRepository.GetByIdAsync(GameId.From(gameGuid));
             if (game == null)
             {
                 return null;
             }
 
+            var currentGameId = _gameContextService.GetCurrentGameId();
             var info = new
             {
                 Id = game.Id,
                 Title = game.Title,
-                Platform = game.Platform?.Name,
-                Genre = game.Genre,
-                ReleaseDate = game.ReleaseDate,
+                Platform = game.Platform?.Name?.Value,
+                Genre = (string?)null,
+                ReleaseDate = game.ReleaseDate?.ToDateTime(TimeOnly.MinValue),
                 Description = game.Description,
-                IsRunning = _gameContextService.CurrentGame?.Id == game.Id,
+                IsRunning = currentGameId == game.Id,
                 IsInstalled = !string.IsNullOrEmpty(game.ExecutablePath)
             };
 
@@ -312,7 +342,12 @@ public class WebToGameBridge : IWebToGameBridge
                 return null;
             }
 
-            var game = await _gameRepository.GetByIdAsync(id);
+            if (!Guid.TryParse(gameId, out var gameGuid))
+            {
+                return null;
+            }
+            
+            var game = await _gameRepository.GetByIdAsync(GameId.From(gameGuid));
             if (game == null)
             {
                 return null;
@@ -321,14 +356,12 @@ public class WebToGameBridge : IWebToGameBridge
             // Aggregate stats
             var stats = new
             {
-                TotalPlaytime = game.TotalPlaytime?.TotalHours ?? 0,
-                LastPlayed = game.LastPlayed,
-                CompletionPercentage = game.CompletionPercentage,
-                SaveStateCount = game.SaveStates?.Count ?? 0,
-                SessionCount = game.Sessions?.Count ?? 0,
-                AchievementProgress = game.Achievements != null && game.Achievements.Count > 0
-                    ? (double)game.Achievements.Count(a => a.IsUnlocked) / game.Achievements.Count
-                    : 0
+                TotalPlaytime = game.TotalPlayTime.TotalHours,
+                LastPlayed = game.LastPlayedAt,
+                CompletionPercentage = (double?)null,
+                SaveStateCount = 0,
+                SessionCount = 0,
+                AchievementProgress = 0.0
             };
 
             return JsonSerializer.Serialize(stats);

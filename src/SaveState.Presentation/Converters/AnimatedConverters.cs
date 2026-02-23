@@ -4,6 +4,7 @@ using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using System.Globalization;
 
@@ -191,7 +192,11 @@ public class CountUpConverter : IValueConverter
     private CountUpState GetOrCreateState()
     {
         // Clean up dead references
-        _states.RemoveWhere(kvp => !kvp.Key.TryGetTarget(out _));
+        var deadKeys = _states.Keys.Where(k => !k.TryGetTarget(out _)).ToList();
+        foreach (var key in deadKeys)
+        {
+            _states.Remove(key);
+        }
 
         var state = new CountUpState();
         return state;
@@ -573,7 +578,12 @@ public class SmoothValueConverter : IValueConverter
 
     private SmoothState GetOrCreateState()
     {
-        _states.RemoveWhere(kvp => !kvp.Key.TryGetTarget(out _));
+        // Clean up dead references
+        var deadKeys = _states.Keys.Where(k => !k.TryGetTarget(out _)).ToList();
+        foreach (var key in deadKeys)
+        {
+            _states.Remove(key);
+        }
         return new SmoothState();
     }
 

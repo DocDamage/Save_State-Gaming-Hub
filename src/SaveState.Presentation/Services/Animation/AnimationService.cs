@@ -64,7 +64,7 @@ public class AnimationService : IAnimationService
     #region Transitions
 
     /// <inheritdoc />
-    public async Task FadeInAsync(Control element, Duration? duration = null)
+    public async Task FadeInAsync(Control element, TimeSpan? duration = null)
     {
         if (IsReducedMotionPreferred)
         {
@@ -73,10 +73,10 @@ public class AnimationService : IAnimationService
             return;
         }
 
-        var animDuration = duration?.TimeSpan ?? DefaultTransitionDuration;
+        var animDuration = duration ?? DefaultTransitionDuration;
         element.IsVisible = true;
 
-        var animation = new Animation
+        var animation = new global::Avalonia.Animation.Animation
         {
             Duration = animDuration,
             Easing = DefaultEasingInstance,
@@ -99,7 +99,7 @@ public class AnimationService : IAnimationService
     }
 
     /// <inheritdoc />
-    public async Task FadeOutAsync(Control element, Duration? duration = null)
+    public async Task FadeOutAsync(Control element, TimeSpan? duration = null)
     {
         if (IsReducedMotionPreferred)
         {
@@ -108,9 +108,9 @@ public class AnimationService : IAnimationService
             return;
         }
 
-        var animDuration = duration?.TimeSpan ?? FastTransitionDuration;
+        var animDuration = duration ?? FastTransitionDuration;
 
-        var animation = new Animation
+        var animation = new global::Avalonia.Animation.Animation
         {
             Duration = animDuration,
             Easing = DefaultEasingInstance,
@@ -136,7 +136,7 @@ public class AnimationService : IAnimationService
     }
 
     /// <inheritdoc />
-    public async Task SlideInAsync(Control element, SlideDirection direction, Duration? duration = null)
+    public async Task SlideInAsync(Control element, SlideDirection direction, TimeSpan? duration = null)
     {
         if (IsReducedMotionPreferred)
         {
@@ -145,7 +145,7 @@ public class AnimationService : IAnimationService
             return;
         }
 
-        var animDuration = duration?.TimeSpan ?? MediumTransitionDuration;
+        var animDuration = duration ?? MediumTransitionDuration;
         var (startX, startY) = GetSlideStartPosition(direction, element);
 
         // Ensure render transform is set up
@@ -153,7 +153,7 @@ public class AnimationService : IAnimationService
         element.Opacity = 0;
         element.IsVisible = true;
 
-        var animation = new Animation
+        var animation = new global::Avalonia.Animation.Animation
         {
             Duration = animDuration,
             Easing = QuarticEasingInstance,
@@ -185,7 +185,7 @@ public class AnimationService : IAnimationService
     }
 
     /// <inheritdoc />
-    public async Task SlideOutAsync(Control element, SlideDirection direction, Duration? duration = null)
+    public async Task SlideOutAsync(Control element, SlideDirection direction, TimeSpan? duration = null)
     {
         if (IsReducedMotionPreferred)
         {
@@ -193,10 +193,10 @@ public class AnimationService : IAnimationService
             return;
         }
 
-        var animDuration = duration?.TimeSpan ?? DefaultTransitionDuration;
+        var animDuration = duration ?? DefaultTransitionDuration;
         var (endX, endY) = GetSlideEndPosition(direction, element);
 
-        var animation = new Animation
+        var animation = new global::Avalonia.Animation.Animation
         {
             Duration = animDuration,
             Easing = QuarticEasingInstance,
@@ -230,7 +230,7 @@ public class AnimationService : IAnimationService
     }
 
     /// <inheritdoc />
-    public async Task ScaleInAsync(Control element, Duration? duration = null)
+    public async Task ScaleInAsync(Control element, TimeSpan? duration = null)
     {
         if (IsReducedMotionPreferred)
         {
@@ -245,7 +245,7 @@ public class AnimationService : IAnimationService
         element.Opacity = 0;
         element.IsVisible = true;
 
-        var animation = new Animation
+        var animation = new global::Avalonia.Animation.Animation
         {
             Duration = animDuration,
             Easing = ElasticEasingInstance,
@@ -277,7 +277,7 @@ public class AnimationService : IAnimationService
     }
 
     /// <inheritdoc />
-    public async Task ScaleOutAsync(Control element, Duration? duration = null)
+    public async Task ScaleOutAsync(Control element, TimeSpan? duration = null)
     {
         if (IsReducedMotionPreferred)
         {
@@ -285,9 +285,9 @@ public class AnimationService : IAnimationService
             return;
         }
 
-        var animDuration = duration?.TimeSpan ?? FastTransitionDuration;
+        var animDuration = duration ?? FastTransitionDuration;
 
-        var animation = new Animation
+        var animation = new global::Avalonia.Animation.Animation
         {
             Duration = animDuration,
             Easing = DefaultEasingInstance,
@@ -335,8 +335,8 @@ public class AnimationService : IAnimationService
         }
 
         // Animate both pages simultaneously
-        var fromTask = SlideOutAsync(fromPage, SlideDirection.Left, Duration.FromMilliseconds(300));
-        var toTask = SlideInAsync(toPage, SlideDirection.Right, Duration.FromMilliseconds(350));
+        var fromTask = SlideOutAsync(fromPage, SlideDirection.Left, TimeSpan.FromMilliseconds(300));
+        var toTask = SlideInAsync(toPage, SlideDirection.Right, TimeSpan.FromMilliseconds(350));
 
         await Task.WhenAll(fromTask, toTask);
         fromPage.IsVisible = false;
@@ -354,8 +354,8 @@ public class AnimationService : IAnimationService
 
         toPage.IsVisible = true;
 
-        var fromTask = SlideOutAsync(fromPage, SlideDirection.Right, Duration.FromMilliseconds(300));
-        var toTask = SlideInAsync(toPage, SlideDirection.Left, Duration.FromMilliseconds(350));
+        var fromTask = SlideOutAsync(fromPage, SlideDirection.Right, TimeSpan.FromMilliseconds(300));
+        var toTask = SlideInAsync(toPage, SlideDirection.Left, TimeSpan.FromMilliseconds(350));
 
         await Task.WhenAll(fromTask, toTask);
         fromPage.IsVisible = false;
@@ -375,7 +375,7 @@ public class AnimationService : IAnimationService
         background.IsVisible = true;
 
         // Fade in background
-        var bgAnimation = new Animation
+        var bgAnimation = new global::Avalonia.Animation.Animation
         {
             Duration = TimeSpan.FromMilliseconds(200),
             Easing = DefaultEasingInstance,
@@ -395,7 +395,7 @@ public class AnimationService : IAnimationService
         };
 
         var bgTask = RunAnimationAsync(background, bgAnimation);
-        var modalTask = ScaleInAsync(modal, Duration.FromMilliseconds(350));
+        var modalTask = ScaleInAsync(modal, TimeSpan.FromMilliseconds(350));
 
         await Task.WhenAll(bgTask, modalTask);
     }
@@ -410,7 +410,7 @@ public class AnimationService : IAnimationService
             return;
         }
 
-        var bgAnimation = new Animation
+        var bgAnimation = new global::Avalonia.Animation.Animation
         {
             Duration = TimeSpan.FromMilliseconds(200),
             Easing = DefaultEasingInstance,
@@ -431,7 +431,7 @@ public class AnimationService : IAnimationService
         };
 
         var bgTask = RunAnimationAsync(background, bgAnimation);
-        var modalTask = ScaleOutAsync(modal, Duration.FromMilliseconds(250));
+        var modalTask = ScaleOutAsync(modal, TimeSpan.FromMilliseconds(250));
 
         await Task.WhenAll(bgTask, modalTask);
 
@@ -449,7 +449,7 @@ public class AnimationService : IAnimationService
     {
         if (IsReducedMotionPreferred) return;
 
-        var animation = new Animation
+        var animation = new global::Avalonia.Animation.Animation
         {
             Duration = TimeSpan.FromMilliseconds(600),
             Easing = DefaultEasingInstance,
@@ -482,7 +482,7 @@ public class AnimationService : IAnimationService
         if (IsReducedMotionPreferred) return;
 
         const int shakeDistance = 10;
-        var animation = new Animation
+        var animation = new global::Avalonia.Animation.Animation
         {
             Duration = TimeSpan.FromMilliseconds(500),
             Easing = DefaultEasingInstance,
@@ -510,7 +510,7 @@ public class AnimationService : IAnimationService
     {
         if (IsReducedMotionPreferred) return;
 
-        var animation = new Animation
+        var animation = new global::Avalonia.Animation.Animation
         {
             Duration = TimeSpan.FromMilliseconds(800),
             Easing = BounceEasingInstance,
@@ -535,7 +535,7 @@ public class AnimationService : IAnimationService
         var originalBrush = element.GetValue(Control.BackgroundProperty);
         var highlightBrush = new SolidColorBrush(Colors.Yellow, 0.3);
 
-        var animation = new Animation
+        var animation = new global::Avalonia.Animation.Animation
         {
             Duration = TimeSpan.FromMilliseconds(600),
             Easing = DefaultEasingInstance,
@@ -580,7 +580,7 @@ public class AnimationService : IAnimationService
 
         var maxRadius = Math.Max(element.Bounds.Width, element.Bounds.Height) * 1.5;
 
-        var animation = new Animation
+        var animation = new global::Avalonia.Animation.Animation
         {
             Duration = TimeSpan.FromMilliseconds(600),
             Easing = DefaultEasingInstance,
@@ -681,7 +681,7 @@ public class AnimationService : IAnimationService
         // Wait for item to be added to visual tree
         await Task.Delay(10);
 
-        var animation = new Animation
+        var animation = new global::Avalonia.Animation.Animation
         {
             Duration = TimeSpan.FromMilliseconds(300),
             Easing = DefaultEasingInstance,
@@ -716,7 +716,7 @@ public class AnimationService : IAnimationService
     {
         if (IsReducedMotionPreferred) return;
 
-        var animation = new Animation
+        var animation = new global::Avalonia.Animation.Animation
         {
             Duration = TimeSpan.FromMilliseconds(250),
             Easing = DefaultEasingInstance,
@@ -763,7 +763,7 @@ public class AnimationService : IAnimationService
                     await Task.Delay(delay);
                     await Dispatcher.UIThread.InvokeAsync(async () =>
                     {
-                        var animation = new Animation
+                        var animation = new global::Avalonia.Animation.Animation
                         {
                             Duration = TimeSpan.FromMilliseconds(200),
                             Easing = DefaultEasingInstance,
@@ -836,7 +836,7 @@ public class AnimationService : IAnimationService
     #region Value Animations
 
     /// <inheritdoc />
-    public async Task AnimateDoubleAsync(Control element, AvaloniaProperty property, double from, double to, Duration? duration = null)
+    public async Task AnimateDoubleAsync(Control element, AvaloniaProperty property, double from, double to, TimeSpan? duration = null)
     {
         if (IsReducedMotionPreferred)
         {
@@ -844,7 +844,7 @@ public class AnimationService : IAnimationService
             return;
         }
 
-        var animDuration = duration?.TimeSpan ?? DefaultTransitionDuration;
+        var animDuration = duration ?? DefaultTransitionDuration;
         var startTime = DateTime.UtcNow;
 
         while (DateTime.UtcNow - startTime < animDuration)
@@ -862,7 +862,7 @@ public class AnimationService : IAnimationService
     }
 
     /// <inheritdoc />
-    public async Task AnimateColorAsync(Control element, AvaloniaProperty property, Color from, Color to, Duration? duration = null)
+    public async Task AnimateColorAsync(Control element, AvaloniaProperty property, Color from, Color to, TimeSpan? duration = null)
     {
         if (IsReducedMotionPreferred)
         {
@@ -870,7 +870,7 @@ public class AnimationService : IAnimationService
             return;
         }
 
-        var animDuration = duration?.TimeSpan ?? DefaultTransitionDuration;
+        var animDuration = duration ?? DefaultTransitionDuration;
         var startTime = DateTime.UtcNow;
 
         while (DateTime.UtcNow - startTime < animDuration)
@@ -921,7 +921,7 @@ public class AnimationService : IAnimationService
         };
     }
 
-    private async Task RunAnimationAsync(Control element, Animation animation)
+    private async Task RunAnimationAsync(Control element, global::Avalonia.Animation.Animation animation)
     {
         // Cancel any existing animation on this element
         if (_activeAnimations.TryGetValue(element, out var existingCts))
@@ -963,7 +963,7 @@ public class AnimationService : IAnimationService
         };
 
         // Create animation for shimmer effect
-        var shimmerAnimation = new Animation
+        var shimmerAnimation = new global::Avalonia.Animation.Animation
         {
             Duration = TimeSpan.FromMilliseconds(1500),
             IterationCount = IterationCount.Infinite,

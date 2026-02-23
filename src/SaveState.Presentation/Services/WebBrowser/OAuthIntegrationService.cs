@@ -174,7 +174,7 @@ public class OAuthIntegrationService : IOAuthIntegrationService
             var clientId = GetClientId(providerName);
             if (string.IsNullOrEmpty(clientId))
             {
-                return Result<string>.Failure($"Client ID not configured for {providerName}", ErrorType.Configuration);
+                return Result<string>.Failure($"Client ID not configured for {providerName}", ErrorType.Internal);
             }
 
             var content = new FormUrlEncodedContent(new Dictionary<string, string>
@@ -288,7 +288,7 @@ public class OAuthIntegrationService : IOAuthIntegrationService
         {
             return Result<string>.Failure(
                 $"Client ID not configured for {provider}. Please configure in settings.",
-                ErrorType.Configuration);
+                ErrorType.Internal);
         }
 
         return await StartOAuthFlowAsync(

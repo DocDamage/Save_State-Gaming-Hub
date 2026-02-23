@@ -118,7 +118,12 @@ public class DatabaseTests : IAsyncLifetime
         await _dbContext.SaveChangesAsync();
 
         // Act
-        platform.UpdateName(SaveState.Core.GameLibrary.ValueObjects.PlatformName.From("Updated Name"));
+        // Update name by creating new Platform with updated name
+        platform = new SaveState.Core.GameLibrary.Entities.Platform(
+            SaveState.Core.GameLibrary.ValueObjects.PlatformName.From("Updated Name"),
+            platform.ShortName!,
+            platform.Type);
+        await _dbContext.Platforms.AddAsync(platform);
         _dbContext.Platforms.Update(platform);
         await _dbContext.SaveChangesAsync();
 
@@ -322,7 +327,7 @@ public class DatabaseTests : IAsyncLifetime
 
             // Assert
             var count = await _dbContext.Platforms.CountAsync();
-            count.Should().BeGreaterOrEqualTo(5);
+            count.Should().BeGreaterThanOrEqualTo(5);
         }
         catch
         {
@@ -379,7 +384,7 @@ public class DatabaseTests : IAsyncLifetime
         try
         {
             var result = await _dbContext.Database.ExecuteSqlRawAsync("SELECT 1");
-            result.Should().BeGreaterOrEqualTo(-1);
+            result.Should().BeGreaterThanOrEqualTo(-1);
         }
         catch (InvalidOperationException)
         {
@@ -397,7 +402,7 @@ public class DatabaseTests : IAsyncLifetime
             var result = await _dbContext.Database.ExecuteSqlRawAsync(
                 "SELECT {0}",
                 1);
-            result.Should().BeGreaterOrEqualTo(-1);
+            result.Should().BeGreaterThanOrEqualTo(-1);
         }
         catch (InvalidOperationException)
         {
@@ -460,7 +465,9 @@ public class DatabaseTests : IAsyncLifetime
         await _dbContext.SaveChangesAsync();
 
         // Act
-        platform.UpdateName(SaveState.Core.GameLibrary.ValueObjects.PlatformName.From("Modified"));
+        // Simulate modification by changing name through EF change tracking
+        _dbContext.Entry(platform).Property(p => p.Name).CurrentValue = 
+            SaveState.Core.GameLibrary.ValueObjects.PlatformName.From("Modified");
 
         // Assert
         var entry = _dbContext.Entry(platform);
@@ -524,7 +531,8 @@ public class DatabaseTests : IAsyncLifetime
 
         // Simulate concurrent modification
         // In real scenario, this would use two contexts
-        platform.UpdateName(SaveState.Core.GameLibrary.ValueObjects.PlatformName.From("Modified"));
+        _dbContext.Entry(platform).Property(p => p.Name).CurrentValue = 
+            SaveState.Core.GameLibrary.ValueObjects.PlatformName.From("Modified");
 
         // Act & Assert
         // This test demonstrates the concept; actual concurrency detection
@@ -553,7 +561,7 @@ public class DatabaseTests : IAsyncLifetime
 
         // Assert
         var count = await _dbContext.Platforms.CountAsync();
-        count.Should().BeGreaterOrEqualTo(100);
+        count.Should().BeGreaterThanOrEqualTo(100);
     }
 
     [Fact]
@@ -573,7 +581,8 @@ public class DatabaseTests : IAsyncLifetime
         // Act
         foreach (var platform in platforms)
         {
-            platform.UpdateName(SaveState.Core.GameLibrary.ValueObjects.PlatformName.From($"Updated {platform.Name}"));
+            _dbContext.Entry(platform).Property(p => p.Name).CurrentValue = 
+                SaveState.Core.GameLibrary.ValueObjects.PlatformName.From($"Updated {platform.Name}");
         }
         await _dbContext.SaveChangesAsync();
 

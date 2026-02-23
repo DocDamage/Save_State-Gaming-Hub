@@ -319,7 +319,7 @@ public class CloudGamingIntegrationTests : IClassFixture<IntegrationTestFixture>
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value.Count.Should().BeLessOrEqualTo(10);
+        result.Value.Count.Should().BeLessThanOrEqualTo(10);
     }
 
     [Fact]
@@ -451,7 +451,7 @@ public class CloudGamingIntegrationTests : IClassFixture<IntegrationTestFixture>
         if (games.Value.Count > 0)
         {
             var game = games.Value.First();
-            var sessionResult = await _cloudGamingManager.StartCloudSessionAsync(provider.Id, game.Id);
+            var sessionResult = await _cloudGamingManager.StartCloudSessionAsync(provider.Id, game.Id, quality: StreamQuality.High);
             sessionResult.IsSuccess.Should().BeTrue();
 
             // Act
@@ -476,7 +476,7 @@ public class CloudGamingIntegrationTests : IClassFixture<IntegrationTestFixture>
         if (games.Value.Count > 0)
         {
             var game = games.Value.First();
-            var sessionResult = await _cloudGamingManager.StartCloudSessionAsync(provider.Id, game.Id);
+            var sessionResult = await _cloudGamingManager.StartCloudSessionAsync(provider.Id, game.Id, quality: StreamQuality.High);
             sessionResult.IsSuccess.Should().BeTrue();
 
             // Act
@@ -502,7 +502,7 @@ public class CloudGamingIntegrationTests : IClassFixture<IntegrationTestFixture>
         if (games.IsSuccess && games.Value.Count > 0)
         {
             var sessionResult = await _cloudGamingManager.StartCloudSessionAsync(
-                provider.Id, games.Value.First().Id);
+                provider.Id, games.Value.First().Id, quality: StreamQuality.High);
             sessionResult.IsSuccess.Should().BeTrue();
 
             // Act
@@ -527,7 +527,7 @@ public class CloudGamingIntegrationTests : IClassFixture<IntegrationTestFixture>
         if (games.Value.Count > 0)
         {
             var game = games.Value.First();
-            var sessionResult = await _cloudGamingManager.StartCloudSessionAsync(provider.Id, game.Id);
+            var sessionResult = await _cloudGamingManager.StartCloudSessionAsync(provider.Id, game.Id, quality: StreamQuality.High);
             sessionResult.IsSuccess.Should().BeTrue();
 
             // Act
@@ -551,7 +551,7 @@ public class CloudGamingIntegrationTests : IClassFixture<IntegrationTestFixture>
         if (games.Value.Count > 0)
         {
             var game = games.Value.First();
-            var sessionResult = await _cloudGamingManager.StartCloudSessionAsync(provider.Id, game.Id);
+            var sessionResult = await _cloudGamingManager.StartCloudSessionAsync(provider.Id, game.Id, quality: StreamQuality.High);
             sessionResult.IsSuccess.Should().BeTrue();
 
             // Act
@@ -638,7 +638,7 @@ public class CloudGamingIntegrationTests : IClassFixture<IntegrationTestFixture>
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeOneOf(StreamQuality.Low, StreamQuality.Medium, StreamQuality.High, StreamQuality.Ultra);
+        (result.Value == StreamQuality.Low || result.Value == StreamQuality.Medium || result.Value == StreamQuality.High || result.Value == StreamQuality.Ultra).Should().BeTrue();
     }
 
     [Fact]
@@ -670,7 +670,7 @@ public class CloudGamingIntegrationTests : IClassFixture<IntegrationTestFixture>
         if (games.Value.Count > 0)
         {
             var game = games.Value.First();
-            var sessionResult = await _cloudGamingManager.StartCloudSessionAsync(provider.Id, game.Id);
+            var sessionResult = await _cloudGamingManager.StartCloudSessionAsync(provider.Id, game.Id, quality: StreamQuality.High);
             sessionResult.IsSuccess.Should().BeTrue();
 
             // Act
@@ -715,7 +715,7 @@ public class CloudGamingIntegrationTests : IClassFixture<IntegrationTestFixture>
         if (games.Value.Count > 0)
         {
             var game = games.Value.First();
-            var sessionResult = await _cloudGamingManager.StartCloudSessionAsync(provider.Id, game.Id);
+            var sessionResult = await _cloudGamingManager.StartCloudSessionAsync(provider.Id, game.Id, quality: StreamQuality.High);
             sessionResult.IsSuccess.Should().BeTrue();
 
             // Act
@@ -740,7 +740,7 @@ public class CloudGamingIntegrationTests : IClassFixture<IntegrationTestFixture>
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeGreaterOrEqualTo(0);
+        result.Value.Should().BeGreaterThanOrEqualTo(0);
     }
 
     [Fact]
@@ -756,8 +756,8 @@ public class CloudGamingIntegrationTests : IClassFixture<IntegrationTestFixture>
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeGreaterOrEqualTo(0);
-        result.Value.Should().BeLessOrEqualTo(100);
+        result.Value.Should().BeGreaterThanOrEqualTo(0);
+        result.Value.Should().BeLessThanOrEqualTo(100);
     }
 
     [Fact]
@@ -773,7 +773,7 @@ public class CloudGamingIntegrationTests : IClassFixture<IntegrationTestFixture>
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeGreaterOrEqualTo(0);
+        result.Value.Should().BeGreaterThanOrEqualTo(0);
     }
 
     #endregion
@@ -824,7 +824,7 @@ public class CloudGamingIntegrationTests : IClassFixture<IntegrationTestFixture>
 
         // Assert
         // The event should have been raised at least once
-        updatesReceived.Should().BeGreaterOrEqualTo(0);
+        updatesReceived.Should().BeGreaterThanOrEqualTo(0);
     }
 
     [Fact]
@@ -914,7 +914,7 @@ public class CloudGamingIntegrationTests : IClassFixture<IntegrationTestFixture>
 
             // Assert
             result.IsSuccess.Should().BeTrue();
-            result.Value.Should().BeGreaterOrEqualTo(0);
+            result.Value.Should().BeGreaterThanOrEqualTo(0);
         }
     }
 
@@ -1174,7 +1174,7 @@ public class CloudGamingIntegrationTests : IClassFixture<IntegrationTestFixture>
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
             // Act
-            await _cloudGamingManager.StartCloudSessionAsync(provider.Id, game.Id);
+            await _cloudGamingManager.StartCloudSessionAsync(provider.Id, game.Id, quality: StreamQuality.High);
 
             stopwatch.Stop();
 

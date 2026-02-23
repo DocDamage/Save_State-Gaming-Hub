@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using CefSharp;
 using CefSharp.Handler;
+using CefSharp.OffScreen;
 // NOTE: CefSharp.WinForms requires separate package. Using OffScreen for now.
 // using CefSharp.WinForms;
 using SaveState.Core.WebBrowser.Models;
@@ -48,7 +49,7 @@ public partial class CefSharpHost : UserControl
 
     private void OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
     {
-        if (!Cef.IsInitialized)
+        if (Cef.IsInitialized != true)
         {
             var settings = new CefSettings
             {
@@ -75,7 +76,8 @@ public partial class CefSharpHost : UserControl
 
         // NOTE: Using OffScreen rendering for Avalonia compatibility
         // For full browser integration, consider CefSharp.Avalonia or similar
-        Browser = new ChromiumWebBrowser(Address ?? "about:blank", offscreenRenderer: true);
+        // CefSharp.OffScreen.ChromiumWebBrowser constructor takes address as first parameter
+        Browser = new ChromiumWebBrowser(Address ?? "about:blank");
 
         Browser.AddressChanged += (s, e) =>
         {
@@ -95,7 +97,9 @@ public partial class CefSharpHost : UserControl
         };
 
         // FUTURE: Embed browser view in Avalonia using native host or CefSharp.Avalonia
-        HostContainer.Child = hwndHost;
+        // NOTE: hwndHost was not defined - Win32HwndControl requires WinForms Handle which OffScreen doesn't have
+        // HostContainer.Child would need proper Avalonia integration
+        // For now, this control provides headless browser functionality
     }
 
     public void LoadUrl(string url)
@@ -134,20 +138,27 @@ public partial class CefSharpHost : UserControl
     }
 }
 
-public class Win32HwndControl : NativeControlHost
-{
-    private readonly ChromiumWebBrowser _browser;
-
-    public Win32HwndControl(ChromiumWebBrowser browser)
-    {
-        _browser = browser;
-    }
-
-    protected override IPlatformHandle CreateNativeControlCore(IPlatformHandle parent)
-    {
-        return new PlatformHandle(_browser.Handle, "HWND");
-    }
-}
+// NOTE: Win32HwndControl requires CefSharp.WinForms.ChromiumWebBrowser which has a Handle property.
+// CefSharp.OffScreen.ChromiumWebBrowser does NOT have a Handle property as it is windowless.
+// To use native hosting, you would need:
+// 1. Reference CefSharp.WinForms package
+// 2. Use CefSharp.WinForms.ChromiumWebBrowser instead of OffScreen
+// 3. Or use CefSharp.Avalonia for proper Avalonia integration
+//
+// public class Win32HwndControl : NativeControlHost
+// {
+//     private readonly CefSharp.WinForms.ChromiumWebBrowser _browser;
+//
+//     public Win32HwndControl(CefSharp.WinForms.ChromiumWebBrowser browser)
+//     {
+//         _browser = browser;
+//     }
+//
+//     protected override IPlatformHandle CreateNativeControlCore(IPlatformHandle parent)
+//     {
+//         return new PlatformHandle(_browser.Handle, "HWND");
+//     }
+// }
 
 public class LoadingProgressChangedEventArgs : EventArgs
 {

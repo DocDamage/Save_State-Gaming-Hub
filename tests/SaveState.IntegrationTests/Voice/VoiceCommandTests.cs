@@ -82,7 +82,8 @@ public class VoiceCommandTests : IClassFixture<IntegrationTestFixture>
     {
         // Assert
         // Should be false initially
-        _voiceCommandService.IsListening.Should().BeOneOf(true, false);
+        // Boolean value is valid (always either true or false)
+        _voiceCommandService.IsListening.Should().Be(_voiceCommandService.IsListening);
     }
 
     #endregion
@@ -179,7 +180,8 @@ public class VoiceCommandTests : IClassFixture<IntegrationTestFixture>
 
         // Assert
         // Depending on implementation, might succeed or fail
-        result.IsSuccess.Should().BeOneOf(true, false);
+        // Test that result.Success is a valid boolean - result can be either success or failure
+        result.IsSuccess.Should().Be(result.IsSuccess);
     }
 
     [Fact]
@@ -192,7 +194,8 @@ public class VoiceCommandTests : IClassFixture<IntegrationTestFixture>
         var result = await _voiceCommandService.ProcessVoiceCommandAsync(spokenText);
 
         // Assert
-        result.IsSuccess.Should().BeOneOf(true, false);
+        // Test that result.Success is a valid boolean - result can be either success or failure
+        result.IsSuccess.Should().Be(result.IsSuccess);
     }
 
     [Fact]
@@ -205,7 +208,8 @@ public class VoiceCommandTests : IClassFixture<IntegrationTestFixture>
         var result = await _voiceCommandService.ProcessVoiceCommandAsync(spokenText);
 
         // Assert
-        result.IsSuccess.Should().BeOneOf(true, false);
+        // Test that result.Success is a valid boolean - result can be either success or failure
+        result.IsSuccess.Should().Be(result.IsSuccess);
     }
 
     [Fact]
@@ -225,7 +229,8 @@ public class VoiceCommandTests : IClassFixture<IntegrationTestFixture>
             var result = await _voiceCommandService.ProcessVoiceCommandAsync(command);
 
             // Assert
-            result.IsSuccess.Should().BeOneOf(true, false);
+            // Test that result.Success is a valid boolean - result can be either success or failure
+        result.IsSuccess.Should().Be(result.IsSuccess);
         }
     }
 
@@ -246,7 +251,8 @@ public class VoiceCommandTests : IClassFixture<IntegrationTestFixture>
             var result = await _voiceCommandService.ProcessVoiceCommandAsync(command);
 
             // Assert
-            result.IsSuccess.Should().BeOneOf(true, false);
+            // Test that result.Success is a valid boolean - result can be either success or failure
+        result.IsSuccess.Should().Be(result.IsSuccess);
         }
     }
 
@@ -261,7 +267,8 @@ public class VoiceCommandTests : IClassFixture<IntegrationTestFixture>
 
         // Assert
         // Should either fail or return a "not recognized" result
-        result.IsSuccess.Should().BeOneOf(true, false);
+        // Test that result.Success is a valid boolean - result can be either success or failure
+        result.IsSuccess.Should().Be(result.IsSuccess);
     }
 
     #endregion
@@ -408,7 +415,7 @@ public class VoiceCommandTests : IClassFixture<IntegrationTestFixture>
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
-        result.Value.Count.Should().BeGreaterOrEqualTo(2);
+        result.Value.Count.Should().BeGreaterThanOrEqualTo(2);
     }
 
     [Fact]
@@ -444,7 +451,8 @@ public class VoiceCommandTests : IClassFixture<IntegrationTestFixture>
 
         // Assert
         // Training might not be available in all implementations
-        result.IsSuccess.Should().BeOneOf(true, false);
+        // Test that result.Success is a valid boolean - result can be either success or failure
+        result.IsSuccess.Should().Be(result.IsSuccess);
     }
 
     [Fact]
@@ -472,7 +480,8 @@ public class VoiceCommandTests : IClassFixture<IntegrationTestFixture>
         var result = await _voiceCommandService.TrainVoiceModelAsync(phrases);
 
         // Assert
-        result.IsSuccess.Should().BeOneOf(true, false);
+        // Test that result.Success is a valid boolean - result can be either success or failure
+        result.IsSuccess.Should().Be(result.IsSuccess);
     }
 
     #endregion
@@ -520,7 +529,7 @@ public class VoiceCommandTests : IClassFixture<IntegrationTestFixture>
         // Assert
         // This is a placeholder for visualizer testing
         // Actual implementation would verify update frequency/data
-        updatesReceived.Should().BeGreaterOrEqualTo(0);
+        updatesReceived.Should().BeGreaterThanOrEqualTo(0);
     }
 
     #endregion
@@ -577,7 +586,8 @@ public class VoiceCommandTests : IClassFixture<IntegrationTestFixture>
 
         // Assert
         // Should still process even when not actively listening
-        result.IsSuccess.Should().BeOneOf(true, false);
+        // Test that result.Success is a valid boolean - result can be either success or failure
+        result.IsSuccess.Should().Be(result.IsSuccess);
     }
 
     #endregion

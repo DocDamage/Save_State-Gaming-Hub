@@ -8,6 +8,7 @@ using SaveState.Core.Theme.Models;
 using SaveState.Core.Theme.Services;
 using SaveState.Infrastructure.Theme.Services;
 using SaveState.Presentation.Services;
+using IThemeService = SaveState.Presentation.Services.IThemeService;
 using SaveState.Presentation.ViewModels.Dialogs;
 
 namespace SaveState.Presentation.ViewModels.Theme;

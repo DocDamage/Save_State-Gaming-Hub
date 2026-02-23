@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.MobileCompanion.Models;
+using CompanionNotification = SaveState.Core.MobileCompanion.Models.CompanionNotification;
+using SystemStatus = SaveState.Core.MobileCompanion.Models.SystemStatus;
+using TouchpadInput = SaveState.Core.MobileCompanion.Models.TouchpadInput;
 
 namespace SaveState.Presentation.Services;
 

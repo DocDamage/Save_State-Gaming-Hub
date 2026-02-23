@@ -98,7 +98,29 @@ public class BoolToBrushConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        return (value as bool?) == true
+        var isTrue = value as bool? == true;
+
+        // If parameter is provided, parse "trueBrush|falseBrush" format
+        if (parameter is string paramStr)
+        {
+            var parts = paramStr.Split('|');
+            if (parts.Length == 2)
+            {
+                try
+                {
+                    var trueBrush = new SolidColorBrush(Color.Parse(parts[0].Trim()));
+                    var falseBrush = new SolidColorBrush(Color.Parse(parts[1].Trim()));
+                    return isTrue ? trueBrush : falseBrush;
+                }
+                catch
+                {
+                    // Fall through to defaults if parsing fails
+                }
+            }
+        }
+
+        // Default behavior
+        return isTrue
             ? new SolidColorBrush(Color.Parse("#0078D4")) // Accent color
             : Brushes.Transparent;
     }

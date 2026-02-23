@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -123,7 +124,10 @@ public class AccessibleButtonBehavior : AccessibilityBehavior<Button>
         // Handle Enter and Space for button activation
         if (e.Key == Key.Enter || e.Key == Key.Space)
         {
-            AssociatedObject?.PerformClick();
+            if (AssociatedObject is Button button)
+            {
+                button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            }
             e.Handled = true;
         }
     }

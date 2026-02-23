@@ -260,14 +260,9 @@ public static class TestDataSeeder
             EnableJavaScript = true,
             EnablePlugins = true,
             EnableWebSecurity = true,
-            EnableDownloads = true,
-            DownloadPath = Path.Combine(Path.GetTempPath(), "SaveStateTests", "Downloads"),
             ClearDataOnExit = false,
             DoNotTrack = true,
-            BlockPopups = true,
-            BlockedDomains = new List<string>(),
-            CustomHeaders = new Dictionary<string, string>(),
-            IsIncognito = false
+            BlockPopups = true
         };
     }
 

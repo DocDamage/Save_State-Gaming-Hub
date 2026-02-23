@@ -10,6 +10,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:SaveState.Presentation.ViewModels.MobileCompanion"
              xmlns:models="using:SaveState.Presentation.Models.Mobile"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              x:Class="SaveState.Presentation.Views.MobileCompanion.MobileSaveStatesView"
              x:DataType="vm:MobileSaveStatesViewModel"
              Background="{StaticResource BackgroundBrush}">
@@ -173,7 +175,12 @@
         <Border Grid.Row="0" Grid.RowSpan="4"
                IsVisible="{Binding IsSaveStateDetailOpen}"
                Background="{StaticResource OverlayBackgroundBrush}"
-               PointerPressed="{Binding CloseSaveStateDetailCommand}">
+               >
+            <Interaction.Behaviors>
+                <EventTriggerBehavior EventName="PointerPressed">
+                    <InvokeCommandAction Command="{Binding CloseSaveStateDetailCommand}" />
+                </EventTriggerBehavior>
+            </Interaction.Behaviors>
             <Border Width="320"
                    Background="{StaticResource CardBackgroundBrush}"
                    CornerRadius="16"

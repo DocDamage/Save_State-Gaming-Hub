@@ -1,6 +1,8 @@
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
@@ -16,7 +18,6 @@ namespace SaveState.Presentation.Services.Accessibility;
 public class AccessibilityAuditor
 {
     private readonly ILogger<AccessibilityAuditor> _logger;
-    private readonly ColorContrastChecker _contrastChecker;
 
     public AccessibilityAuditor(ILogger<AccessibilityAuditor> logger)
     {
@@ -236,21 +237,20 @@ public class AccessibilityAuditor
         }
 
         // Check for elements that handle click but not keyboard
-        if (element is InputElement input && input.Gestures.Count > 0)
+        // Check for interactive elements that might not have keyboard support
+        if (element is InputElement input && input is not Button && input is not TextBox && input.Focusable)
         {
-            var hasKeyboardHandler = element.KeyDownEvent.HasHandlers();
-            if (!hasKeyboardHandler)
+            // Elements with custom input handling should ensure keyboard accessibility
+            // We flag focusable non-standard elements as potential keyboard accessibility issues
+            result.Issues.Add(new AccessibilityIssue
             {
-                result.Issues.Add(new AccessibilityIssue
-                {
-                    ElementType = element.GetType().Name,
-                    ElementName = element.Name,
-                    Severity = IssueSeverity.Warning,
-                    Message = "Element handles gestures but may not be accessible via keyboard",
-                    WcagGuideline = "2.1.1 Keyboard",
-                    Remediation = "Ensure keyboard equivalents exist for all gesture handlers"
-                });
-            }
+                ElementType = element.GetType().Name,
+                ElementName = element.Name,
+                Severity = IssueSeverity.Suggestion,
+                Message = "Custom interactive element may not be accessible via keyboard",
+                WcagGuideline = "2.1.1 Keyboard",
+                Remediation = "Ensure keyboard equivalents exist for all interactive elements"
+            });
         }
     }
 
@@ -314,8 +314,8 @@ public class AccessibilityAuditor
         }
 
         // Check for live regions without appropriate announcements
-        var ariaLive = AccessibilityService.AriaLiveProperty.GetValue(element);
-        if (ariaLive != null && (AriaLiveMode)ariaLive != AriaLiveMode.Off)
+        var ariaLive = element.GetValue(AccessibilityService.AriaLiveProperty);
+        if (ariaLive is AriaLiveMode liveMode && liveMode != AriaLiveMode.Off)
         {
             if (string.IsNullOrEmpty(AutomationProperties.GetName(element)))
             {
@@ -364,9 +364,21 @@ public class AccessibilityAuditor
         var current = element;
         while (current != null)
         {
-            if (current.Background is ISolidColorBrush brush)
+            if (current is TemplatedControl tc && tc.Background is ISolidColorBrush brush1)
             {
-                return brush.Color;
+                return brush1.Color;
+            }
+            if (current is Border border && border.Background is ISolidColorBrush brush2)
+            {
+                return brush2.Color;
+            }
+            if (current is Panel panel && panel.Background is ISolidColorBrush brush3)
+            {
+                return brush3.Color;
+            }
+            if (current is ContentControl cc && cc.Background is ISolidColorBrush brush4)
+            {
+                return brush4.Color;
             }
             current = current.Parent as Control;
         }

@@ -4,6 +4,7 @@ using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Services;
+using SaveState.Core.SaveStates;
 using SaveState.Core.WebBrowser.Services;
 
 namespace SaveState.Presentation.Services.WebBrowser;
@@ -58,8 +59,8 @@ public class StoreIntegrationService : IStoreIntegrationService
             // Check if the game exists in our library with the matching store ID
             var games = await _gameRepository.GetAllAsync(ct);
             return games.Any(g =>
-                g.StoreId == gameId &&
-                g.Platform.Name.Equals(store, StringComparison.OrdinalIgnoreCase));
+                g.SourceId == gameId &&
+                g.Platform?.Name.Value.Equals(store, StringComparison.OrdinalIgnoreCase) == true);
         }
         catch (Exception ex)
         {
@@ -75,29 +76,28 @@ public class StoreIntegrationService : IStoreIntegrationService
         {
             var games = await _gameRepository.GetAllAsync(ct);
             var game = games.FirstOrDefault(g =>
-                g.StoreId == gameId &&
-                g.Platform.Name.Equals(store, StringComparison.OrdinalIgnoreCase));
+                g.SourceId == gameId &&
+                g.Platform?.Name.Value.Equals(store, StringComparison.OrdinalIgnoreCase) == true);
 
             if (game == null)
                 return null;
 
-            var sessions = await _sessionRepository.GetSessionsByGameAsync(game.Id, ct);
+            var sessions = await _sessionRepository.GetByGameIdAsync(game.Id, 100, ct);
             var saveStates = await _saveStateRepository.GetByGameIdAsync(game.Id, ct);
 
-            var totalHours = sessions.Sum(s => s.Duration?.TotalHours ?? 0);
+            var totalHours = sessions.Sum(s => s.Duration.TotalHours);
             var lastPlayed = sessions
-                .Where(s => s.EndTime.HasValue)
-                .OrderByDescending(s => s.EndTime)
-                .FirstOrDefault()?.EndTime;
+                .OrderByDescending(s => s.EndedAt)
+                .FirstOrDefault()?.EndedAt;
 
             return new StoreGameStats
             {
                 TotalHoursPlayed = totalHours,
                 SaveStateCount = saveStates.Count,
                 LastPlayed = lastPlayed,
-                CompletionPercentage = game.CompletionPercentage,
-                AchievementsUnlocked = game.Achievements?.Count(a => a.IsUnlocked) ?? 0,
-                TotalAchievements = game.Achievements?.Count ?? 0,
+                CompletionPercentage = 0,
+                AchievementsUnlocked = 0,
+                TotalAchievements = 0,
                 IsInstalled = !string.IsNullOrEmpty(game.ExecutablePath),
                 InstallPath = game.ExecutablePath
             };

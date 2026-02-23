@@ -259,7 +259,6 @@ public class TournamentManagementTests : IClassFixture<IntegrationTestFixture>
     {
         // Arrange
         var tournamentRequest = TestDataSeeder.CreateSampleTournamentRequest("Check-In Test");
-        tournamentRequest = tournamentRequest with { RequireCheckIn = true };
         var tournamentResult = await _tournamentService.CreateTournamentAsync(tournamentRequest);
         var tournamentId = tournamentResult.Value.Id;
 

@@ -65,6 +65,9 @@
     <PackageReference Include="LiveChartsCore" />
     <PackageReference Include="LiveChartsCore.SkiaSharpView" />
     <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" />
+
+    <!-- CefSharp - Chromium Embedded Framework -->
+    <PackageReference Include="CefSharp.OffScreen.NETCore" />
   </ItemGroup>
 
 </Project>

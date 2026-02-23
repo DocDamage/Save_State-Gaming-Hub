@@ -350,7 +350,7 @@ public class RgbSyncIntegrationTests : IClassFixture<IntegrationTestFixture>
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Count.Should().BeGreaterOrEqualTo(3);
+        result.Value.Count.Should().BeGreaterThanOrEqualTo(3);
     }
 
     [Fact]
@@ -745,7 +745,7 @@ public class RgbSyncIntegrationTests : IClassFixture<IntegrationTestFixture>
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Count.Should().BeGreaterOrEqualTo(3);
+        result.Value.Count.Should().BeGreaterThanOrEqualTo(3);
     }
 
     [Fact]

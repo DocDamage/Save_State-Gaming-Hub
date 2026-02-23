@@ -1,12 +1,14 @@
+using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Media;
+using Avalonia.Styling;
 using SaveState.Presentation.Services.Animation;
-using System.Collections.ObjectModel;
 
 namespace SaveState.Presentation.Controls;
 
@@ -359,28 +361,28 @@ public partial class TransitionHost : ContentControl
         var endFrame = new KeyFrame { Cue = new Cue(1.0) };
 
         // Always fade in
-        startFrame.Setters.Add(new Setter(OpacityProperty, 0.0));
-        endFrame.Setters.Add(new Setter(OpacityProperty, 1.0));
+        startFrame.Setters.Add(new Setter(Visual.OpacityProperty, 0.0));
+        endFrame.Setters.Add(new Setter(Visual.OpacityProperty, 1.0));
 
         // Add transform animation based on transition type
         switch (transition)
         {
             case PageTransitionType.SlideLeft:
             case PageTransitionType.SlideRight:
-                startFrame.Setters.Add(new Setter(RenderTransformProperty, new TranslateTransform(isForward ? 300 : -300, 0)));
-                endFrame.Setters.Add(new Setter(RenderTransformProperty, new TranslateTransform(0, 0)));
+                startFrame.Setters.Add(new Setter(Visual.RenderTransformProperty, new TranslateTransform(isForward ? 300 : -300, 0)));
+                endFrame.Setters.Add(new Setter(Visual.RenderTransformProperty, new TranslateTransform(0, 0)));
                 break;
 
             case PageTransitionType.SlideUp:
             case PageTransitionType.SlideDown:
-                startFrame.Setters.Add(new Setter(RenderTransformProperty, new TranslateTransform(0, isForward ? 200 : -200)));
+                startFrame.Setters.Add(new Setter(Visual.RenderTransformProperty, new TranslateTransform(0, isForward ? 200 : -200)));
                 endFrame.Setters.Add(new Setter(RenderTransformProperty, new TranslateTransform(0, 0)));
                 break;
 
             case PageTransitionType.Scale:
             case PageTransitionType.Crossfade:
-                startFrame.Setters.Add(new Setter(RenderTransformProperty, new ScaleTransform(0.8, 0.8)));
-                endFrame.Setters.Add(new Setter(RenderTransformProperty, new ScaleTransform(1.0, 1.0)));
+                startFrame.Setters.Add(new Setter(Visual.RenderTransformProperty, new ScaleTransform(0.8, 0.8)));
+                endFrame.Setters.Add(new Setter(Visual.RenderTransformProperty, new ScaleTransform(1.0, 1.0)));
                 break;
 
             case PageTransitionType.Fade:
@@ -408,15 +410,15 @@ public partial class TransitionHost : ContentControl
         var endFrame = new KeyFrame { Cue = new Cue(1.0) };
 
         // Always fade out
-        startFrame.Setters.Add(new Setter(OpacityProperty, 1.0));
-        endFrame.Setters.Add(new Setter(OpacityProperty, 0.0));
+        startFrame.Setters.Add(new Setter(Visual.OpacityProperty, 1.0));
+        endFrame.Setters.Add(new Setter(Visual.OpacityProperty, 0.0));
 
         // Add transform animation based on transition type
         switch (transition)
         {
             case PageTransitionType.SlideLeft:
-                startFrame.Setters.Add(new Setter(RenderTransformProperty, new TranslateTransform(0, 0)));
-                endFrame.Setters.Add(new Setter(RenderTransformProperty, new TranslateTransform(isForward ? -300 : 300, 0)));
+                startFrame.Setters.Add(new Setter(Visual.RenderTransformProperty, new TranslateTransform(0, 0)));
+                endFrame.Setters.Add(new Setter(Visual.RenderTransformProperty, new TranslateTransform(isForward ? -300 : 300, 0)));
                 break;
 
             case PageTransitionType.SlideRight:
@@ -426,7 +428,7 @@ public partial class TransitionHost : ContentControl
 
             case PageTransitionType.SlideUp:
                 startFrame.Setters.Add(new Setter(RenderTransformProperty, new TranslateTransform(0, 0)));
-                endFrame.Setters.Add(new Setter(RenderTransformProperty, new TranslateTransform(0, isForward ? -200 : 200)));
+                endFrame.Setters.Add(new Setter(Visual.RenderTransformProperty, new TranslateTransform(0, isForward ? -200 : 200)));
                 break;
 
             case PageTransitionType.SlideDown:
@@ -437,7 +439,7 @@ public partial class TransitionHost : ContentControl
             case PageTransitionType.Scale:
             case PageTransitionType.Crossfade:
                 startFrame.Setters.Add(new Setter(RenderTransformProperty, new ScaleTransform(1.0, 1.0)));
-                endFrame.Setters.Add(new Setter(RenderTransformProperty, new ScaleTransform(0.95, 0.95)));
+                endFrame.Setters.Add(new Setter(Visual.RenderTransformProperty, new ScaleTransform(0.95, 0.95)));
                 break;
 
             case PageTransitionType.Fade:

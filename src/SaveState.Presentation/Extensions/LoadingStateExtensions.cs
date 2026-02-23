@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
@@ -62,10 +63,10 @@ public static class ViewModelLoadingExtensions
         }
         finally
         {
-            if (viewModel is ILoadingStateAware stateAware)
+            if (viewModel is ILoadingStateAware stateAwareFinally)
             {
-                stateAware.IsLoading = false;
-                stateAware.LoadingMessage = null;
+                stateAwareFinally.IsLoading = false;
+                stateAwareFinally.LoadingMessage = null;
             }
         }
     }
@@ -100,10 +101,10 @@ public static class ViewModelLoadingExtensions
         }
         finally
         {
-            if (viewModel is ILoadingStateAware stateAware)
+            if (viewModel is ILoadingStateAware stateAwareFinally)
             {
-                stateAware.IsLoading = false;
-                stateAware.LoadingMessage = null;
+                stateAwareFinally.IsLoading = false;
+                stateAwareFinally.LoadingMessage = null;
             }
         }
     }
@@ -225,10 +226,10 @@ public static class ViewModelLoadingExtensions
         }
         finally
         {
-            if (viewModel is IProgressStateAware progressAware)
+            if (viewModel is IProgressStateAware progressAwareFinally)
             {
-                progressAware.IsInProgress = false;
-                progressAware.ProgressMessage = null;
+                progressAwareFinally.IsInProgress = false;
+                progressAwareFinally.ProgressMessage = null;
             }
         }
     }
@@ -305,9 +306,9 @@ public static class ViewModelLoadingExtensions
         {
             await animationService.HideSkeletonAsync(skeletonContainer);
 
-            if (viewModel is ILoadingStateAware stateAware)
+            if (viewModel is ILoadingStateAware stateAwareFinally)
             {
-                stateAware.IsLoading = false;
+                stateAwareFinally.IsLoading = false;
             }
         }
     }
@@ -346,10 +347,10 @@ public static class ViewModelLoadingExtensions
             {
                 var result = await action();
 
-                if (viewModel is ILoadingStateAware stateAware)
+                if (viewModel is ILoadingStateAware stateAwareSuccess)
                 {
-                    stateAware.IsLoading = false;
-                    stateAware.LoadingMessage = null;
+                    stateAwareSuccess.IsLoading = false;
+                    stateAwareSuccess.LoadingMessage = null;
                 }
 
                 return result;
@@ -370,10 +371,10 @@ public static class ViewModelLoadingExtensions
             }
             finally
             {
-                if (viewModel is ILoadingStateAware stateAware && attempt >= maxRetries)
+                if (viewModel is ILoadingStateAware stateAwareFinally && attempt >= maxRetries)
                 {
-                    stateAware.IsLoading = false;
-                    stateAware.LoadingMessage = null;
+                    stateAwareFinally.IsLoading = false;
+                    stateAwareFinally.LoadingMessage = null;
                 }
             }
         }
@@ -399,7 +400,12 @@ public static class ViewModelLoadingExtensions
         string? debounceKey = null)
     {
         var key = debounceKey ?? action.Method.Name;
-        var cts = DebounceCancellationTokens.GetOrAdd(key, _ => new CancellationTokenSource());
+        var cts = DebounceCancellationTokens.GetValueOrDefault(key);
+        if (cts == null)
+        {
+            cts = new CancellationTokenSource();
+            DebounceCancellationTokens[key] = cts;
+        }
 
         try
         {
@@ -455,8 +461,8 @@ public static class ViewModelLoadingExtensions
     }
 
     // Static dictionaries for debounce/throttle state
-    private static readonly Dictionary<string, CancellationTokenSource> DebounceCancellationTokens = new();
-    private static readonly Dictionary<string, DateTime> ThrottleLastExecution = new();
+    private static readonly ConcurrentDictionary<string, CancellationTokenSource> DebounceCancellationTokens = new();
+    private static readonly ConcurrentDictionary<string, DateTime> ThrottleLastExecution = new();
 }
 
 #region Supporting Interfaces

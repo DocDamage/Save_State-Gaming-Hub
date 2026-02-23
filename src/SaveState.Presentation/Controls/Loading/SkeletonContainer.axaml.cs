@@ -3,6 +3,7 @@ using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
+using Avalonia.Styling;
 
 namespace SaveState.Presentation.Controls.Loading;
 
@@ -121,6 +122,7 @@ public partial class SkeletonContainer : UserControl
 
     private Animation? _shimmerAnimation;
     private CancellationTokenSource? _animationCts;
+    private TranslateTransform? _shimmerTransform;
 
     public SkeletonContainer()
     {
@@ -170,7 +172,7 @@ public partial class SkeletonContainer : UserControl
 
     private void SetupShimmerAnimation()
     {
-        if (ShimmerTransform is null) return;
+        if (_shimmerTransform is null) return;
 
         _shimmerAnimation = new Animation
         {
@@ -200,12 +202,12 @@ public partial class SkeletonContainer : UserControl
 
     private void StartShimmerAnimation()
     {
-        if (!EnableShimmerAnimation || ShimmerTransform is null) return;
+        if (!EnableShimmerAnimation || _shimmerTransform is null) return;
 
         StopShimmerAnimation();
 
         _animationCts = new CancellationTokenSource();
-        _shimmerAnimation?.RunAsync(ShimmerTransform, _animationCts.Token);
+        _shimmerAnimation?.RunAsync(_shimmerTransform, _animationCts.Token);
     }
 
     private void StopShimmerAnimation()

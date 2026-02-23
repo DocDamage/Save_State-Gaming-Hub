@@ -1,6 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:SaveState.Presentation.ViewModels.WebBrowser"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              x:Class="SaveState.Presentation.Views.WebBrowser.BrowserShellView"
              x:DataType="vm:BrowserShellViewModel">
     
@@ -45,10 +47,14 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:BrowserTab}">
-                            <Border Background="{Binding IsActive, Converter={StaticResource BoolToBackgroundBrushConverter}}"
+                            <Border Background="{Binding IsActive, Converter={StaticResource BoolToBrushConverter}, ConverterParameter='#FF404040|Transparent'}'"
                                     Padding="12,6" CornerRadius="4,4,0,0"
-                                    PointerPressed="{Binding $parent[ItemsControl].((vm:BrowserShellViewModel)DataContext).ActivateTabCommand, FallbackValue={x:Null}}"
-                                    CommandParameter="{Binding}">
+                                    >
+                                <Interaction.Behaviors>
+                                    <EventTriggerBehavior EventName="PointerPressed">
+                                        <InvokeCommandAction Command="{Binding $parent[ItemsControl].((vm:BrowserShellViewModel)DataContext).ActivateTabCommand}" CommandParameter="{Binding}" />
+                                    </EventTriggerBehavior>
+                                </Interaction.Behaviors>
                                 <Grid ColumnDefinitions="Auto,*,Auto">
                                     <TextBlock Grid.Column="0" Text="{Binding Favicon, FallbackValue='🌐'}" Margin="0,0,6,0"/>
                                     <TextBlock Grid.Column="1" Text="{Binding Title}" TextTrimming="CharacterEllipsis" MaxWidth="150"/>

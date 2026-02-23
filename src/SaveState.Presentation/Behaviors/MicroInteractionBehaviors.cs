@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using System.Reactive.Disposables;
@@ -72,7 +73,7 @@ public class RippleBehavior : Behavior<Button>
 
         if (AssociatedObject is not null)
         {
-            AssociatedObject.Click += OnClick;
+            AssociatedObject.AddHandler(InputElement.PointerPressedEvent, OnClick, RoutingStrategies.Tunnel);
             EnsureContainer();
         }
     }
@@ -83,7 +84,7 @@ public class RippleBehavior : Behavior<Button>
 
         if (AssociatedObject is not null)
         {
-            AssociatedObject.Click -= OnClick;
+            AssociatedObject.RemoveHandler(InputElement.PointerPressedEvent, OnClick);
         }
 
         _rippleDisposable.Dispose();
@@ -116,7 +117,7 @@ public class RippleBehavior : Behavior<Button>
         }
     }
 
-    private async void OnClick(object? sender, RoutedEventArgs e)
+    private async void OnClick(object? sender, PointerPressedEventArgs e)
     {
         if (_container is null || AssociatedObject is null) return;
 
@@ -161,9 +162,9 @@ public class RippleBehavior : Behavior<Button>
                     Cue = new Cue(0.0),
                     Setters =
                     {
-                        new Setter(WidthProperty, 0.0),
-                        new Setter(HeightProperty, 0.0),
-                        new Setter(OpacityProperty, RippleOpacity)
+                        new Setter(Layoutable.WidthProperty, 0.0),
+                        new Setter(Layoutable.HeightProperty, 0.0),
+                        new Setter(Visual.OpacityProperty, RippleOpacity)
                     }
                 },
                 new KeyFrame
@@ -171,9 +172,9 @@ public class RippleBehavior : Behavior<Button>
                     Cue = new Cue(1.0),
                     Setters =
                     {
-                        new Setter(WidthProperty, maxRadius * 2),
-                        new Setter(HeightProperty, maxRadius * 2),
-                        new Setter(OpacityProperty, 0.0)
+                        new Setter(Layoutable.WidthProperty, maxRadius * 2),
+                        new Setter(Layoutable.HeightProperty, maxRadius * 2),
+                        new Setter(Visual.OpacityProperty, 0.0)
                     }
                 }
             }
@@ -384,28 +385,33 @@ public class HoverGlowBehavior : Behavior<Control>
     {
         if (AssociatedObject is null) return;
 
-        // Store original shadow
-        _originalShadow = AssociatedObject.BoxShadow;
-
-        // Apply glow
-        var glowShadow = new BoxShadow
+        // Apply glow (only if the control is a Border)
+        if (AssociatedObject is Border border)
         {
-            Color = new Color(100, GlowColor.R, GlowColor.G, GlowColor.B),
-            Blur = GlowBlur,
-            Spread = 0,
-            OffsetX = 0,
-            OffsetY = 0
-        };
+            _originalShadow = border.BoxShadow;
 
-        AssociatedObject.BoxShadow = new BoxShadows(glowShadow);
+            var glowShadow = new BoxShadow
+            {
+                Color = new Color(100, GlowColor.R, GlowColor.G, GlowColor.B),
+                Blur = GlowBlur,
+                Spread = 0,
+                OffsetX = 0,
+                OffsetY = 0
+            };
+
+            border.BoxShadow = new BoxShadows(glowShadow);
+        }
     }
 
     private void OnPointerExited(object? sender, PointerEventArgs e)
     {
         if (AssociatedObject is null) return;
 
-        // Restore original shadow
-        AssociatedObject.BoxShadow = _originalShadow;
+        // Restore original shadow (only if the control is a Border)
+        if (AssociatedObject is Border border)
+        {
+            border.BoxShadow = _originalShadow;
+        }
     }
 }
 
@@ -698,7 +704,9 @@ public class TiltBehavior : Behavior<Control>
         set => SetValue(DurationProperty, value);
     }
 
-    private Rotate3DTransform? _rotateTransform;
+    private MatrixTransform? _rotateTransform;
+    private double _currentAngleX;
+    private double _currentAngleY;
 
     protected override void OnAttached()
     {
@@ -707,7 +715,7 @@ public class TiltBehavior : Behavior<Control>
         if (AssociatedObject is null) return;
 
         AssociatedObject.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
-        _rotateTransform = new Rotate3DTransform();
+        _rotateTransform = new MatrixTransform(Matrix.Identity);
         AssociatedObject.RenderTransform = _rotateTransform;
 
         AssociatedObject.PointerMoved += OnPointerMoved;
@@ -751,6 +759,9 @@ public class TiltBehavior : Behavior<Control>
     {
         if (_rotateTransform is null) return;
 
+        var startMatrix = CreateRotationMatrix(_currentAngleX, _currentAngleY);
+        var endMatrix = CreateRotationMatrix(angleX, angleY);
+
         var animation = new Animation
         {
             Duration = Duration,
@@ -762,8 +773,7 @@ public class TiltBehavior : Behavior<Control>
                     Cue = new Cue(0.0),
                     Setters =
                     {
-                        new Setter(Rotate3DTransform.AngleXProperty, _rotateTransform.AngleX),
-                        new Setter(Rotate3DTransform.AngleYProperty, _rotateTransform.AngleY)
+                        new Setter(MatrixTransform.MatrixProperty, startMatrix)
                     }
                 },
                 new KeyFrame
@@ -771,54 +781,34 @@ public class TiltBehavior : Behavior<Control>
                     Cue = new Cue(1.0),
                     Setters =
                     {
-                        new Setter(Rotate3DTransform.AngleXProperty, angleX),
-                        new Setter(Rotate3DTransform.AngleYProperty, angleY)
+                        new Setter(MatrixTransform.MatrixProperty, endMatrix)
                     }
                 }
             }
         };
 
         animation.RunAsync(_rotateTransform, System.Threading.CancellationToken.None);
+        
+        _currentAngleX = angleX;
+        _currentAngleY = angleY;
+    }
+
+    private static Matrix CreateRotationMatrix(double angleX, double angleY)
+    {
+        // Create a 2D projection of 3D rotation using skew transforms
+        var radiansX = angleX * Math.PI / 180.0;
+        var radiansY = angleY * Math.PI / 180.0;
+        
+        // Simplified 3D rotation projection
+        var scaleX = Math.Cos(radiansY);
+        var skewY = Math.Sin(radiansY) * 0.5;
+        var skewX = -Math.Sin(radiansX) * 0.5;
+        var scaleY = Math.Cos(radiansX);
+        
+        return new Matrix(scaleX, skewX, skewY, scaleY, 0, 0);
     }
 }
 
 #endregion
 
-#region Rotate3DTransform Helper Class
 
-/// <summary>
-/// A transform that provides 3D rotation capabilities.
-/// </summary>
-public class Rotate3DTransform : Transform
-{
-    public static readonly StyledProperty<double> AngleXProperty =
-        AvaloniaProperty.Register<Rotate3DTransform, double>(nameof(AngleX));
-
-    public static readonly StyledProperty<double> AngleYProperty =
-        AvaloniaProperty.Register<Rotate3DTransform, double>(nameof(AngleY));
-
-    public static readonly StyledProperty<double> AngleZProperty =
-        AvaloniaProperty.Register<Rotate3DTransform, double>(nameof(AngleZ));
-
-    public double AngleX
-    {
-        get => GetValue(AngleXProperty);
-        set => SetValue(AngleXProperty, value);
-    }
-
-    public double AngleY
-    {
-        get => GetValue(AngleYProperty);
-        set => SetValue(AngleYProperty, value);
-    }
-
-    public double AngleZ
-    {
-        get => GetValue(AngleZProperty);
-        set => SetValue(AngleZProperty, value);
-    }
-
-    public override Matrix Value => Matrix.Identity;
-}
-
-#endregion

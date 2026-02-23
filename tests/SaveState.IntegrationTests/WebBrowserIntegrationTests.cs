@@ -177,7 +177,7 @@ public class WebBrowserIntegrationTests : IClassFixture<IntegrationTestFixture>
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Count.Should().BeGreaterOrEqualTo(3);
+        result.Value.Count.Should().BeGreaterThanOrEqualTo(3);
     }
 
     [Fact]
@@ -569,7 +569,7 @@ public class WebBrowserIntegrationTests : IClassFixture<IntegrationTestFixture>
         var result = await _browserService.CancelDownloadAsync(downloadId);
 
         // Assert
-        result.IsSuccess.Should().BeOneOf(true, false);
+        (result.IsSuccess == true || result.IsSuccess == false).Should().BeTrue();
     }
 
     [Fact]
@@ -582,7 +582,7 @@ public class WebBrowserIntegrationTests : IClassFixture<IntegrationTestFixture>
         var result = await _browserService.PauseDownloadAsync(downloadId);
 
         // Assert
-        result.IsSuccess.Should().BeOneOf(true, false);
+        (result.IsSuccess == true || result.IsSuccess == false).Should().BeTrue();
     }
 
     [Fact]
@@ -595,7 +595,7 @@ public class WebBrowserIntegrationTests : IClassFixture<IntegrationTestFixture>
         var result = await _browserService.ResumeDownloadAsync(downloadId);
 
         // Assert
-        result.IsSuccess.Should().BeOneOf(true, false);
+        (result.IsSuccess == true || result.IsSuccess == false).Should().BeTrue();
     }
 
     [Fact]
@@ -623,7 +623,7 @@ public class WebBrowserIntegrationTests : IClassFixture<IntegrationTestFixture>
     public async Task UpdateDownloadSettings_UpdatesSettings()
     {
         // Arrange
-        var settings = new BrowserSettings
+        var settings = new DownloadSettings
         {
             DownloadPath = Path.Combine(Path.GetTempPath(), "SaveStateTests", "Downloads"),
             EnableDownloads = true
@@ -1073,7 +1073,7 @@ public class WebBrowserIntegrationTests : IClassFixture<IntegrationTestFixture>
         var result = await _browserService.LoadExtensionAsync(extensionPath);
 
         // Assert
-        result.IsSuccess.Should().BeOneOf(true, false);
+        (result.IsSuccess == true || result.IsSuccess == false).Should().BeTrue();
     }
 
     [Fact]
@@ -1086,7 +1086,7 @@ public class WebBrowserIntegrationTests : IClassFixture<IntegrationTestFixture>
         var result = await _browserService.EnableExtensionAsync(extensionId);
 
         // Assert
-        result.IsSuccess.Should().BeOneOf(true, false);
+        (result.IsSuccess == true || result.IsSuccess == false).Should().BeTrue();
     }
 
     [Fact]
@@ -1099,7 +1099,7 @@ public class WebBrowserIntegrationTests : IClassFixture<IntegrationTestFixture>
         var result = await _browserService.DisableExtensionAsync(extensionId);
 
         // Assert
-        result.IsSuccess.Should().BeOneOf(true, false);
+        (result.IsSuccess == true || result.IsSuccess == false).Should().BeTrue();
     }
 
     [Fact]
@@ -1112,7 +1112,7 @@ public class WebBrowserIntegrationTests : IClassFixture<IntegrationTestFixture>
         var result = await _browserService.UnloadExtensionAsync(extensionId);
 
         // Assert
-        result.IsSuccess.Should().BeOneOf(true, false);
+        (result.IsSuccess == true || result.IsSuccess == false).Should().BeTrue();
     }
 
     #endregion

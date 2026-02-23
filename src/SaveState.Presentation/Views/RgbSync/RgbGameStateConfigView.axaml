@@ -202,7 +202,7 @@
                             <DataTemplate x:DataType="rgb:GameStateRgbConfig">
                                 <Border Classes="TriggerCard"
                                         Margin="0,6"
-                                        Classes.Active="{Binding $parent[ItemsControl].((vm:RgbGameStateConfigViewModel)DataContext).PreviewingTrigger, Converter={x:Static vm:TriggerActiveConverter.Instance}, ConverterParameter={Binding Trigger}}">
+                                        Tag="{Binding}">
                                     <Grid ColumnDefinitions="Auto, *, Auto">
                                         <!-- Icon -->
                                         <TextBlock Grid.Column="0"

@@ -6,6 +6,7 @@ using SaveState.Core.Common.Services;
 using SaveState.Core.Input.Services;
 using SaveState.Core.Input.Services.DTOs;
 using SaveState.Presentation.Models.Voice;
+using VoiceCommandResult = SaveState.Presentation.Models.Voice.VoiceCommandResult;
 using SaveState.Presentation.Services;
 using SaveState.Presentation.Services.Voice;
 

@@ -105,7 +105,7 @@ public class ThemeSystemTests : IClassFixture<IntegrationTestFixture>
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Count.Should().BeGreaterOrEqualTo(3);
+        result.Value.Count.Should().BeGreaterThanOrEqualTo(3);
     }
 
     [Fact]
@@ -672,7 +672,7 @@ public class ThemeSystemTests : IClassFixture<IntegrationTestFixture>
         // Assert
         // Note: In a real async scenario, we might need to wait for the event
         // This is a simplified check
-        eventRaised.Should().BeOneOf(true, false);
+        eventRaised.Should().BeOneOf([true, false]);
     }
 
     #endregion

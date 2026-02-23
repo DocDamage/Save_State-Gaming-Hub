@@ -28,9 +28,6 @@
             <Setter Property="BorderThickness" Value="2"/>
         </Style>
 
-        <Style Selector="Border.ProfileCard.Default">
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
-        </Style>
     </UserControl.Styles>
 
     <Grid RowDefinitions="Auto, *, Auto" Margin="0,15,0,0">
@@ -63,9 +60,7 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="rgb:RgbProfile">
                         <Border Classes="ProfileCard"
-                                Margin="8"
-                                Classes.Default="{Binding IsDefault}"
-                                Classes.Active="{Binding $parent[ItemsControl].((vm:RgbProfileManagerViewModel)DataContext).SelectedProfile.Id == Id}">
+                                Margin="8">
                             <Grid RowDefinitions="Auto, *, Auto">
                                 <!-- Header -->
                                 <Grid Grid.Row="0" ColumnDefinitions="*, Auto">

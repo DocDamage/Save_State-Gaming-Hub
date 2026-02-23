@@ -59,14 +59,14 @@ public interface IAnimationService
     /// </summary>
     /// <param name="element">The control to animate.</param>
     /// <param name="duration">Optional duration. Default is 300ms.</param>
-    Task FadeInAsync(Control element, Duration? duration = null);
+    Task FadeInAsync(Control element, TimeSpan? duration = null);
 
     /// <summary>
     /// Fades out an element from fully opaque to transparent.
     /// </summary>
     /// <param name="element">The control to animate.</param>
     /// <param name="duration">Optional duration. Default is 200ms.</param>
-    Task FadeOutAsync(Control element, Duration? duration = null);
+    Task FadeOutAsync(Control element, TimeSpan? duration = null);
 
     /// <summary>
     /// Slides an element in from the specified direction.
@@ -74,7 +74,7 @@ public interface IAnimationService
     /// <param name="element">The control to animate.</param>
     /// <param name="direction">The direction to slide from.</param>
     /// <param name="duration">Optional duration. Default is 350ms.</param>
-    Task SlideInAsync(Control element, SlideDirection direction, Duration? duration = null);
+    Task SlideInAsync(Control element, SlideDirection direction, TimeSpan? duration = null);
 
     /// <summary>
     /// Slides an element out in the specified direction.
@@ -82,21 +82,21 @@ public interface IAnimationService
     /// <param name="element">The control to animate.</param>
     /// <param name="direction">The direction to slide to.</param>
     /// <param name="duration">Optional duration. Default is 300ms.</param>
-    Task SlideOutAsync(Control element, SlideDirection direction, Duration? duration = null);
+    Task SlideOutAsync(Control element, SlideDirection direction, TimeSpan? duration = null);
 
     /// <summary>
     /// Scales an element in from 0 to 1 with fade.
     /// </summary>
     /// <param name="element">The control to animate.</param>
     /// <param name="duration">Optional duration. Default is 300ms.</param>
-    Task ScaleInAsync(Control element, Duration? duration = null);
+    Task ScaleInAsync(Control element, TimeSpan? duration = null);
 
     /// <summary>
     /// Scales an element out from 1 to 0 with fade.
     /// </summary>
     /// <param name="element">The control to animate.</param>
     /// <param name="duration">Optional duration. Default is 250ms.</param>
-    Task ScaleOutAsync(Control element, Duration? duration = null);
+    Task ScaleOutAsync(Control element, TimeSpan? duration = null);
 
     #endregion
 
@@ -249,7 +249,7 @@ public interface IAnimationService
     /// <param name="from">The starting value.</param>
     /// <param name="to">The ending value.</param>
     /// <param name="duration">Optional duration. Default is 300ms.</param>
-    Task AnimateDoubleAsync(Control element, AvaloniaProperty property, double from, double to, Duration? duration = null);
+    Task AnimateDoubleAsync(Control element, AvaloniaProperty property, double from, double to, TimeSpan? duration = null);
 
     /// <summary>
     /// Animates a color property from one value to another.
@@ -259,7 +259,7 @@ public interface IAnimationService
     /// <param name="from">The starting color.</param>
     /// <param name="to">The ending color.</param>
     /// <param name="duration">Optional duration. Default is 300ms.</param>
-    Task AnimateColorAsync(Control element, AvaloniaProperty property, Color from, Color to, Duration? duration = null);
+    Task AnimateColorAsync(Control element, AvaloniaProperty property, Color from, Color to, TimeSpan? duration = null);
 
     #endregion
 

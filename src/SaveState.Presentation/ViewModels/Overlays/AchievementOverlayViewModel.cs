@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Common.Services;
 using SaveState.Presentation.Models.Achievements;
 using SaveState.Presentation.Services.Achievements;
+using SaveState.Presentation.ViewModels.Achievements;
 using Timer = System.Timers.Timer;
 
 namespace SaveState.Presentation.ViewModels.Overlays;

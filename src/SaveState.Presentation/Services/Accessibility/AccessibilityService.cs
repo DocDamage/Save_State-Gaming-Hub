@@ -1,7 +1,10 @@
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using Microsoft.Extensions.Logging;
@@ -132,25 +135,11 @@ public class AccessibilityService : IAccessibilityService
             var window = GetActiveWindow();
             if (window == null) return Task.CompletedTask;
 
-            var focused = FocusManager.GetFocusedElement(window) as Control;
+            var focused = window.GetVisualDescendants().OfType<Control>().FirstOrDefault(c => c.IsFocused);
             if (focused == null) return Task.CompletedTask;
 
-            // Use Avalonia's built-in focus navigation
-            var navigationMethod = direction switch
-            {
-                FocusNavigationDirection.Up => NavigationDirection.Up,
-                FocusNavigationDirection.Down => NavigationDirection.Down,
-                FocusNavigationDirection.Left => NavigationDirection.Left,
-                FocusNavigationDirection.Right => NavigationDirection.Right,
-                FocusNavigationDirection.Next => NavigationDirection.Next,
-                FocusNavigationDirection.Previous => NavigationDirection.Previous,
-                FocusNavigationDirection.First => NavigationDirection.First,
-                FocusNavigationDirection.Last => NavigationDirection.Last,
-                _ => NavigationDirection.Next
-            };
-
             // Try to move focus
-            var nextElement = FindNextFocusableElement(focused, navigationMethod);
+            var nextElement = FindNextFocusableElement(focused, direction);
             if (nextElement != null && nextElement.Focusable)
             {
                 nextElement.Focus();
@@ -190,7 +179,8 @@ public class AccessibilityService : IAccessibilityService
         if (container == null) throw new ArgumentNullException(nameof(container));
 
         _focusTrapContainer = container;
-        _previouslyFocusedElement = FocusManager.GetFocusedElement(GetActiveWindow()) as Control;
+        var activeWindow = GetActiveWindow();
+        _previouslyFocusedElement = activeWindow?.GetVisualDescendants().OfType<Control>().FirstOrDefault(c => c.IsFocused);
 
         // Subscribe to focus changes
         container.AddHandler(InputElement.LostFocusEvent, OnFocusLeavingContainer, RoutingStrategies.Bubble);
@@ -255,7 +245,8 @@ public class AccessibilityService : IAccessibilityService
         if (_focusTrapContainer == null) return;
 
         // Check if focus is leaving the container
-        var focusedElement = FocusManager.GetFocusedElement(GetActiveWindow()) as Control;
+        var activeWindow = GetActiveWindow();
+        var focusedElement = activeWindow?.GetVisualDescendants().OfType<Control>().FirstOrDefault(c => c.IsFocused);
         if (focusedElement != null && !IsDescendantOf(focusedElement, _focusTrapContainer))
         {
             // Trap focus by moving back to first or last element
@@ -292,7 +283,7 @@ public class AccessibilityService : IAccessibilityService
         return control.TabIndex;
     }
 
-    private Control? FindNextFocusableElement(Control current, NavigationDirection direction)
+    private Control? FindNextFocusableElement(Control current, global::SaveState.Presentation.Services.Accessibility.FocusNavigationDirection direction)
     {
         var window = GetActiveWindow();
         if (window == null) return null;
@@ -307,17 +298,17 @@ public class AccessibilityService : IAccessibilityService
 
         return direction switch
         {
-            NavigationDirection.Next => focusableElements.ElementAtOrDefault(currentIndex + 1),
-            NavigationDirection.Previous => focusableElements.ElementAtOrDefault(currentIndex - 1),
-            NavigationDirection.First => focusableElements.FirstOrDefault(),
-            NavigationDirection.Last => focusableElements.LastOrDefault(),
+            global::SaveState.Presentation.Services.Accessibility.FocusNavigationDirection.Next => focusableElements.ElementAtOrDefault(currentIndex + 1),
+            global::SaveState.Presentation.Services.Accessibility.FocusNavigationDirection.Previous => focusableElements.ElementAtOrDefault(currentIndex - 1),
+            global::SaveState.Presentation.Services.Accessibility.FocusNavigationDirection.First => focusableElements.FirstOrDefault(),
+            global::SaveState.Presentation.Services.Accessibility.FocusNavigationDirection.Last => focusableElements.LastOrDefault(),
             _ => null
         };
     }
 
     private Window? GetActiveWindow()
     {
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        if (global::Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             return desktop.MainWindow;
         }

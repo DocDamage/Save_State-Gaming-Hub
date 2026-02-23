@@ -26,8 +26,7 @@ public static class AccessibilityServiceCollectionExtensions
         // Register accessibility auditor
         services.AddSingleton<AccessibilityAuditor>();
         
-        // Register color contrast checker as transient (stateless)
-        services.AddTransient<ColorContrastChecker>();
+        // ColorContrastChecker is a static utility class, no DI registration needed
         
         return services;
     }

@@ -90,6 +90,9 @@
       <converters:EqualsConverter x:Key="EqualsConverter" />
       <converters:IntThresholdToBrushConverter x:Key="IntThresholdToBrushConverter" />
       <converters:PermissionInCollectionConverter x:Key="PermissionInCollectionConverter" />
+      <converters:SectionToBackgroundConverter x:Key="SectionToBackgroundConverter" />
+      <converters:BoolToFavoriteColorConverter x:Key="BoolToFavoriteColorConverter" />
+      <converters:EqualityToClassConverter x:Key="EqualityToClassConverter" />
 
       <!-- Voice Visualizer Converters -->
       <converters:VoiceStateToColorConverter x:Key="VoiceStateToColorConverter" />

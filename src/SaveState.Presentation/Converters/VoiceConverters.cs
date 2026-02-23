@@ -211,9 +211,18 @@ public class ConfidenceToColorConverter : IValueConverter
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is float confidence || value is double doubleConfidence)
+        if (value is float f)
         {
-            var conf = value is float f ? f : (float)doubleConfidence;
+            return f switch
+            {
+                >= 0.8f => HighBrush,
+                >= 0.5f => MediumBrush,
+                _ => LowBrush
+            };
+        }
+        if (value is double d)
+        {
+            var conf = (float)d;
             return conf switch
             {
                 >= 0.8f => HighBrush,
@@ -238,10 +247,14 @@ public class ConfidenceToPercentageConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is float confidence || value is double doubleConfidence)
+        double doubleConfidence = 0;
+        if (value is float f)
         {
-            var conf = value is float f ? f : (float)doubleConfidence;
-            return $"{conf * 100:F0}%";
+            return $"{f * 100:F0}%";
+        }
+        if (value is double d)
+        {
+            return $"{(float)d * 100:F0}%";
         }
 
         return "0%";
@@ -260,11 +273,15 @@ public class AudioLevelToBarHeightConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is float level || value is double doubleLevel)
+        if (value is float f)
         {
-            var lvl = value is float f ? f : (float)doubleLevel;
             var maxHeight = parameter is string param && double.TryParse(param, out var max) ? max : 100.0;
-            return Math.Clamp(lvl * maxHeight, 2, maxHeight);
+            return Math.Clamp(f * maxHeight, 2, maxHeight);
+        }
+        if (value is double d)
+        {
+            var maxHeight = parameter is string param && double.TryParse(param, out var max) ? max : 100.0;
+            return Math.Clamp((float)d * maxHeight, 2, maxHeight);
         }
 
         return 2.0;
@@ -275,7 +292,6 @@ public class AudioLevelToBarHeightConverter : IValueConverter
         return BindingOperations.DoNothing;
     }
 }
-
 /// <summary>
 /// Converts a boolean indicating if state is active to opacity.
 /// </summary>
