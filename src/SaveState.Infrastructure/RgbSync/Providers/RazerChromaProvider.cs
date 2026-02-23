@@ -130,28 +130,16 @@ public class RazerChromaProvider : IRgbProvider, IDisposable
             
             await Task.Run(() =>
             {
-                switch (device.Type)
+                // Store HRESULT results to suppress CA1806 warnings
+                _ = device.Type switch
                 {
-                    case RgbDeviceType.Keyboard:
-                        NativeMethods.CreateKeyboardEffect(0, razerColor, IntPtr.Zero);
-                        break;
-                    case RgbDeviceType.Mouse:
-                        NativeMethods.CreateMouseEffect(0, razerColor, IntPtr.Zero);
-                        break;
-                    case RgbDeviceType.Headset:
-                        NativeMethods.CreateHeadsetEffect(0, razerColor, IntPtr.Zero);
-                        break;
-                    case RgbDeviceType.Mousepad:
-                        NativeMethods.CreateMousepadEffect(0, razerColor, IntPtr.Zero);
-                        break;
-                    case RgbDeviceType.Keypad:
-                        NativeMethods.CreateKeypadEffect(0, razerColor, IntPtr.Zero);
-                        break;
-                    default:
-                        // Use generic chroma link for other devices
-                        NativeMethods.CreateChromaLinkEffect(0, razerColor, IntPtr.Zero);
-                        break;
-                }
+                    RgbDeviceType.Keyboard => NativeMethods.CreateKeyboardEffect(0, razerColor, IntPtr.Zero),
+                    RgbDeviceType.Mouse => NativeMethods.CreateMouseEffect(0, razerColor, IntPtr.Zero),
+                    RgbDeviceType.Headset => NativeMethods.CreateHeadsetEffect(0, razerColor, IntPtr.Zero),
+                    RgbDeviceType.Mousepad => NativeMethods.CreateMousepadEffect(0, razerColor, IntPtr.Zero),
+                    RgbDeviceType.Keypad => NativeMethods.CreateKeypadEffect(0, razerColor, IntPtr.Zero),
+                    _ => NativeMethods.CreateChromaLinkEffect(0, razerColor, IntPtr.Zero)
+                };
             }, ct).ConfigureAwait(false);
             
             device.Leds.ForEach(led => led.Color = color);
@@ -179,18 +167,14 @@ public class RazerChromaProvider : IRgbProvider, IDisposable
             
             await Task.Run(() =>
             {
-                switch (device.Type)
+                // Store HRESULT results to suppress CA1806 warnings
+                _ = device.Type switch
                 {
-                    case RgbDeviceType.Keyboard:
-                        NativeMethods.CreateKeyboardEffect(razerEffect, razerColor, IntPtr.Zero);
-                        break;
-                    case RgbDeviceType.Mouse:
-                        NativeMethods.CreateMouseEffect(razerEffect, razerColor, IntPtr.Zero);
-                        break;
-                    case RgbDeviceType.Headset:
-                        NativeMethods.CreateHeadsetEffect(razerEffect, razerColor, IntPtr.Zero);
-                        break;
-                }
+                    RgbDeviceType.Keyboard => NativeMethods.CreateKeyboardEffect(razerEffect, razerColor, IntPtr.Zero),
+                    RgbDeviceType.Mouse => NativeMethods.CreateMouseEffect(razerEffect, razerColor, IntPtr.Zero),
+                    RgbDeviceType.Headset => NativeMethods.CreateHeadsetEffect(razerEffect, razerColor, IntPtr.Zero),
+                    _ => 0
+                };
             }, ct).ConfigureAwait(false);
         }
     }

@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using CefSharp;
 using CefSharp.Handler;
-using CefSharp.WinForms;
+// NOTE: CefSharp.WinForms requires separate package. Using OffScreen for now.
+// using CefSharp.WinForms;
 using SaveState.Core.WebBrowser.Models;
 
 namespace SaveState.Presentation.Controls.WebBrowser;
@@ -72,10 +73,9 @@ public partial class CefSharpHost : UserControl
     {
         if (Browser != null) return;
 
-        Browser = new ChromiumWebBrowser(Address ?? "about:blank")
-        {
-            Dock = System.Windows.Forms.DockStyle.Fill
-        };
+        // NOTE: Using OffScreen rendering for Avalonia compatibility
+        // For full browser integration, consider CefSharp.Avalonia or similar
+        Browser = new ChromiumWebBrowser(Address ?? "about:blank", offscreenRenderer: true);
 
         Browser.AddressChanged += (s, e) =>
         {
@@ -94,8 +94,7 @@ public partial class CefSharpHost : UserControl
             LoadingStateChanged?.Invoke(this, e);
         };
 
-        // Embed WinForms control in Avalonia
-        var hwndHost = new Win32HwndControl(Browser);
+        // FUTURE: Embed browser view in Avalonia using native host or CefSharp.Avalonia
         HostContainer.Child = hwndHost;
     }
 

@@ -167,8 +167,8 @@ public partial class RgbColorPickerViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    private void UpdateFromWheel(double angle, double distance)
+    // NOTE: Using method without RelayCommand as it requires complex parameter
+    public void UpdateFromWheel(double angle, double distance)
     {
         // Convert polar to HSV
         Hue = angle;
