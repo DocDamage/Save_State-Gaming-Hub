@@ -1,0 +1,248 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.WebBrowser"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="SaveState.Presentation.Views.WebBrowser.GameGuideView"
+             x:DataType="vm:GameGuideViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.guide-source">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="Margin" Value="0,4" />
+        </Style>
+
+        <Style Selector="Border.guide-source:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+        </Style>
+
+        <Style Selector="Border.guide-source.selected">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+        </Style>
+
+        <Style Selector="Border.browser-toolbar">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="Padding" Value="12,8" />
+        </Style>
+
+        <Style Selector="Button.nav-btn">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+
+        <Style Selector="Button.nav-btn:pointerover">
+            <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}" />
+        </Style>
+
+        <Style Selector="Button.nav-btn:disabled">
+            <Setter Property="Opacity" Value="0.3" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid ColumnDefinitions="300, *">
+        <!-- Sidebar -->
+        <Border Grid.Column="0"
+                Background="{StaticResource BackgroundBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,1,0">
+            <Grid RowDefinitions="Auto, Auto, *, Auto">
+                <!-- Header -->
+                <Border Grid.Row="0" Padding="16,20">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="📖 Game Guides"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Text="{Binding CurrentGame.Title, FallbackValue='Select a game'}"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource AccentBrush}"
+                                   TextTrimming="CharacterEllipsis"
+                                   IsVisible="{Binding CurrentGame, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Search -->
+                <Border Grid.Row="1" Padding="16,0,16,12">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <TextBox Grid.Column="0"
+                                 Watermark="🔍 Search guides..."
+                                 Text="{Binding SearchQuery}"
+                                 Margin="0,0,8,0"/>
+                        <Button Grid.Column="1"
+                                Content="🔍"
+                                Command="{Binding SearchGuidesCommand}"/>
+                    </Grid>
+                </Border>
+
+                <!-- Guide Sources -->
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12,0,12,12" Spacing="4">
+                        <TextBlock Text="GUIDE SOURCES"
+                                   FontSize="11"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Margin="4,8,4,4"/>
+
+                        <ItemsControl ItemsSource="{Binding GuideSources}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="guide-source"
+                                            Classes.selected="{Binding $self.DataContext, Converter={StaticResource EqualityConverter}, ConverterParameter={Binding $parent[ItemsControl].((vm:GameGuideViewModel)DataContext).SelectedSource}}">
+                                        <Grid ColumnDefinitions="Auto, *, Auto">
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{Binding Icon}"
+                                                       FontSize="20"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,10,0"/>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontWeight="SemiBold"
+                                                           FontSize="13"/>
+                                                <TextBlock Text="{Binding Description}"
+                                                           FontSize="11"
+                                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="2"
+                                                    Content="★"
+                                                    Classes="Ghost Small"
+                                                    Foreground="{Binding IsFavorite, Converter={StaticResource BoolToFavoriteColorConverter}}"
+                                                    Command="{Binding $parent[ItemsControl].((vm:GameGuideViewModel)DataContext).AddToFavoritesCommand}"
+                                                    CommandParameter="{Binding}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Search Results (shown when searching) -->
+                <Border Grid.Row="3"
+                        Background="{StaticResource CardBackgroundBrush}"
+                        BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="0,1,0,0"
+                        Padding="16"
+                        IsVisible="{Binding SearchResults.Count, Converter={StaticResource IntToBoolConverter}}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Search Results"
+                                   FontWeight="SemiBold"/>
+                        <ItemsControl ItemsSource="{Binding SearchResults}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Classes="Ghost"
+                                            HorizontalAlignment="Stretch"
+                                            HorizontalContentAlignment="Left">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Title}"
+                                                       FontWeight="SemiBold"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Source}"
+                                                       FontSize="11"
+                                                       Foreground="{StaticResource AccentBrush}"/>
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Browser Area -->
+        <Grid Grid.Column="1" RowDefinitions="Auto, *">
+            <!-- Toolbar -->
+            <Border Grid.Row="0" Classes="browser-toolbar">
+                <Grid ColumnDefinitions="Auto, Auto, Auto, *, Auto, Auto">
+                    <Button Grid.Column="0"
+                            Content="←"
+                            Classes="nav-btn"
+                            Command="{Binding NavigateBackCommand}"
+                            IsEnabled="{Binding CanGoBack}"/>
+                    <Button Grid.Column="1"
+                            Content="→"
+                            Classes="nav-btn"
+                            Command="{Binding NavigateForwardCommand}"
+                            IsEnabled="{Binding CanGoForward}"
+                            Margin="4,0"/>
+                    <Button Grid.Column="2"
+                            Content="↻"
+                            Classes="nav-btn"
+                            Command="{Binding RefreshCommand}"/>
+
+                    <TextBox Grid.Column="3"
+                             Text="{Binding CurrentUrl}"
+                             Margin="12,0"
+                             VerticalAlignment="Center"
+                             FontFamily="Consolas, monospace"
+                             FontSize="12"/>
+
+                    <Button Grid.Column="4"
+                            Content="🏠"
+                            Classes="nav-btn"
+                            Command="{Binding GoHomeCommand}"
+                            Margin="0,0,4,0"/>
+                    <Button Grid.Column="5"
+                            Content="🌐"
+                            Classes="nav-btn"
+                            Command="{Binding OpenInExternalBrowserCommand}"
+                            CommandParameter="{Binding CurrentUrl}"
+                            ToolTip.Tip="Open in external browser"/>
+                </Grid>
+            </Border>
+
+            <!-- Browser Content Placeholder -->
+            <Border Grid.Row="1" Background="#1A1A2E">
+                <Grid>
+                    <!-- Loading Indicator -->
+                    <StackPanel IsVisible="{Binding IsLoadingPage}"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                        <ProgressBar IsIndeterminate="True"
+                                     Width="200"
+                                     Margin="0,0,0,16"/>
+                        <TextBlock Text="Loading..."
+                                   HorizontalAlignment="Center"
+                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                    </StackPanel>
+
+                    <!-- Browser Placeholder -->
+                    <StackPanel IsVisible="{Binding !IsLoadingPage}"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="🌐"
+                                   FontSize="72"
+                                   HorizontalAlignment="Center"
+                                   Opacity="0.5"/>
+                        <TextBlock Text="Browser View"
+                                   FontSize="24"
+                                   FontWeight="Light"
+                                   HorizontalAlignment="Center"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Margin="0,16"/>
+                        <TextBlock Text="{Binding SelectedSource.Url, FallbackValue='Select a guide source'}"
+                                   FontSize="12"
+                                   FontFamily="Consolas, monospace"
+                                   Foreground="{StaticResource AccentBrush}"
+                                   Opacity="0.7"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

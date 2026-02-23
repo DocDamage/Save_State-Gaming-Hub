@@ -70,6 +70,10 @@
     <!-- Push Notifications -->
     <PackageReference Include="FirebaseAdmin" />
     <PackageReference Include="CorePush" />
+
+    <!-- CefSharp Web Browser -->
+    <PackageReference Include="CefSharp.OffScreen.NETCore" />
+    <PackageReference Include="CefSharp.Wpf.NETCore" />
   </ItemGroup>
 
 </Project>

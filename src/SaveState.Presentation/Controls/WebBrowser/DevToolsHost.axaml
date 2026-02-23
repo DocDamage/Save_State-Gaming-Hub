@@ -1,0 +1,109 @@
+<!--
+    DevToolsHost.axaml
+    
+    Control for hosting browser DevTools.
+    Supports docked mode (bottom/side panel) and undocked mode (separate window).
+    
+    Usage:
+        <web:DevToolsHost IsVisible="{Binding IsDevToolsVisible}"
+                          DockMode="{Binding DevToolsDockMode}" />
+    
+    DockMode: Bottom, Side, Undocked
+-->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SaveState.Presentation.Controls.WebBrowser.DevToolsHost"
+             x:Name="Root">
+
+    <UserControl.Styles>
+        <Style Selector="Border.devtools-container">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="TextBlock.devtools-header">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        </Style>
+        <Style Selector="Button.devtools-button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style Selector="Button.devtools-button:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Border Classes="devtools-container">
+        <Grid RowDefinitions="Auto,*">
+            <!-- Header -->
+            <Grid Grid.Row="0"
+                  Background="{StaticResource CardBackgroundBrush}"
+                  Height="32">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Tabs -->
+                <StackPanel Grid.Column="0"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Margin="8,0">
+                    <Button Classes="devtools-button"
+                            Content="Elements"
+                            Foreground="{StaticResource PrimaryBrush}" />
+                    <Button Classes="devtools-button" Content="Console" />
+                    <Button Classes="devtools-button" Content="Sources" />
+                    <Button Classes="devtools-button" Content="Network" />
+                    <Button Classes="devtools-button" Content="Performance" />
+                    <Button Classes="devtools-button" Content="Memory" />
+                    <Button Classes="devtools-button" Content="Application" />
+                    <Button Classes="devtools-button" Content="Security" />
+                </StackPanel>
+
+                <!-- Title -->
+                <TextBlock Grid.Column="1"
+                           Text="Developer Tools"
+                           Classes="devtools-header"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+
+                <!-- Actions -->
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Margin="8,0">
+                    <Button Classes="devtools-button"
+                            Content="🔲"
+                            ToolTip.Tip="Toggle Dock Side"
+                            Click="OnToggleDockClick" />
+                    <Button Classes="devtools-button"
+                            Content="↗️"
+                            ToolTip.Tip="Undock into Separate Window"
+                            Click="OnUndockClick" />
+                    <Button Classes="devtools-button"
+                            Content="✕"
+                            ToolTip.Tip="Close DevTools"
+                            Click="OnCloseClick" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Content Area -->
+            <Border Grid.Row="1"
+                    Background="#1e1e1e"
+                    x:Name="DevToolsContentArea">
+                <!-- DevTools content would be hosted here -->
+                <Grid>
+                    <TextBlock Text="DevTools Content Area"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

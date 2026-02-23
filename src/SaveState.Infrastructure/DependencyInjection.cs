@@ -40,6 +40,7 @@ using SaveState.Application.Mugen.Services.SymbioticPartner;
 using SaveState.Infrastructure.Mugen.ReplayAnalysis.Managers;
 using SaveState.Infrastructure.OpenMK;
 using SaveState.Infrastructure.OpenMK.Services.OpenMK;
+using SaveState.Infrastructure.WebBrowser;
 using SaveState.Core.Ai.Knowledge;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Ai.Memory;
@@ -359,6 +360,9 @@ public static partial class DependencyInjection
         services.AddSingleton<SaveState.Core.Theme.Services.IThemeService, Theme.Services.ThemeService>();
         services.AddSingleton<SaveState.Infrastructure.Theme.Services.IMaterialYouService, SaveState.Infrastructure.Theme.Services.MaterialYouService>();
         services.AddSingleton<SaveState.Infrastructure.Theme.Services.IThemeImportExportService, SaveState.Infrastructure.Theme.Services.ThemeImportExportService>();
+
+        // Web Browser Services (CefSharp)
+        services.AddWebBrowserServices();
 
         return services;
     }

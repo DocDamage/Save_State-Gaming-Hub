@@ -1,0 +1,10 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SaveState.Presentation.Controls.WebBrowser.CefSharpHost">
+    <Border x:Name="HostContainer" Background="#1E1E1E">
+        <TextBlock Text="Loading browser..." 
+                   HorizontalAlignment="Center" 
+                   VerticalAlignment="Center"
+                   Foreground="White"/>
+    </Border>
+</UserControl>

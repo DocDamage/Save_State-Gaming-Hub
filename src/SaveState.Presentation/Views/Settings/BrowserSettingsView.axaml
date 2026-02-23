@@ -1,0 +1,327 @@
+<!--
+    BrowserSettingsView.axaml
+    
+    Browser settings page with sections for general, privacy, security,
+    downloads, appearance, and advanced settings.
+    
+    Usage:
+        <settings:BrowserSettingsView />
+    
+    Binding Context: BrowserSettingsViewModel
+-->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Settings"
+             mc:Ignorable="d"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DesignWidth="800"
+             d:DesignHeight="900"
+             x:Class="SaveState.Presentation.Views.Settings.BrowserSettingsView"
+             x:DataType="vm:BrowserSettingsViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.Header">
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+        <Style Selector="TextBlock.SectionHeader">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+        <Style Selector="TextBlock.SettingLabel">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Border.SettingsCard">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="20" />
+            <Setter Property="Margin" Value="0,8,0,0" />
+        </Style>
+        <Style Selector="ToggleSwitch">
+            <Setter Property="Margin" Value="0,8" />
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="Margin" Value="0,4" />
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="MinWidth" Value="200" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer>
+        <StackPanel Margin="20" Spacing="20">
+            <!-- Header -->
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="🌐" FontSize="24" />
+                <TextBlock Text="BROWSER SETTINGS" Classes="Header" />
+            </StackPanel>
+
+            <!-- General Settings -->
+            <Border Classes="SettingsCard">
+                <StackPanel>
+                    <TextBlock Text="GENERAL" Classes="SectionHeader" />
+
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,8">
+                        <TextBlock Grid.Column="0" Text="Homepage" Classes="SettingLabel" />
+                        <TextBox Grid.Column="1"
+                                 Text="{Binding HomePage}"
+                                 Width="400"
+                                 Watermark="https://www.google.com" />
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,8">
+                        <TextBlock Grid.Column="0" Text="Search Engine" Classes="SettingLabel" />
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding SearchEngines}"
+                                  SelectedItem="{Binding SelectedSearchEngine}" />
+                    </Grid>
+
+                    <ToggleSwitch Content="Restore session on startup"
+                                  IsChecked="{Binding RestoreSessionOnStartup}" />
+
+                    <ToggleSwitch Content="Show home button in toolbar"
+                                  IsChecked="{Binding ShowHomeButton}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Privacy Settings -->
+            <Border Classes="SettingsCard">
+                <StackPanel>
+                    <TextBlock Text="PRIVACY" Classes="SectionHeader" />
+
+                    <ToggleSwitch Content="Clear browsing data on exit"
+                                  IsChecked="{Binding ClearDataOnExit}" />
+
+                    <StackPanel IsVisible="{Binding ClearDataOnExit}" Margin="20,0,0,0">
+                        <ToggleSwitch Content="Clear history"
+                                      IsChecked="{Binding ClearHistoryOnExit}" />
+                        <ToggleSwitch Content="Clear cookies"
+                                      IsChecked="{Binding ClearCookiesOnExit}" />
+                        <ToggleSwitch Content="Clear cache"
+                                      IsChecked="{Binding ClearCacheOnExit}" />
+                    </StackPanel>
+
+                    <ToggleSwitch Content="Send 'Do Not Track' requests"
+                                  IsChecked="{Binding DoNotTrack}" />
+
+                    <ToggleSwitch Content="Block third-party cookies"
+                                  IsChecked="{Binding BlockThirdPartyCookies}" />
+
+                    <Button Content="🗑️ Clear Browsing Data Now"
+                            Command="{Binding ClearBrowsingDataCommand}"
+                            Classes="Secondary"
+                            Margin="0,16,0,0"
+                            HorizontalAlignment="Left" />
+                </StackPanel>
+            </Border>
+
+            <!-- Security Settings -->
+            <Border Classes="SettingsCard">
+                <StackPanel>
+                    <TextBlock Text="SECURITY" Classes="SectionHeader" />
+
+                    <ToggleSwitch Content="Block pop-up windows"
+                                  IsChecked="{Binding BlockPopups}" />
+
+                    <ToggleSwitch Content="Block dangerous downloads"
+                                  IsChecked="{Binding BlockDangerousDownloads}" />
+
+                    <ToggleSwitch Content="Show security warnings"
+                                  IsChecked="{Binding ShowSecurityWarnings}" />
+
+                    <TextBlock Text="Blocked Domains:" Classes="SettingLabel" Margin="0,16,0,8" />
+
+                    <ItemsControl ItemsSource="{Binding BlockedDomains}" Margin="0,8">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,4">
+                                    <TextBlock Grid.Column="0"
+                                               Text="{Binding}"
+                                               VerticalAlignment="Center" />
+                                    <Button Grid.Column="1"
+                                            Content="✕"
+                                            Command="{Binding #Root.((vm:BrowserSettingsViewModel)DataContext).RemoveBlockedDomainCommand}"
+                                            CommandParameter="{Binding}"
+                                            Classes="widget-action" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,8">
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding NewBlockedDomain}"
+                                 Watermark="Enter domain to block..." />
+                        <Button Grid.Column="1"
+                                Content="Add"
+                                Command="{Binding AddBlockedDomainCommand}"
+                                Classes="Secondary"
+                                Margin="8,0,0,0" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Download Settings -->
+            <Border Classes="SettingsCard">
+                <StackPanel>
+                    <TextBlock Text="DOWNLOADS" Classes="SectionHeader" />
+
+                    <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,8">
+                        <TextBlock Grid.Column="0" Text="Default download location" Classes="SettingLabel" />
+                        <TextBox Grid.Column="1"
+                                 Text="{Binding DefaultDownloadPath}"
+                                 Width="300"
+                                 IsReadOnly="True" />
+                        <Button Grid.Column="2"
+                                Content="Browse..."
+                                Command="{Binding BrowseDownloadPathCommand}"
+                                Classes="Secondary"
+                                Margin="8,0,0,0" />
+                    </Grid>
+
+                    <ToggleSwitch Content="Ask where to save each file before downloading"
+                                  IsChecked="{Binding AskBeforeDownload}" />
+
+                    <ToggleSwitch Content="Show downloads when complete"
+                                  IsChecked="{Binding ShowDownloadsWhenComplete}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Appearance Settings -->
+            <Border Classes="SettingsCard">
+                <StackPanel>
+                    <TextBlock Text="APPEARANCE" Classes="SectionHeader" />
+
+                    <ToggleSwitch Content="Show bookmarks bar"
+                                  IsChecked="{Binding ShowBookmarksBar}" />
+
+                    <ToggleSwitch Content="Show full URLs in address bar"
+                                  IsChecked="{Binding ShowFullUrls}" />
+
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,8">
+                        <TextBlock Grid.Column="0" Text="Font size" Classes="SettingLabel" />
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding FontSizes}"
+                                  SelectedItem="{Binding SelectedFontSize}" />
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,8">
+                        <TextBlock Grid.Column="0" Text="Theme" Classes="SettingLabel" />
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding Themes}"
+                                  SelectedItem="{Binding SelectedTheme}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Advanced Settings -->
+            <Border Classes="SettingsCard">
+                <StackPanel>
+                    <TextBlock Text="ADVANCED" Classes="SectionHeader" />
+
+                    <ToggleSwitch Content="Use system proxy settings"
+                                  IsChecked="{Binding UseSystemProxy}" />
+
+                    <StackPanel IsVisible="{Binding !UseSystemProxy}" Margin="20,0,0,0">
+                        <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,8">
+                            <TextBlock Grid.Column="0" Text="Proxy address" Classes="SettingLabel" />
+                            <TextBox Grid.Column="1"
+                                     Text="{Binding ProxyAddress}"
+                                     Width="200"
+                                     Watermark="proxy.example.com" />
+                            <TextBox Grid.Column="2"
+                                     Text="{Binding ProxyPort}"
+                                     Width="80"
+                                     Margin="8,0,0,0"
+                                     Watermark="8080" />
+                        </Grid>
+                    </StackPanel>
+
+                    <ToggleSwitch Content="Enable hardware acceleration"
+                                  IsChecked="{Binding EnableHardwareAcceleration}" />
+
+                    <ToggleSwitch Content="Enable smooth scrolling"
+                                  IsChecked="{Binding EnableSmoothScrolling}" />
+
+                    <TextBlock Text="Custom HTTP Headers:" Classes="SettingLabel" Margin="0,16,0,8" />
+
+                    <ItemsControl ItemsSource="{Binding CustomHeaders}" Margin="0,8">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:CustomHeaderViewModel">
+                                <Grid ColumnDefinitions="*,*,Auto" Margin="0,4" ColumnSpacing="8">
+                                    <TextBlock Grid.Column="0" Text="{Binding Name}" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Value}"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <Button Grid.Column="2"
+                                            Content="✕"
+                                            Command="{Binding #Root.((vm:BrowserSettingsViewModel)DataContext).RemoveCustomHeaderCommand}"
+                                            CommandParameter="{Binding}"
+                                            Classes="widget-action" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Grid ColumnDefinitions="*,*,Auto" Margin="0,8" ColumnSpacing="8">
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding NewHeaderName}"
+                                 Watermark="Header name..." />
+                        <TextBox Grid.Column="1"
+                                 Text="{Binding NewHeaderValue}"
+                                 Watermark="Header value..." />
+                        <Button Grid.Column="2"
+                                Content="Add"
+                                Command="{Binding AddCustomHeaderCommand}"
+                                Classes="Secondary" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Shortcuts -->
+            <Border Classes="SettingsCard">
+                <StackPanel>
+                    <TextBlock Text="KEYBOARD SHORTCUTS" Classes="SectionHeader" />
+
+                    <ItemsControl ItemsSource="{Binding KeyboardShortcuts}" Margin="0,8">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:BrowserShortcutViewModel">
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,4">
+                                    <TextBlock Grid.Column="0" Text="{Binding Action}" />
+                                    <Border Grid.Column="1"
+                                            Background="{StaticResource SurfaceBrush}"
+                                            CornerRadius="4"
+                                            Padding="8,4">
+                                        <TextBlock Text="{Binding Shortcut}"
+                                                   FontFamily="Consolas,Monospace"
+                                                   FontSize="12" />
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Footer Buttons -->
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="12"
+                        Margin="0,16,0,0">
+                <Button Content="↺ Reset to Defaults"
+                        Command="{Binding ResetToDefaultsCommand}"
+                        Classes="Secondary" />
+                <Button Content="💾 Save Settings"
+                        Command="{Binding SaveSettingsCommand}"
+                        Classes="Primary" />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

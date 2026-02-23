@@ -1,0 +1,453 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.WebBrowser"
+             mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="900"
+             x:Class="SaveState.Presentation.Views.WebBrowser.CommunityBrowserView"
+             x:DataType="vm:CommunityBrowserViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.community-card">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="BoxShadow" Value="0 2 8 #20000000" />
+        </Style>
+
+        <Style Selector="Border.community-card:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+        </Style>
+
+        <Style Selector="Border.section-header">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="Padding" Value="16,12" />
+        </Style>
+
+        <Style Selector="Button.action-btn">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Padding" Value="16,8" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+
+        <Style Selector="Button.action-btn:pointerover">
+            <Setter Property="Background" Value="{StaticResource PrimaryHoverBrush}" />
+        </Style>
+
+        <Style Selector="Button.ghost-btn">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+            <Setter Property="Padding" Value="8,4" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid ColumnDefinitions="260, *">
+        <!-- Sidebar -->
+        <Border Grid.Column="0"
+                Background="{StaticResource BackgroundBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,1,0">
+            <Grid RowDefinitions="Auto, Auto, *, Auto">
+                <!-- Header -->
+                <Border Grid.Row="0" Padding="16,20">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="🌐 Community"
+                                   FontSize="22"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Connect with other players"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Search -->
+                <Border Grid.Row="1" Padding="16,0,16,16">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <TextBox Grid.Column="0"
+                                 Watermark="🔍 Search..."
+                                 Text="{Binding SearchQuery}"
+                                 Margin="0,0,8,0"/>
+                        <Button Grid.Column="1"
+                                Content="🔍"
+                                Command="{Binding SearchCommunityCommand}"/>
+                    </Grid>
+                </Border>
+
+                <!-- Quick Links -->
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12,0,12,12" Spacing="4">
+                        <TextBlock Text="QUICK LINKS"
+                                   FontSize="11"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Margin="8,8,8,4"/>
+
+                        <ItemsControl ItemsSource="{Binding Sections}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Classes="ghost-btn"
+                                            HorizontalAlignment="Stretch"
+                                            HorizontalContentAlignment="Left"
+                                            Command="{Binding $parent[ItemsControl].((vm:CommunityBrowserViewModel)DataContext).SelectSectionCommand}"
+                                            CommandParameter="{Binding}">
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <TextBlock Text="{Binding Icon}" FontSize="18"/>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding Description}"
+                                                           FontSize="11"
+                                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Discord CTA -->
+                <Border Grid.Row="3" 
+                        Background="{StaticResource PrimaryBrush}"
+                        Margin="16"
+                        CornerRadius="12"
+                        Padding="16">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="💬 Join our Discord!"
+                                   FontWeight="Bold"
+                                   FontSize="14"
+                                   Foreground="White"/>
+                        <TextBlock Text="Chat with 10,000+ members"
+                                   FontSize="11"
+                                   Foreground="White"
+                                   Opacity="0.8"/>
+                        <Button Content="Join Server"
+                                Command="{Binding JoinDiscordCommand}"
+                                HorizontalAlignment="Stretch"
+                                Background="White"
+                                Foreground="{StaticResource PrimaryBrush}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="24" Spacing="24">
+                <!-- Recent Posts -->
+                <Border Classes="community-card">
+                    <Grid RowDefinitions="Auto, *">
+                        <Grid Grid.Row="0" Classes="section-header">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="💬" FontSize="20"/>
+                                    <TextBlock Text="Recent Discussions"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <Button Grid.Column="1"
+                                        Content="View All →"
+                                        Classes="ghost-btn"
+                                        Command="{Binding OpenInBrowserCommand}"
+                                        CommandParameter="https://forums.savestate.reborn"/>
+                            </Grid>
+                        </Grid>
+
+                        <ItemsControl Grid.Row="1" 
+                                      ItemsSource="{Binding RecentPosts}"
+                                      Margin="0,8,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="{StaticResource BorderBrush}"
+                                            BorderThickness="0,0,0,1"
+                                            Padding="8,12">
+                                        <Grid ColumnDefinitions="*, Auto">
+                                            <StackPanel Grid.Column="0" Spacing="4">
+                                                <TextBlock Text="{Binding Title}"
+                                                           FontWeight="SemiBold"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                                    <TextBlock Text="{Binding Author}"
+                                                               FontSize="12"
+                                                               Foreground="{StaticResource AccentBrush}"/>
+                                                    <TextBlock Text="{Binding Category}"
+                                                               FontSize="12"
+                                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                                               Background="{StaticResource ControlBackgroundBrush}"
+                                                               Padding="6,2"
+                                                               CornerRadius="4"/>
+                                                    <TextBlock Text="{Binding TimeAgo}"
+                                                               FontSize="12"
+                                                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" 
+                                                        Orientation="Horizontal" 
+                                                        Spacing="16"
+                                                        VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <TextBlock Text="💬" FontSize="12"/>
+                                                    <TextBlock Text="{Binding Replies}"
+                                                               FontSize="12"
+                                                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <TextBlock Text="👁" FontSize="12"/>
+                                                    <TextBlock Text="{Binding Views}"
+                                                               FontSize="12"
+                                                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </Border>
+
+                <!-- Tournaments -->
+                <Border Classes="community-card">
+                    <Grid RowDefinitions="Auto, *">
+                        <Grid Grid.Row="0" Classes="section-header">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="🏆" FontSize="20"/>
+                                    <TextBlock Text="Active Tournaments"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <Button Grid.Column="1"
+                                        Content="Browse All →"
+                                        Classes="ghost-btn"/>
+                            </Grid>
+                        </Grid>
+
+                        <ItemsControl Grid.Row="1" 
+                                      ItemsSource="{Binding Tournaments}"
+                                      Margin="0,8,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="{StaticResource BorderBrush}"
+                                            BorderThickness="0,0,0,1"
+                                            Padding="8,12">
+                                        <Grid ColumnDefinitions="Auto, *, Auto">
+                                            <StackPanel Grid.Column="0" 
+                                                        Width="48" 
+                                                        Height="48"
+                                                        Background="{StaticResource ControlBackgroundBrush}"
+                                                        CornerRadius="8"
+                                                        VerticalAlignment="Center">
+                                                <TextBlock Text="🏆"
+                                                           FontSize="24"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="1" 
+                                                        Margin="12,0,0,0"
+                                                        Spacing="4">
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontWeight="SemiBold"/>
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <TextBlock Text="{Binding Game}"
+                                                               FontSize="12"
+                                                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                    <TextBlock Text="•"
+                                                               FontSize="12"
+                                                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                    <TextBlock Text="{Binding Prize}"
+                                                               FontSize="12"
+                                                               Foreground="#FFD700"/>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding TimeUntil}"
+                                                           FontSize="11"
+                                                           Foreground="{StaticResource AccentBrush}"/>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="2" 
+                                                        Spacing="8"
+                                                        VerticalAlignment="Center">
+                                                <ProgressBar Value="{Binding Progress}"
+                                                            Maximum="100"
+                                                            Width="120"/>
+                                                <TextBlock Text="{Binding Participants, StringFormat='{}{0} participants'}"
+                                                           FontSize="11"
+                                                           HorizontalAlignment="Center"
+                                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <Button Content="Join"
+                                                        Command="{Binding $parent[ItemsControl].((vm:CommunityBrowserViewModel)DataContext).JoinTournamentCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Classes="action-btn"
+                                                        HorizontalAlignment="Stretch"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </Border>
+
+                <!-- Shared Save States -->
+                <Grid ColumnDefinitions="*, *" ColumnSpacing="24">
+                    <Border Grid.Column="0" Classes="community-card">
+                        <Grid RowDefinitions="Auto, *">
+                            <Grid Grid.Row="0" Classes="section-header">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="💾" FontSize="20"/>
+                                        <TextBlock Text="Popular Save States"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1"
+                                            Content="Share Yours →"
+                                            Command="{Binding ShareSaveStateCommand}"
+                                            Classes="ghost-btn"/>
+                                </Grid>
+                            </Grid>
+
+                            <ItemsControl Grid.Row="1" 
+                                          ItemsSource="{Binding SharedSaveStates}"
+                                          Margin="0,8,0,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="{StaticResource BorderBrush}"
+                                                BorderThickness="0,0,0,1"
+                                                Padding="8,12">
+                                            <Grid ColumnDefinitions="*, Auto">
+                                                <StackPanel Grid.Column="0" Spacing="4">
+                                                    <TextBlock Text="{Binding Title}"
+                                                               FontWeight="SemiBold"
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding Game}"
+                                                               FontSize="12"
+                                                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="{Binding Author}"
+                                                                   FontSize="11"
+                                                                   Foreground="{StaticResource AccentBrush}"/>
+                                                        <TextBlock Text="⭐"
+                                                                   FontSize="11"/>
+                                                        <TextBlock Text="{Binding Rating}"
+                                                                   FontSize="11"
+                                                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                        <TextBlock Text="⬇"
+                                                                   FontSize="11"/>
+                                                        <TextBlock Text="{Binding Downloads}"
+                                                                   FontSize="11"
+                                                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                    </StackPanel>
+                                                    <ItemsControl ItemsSource="{Binding Tags}">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <StackPanel Orientation="Horizontal" Spacing="4"/>
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock Text="{Binding}"
+                                                                           FontSize="10"
+                                                                           Background="{StaticResource ControlBackgroundBrush}"
+                                                                           Padding="4,2"
+                                                                           CornerRadius="4"/>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
+                                                <Button Grid.Column="1"
+                                                        Content="⬇"
+                                                        Command="{Binding $parent[ItemsControl].((vm:CommunityBrowserViewModel)DataContext).DownloadSaveStateCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Classes="action-btn"
+                                                        VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </Border>
+
+                    <!-- User Content -->
+                    <Border Grid.Column="1" Classes="community-card">
+                        <Grid RowDefinitions="Auto, *">
+                            <Grid Grid.Row="0" Classes="section-header">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="🎨" FontSize="20"/>
+                                        <TextBlock Text="Featured Content"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1"
+                                            Content="Upload →"
+                                            Command="{Binding UploadContentCommand}"
+                                            Classes="ghost-btn"/>
+                                </Grid>
+                            </Grid>
+
+                            <ItemsControl Grid.Row="1" 
+                                          ItemsSource="{Binding UserContent}"
+                                          Margin="0,8,0,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="{StaticResource BorderBrush}"
+                                                BorderThickness="0,0,0,1"
+                                                Padding="8,12">
+                                            <Grid ColumnDefinitions="Auto, *, Auto">
+                                                <TextBlock Grid.Column="0" 
+                                                           Text="{Binding TypeIcon}"
+                                                           FontSize="24"
+                                                           VerticalAlignment="Center"/>
+                                                <StackPanel Grid.Column="1" 
+                                                            Margin="12,0,0,0"
+                                                            Spacing="4">
+                                                    <TextBlock Text="{Binding Title}"
+                                                               FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{Binding Description}"
+                                                               FontSize="12"
+                                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               MaxLines="2"/>
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="{Binding Author}"
+                                                                   FontSize="11"
+                                                                   Foreground="{StaticResource AccentBrush}"/>
+                                                        <TextBlock Text="⭐"
+                                                                   FontSize="11"/>
+                                                        <TextBlock Text="{Binding Rating}"
+                                                                   FontSize="11"
+                                                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                <Button Grid.Column="2"
+                                                        Content="⬇"
+                                                        Command="{Binding $parent[ItemsControl].((vm:CommunityBrowserViewModel)DataContext).DownloadContentCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Classes="action-btn"
+                                                        VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

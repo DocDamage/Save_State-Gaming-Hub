@@ -224,4 +224,10 @@
     <PackageVersion Include="NJsonSchema" Version="11.0.0" />
   </ItemGroup>
 
+  <!-- CefSharp Web Browser -->
+  <ItemGroup>
+    <PackageVersion Include="CefSharp.OffScreen.NETCore" Version="134.3.90" />
+    <PackageVersion Include="CefSharp.Wpf.NETCore" Version="134.3.90" />
+  </ItemGroup>
+
 </Project>

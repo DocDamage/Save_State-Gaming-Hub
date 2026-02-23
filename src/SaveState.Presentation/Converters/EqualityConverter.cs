@@ -56,6 +56,8 @@ public class InequalityConverter : IValueConverter
 /// </summary>
 public class EqualityToFontWeightConverter : IValueConverter
 {
+    public static readonly EqualityToFontWeightConverter Instance = new();
+
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value == null && parameter == null)
@@ -66,6 +68,33 @@ public class EqualityToFontWeightConverter : IValueConverter
 
         bool isEqual = value.ToString() == parameter.ToString();
         return isEqual ? Avalonia.Media.FontWeight.Bold : Avalonia.Media.FontWeight.Normal;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Converts a value to PrimaryBrush if it equals the parameter, otherwise Transparent.
+/// </summary>
+public class EqualityToBrushConverter : IValueConverter
+{
+    public static readonly EqualityToBrushConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value == null && parameter == null)
+            return new SolidColorBrush(Color.Parse("#007ACC")); // Primary brush color
+
+        if (value == null || parameter == null)
+            return new SolidColorBrush(Color.Parse("Transparent"));
+
+        bool isEqual = value.ToString() == parameter.ToString();
+        return isEqual
+            ? new SolidColorBrush(Color.Parse("#007ACC"))  // Primary brush color
+            : new SolidColorBrush(Color.Parse("Transparent"));
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

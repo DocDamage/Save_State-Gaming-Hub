@@ -1,0 +1,187 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.WebBrowser"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="SaveState.Presentation.Views.WebBrowser.DocumentationBrowserView"
+             x:DataType="vm:DocumentationBrowserViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.doc-section">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="Margin" Value="0,2" />
+        </Style>
+
+        <Style Selector="Border.doc-section:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+        </Style>
+
+        <Style Selector="Border.doc-section.selected">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+        </Style>
+
+        <Style Selector="TextBlock.doc-title">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style Selector="TextBlock.doc-article">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Opacity" Value="0.8" />
+        </Style>
+
+        <Style Selector="Border.content-card">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="24" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid ColumnDefinitions="280, *">
+        <!-- Sidebar -->
+        <Border Grid.Column="0" 
+                Background="{StaticResource BackgroundBrush}" 
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,1,0">
+            <Grid RowDefinitions="Auto, Auto, *">
+                <!-- Header -->
+                <Border Grid.Row="0" Padding="16,20">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="📚 Documentation" 
+                                   FontSize="20" 
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Help, guides, and reference"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Search -->
+                <Border Grid.Row="1" Padding="16,0,16,12">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <TextBox Grid.Column="0"
+                                 Watermark="🔍 Search docs..."
+                                 Text="{Binding SearchQuery}"
+                                 Margin="0,0,8,0"/>
+                        <Button Grid.Column="1"
+                                Content="✕"
+                                Command="{Binding ClearSearchCommand}"
+                                IsVisible="{Binding SearchQuery, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                Classes="Ghost Small"/>
+                    </Grid>
+                </Border>
+
+                <!-- Navigation -->
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12,0,12,12" Spacing="4">
+                        <!-- Search Results Mode -->
+                        <StackPanel IsVisible="{Binding IsSearchMode}" Spacing="4">
+                            <TextBlock Text="Search Results" 
+                                       FontWeight="SemiBold" 
+                                       Margin="4,8,4,4"
+                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                            
+                            <ItemsControl ItemsSource="{Binding SearchResults}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Classes="doc-section"
+                                                PointerPressed="{Binding $parent[ItemsControl].((vm:DocumentationBrowserViewModel)DataContext).SelectArticleCommand}">
+                                            <TextBlock Text="{Binding Title}" Classes="doc-article"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- Normal Navigation Mode -->
+                        <ItemsControl ItemsSource="{Binding Sections}" 
+                                      IsVisible="{Binding !IsSearchMode}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Spacing="4">
+                                        <!-- Section Header -->
+                                        <Border Classes="doc-section"
+                                                Background="{Binding $self.((vm:DocumentationSection)DataContext), Converter={StaticResource SectionToBackgroundConverter}}"
+                                                PointerPressed="{Binding $parent[ItemsControl].((vm:DocumentationBrowserViewModel)DataContext).SelectSectionCommand}">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="{Binding Icon}" FontSize="16"/>
+                                                <TextBlock Text="{Binding Title}" Classes="doc-title"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Articles (when selected) -->
+                                        <ItemsControl ItemsSource="{Binding Articles}"
+                                                      IsVisible="{Binding $parent[Border].((vm:DocumentationSection)DataContext) == $parent[ItemsControl].((vm:DocumentationBrowserViewModel)DataContext).SelectedSection}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Classes="doc-section"
+                                                            Margin="16,2,0,2"
+                                                            PointerPressed="{Binding $parent[ItemsControl].((vm:DocumentationBrowserViewModel)DataContext).SelectArticleCommand}">
+                                                        <TextBlock Text="{Binding Title}" Classes="doc-article"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Content Area -->
+        <Grid Grid.Column="1" RowDefinitions="Auto, *">
+            <!-- Toolbar -->
+            <Border Grid.Row="0" 
+                    Background="{StaticResource CardBackgroundBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="0,0,0,1"
+                    Padding="16,12">
+                <Grid ColumnDefinitions="*, Auto">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                        <TextBlock Text="{Binding CurrentTitle}"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                        
+                        <Border Background="{StaticResource PrimaryBrush}"
+                                CornerRadius="4"
+                                Padding="8,4"
+                                IsVisible="{Binding SelectedArticle.VideoUrl, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <TextBlock Text="▶ Video" FontSize="11" Foreground="White"/>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                        <Button Content="🖨️ Print" 
+                                Command="{Binding PrintCurrentPageCommand}"
+                                Classes="Secondary Small"/>
+                        <Button Content="🔗 External" 
+                                Command="{Binding OpenExternalHelpCommand}"
+                                Classes="Secondary Small"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Content -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <Border Classes="content-card" Margin="24">
+                    <TextBlock Text="{Binding CurrentContent}"
+                               TextWrapping="Wrap"
+                               LineHeight="24"/>
+                </Border>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

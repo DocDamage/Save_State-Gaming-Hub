@@ -166,6 +166,18 @@ public static class Program
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.PluginInstallDialogViewModel>();
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.PluginStore.PluginReviewViewModel>();
 
+            // CefSharp Web Browser
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.WebBrowser.BrowserShellViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.WebBrowser.BookmarksManagerViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.WebBrowser.HistoryViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.WebBrowser.GameGuideViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.WebBrowser.DocumentationBrowserViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.WebBrowser.CommunityBrowserViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.WebBrowser.StreamingBrowserOverlayViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.DownloadManagerDialogViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.CertificateViewerDialogViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Settings.BrowserSettingsViewModel>();
+
             // Add theme service
             builder.Services.AddSingleton<IThemeService, ThemeService>();
 

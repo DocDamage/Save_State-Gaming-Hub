@@ -1,0 +1,252 @@
+<!--
+    NewTabPage.axaml
+    
+    Custom new tab page with shortcuts, recently visited sites, and news.
+    
+    Usage:
+        <web:NewTabPage />
+    
+    Binding Context: NewTabPageViewModel
+-->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.WebBrowser"
+             x:Class="SaveState.Presentation.Views.WebBrowser.NewTabPage"
+             x:DataType="vm:NewTabPageViewModel"
+             x:Name="Root">
+
+    <UserControl.Styles>
+        <Style Selector="Border.shortcut-card">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Width" Value="120" />
+            <Setter Property="Height" Value="100" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" />
+                    <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.2" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.shortcut-card:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+            <Setter Property="BoxShadow" Value="0 4 12 #20000000" />
+            <Setter Property="RenderTransform" Value="translateY(-4px)" />
+        </Style>
+        <Style Selector="Border.add-shortcut-card">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderDashArray" Value="4,4" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Width" Value="120" />
+            <Setter Property="Height" Value="100" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Border.add-shortcut-card:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+        </Style>
+        <Style Selector="Border.recent-item">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Border.recent-item:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+        </Style>
+        <Style Selector="Border.news-card">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="16" />
+        </Style>
+        <Style Selector="TextBlock.section-header">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer>
+        <StackPanel Margin="40" Spacing="32">
+            <!-- Logo and Search -->
+            <StackPanel Spacing="24" HorizontalAlignment="Center" MaxWidth="600">
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            Spacing="12">
+                    <TextBlock Text="🎮"
+                               FontSize="48" />
+                    <TextBlock Text="SaveState"
+                               FontSize="48"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource PrimaryBrush}" />
+                </StackPanel>
+
+                <!-- Search Box -->
+                <Border Background="{StaticResource CardBackgroundBrush}"
+                        BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="24"
+                        Padding="16,12">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <TextBlock Grid.Column="0"
+                                   Text="🔍"
+                                   FontSize="20"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,12,0" />
+                        <TextBox Grid.Column="1"
+                                 Text="{Binding SearchQuery}"
+                                 Watermark="Search or type URL"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 VerticalAlignment="Center"
+                                 FontSize="16">
+                            <TextBox.KeyBindings>
+                                <KeyBinding Gesture="Enter"
+                                            Command="{Binding SearchCommand}" />
+                            </TextBox.KeyBindings>
+                        </TextBox>
+                        <Button Grid.Column="2"
+                                Content="➤"
+                                Command="{Binding SearchCommand}"
+                                Classes="Accent"
+                                Padding="12,6" />
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <!-- Shortcuts -->
+            <StackPanel>
+                <TextBlock Text="SHORTCUTS"
+                           Classes="section-header" />
+
+                <ItemsControl ItemsSource="{Binding Shortcuts}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="vm:ShortcutItemViewModel">
+                            <Border Classes="shortcut-card"
+                                    Margin="0,0,12,12">
+                                <Grid RowDefinitions="*,Auto">
+                                    <TextBlock Grid.Row="0"
+                                               Text="{Binding Icon}"
+                                               FontSize="32"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Grid.Row="1"
+                                               Text="{Binding Title}"
+                                               HorizontalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               FontSize="12"
+                                               Margin="0,8,0,0" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Add Shortcut Button -->
+                <Border Classes="add-shortcut-card"
+                        Margin="0,0,12,12">
+                    <Grid RowDefinitions="*,Auto">
+                        <TextBlock Grid.Row="0"
+                                   Text="➕"
+                                   FontSize="32"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                        <TextBlock Grid.Row="1"
+                                   Text="Add"
+                                   HorizontalAlignment="Center"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Margin="0,8,0,0" />
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <!-- Recently Visited -->
+            <StackPanel IsVisible="{Binding RecentlyVisited.Count, Converter={x:Static ObjectConverters.IsGreaterThan}, ConverterParameter=0}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0"
+                               Text="RECENTLY VISITED"
+                               Classes="section-header" />
+                    <Button Grid.Column="1"
+                            Content="Clear All"
+                            Command="{Binding ClearRecentCommand}"
+                            Classes="Text"
+                            FontSize="12" />
+                </Grid>
+
+                <ItemsControl ItemsSource="{Binding RecentlyVisited}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Spacing="8" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="vm:RecentItemViewModel">
+                            <Border Classes="recent-item">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <TextBlock Grid.Column="0"
+                                               Text="🌐"
+                                               FontSize="16"
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,12,0" />
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Title}"
+                                                   FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding Url}"
+                                                   FontSize="12"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                    <Button Grid.Column="2"
+                                            Content="✕"
+                                            Command="{Binding RemoveCommand}"
+                                            Classes="widget-action"
+                                            VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <!-- SaveState News -->
+            <StackPanel>
+                <TextBlock Text="SAVESTATE NEWS"
+                           Classes="section-header" />
+
+                <Border Classes="news-card">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="🚀 Latest Updates"
+                                   FontWeight="SemiBold"
+                                   FontSize="16" />
+                        <TextBlock Text="Stay up to date with the latest SaveState features and community news."
+                                   TextWrapping="Wrap"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                        <Button Content="View Updates →"
+                                Command="{Binding ViewUpdatesCommand}"
+                                Classes="Text"
+                                HorizontalAlignment="Left"
+                                Margin="0,8,0,0" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

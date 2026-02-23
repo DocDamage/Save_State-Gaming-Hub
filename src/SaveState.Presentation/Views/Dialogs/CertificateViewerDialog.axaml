@@ -1,0 +1,275 @@
+<!--
+    CertificateViewerDialog.axaml
+    
+    SSL/TLS certificate information viewer dialog.
+    Displays certificate details including issuer, subject, validity dates, and fingerprints.
+    
+    Usage: await IDialogService.ShowCertificateViewerAsync(certificateInfo)
+    
+    Binding Context: CertificateViewerDialogViewModel
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        x:Class="SaveState.Presentation.Views.Dialogs.CertificateViewerDialog"
+        x:DataType="vm:CertificateViewerDialogViewModel"
+        Title="🔒 Certificate Viewer"
+        Width="600"
+        Height="700"
+        MinWidth="500"
+        MinHeight="500"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True"
+        Background="{StaticResource DialogBackgroundBrush}">
+
+    <Window.Styles>
+        <Style Selector="Border.cert-card">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="0,8" />
+        </Style>
+        <Style Selector="TextBlock.cert-label">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+            <Setter Property="Margin" Value="0,8,0,2" />
+        </Style>
+        <Style Selector="TextBlock.cert-value">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="Border.valid-badge">
+            <Setter Property="Background" Value="{StaticResource SuccessBrush}" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="8,4" />
+        </Style>
+        <Style Selector="Border.invalid-badge">
+            <Setter Property="Background" Value="{StaticResource ErrorBrush}" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="8,4" />
+        </Style>
+        <Style Selector="Border.warning-badge">
+            <Setter Property="Background" Value="{StaticResource WarningBrush}" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="8,4" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+        <!-- Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+            <TextBlock Grid.Column="0"
+                       Text="🔒"
+                       FontSize="32"
+                       VerticalAlignment="Center"
+                       Margin="0,0,12,0" />
+
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Certificate Information"
+                           FontSize="20"
+                           FontWeight="SemiBold" />
+                <TextBlock Text="{Binding Domain}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="14" />
+            </StackPanel>
+
+            <Border Grid.Column="2"
+                    Classes.valid-badge="{Binding IsValid}"
+                    Classes.invalid-badge="{Binding !IsValid}"
+                    VerticalAlignment="Center"
+                    IsVisible="{Binding IsSelfSigned, Converter={x:Static ObjectConverters.Not}}">
+                <TextBlock Text="{Binding ValidityStatus}"
+                           Foreground="White"
+                           FontWeight="SemiBold"
+                           FontSize="12" />
+            </Border>
+
+            <Border Grid.Column="2"
+                    Classes.warning-badge
+                    VerticalAlignment="Center"
+                    IsVisible="{Binding IsSelfSigned}">
+                <TextBlock Text="Self-Signed"
+                           Foreground="White"
+                           FontWeight="SemiBold"
+                           FontSize="12" />
+            </Border>
+        </Grid>
+
+        <!-- Certificate Details -->
+        <ScrollViewer Grid.Row="1" Margin="0,16,0,0">
+            <StackPanel>
+                <!-- General Information -->
+                <Border Classes="cert-card">
+                    <StackPanel>
+                        <TextBlock Text="GENERAL" FontWeight="SemiBold" Margin="0,0,0,8" />
+
+                        <TextBlock Text="Issued To" Classes="cert-label" />
+                        <TextBlock Text="{Binding Subject}" Classes="cert-value" />
+
+                        <TextBlock Text="Issued By" Classes="cert-label" />
+                        <TextBlock Text="{Binding Issuer}" Classes="cert-value" />
+
+                        <Grid ColumnDefinitions="*,*" Margin="0,8,0,0">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Valid From" Classes="cert-label" />
+                                <TextBlock Text="{Binding ValidFrom, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
+                                           Classes="cert-value" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Valid Until" Classes="cert-label" />
+                                <TextBlock Text="{Binding ValidTo, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
+                                           Classes="cert-value" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Serial Number" Classes="cert-label" />
+                        <TextBlock Text="{Binding SerialNumber}"
+                                   Classes="cert-value"
+                                   FontFamily="Consolas,Monospace" />
+
+                        <TextBlock Text="Version" Classes="cert-label" />
+                        <TextBlock Text="{Binding Version}" Classes="cert-value" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Fingerprints -->
+                <Border Classes="cert-card">
+                    <StackPanel>
+                        <TextBlock Text="FINGERPRINTS" FontWeight="SemiBold" Margin="0,0,0,8" />
+
+                        <TextBlock Text="SHA-256 Fingerprint" Classes="cert-label" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding Sha256Fingerprint}"
+                                     IsReadOnly="True"
+                                     FontFamily="Consolas,Monospace"
+                                     FontSize="12"
+                                     TextWrapping="Wrap" />
+                            <Button Grid.Column="1"
+                                    Content="📋"
+                                    Command="{Binding CopyFingerprintCommand}"
+                                    CommandParameter="SHA256"
+                                    ToolTip.Tip="Copy to clipboard"
+                                    Classes="Secondary"
+                                    Margin="8,0,0,0"
+                                    VerticalAlignment="Center" />
+                        </Grid>
+
+                        <TextBlock Text="SHA-1 Fingerprint" Classes="cert-label" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding Sha1Fingerprint}"
+                                     IsReadOnly="True"
+                                     FontFamily="Consolas,Monospace"
+                                     FontSize="12"
+                                     TextWrapping="Wrap" />
+                            <Button Grid.Column="1"
+                                    Content="📋"
+                                    Command="{Binding CopyFingerprintCommand}"
+                                    CommandParameter="SHA1"
+                                    ToolTip.Tip="Copy to clipboard"
+                                    Classes="Secondary"
+                                    Margin="8,0,0,0"
+                                    VerticalAlignment="Center" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Details -->
+                <Border Classes="cert-card">
+                    <StackPanel>
+                        <TextBlock Text="DETAILS" FontWeight="SemiBold" Margin="0,0,0,8" />
+
+                        <TextBlock Text="Signature Algorithm" Classes="cert-label" />
+                        <TextBlock Text="{Binding SignatureAlgorithm}" Classes="cert-value" />
+
+                        <TextBlock Text="Public Key Algorithm" Classes="cert-label" />
+                        <TextBlock Text="{Binding PublicKeyAlgorithm}" Classes="cert-value" />
+
+                        <TextBlock Text="Key Size" Classes="cert-label" />
+                        <TextBlock Text="{Binding KeySize, StringFormat='{}{0} bits'}" Classes="cert-value" />
+
+                        <TextBlock Text="Subject Alternative Names" Classes="cert-label" />
+                        <ItemsControl ItemsSource="{Binding SubjectAlternativeNames}"
+                                      IsVisible="{Binding SubjectAlternativeNames.Count, Converter={x:Static ObjectConverters.IsGreaterThan}, ConverterParameter=0}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}"
+                                               FontSize="13"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               Margin="0,2,0,0" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="None"
+                                   FontSize="13"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   IsVisible="{Binding SubjectAlternativeNames.Count, Converter={x:Static ObjectConverters.IsLessThanOrEqual}, ConverterParameter=0}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Certificate Hierarchy -->
+                <Border Classes="cert-card">
+                    <StackPanel>
+                        <TextBlock Text="CERTIFICATE HIERARCHY" FontWeight="SemiBold" Margin="0,0,0,8" />
+
+                        <ItemsControl ItemsSource="{Binding CertificateChain}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4">
+                                        <TextBlock Text="└─ "
+                                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                                   IsVisible="{Binding IsNotRoot}" />
+                                        <TextBlock Text="{Binding Subject}"
+                                                   FontWeight="{Binding FontWeight}" />
+                                        <TextBlock Text=" (Root CA)"
+                                                   Foreground="{StaticResource SuccessBrush}"
+                                                   IsVisible="{Binding IsRoot}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Warnings -->
+                <Border Classes="cert-card"
+                        Background="{StaticResource WarningBrush}"
+                        IsVisible="{Binding HasWarnings}">
+                    <StackPanel>
+                        <TextBlock Text="⚠️ WARNINGS"
+                                       FontWeight="SemiBold"
+                                       Foreground="White" />
+                        <ItemsControl ItemsSource="{Binding Warnings}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}"
+                                               Foreground="White"
+                                               TextWrapping="Wrap"
+                                               Margin="0,4,0,0" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Footer -->
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Spacing="12"
+                    Margin="0,16,0,0">
+            <Button Content="📄 Export..."
+                    Command="{Binding ExportCertificateCommand}"
+                    Classes="Secondary" />
+            <Button Content="Close"
+                    Command="{Binding CloseCommand}"
+                    Classes="Primary" />
+        </StackPanel>
+    </Grid>
+</Window>

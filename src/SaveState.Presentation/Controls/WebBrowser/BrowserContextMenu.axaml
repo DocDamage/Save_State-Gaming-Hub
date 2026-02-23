@@ -1,0 +1,99 @@
+<!--
+    BrowserContextMenu.axaml
+    
+    Custom context menu for the web browser.
+    Provides actions like back/forward, save page, inspect element, etc.
+    
+    Usage:
+        <ContextMenu>
+            <MenuItem Header="Back" Command="{Binding GoBackCommand}" />
+            ...
+        </ContextMenu>
+-->
+<ContextMenu xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SaveState.Presentation.Controls.WebBrowser.BrowserContextMenu"
+             x:Name="Root">
+
+    <ContextMenu.Styles>
+        <Style Selector="MenuItem">
+            <Setter Property="Padding" Value="12,6" />
+        </Style>
+        <Style Selector="Separator">
+            <Setter Property="Margin" Value="8,4" />
+        </Style>
+    </ContextMenu.Styles>
+
+    <!-- Navigation -->
+    <MenuItem Header="◀️ Back"
+              Command="{Binding GoBackCommand}"
+              IsEnabled="{Binding CanGoBack}" />
+    <MenuItem Header="▶️ Forward"
+              Command="{Binding GoForwardCommand}"
+              IsEnabled="{Binding CanGoForward}" />
+    <MenuItem Header="🔄 Reload"
+              Command="{Binding RefreshCommand}" />
+
+    <Separator />
+
+    <!-- Page Actions -->
+    <MenuItem Header="💾 Save Page As..."
+              Command="{Binding SavePageCommand}" />
+    <MenuItem Header="🖨️ Print..."
+              Command="{Binding PrintCommand}" />
+    <MenuItem Header="📄 View Page Source"
+              Command="{Binding ViewSourceCommand}" />
+
+    <Separator />
+
+    <!-- Link Actions (shown when right-clicking a link) -->
+    <MenuItem Header="🔗 Open Link in New Tab"
+              Command="{Binding OpenLinkInNewTabCommand}"
+              IsVisible="{Binding IsLinkContext}" />
+    <MenuItem Header="📋 Copy Link Address"
+              Command="{Binding CopyLinkAddressCommand}"
+              IsVisible="{Binding IsLinkContext}" />
+
+    <Separator IsVisible="{Binding IsLinkContext}" />
+
+    <!-- Image Actions (shown when right-clicking an image) -->
+    <MenuItem Header="🖼️ Open Image in New Tab"
+              Command="{Binding OpenImageInNewTabCommand}"
+              IsVisible="{Binding IsImageContext}" />
+    <MenuItem Header="💾 Save Image As..."
+              Command="{Binding SaveImageCommand}"
+              IsVisible="{Binding IsImageContext}" />
+    <MenuItem Header="📋 Copy Image"
+              Command="{Binding CopyImageCommand}"
+              IsVisible="{Binding IsImageContext}" />
+    <MenuItem Header="📋 Copy Image Address"
+              Command="{Binding CopyImageAddressCommand}"
+              IsVisible="{Binding IsImageContext}" />
+
+    <Separator IsVisible="{Binding IsImageContext}" />
+
+    <!-- Selection Actions -->
+    <MenuItem Header="🔍 Search Google for '{SelectionText}'"
+              Command="{Binding SearchGoogleCommand}"
+              IsVisible="{Binding HasSelection}" />
+
+    <Separator IsVisible="{Binding HasSelection}" />
+
+    <!-- Bookmarks -->
+    <MenuItem Header="📑 Add Bookmark"
+              Command="{Binding AddBookmarkCommand}" />
+
+    <Separator />
+
+    <!-- DevTools -->
+    <MenuItem Header="🔧 Inspect Element"
+              Command="{Binding InspectElementCommand}" />
+    <MenuItem Header="🔧 Show DevTools"
+              Command="{Binding ShowDevToolsCommand}" />
+
+    <Separator />
+
+    <!-- Translation -->
+    <MenuItem Header="🌐 Translate Page"
+              Command="{Binding TranslatePageCommand}" />
+</ContextMenu>

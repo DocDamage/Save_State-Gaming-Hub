@@ -1,0 +1,394 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Overlays"
+        mc:Ignorable="d"
+        x:Class="SaveState.Presentation.Views.Overlays.StreamingBrowserOverlay"
+        x:DataType="vm:StreamingBrowserOverlayViewModel"
+        Title="Streaming Browser"
+        Width="1200"
+        Height="700"
+        Background="Transparent"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        WindowStartupLocation="CenterScreen"
+        Topmost="{Binding IsAlwaysOnTop}"
+        Opacity="{Binding Opacity}"
+        SystemDecorations="None">
+
+    <Window.Styles>
+        <Style Selector="Border.overlay-container">
+            <Setter Property="Background" Value="#CC1A1A2E" />
+            <Setter Property="BorderBrush" Value="#40FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="BoxShadow" Value="0 8 32 #40000000" />
+        </Style>
+
+        <Style Selector="Border.toolbar">
+            <Setter Property="Background" Value="#331A1A2E" />
+            <Setter Property="BorderBrush" Value="#20FFFFFF" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="Padding" Value="12,8" />
+        </Style>
+
+        <Style Selector="Border.chat-panel">
+            <Setter Property="Background" Value="#CC0F0F1A" />
+            <Setter Property="BorderBrush" Value="#20FFFFFF" />
+            <Setter Property="BorderThickness" Value="1,0,0,0" />
+            <Setter Property="Width" Value="280" />
+        </Style>
+
+        <Style Selector="Border.chat-message">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Padding" Value="8,4" />
+        </Style>
+
+        <Style Selector="Border.chat-message:pointerover">
+            <Setter Property="Background" Value="#10FFFFFF" />
+        </Style>
+
+        <Style Selector="Border.stats-panel">
+            <Setter Property="Background" Value="#CC0F0F1A" />
+            <Setter Property="BorderBrush" Value="#20FFFFFF" />
+            <Setter Property="BorderThickness" Value="0,1,0,0" />
+            <Setter Property="Padding" Value="12,8" />
+        </Style>
+
+        <Style Selector="TextBlock.stat-value">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <Style Selector="TextBlock.stat-label">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="Foreground" Value="#88FFFFFF" />
+        </Style>
+
+        <Style Selector="Button.overlay-btn">
+            <Setter Property="Background" Value="#20FFFFFF" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+
+        <Style Selector="Button.overlay-btn:pointerover">
+            <Setter Property="Background" Value="#30FFFFFF" />
+        </Style>
+
+        <Style Selector="Button.overlay-btn.active">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+        </Style>
+
+        <Style Selector="Button.close-btn">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#88FFFFFF" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+
+        <Style Selector="Button.close-btn:pointerover">
+            <Setter Property="Foreground" Value="#FF4444" />
+            <Setter Property="Background" Value="#20FF4444" />
+        </Style>
+
+        <Style Selector="TextBox.overlay-input">
+            <Setter Property="Background" Value="#20FFFFFF" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#20FFFFFF" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="10,6" />
+        </Style>
+
+        <Style Selector="ProgressBar.stream-progress">
+            <Setter Property="Height" Value="3" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="Background" Value="#20FFFFFF" />
+        </Style>
+    </Window.Styles>
+
+    <Border Classes="overlay-container">
+        <Grid RowDefinitions="Auto, *, Auto" ColumnDefinitions="*, Auto">
+            <!-- Title Bar / Toolbar -->
+            <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Classes="toolbar">
+                <Grid ColumnDefinitions="Auto, *, Auto">
+                    <!-- Left: Title and Status -->
+                    <StackPanel Grid.Column="0" 
+                                Orientation="Horizontal" 
+                                Spacing="12"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="🎥"
+                                   FontSize="18"/>
+                        <TextBlock Text="{Binding PageTitle}"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                        
+                        <Border Background="{StaticResource PrimaryBrush}"
+                                CornerRadius="4"
+                                Padding="6,2"
+                                IsVisible="{Binding IsStreaming}">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <Ellipse Width="6" Height="6" Fill="White"/>
+                                <TextBlock Text="LIVE"
+                                           FontSize="10"
+                                           FontWeight="Bold"
+                                           Foreground="White"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <TextBlock Text="{Binding ViewerCount, StringFormat='{}{0} viewers'}"
+                                   FontSize="12"
+                                   Foreground="#88FFFFFF"
+                                   VerticalAlignment="Center"
+                                   IsVisible="{Binding IsStreaming}"/>
+                    </StackPanel>
+
+                    <!-- Center: Navigation -->
+                    <StackPanel Grid.Column="1" 
+                                Orientation="Horizontal" 
+                                Spacing="4"
+                                HorizontalAlignment="Center">
+                        <Button Content="←" Classes="overlay-btn"/>
+                        <Button Content="→" Classes="overlay-btn"/>
+                        <Button Content="↻" Classes="overlay-btn"/>
+                        <TextBox Text="{Binding CurrentUrl}"
+                                 Width="300"
+                                 Classes="overlay-input"
+                                 FontSize="11"/>
+                        <Button Content="Go" Classes="overlay-btn"/>
+                    </StackPanel>
+
+                    <!-- Right: Controls -->
+                    <StackPanel Grid.Column="2" 
+                                Orientation="Horizontal" 
+                                Spacing="4">
+                        <Button Content="💬"
+                                Classes="overlay-btn"
+                                Command="{Binding ToggleChatCommand}"/>
+                        <Button Content="👆"
+                                Classes.overlay-btn.active="{Binding IsClickThrough}"
+                                Command="{Binding ToggleClickThroughCommand}"
+                                ToolTip.Tip="Click-through mode"/>
+                        <Button Content="📌"
+                                Classes.overlay-btn.active="{Binding IsAlwaysOnTop}"
+                                Command="{Binding ToggleAlwaysOnTopCommand}"
+                                ToolTip.Tip="Always on top"/>
+                        <Button Content="◻"
+                                Command="{Binding ToggleCompactModeCommand}"
+                                ToolTip.Tip="Compact mode"/>
+                        <Slider Value="{Binding Opacity}"
+                                Minimum="0.1"
+                                Maximum="1.0"
+                                Width="80"
+                                VerticalAlignment="Center"
+                                Margin="8,0"/>
+                        <Button Content="✕" Classes="close-btn"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Main Content: Browser -->
+            <Border Grid.Row="1" Grid.Column="0" Background="#000000">
+                <Grid>
+                    <!-- Browser Placeholder -->
+                    <TextBlock Text="🌐 Browser Content&#x0a;{Binding CurrentUrl}"
+                               Foreground="#88FFFFFF"
+                               FontSize="24"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               TextAlignment="Center"/>
+
+                    <!-- Quick Links Overlay -->
+                    <Border Background="#CC000000"
+                            Padding="16"
+                            IsVisible="{Binding IsLoading}"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            CornerRadius="12">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Quick Links"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       HorizontalAlignment="Center"/>
+                            <ItemsControl ItemsSource="{Binding QuickLinks}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel MaxWidth="500" ItemWidth="140" ItemHeight="60"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Command="{Binding $parent[ItemsControl].((vm:StreamingBrowserOverlayViewModel)DataContext).NavigateToQuickLinkCommand}"
+                                                CommandParameter="{Binding}"
+                                                Classes="overlay-btn"
+                                                Margin="4"
+                                                Height="52">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="{Binding Icon}"
+                                                           FontSize="20"
+                                                           HorizontalAlignment="Center"/>
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontSize="10"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Chat Panel (Right Side) -->
+            <Border Grid.Row="1" Grid.Column="1" Classes="chat-panel" IsVisible="{Binding ShowChat}">
+                <Grid RowDefinitions="Auto, *, Auto">
+                    <!-- Chat Header -->
+                    <Border Grid.Row="0" 
+                            Background="#20FFFFFF"
+                            Padding="12,8"
+                            BorderBrush="#10FFFFFF"
+                            BorderThickness="0,0,0,1">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="💬" FontSize="14"/>
+                                <TextBlock Text="Stream Chat"
+                                           FontWeight="SemiBold"
+                                           FontSize="13"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                                <Button Content="👤" Classes="overlay-btn" FontSize="10"/>
+                                <Button Content="⚙" Classes="overlay-btn" FontSize="10"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Chat Messages -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding ChatMessages}" Margin="0,4">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="chat-message">
+                                        <StackPanel Spacing="2">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <TextBlock Text="{Binding Badge}"
+                                                           FontSize="10"
+                                                           IsVisible="{Binding Badge, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                                <TextBlock Text="{Binding Username}"
+                                                           FontSize="11"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{Binding Color}"/>
+                                                <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm}'}"
+                                                           FontSize="9"
+                                                           Foreground="#60FFFFFF"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Message}"
+                                                       FontSize="12"
+                                                       TextWrapping="Wrap"
+                                                       Margin="0,0,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Chat Input -->
+                    <Border Grid.Row="2" 
+                            Background="#20FFFFFF"
+                            Padding="8"
+                            BorderBrush="#10FFFFFF"
+                            BorderThickness="0,1,0,0">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBox Grid.Column="0"
+                                     Watermark="Send a message..."
+                                     Classes="overlay-input"
+                                     Margin="0,0,8,0"
+                                     FontSize="12"/>
+                            <Button Grid.Column="1"
+                                    Content="➤"
+                                    Classes="overlay-btn"
+                                    Background="{StaticResource PrimaryBrush}"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Bottom Stats Panel -->
+            <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Classes="stats-panel">
+                <Grid ColumnDefinitions="Auto, *, Auto">
+                    <!-- Stream Status -->
+                    <StackPanel Grid.Column="0" 
+                                Orientation="Horizontal" 
+                                Spacing="16"
+                                IsVisible="{Binding IsStreaming}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding StreamDuration, StringFormat='{}{0:hh\\:mm\\:ss}'}"
+                                       Classes="stat-value"/>
+                            <TextBlock Text="DURATION" Classes="stat-label"/>
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="{Binding ViewerCount}" Classes="stat-value"/>
+                            <TextBlock Text="VIEWERS" Classes="stat-label"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Performance Stats -->
+                    <StackPanel Grid.Column="1" 
+                                Orientation="Horizontal" 
+                                Spacing="16"
+                                HorizontalAlignment="Center"
+                                IsVisible="{Binding ShowPerformanceStats}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding PerformanceStats.Fps}" Classes="stat-value"/>
+                            <TextBlock Text="FPS" Classes="stat-label"/>
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="{Binding PerformanceStats.CpuUsage, StringFormat='{}{0}%'}" Classes="stat-value"/>
+                            <TextBlock Text="CPU" Classes="stat-label"/>
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="{Binding PerformanceStats.GpuUsage, StringFormat='{}{0}%'}" Classes="stat-value"/>
+                            <TextBlock Text="GPU" Classes="stat-label"/>
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="{Binding PerformanceStats.NetworkLatency, StringFormat='{}{0:F1}ms'}" Classes="stat-value"/>
+                            <TextBlock Text="PING" Classes="stat-label"/>
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="{Binding PerformanceStats.DroppedFrames}" Classes="stat-value">
+                                <TextBlock.Foreground>
+                                    <MultiBinding Converter="{StaticResource DroppedFramesToColorConverter}">
+                                        <Binding Path="PerformanceStats.DroppedFrames"/>
+                                    </MultiBinding>
+                                </TextBlock.Foreground>
+                            </TextBlock>
+                            <TextBlock Text="DROPPED" Classes="stat-label"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Stream Controls -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                        <Button Content="▶ Start Stream"
+                                Command="{Binding StartStreamCommand}"
+                                Classes="overlay-btn"
+                                Background="{StaticResource PrimaryBrush}"
+                                IsVisible="{Binding !IsStreaming}"/>
+                        <Button Content="⏹ Stop Stream"
+                                Command="{Binding StopStreamCommand}"
+                                Classes="overlay-btn"
+                                Background="#FF4444"
+                                IsVisible="{Binding IsStreaming}"/>
+                        <Button Content="⚙"
+                                Command="{Binding OpenStreamSettingsCommand}"
+                                Classes="overlay-btn"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

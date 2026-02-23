@@ -1,0 +1,208 @@
+<!--
+    BookmarksManagerView.axaml
+    
+    Bookmarks manager view with folders, search, and bookmark management.
+    
+    Usage:
+        <web:BookmarksManagerView />
+    
+    Binding Context: BookmarksManagerViewModel
+-->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.WebBrowser"
+             xmlns:models="using:SaveState.Core.WebBrowser.Models"
+             xmlns:converters="using:SaveState.Presentation.Converters"
+             x:Class="SaveState.Presentation.Views.WebBrowser.BookmarksManagerView"
+             x:DataType="vm:BookmarksManagerViewModel"
+             x:Name="Root">
+
+    <UserControl.Styles>
+        <Style Selector="Border.bookmark-item">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Margin" Value="0,4" />
+        </Style>
+        <Style Selector="Border.bookmark-item:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+        </Style>
+        <Style Selector="Border.folder-item">
+            <Setter Property="Padding" Value="8,6" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Border.folder-item:pointerover">
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+        </Style>
+
+    </UserControl.Styles>
+
+    <Grid ColumnDefinitions="250,*">
+        <!-- Left Sidebar - Folders -->
+        <Border Grid.Column="0"
+                Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,1,0"
+                Padding="12">
+            <Grid RowDefinitions="Auto,*,Auto,Auto">
+                <TextBlock Grid.Row="0"
+                           Text="FOLDERS"
+                           FontWeight="SemiBold"
+                           FontSize="12"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,0,0,8" />
+
+                <!-- Folder List -->
+                <ScrollViewer Grid.Row="1" Margin="0,0,-12,0">
+                    <ItemsControl ItemsSource="{Binding Folders}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Classes="folder-item"
+                                        Background="{Binding ., Converter={x:Static converters:EqualityToBrushConverter.Instance}, ConverterParameter={Binding #Root.((vm:BookmarksManagerViewModel)DataContext).SelectedFolder}}">
+                                    <Border.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Open All"
+                                                      Command="{Binding #Root.((vm:BookmarksManagerViewModel)DataContext).OpenAllInFolderCommand}"
+                                                      CommandParameter="{Binding}" />
+                                            <MenuItem Header="Rename"
+                                                      IsEnabled="False" />
+                                            <MenuItem Header="Delete"
+                                                      Command="{Binding #Root.((vm:BookmarksManagerViewModel)DataContext).DeleteFolderCommand}"
+                                                      CommandParameter="{Binding}" />
+                                        </ContextMenu>
+                                    </Border.ContextMenu>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="📁" FontSize="16" />
+                                        <TextBlock Text="{Binding}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- New Folder Input -->
+                <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,8">
+                    <TextBox Grid.Column="0"
+                             Text="{Binding NewFolderName}"
+                             Watermark="New folder..." />
+                    <Button Grid.Column="1"
+                            Content="+"
+                            Command="{Binding CreateFolderCommand}"
+                            Classes="Accent"
+                            Margin="8,0,0,0" />
+                </Grid>
+
+                <!-- Import/Export -->
+                <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8">
+                    <Button Content="📥 Import"
+                            Command="{Binding ImportBookmarksCommand}"
+                            Classes="Secondary"
+                            HorizontalAlignment="Stretch" />
+                    <Button Content="📤 Export"
+                            Command="{Binding ExportBookmarksCommand}"
+                            Classes="Secondary"
+                            HorizontalAlignment="Stretch" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Right Panel - Bookmarks -->
+        <Grid Grid.Column="1" RowDefinitions="Auto,*">
+            <!-- Header -->
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="16">
+                <TextBox Grid.Column="0"
+                         Text="{Binding SearchQuery}"
+                         Watermark="🔍 Search bookmarks..."
+                         Width="300"
+                         HorizontalAlignment="Left" />
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                    <ComboBox PlaceholderText="Sort by"
+                              SelectedItem="{Binding SelectedSort}">
+                        <ComboBoxItem Content="Name" />
+                        <ComboBoxItem Content="Date Added" />
+                        <ComboBoxItem Content="Last Visited" />
+                        <ComboBoxItem Content="Visit Count" />
+                    </ComboBox>
+                    <Button Content="+ Add Bookmark"
+                            Command="{Binding AddBookmarkCommand}"
+                            Classes="Primary" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Bookmark List -->
+            <ScrollViewer Grid.Row="1" Margin="16,0,16,16">
+                <ItemsControl ItemsSource="{Binding FilteredBookmarks}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="models:BrowserBookmark">
+                            <Border Classes="bookmark-item">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <!-- Icon -->
+                                    <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <Image Source="{Binding Favicon}"
+                                               Width="32"
+                                               Height="32"
+                                               IsVisible="{Binding Favicon, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                                        <TextBlock Text="📄"
+                                                   FontSize="24"
+                                                   IsVisible="{Binding Favicon, Converter={x:Static ObjectConverters.IsNull}}" />
+                                    </StackPanel>
+
+                                    <!-- Info -->
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Title}"
+                                                   FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding Url}"
+                                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                                   FontSize="12"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                                            <TextBlock Text="{Binding Folder}"
+                                                       FontSize="11"
+                                                       Foreground="{StaticResource PrimaryBrush}"
+                                                       IsVisible="{Binding Folder, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                            <TextBlock Text="{Binding VisitCount, StringFormat='Visited {0} times'}"
+                                                       FontSize="11"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <TextBlock Text="{Binding LastVisited, StringFormat='Last: {0:yyyy-MM-dd HH:mm}'}"
+                                                       FontSize="11"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       IsVisible="{Binding LastVisited, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- Actions -->
+                                    <StackPanel Grid.Column="2"
+                                                Orientation="Horizontal"
+                                                Spacing="4">
+                                        <Button Content="▶️"
+                                                Command="{Binding #Root.((vm:BookmarksManagerViewModel)DataContext).OpenBookmarkCommand}"
+                                                CommandParameter="{Binding}"
+                                                ToolTip.Tip="Open"
+                                                Classes="Secondary" />
+                                        <Button Content="✏️"
+                                                Command="{Binding #Root.((vm:BookmarksManagerViewModel)DataContext).EditBookmarkCommand}"
+                                                CommandParameter="{Binding}"
+                                                ToolTip.Tip="Edit"
+                                                Classes="Secondary" />
+                                        <Button Content="🗑️"
+                                                Command="{Binding #Root.((vm:BookmarksManagerViewModel)DataContext).DeleteBookmarkCommand}"
+                                                CommandParameter="{Binding}"
+                                                ToolTip.Tip="Delete"
+                                                Classes="Danger" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>
