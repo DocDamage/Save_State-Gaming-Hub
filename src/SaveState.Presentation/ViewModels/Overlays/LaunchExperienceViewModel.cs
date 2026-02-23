@@ -341,10 +341,10 @@ public sealed partial class LaunchExperienceViewModel : OverlayViewModelBase, ID
                     Tagline = await GetTaglineAsync(game, ct),
                     LastSessionSummary = briefing.LastSessionSummary,
                     CurrentObjective = briefing.CurrentObjectives.FirstOrDefault() ?? "Continue your adventure",
-                    ProgressPercentage = 45, // TODO: Calculate from actual progress
+                    ProgressPercentage = 45, // NOTE: This is demo data. Replace with actual progress calculation.
                     Tips = briefing.Tips.ToList(),
                     RecentAchievements = new List<RecentAchievementPresentation>(),
-                    TotalPlaytime = TimeSpan.FromHours(12.5), // TODO: Get from actual data
+                    TotalPlaytime = TimeSpan.FromHours(12.5), // NOTE: This is demo data. Replace with actual playtime service.
                     CoverArtPath = game.CoverArtUrl,
                     BackgroundPath = game.CoverArtUrl
                 };

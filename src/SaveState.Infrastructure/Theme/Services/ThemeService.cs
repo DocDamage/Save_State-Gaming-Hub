@@ -153,20 +153,24 @@ public sealed class ThemeService : IThemeService
             }
 
             var now = _timeProvider.UtcNow;
-            var theme = baseTheme?.Clone(name) ?? new ThemeDefinition
-            {
-                Id = Guid.NewGuid(),
-                Name = name,
-                IsBuiltIn = false,
-                IsDark = false,
-                CreatedAt = now,
-                ModifiedAt = now
-            };
-
-            theme.Id = Guid.NewGuid(); // Ensure new ID
-            theme.Name = name;
-            theme.IsBuiltIn = false;
-            theme.CreatedAt = now;
+            var theme = baseTheme is not null
+                ? baseTheme with
+                {
+                    Id = Guid.NewGuid(),
+                    Name = name,
+                    IsBuiltIn = false,
+                    CreatedAt = now,
+                    ModifiedAt = now
+                }
+                : new ThemeDefinition
+                {
+                    Id = Guid.NewGuid(),
+                    Name = name,
+                    IsBuiltIn = false,
+                    IsDark = false,
+                    CreatedAt = now,
+                    ModifiedAt = now
+                };
             theme.ModifiedAt = now;
 
             _themes[theme.Id] = theme;

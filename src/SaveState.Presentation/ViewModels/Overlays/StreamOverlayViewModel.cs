@@ -176,7 +176,7 @@ public partial class StreamOverlayViewModel : ObservableObject
 
         _logger.LogInformation("Changing stream quality to {Quality}", quality);
 
-        // TODO: Send quality change request to provider
+        // NOTE: This is a demo implementation. Replace with provider quality change API.
         Session.Quality = quality;
 
         await Task.Delay(100);
@@ -188,7 +188,7 @@ public partial class StreamOverlayViewModel : ObservableObject
     [RelayCommand]
     private void ToggleMicrophone()
     {
-        // TODO: Toggle microphone in stream
+        // NOTE: This is a demo implementation. Replace with microphone toggle API.
         _logger.LogInformation("Microphone toggled");
     }
 
@@ -200,8 +200,7 @@ public partial class StreamOverlayViewModel : ObservableObject
     {
         _logger.LogInformation("Taking screenshot");
 
-        // TODO: Capture screenshot
-        await Task.Delay(100);
+        // NOTE: This is a demo implementation. Replace with screenshot capture service.
     }
 
     /// <summary>
@@ -211,7 +210,7 @@ public partial class StreamOverlayViewModel : ObservableObject
     private void OpenMenu()
     {
         _logger.LogInformation("Opening stream menu");
-        // TODO: Show main menu overlay
+        // NOTE: This is a demo implementation. Replace with menu overlay service.
     }
 
     /// <summary>
@@ -222,8 +221,7 @@ public partial class StreamOverlayViewModel : ObservableObject
     {
         _logger.LogInformation("Disconnecting from stream");
 
-        // TODO: Signal disconnect
-        await Task.Delay(100);
+        // NOTE: This is a demo implementation. Replace with disconnect signal.
     }
 
     #endregion

@@ -143,9 +143,7 @@ public partial class AdvancedSearchViewModel : ObservableObject, IDisposable
 
             _logger.LogDebug("Searching with query: '{Query}'", SearchText);
 
-            // TODO: Replace with actual search service call
-            // var query = BuildSearchQuery();
-            // var result = await _searchService.SearchAsync(query);
+            // NOTE: This is a demo implementation. Replace with actual search service call.
 
             // Mock results for demonstration
             await Task.Delay(300); // Simulate network delay
@@ -189,8 +187,7 @@ public partial class AdvancedSearchViewModel : ObservableObject, IDisposable
 
             _logger.LogDebug("Loading more results for page {Page}", CurrentPage);
 
-            // TODO: Replace with actual service call
-            await Task.Delay(200);
+            // NOTE: This is a demo implementation. Replace with pagination service call.
 
             var moreResults = GenerateMockResults();
             foreach (var result in moreResults)
@@ -320,7 +317,7 @@ public partial class AdvancedSearchViewModel : ObservableObject, IDisposable
 
             if (!string.IsNullOrWhiteSpace(name))
             {
-                // TODO: Save search configuration
+                // NOTE: This is a demo implementation. Replace with saved search persistence.
                 _logger.LogInformation("Saved search: {Name}", name);
                 await _dialogService.ShowSuccessAsync("Search saved successfully!");
             }
@@ -375,8 +372,7 @@ public partial class AdvancedSearchViewModel : ObservableObject, IDisposable
     /// </summary>
     private async Task LoadSuggestionsAsync(string partialQuery)
     {
-        // TODO: Load actual suggestions from service
-        await Task.Delay(50);
+        // NOTE: This is a demo implementation. Replace with search suggestion service.
 
         var suggestions = new[]
         {

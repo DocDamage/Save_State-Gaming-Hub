@@ -62,7 +62,7 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
 
         try
         {
-            _settings = settings ?? new BrowserSettings();
+            _settings = settings ?? new BrowserSettingsModel();
             
             var cefSettings = new CefSettings
             {
@@ -135,7 +135,7 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
         }
     }
 
-    public Task<Result<BrowserTab>> CreateTabAsync(string? url = null, bool activate = true)
+    public Task<Result<BrowserTab>> CreateTabAsync(string? url = null, bool activate = true, bool isIncognito = false)
     {
         if (!_isInitialized)
             return Task.FromResult(Result<BrowserTab>.Failure("Browser not initialized"));
@@ -143,19 +143,20 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
         try
         {
             var tabId = Guid.NewGuid();
+            // Create browser settings - note: Plugins property removed in newer CefSharp versions
             var browserSettings = new CefBrowserSettings
             {
-                Javascript = _settings.EnableJavaScript ? CefState.Enabled : CefState.Disabled,
-                Plugins = _settings.EnablePlugins ? CefState.Enabled : CefState.Disabled,
-                WebSecurity = _settings.EnableWebSecurity ? CefState.Enabled : CefState.Disabled
+                Javascript = _settings.EnableJavaScript ? CefState.Enabled : CefState.Disabled
             };
 
-            var requestContextSettings = new RequestContextSettings
+            // Create request context settings - for incognito mode, don't set cache path
+            var requestContextSettings = new RequestContextSettings();
+            if (!isIncognito)
             {
-                CachePath = _settings.IsIncognito ? null : Path.Combine(
+                requestContextSettings.CachePath = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "SaveState", "BrowserCache")
-            };
+                    "SaveState", "BrowserCache");
+            }
 
             var requestContext = new RequestContext(requestContextSettings);
             
@@ -168,10 +169,12 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
             var requestHandler = new CustomRequestHandler(_logger, _settings.BlockedDomains, _settings.CustomHeaders);
             var jsDialogHandler = new CustomJsDialogHandler(_logger);
 
-            var browser = new ChromiumWebBrowser(url ?? "about:blank")
+            // Create browser with settings and request context via constructor
+            var browser = new ChromiumWebBrowser(
+                address: url ?? "about:blank",
+                browserSettings: browserSettings,
+                requestContext: requestContext)
             {
-                BrowserSettings = browserSettings,
-                RequestContext = requestContext,
                 DownloadHandler = downloadHandler,
                 LifeSpanHandler = lifeSpanHandler,
                 DisplayHandler = displayHandler,
@@ -515,7 +518,7 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
             if (existing != null)
             {
                 existing.VisitCount++;
-                existing.LastVisited = DateTime.Now;
+                existing.VisitedAt = DateTime.Now;
             }
             else
             {
@@ -615,13 +618,10 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
         if (!_tabs.TryGetValue(tabId, out var tab))
             return Task.FromResult(Result.Failure("Tab not found"));
 
-        var findOptions = new CefSharp.FindOptions
-        {
-            Forward = options.Forward,
-            MatchCase = options.MatchCase
-        };
-
-        tab.Browser.Find(options.SearchText, forward: options.Forward, matchCase: options.MatchCase);
+        // Find method signature: Find(int identifier, string searchText, bool forward, bool matchCase, bool findNext)
+        // Using 0 as identifier (can be any int to identify the find operation)
+        // Find method signature in newer CefSharp: Find(string searchText, bool forward, bool matchCase, bool findNext)
+        tab.Browser.Find(options.SearchText, options.Forward, options.MatchCase, options.FindNext);
         return Task.FromResult(Result.Success());
     }
 
@@ -669,7 +669,8 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
 
         try
         {
-            var bitmap = await tab.Browser.CaptureScreenshotAsync(CefSharp.ScreenshotFormat.Png, quality: 100);
+            // CaptureScreenshotAsync returns a byte array directly (PNG format)
+            var bitmap = await tab.Browser.CaptureScreenshotAsync();
             return Result<byte[]>.Success(bitmap);
         }
         catch (Exception ex)

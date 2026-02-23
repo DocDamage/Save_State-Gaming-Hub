@@ -106,6 +106,7 @@ public record BrowserSettings
     public Dictionary<string, string> CustomHeaders { get; set; } = new();
     public string? ProxyAddress { get; set; }
     public int? ProxyPort { get; set; }
+    public bool IsIncognito { get; set; } = false;
 }
 
 public record BrowserContextMenuItem

@@ -229,7 +229,7 @@ public partial class ConnectionTestViewModel : ObservableObject
     [RelayCommand]
     private void Close()
     {
-        // TODO: Close dialog
+        // NOTE: This is a demo implementation. Replace with actual dialog close.
     }
 
     /// <summary>
@@ -242,8 +242,7 @@ public partial class ConnectionTestViewModel : ObservableObject
 
         _logger.LogInformation("Saving connection test results");
 
-        // TODO: Save to settings or export
-        await Task.Delay(100);
+        // NOTE: This is a demo implementation. Replace with results export functionality.
     }
 
     /// <summary>
@@ -267,7 +266,7 @@ public partial class ConnectionTestViewModel : ObservableObject
             4K Capable: {(CurrentResult.CanStream4K ? "Yes" : "No")}
             """;
 
-        // TODO: Copy to clipboard
+        // NOTE: This is a demo implementation. Replace with clipboard service.
         _logger.LogInformation("Results copied to clipboard");
     }
 

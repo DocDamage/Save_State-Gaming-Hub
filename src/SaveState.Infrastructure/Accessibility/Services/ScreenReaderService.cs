@@ -316,6 +316,35 @@ public class ScreenReaderService : IScreenReaderService
         }
     }
 
+    private bool DetectNarrator()
+    {
+        // Check if Narrator process is running
+        if (IsProcessRunning("narrator"))
+        {
+            return true;
+        }
+
+        // Also check registry setting for Narrator
+        try
+        {
+            using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Narrator");
+            if (key != null)
+            {
+                var launchOnDesktop = key.GetValue("LaunchOnDesktop");
+                if (launchOnDesktop is int launchValue && launchValue == 1)
+                {
+                    return true;
+                }
+            }
+        }
+        catch
+        {
+            // Ignore registry access errors
+        }
+
+        return false;
+    }
+
     private void DetectMacOSScreenReader()
     {
         // Check for VoiceOver process

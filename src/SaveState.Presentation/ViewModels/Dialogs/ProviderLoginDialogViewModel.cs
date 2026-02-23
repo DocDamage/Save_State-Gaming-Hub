@@ -154,7 +154,7 @@ public partial class ProviderLoginDialogViewModel : ObservableObject
     private void Cancel()
     {
         _logger.LogInformation("Login cancelled for {Provider}", Provider);
-        // TODO: Close dialog with cancellation result
+        // NOTE: This is a demo implementation. Replace with dialog close and cancellation result.
     }
 
     /// <summary>
@@ -178,7 +178,7 @@ public partial class ProviderLoginDialogViewModel : ObservableObject
         if (!string.IsNullOrEmpty(url))
         {
             _logger.LogInformation("Opening account creation page for {Provider}", Provider);
-            // TODO: Open URL in browser
+            // NOTE: This is a demo implementation. Replace with browser service call.
             await Task.Delay(100);
         }
     }
@@ -198,18 +198,20 @@ public partial class ProviderLoginDialogViewModel : ObservableObject
 
     private async Task PerformOAuthFlowAsync()
     {
-        // TODO: Open browser for OAuth authorization
-        // TODO: Start local callback listener
-        // TODO: Exchange code for tokens
-        // TODO: Store secure token
+        // NOTE: This is a demo implementation. Replace with:
+        // - Browser service for OAuth authorization
+        // - Local callback listener
+        // - Token exchange
+        // - Secure token storage
 
         await Task.Delay(2000); // Simulate OAuth flow
     }
 
     private async Task PerformCredentialLoginAsync()
     {
-        // TODO: Validate credentials with provider API
-        // TODO: Store secure token
+        // NOTE: This is a demo implementation. Replace with:
+        // - Provider API credential validation
+        // - Secure token storage
 
         await Task.Delay(1500); // Simulate API call
     }

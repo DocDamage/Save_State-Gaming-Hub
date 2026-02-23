@@ -337,7 +337,7 @@ public partial class MemoryDetailsDialogViewModel : ObservableObject
         {
             if (Conversations.Count == 0)
             {
-                _notificationService.ShowNotification(
+                _notificationService.ShowInfo(
                     "No conversations to delete.",
                     "No Data");
                 return;

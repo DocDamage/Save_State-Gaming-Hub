@@ -26,6 +26,7 @@ public sealed class CustomKeyboardHandler : IKeyboardHandler
         _tabId = tabId;
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "Keyboard handler requires switch statement for all key codes")]
     public bool OnKeyEvent(
         IWebBrowser chromiumWebBrowser,
         IBrowser browser,

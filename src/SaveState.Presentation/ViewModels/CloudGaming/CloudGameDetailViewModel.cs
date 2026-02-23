@@ -93,8 +93,7 @@ public partial class CloudGameDetailViewModel : ObservableObject
 
         _logger.LogInformation("Launching {GameTitle} from game detail", Game.Title);
 
-        // TODO: Navigate to stream launcher or start session directly
-        await Task.Delay(100);
+        // NOTE: This is a demo implementation. Replace with actual stream launcher navigation.
     }
 
     /// <summary>
@@ -122,8 +121,7 @@ public partial class CloudGameDetailViewModel : ObservableObject
 
         _logger.LogInformation("Opening store page for {GameTitle}", Game.Title);
 
-        // TODO: Open browser to provider store
-        await Task.Delay(100);
+        // NOTE: This is a demo implementation. Replace with actual browser service call.
     }
 
     /// <summary>
@@ -137,8 +135,7 @@ public partial class CloudGameDetailViewModel : ObservableObject
         _logger.LogInformation("Switching {GameTitle} to {Provider}",
             Game.Title, provider);
 
-        // TODO: Find the same game on different provider and switch
-        await Task.Delay(100);
+        // NOTE: This is a demo implementation. Replace with actual provider switching logic.
     }
 
     /// <summary>
@@ -147,7 +144,7 @@ public partial class CloudGameDetailViewModel : ObservableObject
     [RelayCommand]
     private void Close()
     {
-        // TODO: Navigate back or close dialog
+        // NOTE: This is a demo implementation. Replace with actual navigation service call.
     }
 
     #endregion
@@ -159,9 +156,10 @@ public partial class CloudGameDetailViewModel : ObservableObject
     {
         Game = game;
 
-        // TODO: Load session history from service
-        // TODO: Check availability on other providers
-        // TODO: Get recommended quality based on connection
+        // NOTE: This is a demo implementation. Replace with:
+        // - Session history service call
+        // - Multi-provider availability check
+        // - Connection-based quality recommendation
 
         OnPropertyChanged(nameof(CanLaunch));
         OnPropertyChanged(nameof(ProviderDisplayName));

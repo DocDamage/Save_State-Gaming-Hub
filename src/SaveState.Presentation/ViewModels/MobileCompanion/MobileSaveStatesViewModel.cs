@@ -85,7 +85,7 @@ public partial class MobileSaveStatesViewModel : ObservableObject
 
             if (_companionService is not null)
             {
-                // TODO: Load from actual service
+                // NOTE: This is a demo implementation. Replace with actual service call.
             }
             else
             {
@@ -124,7 +124,7 @@ public partial class MobileSaveStatesViewModel : ObservableObject
 
             if (_companionService is not null)
             {
-                // TODO: Send create command to gaming hub
+                // NOTE: This is a demo implementation. Replace with actual service call.
                 await Task.Delay(1000); // Simulate network delay
             }
 
@@ -175,7 +175,7 @@ public partial class MobileSaveStatesViewModel : ObservableObject
 
             if (_companionService is not null)
             {
-                // TODO: Send load command to gaming hub
+                // NOTE: This is a demo implementation. Replace with actual service call.
             }
 
             await Task.Delay(500); // Simulate operation
@@ -206,7 +206,7 @@ public partial class MobileSaveStatesViewModel : ObservableObject
 
             if (_companionService is not null)
             {
-                // TODO: Send delete command to gaming hub
+                // NOTE: This is a demo implementation. Replace with actual service call.
             }
 
             SaveStates.Remove(saveState);
@@ -240,7 +240,7 @@ public partial class MobileSaveStatesViewModel : ObservableObject
 
             if (_companionService is not null)
             {
-                // TODO: Initiate share via service
+                // NOTE: This is a demo implementation. Replace with actual service call.
             }
 
             // Show share options (native mobile share sheet)

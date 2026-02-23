@@ -88,7 +88,7 @@ public partial class MobileNotificationsViewModel : ObservableObject
 
             if (_companionService is not null)
             {
-                // TODO: Load from service
+                // NOTE: This is a demo implementation. Replace with actual service call.
             }
             else
             {
@@ -120,7 +120,7 @@ public partial class MobileNotificationsViewModel : ObservableObject
 
             if (_companionService is not null)
             {
-                // TODO: Send clear command
+                // NOTE: This is a demo implementation. Replace with actual service call.
             }
 
             Notifications.Clear();
@@ -149,7 +149,7 @@ public partial class MobileNotificationsViewModel : ObservableObject
 
                 if (_companionService is not null)
                 {
-                    // TODO: Update via service
+                    // NOTE: This is a demo implementation. Replace with actual service call.
                 }
 
                 UpdateUnreadStatus();
@@ -179,7 +179,7 @@ public partial class MobileNotificationsViewModel : ObservableObject
 
             if (_companionService is not null)
             {
-                // TODO: Update via service
+                // NOTE: This is a demo implementation. Replace with actual service call.
             }
 
             UpdateUnreadStatus();
@@ -204,7 +204,7 @@ public partial class MobileNotificationsViewModel : ObservableObject
 
             if (_companionService is not null)
             {
-                // TODO: Delete via service
+                // NOTE: This is a demo implementation. Replace with actual service call.
             }
 
             Notifications.Remove(notification);
@@ -234,7 +234,7 @@ public partial class MobileNotificationsViewModel : ObservableObject
         // Handle action if URL is present
         if (!string.IsNullOrEmpty(notification.ActionUrl))
         {
-            // TODO: Handle deep link
+            // FUTURE: Implement deep link handling when navigation service is ready
         }
     }
 

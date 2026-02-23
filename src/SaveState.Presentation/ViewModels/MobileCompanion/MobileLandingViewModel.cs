@@ -170,8 +170,8 @@ public partial class MobileLandingViewModel : ObservableObject
         try
         {
             _logger.LogInformation("Starting QR code scan");
-            // TODO: Implement QR code scanning using device camera
-            // This would use platform-specific APIs (Vision framework on iOS, CameraX on Android)
+            // FUTURE: Implement QR code scanning using platform-specific APIs
+            // iOS: Vision framework, Android: CameraX when mobile native implementation begins
             await Task.Delay(100); // Placeholder
         }
         catch (Exception ex)

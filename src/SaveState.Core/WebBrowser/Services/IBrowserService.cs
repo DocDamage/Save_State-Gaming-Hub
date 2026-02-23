@@ -11,7 +11,7 @@ public interface IBrowserService
     bool IsInitialized { get; }
     
     // Tab Management
-    Task<Result<BrowserTab>> CreateTabAsync(string? url = null, bool activate = true);
+    Task<Result<BrowserTab>> CreateTabAsync(string? url = null, bool activate = true, bool isIncognito = false);
     Task<Result> CloseTabAsync(Guid tabId);
     Task<Result> ActivateTabAsync(Guid tabId);
     Task<Result<BrowserTab>> DuplicateTabAsync(Guid tabId);

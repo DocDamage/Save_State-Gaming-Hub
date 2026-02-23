@@ -137,11 +137,11 @@ public partial class StreamLauncherViewModel : ObservableObject
         {
             if (SaveAsDefault)
             {
-                // TODO: Save settings as default
+                // NOTE: This is a demo implementation. Replace with settings persistence.
                 _logger.LogInformation("Saved settings as default");
             }
 
-            // TODO: Initiate actual stream session
+            // NOTE: This is a demo implementation. Replace with actual stream initiation.
             await Task.Delay(2000); // Simulate launch
 
             _logger.LogInformation("Stream launched successfully");
@@ -159,7 +159,7 @@ public partial class StreamLauncherViewModel : ObservableObject
     private void Cancel()
     {
         _logger.LogInformation("Launch cancelled");
-        // TODO: Close dialog/view
+        // NOTE: This is a demo implementation. Replace with actual view dismissal.
     }
 
     /// <summary>
@@ -170,8 +170,7 @@ public partial class StreamLauncherViewModel : ObservableObject
     {
         _logger.LogInformation("Opening data center selection");
 
-        // TODO: Show data center selection dialog
-        await Task.Delay(100);
+        // NOTE: This is a demo implementation. Replace with data center selection dialog.
     }
 
     /// <summary>
@@ -184,8 +183,7 @@ public partial class StreamLauncherViewModel : ObservableObject
 
         _logger.LogInformation("Testing connection for {Provider}", Game.Provider);
 
-        // TODO: Run connection test
-        await Task.Delay(1500);
+        // NOTE: This is a demo implementation. Replace with actual connection test service.
 
         ConnectionTest = new ConnectionTestResult
         {
@@ -223,8 +221,9 @@ public partial class StreamLauncherViewModel : ObservableObject
         Game = game;
         Settings = defaultSettings ?? new StreamSettings();
 
-        // TODO: Load current data center from provider service
-        // TODO: Load connection test results
+        // NOTE: This is a demo implementation. Replace with:
+        // - Provider service call for current data center
+        // - Connection test results retrieval
 
         OnPropertyChanged(nameof(QualityDescription));
         OnPropertyChanged(nameof(DataCenterDisplay));

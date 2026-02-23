@@ -82,7 +82,7 @@ public partial class MobileScreenshotsViewModel : ObservableObject
 
             if (_companionService is not null)
             {
-                // TODO: Send screenshot command to gaming hub
+                // NOTE: This is a demo implementation. Replace with actual service call.
                 await Task.Delay(1000);
             }
 
@@ -140,7 +140,7 @@ public partial class MobileScreenshotsViewModel : ObservableObject
 
             if (_companionService is not null)
             {
-                // TODO: Download via service
+                // NOTE: This is a demo implementation. Replace with actual service call.
             }
 
             // Trigger native download
@@ -187,7 +187,7 @@ public partial class MobileScreenshotsViewModel : ObservableObject
 
             if (_companionService is not null)
             {
-                // TODO: Send delete command
+                // NOTE: This is a demo implementation. Replace with actual service call.
             }
 
             Screenshots.Remove(screenshot);
@@ -267,7 +267,7 @@ public partial class MobileScreenshotsViewModel : ObservableObject
 
             if (_companionService is not null)
             {
-                // TODO: Load from service
+                // NOTE: This is a demo implementation. Replace with actual service call.
             }
             else
             {

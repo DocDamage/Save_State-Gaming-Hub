@@ -87,7 +87,7 @@ public sealed class CustomDownloadHandler : IDownloadHandler
 
         if (downloadItem.IsComplete)
         {
-            download.State = downloadItem.IsCanceled ? DownloadState.Canceled : 
+            download.State = downloadItem.IsCancelled ? DownloadState.Canceled : 
                             downloadItem.FullPath != null ? DownloadState.Completed : DownloadState.Failed;
             download.CompletedAt = DateTime.Now;
             

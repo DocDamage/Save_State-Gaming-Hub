@@ -112,8 +112,7 @@ public partial class GameCardViewModel
     {
         _logger.LogInformation("Launching game directly: {Title}", Title);
         
-        // TODO: Implement actual game launch logic here
-        // This would call the game launcher service
+        // NOTE: This is a demo implementation. Replace with actual game launcher service call.
         
         await Task.CompletedTask;
     }

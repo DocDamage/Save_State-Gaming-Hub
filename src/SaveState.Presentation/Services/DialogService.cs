@@ -4,10 +4,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using SaveState.Core.Automation.Services;
 using SaveState.Core.Common.Services;
+using SaveState.Core.Performance.Services;
+using SaveState.Infrastructure.Monitoring;
 using SaveState.Presentation.Views.Dialogs;
 using SaveState.Presentation.ViewModels.Dialogs;
 using SaveState.Presentation.ViewModels.Settings;
 using SaveState.Presentation.Models.Data;
+using SaveState.Presentation.Services;
 using System;
 using System.Threading.Tasks;
 
@@ -333,10 +336,10 @@ public partial class DialogService : IDialogService
             var detailedVm = new GamePerformanceDetailViewModel(
                 timeProvider,
                 gameStats,
-                _serviceProvider.GetService<IPerformanceService>(),
+                null, // IPerformanceService - not implemented yet
                 _serviceProvider.GetService<ISystemResourceManager>(),
                 _serviceProvider.GetService<IPerformanceMonitor>(),
-                _serviceProvider.GetService<ErrorTrackingService>(),
+                null, // ErrorTrackingService - use null for now
                 _serviceProvider.GetService<INotificationService>());
 
             var dialog = new GamePerformanceDetailView

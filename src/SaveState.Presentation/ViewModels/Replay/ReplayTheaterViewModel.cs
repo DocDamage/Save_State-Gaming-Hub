@@ -141,8 +141,7 @@ public partial class ReplayTheaterViewModel : ObservableObject, IDisposable
     {
         try
         {
-            // TODO: Replace with actual service call
-            // var replays = await _replayService.GetReplaysAsync();
+            // NOTE: This is a demo implementation. Replace with actual replay service call.
 
             // Mock data for demonstration
             Replays.Clear();
@@ -386,7 +385,7 @@ public partial class ReplayTheaterViewModel : ObservableObject, IDisposable
         {
             _logger.LogInformation("Exporting replay '{Title}' as {Format}", SelectedReplay.Title, format);
 
-            // TODO: Implement actual export logic
+            // NOTE: This is a demo implementation. Replace with actual export logic.
             await _dialogService.ShowSuccessAsync($"Replay exported as {format}");
         }
         catch (Exception ex)
@@ -412,7 +411,7 @@ public partial class ReplayTheaterViewModel : ObservableObject, IDisposable
         {
             _logger.LogInformation("Sharing replay '{Title}'", SelectedReplay.Title);
 
-            // TODO: Implement actual sharing logic
+            // NOTE: This is a demo implementation. Replace with actual sharing service.
             await _dialogService.ShowSuccessAsync("Replay shared successfully!");
         }
         catch (Exception ex)

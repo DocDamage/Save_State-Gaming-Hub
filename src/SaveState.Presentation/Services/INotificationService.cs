@@ -31,6 +31,15 @@ public interface INotificationService
     Task ShowNotificationAsync(string message, string? title = null, int durationMs = 3000);
 
     /// <summary>
+    /// Shows a notification with the specified type.
+    /// </summary>
+    /// <param name="message">The notification message.</param>
+    /// <param name="type">The type of notification (Info, Success, Warning, Error).</param>
+    /// <param name="title">Optional title for the notification.</param>
+    /// <param name="duration">Optional duration for the notification. Defaults to 3 seconds for Info/Success, 4 seconds for Warning, 5 seconds for Error.</param>
+    void ShowNotification(string message, NotificationType type, string? title = null, TimeSpan? duration = null);
+
+    /// <summary>
     /// Clears all active notifications.
     /// </summary>
     void ClearAll();

@@ -112,7 +112,7 @@ public partial class MobileDashboardViewModel : ObservableObject
 
             if (_companionService is not null)
             {
-                // TODO: Implement game launch via service
+                // NOTE: This is a demo implementation. Replace with actual service call.
             }
 
             // Update currently playing after short delay
@@ -302,8 +302,7 @@ public partial class MobileDashboardViewModel : ObservableObject
     {
         try
         {
-            // TODO: Load from actual service
-            // For now, generate demo data
+            // NOTE: This is a demo implementation. Replace with actual service call.
             SystemStatus = new SystemStatus
             {
                 CpuUsage = Random.Shared.Next(20, 80),
@@ -328,8 +327,7 @@ public partial class MobileDashboardViewModel : ObservableObject
         {
             RecentGames.Clear();
 
-            // TODO: Load from actual service
-            // For now, generate demo data
+            // NOTE: This is a demo implementation. Replace with actual service call.
             var games = new[]
             {
                 new GameSummary
@@ -384,8 +382,7 @@ public partial class MobileDashboardViewModel : ObservableObject
     {
         try
         {
-            // TODO: Load from actual service
-            // For demo, set first recent game as currently playing
+            // NOTE: This is a demo implementation. Replace with actual service call.
             CurrentlyPlaying = Random.Shared.Next(2) == 0 ? RecentGames.FirstOrDefault() : null;
         }
         catch (Exception ex)

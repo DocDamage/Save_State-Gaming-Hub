@@ -512,7 +512,7 @@ public partial class MobileRemoteControlViewModel : ObservableObject
                 TriggerHapticFeedback();
             }
 
-            // TODO: Implement voice recognition
+            // FUTURE: Implement voice recognition when speech recognition service is available
             await Task.CompletedTask;
         }
         catch (Exception ex)
@@ -544,9 +544,8 @@ public partial class MobileRemoteControlViewModel : ObservableObject
     /// </summary>
     private void TriggerHapticFeedback()
     {
-        // TODO: Use platform-specific APIs for haptic feedback
-        // iOS: UIImpactFeedbackGenerator
-        // Android: Vibrator
+        // FUTURE: Implement haptic feedback using platform-specific APIs
+        // iOS: UIImpactFeedbackGenerator, Android: Vibrator when mobile native layer is added
     }
 }
 

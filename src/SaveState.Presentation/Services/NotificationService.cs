@@ -47,6 +47,29 @@ public partial class NotificationService : ObservableObject, INotificationServic
         return Task.CompletedTask;
     }
 
+    public void ShowNotification(string message, NotificationType type, string? title = null, TimeSpan? duration = null)
+    {
+        // Determine default duration based on notification type if not provided
+        var durationMs = duration?.TotalMilliseconds ?? type switch
+        {
+            NotificationType.Error => 5000,
+            NotificationType.Warning => 4000,
+            _ => 3000
+        };
+
+        // Determine default title based on notification type if not provided
+        var notificationTitle = title ?? type switch
+        {
+            NotificationType.Success => "Success",
+            NotificationType.Error => "Error",
+            NotificationType.Warning => "Warning",
+            NotificationType.Info => "Info",
+            _ => "Notification"
+        };
+
+        AddNotification(message, notificationTitle, type, (int)durationMs);
+    }
+
     public void ClearAll()
     {
         Notifications.Clear();
