@@ -168,7 +168,7 @@ public class SharedCollectionItem
     /// <summary>
     /// Gets the shared collection.
     /// </summary>
-    public SharedCollection Collection { get; set; } = null!; // Set by EF Core via navigation
+    public SharedCollection? Collection { get; set; } // Set by EF Core via navigation
 
     /// <summary>
     /// Gets the title of the game in this collection.
