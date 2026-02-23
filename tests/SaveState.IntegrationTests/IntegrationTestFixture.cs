@@ -4,10 +4,12 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using SaveState.Application.RomManagement.RomValidation.Commands;
 using SaveState.Core.Ai.Services;
+using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using SaveState.Core.Common.Interfaces;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Services;
+using SaveState.Core.GameLibrary.Services.DTOs;
 using SaveState.Core.Input.Services;
 using SaveState.Core.RgbSync.Services;
 using SaveState.Core.RomManagement;
@@ -65,7 +67,17 @@ public class IntegrationTestFixture : IDisposable, IAsyncLifetime
 
         // Mock complex dependencies
         services.AddSingleton(_ => new Mock<IGameRepository>().Object);
-        services.AddSingleton(_ => new Mock<ILaunchExperienceManager>().Object);
+        
+        // Configure ILaunchExperienceManager mock to return success for launch sequence
+        var launchExperienceMock = new Mock<ILaunchExperienceManager>();
+        launchExperienceMock
+            .Setup(m => m.GenerateLaunchSequenceAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success<LaunchSequence?>(null));
+        launchExperienceMock
+            .Setup(m => m.ExecuteLaunchSequenceAsync(It.IsAny<LaunchSequence>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        services.AddSingleton<ILaunchExperienceManager>(_ => launchExperienceMock.Object);
+        
         services.AddSingleton(_ => new Mock<ISaveStateManager>().Object);
         // Mock Core.Sync.Services.ICloudGamingManager for VoiceCommandService
         services.AddSingleton<SaveState.Core.Sync.Services.ICloudGamingManager>(_ => 

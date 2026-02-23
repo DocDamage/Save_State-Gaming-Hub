@@ -4,6 +4,7 @@ using SaveState.Core.Ai.Services.DTOs;
 using SaveState.Core.Common;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Services;
+using SaveState.Core.GameLibrary.Services.DTOs;
 using SaveState.Core.Input.Services;
 using SaveState.Core.Input.Services.DTOs;
 using SaveState.Core.SaveStates.Services;
@@ -203,12 +204,29 @@ public class VoiceCommandService : IVoiceCommandService
         }
     }
 
+    private static readonly IReadOnlyList<LaunchStep> DefaultLaunchSteps = new List<LaunchStep>
+    {
+        new LoadingScreenStep(new[] { "Launching game..." })
+    }.AsReadOnly();
+
     public Task<Result> RegisterCommandAsync(
         VoiceCommandDefinition command,
         CancellationToken ct = default)
     {
         try
         {
+            // Validate command is not null
+            if (command is null)
+            {
+                return Task.FromResult(Result.Failure("Command cannot be null", ErrorType.Validation));
+            }
+
+            // Check for duplicate command phrase
+            if (_registeredCommands.ContainsKey(command.CommandPhrase))
+            {
+                return Task.FromResult(Result.Failure($"Command phrase '{command.CommandPhrase}' is already registered", ErrorType.Conflict));
+            }
+
             _registeredCommands[command.CommandPhrase] = command;
 
             // Register alternative phrases
@@ -229,7 +247,7 @@ public class VoiceCommandService : IVoiceCommandService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to register voice command: {Phrase}", command.CommandPhrase);
+            _logger.LogError(ex, "Failed to register voice command: {Phrase}", command?.CommandPhrase ?? "null");
             return Task.FromResult(Result.Failure($"Failed to register command: {ex.Message}"));
         }
     }
@@ -292,6 +310,12 @@ public class VoiceCommandService : IVoiceCommandService
     {
         try
         {
+            // Validate that training phrases are provided
+            if (trainingPhrases is null || trainingPhrases.Count == 0)
+            {
+                return Task.FromResult(Result.Failure("Training phrases cannot be null or empty", ErrorType.Validation));
+            }
+
             // This would integrate with speech recognition training
             // For now, just log the training phrases
             _logger.LogInformation("Training voice model with {Count} phrases", trainingPhrases.Count);
@@ -391,8 +415,15 @@ public class VoiceCommandService : IVoiceCommandService
                         {
                             await _launchExperienceManager.ExecuteLaunchSequenceAsync(
                                 sequenceResult.Value, ct).ConfigureAwait(false);
+                            return Result.Success<object?>(new { GameId = launchParams.GameId, Status = "Launched" });
                         }
-                        return Result.Success<object?>(null);
+                        // If sequence generation fails, create a minimal sequence and execute
+                        var fallbackSequence = new LaunchSequence(
+                            launchParams.GameId,
+                            DefaultLaunchSteps,
+                            TimeSpan.FromSeconds(2));
+                        await _launchExperienceManager.ExecuteLaunchSequenceAsync(fallbackSequence, ct).ConfigureAwait(false);
+                        return Result.Success<object?>(new { GameId = launchParams.GameId, Status = "Launched" });
                     }
                     break;
 

@@ -187,7 +187,9 @@ public class CloudGamingIntegrationTests : IClassFixture<IntegrationTestFixture>
         var providers = await _cloudGamingManager.GetAvailableProvidersAsync();
         providers.IsSuccess.Should().BeTrue();
         var provider = providers.Value.First();
-        // Don't connect
+        
+        // Ensure we're not connected - disconnect first to handle any previous test state
+        await _cloudGamingManager.DisconnectFromProviderAsync(provider.Id);
 
         // Act
         var result = await _cloudCatalogService.SyncGameLibraryAsync(provider.Id);

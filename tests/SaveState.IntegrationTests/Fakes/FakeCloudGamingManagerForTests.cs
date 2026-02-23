@@ -17,6 +17,7 @@ public class FakeCloudGamingManagerForTests : ICloudGamingManager
     private readonly Dictionary<string, DataCenter> _dataCenters = new();
     private readonly Dictionary<string, List<CloudSaveState>> _saveStates = new();
     private readonly Dictionary<string, List<InputMapping>> _inputMappings = new();
+    private readonly Dictionary<string, CloudGame> _knownGames = new(); // Track valid games
     private CloudSession? _activeSession;
 
     public FakeCloudGamingManagerForTests()
@@ -116,6 +117,14 @@ public class FakeCloudGamingManagerForTests : ICloudGamingManager
             new() { Action = "Jump", Key = "Space", AltKey = "GamepadA" },
             new() { Action = "Crouch", Key = "LeftControl", AltKey = "GamepadB" }
         };
+
+        // Initialize known games for validation
+        _knownGames["game_123"] = new CloudGame { Id = "game_123", ProviderId = "geforce_now", Title = "Test Game" };
+        _knownGames["game_1"] = new CloudGame { Id = "game_1", ProviderId = "geforce_now", Title = "Cyberpunk 2077" };
+        _knownGames["game_2"] = new CloudGame { Id = "game_2", ProviderId = "geforce_now", Title = "The Witcher 3" };
+        _knownGames["game_3"] = new CloudGame { Id = "game_3", ProviderId = "xbox_cloud", Title = "Forza Horizon 5" };
+        _knownGames["game_4"] = new CloudGame { Id = "game_4", ProviderId = "xbox_cloud", Title = "Halo Infinite" };
+        _knownGames["game_5"] = new CloudGame { Id = "game_5", ProviderId = "amazon_luna", Title = "Assassin's Creed Valhalla" };
     }
 
     public Task<Result<List<CloudProvider>>> GetAvailableProvidersAsync()
@@ -186,6 +195,12 @@ public class FakeCloudGamingManagerForTests : ICloudGamingManager
         if (!_connections.ContainsKey(providerId))
         {
             return Task.FromResult(Result.Failure<CloudSession>("Not connected to provider", ErrorType.Unauthorized));
+        }
+
+        // Validate that the gameId exists (edge case: invalid game ID)
+        if (!_knownGames.ContainsKey(gameId))
+        {
+            return Task.FromResult(Result.Failure<CloudSession>($"Game '{gameId}' not found", ErrorType.NotFound));
         }
 
         var session = new CloudSession
