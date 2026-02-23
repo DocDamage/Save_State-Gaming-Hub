@@ -12,37 +12,6 @@ namespace SaveState.Presentation.Services;
 public partial class DialogService
 {
     /// <inheritdoc />
-    public async Task ShowGamePerformanceDetailAsync(GamePerformanceStats gameStats)
-    {
-        try
-        {
-            var vm = new GamePerformanceDetailViewModel(
-                _timeProvider,
-                gameStats,
-                performanceService: null,
-                systemResourceManager: null,
-                performanceMonitor: null,
-                errorTrackingService: null,
-                notificationService: null);
-
-            var dialog = new GamePerformanceDetailView
-            {
-                DataContext = vm
-            };
-
-            var mainWindow = GetMainWindow();
-            if (mainWindow != null)
-            {
-                await dialog.ShowDialog(mainWindow);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to show game performance detail dialog for {GameName}", gameStats.GameName);
-        }
-    }
-
-    /// <inheritdoc />
     public async Task ShowMessageAsync(string title, string message)
     {
         await ShowInformationAsync(title, message);

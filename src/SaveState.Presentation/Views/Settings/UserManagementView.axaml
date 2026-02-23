@@ -1,0 +1,383 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Settings"
+             xmlns:security="using:SaveState.Presentation.Models.Security"
+             mc:Ignorable="d"
+             x:Class="SaveState.Presentation.Views.Settings.UserManagementView"
+             x:DataType="vm:UserManagementViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="Border.Card">
+      <Setter Property="Background" Value="#1AFFFFFF" />
+      <Setter Property="BorderBrush" Value="#33FFFFFF" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+    </Style>
+    <Style Selector="Border.GlassCard">
+      <Setter Property="Background" Value="#15FFFFFF" />
+      <Setter Property="BorderBrush" Value="#25FFFFFF" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="Border.UserCard">
+      <Setter Property="Background" Value="#10FFFFFF" />
+      <Setter Property="BorderBrush" Value="#20FFFFFF" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="12" />
+      <Setter Property="Margin" Value="0,4" />
+    </Style>
+    <Style Selector="Border.UserCard:pointerover">
+      <Setter Property="Background" Value="#20FFFFFF" />
+      <Setter Property="BorderBrush" Value="#40FFFFFF" />
+    </Style>
+    <Style Selector="Border.UserCard.selected">
+      <Setter Property="Background" Value="#30FFFFFF" />
+      <Setter Property="BorderBrush" Value="#60FFFFFF" />
+    </Style>
+    <Style Selector="Border.StatusBadge">
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="6,2" />
+    </Style>
+    <Style Selector="Border.RoleBadge">
+      <Setter Property="Background" Value="#4000BFFF" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="6,2" />
+      <Setter Property="Margin" Value="2" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid ColumnDefinitions="*,400" Margin="24">
+    <!-- Left Panel - User List -->
+    <Border Grid.Column="0" Classes="Card" Margin="0,0,12,0" Padding="20">
+      <Grid RowDefinitions="Auto,Auto,*">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,16">
+          <TextBlock Text="⚙️ SETTINGS > USER MANAGEMENT" Classes="H5" />
+          <TextBlock Text="Manage user accounts, roles, and permissions."
+                     Classes="Body" Opacity="0.8" />
+        </StackPanel>
+
+        <!-- Search & Actions -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,16">
+          <TextBox Grid.Column="0"
+                   Text="{Binding SearchQuery}"
+                   Watermark="🔍 Search users..."
+                   Margin="0,0,12,0" />
+          <Button Grid.Column="1"
+                  Content="＋ Add User"
+                  Command="{Binding ShowCreateUserCommand}"
+                  Classes="Primary"
+                  Margin="0,0,8,0" />
+          <Button Grid.Column="2"
+                  Content="🔄"
+                  Command="{Binding LoadUsersCommand}"
+                  Classes="Secondary"
+                  ToolTip.Tip="Refresh user list" />
+        </Grid>
+
+        <!-- User List -->
+        <Border Grid.Row="2"
+                Background="Transparent"
+                BorderBrush="#25FFFFFF"
+                BorderThickness="1"
+                CornerRadius="8">
+          <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding FilteredUsers}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="security:UserAccount">
+                  <Border Classes="UserCard"
+                          Classes.selected="{Binding Id, Converter={StaticResource EqualsConverter}, ConverterParameter={Binding SelectedUser.Id, Source={RelativeSource AncestorType=UserControl}}}"
+                          PointerPressed="OnUserCardPointerPressed"
+                          Tag="{Binding}">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                      <!-- Avatar -->
+                      <Border Grid.Column="0"
+                              Width="40"
+                              Height="40"
+                              CornerRadius="20"
+                              Background="LinearGradient(135deg, #667eea 0%, #764ba2 100%)"
+                              Margin="0,0,12,0">
+                        <TextBlock Text="{Binding Username, Converter={StaticResource FirstCharConverter}}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontSize="16"
+                                   FontWeight="Bold"
+                                   Foreground="White" />
+                      </Border>
+
+                      <!-- User Info -->
+                      <StackPanel Grid.Column="1" Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                          <TextBlock Text="{Binding Username}"
+                                     FontWeight="SemiBold"
+                                     FontSize="14" />
+                          <Border Classes="StatusBadge"
+                                  Background="{Binding IsActive, Converter={StaticResource BoolToStatusBrushConverter}}">
+                            <TextBlock Text="{Binding StatusText}"
+                                       FontSize="10"
+                                       Foreground="White" />
+                          </Border>
+                        </StackPanel>
+                        <TextBlock Text="{Binding Email}"
+                                   FontSize="12"
+                                   Opacity="0.7" />
+                        <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,4,0,0">
+                          <ItemsControl ItemsSource="{Binding Roles}">
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate x:DataType="security:Role">
+                                <Border Classes="RoleBadge">
+                                  <TextBlock Text="{Binding Name}"
+                                             FontSize="10"
+                                             Foreground="White" />
+                                </Border>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                            <ItemsControl.ItemsPanel>
+                              <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                              </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                          </ItemsControl>
+                        </StackPanel>
+                      </StackPanel>
+
+                      <!-- Last Login -->
+                      <TextBlock Grid.Column="2"
+                                 Text="{Binding LastLogin, StringFormat='{}{0:MMM dd, HH:mm}', FallbackValue='Never'}"
+                                 FontSize="11"
+                                 Opacity="0.5"
+                                 VerticalAlignment="Center" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Border>
+      </Grid>
+    </Border>
+
+    <!-- Right Panel - User Details / Edit Form -->
+    <Border Grid.Column="1" Classes="Card" Padding="20">
+      <Grid RowDefinitions="Auto,*,Auto">
+        <!-- Panel Header -->
+        <TextBlock Grid.Row="0"
+                   Text="{Binding IsEditing, Converter={StaticResource BoolToStringConverter}, ConverterParameter='EDIT USER|USER DETAILS'}"
+                   Classes="H6"
+                   Margin="0,0,0,20" />
+
+        <!-- Create User Form -->
+        <StackPanel Grid.Row="1"
+                    IsVisible="{Binding IsCreatingUser}"
+                    Spacing="16">
+          <TextBlock Text="Create New User" Classes="BodyStrong" />
+
+          <StackPanel Spacing="8">
+            <TextBlock Text="Username" Classes="Label" />
+            <TextBox Text="{Binding NewUsername}" Watermark="Enter username..." />
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <TextBlock Text="Email" Classes="Label" />
+            <TextBox Text="{Binding NewUserEmail}" Watermark="Enter email address..." />
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <TextBlock Text="Role" Classes="Label" />
+            <ComboBox ItemsSource="{Binding AvailableRoles}"
+                      SelectedValue="{Binding NewUserRole}"
+                      DisplayMemberBinding="{Binding Name}"
+                      HorizontalAlignment="Stretch" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,20,0,0">
+            <Button Content="Create User"
+                    Command="{Binding CreateUserCommand}"
+                    Classes="Primary" />
+            <Button Content="Cancel"
+                    Command="{Binding CancelCreateUserCommand}"
+                    Classes="Secondary" />
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Edit User Form -->
+        <StackPanel Grid.Row="1"
+                    IsVisible="{Binding IsEditing}"
+                    Spacing="16">
+          <!-- Avatar -->
+          <Border Width="80"
+                  Height="80"
+                  CornerRadius="40"
+                  Background="LinearGradient(135deg, #667eea 0%, #764ba2 100%)"
+                  HorizontalAlignment="Left">
+            <TextBlock Text="{Binding EditUsername, Converter={StaticResource FirstCharConverter}}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       FontSize="32"
+                       FontWeight="Bold"
+                       Foreground="White" />
+          </Border>
+
+          <StackPanel Spacing="8">
+            <TextBlock Text="Username" Classes="Label" />
+            <TextBox Text="{Binding EditUsername}" Watermark="Enter username..." />
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <TextBlock Text="Email" Classes="Label" />
+            <TextBox Text="{Binding EditEmail}" Watermark="Enter email address..." />
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <TextBlock Text="Roles" Classes="Label" />
+            <Border Classes="GlassCard" Padding="12">
+              <StackPanel Spacing="8">
+                <ItemsControl ItemsSource="{Binding AvailableRoles}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="security:Role">
+                      <CheckBox Content="{Binding Name, StringFormat='{}{0} - {1}', ConverterParameter={Binding Description}}"
+                                IsChecked="{Binding Id, Converter={StaticResource RoleInCollectionConverter}, ConverterParameter={Binding EditUserRoles, Source={RelativeSource AncestorType=UserControl}}}}"
+                                Command="{Binding DataContext.AssignRoleCommand, Source={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <TextBlock Text="Status" Classes="Label" />
+            <ToggleSwitch Content="Active"
+                          IsChecked="{Binding EditIsActive}" />
+          </StackPanel>
+
+          <StackPanel Spacing="4" Opacity="0.7">
+            <TextBlock Text="{Binding SelectedUser.CreatedAt, StringFormat='Created: {0:g}'}"
+                       FontSize="12" />
+            <TextBlock Text="{Binding SelectedUser.LastLogin, StringFormat='Last Login: {0:g}', FallbackValue='Last Login: Never'}"
+                       FontSize="12" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,20,0,0">
+            <Button Content="Save Changes"
+                    Command="{Binding SaveUserCommand}"
+                    Classes="Primary" />
+            <Button Content="Cancel"
+                    Command="{Binding CancelEditCommand}"
+                    Classes="Secondary" />
+          </StackPanel>
+        </StackPanel>
+
+        <!-- View Details -->
+        <StackPanel Grid.Row="1"
+                    IsVisible="{Binding IsEditing, Converter={x:Static BoolConverters.Not}}"
+                    Spacing="16">
+          <StackPanel IsVisible="{Binding SelectedUser, Converter={x:Static ObjectConverters.IsNull}}"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Center">
+            <TextBlock Text="👤" FontSize="48" Opacity="0.3" HorizontalAlignment="Center" />
+            <TextBlock Text="Select a user to view details"
+                       Opacity="0.5"
+                       Margin="0,16,0,0" />
+          </StackPanel>
+
+          <StackPanel IsVisible="{Binding SelectedUser, Converter={x:Static ObjectConverters.IsNotNull}}"
+                      Spacing="16">
+            <!-- Avatar -->
+            <Border Width="80"
+                    Height="80"
+                    CornerRadius="40"
+                    Background="LinearGradient(135deg, #667eea 0%, #764ba2 100%)"
+                    HorizontalAlignment="Left">
+              <TextBlock Text="{Binding SelectedUser.Username, Converter={StaticResource FirstCharConverter}}"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         FontSize="32"
+                         FontWeight="Bold"
+                         Foreground="White" />
+            </Border>
+
+            <StackPanel Spacing="8">
+              <TextBlock Text="Username" Classes="Label" />
+              <TextBlock Text="{Binding SelectedUser.Username}" Classes="BodyStrong" />
+            </StackPanel>
+
+            <StackPanel Spacing="8">
+              <TextBlock Text="Email" Classes="Label" />
+              <TextBlock Text="{Binding SelectedUser.Email}" Opacity="0.9" />
+            </StackPanel>
+
+            <StackPanel Spacing="8">
+              <TextBlock Text="Roles" Classes="Label" />
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <ItemsControl ItemsSource="{Binding SelectedUser.Roles}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="security:Role">
+                      <Border Classes="RoleBadge">
+                        <TextBlock Text="{Binding Name}"
+                                   FontSize="11"
+                                   Foreground="White" />
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                </ItemsControl>
+              </StackPanel>
+            </StackPanel>
+
+            <StackPanel Spacing="8">
+              <TextBlock Text="Status" Classes="Label" />
+              <Border Classes="StatusBadge"
+                      Background="{Binding SelectedUser.IsActive, Converter={StaticResource BoolToStatusBrushConverter}}"
+                      HorizontalAlignment="Left">
+                <TextBlock Text="{Binding SelectedUser.StatusText}"
+                           FontSize="11"
+                           Foreground="White" />
+              </Border>
+            </StackPanel>
+
+            <Border Classes="GlassCard" Padding="12" Margin="0,8">
+              <StackPanel Spacing="4">
+                <TextBlock Text="Account Info" Classes="Caption" Opacity="0.7" />
+                <TextBlock Text="{Binding SelectedUser.CreatedAt, StringFormat='Created: {0:g}'}"
+                           FontSize="12" />
+                <TextBlock Text="{Binding SelectedUser.LastLogin, StringFormat='Last Login: {0:g}', FallbackValue='Last Login: Never'}"
+                           FontSize="12" />
+              </StackPanel>
+            </Border>
+
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,20,0,0">
+              <Button Content="✏️ Edit"
+                      Command="{Binding EditUserCommand}"
+                      CommandParameter="{Binding SelectedUser}"
+                      Classes="Primary" />
+              <Button Content="🔑 Reset Password"
+                      Command="{Binding ResetPasswordCommand}"
+                      CommandParameter="{Binding SelectedUser}"
+                      Classes="Secondary" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+              <Button Content="📱 View Sessions"
+                      Command="{Binding ViewUserSessionsCommand}"
+                      CommandParameter="{Binding SelectedUser}"
+                      Classes="Ghost" />
+              <Button Content="🗑️ Delete"
+                      Command="{Binding DeleteUserCommand}"
+                      CommandParameter="{Binding SelectedUser}"
+                      Classes="Danger" />
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

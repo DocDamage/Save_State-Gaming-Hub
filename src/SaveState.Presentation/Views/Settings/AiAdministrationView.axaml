@@ -8,73 +8,241 @@
              x:DataType="vm:AiAdministrationViewModel">
 
   <ScrollViewer>
-    <StackPanel Spacing="16">
+    <StackPanel Spacing="16" Margin="0,0,16,16">
       
       <!-- Header -->
-      <Border Classes="Card" Padding="16" CornerRadius="12">
+      <Border Classes="Card" Padding="20" CornerRadius="12">
         <StackPanel Spacing="8">
-          <TextBlock Text="AI Administration" Classes="Header" />
-          <TextBlock Text="Configure AI providers, manage conversation memory, and control knowledge base settings."
+          <TextBlock Text="⚙️ SETTINGS > AI ADMINISTRATION" 
+                     Classes="Header"
+                     FontSize="20" />
+          <TextBlock Text="Configure LLM providers, manage conversation memory, and control knowledge base settings."
                      Classes="Body"
-                     Foreground="{StaticResource AccentBrush}" />
+                     Foreground="{StaticResource AccentBrush}"
+                     TextWrapping="Wrap" />
         </StackPanel>
       </Border>
 
       <!-- LLM Providers Section -->
-      <Border Classes="Card" Padding="16" CornerRadius="12">
-        <StackPanel Spacing="12">
-          <TextBlock Text="LLM Providers" Classes="Subheader" />
-          <TextBlock Text="Enable and configure AI model providers. API keys are stored securely."
-                     Classes="Caption"
-                     Foreground="{StaticResource AccentBrush}" />
+      <Border Classes="Card" Padding="20" CornerRadius="12">
+        <StackPanel Spacing="16">
+          <TextBlock Text="🧠 LLM PROVIDERS" Classes="Subheader" FontSize="18" />
           
-          <ItemsControl ItemsSource="{Binding LlmProviders}">
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                        BorderThickness="1"
-                        CornerRadius="8"
-                        Padding="12"
-                        Margin="0,4">
-                  <Grid ColumnDefinitions="*,Auto,Auto">
-                    <StackPanel Grid.Column="0" Spacing="4">
-                      <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
-                        <Border Background="{StaticResource AccentBrush}"
-                                CornerRadius="4"
-                                Padding="4,2"
-                                IsVisible="{Binding IsEnabled}">
-                          <TextBlock Text="Enabled" FontSize="10" Foreground="White" />
-                        </Border>
-                      </StackPanel>
-                      <TextBlock Text="{Binding ApiKeyStatus}"
-                                 Classes="Caption"
-                                 Foreground="{StaticResource TextSecondaryBrush}" />
-                      <TextBlock Text="{Binding SelectedModel, StringFormat='Model: {0}'}"
-                                 Classes="Caption"
-                                 Foreground="{StaticResource TextSecondaryBrush}"
-                                 IsVisible="{Binding SelectedModel, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                    </StackPanel>
-                    
-                    <ToggleSwitch Grid.Column="1"
-                                  IsChecked="{Binding IsEnabled}"
-                                  Margin="12,0" />
-                    
-                    <Button Grid.Column="2"
-                            Content="Configure"
-                            Command="{Binding DataContext.ConfigureProviderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                            CommandParameter="{Binding}" />
-                  </Grid>
-                </Border>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
+          <!-- OpenAI Provider -->
+          <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                  BorderThickness="1"
+                  CornerRadius="8"
+                  Padding="16">
+            <StackPanel Spacing="12">
+              <Grid ColumnDefinitions="*,Auto,Auto">
+                <StackPanel Grid.Column="0" Spacing="4">
+                  <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock Text="OpenAI" FontWeight="Bold" FontSize="16" />
+                    <Border Background="{StaticResource SuccessBrush}"
+                            CornerRadius="4"
+                            Padding="6,2"
+                            IsVisible="{Binding OpenAiEnabled}"
+                            VerticalAlignment="Center">
+                      <TextBlock Text="Enabled" FontSize="11" Foreground="White" />
+                    </Border>
+                    <Border Background="{StaticResource SystemControlForegroundBaseMediumBrush}"
+                            CornerRadius="4"
+                            Padding="6,2"
+                            IsVisible="{Binding !OpenAiEnabled}"
+                            VerticalAlignment="Center">
+                      <TextBlock Text="Disabled" FontSize="11" Foreground="White" />
+                    </Border>
+                  </StackPanel>
+                  <TextBlock Text="{Binding Providers[0].StatusMessage}"
+                             Classes="Caption"
+                             Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+                
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding AvailableOpenAiModels}"
+                          SelectedItem="{Binding OpenAiModel}"
+                          Width="140"
+                          Margin="12,0"
+                          VerticalAlignment="Center"
+                          ToolTip.Tip="Select OpenAI model" />
+                
+                <Button Grid.Column="2"
+                        Content="Configure"
+                        Command="{Binding ConfigureProviderCommand}"
+                        CommandParameter="{Binding Providers[0]}"
+                        VerticalAlignment="Center" />
+              </Grid>
+
+              <!-- OpenAI Settings -->
+              <StackPanel Spacing="8" IsVisible="{Binding OpenAiEnabled}">
+                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="16" RowSpacing="8">
+                  <TextBlock Grid.Row="0" Grid.Column="0" Text="API Key:" VerticalAlignment="Center" />
+                  <TextBox Grid.Row="0" Grid.Column="1" 
+                           Text="{Binding OpenAiApiKey}" 
+                           PasswordChar="•"
+                           IsReadOnly="True" />
+                  
+                  <TextBlock Grid.Row="0" Grid.Column="2" Text="Max Tokens:" VerticalAlignment="Center" />
+                  <NumericUpDown Grid.Row="0" Grid.Column="3" 
+                                 Value="{Binding OpenAiMaxTokens}"
+                                 Minimum="100"
+                                 Maximum="8000"
+                                 Increment="100"
+                                 Width="120" />
+                  
+                  <TextBlock Grid.Row="1" Grid.Column="0" Text="Temperature:" VerticalAlignment="Center" />
+                  <Slider Grid.Row="1" Grid.Column="1" 
+                          Value="{Binding OpenAiTemperature}"
+                          Minimum="0"
+                          Maximum="2"
+                          TickFrequency="0.1" />
+                </Grid>
+                
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="Test Connection"
+                          Command="{Binding TestProviderCommand}"
+                          CommandParameter="OpenAI"
+                          IsEnabled="{Binding !IsTestingConnection}" />
+                  <Button Content="Save"
+                          Command="{Binding SaveProviderSettingsCommand}"
+                          CommandParameter="OpenAI"
+                          Classes="Primary" />
+                </StackPanel>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- Groq Provider -->
+          <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                  BorderThickness="1"
+                  CornerRadius="8"
+                  Padding="16">
+            <StackPanel Spacing="12">
+              <Grid ColumnDefinitions="*,Auto,Auto">
+                <StackPanel Grid.Column="0" Spacing="4">
+                  <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock Text="Groq" FontWeight="Bold" FontSize="16" />
+                    <Border Background="{StaticResource SuccessBrush}"
+                            CornerRadius="4"
+                            Padding="6,2"
+                            IsVisible="{Binding GroqEnabled}"
+                            VerticalAlignment="Center">
+                      <TextBlock Text="Enabled" FontSize="11" Foreground="White" />
+                    </Border>
+                    <Border Background="{StaticResource SystemControlForegroundBaseMediumBrush}"
+                            CornerRadius="4"
+                            Padding="6,2"
+                            IsVisible="{Binding !GroqEnabled}"
+                            VerticalAlignment="Center">
+                      <TextBlock Text="Disabled" FontSize="11" Foreground="White" />
+                    </Border>
+                  </StackPanel>
+                  <TextBlock Text="{Binding Providers[1].StatusMessage}"
+                             Classes="Caption"
+                             Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+                
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding AvailableGroqModels}"
+                          SelectedItem="{Binding GroqModel}"
+                          Width="140"
+                          Margin="12,0"
+                          VerticalAlignment="Center"
+                          IsEnabled="{Binding GroqEnabled}" />
+                
+                <Button Grid.Column="2"
+                        Content="Configure"
+                        Command="{Binding ConfigureProviderCommand}"
+                        CommandParameter="{Binding Providers[1]}"
+                        VerticalAlignment="Center" />
+              </Grid>
+
+              <StackPanel Spacing="8" IsVisible="{Binding GroqEnabled}">
+                <TextBlock Text="API Key:" VerticalAlignment="Center" />
+                <TextBox Text="{Binding GroqApiKey}" 
+                         PasswordChar="•"
+                         Watermark="Enter Groq API key" />
+                
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="Test Connection"
+                          Command="{Binding TestProviderCommand}"
+                          CommandParameter="Groq"
+                          IsEnabled="{Binding !IsTestingConnection}" />
+                </StackPanel>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- Ollama Provider -->
+          <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                  BorderThickness="1"
+                  CornerRadius="8"
+                  Padding="16">
+            <StackPanel Spacing="12">
+              <Grid ColumnDefinitions="*,Auto,Auto">
+                <StackPanel Grid.Column="0" Spacing="4">
+                  <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock Text="Local (Ollama)" FontWeight="Bold" FontSize="16" />
+                    <Border Background="{StaticResource SuccessBrush}"
+                            CornerRadius="4"
+                            Padding="6,2"
+                            IsVisible="{Binding OllamaEnabled}"
+                            VerticalAlignment="Center">
+                      <TextBlock Text="Enabled" FontSize="11" Foreground="White" />
+                    </Border>
+                    <Border Background="{StaticResource SystemControlForegroundBaseMediumBrush}"
+                            CornerRadius="4"
+                            Padding="6,2"
+                            IsVisible="{Binding !OllamaEnabled}"
+                            VerticalAlignment="Center">
+                      <TextBlock Text="Disabled" FontSize="11" Foreground="White" />
+                    </Border>
+                  </StackPanel>
+                  <TextBlock Text="{Binding Providers[2].StatusMessage}"
+                             Classes="Caption"
+                             Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+                
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding AvailableOllamaModels}"
+                          SelectedItem="{Binding OllamaModel}"
+                          Width="140"
+                          Margin="12,0"
+                          VerticalAlignment="Center"
+                          IsEnabled="{Binding OllamaEnabled}" />
+                
+                <Button Grid.Column="2"
+                        Content="Configure"
+                        Command="{Binding ConfigureProviderCommand}"
+                        CommandParameter="{Binding Providers[2]}"
+                        VerticalAlignment="Center" />
+              </Grid>
+
+              <StackPanel Spacing="8" IsVisible="{Binding OllamaEnabled}">
+                <TextBlock Text="Endpoint:" VerticalAlignment="Center" />
+                <TextBox Text="{Binding OllamaEndpoint}" 
+                         Watermark="http://localhost:11434" />
+                
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="Test Connection"
+                          Command="{Binding TestProviderCommand}"
+                          CommandParameter="Ollama"
+                          IsEnabled="{Binding !IsTestingConnection}" />
+                </StackPanel>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- Connection Testing Progress -->
+          <StackPanel IsVisible="{Binding IsTestingConnection}" Spacing="4">
+            <TextBlock Text="Testing connection..." Classes="Caption" />
+            <ProgressBar IsIndeterminate="True" />
+          </StackPanel>
 
           <!-- Security Warning -->
           <Border Background="{StaticResource WarningBrush}"
                   CornerRadius="8"
-                  Padding="12"
-                  Margin="0,8,0,0">
+                  Padding="12">
             <StackPanel Orientation="Horizontal" Spacing="8">
               <TextBlock Text="⚠️" FontSize="16" />
               <TextBlock Text="API keys are stored encrypted. Never share your keys or commit them to version control."
@@ -86,141 +254,193 @@
       </Border>
 
       <!-- Conversation Memory Section -->
-      <Border Classes="Card" Padding="16" CornerRadius="12">
-        <StackPanel Spacing="12">
-          <TextBlock Text="Conversation Memory" Classes="Subheader" />
+      <Border Classes="Card" Padding="20" CornerRadius="12">
+        <StackPanel Spacing="16">
+          <TextBlock Text="💬 CONVERSATION MEMORY" Classes="Subheader" FontSize="18" />
           
-          <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto">
+          <Grid ColumnDefinitions="Auto,*,Auto">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+              <TextBlock Text="Context Window:" VerticalAlignment="Center" />
+              <NumericUpDown Value="{Binding ContextWindowSize}"
+                             Minimum="1"
+                             Maximum="50"
+                             Width="100" />
+              <TextBlock Text="messages (max 50)" VerticalAlignment="Center" 
+                         Foreground="{StaticResource TextSecondaryBrush}" />
+            </StackPanel>
+            <Border Grid.Column="2">
+              <Button Content="Clear Memory"
+                      Command="{Binding ClearMemoryCommand}"
+                      Classes="Danger" />
+            </Border>
+          </Grid>
+
+          <Separator />
+
+          <TextBlock Text="Statistics:" FontWeight="SemiBold" />
+          
+          <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto">
             <StackPanel Grid.Column="0" Grid.Row="0" Spacing="4">
-              <TextBlock Text="{Binding MemoryStats.StoredConversations}" 
+              <TextBlock Text="{Binding StoredConversationsCount}" 
                          Classes="Header" 
-                         FontSize="24" />
+                         FontSize="28"
+                         FontWeight="Bold" />
               <TextBlock Text="Stored Conversations" Classes="Caption" />
             </StackPanel>
             <StackPanel Grid.Column="1" Grid.Row="0" Spacing="4">
-              <TextBlock Text="{Binding MemoryStats.ContextWindowSize}" 
+              <TextBlock Text="{Binding FormattedMemoryUsage}" 
                          Classes="Header" 
-                         FontSize="24" />
-              <TextBlock Text="Context Window" Classes="Caption" />
-            </StackPanel>
-            <StackPanel Grid.Column="2" Grid.Row="0" Spacing="4">
-              <TextBlock Text="{Binding MemoryStats.MemoryUsageBytes, StringFormat='{}{0:N0} KB'}" 
-                         Classes="Header" 
-                         FontSize="24" />
+                         FontSize="28"
+                         FontWeight="Bold" />
               <TextBlock Text="Memory Usage" Classes="Caption" />
             </StackPanel>
+            <StackPanel Grid.Column="2" Grid.Row="0" Spacing="4">
+              <TextBlock Text="{Binding OldestConversationAge}" 
+                         Classes="Header" 
+                         FontSize="28"
+                         FontWeight="Bold" />
+              <TextBlock Text="Oldest Conversation" Classes="Caption" />
+            </StackPanel>
             
-            <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3"
-                       Text="{Binding MemoryStats.LastCleared, StringFormat='Last cleared: {0:g}'}"
-                       Classes="Caption"
-                       Foreground="{StaticResource TextSecondaryBrush}"
-                       IsVisible="{Binding MemoryStats.LastCleared, Converter={x:Static ObjectConverters.IsNotNull}}"
-                       Margin="0,8,0,0" />
+            <StackPanel Grid.Column="0" Grid.Row="1" Spacing="4" Margin="0,16,0,0">
+              <TextBlock Text="{Binding ConversationRetention, StringFormat='{}{0:%d} days'}" 
+                         Classes="Header" 
+                         FontSize="28"
+                         FontWeight="Bold" />
+              <TextBlock Text="Retention Policy" Classes="Caption" />
+            </StackPanel>
           </Grid>
 
-          <Button Content="Clear Conversation Memory"
-                  Command="{Binding ClearMemoryCommand}"
-                  Classes="Danger"
+          <Button Content="View Memory Details"
+                  Command="{Binding ShowMemoryDetailsCommand}"
                   HorizontalAlignment="Left"
-                  AutomationProperties.AutomationId="ClearMemoryButton" />
+                  Classes="Secondary" />
         </StackPanel>
       </Border>
 
       <!-- Knowledge Base Section -->
-      <Border Classes="Card" Padding="16" CornerRadius="12">
-        <StackPanel Spacing="12">
-          <TextBlock Text="Knowledge Base" Classes="Subheader" />
+      <Border Classes="Card" Padding="20" CornerRadius="12">
+        <StackPanel Spacing="16">
+          <TextBlock Text="📚 KNOWLEDGE BASE" Classes="Subheader" FontSize="18" />
           
-          <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto">
+          <StackPanel Spacing="4">
+            <TextBlock Text="{Binding VectorStoreType, StringFormat='Vector Store: {0}'}" 
+                       FontWeight="SemiBold" />
+          </StackPanel>
+          
+          <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto">
             <StackPanel Grid.Column="0" Grid.Row="0" Spacing="4">
-              <TextBlock Text="{Binding KnowledgeBaseStats.DocumentCount}" 
+              <TextBlock Text="{Binding DocumentCount}" 
                          Classes="Header" 
-                         FontSize="24" />
+                         FontSize="28"
+                         FontWeight="Bold" />
               <TextBlock Text="Documents" Classes="Caption" />
             </StackPanel>
             <StackPanel Grid.Column="1" Grid.Row="0" Spacing="4">
-              <TextBlock Text="{Binding KnowledgeBaseStats.VectorStoreType}" 
+              <TextBlock Text="{Binding FormattedIndexSize}" 
                          Classes="Header" 
-                         FontSize="18"
-                         TextTrimming="CharacterEllipsis" />
-              <TextBlock Text="Vector Store" Classes="Caption" />
-            </StackPanel>
-            <StackPanel Grid.Column="2" Grid.Row="0" Spacing="4">
-              <TextBlock Text="{Binding KnowledgeBaseStats.IndexSizeBytes, StringFormat='{}{0:N0} MB'}" 
-                         Classes="Header" 
-                         FontSize="24" />
+                         FontSize="28"
+                         FontWeight="Bold" />
               <TextBlock Text="Index Size" Classes="Caption" />
             </StackPanel>
-            
-            <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3"
-                       Text="{Binding KnowledgeBaseStats.LastUpdated, StringFormat='Last updated: {0:g}'}"
-                       Classes="Caption"
-                       Foreground="{StaticResource TextSecondaryBrush}"
-                       Margin="0,8,0,0" />
+            <StackPanel Grid.Column="2" Grid.Row="0" Spacing="4">
+              <TextBlock Text="{Binding LastIndexUpdate, StringFormat='{}{0:MM/dd HH:mm}'}" 
+                         Classes="Header" 
+                         FontSize="28"
+                         FontWeight="Bold" />
+              <TextBlock Text="Last Updated" Classes="Caption" />
+            </StackPanel>
           </Grid>
 
-          <!-- Rebuild Progress -->
-          <StackPanel IsVisible="{Binding IsRebuildingIndex}" Spacing="4">
+          <!-- Indexing Progress -->
+          <StackPanel IsVisible="{Binding IsIndexing}" Spacing="4">
             <TextBlock Text="Rebuilding index..." Classes="Caption" />
-            <ProgressBar Value="{Binding RebuildProgress}" 
+            <ProgressBar Value="{Binding IndexRebuildProgress}" 
                          Maximum="100" 
                          Minimum="0" />
-            <TextBlock Text="{Binding RebuildProgress, StringFormat='{}{0:F0} %'}"
+            <TextBlock Text="{Binding IndexRebuildProgress, StringFormat='{}{0:F0} %'}"
                        Classes="Caption"
                        HorizontalAlignment="Center" />
           </StackPanel>
 
-          <StackPanel Orientation="Horizontal" Spacing="8">
+          <StackPanel Orientation="Horizontal" Spacing="12">
             <Button Content="Rebuild Index"
                     Command="{Binding RebuildIndexCommand}"
-                    IsEnabled="{Binding !IsRebuildingIndex}"
-                    AutomationProperties.AutomationId="RebuildIndexButton" />
-            <Button Content="Import Documents"
+                    IsEnabled="{Binding !IsIndexing}" />
+            <Button Content="Import Documents..."
                     Command="{Binding ImportDocumentsCommand}"
                     Classes="Secondary"
-                    AutomationProperties.AutomationId="ImportDocumentsButton" />
+                    IsEnabled="{Binding !IsIndexing}" />
             <Button Content="Export Knowledge"
                     Command="{Binding ExportKnowledgeCommand}"
-                    Classes="Secondary"
-                    AutomationProperties.AutomationId="ExportKnowledgeButton" />
+                    Classes="Secondary" />
           </StackPanel>
+
+          <Border Background="{StaticResource WarningBrush}"
+                  CornerRadius="8"
+                  Padding="12"
+                  IsVisible="{Binding !IsIndexing}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="⚠️" FontSize="16" />
+              <TextBlock Text="Rebuilding will take ~5 minutes and requires 500MB free space."
+                         TextWrapping="Wrap"
+                         FontSize="12" />
+            </StackPanel>
+          </Border>
         </StackPanel>
       </Border>
 
       <!-- Feedback & Learning Section -->
-      <Border Classes="Card" Padding="16" CornerRadius="12">
-        <StackPanel Spacing="12">
-          <TextBlock Text="Feedback &amp; Learning" Classes="Subheader" />
+      <Border Classes="Card" Padding="20" CornerRadius="12">
+        <StackPanel Spacing="16">
+          <TextBlock Text="🎯 FEEDBACK &amp; LEARNING" Classes="Subheader" FontSize="18" />
+          
+          <StackPanel Spacing="12">
+            <ToggleSwitch Content="Allow anonymous usage data collection"
+                          IsChecked="{Binding AllowAnonymousDataCollection}"
+                          ToolTip.Tip="Send anonymous usage data to help improve AI features" />
+            <ToggleSwitch Content="Use feedback to improve recommendations"
+                          IsChecked="{Binding UseFeedbackForRecommendations}"
+                          ToolTip.Tip="Your feedback will be used to improve recommendations for all users" />
+          </StackPanel>
+
+          <Separator />
+
+          <TextBlock Text="Learning Statistics:" FontWeight="SemiBold" />
           
           <Grid ColumnDefinitions="*,*,*">
             <StackPanel Spacing="4">
-              <TextBlock Text="{Binding FeedbackStats.RecommendationsImproved}" 
+              <TextBlock Text="{Binding RecommendationsImprovedCount}" 
                          Classes="Header" 
-                         FontSize="24" />
+                         FontSize="28"
+                         FontWeight="Bold" />
               <TextBlock Text="Recommendations Improved" Classes="Caption" />
             </StackPanel>
             <StackPanel Spacing="4">
-              <TextBlock Text="{Binding FeedbackStats.UserFeedbackIncorporated}" 
+              <TextBlock Text="{Binding FeedbackIncorporatedCount}" 
                          Classes="Header" 
-                         FontSize="24" />
+                         FontSize="28"
+                         FontWeight="Bold" />
               <TextBlock Text="Feedback Incorporated" Classes="Caption" />
             </StackPanel>
             <StackPanel Spacing="4">
-              <TextBlock Text="{Binding FeedbackStats.AverageRating, StringFormat='{}{0:F1} ★'}" 
+              <TextBlock Text="{Binding ModelAccuracy, StringFormat='{}{0:F0}%'}" 
                          Classes="Header" 
-                         FontSize="24" />
-              <TextBlock Text="Average Rating" Classes="Caption" />
+                         FontSize="28"
+                         FontWeight="Bold" />
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <TextBlock Text="Model Accuracy" Classes="Caption" />
+                <TextBlock Text="{Binding ModelAccuracyImprovement, StringFormat='(+{0:F0}% from last month)'}" 
+                           Classes="Caption"
+                           Foreground="{StaticResource SuccessBrush}" />
+              </StackPanel>
             </StackPanel>
           </Grid>
 
-          <StackPanel Spacing="8">
-            <ToggleSwitch Content="Allow anonymous data collection to improve AI recommendations"
-                          IsChecked="{Binding AllowAnonymousDataCollection}"
-                          AutomationProperties.AutomationId="AnonymousDataToggle" />
-            <ToggleSwitch Content="Use my feedback to improve recommendations for all users"
-                          IsChecked="{Binding UseFeedbackForImprovements}"
-                          AutomationProperties.AutomationId="FeedbackImprovementsToggle" />
-          </StackPanel>
+          <Button Content="Reset Learning Data"
+                  Command="{Binding ResetLearningDataCommand}"
+                  Classes="Danger"
+                  HorizontalAlignment="Left" />
         </StackPanel>
       </Border>
 

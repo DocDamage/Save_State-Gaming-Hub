@@ -99,6 +99,16 @@ public static class Program
             // Dialog ViewModels
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.ErrorLogViewerDialogViewModel>();
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.AccountConnectionWizardViewModel>();
+            
+            // Phase 3: Security & Auth UI
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Settings.UserManagementViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Settings.ApiKeyManagerViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Settings.RoleManagementViewModel>();
+            
+            // Phase 3: AI Administration
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Settings.AiAdministrationViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.ProviderConfigDialogViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.MemoryDetailsDialogViewModel>();
 
             // Add theme service
             builder.Services.AddSingleton<IThemeService, ThemeService>();

@@ -67,6 +67,9 @@ public partial class SettingsViewModel : ObservableObject
     public ConnectedAccountsViewModel ConnectedAccountsViewModel { get; }
     public DataManagementViewModel DataManagementViewModel { get; }
     public AiAdministrationViewModel AiAdministrationViewModel { get; }
+    public UserManagementViewModel UserManagementViewModel { get; }
+    public ApiKeyManagerViewModel ApiKeyManagerViewModel { get; }
+    public RoleManagementViewModel RoleManagementViewModel { get; }
 
     public SettingsViewModel(
         ICultureManager cultureManager,
@@ -81,6 +84,9 @@ public partial class SettingsViewModel : ObservableObject
         ConnectedAccountsViewModel connectedAccountsViewModel,
         DataManagementViewModel dataManagementViewModel,
         AiAdministrationViewModel aiAdministrationViewModel,
+        UserManagementViewModel userManagementViewModel,
+        ApiKeyManagerViewModel apiKeyManagerViewModel,
+        RoleManagementViewModel roleManagementViewModel,
         INavigationService navigationService)
     {
         _cultureManager = cultureManager;
@@ -96,6 +102,9 @@ public partial class SettingsViewModel : ObservableObject
         ConnectedAccountsViewModel = connectedAccountsViewModel;
         DataManagementViewModel = dataManagementViewModel;
         AiAdministrationViewModel = aiAdministrationViewModel;
+        UserManagementViewModel = userManagementViewModel;
+        ApiKeyManagerViewModel = apiKeyManagerViewModel;
+        RoleManagementViewModel = roleManagementViewModel;
 
         SelectedCulture = _cultureManager.CurrentCulture;
         SelectedTheme = _themeService.CurrentTheme;
@@ -213,6 +222,24 @@ public partial class SettingsViewModel : ObservableObject
     private async Task ShowDataManagementAsync()
     {
         await _navigationService.ShowDataManagementAsync();
+    }
+
+    [RelayCommand]
+    private async Task ShowUserManagementAsync()
+    {
+        await _navigationService.NavigateToAsync("Settings");
+    }
+
+    [RelayCommand]
+    private async Task ShowApiKeyManagerAsync()
+    {
+        await _navigationService.NavigateToAsync("Settings");
+    }
+
+    [RelayCommand]
+    private async Task ShowRoleManagementAsync()
+    {
+        await _navigationService.NavigateToAsync("Settings");
     }
 
     private async Task LoadAiPreferencesAsync()

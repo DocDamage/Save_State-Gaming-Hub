@@ -1,9 +1,11 @@
+using System.Collections.ObjectModel;
 using System.Globalization;
 using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using SaveState.Core.Health.Models;
 using SaveState.Presentation.Models.Data;
+using SaveState.Presentation.Models.Security;
 
 namespace SaveState.Presentation.Converters;
 
@@ -271,5 +273,155 @@ public class ConflictResolutionToIndexConverter : IValueConverter
             3 => ConflictResolution.Skip,
             _ => ConflictResolution.KeepCurrent
         };
+    }
+}
+
+/// <summary>
+/// Converts a string to its first character (for avatar generation).
+/// </summary>
+public class FirstCharConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string str && str.Length > 0)
+        {
+            return str[..1].ToUpperInvariant();
+        }
+        return "?";
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Checks if a role ID exists in a collection of roles.
+/// </summary>
+public class RoleInCollectionConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string roleId && parameter is ObservableCollection<Role> roles)
+        {
+            return roles.Any(r => r.Id == roleId);
+        }
+        return false;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Checks if a scope exists in a collection of scopes.
+/// </summary>
+public class ScopeInCollectionConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string scope && parameter is ObservableCollection<string> scopes)
+        {
+            return scopes.Contains(scope);
+        }
+        return false;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Converts null to button class style (Primary if null, Secondary if set).
+/// </summary>
+public class NullToButtonClassConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return value is null ? "Primary" : "Secondary";
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Compares two values for equality.
+/// </summary>
+public class EqualsConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is null && parameter is null)
+            return true;
+        if (value is null || parameter is null)
+            return false;
+        return value.Equals(parameter);
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Converts an integer to a brush with a threshold comparison.
+/// Parameter format: "threshold|aboveBrush|belowBrush"
+/// Example: "5|RedBrush|GreenBrush"
+/// </summary>
+public class IntThresholdToBrushConverter : IValueConverter
+{
+    private static readonly SolidColorBrush DefaultAboveBrush = new(Color.Parse("#ef4444"));
+    private static readonly SolidColorBrush DefaultBelowBrush = new(Color.Parse("#10b981"));
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not int intValue)
+            return DefaultBelowBrush;
+
+        int threshold = 0;
+        if (parameter is string paramStr)
+        {
+            var parts = paramStr.Split('|');
+            if (parts.Length >= 1 && int.TryParse(parts[0], out var parsedThreshold))
+            {
+                threshold = parsedThreshold;
+            }
+        }
+
+        return intValue > threshold ? DefaultAboveBrush : DefaultBelowBrush;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Checks if a permission ID exists in a collection of permissions.
+/// </summary>
+public class PermissionInCollectionConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string permissionId && parameter is ObservableCollection<string> permissions)
+        {
+            return permissions.Contains(permissionId);
+        }
+        return false;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
     }
 }

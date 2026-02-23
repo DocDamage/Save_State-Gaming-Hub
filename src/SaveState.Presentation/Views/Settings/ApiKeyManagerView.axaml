@@ -1,0 +1,420 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Settings"
+             xmlns:security="using:SaveState.Presentation.Models.Security"
+             mc:Ignorable="d"
+             x:Class="SaveState.Presentation.Views.Settings.ApiKeyManagerView"
+             x:DataType="vm:ApiKeyManagerViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="Border.Card">
+      <Setter Property="Background" Value="#1AFFFFFF" />
+      <Setter Property="BorderBrush" Value="#33FFFFFF" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+    </Style>
+    <Style Selector="Border.GlassCard">
+      <Setter Property="Background" Value="#15FFFFFF" />
+      <Setter Property="BorderBrush" Value="#25FFFFFF" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="Border.KeyCard">
+      <Setter Property="Background" Value="#10FFFFFF" />
+      <Setter Property="BorderBrush" Value="#20FFFFFF" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="16" />
+      <Setter Property="Margin" Value="0,4" />
+    </Style>
+    <Style Selector="Border.KeyCard:pointerover">
+      <Setter Property="Background" Value="#20FFFFFF" />
+      <Setter Property="BorderBrush" Value="#40FFFFFF" />
+    </Style>
+    <Style Selector="Border.NewKeyBanner">
+      <Setter Property="Background" Value="#FF2d3748" />
+      <Setter Property="BorderBrush" Value="#FF4a5568" />
+      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="20" />
+    </Style>
+    <Style Selector="Border.StatusBadge">
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="6,2" />
+    </Style>
+    <Style Selector="Border.ScopeBadge">
+      <Setter Property="Background" Value="#4060a5fa" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="6,3" />
+      <Setter Property="Margin" Value="2" />
+    </Style>
+    <Style Selector="Border.ExpiredBadge">
+      <Setter Property="Background" Value="#50ef4444" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="6,2" />
+    </Style>
+  </UserControl.Styles>
+
+  <ScrollViewer>
+    <StackPanel Margin="24" Spacing="24">
+      <!-- Header -->
+      <Border Classes="Card" Padding="24">
+        <StackPanel Spacing="8">
+          <TextBlock Text="⚙️ SETTINGS > API KEYS" Classes="H5" />
+          <TextBlock Text="Manage API keys for external application access."
+                     Classes="Body" Opacity="0.8" />
+        </StackPanel>
+      </Border>
+
+      <!-- Security Warning -->
+      <Border Background="#2a2a1a"
+              BorderBrush="#fbbf24"
+              BorderThickness="1"
+              CornerRadius="8"
+              Padding="16">
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <TextBlock Text="⚠️" FontSize="24" VerticalAlignment="Center" />
+          <StackPanel>
+            <TextBlock Text="Security Notice" FontWeight="SemiBold" Foreground="#fbbf24" />
+            <TextBlock Text="Never share your API keys. Keep them secure and rotate them regularly."
+                       TextWrapping="Wrap"
+                       Foreground="#cccc99" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <!-- New Key Generation Banner -->
+      <Border Classes="NewKeyBanner"
+              IsVisible="{Binding ShowNewKey}">
+        <StackPanel Spacing="16">
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <TextBlock Text="🔑" FontSize="24" />
+            <TextBlock Text="NEW API KEY GENERATED" Classes="H6" Foreground="#10b981" />
+          </StackPanel>
+
+          <Border Background="#1a1a1a"
+                  CornerRadius="8"
+                  Padding="16">
+            <TextBlock Text="{Binding NewlyGeneratedKey}"
+                       FontFamily="{StaticResource MonospaceFontFamily}"
+                       FontSize="14"
+                       TextWrapping="Wrap"
+                       Foreground="#10b981"
+                       FontWeight="SemiBold" />
+          </Border>
+
+          <Border Background="#3a2a1a"
+                  CornerRadius="8"
+                  Padding="12">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="⚠️" FontSize="16" />
+              <TextBlock Text="Copy this key now! You won't be able to see it again."
+                         Foreground="#fbbf24"
+                         FontWeight="SemiBold" />
+            </StackPanel>
+          </Border>
+
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <Button Content="📋 Copy to Clipboard"
+                    Command="{Binding CopyKeyCommand}"
+                    CommandParameter="{Binding NewlyGeneratedKey}"
+                    Classes="Primary" />
+            <Button Content="✓ I've Saved It"
+                    Command="{Binding HideNewKeyDisplayCommand}"
+                    Classes="Secondary" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <!-- API Key List -->
+      <Border Classes="Card" Padding="24">
+        <StackPanel Spacing="20">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" Spacing="4">
+              <TextBlock Text="Your API Keys" Classes="H6" />
+              <TextBlock Text="{Binding ApiKeys.Count, StringFormat='{}{0} key(s) registered'}"
+                         Classes="Caption" Opacity="0.7" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+              <Button Content="＋ New Key"
+                      Command="{Binding ShowGenerateDialogCommand}"
+                      Classes="Primary" />
+              <Button Content="🔄"
+                      Command="{Binding LoadApiKeysCommand}"
+                      Classes="Secondary"
+                      ToolTip.Tip="Refresh" />
+            </StackPanel>
+          </Grid>
+
+          <!-- Generate Key Form -->
+          <Border Classes="GlassCard"
+                  Padding="20"
+                  IsVisible="{Binding IsGeneratingKey}">
+            <StackPanel Spacing="16">
+              <TextBlock Text="Generate New API Key" Classes="BodyStrong" />
+
+              <StackPanel Spacing="8">
+                <TextBlock Text="Key Name" Classes="Label" />
+                <TextBox Text="{Binding NewKeyName}" Watermark="e.g., Plugin Development" />
+              </StackPanel>
+
+              <StackPanel Spacing="8">
+                <TextBlock Text="Description (optional)" Classes="Label" />
+                <TextBox Text="{Binding NewKeyDescription}"
+                         Watermark="Brief description of the key's purpose..."
+                         AcceptsReturn="True"
+                         Height="60"
+                         TextWrapping="Wrap" />
+              </StackPanel>
+
+              <StackPanel Spacing="8">
+                <TextBlock Text="Scopes" Classes="Label" />
+                <Border Classes="GlassCard" Padding="12">
+                  <WrapPanel>
+                    <ItemsControl ItemsSource="{Binding AvailableScopes}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <CheckBox Content="{Binding}"
+                                    IsChecked="{Binding Converter={StaticResource ScopeInCollectionConverter}, ConverterParameter={Binding NewKeyScopes, Source={RelativeSource AncestorType=UserControl}}}}"
+                                    Command="{Binding DataContext.ToggleScopeCommand, Source={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"
+                                    Margin="4" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </WrapPanel>
+                </Border>
+              </StackPanel>
+
+              <StackPanel Spacing="8">
+                <TextBlock Text="Expiration" Classes="Label" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="Never"
+                          Command="{Binding SetExpirationCommand}"
+                          CommandParameter="{x:Null}">
+                    <Button.Styles>
+                      <Style Selector="Button">
+                        <Setter Property="Classes" Value="Primary" />
+                      </Style>
+                      <Style Selector="Button.expiration-set" />
+                    </Button.Styles>
+                  </Button>
+                  <Button Content="7 days"
+                          Command="{Binding SetExpirationCommand}"
+                          CommandParameter="7days"
+                          Classes="Secondary" />
+                  <Button Content="30 days"
+                          Command="{Binding SetExpirationCommand}"
+                          CommandParameter="30days"
+                          Classes="Secondary" />
+                  <Button Content="90 days"
+                          Command="{Binding SetExpirationCommand}"
+                          CommandParameter="90days"
+                          Classes="Secondary" />
+                  <Button Content="1 year"
+                          Command="{Binding SetExpirationCommand}"
+                          CommandParameter="1year"
+                          Classes="Secondary" />
+                </StackPanel>
+                <TextBlock Text="{Binding NewKeyExpiresAt, StringFormat='Expires: {0:g}', FallbackValue='Never expires'}"
+                           FontSize="12"
+                           Opacity="0.7" />
+              </StackPanel>
+
+              <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,8,0,0">
+                <Button Content="Generate Key"
+                        Command="{Binding GenerateKeyCommand}"
+                        Classes="Primary" />
+                <Button Content="Cancel"
+                        Command="{Binding CancelGenerateKeyCommand}"
+                        Classes="Secondary" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- Key List -->
+          <Border Background="Transparent"
+                  BorderBrush="#25FFFFFF"
+                  BorderThickness="1"
+                  CornerRadius="8">
+            <ScrollViewer MaxHeight="400">
+              <ItemsControl ItemsSource="{Binding ApiKeys}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="security:ApiKey">
+                    <Border Classes="KeyCard">
+                      <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
+                        <!-- Header Row -->
+                        <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
+                          <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="{Binding Name}"
+                                       FontWeight="SemiBold"
+                                       FontSize="15" />
+                            <Border Classes="StatusBadge"
+                                    Background="{Binding IsActive, Converter={StaticResource BoolToStatusBrushConverter}}"
+                                    IsVisible="{Binding IsActive}">
+                              <TextBlock Text="Active" FontSize="10" Foreground="White" />
+                            </Border>
+                            <Border Classes="ExpiredBadge"
+                                    IsVisible="{Binding IsExpired}">
+                              <TextBlock Text="Expired" FontSize="10" Foreground="White" />
+                            </Border>
+                            <Border Classes="StatusBadge"
+                                    Background="#6b7280"
+                                    IsVisible="{Binding !IsActive}">
+                              <TextBlock Text="Revoked" FontSize="10" Foreground="White" />
+                            </Border>
+                          </StackPanel>
+                          <TextBlock Text="{Binding MaskedKey}"
+                                     FontFamily="{StaticResource MonospaceFontFamily}"
+                                     FontSize="13"
+                                     Opacity="0.8" />
+                        </StackPanel>
+
+                        <!-- Actions -->
+                        <StackPanel Grid.Row="0" Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    Spacing="8">
+                          <Button Content="📊"
+                                  Command="{Binding DataContext.ViewKeyUsageCommand, Source={RelativeSource AncestorType=UserControl}}"
+                                  CommandParameter="{Binding}"
+                                  Classes="Ghost"
+                                  ToolTip.Tip="View usage statistics" />
+                          <Button Content="🚫"
+                                  Command="{Binding DataContext.RevokeKeyCommand, Source={RelativeSource AncestorType=UserControl}}"
+                                  CommandParameter="{Binding}"
+                                  Classes="Ghost"
+                                  ToolTip.Tip="Revoke key"
+                                  IsVisible="{Binding IsActive}" />
+                          <Button Content="🗑️"
+                                  Command="{Binding DataContext.DeleteKeyCommand, Source={RelativeSource AncestorType=UserControl}}"
+                                  CommandParameter="{Binding}"
+                                  Classes="Danger"
+                                  ToolTip.Tip="Delete key permanently" />
+                        </StackPanel>
+
+                        <!-- Description -->
+                        <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                   Text="{Binding Description}"
+                                   FontSize="12"
+                                   Opacity="0.6"
+                                   TextWrapping="Wrap"
+                                   Margin="0,8,0,0"
+                                   IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                        <!-- Metadata Row -->
+                        <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                    Orientation="Horizontal"
+                                    Spacing="16"
+                                    Margin="0,12,0,0">
+                          <!-- Scopes -->
+                          <StackPanel Orientation="Horizontal" Spacing="4">
+                            <ItemsControl ItemsSource="{Binding Scopes}">
+                              <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                  <Border Classes="ScopeBadge">
+                                    <TextBlock Text="{Binding}"
+                                               FontSize="10"
+                                               Foreground="#bfdbfe" />
+                                  </Border>
+                                </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                              <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                  <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                              </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                          </StackPanel>
+
+                          <!-- Expiration -->
+                          <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="⏱️" FontSize="12" />
+                            <TextBlock Text="{Binding ExpirationStatus}"
+                                       FontSize="12"
+                                       Opacity="0.7" />
+                          </StackPanel>
+
+                          <!-- Last Used -->
+                          <StackPanel Orientation="Horizontal" Spacing="4"
+                                      IsVisible="{Binding LastUsed, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <TextBlock Text="🕐" FontSize="12" />
+                            <TextBlock Text="{Binding LastUsed, StringFormat='Last used: {0:g}'}"
+                                       FontSize="12"
+                                       Opacity="0.7" />
+                          </StackPanel>
+
+                          <!-- Created -->
+                          <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="📅" FontSize="12" />
+                            <TextBlock Text="{Binding CreatedAt, StringFormat='Created: {0:g}'}"
+                                       FontSize="12"
+                                       Opacity="0.7" />
+                          </StackPanel>
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </Border>
+        </StackPanel>
+      </Border>
+
+      <!-- Usage Statistics -->
+      <Border Classes="Card" Padding="24">
+        <StackPanel Spacing="16">
+          <TextBlock Text="📊 Usage Statistics" Classes="H6" />
+
+          <Grid ColumnDefinitions="*,*,*,*">
+            <Border Classes="GlassCard" Padding="16" Margin="0,0,8,0">
+              <StackPanel Spacing="4">
+                <TextBlock Text="{Binding UsageStats.TotalCallsToday}"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="#3b82f6" />
+                <TextBlock Text="Total Calls Today" FontSize="12" Opacity="0.7" />
+              </StackPanel>
+            </Border>
+
+            <Border Classes="GlassCard" Padding="16" Margin="4,0,4,0">
+              <StackPanel Spacing="4">
+                <TextBlock Text="{Binding UsageStats.MostActiveKeyName}"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           TextTrimming="CharacterEllipsis"
+                           Foreground="#10b981" />
+                <TextBlock Text="{Binding UsageStats.MostActiveKeyCalls, StringFormat='{}{0} calls'}"
+                           FontSize="12"
+                           Opacity="0.7" />
+                <TextBlock Text="Most Active Key" FontSize="11" Opacity="0.5" />
+              </StackPanel>
+            </Border>
+
+            <Border Classes="GlassCard" Padding="16" Margin="4,0,4,0">
+              <StackPanel Spacing="4">
+                <TextBlock Text="{Binding UsageStats.CallsLastHour}"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="#8b5cf6" />
+                <TextBlock Text="Calls Last Hour" FontSize="12" Opacity="0.7" />
+              </StackPanel>
+            </Border>
+
+            <Border Classes="GlassCard" Padding="16" Margin="8,0,0,0">
+              <StackPanel Spacing="4">
+                <TextBlock Text="{Binding UsageStats.AverageResponseTimeMs, StringFormat='{}{0:F0}ms'}"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="#f59e0b" />
+                <TextBlock Text="Avg Response Time" FontSize="12" Opacity="0.7" />
+              </StackPanel>
+            </Border>
+          </Grid>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
