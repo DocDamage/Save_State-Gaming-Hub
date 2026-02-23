@@ -5,31 +5,51 @@ using Avalonia.Headless;
 using Avalonia.Input;
 using Avalonia.Platform;
 using Microsoft.Extensions.DependencyInjection;
-using SaveState.Presentation;
 
 namespace SaveState.EndToEndTests.Infrastructure;
+
+/// <summary>
+/// Minimal test application that doesn't require precompiled XAML.
+/// Used for headless E2E testing.
+/// </summary>
+public class TestApp : global::Avalonia.Application
+{
+    public override void Initialize()
+    {
+        // Don't load XAML - minimal initialization for tests
+        // Resources can be added here if needed for tests
+    }
+
+    public override void OnFrameworkInitializationCompleted()
+    {
+        // Don't create main window - tests will create their own
+        base.OnFrameworkInitializationCompleted();
+    }
+}
 
 /// <summary>
 /// Test application builder for Avalonia headless E2E tests.
 /// </summary>
 public static class AvaloniaTestApp
 {
-    private static bool _initialized;
-    private static readonly object _initLock = new();
+    private static readonly SemaphoreSlim _initLock = new(1, 1);
+    private static volatile bool _initialized;
 
     /// <summary>
     /// Ensures the Avalonia headless platform is initialized.
+    /// Thread-safe and idempotent.
     /// </summary>
     public static void EnsureInitialized()
     {
         if (_initialized) return;
 
-        lock (_initLock)
+        _initLock.Wait();
+        try
         {
             if (_initialized) return;
 
             // Check if Avalonia is already initialized (from a previous test)
-            if (Avalonia.Application.Current != null)
+            if (global::Avalonia.Application.Current != null)
             {
                 _initialized = true;
                 return;
@@ -37,24 +57,46 @@ public static class AvaloniaTestApp
 
             try
             {
-                // Initialize headless platform without requiring XAML compilation
-                var builder = AppBuilder.Configure<App>()
+                // Use the minimal TestApp that doesn't require XAML compilation
+                var builder = AppBuilder.Configure<TestApp>()
                     .UseHeadless(new AvaloniaHeadlessPlatformOptions
                     {
-                        UseHeadlessDrawing = true
+                        UseHeadlessDrawing = false  // Disable drawing to avoid issues
                     });
 
                 // Use a simple lifetime that doesn't require full XAML resources
-                builder.SetupWithoutStarting();
+                // This is crucial - we need a lifetime for the app to work
+                var lifetime = new ClassicDesktopStyleApplicationLifetime
+                {
+                    ShutdownMode = ShutdownMode.OnLastWindowClose
+                };
+                
+                builder.SetupWithLifetime(lifetime);
+                
+                _initialized = true;
             }
-            catch (InvalidOperationException ex) when (ex.Message.Contains("already"))
+            catch (InvalidOperationException ex) when (ex.Message.Contains("already", StringComparison.OrdinalIgnoreCase))
             {
                 // Avalonia is already initialized, which is fine
+                _initialized = true;
             }
-
-            _initialized = true;
+            catch (Exception ex)
+            {
+                // Log and rethrow with more context
+                Console.WriteLine($"Failed to initialize Avalonia: {ex.Message}");
+                throw new InvalidOperationException($"Avalonia initialization failed: {ex.Message}", ex);
+            }
+        }
+        finally
+        {
+            _initLock.Release();
         }
     }
+
+    /// <summary>
+    /// Gets whether Avalonia has been successfully initialized.
+    /// </summary>
+    public static bool IsInitialized => _initialized && global::Avalonia.Application.Current != null;
 }
 
 /// <summary>
@@ -101,14 +143,26 @@ public class AvaloniaTestHost : IAsyncDisposable
     {
         AvaloniaTestApp.EnsureInitialized();
 
-        await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+        try
         {
-            _mainWindow = windowFactory(_serviceProvider);
-            _mainWindow.Show();
-        });
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _mainWindow = windowFactory(_serviceProvider);
+                if (_mainWindow != null)
+                {
+                    _mainWindow.Show();
+                }
+            });
 
-        // Wait for layout pass
-        await Task.Delay(100, cancellationToken);
+            // Wait for layout pass
+            await Task.Delay(100, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to start window: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            throw;
+        }
     }
 
     /// <summary>

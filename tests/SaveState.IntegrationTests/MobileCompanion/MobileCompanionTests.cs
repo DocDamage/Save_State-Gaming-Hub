@@ -283,11 +283,17 @@ public class MobileCompanionTests : IClassFixture<IntegrationTestFixture>
         };
         var pairResult = await _companionService.CompletePairingAsync(pairingRequest.Value.PairingCode, deviceInfo);
 
+        // Start a session first
+        var sessionResult = await _companionService.StartSessionAsync(pairResult.Value.Id, "test-connection-id");
+        sessionResult.IsSuccess.Should().BeTrue();
+
         // Act
         var result = await _companionService.GetActiveSessionAsync(pairResult.Value.Id);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value.DeviceId.Should().Be(pairResult.Value.Id);
     }
 
     #endregion

@@ -474,8 +474,8 @@ public class RgbSyncIntegrationTests : IClassFixture<IntegrationTestFixture>
     {
         // Arrange
         var profileData = @"{
-            ""name"": ""Imported Profile"",
-            ""effects"": {}
+            ""Name"": ""Imported Profile"",
+            ""DeviceEffects"": {}
         }";
 
         // Act

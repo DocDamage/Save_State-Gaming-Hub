@@ -2,9 +2,12 @@ using SaveState.Core.Common;
 
 namespace SaveState.IntegrationTests;
 
+// These types are defined in CloudGamingIntegrationTests.cs
+// Using the test-defined interfaces, not the Core interfaces
+
 /// <summary>
 /// Fake implementation of ICloudGamingManager for integration tests.
-/// Matches the interface defined in CloudGamingIntegrationTests.cs.
+/// Implements the test-defined interface from CloudGamingIntegrationTests.cs.
 /// </summary>
 public class FakeCloudGamingManagerForTests : ICloudGamingManager
 {
@@ -19,6 +22,16 @@ public class FakeCloudGamingManagerForTests : ICloudGamingManager
     public FakeCloudGamingManagerForTests()
     {
         InitializeFakeData();
+    }
+
+    /// <summary>
+    /// Resets the connection state for tests that require clean state.
+    /// </summary>
+    public void ResetConnections()
+    {
+        _connections.Clear();
+        _sessions.Clear();
+        _activeSession = null;
     }
 
     private void InitializeFakeData()
@@ -173,13 +186,6 @@ public class FakeCloudGamingManagerForTests : ICloudGamingManager
         if (!_connections.ContainsKey(providerId))
         {
             return Task.FromResult(Result.Failure<CloudSession>("Not connected to provider", ErrorType.Unauthorized));
-        }
-
-        // Check for invalid game ID - only specific test game IDs are valid
-        var validGameIds = new[] { "game_1", "game_2", "game_3", "game_4", "game_5" };
-        if (!validGameIds.Contains(gameId) && gameId.StartsWith("invalid"))
-        {
-            return Task.FromResult(Result.Failure<CloudSession>("Game not found", ErrorType.NotFound));
         }
 
         var session = new CloudSession
@@ -367,7 +373,6 @@ public class FakeCloudGamingManagerForTests : ICloudGamingManager
     {
         if (_dataCenters.TryGetValue(dataCenterId, out var dc))
         {
-            // Simulate different latencies based on region
             return Task.FromResult(Result.Success(dc.Region.StartsWith("us") ? 20 : 100));
         }
 

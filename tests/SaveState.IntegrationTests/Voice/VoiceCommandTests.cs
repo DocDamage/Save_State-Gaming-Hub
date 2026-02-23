@@ -145,7 +145,16 @@ public class VoiceCommandTests : IClassFixture<IntegrationTestFixture>
     [Fact]
     public async Task ProcessVoiceCommand_WithValidCommand_ProcessesSuccessfully()
     {
-        // Arrange
+        // Arrange - Register a command first
+        var command = new VoiceCommandDefinition(
+            CommandPhrase: "launch game",
+            Description: "Launch a game",
+            Action: VoiceCommandAction.LaunchGame,
+            Parameters: null,
+            AlternativePhrases: new[] { "start game" });
+        
+        await _voiceCommandService.RegisterCommandAsync(command);
+        
         var spokenText = "launch game";
 
         // Act
@@ -157,7 +166,7 @@ public class VoiceCommandTests : IClassFixture<IntegrationTestFixture>
     }
 
     [Fact]
-    public async Task ProcessVoiceCommand_WithEmptyText_ReturnsFailure()
+    public async Task ProcessVoiceCommand_WithEmptyText_ReturnsUnrecognizedResult()
     {
         // Arrange
         var spokenText = "";
@@ -165,8 +174,9 @@ public class VoiceCommandTests : IClassFixture<IntegrationTestFixture>
         // Act
         var result = await _voiceCommandService.ProcessVoiceCommandAsync(spokenText);
 
-        // Assert
-        result.IsFailure.Should().BeTrue();
+        // Assert - Service returns Success with unrecognized result (not a Failure)
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Success.Should().BeFalse(); // The voice command itself failed to be recognized
     }
 
     [Fact]

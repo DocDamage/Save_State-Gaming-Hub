@@ -17,6 +17,7 @@ using SaveState.Core.Sync.Services;
 using SaveState.Core.WebBrowser.Services;
 // Note: Using fake services from SaveState.Tests.Fakes instead of infrastructure implementations
 using SaveState.Core.Esports.Services;
+using SaveState.Core.MobileCompanion.Services;
 using SaveState.Core.Theme.Services;
 using SaveState.Infrastructure.Input;
 using SaveState.Infrastructure.RgbSync;
@@ -29,9 +30,10 @@ namespace SaveState.IntegrationTests;
 /// <summary>
 /// Shared fixture for integration tests providing configured services and test data.
 /// </summary>
-public class IntegrationTestFixture : IDisposable
+public class IntegrationTestFixture : IDisposable, IAsyncLifetime
 {
     public IServiceProvider ServiceProvider { get; }
+    private readonly FakeCloudGamingManagerForTests _cloudGamingManager;
 
     public IntegrationTestFixture()
     {
@@ -65,7 +67,9 @@ public class IntegrationTestFixture : IDisposable
         services.AddSingleton(_ => new Mock<IGameRepository>().Object);
         services.AddSingleton(_ => new Mock<ILaunchExperienceManager>().Object);
         services.AddSingleton(_ => new Mock<ISaveStateManager>().Object);
-        services.AddSingleton<ICloudGamingManager>(sp => new Mock<ICloudGamingManager>().Object);
+        // Mock Core.Sync.Services.ICloudGamingManager for VoiceCommandService
+        services.AddSingleton<SaveState.Core.Sync.Services.ICloudGamingManager>(_ => 
+            new Mock<SaveState.Core.Sync.Services.ICloudGamingManager>().Object);
         services.AddSingleton<IVoiceCommandService, VoiceCommandService>();
 
         // RGB Sync Service dependencies
@@ -74,6 +78,7 @@ public class IntegrationTestFixture : IDisposable
         services.AddSingleton<IRgbSyncService, RgbSyncService>();
 
         // Cloud Gaming Services - using fakes that match the test-defined interfaces
+        // Note: These implement the test-defined ICloudGamingManager interface (not Core.Sync.Services.ICloudGamingManager)
         services.AddSingleton<FakeCloudGamingManagerForTests>();
         services.AddSingleton<ICloudGamingManager>(sp => sp.GetRequiredService<FakeCloudGamingManagerForTests>());
         services.AddSingleton<FakeNetworkQualityMonitor>();
@@ -88,6 +93,16 @@ public class IntegrationTestFixture : IDisposable
         services.AddSingleton<FakeTournamentService>();
         services.AddSingleton<ITournamentService>(sp => sp.GetRequiredService<FakeTournamentService>());
 
+        // Mobile Companion Services - use fake implementations for integration tests
+        services.AddSingleton<FakeMobileCompanionService>();
+        services.AddSingleton<IMobileCompanionService>(sp => sp.GetRequiredService<FakeMobileCompanionService>());
+        services.AddSingleton<FakeQRCodeService>();
+        services.AddSingleton<IQRCodeService>(sp => sp.GetRequiredService<FakeQRCodeService>());
+        services.AddSingleton<FakePushNotificationService>();
+        services.AddSingleton<IPushNotificationService>(sp => sp.GetRequiredService<FakePushNotificationService>());
+        services.AddSingleton<FakeRemoteCommandExecutor>();
+        services.AddSingleton<IRemoteCommandExecutor>(sp => sp.GetRequiredService<FakeRemoteCommandExecutor>());
+
         ServiceProvider = services.BuildServiceProvider();
     }
 
@@ -97,5 +112,18 @@ public class IntegrationTestFixture : IDisposable
         {
             disposable.Dispose();
         }
+    }
+
+    public Task InitializeAsync()
+    {
+        // Reset the cloud gaming manager state before each test
+        var cloudGamingManager = ServiceProvider.GetService<FakeCloudGamingManagerForTests>();
+        cloudGamingManager?.ResetConnections();
+        return Task.CompletedTask;
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
     }
 }

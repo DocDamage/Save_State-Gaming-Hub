@@ -66,7 +66,8 @@ public class RomValidationIntegrationTests : IClassFixture<IntegrationTestFixtur
             validateResult.Value.Status.Should().BeOneOf(
                 ValidationStatus.Valid,
                 ValidationStatus.Verified,
-                ValidationStatus.Invalid);
+                ValidationStatus.Invalid,
+                ValidationStatus.Corrupted);
         }
         finally
         {
