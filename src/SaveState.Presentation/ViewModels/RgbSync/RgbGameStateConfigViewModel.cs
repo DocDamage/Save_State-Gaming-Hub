@@ -210,7 +210,7 @@ public partial class RgbGameStateConfigViewModel : ObservableObject
     {
         try
         {
-            var result = await _rgbService.GetDevicesAsync();
+            var result = await _rgbService.GetDevicesAsync(CancellationToken.None);
             if (result.IsSuccess)
             {
                 AvailableDevices.Clear();
@@ -257,17 +257,8 @@ public partial class RgbGameStateConfigViewModel : ObservableObject
             IsPreviewing = true;
             PreviewingTrigger = config.Trigger;
 
-            // Trigger the effect on all devices
-            var gameEvent = new GameRgbEvent
-            {
-                EventType = config.Trigger.ToString(),
-                PrimaryColor = config.Effect.Colors.FirstOrDefault() ?? RgbColor.White,
-                SecondaryColor = config.Effect.Colors.Skip(1).FirstOrDefault() ?? RgbColor.Black,
-                Duration = TimeSpan.FromMilliseconds(config.DurationMs),
-                Intensity = config.Effect.Brightness
-            };
-
-            await _rgbService.TriggerGameEventAsync(gameEvent);
+            // Trigger the game state effect
+            await _rgbService.TriggerGameStateEffectAsync(config.Trigger, CancellationToken.None);
 
             StatusMessage = $"Previewing {config.Trigger} effect...";
 
@@ -339,23 +330,8 @@ public partial class RgbGameStateConfigViewModel : ObservableObject
     {
         try
         {
-            // Save health indicator config
-            var healthConfig = new HealthIndicatorConfig
-            {
-                Enabled = IsHealthIndicatorEnabled,
-                LowHealthThreshold = HealthLowThreshold,
-                CriticalHealthThreshold = HealthCriticalThreshold,
-                LowHealthColor = HealthLowColor,
-                CriticalHealthColor = HealthCriticalColor
-            };
-
-            await _rgbService.SetupHealthIndicatorAsync(healthConfig);
-
-            // Register all game event effects
-            foreach (var config in GameStateConfigs)
-            {
-                await _rgbService.RegisterGameEventEffectAsync(config.Trigger.ToString(), config.Effect);
-            }
+            // Configure all game state effects
+            await _rgbService.ConfigureGameStateEffectsAsync(GameStateConfigs.ToList(), CancellationToken.None);
 
             StatusMessage = "Configuration saved";
         }
@@ -389,29 +365,6 @@ public partial class RgbGameStateConfigViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task TestHealthIndicatorAsync()
-    {
-        try
-        {
-            // Simulate health levels
-            await _rgbService.UpdateHealthIndicatorAsync(100);
-            await Task.Delay(500);
-            await _rgbService.UpdateHealthIndicatorAsync(50);
-            await Task.Delay(500);
-            await _rgbService.UpdateHealthIndicatorAsync(25);
-            await Task.Delay(500);
-            await _rgbService.UpdateHealthIndicatorAsync(100);
-
-            StatusMessage = "Health indicator test complete";
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error testing health indicator");
-            StatusMessage = "Error testing health indicator";
-        }
-    }
-
-    [RelayCommand]
     private void ResetToDefaults()
     {
         GameStateConfigs.Clear();
@@ -424,7 +377,7 @@ public partial class RgbGameStateConfigViewModel : ObservableObject
     {
         var filePath = await _dialogService.ShowOpenFileDialogAsync(
             "Import Configuration",
-            "JSON files (*.json)|*.json|All files (*.*)|*.*");
+            new[] { "json" });
 
         if (string.IsNullOrWhiteSpace(filePath)) return;
 
@@ -455,7 +408,7 @@ public partial class RgbGameStateConfigViewModel : ObservableObject
     {
         var filePath = await _dialogService.ShowSaveFileDialogAsync(
             "Export Configuration",
-            "JSON files (*.json)|*.json|All files (*.*)|*.*",
+            new[] { "json" },
             "GameStateRgbConfig.json");
 
         if (string.IsNullOrWhiteSpace(filePath)) return;

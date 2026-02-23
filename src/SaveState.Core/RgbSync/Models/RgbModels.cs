@@ -116,6 +116,7 @@ public record RgbColor
     public static RgbColor Magenta => new(255, 0, 255);
     public static RgbColor Orange => new(255, 165, 0);
     public static RgbColor Purple => new(128, 0, 128);
+    public static RgbColor Gold => new(255, 215, 0);
 }
 
 public record RgbEffect
@@ -129,6 +130,7 @@ public record RgbEffect
     public RgbDirection Direction { get; set; } = RgbDirection.Forward;
     public Dictionary<string, object> Parameters { get; set; } = new();
     public bool IsEnabled { get; set; } = true;
+    public int DurationMs { get; set; } = 1000;
 }
 
 public enum RgbDirection

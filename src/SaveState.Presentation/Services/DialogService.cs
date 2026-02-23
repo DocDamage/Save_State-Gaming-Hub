@@ -28,6 +28,8 @@ public partial class DialogService : IDialogService
     private readonly IMacroService _macroService;
     private readonly IMacroRecorder _macroRecorder;
     private readonly ITimeProvider _timeProvider;
+    private Window? _currentDialog;
+    private object? _dialogResult;
 
     public DialogService(
         IServiceProvider serviceProvider,
@@ -400,4 +402,11 @@ public partial class DialogService : IDialogService
     }
 
     #endregion
+
+    /// <inheritdoc />
+    public void CloseDialog(object? result = null)
+    {
+        _dialogResult = result;
+        _currentDialog?.Close(result);
+    }
 }

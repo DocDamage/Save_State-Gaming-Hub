@@ -87,15 +87,22 @@ public partial class RgbProfileManagerViewModel : ObservableObject
     {
         try
         {
-            var configResult = await _rgbService.GetConfigurationAsync();
-            if (configResult.IsSuccess)
+            var profilesResult = await _rgbService.GetProfilesAsync();
+            if (profilesResult.IsSuccess)
             {
-                // In a real implementation, profiles would be loaded from storage
-                // For now, create some defaults
+                Profiles.Clear();
+                foreach (var profile in profilesResult.Value!)
+                {
+                    Profiles.Add(profile);
+                }
+
+                // Create defaults if no profiles exist
                 if (Profiles.Count == 0)
                 {
                     CreateDefaultProfiles();
                 }
+
+                DefaultProfile = Profiles.FirstOrDefault(p => p.IsDefault);
             }
         }
         catch (Exception ex)
@@ -241,7 +248,7 @@ public partial class RgbProfileManagerViewModel : ObservableObject
             // Show save file dialog
             var filePath = await _dialogService.ShowSaveFileDialogAsync(
                 "Export Profile",
-                "JSON files (*.json)|*.json|All files (*.*)|*.*",
+                new[] { "json" },
                 $"{profile.Name}.json");
 
             if (!string.IsNullOrWhiteSpace(filePath))
@@ -269,7 +276,7 @@ public partial class RgbProfileManagerViewModel : ObservableObject
         {
             var filePath = await _dialogService.ShowOpenFileDialogAsync(
                 "Import Profile",
-                "JSON files (*.json)|*.json|All files (*.*)|*.*");
+                new[] { "json" });
 
             if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
                 return;
@@ -309,7 +316,7 @@ public partial class RgbProfileManagerViewModel : ObservableObject
         {
             foreach (var (deviceId, effect) in profile.DeviceEffects)
             {
-                await _rgbService.ApplyEffectAsync(deviceId.ToString(), effect);
+                await _rgbService.SetDeviceEffectAsync(deviceId, effect);
             }
 
             StatusMessage = $"Profile '{profile.Name}' applied";

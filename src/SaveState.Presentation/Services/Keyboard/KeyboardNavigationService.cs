@@ -3,10 +3,12 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using Microsoft.Extensions.Logging;
+using System.IO;
 using System.Text.Json;
 
 namespace SaveState.Presentation.Services.Keyboard;
@@ -43,7 +45,7 @@ public class KeyboardNavigationService : IKeyboardNavigationService
     public KeyboardNavigationService(ILogger<KeyboardNavigationService> logger)
     {
         _logger = logger;
-        _shortcutsFilePath = Path.Combine(
+        _shortcutsFilePath = System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "SaveStateReborn",
             "keyboard-shortcuts.json");
@@ -74,7 +76,7 @@ public class KeyboardNavigationService : IKeyboardNavigationService
         var window = GetActiveWindow();
         if (window == null) return Task.CompletedTask;
 
-        var focused = FocusManager.GetFocusedElement(window) as Control;
+        var focused = window.FocusManager?.GetFocusedElement() as Control;
         if (focused == null) return Task.CompletedTask;
 
         Control? nextElement = direction switch
@@ -105,10 +107,10 @@ public class KeyboardNavigationService : IKeyboardNavigationService
         var window = GetActiveWindow();
         if (window == null) return Task.CompletedTask;
 
-        var focused = FocusManager.GetFocusedElement(window) as Control;
+        var focused = window.FocusManager?.GetFocusedElement() as Control;
         if (focused is Button button)
         {
-            button.PerformClick();
+            button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         }
         else if (focused is CheckBox checkBox)
         {
@@ -480,7 +482,7 @@ public class KeyboardNavigationService : IKeyboardNavigationService
                         CustomModifiers = (int)(s.Value.CustomHotkey?.Modifiers ?? KeyModifiers.None)
                     });
 
-            var directory = Path.GetDirectoryName(_shortcutsFilePath);
+            var directory = System.IO.Path.GetDirectoryName(_shortcutsFilePath);
             if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
@@ -502,7 +504,7 @@ public class KeyboardNavigationService : IKeyboardNavigationService
 
     private Window? GetActiveWindow()
     {
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             return desktop.MainWindow;
         }

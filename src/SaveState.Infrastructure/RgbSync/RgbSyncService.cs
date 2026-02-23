@@ -95,6 +95,28 @@ public sealed class RgbSyncService : IRgbSyncService
     }
 
     /// <inheritdoc />
+    public Task<Result> SetDeviceLedsAsync(Guid deviceId, Dictionary<int, RgbColor> ledColors, CancellationToken ct = default)
+    {
+        _logger.LogDebug("Setting individual LEDs for device {DeviceId}", deviceId);
+        
+        var device = _devices.FirstOrDefault(d => d.Id == deviceId);
+        if (device == null)
+        {
+            return Task.FromResult(Result.Failure($"Device {deviceId} not found", ErrorType.NotFound));
+        }
+
+        foreach (var (ledIndex, color) in ledColors)
+        {
+            if (ledIndex >= 0 && ledIndex < device.Leds.Count)
+            {
+                device.Leds[ledIndex].Color = color;
+            }
+        }
+
+        return Task.FromResult(Result.Success());
+    }
+
+    /// <inheritdoc />
     public Task<Result> SetDeviceEffectAsync(Guid deviceId, RgbEffect effect, CancellationToken ct = default)
     {
         _logger.LogInformation("Applying effect {EffectName} ({EffectType}) to device {DeviceId}", 

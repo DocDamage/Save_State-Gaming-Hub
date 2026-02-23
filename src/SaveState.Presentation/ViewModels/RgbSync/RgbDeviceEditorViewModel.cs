@@ -141,7 +141,7 @@ public partial class RgbDeviceEditorViewModel : ObservableObject
                 }
             }
 
-            var result = await _rgbService.SetDeviceLedsAsync(Device.Id.ToString(), ledColors);
+            var result = await _rgbService.SetDeviceLedsAsync(Device.Id, ledColors, CancellationToken.None);
             if (result.IsSuccess)
             {
                 SelectedZone.Color = ZoneColor;
@@ -166,7 +166,7 @@ public partial class RgbDeviceEditorViewModel : ObservableObject
 
         try
         {
-            var result = await _rgbService.ApplyEffectAsync(Device.Id.ToString(), SelectedEffect);
+            var result = await _rgbService.SetDeviceEffectAsync(Device.Id, SelectedEffect, CancellationToken.None);
             if (result.IsSuccess)
             {
                 DeviceStatus = $"Effect applied to {SelectedZone.Name}";
@@ -209,7 +209,7 @@ public partial class RgbDeviceEditorViewModel : ObservableObject
         {
             led.Color = result;
             var ledColors = new Dictionary<int, RgbColor> { [led.Index] = result };
-            await _rgbService.SetDeviceLedsAsync(Device.Id.ToString(), ledColors);
+            await _rgbService.SetDeviceLedsAsync(Device.Id, ledColors, CancellationToken.None);
         }
     }
 
@@ -220,7 +220,7 @@ public partial class RgbDeviceEditorViewModel : ObservableObject
 
         try
         {
-            var result = await _rgbService.SetDeviceColorAsync(Device.Id.ToString(), color);
+            var result = await _rgbService.SetDeviceColorAsync(Device.Id, color, CancellationToken.None);
             if (result.IsSuccess)
             {
                 foreach (var led in Leds)

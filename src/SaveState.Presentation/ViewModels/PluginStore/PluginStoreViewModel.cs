@@ -271,9 +271,14 @@ public partial class PluginStoreViewModel : ObservableObject
 
         SelectedPlugin = plugin;
 
-        // Navigate to plugin detail view
-        var parameters = new Dictionary<string, object> { { "Plugin", plugin } };
-        await _dialogService.ShowDialogAsync("PluginDetails", parameters);
+        // Show plugin details in an information dialog
+        var details = $"{plugin.Name}\n\n" +
+                      $"Author: {plugin.Author}\n" +
+                      $"Version: {plugin.Version}\n" +
+                      $"Downloads: {plugin.FormattedDownloads}\n" +
+                      $"Rating: {plugin.StarRating} ({plugin.ReviewCount} reviews)\n\n" +
+                      $"{plugin.Description}";
+        await _dialogService.ShowInformationAsync("Plugin Details", details);
     }
 
     /// <summary>
@@ -286,22 +291,31 @@ public partial class PluginStoreViewModel : ObservableObject
 
         try
         {
-            // Show installation dialog
-            var progress = new Progress<double>(p => { });
-            var parameters = new Dictionary<string, object>
-            {
-                { "Plugin", plugin },
-                { "Progress", progress }
-            };
+            // Confirm installation
+            var confirmed = await _dialogService.ShowConfirmationAsync(
+                "Install Plugin",
+                $"Do you want to install {plugin.Name} v{plugin.Version}?",
+                confirmText: "Install",
+                cancelText: "Cancel");
 
-            var result = await _dialogService.ShowDialogAsync<PluginInstallationResult>(
-                "PluginInstall", parameters);
+            if (!confirmed) return;
 
-            if (result?.Success == true)
+            // Show installing message
+            await _dialogService.ShowInformationAsync("Installing", $"Installing {plugin.Name}...");
+
+            var result = await _marketplaceService.InstallPluginAsync(plugin.Id);
+
+            if (result.IsSuccess)
             {
                 plugin.IsInstalled = true;
                 plugin.InstalledVersion = plugin.Version;
+                await _dialogService.ShowSuccessAsync($"{plugin.Name} installed successfully!");
                 await LoadInstalledPluginsAsync();
+            }
+            else
+            {
+                ErrorMessage = result.Error ?? "Installation failed";
+                await _dialogService.ShowErrorAsync("Installation Failed", ErrorMessage);
             }
         }
         catch (Exception ex)
@@ -502,8 +516,32 @@ public partial class PluginStoreViewModel : ObservableObject
     [RelayCommand]
     private async Task InstallFromFileAsync()
     {
-        // Open file picker and install
-        await _dialogService.ShowDialogAsync("InstallPluginFromFile");
+        // Open file picker for plugin package
+        var filePath = await _dialogService.ShowOpenFileDialogAsync(
+            "Select Plugin Package",
+            "Plugin Package",
+            new[] { "*.plugin", "*.zip" });
+
+        if (string.IsNullOrEmpty(filePath)) return;
+
+        try
+        {
+            var result = await _pluginManager.InstallPluginAsync(filePath);
+            if (result.IsSuccess && result.Value)
+            {
+                await _dialogService.ShowSuccessAsync("Plugin installed successfully!");
+                await LoadInstalledPluginsAsync();
+            }
+            else
+            {
+                await _dialogService.ShowErrorAsync("Installation Failed", result.Error ?? "Unknown error");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to install plugin from file");
+            await _dialogService.ShowErrorAsync("Installation Failed", ex.Message);
+        }
     }
 
     /// <summary>
@@ -512,7 +550,11 @@ public partial class PluginStoreViewModel : ObservableObject
     [RelayCommand]
     private async Task ManageSourcesAsync()
     {
-        await _dialogService.ShowDialogAsync("ManagePluginSources");
+        // Show information about plugin sources
+        await _dialogService.ShowInformationAsync(
+            "Plugin Sources",
+            "Plugin source management is available in the application settings.\n\n" +
+            "You can add custom plugin repositories or configure marketplace settings there.");
     }
 
     private static PluginListing MapToPluginListing(PluginMarketplaceEntry entry)

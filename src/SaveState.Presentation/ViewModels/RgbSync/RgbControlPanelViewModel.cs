@@ -138,8 +138,7 @@ public partial class RgbControlPanelViewModel : ObservableObject, IDisposable
 
         try
         {
-            var config = new RgbSyncConfiguration { Enabled = true };
-            var result = await _rgbService.InitializeAsync(config);
+            var result = await _rgbService.StartAsync();
 
             if (result.IsSuccess)
             {
@@ -177,7 +176,7 @@ public partial class RgbControlPanelViewModel : ObservableObject, IDisposable
             var result = await _rgbService.RefreshDevicesAsync();
             if (result.IsSuccess)
             {
-                var devicesResult = await _rgbService.GetDevicesAsync();
+                var devicesResult = await _rgbService.GetDevicesAsync(CancellationToken.None);
                 if (devicesResult.IsSuccess)
                 {
                     Devices.Clear();
@@ -221,7 +220,7 @@ public partial class RgbControlPanelViewModel : ObservableObject, IDisposable
             CurrentEffect.Direction = EffectDirection;
             CurrentEffect.Colors = EffectColors.ToList();
 
-            var result = await _rgbService.ApplyEffectAsync(SelectedDevice.Id.ToString(), CurrentEffect);
+            var result = await _rgbService.SetDeviceEffectAsync(SelectedDevice.Id, CurrentEffect, CancellationToken.None);
 
             if (result.IsSuccess)
             {
@@ -298,7 +297,7 @@ public partial class RgbControlPanelViewModel : ObservableObject, IDisposable
             // Apply to all devices in profile
             foreach (var (deviceId, effect) in profile.DeviceEffects)
             {
-                await _rgbService.ApplyEffectAsync(deviceId.ToString(), effect);
+                await _rgbService.SetDeviceEffectAsync(deviceId, effect, CancellationToken.None);
             }
 
             StatusMessage = $"Profile '{profile.Name}' loaded";
@@ -473,19 +472,19 @@ public partial class RgbControlPanelViewModel : ObservableObject, IDisposable
     {
         try
         {
-            var sdkResult = await _rgbService.GetSdkInfoAsync();
-            if (sdkResult.IsSuccess)
+            var providersResult = await _rgbService.GetProvidersAsync(CancellationToken.None);
+            if (providersResult.IsSuccess)
             {
                 Providers.Clear();
-                foreach (var sdk in sdkResult.Value)
+                foreach (var provider in providersResult.Value)
                 {
                     Providers.Add(new RgbProviderInfo
                     {
-                        Id = sdk.Vendor.ToString(),
-                        Name = sdk.Vendor.ToString(),
-                        Version = sdk.Version,
-                        IsAvailable = sdk.IsAvailable,
-                        IsEnabled = sdk.IsAvailable
+                        Id = provider.Id,
+                        Name = provider.Name,
+                        Version = provider.Version,
+                        IsAvailable = provider.IsAvailable,
+                        IsEnabled = provider.IsEnabled
                     });
                 }
             }
@@ -500,41 +499,36 @@ public partial class RgbControlPanelViewModel : ObservableObject, IDisposable
     {
         try
         {
-            // Load from service or create defaults
-            var configResult = await _rgbService.GetConfigurationAsync();
-            if (configResult.IsSuccess)
+            // Create some default profiles if none exist
+            if (Profiles.Count == 0)
             {
-                // Create some default profiles if none exist
-                if (Profiles.Count == 0)
+                Profiles.Add(new RgbProfile
                 {
-                    Profiles.Add(new RgbProfile
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "Gaming",
-                        IsDefault = true,
-                        DeviceEffects = new Dictionary<Guid, RgbEffect>(),
-                        CreatedAt = _timeProvider.Now,
-                        ModifiedAt = _timeProvider.Now
-                    });
+                    Id = Guid.NewGuid(),
+                    Name = "Gaming",
+                    IsDefault = true,
+                    DeviceEffects = new Dictionary<Guid, RgbEffect>(),
+                    CreatedAt = _timeProvider.Now,
+                    ModifiedAt = _timeProvider.Now
+                });
 
-                    Profiles.Add(new RgbProfile
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "Movie",
-                        DeviceEffects = new Dictionary<Guid, RgbEffect>(),
-                        CreatedAt = _timeProvider.Now,
-                        ModifiedAt = _timeProvider.Now
-                    });
+                Profiles.Add(new RgbProfile
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Movie",
+                    DeviceEffects = new Dictionary<Guid, RgbEffect>(),
+                    CreatedAt = _timeProvider.Now,
+                    ModifiedAt = _timeProvider.Now
+                });
 
-                    Profiles.Add(new RgbProfile
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "Work",
-                        DeviceEffects = new Dictionary<Guid, RgbEffect>(),
-                        CreatedAt = _timeProvider.Now,
-                        ModifiedAt = _timeProvider.Now
-                    });
-                }
+                Profiles.Add(new RgbProfile
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Work",
+                    DeviceEffects = new Dictionary<Guid, RgbEffect>(),
+                    CreatedAt = _timeProvider.Now,
+                    ModifiedAt = _timeProvider.Now
+                });
             }
         }
         catch (Exception ex)

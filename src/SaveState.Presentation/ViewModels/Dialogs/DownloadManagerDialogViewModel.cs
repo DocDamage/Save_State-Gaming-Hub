@@ -101,25 +101,41 @@ public sealed partial class DownloadManagerDialogViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void LoadDownloadsAsync()
+    private async Task LoadDownloadsAsync()
     {
         try
         {
+            var activeDownloads = new List<DownloadItemViewModel>();
+            var completedDownloads = new List<DownloadItemViewModel>();
+
+            await Task.Run(() =>
+            {
+                foreach (var download in _browserService.Downloads)
+                {
+                    var viewModel = new DownloadItemViewModel(download);
+
+                    if (download.State == DownloadState.InProgress)
+                    {
+                        activeDownloads.Add(viewModel);
+                    }
+                    else
+                    {
+                        completedDownloads.Add(viewModel);
+                    }
+                }
+            });
+
             ActiveDownloads.Clear();
             CompletedDownloads.Clear();
 
-            foreach (var download in _browserService.Downloads)
+            foreach (var vm in activeDownloads)
             {
-                var viewModel = new DownloadItemViewModel(download);
+                ActiveDownloads.Add(vm);
+            }
 
-                if (download.State == DownloadState.InProgress)
-                {
-                    ActiveDownloads.Add(viewModel);
-                }
-                else
-                {
-                    CompletedDownloads.Add(viewModel);
-                }
+            foreach (var vm in completedDownloads)
+            {
+                CompletedDownloads.Add(vm);
             }
 
             OnPropertyChanged(nameof(FilteredActiveDownloads));

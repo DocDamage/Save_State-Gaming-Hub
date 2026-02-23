@@ -145,6 +145,36 @@ public partial class DialogService : IDialogService
         }
     }
 
+    public async Task<string?> ShowSaveFileDialogAsync(string title, string[] extensions, string? defaultFileName = null)
+    {
+        try
+        {
+            var mainWindow = GetMainWindow();
+            if (mainWindow == null) return null;
+
+            var patterns = extensions.Select(e => e.StartsWith("*.") ? e : $"*.{e}").ToArray();
+
+            var options = new FilePickerSaveOptions
+            {
+                Title = title,
+                SuggestedFileName = defaultFileName,
+                FileTypeChoices = new[]
+                {
+                    new FilePickerFileType("Files") { Patterns = patterns },
+                    new FilePickerFileType("All Files") { Patterns = new[] { "*.*" } }
+                }
+            };
+
+            var file = await mainWindow.StorageProvider.SaveFilePickerAsync(options);
+            return file?.Path.LocalPath;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show save file dialog");
+            return null;
+        }
+    }
+
     public async Task<EmulatorEditorResult?> ShowEmulatorEditorAsync(SaveState.Core.RomManagement.Entities.Emulator? existingEmulator = null)
     {
         try

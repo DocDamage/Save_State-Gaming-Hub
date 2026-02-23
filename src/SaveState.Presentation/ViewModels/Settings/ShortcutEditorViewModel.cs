@@ -76,18 +76,19 @@ public partial class ShortcutEditorViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ResetAll()
+    private async Task ResetAllAsync()
     {
-        _keyboardService.ResetShortcutsAsync();
+        await _keyboardService.ResetShortcutsAsync();
         LoadShortcuts();
         _logger.LogInformation("Reset all shortcuts");
     }
 
     [RelayCommand]
-    private async Task Save()
+    private Task SaveAsync()
     {
-        await _keyboardService.GetShortcutsAsync(); // Triggers save
+        // Shortcuts are saved automatically when modified via SetShortcutAsync
         _logger.LogInformation("Saved shortcut changes");
+        return Task.CompletedTask;
     }
 
     [RelayCommand]

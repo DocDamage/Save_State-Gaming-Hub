@@ -123,8 +123,8 @@ public partial class AchievementOverlayService : ObservableObject, IAchievementO
         CurrentProgress = progress;
         IsProgressVisible = true;
 
-        _logger?.LogDebug("Showing progress update for {GameName}: {Unlocked}/{Total} achievements",
-            progress.GameName, progress.UnlockedAchievements, progress.TotalAchievements);
+        _logger?.LogDebug("Showing progress update: {Unlocked}/{Total} achievements",
+            progress.UnlockedAchievements, progress.TotalAchievements);
 
         // Auto-hide progress after 10 seconds unless it's a new unlock
         if (progress.UnlockedAchievements < progress.TotalAchievements)
@@ -133,10 +133,8 @@ public partial class AchievementOverlayService : ObservableObject, IAchievementO
             {
                 Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
-                    if (CurrentProgress.GameId == progress.GameId)
-                    {
-                        IsProgressVisible = false;
-                    }
+                    // Hide progress after delay
+                    IsProgressVisible = false;
                 });
             });
         }
@@ -147,7 +145,7 @@ public partial class AchievementOverlayService : ObservableObject, IAchievementO
     {
         var milestoneObj = new AchievementMilestone
         {
-            MilestoneType = milestone,
+            Name = milestone,
             Value = value,
             Description = $"Reached {milestone} milestone: {value}",
             ReachedAt = _timeProvider?.Now ?? DateTime.Now
@@ -163,19 +161,17 @@ public partial class AchievementOverlayService : ObservableObject, IAchievementO
         var notification = new AchievementNotification
         {
             AchievementId = -milestone.Value, // Negative ID to distinguish from regular achievements
-            Title = $"🎯 {milestone.MilestoneType} Milestone!",
+            Title = $"🎯 {milestone.Name} Milestone!",
             Description = milestone.Description,
             Points = milestone.Value,
-            GameName = milestone.GameName,
             UnlockedAt = milestone.ReachedAt,
-            Rarity = AchievementRarity.Epic,
-            UnlockPercentage = 10.0
+            Rarity = AchievementRarity.Epic
         };
 
         ShowAchievementUnlocked(notification);
 
-        _logger?.LogInformation("Showing milestone notification: {MilestoneType} = {Value}",
-            milestone.MilestoneType, milestone.Value);
+        _logger?.LogInformation("Showing milestone notification: {MilestoneName} = {Value}",
+            milestone.Name, milestone.Value);
     }
 
     /// <inheritdoc />
@@ -282,8 +278,7 @@ public partial class AchievementOverlayService : ObservableObject, IAchievementO
             GameName = e.GameTitle,
             UnlockedAt = _timeProvider?.Now ?? DateTime.Now,
             IsHardcore = e.IsHardcore,
-            Rarity = rarity,
-            UnlockPercentage = 25.0 // Would be populated from achievement data
+            Rarity = rarity
         };
 
         Avalonia.Threading.Dispatcher.UIThread.Post(() => ShowAchievementUnlocked(notification));

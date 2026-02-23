@@ -68,6 +68,11 @@ public interface IDialogService
     Task<string?> ShowOpenFileDialogAsync(string title, string filterName, string[] filterPatterns);
 
     /// <summary>
+    /// Shows a file save dialog.
+    /// </summary>
+    Task<string?> ShowSaveFileDialogAsync(string title, string[] extensions, string? defaultFileName = null);
+
+    /// <summary>
     /// Shows a confirmation dialog.
     /// </summary>
     Task<bool> ShowConfirmationAsync(string title, string message, string confirmText = "OK", string cancelText = "Cancel");
@@ -365,6 +370,11 @@ public record EmulatorConfigResult(
     /// Shows an info dialog.
     /// </summary>
     Task ShowInfoAsync(string title, string message);
+
+    /// <summary>
+    /// Closes the current dialog with the specified result.
+    /// </summary>
+    void CloseDialog(object? result = null);
 }
 
 /// <summary>

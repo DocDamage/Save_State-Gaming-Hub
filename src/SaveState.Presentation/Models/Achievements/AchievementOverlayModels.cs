@@ -24,10 +24,13 @@ public record AchievementNotification
     public DateTime UnlockedAt { get; set; }
     public bool IsHardcore { get; set; }
     public AchievementRarity Rarity { get; set; }
+    public double UnlockPercentage { get; set; }
 }
 
 public record AchievementProgress
 {
+    public int GameId { get; set; }
+    public string GameName { get; set; } = string.Empty;
     public int TotalAchievements { get; set; }
     public int UnlockedAchievements { get; set; }
     public int TotalPoints { get; set; }

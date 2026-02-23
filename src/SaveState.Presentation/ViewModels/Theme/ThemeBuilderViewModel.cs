@@ -8,8 +8,10 @@ using SaveState.Core.Theme.Models;
 using SaveState.Core.Theme.Services;
 using SaveState.Infrastructure.Theme.Services;
 using SaveState.Presentation.Services;
-using IThemeService = SaveState.Presentation.Services.IThemeService;
 using SaveState.Presentation.ViewModels.Dialogs;
+
+// Use Core IThemeService for theme builder functionality
+using IThemeService = SaveState.Core.Theme.Services.IThemeService;
 
 namespace SaveState.Presentation.ViewModels.Theme;
 
@@ -22,6 +24,7 @@ public partial class ThemeBuilderViewModel : ObservableObject
     private readonly IMaterialYouService _materialYouService;
     private readonly IThemeImportExportService _importExportService;
     private readonly IDialogService _dialogService;
+    private readonly IClipboardService _clipboardService;
     private readonly ILogger<ThemeBuilderViewModel> _logger;
 
     [ObservableProperty]
@@ -88,12 +91,14 @@ public partial class ThemeBuilderViewModel : ObservableObject
         IMaterialYouService materialYouService,
         IThemeImportExportService importExportService,
         IDialogService dialogService,
+        IClipboardService clipboardService,
         ILogger<ThemeBuilderViewModel> logger)
     {
         _themeService = themeService;
         _materialYouService = materialYouService;
         _importExportService = importExportService;
         _dialogService = dialogService;
+        _clipboardService = clipboardService;
         _logger = logger;
 
         _ = InitializeAsync();
@@ -299,12 +304,8 @@ public partial class ThemeBuilderViewModel : ObservableObject
         if (result.IsSuccess)
         {
             // Copy to clipboard
-            var clipboard = Avalonia.Application.Current?.Clipboard;
-            if (clipboard != null)
-            {
-                await clipboard.SetTextAsync(result.Value!);
-                await _dialogService.ShowSuccessAsync("Theme exported to clipboard!");
-            }
+            await _clipboardService.SetTextAsync(result.Value!);
+            await _dialogService.ShowSuccessAsync("Theme exported to clipboard!");
         }
         else
         {

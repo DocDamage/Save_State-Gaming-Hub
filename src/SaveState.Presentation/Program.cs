@@ -178,8 +178,6 @@ public static class Program
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.CertificateViewerDialogViewModel>();
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Settings.BrowserSettingsViewModel>();
 
-            // Add theme service
-            builder.Services.AddSingleton<IThemeService, ThemeService>();
 
             // Add shell services
             builder.Services.AddSingleton<INavigationService, NavigationService>();

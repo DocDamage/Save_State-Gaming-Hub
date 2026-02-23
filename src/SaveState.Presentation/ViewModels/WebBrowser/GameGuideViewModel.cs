@@ -96,8 +96,8 @@ public partial class GameGuideViewModel : ObservableObject
         GuideSources.Add(new GuideSource
         {
             Name = "Steam Guides",
-            Url = game.StoreId != null && game.Platform?.Name == "Steam"
-                ? $"https://steamcommunity.com/app/{game.StoreId}/guides/"
+            Url = game.SourceId != null && game.Platform?.Name == "Steam"
+                ? $"https://steamcommunity.com/app/{game.SourceId}/guides/"
                 : $"https://steamcommunity.com/search/?text={escapedName}&filter=guides",
             Icon = "🎯",
             Description = "Community guides from Steam"

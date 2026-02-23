@@ -94,13 +94,14 @@ public partial class PluginReviewViewModel : ObservableObject
             return;
         }
 
-        await _dialogService.ShowDialogAsync("WritePluginReview", new Dictionary<string, object>
-        {
-            { "PluginId", PluginId }
-        });
+        // Show write review dialog using the review editor
+        var result = await _dialogService.ShowReviewEditorAsync();
 
         // Reload reviews after dialog closes
-        await LoadReviewsAsync(PluginId);
+        if (result != null)
+        {
+            await LoadReviewsAsync(PluginId);
+        }
     }
 
     /// <summary>

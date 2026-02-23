@@ -12,6 +12,7 @@ public interface IRgbSyncService
     
     // Effect Control
     Task<Result> SetDeviceColorAsync(Guid deviceId, RgbColor color, CancellationToken ct = default);
+    Task<Result> SetDeviceLedsAsync(Guid deviceId, Dictionary<int, RgbColor> ledColors, CancellationToken ct = default);
     Task<Result> SetDeviceEffectAsync(Guid deviceId, RgbEffect effect, CancellationToken ct = default);
     Task<Result> SetAllDevicesColorAsync(RgbColor color, CancellationToken ct = default);
     Task<Result> SetAllDevicesEffectAsync(RgbEffect effect, CancellationToken ct = default);

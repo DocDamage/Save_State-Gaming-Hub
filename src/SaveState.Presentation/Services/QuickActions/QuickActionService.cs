@@ -103,26 +103,17 @@ public sealed class QuickActionService : IQuickActionService
         if (action == null)
         {
             _logger.LogWarning("Action '{ActionId}' not found", actionId);
-            OnActionExecuted(new QuickActionExecutedEventArgs
-            {
-                Action = new QuickAction { Id = actionId, Label = "Unknown" },
-                Context = context,
-                Success = false,
-                ErrorMessage = $"Action '{actionId}' not found"
-            });
+            var unknownAction = new QuickAction { Id = actionId, Label = "Unknown" };
+            var notFoundResult = QuickActionResult.Failure($"Action '{actionId}' not found");
+            OnActionExecuted(new QuickActionExecutedEventArgs(unknownAction, notFoundResult));
             return;
         }
 
         if (!action.IsEnabled)
         {
             _logger.LogWarning("Action '{ActionId}' is disabled", actionId);
-            OnActionExecuted(new QuickActionExecutedEventArgs
-            {
-                Action = action,
-                Context = context,
-                Success = false,
-                ErrorMessage = "Action is disabled"
-            });
+            var disabledResult = QuickActionResult.Failure("Action is disabled");
+            OnActionExecuted(new QuickActionExecutedEventArgs(action, disabledResult));
             return;
         }
 
@@ -145,12 +136,8 @@ public sealed class QuickActionService : IQuickActionService
                 await action.ExecuteAsync();
             }
 
-            OnActionExecuted(new QuickActionExecutedEventArgs
-            {
-                Action = action,
-                Context = context,
-                Success = true
-            });
+            var successResult = QuickActionResult.Success();
+            OnActionExecuted(new QuickActionExecutedEventArgs(action, successResult));
 
             // Close menu after successful execution
             CloseCurrentMenu();
@@ -158,13 +145,8 @@ public sealed class QuickActionService : IQuickActionService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to execute action '{ActionId}'", actionId);
-            OnActionExecuted(new QuickActionExecutedEventArgs
-            {
-                Action = action,
-                Context = context,
-                Success = false,
-                ErrorMessage = ex.Message
-            });
+            var errorResult = QuickActionResult.Failure(ex.Message);
+            OnActionExecuted(new QuickActionExecutedEventArgs(action, errorResult));
         }
     }
 

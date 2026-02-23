@@ -8,6 +8,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Microsoft.Extensions.Logging;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -239,7 +240,7 @@ public class AnimationService : IAnimationService
             return;
         }
 
-        var animDuration = duration?.TimeSpan ?? DefaultTransitionDuration;
+        var animDuration = duration ?? DefaultTransitionDuration;
 
         element.RenderTransform = new ScaleTransform(0.8, 0.8);
         element.Opacity = 0;
@@ -531,8 +532,12 @@ public class AnimationService : IAnimationService
     {
         if (IsReducedMotionPreferred) return;
 
+        // Get the background property from the element if it has one
+        var backgroundProperty = GetBackgroundProperty(element);
+        if (backgroundProperty == null) return;
+
         // Store original background if possible
-        var originalBrush = element.GetValue(Control.BackgroundProperty);
+        var originalBrush = element.GetValue(backgroundProperty);
         var highlightBrush = new SolidColorBrush(Colors.Yellow, 0.3);
 
         var animation = new global::Avalonia.Animation.Animation
@@ -541,13 +546,24 @@ public class AnimationService : IAnimationService
             Easing = DefaultEasingInstance,
             Children =
             {
-                new KeyFrame { Cue = new Cue(0.0), Setters = { new Setter(Control.BackgroundProperty, originalBrush) } },
-                new KeyFrame { Cue = new Cue(0.5), Setters = { new Setter(Control.BackgroundProperty, highlightBrush) } },
-                new KeyFrame { Cue = new Cue(1.0), Setters = { new Setter(Control.BackgroundProperty, originalBrush) } }
+                new KeyFrame { Cue = new Cue(0.0), Setters = { new Setter(backgroundProperty, originalBrush) } },
+                new KeyFrame { Cue = new Cue(0.5), Setters = { new Setter(backgroundProperty, highlightBrush) } },
+                new KeyFrame { Cue = new Cue(1.0), Setters = { new Setter(backgroundProperty, originalBrush) } }
             }
         };
 
         await RunAnimationAsync(element, animation);
+    }
+
+    private static AvaloniaProperty? GetBackgroundProperty(Control element)
+    {
+        return element switch
+        {
+            Border _ => Border.BackgroundProperty,
+            Panel _ => Panel.BackgroundProperty,
+            ContentControl _ => ContentControl.BackgroundProperty,
+            _ => null
+        };
     }
 
     /// <inheritdoc />
@@ -592,8 +608,8 @@ public class AnimationService : IAnimationService
                     Cue = new Cue(0.0),
                     Setters =
                     {
-                        new Setter(Visual.WidthProperty, 0.0),
-                        new Setter(Visual.HeightProperty, 0.0),
+                        new Setter(Layoutable.WidthProperty, 0.0),
+                        new Setter(Layoutable.HeightProperty, 0.0),
                         new Setter(Visual.OpacityProperty, 0.5)
                     }
                 },
@@ -602,8 +618,8 @@ public class AnimationService : IAnimationService
                     Cue = new Cue(1.0),
                     Setters =
                     {
-                        new Setter(Visual.WidthProperty, maxRadius * 2),
-                        new Setter(Visual.HeightProperty, maxRadius * 2),
+                        new Setter(Layoutable.WidthProperty, maxRadius * 2),
+                        new Setter(Layoutable.HeightProperty, maxRadius * 2),
                         new Setter(Visual.OpacityProperty, 0.0)
                     }
                 }

@@ -26,6 +26,8 @@ public interface IKeyboardNavigationService
     Task ResetShortcutsAsync();
     Task ExportShortcutsAsync(string path);
     Task ImportShortcutsAsync(string path);
+    IReadOnlyList<ShortcutDefinition> GetShortcutDefinitions();
+    void ResetShortcut(string actionId);
     
     // Focus visualization
     bool IsFocusVisualEnabled { get; set; }

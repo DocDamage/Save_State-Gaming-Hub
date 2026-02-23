@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
@@ -65,7 +66,7 @@ public partial class RgbSyncGroupEditorViewModel : ObservableObject
     {
         try
         {
-            var result = await _rgbService.GetDevicesAsync();
+            var result = await _rgbService.GetDevicesAsync(CancellationToken.None);
             if (result.IsSuccess)
             {
                 AvailableDevices.Clear();
@@ -149,7 +150,7 @@ public partial class RgbSyncGroupEditorViewModel : ObservableObject
             // Apply effect to all devices in group
             foreach (var device in SelectedDevices)
             {
-                await _rgbService.ApplyEffectAsync(device.Id.ToString(), SharedEffect);
+                await _rgbService.SetDeviceEffectAsync(device.Id, SharedEffect, CancellationToken.None);
             }
 
             IsCreatingNew = false;
@@ -199,7 +200,7 @@ public partial class RgbSyncGroupEditorViewModel : ObservableObject
         {
             foreach (var deviceId in group.DeviceIds)
             {
-                await _rgbService.ApplyEffectAsync(deviceId.ToString(), group.SharedEffect);
+                await _rgbService.SetDeviceEffectAsync(deviceId, group.SharedEffect, CancellationToken.None);
             }
 
             StatusMessage = $"Effect applied to group '{group.Name}'";

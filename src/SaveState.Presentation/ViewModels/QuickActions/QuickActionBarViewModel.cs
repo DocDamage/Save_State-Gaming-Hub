@@ -1,10 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+
 using Microsoft.Extensions.Logging;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
+using SaveState.Presentation.Models.QuickActions;
 using SaveState.Presentation.Services;
 using SaveState.Presentation.Services.QuickActions;
+using SaveState.Presentation.Views.QuickActions;
 using Splat;
 
 namespace SaveState.Presentation.ViewModels.QuickActions;
@@ -44,8 +47,8 @@ public partial class QuickActionBarViewModel : ObservableObject
     /// </summary>
     public QuickActionBarViewModel()
     {
-        _quickActionService = Locator.Current.GetRequiredService<IQuickActionService>();
-        _overlayService = Locator.Current.GetRequiredService<IOverlayService>();
+        _quickActionService = Locator.Current.GetService<IQuickActionService>()!;
+        _overlayService = Locator.Current.GetService<IOverlayService>()!;
         _navigationService = Locator.Current.GetService<INavigationService>();
         _dialogService = Locator.Current.GetService<IDialogService>();
         _logger = Locator.Current.GetService<ILoggerFactory>()?.CreateLogger<QuickActionBarViewModel>();
