@@ -3,11 +3,15 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
+using SaveState.Core.GameLibrary.Services;
+using SaveState.Core.Ai.Services;
 using SaveState.EndToEndTests.Infrastructure;
 using SaveState.Presentation.Resources;
+using SaveState.Presentation.Services;
 using SaveState.Presentation.ViewModels;
 using SaveState.Presentation.ViewModels.Library;
 using SaveState.Presentation.Views.Library;
@@ -62,12 +66,57 @@ public class GameLibraryE2ETests : IClassFixture<IntegrationTestFixture>, IAsync
 
     private static LibraryView CreateLibraryView(IServiceProvider services)
     {
+        // Create mocks for all required dependencies
         var mockMediator = new Mock<IMediator>();
         var mockGameRepo = new Mock<IGameRepository>();
         var mockLogger = new Mock<ILogger<LibraryViewModel>>();
-        var mockTimeProvider = new Mock<ITimeProvider>();
-        var mockResources = CreateMockResources();
+        var mockNavigationService = new Mock<INavigationService>();
+        var mockDialogService = new Mock<IDialogService>();
+        var mockCollectionService = new Mock<IVirtualCollectionService>();
+        var mockNlSearch = new Mock<INaturalLanguageGameSearch>();
 
+        // Create sub-viewmodels with their required dependencies
+        var mockSidebarLogger = new Mock<ILogger<LibrarySidebarViewModel>>();
+        var mockToolbarLogger = new Mock<ILogger<LibraryToolbarViewModel>>();
+        var mockGridLogger = new Mock<ILogger<GameGridViewModel>>();
+        var mockListLogger = new Mock<ILogger<GameListViewModel>>();
+
+        var sidebarViewModel = new LibrarySidebarViewModel(
+            mockMediator.Object,
+            mockCollectionService.Object,
+            mockGameRepo.Object,
+            mockSidebarLogger.Object);
+
+        var toolbarViewModel = new LibraryToolbarViewModel(
+            mockMediator.Object,
+            mockToolbarLogger.Object);
+
+        var gridViewModel = new GameGridViewModel(
+            mockMediator.Object,
+            mockGameRepo.Object,
+            mockCollectionService.Object,
+            mockGridLogger.Object);
+
+        var listViewModel = new GameListViewModel(
+            mockMediator.Object,
+            mockGameRepo.Object,
+            mockCollectionService.Object,
+            mockListLogger.Object);
+
+        // Compact and table views reuse the same VM types
+        var compactViewModel = new GameGridViewModel(
+            mockMediator.Object,
+            mockGameRepo.Object,
+            mockCollectionService.Object,
+            Mock.Of<ILogger<GameGridViewModel>>());
+
+        var tableViewModel = new GameListViewModel(
+            mockMediator.Object,
+            mockGameRepo.Object,
+            mockCollectionService.Object,
+            Mock.Of<ILogger<GameListViewModel>>());
+
+        // Setup mock game repository to return test data
         mockGameRepo.Setup(x => x.GetGamesAsync(
                 It.IsAny<int>(),
                 It.IsAny<int>(),
@@ -81,19 +130,27 @@ public class GameLibraryE2ETests : IClassFixture<IntegrationTestFixture>, IAsync
                 It.IsAny<SaveState.Core.GameLibrary.Entities.CollectionFilter?>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PagedResult<Game>(
-                new[] { 
+                new[] {
                     Game.Create("Test Game 1", Guid.NewGuid()),
                     Game.Create("Test Game 2", Guid.NewGuid()),
                     Game.Create("Another Game", Guid.NewGuid())
                 },
                 3, 1, 50));
 
+        // Create the main LibraryViewModel with all required dependencies
         var viewModel = new LibraryViewModel(
-            mockMediator.Object,
+            sidebarViewModel,
+            toolbarViewModel,
+            gridViewModel,
+            listViewModel,
+            compactViewModel,
+            tableViewModel,
+            mockNavigationService.Object,
+            mockDialogService.Object,
             mockGameRepo.Object,
-            mockLogger.Object,
-            mockTimeProvider.Object,
-            mockResources);
+            mockCollectionService.Object,
+            mockNlSearch.Object,
+            mockLogger.Object);
 
         return new LibraryView { DataContext = viewModel };
     }

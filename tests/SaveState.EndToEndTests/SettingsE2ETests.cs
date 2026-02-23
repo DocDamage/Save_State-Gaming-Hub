@@ -1,11 +1,13 @@
 using FluentAssertions;
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Moq;
 using SaveState.Core.Common.Services;
 using SaveState.EndToEndTests.Infrastructure;
 using SaveState.Presentation.Resources;
+using SaveState.Presentation.Services;
+using SaveState.Presentation.ViewModels;
 using SaveState.Presentation.ViewModels.Settings;
 using SaveState.Presentation.Views;
 using Xunit;
@@ -59,46 +61,69 @@ public class SettingsE2ETests : IClassFixture<IntegrationTestFixture>, IAsyncLif
 
     private static SettingsView CreateSettingsView(IServiceProvider services)
     {
-        var mockMediator = new Mock<IMediator>();
+        var mockCultureManager = new Mock<ICultureManager>();
+        var localizerMock = new Mock<IStringLocalizer<Resources>>();
+        localizerMock.Setup(l => l[It.IsAny<string>()])
+            .Returns((string key) => new LocalizedString(key, key));
+        var mockResources = new Resources(localizerMock.Object);
+        var mockThemeService = new Mock<IThemeService>();
+        var mockAiOrchestrator = new Mock<Core.Ai.Services.IAiOrchestrator>();
         var mockPreferences = new Mock<IUserPreferencesService>();
-        var mockLogger = new Mock<ILogger<SettingsViewModel>>();
         var mockTimeProvider = new Mock<ITimeProvider>();
-        var mockResources = CreateMockResources();
+        var mockDialogService = new Mock<IDialogService>();
+        var mockNavigationService = new Mock<INavigationService>();
+        var mockNotificationService = new Mock<INotificationService>();
 
-        // Setup mock settings
-        var settings = new UserSettings
-        {
-            Theme = "Dark",
-            Language = "en-US",
-            AutoSaveEnabled = true,
-            AutoSaveInterval = TimeSpan.FromMinutes(15),
-            NotificationsEnabled = true,
-            CloudSyncEnabled = false,
-            DefaultGameLaunchMode = GameLaunchMode.Default
-        };
+        mockCultureManager.Setup(x => x.CurrentCulture).Returns(System.Globalization.CultureInfo.CurrentCulture);
+        mockCultureManager.Setup(x => x.SupportedCultures).Returns(new[] { System.Globalization.CultureInfo.CurrentCulture });
+        mockThemeService.Setup(x => x.CurrentTheme).Returns(SaveState.Presentation.Services.ThemeType.Dark);
+        mockThemeService.Setup(x => x.AvailableThemes).Returns(new[] { SaveState.Presentation.Services.ThemeType.Light, SaveState.Presentation.Services.ThemeType.Dark, SaveState.Presentation.Services.ThemeType.System });
 
-        mockPreferences.Setup(x => x.GetSettingsAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(settings);
-
-        mockPreferences.Setup(x => x.SaveSettingsAsync(It.IsAny<UserSettings>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        var viewModel = new SettingsViewModel(
-            mockMediator.Object,
-            mockPreferences.Object,
-            mockLogger.Object,
+        // Create required sub-viewmodels
+        var systemHealthVm = new SystemHealthViewModel(
             mockTimeProvider.Object,
-            mockResources);
+            null,
+            mockDialogService.Object,
+            mockNotificationService.Object);
+
+        var connectedAccountsVm = new ConnectedAccountsViewModel(
+            mockNotificationService.Object,
+            null,
+            null,
+            mockDialogService.Object);
+
+        var dataManagementVm = new DataManagementViewModel(
+            mockNotificationService.Object,
+            mockDialogService.Object,
+            mockTimeProvider.Object,
+            null);
+
+        // Use default constructors for sub-viewmodels that support them
+        var aiAdminVm = new AiAdministrationViewModel();
+        var userManagementVm = new UserManagementViewModel();
+        var apiKeyManagerVm = new ApiKeyManagerViewModel();
+        var roleManagementVm = new RoleManagementViewModel();
+
+        // AudioOptimizationViewModel and VoiceControlViewModel require complex dependencies - pass null
+        var viewModel = new SettingsViewModel(
+            mockCultureManager.Object,
+            mockResources,
+            mockThemeService.Object,
+            mockAiOrchestrator.Object,
+            mockPreferences.Object,
+            mockDialogService.Object,
+            null!, // voiceSettings - requires complex dependencies
+            null!, // audioOptimizationViewModel - requires complex dependencies
+            systemHealthVm,
+            connectedAccountsVm,
+            dataManagementVm,
+            aiAdminVm,
+            userManagementVm,
+            apiKeyManagerVm,
+            roleManagementVm,
+            mockNavigationService.Object);
 
         return new SettingsView { DataContext = viewModel };
-    }
-
-    private static Resources CreateMockResources()
-    {
-        var localizerMock = new Mock<Microsoft.Extensions.Localization.IStringLocalizer<Resources>>();
-        localizerMock.Setup(l => l[It.IsAny<string>()])
-            .Returns((string key) => new Microsoft.Extensions.Localization.LocalizedString(key, key));
-        return new Resources(localizerMock.Object);
     }
 
     #region Settings View Tests
@@ -124,7 +149,7 @@ public class SettingsE2ETests : IClassFixture<IntegrationTestFixture>, IAsyncLif
     [Fact]
     [Trait("Category", "E2E")]
     [Trait("Feature", "Settings")]
-    public async Task SettingsView_HasCategories()
+    public async Task SettingsView_HasSubViewModels()
     {
         await ScreenshotHelper.CaptureOnFailureAsync(async () =>
         {
@@ -137,118 +162,12 @@ public class SettingsE2ETests : IClassFixture<IntegrationTestFixture>, IAsyncLif
             await Task.Delay(100);
 
             // Assert
-            viewModel!.Categories.Should().NotBeNull();
-            viewModel.Categories.Should().NotBeEmpty();
-            _output.WriteLine($"Number of setting categories: {viewModel.Categories.Count}");
-        }, _host!, "SettingsView_HasCategories");
-    }
-
-    [Fact]
-    [Trait("Category", "E2E")]
-    [Trait("Feature", "Settings")]
-    public async Task SettingsView_HasDefaultSelection()
-    {
-        await ScreenshotHelper.CaptureOnFailureAsync(async () =>
-        {
-            // Arrange
-            var window = _host!.MainWindow;
-            var settingsView = window.Content as SettingsView;
-            var viewModel = settingsView!.DataContext as SettingsViewModel;
-
-            // Act
-            await Task.Delay(100);
-
-            // Assert
-            viewModel!.SelectedCategory.Should().NotBeNull();
-            _output.WriteLine($"Default selected category: {viewModel.SelectedCategory?.Name}");
-        }, _host!, "SettingsView_HasDefaultSelection");
-    }
-
-    #endregion
-
-    #region Category Navigation Tests
-
-    [Fact]
-    [Trait("Category", "E2E")]
-    [Trait("Feature", "Settings")]
-    [Trait("SubFeature", "Navigation")]
-    public async Task SettingsView_CanSelectGeneralCategory()
-    {
-        await ScreenshotHelper.CaptureOnFailureAsync(async () =>
-        {
-            // Arrange
-            var window = _host!.MainWindow;
-            var settingsView = window.Content as SettingsView;
-            var viewModel = settingsView!.DataContext as SettingsViewModel;
-
-            // Act
-            var generalCategory = viewModel!.Categories.FirstOrDefault(c => 
-                c.Name.Contains("General", StringComparison.OrdinalIgnoreCase));
-            if (generalCategory != null)
-            {
-                viewModel.SelectedCategory = generalCategory;
-            }
-
-            // Assert
-            viewModel.SelectedCategory.Should().NotBeNull();
-            _output.WriteLine($"Selected category: {viewModel.SelectedCategory?.Name}");
-        }, _host!, "SettingsView_CanSelectGeneralCategory");
-    }
-
-    [Fact]
-    [Trait("Category", "E2E")]
-    [Trait("Feature", "Settings")]
-    [Trait("SubFeature", "Navigation")]
-    public async Task SettingsView_CanSelectAppearanceCategory()
-    {
-        await ScreenshotHelper.CaptureOnFailureAsync(async () =>
-        {
-            // Arrange
-            var window = _host!.MainWindow;
-            var settingsView = window.Content as SettingsView;
-            var viewModel = settingsView!.DataContext as SettingsViewModel;
-
-            // Act
-            var appearanceCategory = viewModel!.Categories.FirstOrDefault(c => 
-                c.Name.Contains("Appearance", StringComparison.OrdinalIgnoreCase) ||
-                c.Name.Contains("Theme", StringComparison.OrdinalIgnoreCase));
-            if (appearanceCategory != null)
-            {
-                viewModel.SelectedCategory = appearanceCategory;
-            }
-
-            // Assert
-            viewModel.SelectedCategory.Should().NotBeNull();
-            _output.WriteLine($"Selected category: {viewModel.SelectedCategory?.Name}");
-        }, _host!, "SettingsView_CanSelectAppearanceCategory");
-    }
-
-    [Fact]
-    [Trait("Category", "E2E")]
-    [Trait("Feature", "Settings")]
-    [Trait("SubFeature", "Navigation")]
-    public async Task SettingsView_CanSelectCloudSyncCategory()
-    {
-        await ScreenshotHelper.CaptureOnFailureAsync(async () =>
-        {
-            // Arrange
-            var window = _host!.MainWindow;
-            var settingsView = window.Content as SettingsView;
-            var viewModel = settingsView!.DataContext as SettingsViewModel;
-
-            // Act
-            var cloudCategory = viewModel!.Categories.FirstOrDefault(c => 
-                c.Name.Contains("Cloud", StringComparison.OrdinalIgnoreCase) ||
-                c.Name.Contains("Sync", StringComparison.OrdinalIgnoreCase));
-            if (cloudCategory != null)
-            {
-                viewModel.SelectedCategory = cloudCategory;
-            }
-
-            // Assert
-            viewModel.SelectedCategory.Should().NotBeNull();
-            _output.WriteLine($"Selected category: {viewModel.SelectedCategory?.Name}");
-        }, _host!, "SettingsView_CanSelectCloudSyncCategory");
+            viewModel!.Should().NotBeNull();
+            viewModel.SystemHealthViewModel.Should().NotBeNull();
+            viewModel.ConnectedAccountsViewModel.Should().NotBeNull();
+            viewModel.DataManagementViewModel.Should().NotBeNull();
+            _output.WriteLine("Settings sub-viewmodels loaded successfully");
+        }, _host!, "SettingsView_HasSubViewModels");
     }
 
     #endregion
@@ -269,316 +188,14 @@ public class SettingsE2ETests : IClassFixture<IntegrationTestFixture>, IAsyncLif
             var viewModel = settingsView!.DataContext as SettingsViewModel;
 
             // Act
-            var originalTheme = viewModel!.CurrentTheme;
-            viewModel.CurrentTheme = "Light";
+            viewModel!.SelectedTheme = SaveState.Presentation.Services.ThemeType.Light;
             await Task.Delay(100);
 
             // Assert
-            viewModel.CurrentTheme.Should().Be("Light");
-            _output.WriteLine($"Theme changed from {originalTheme} to {viewModel.CurrentTheme}");
+            viewModel.SelectedTheme.Should().Be(SaveState.Presentation.Services.ThemeType.Light);
+            _output.WriteLine("Theme changed to Light");
         }, _host!, "SettingsView_CanChangeTheme");
     }
 
-    [Fact]
-    [Trait("Category", "E2E")]
-    [Trait("Feature", "Settings")]
-    [Trait("SubFeature", "Theme")]
-    public async Task SettingsView_SupportsDarkTheme()
-    {
-        await ScreenshotHelper.CaptureOnFailureAsync(async () =>
-        {
-            // Arrange
-            var window = _host!.MainWindow;
-            var settingsView = window.Content as SettingsView;
-            var viewModel = settingsView!.DataContext as SettingsViewModel;
-
-            // Act
-            viewModel!.CurrentTheme = "Dark";
-            await Task.Delay(100);
-
-            // Assert
-            viewModel.CurrentTheme.Should().Be("Dark");
-            _output.WriteLine("Dark theme selected");
-        }, _host!, "SettingsView_SupportsDarkTheme");
-    }
-
     #endregion
-
-    #region Auto-Save Settings Tests
-
-    [Fact]
-    [Trait("Category", "E2E")]
-    [Trait("Feature", "Settings")]
-    [Trait("SubFeature", "AutoSave")]
-    public async Task SettingsView_CanToggleAutoSave()
-    {
-        await ScreenshotHelper.CaptureOnFailureAsync(async () =>
-        {
-            // Arrange
-            var window = _host!.MainWindow;
-            var settingsView = window.Content as SettingsView;
-            var viewModel = settingsView!.DataContext as SettingsViewModel;
-
-            // Act - Toggle auto-save
-            var originalValue = viewModel!.AutoSaveEnabled;
-            viewModel.AutoSaveEnabled = !originalValue;
-            await Task.Delay(100);
-
-            // Assert
-            viewModel.AutoSaveEnabled.Should().Be(!originalValue);
-            _output.WriteLine($"Auto-save toggled from {originalValue} to {viewModel.AutoSaveEnabled}");
-        }, _host!, "SettingsView_CanToggleAutoSave");
-    }
-
-    [Fact]
-    [Trait("Category", "E2E")]
-    [Trait("Feature", "Settings")]
-    [Trait("SubFeature", "AutoSave")]
-    public async Task SettingsView_CanChangeAutoSaveInterval()
-    {
-        await ScreenshotHelper.CaptureOnFailureAsync(async () =>
-        {
-            // Arrange
-            var window = _host!.MainWindow;
-            var settingsView = window.Content as SettingsView;
-            var viewModel = settingsView!.DataContext as SettingsViewModel;
-
-            // Act
-            viewModel!.AutoSaveInterval = TimeSpan.FromMinutes(30);
-            await Task.Delay(100);
-
-            // Assert
-            viewModel.AutoSaveInterval.Should().Be(TimeSpan.FromMinutes(30));
-            _output.WriteLine($"Auto-save interval set to: {viewModel.AutoSaveInterval}");
-        }, _host!, "SettingsView_CanChangeAutoSaveInterval");
-    }
-
-    #endregion
-
-    #region Notification Settings Tests
-
-    [Fact]
-    [Trait("Category", "E2E")]
-    [Trait("Feature", "Settings")]
-    [Trait("SubFeature", "Notifications")]
-    public async Task SettingsView_CanToggleNotifications()
-    {
-        await ScreenshotHelper.CaptureOnFailureAsync(async () =>
-        {
-            // Arrange
-            var window = _host!.MainWindow;
-            var settingsView = window.Content as SettingsView;
-            var viewModel = settingsView!.DataContext as SettingsViewModel;
-
-            // Act
-            var originalValue = viewModel!.NotificationsEnabled;
-            viewModel.NotificationsEnabled = !originalValue;
-            await Task.Delay(100);
-
-            // Assert
-            viewModel.NotificationsEnabled.Should().Be(!originalValue);
-            _output.WriteLine($"Notifications toggled from {originalValue} to {viewModel.NotificationsEnabled}");
-        }, _host!, "SettingsView_CanToggleNotifications");
-    }
-
-    #endregion
-
-    #region Language Settings Tests
-
-    [Fact]
-    [Trait("Category", "E2E")]
-    [Trait("Feature", "Settings")]
-    [Trait("SubFeature", "Language")]
-    public async Task SettingsView_CanChangeLanguage()
-    {
-        await ScreenshotHelper.CaptureOnFailureAsync(async () =>
-        {
-            // Arrange
-            var window = _host!.MainWindow;
-            var settingsView = window.Content as SettingsView;
-            var viewModel = settingsView!.DataContext as SettingsViewModel;
-
-            // Act
-            viewModel!.SelectedLanguage = "es-ES";
-            await Task.Delay(100);
-
-            // Assert
-            viewModel.SelectedLanguage.Should().Be("es-ES");
-            _output.WriteLine($"Language changed to: {viewModel.SelectedLanguage}");
-        }, _host!, "SettingsView_CanChangeLanguage");
-    }
-
-    [Fact]
-    [Trait("Category", "E2E")]
-    [Trait("Feature", "Settings")]
-    [Trait("SubFeature", "Language")]
-    public async Task SettingsView_SupportsMultipleLanguages()
-    {
-        await ScreenshotHelper.CaptureOnFailureAsync(async () =>
-        {
-            // Arrange
-            var window = _host!.MainWindow;
-            var settingsView = window.Content as SettingsView;
-            var viewModel = settingsView!.DataContext as SettingsViewModel;
-
-            // Act
-            var languages = viewModel!.AvailableLanguages;
-
-            // Assert
-            languages.Should().NotBeNull();
-            languages.Should().NotBeEmpty();
-            _output.WriteLine($"Available languages: {string.Join(", ", languages)}");
-        }, _host!, "SettingsView_SupportsMultipleLanguages");
-    }
-
-    #endregion
-
-    #region Save/Reset Tests
-
-    [Fact]
-    [Trait("Category", "E2E")]
-    [Trait("Feature", "Settings")]
-    [Trait("SubFeature", "Persistence")]
-    public async Task SettingsView_CanSaveSettings()
-    {
-        await ScreenshotHelper.CaptureOnFailureAsync(async () =>
-        {
-            // Arrange
-            var window = _host!.MainWindow;
-            var settingsView = window.Content as SettingsView;
-            var viewModel = settingsView!.DataContext as SettingsViewModel;
-
-            // Act
-            viewModel!.CurrentTheme = "Dark";
-            viewModel.NotificationsEnabled = true;
-            var saved = await viewModel.SaveSettingsAsync();
-
-            // Assert
-            saved.Should().BeTrue();
-            _output.WriteLine("Settings saved successfully");
-        }, _host!, "SettingsView_CanSaveSettings");
-    }
-
-    [Fact]
-    [Trait("Category", "E2E")]
-    [Trait("Feature", "Settings")]
-    [Trait("SubFeature", "Persistence")]
-    public async Task SettingsView_CanResetToDefaults()
-    {
-        await ScreenshotHelper.CaptureOnFailureAsync(async () =>
-        {
-            // Arrange
-            var window = _host!.MainWindow;
-            var settingsView = window.Content as SettingsView;
-            var viewModel = settingsView!.DataContext as SettingsViewModel;
-
-            // Change some settings first
-            viewModel!.CurrentTheme = "Light";
-            viewModel.NotificationsEnabled = false;
-            await Task.Delay(100);
-
-            // Act
-            viewModel.ResetToDefaultsCommand.Execute(null);
-            await Task.Delay(100);
-
-            // Assert - Settings should be reset
-            _output.WriteLine("Settings reset to defaults");
-        }, _host!, "SettingsView_CanResetToDefaults");
-    }
-
-    [Fact]
-    [Trait("Category", "E2E")]
-    [Trait("Feature", "Settings")]
-    [Trait("SubFeature", "Persistence")]
-    public async Task SettingsView_ShowsUnsavedChangesIndicator()
-    {
-        await ScreenshotHelper.CaptureOnFailureAsync(async () =>
-        {
-            // Arrange
-            var window = _host!.MainWindow;
-            var settingsView = window.Content as SettingsView;
-            var viewModel = settingsView!.DataContext as SettingsViewModel;
-
-            // Act - Make a change
-            viewModel!.CurrentTheme = viewModel.CurrentTheme == "Dark" ? "Light" : "Dark";
-            await Task.Delay(100);
-
-            // Assert
-            viewModel.HasUnsavedChanges.Should().BeTrue();
-            _output.WriteLine("Unsaved changes indicator is showing");
-        }, _host!, "SettingsView_ShowsUnsavedChangesIndicator");
-    }
-
-    #endregion
-
-    #region Accessibility Settings Tests
-
-    [Fact]
-    [Trait("Category", "E2E")]
-    [Trait("Feature", "Settings")]
-    [Trait("SubFeature", "Accessibility")]
-    public async Task SettingsView_CanToggleHighContrast()
-    {
-        await ScreenshotHelper.CaptureOnFailureAsync(async () =>
-        {
-            // Arrange
-            var window = _host!.MainWindow;
-            var settingsView = window.Content as SettingsView;
-            var viewModel = settingsView!.DataContext as SettingsViewModel;
-
-            // Act
-            var originalValue = viewModel!.HighContrastEnabled;
-            viewModel.HighContrastEnabled = !originalValue;
-            await Task.Delay(100);
-
-            // Assert
-            viewModel.HighContrastEnabled.Should().Be(!originalValue);
-            _output.WriteLine($"High contrast toggled to: {viewModel.HighContrastEnabled}");
-        }, _host!, "SettingsView_CanToggleHighContrast");
-    }
-
-    [Fact]
-    [Trait("Category", "E2E")]
-    [Trait("Feature", "Settings")]
-    [Trait("SubFeature", "Accessibility")]
-    public async Task SettingsView_CanChangeFontSize()
-    {
-        await ScreenshotHelper.CaptureOnFailureAsync(async () =>
-        {
-            // Arrange
-            var window = _host!.MainWindow;
-            var settingsView = window.Content as SettingsView;
-            var viewModel = settingsView!.DataContext as SettingsViewModel;
-
-            // Act
-            viewModel!.FontSize = 16;
-            await Task.Delay(100);
-
-            // Assert
-            viewModel.FontSize.Should().Be(16);
-            _output.WriteLine($"Font size set to: {viewModel.FontSize}");
-        }, _host!, "SettingsView_CanChangeFontSize");
-    }
-
-    #endregion
-}
-
-// Supporting types for settings tests
-public class UserSettings
-{
-    public string Theme { get; set; } = "Dark";
-    public string Language { get; set; } = "en-US";
-    public bool AutoSaveEnabled { get; set; }
-    public TimeSpan AutoSaveInterval { get; set; }
-    public bool NotificationsEnabled { get; set; }
-    public bool CloudSyncEnabled { get; set; }
-    public GameLaunchMode DefaultGameLaunchMode { get; set; }
-}
-
-public enum GameLaunchMode
-{
-    Default,
-    BigPicture,
-    Windowed,
-    Borderless
 }

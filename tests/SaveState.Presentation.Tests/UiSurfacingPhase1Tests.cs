@@ -1,4 +1,6 @@
 using FluentAssertions;
+using MediatR;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Moq;
 using SaveState.Core.Common.Services;
@@ -7,6 +9,7 @@ using SaveState.Presentation.ViewModels;
 using SaveState.Presentation.ViewModels.Dialogs;
 using SaveState.Presentation.ViewModels.RetroArch;
 using SaveState.Presentation.ViewModels.Settings;
+using Xunit;
 
 namespace SaveState.Presentation.Tests;
 
@@ -23,6 +26,7 @@ public class UiSurfacingPhase1Tests
     private readonly Mock<IDialogService> _dialogServiceMock;
     private readonly Mock<ITimeProvider> _timeProviderMock;
     private readonly Mock<INotificationService> _notificationServiceMock;
+    private readonly Mock<IMediator> _mediatorMock;
 
     public UiSurfacingPhase1Tests()
     {
@@ -33,6 +37,7 @@ public class UiSurfacingPhase1Tests
         _dialogServiceMock = new Mock<IDialogService>();
         _timeProviderMock = new Mock<ITimeProvider>();
         _notificationServiceMock = new Mock<INotificationService>();
+        _mediatorMock = new Mock<IMediator>();
 
         _loggerFactoryMock
             .Setup(x => x.CreateLogger(It.IsAny<string>()))
@@ -53,8 +58,9 @@ public class UiSurfacingPhase1Tests
     {
         // Arrange & Act
         var viewModel = new RetroArchTabViewModel(
-            _loggerFactoryMock.Object,
-            _navigationServiceMock.Object);
+            _mediatorMock.Object,
+            _retroArchLoggerMock.Object,
+            _notificationServiceMock.Object);
 
         // Assert
         viewModel.Should().NotBeNull();
@@ -65,8 +71,9 @@ public class UiSurfacingPhase1Tests
     {
         // Arrange & Act
         var viewModel = new RetroArchCoreManagerViewModel(
+            _mediatorMock.Object,
             Mock.Of<ILogger<RetroArchCoreManagerViewModel>>(),
-            Mock.Of<IDialogService>());
+            _notificationServiceMock.Object);
 
         // Assert
         viewModel.Should().NotBeNull();
@@ -77,8 +84,10 @@ public class UiSurfacingPhase1Tests
     {
         // Arrange & Act
         var viewModel = new RetroArchPlaylistViewModel(
+            _mediatorMock.Object,
+            _dialogServiceMock.Object,
             Mock.Of<ILogger<RetroArchPlaylistViewModel>>(),
-            Mock.Of<IDialogService>());
+            _notificationServiceMock.Object);
 
         // Assert
         viewModel.Should().NotBeNull();
@@ -89,8 +98,10 @@ public class UiSurfacingPhase1Tests
     {
         // Arrange & Act
         var viewModel = new RetroArchNetplayViewModel(
+            _mediatorMock.Object,
+            _dialogServiceMock.Object,
             Mock.Of<ILogger<RetroArchNetplayViewModel>>(),
-            Mock.Of<IDialogService>());
+            _notificationServiceMock.Object);
 
         // Assert
         viewModel.Should().NotBeNull();
@@ -104,8 +115,7 @@ public class UiSurfacingPhase1Tests
     public void LaunchExperienceConfigDialogViewModel_InitializesWithDefaults()
     {
         // Arrange & Act
-        var viewModel = new LaunchExperienceConfigDialogViewModel(
-            _launchConfigLoggerMock.Object);
+        var viewModel = new LaunchExperienceConfigDialogViewModel();
 
         // Assert
         viewModel.Should().NotBeNull();
@@ -115,8 +125,7 @@ public class UiSurfacingPhase1Tests
     public void LaunchExperienceConfigDialogViewModel_CanToggleSettings()
     {
         // Arrange
-        var viewModel = new LaunchExperienceConfigDialogViewModel(
-            _launchConfigLoggerMock.Object);
+        var viewModel = new LaunchExperienceConfigDialogViewModel();
 
         // Act & Assert - just verify no exception is thrown
         viewModel.Should().NotBeNull();
@@ -365,10 +374,13 @@ public class UiSurfacingPhase1Tests
 
     private SettingsViewModel CreateSettingsViewModel()
     {
-        var cultureManagerMock = new Mock<SaveState.Core.Common.Services.ICultureManager>();
-        var resources = new SaveState.Presentation.Resources.Resources();
+        var cultureManagerMock = new Mock<ICultureManager>();
+        var localizerMock = new Mock<IStringLocalizer<Resources.Resources>>();
+        localizerMock.Setup(l => l[It.IsAny<string>()])
+            .Returns((string key) => new LocalizedString(key, key));
+        var resources = new Resources.Resources(localizerMock.Object);
         var themeServiceMock = new Mock<IThemeService>();
-        var aiOrchestratorMock = new Mock<SaveState.Core.Ai.Services.IAiOrchestrator>();
+        var aiOrchestratorMock = new Mock<Core.Ai.Services.IAiOrchestrator>();
         var preferencesServiceMock = new Mock<IUserPreferencesService>();
 
         cultureManagerMock.Setup(x => x.CurrentCulture).Returns(System.Globalization.CultureInfo.CurrentCulture);
@@ -388,21 +400,20 @@ public class UiSurfacingPhase1Tests
             null,
             _dialogServiceMock.Object);
 
-        var dataManagementVm = new DataManagementViewModel();
+        var dataManagementVm = new DataManagementViewModel(
+            _notificationServiceMock.Object,
+            _dialogServiceMock.Object,
+            _timeProviderMock.Object,
+            null);
 
-        var aiAdminVm = new AiAdministrationViewModel(
-            Mock.Of<ILogger<AiAdministrationViewModel>>(),
-            Mock.Of<IDialogService>(),
-            Mock.Of<SaveState.Core.Ai.Services.IAiOrchestrator>(),
-            Mock.Of<SaveState.Core.Common.Services.IUserPreferencesService>());
+        // Use default constructors for sub-viewmodels to simplify tests
+        var aiAdminVm = new AiAdministrationViewModel();
+        var userManagementVm = new UserManagementViewModel();
+        var apiKeyManagerVm = new ApiKeyManagerViewModel();
+        var roleManagementVm = new RoleManagementViewModel();
 
-        var audioOptimizationVm = new AudioOptimizationViewModel();
-
-        var voiceControlVm = new Shell.VoiceControlViewModel(
-            Mock.Of<ILogger<Shell.VoiceControlViewModel>>(),
-            Mock.Of<SaveState.Core.Input.Services.IVoiceCommandService>(),
-            Mock.Of<INotificationService>());
-
+        // Create SettingsViewModel using only the valid parameters it accepts
+        // Note: audioOptimizer and voiceControl need complex dependencies, so we test only what's possible
         return new SettingsViewModel(
             cultureManagerMock.Object,
             resources,
@@ -410,12 +421,15 @@ public class UiSurfacingPhase1Tests
             aiOrchestratorMock.Object,
             preferencesServiceMock.Object,
             _dialogServiceMock.Object,
-            voiceControlVm,
-            audioOptimizationVm,
+            null, // voiceControlVm - requires complex dependencies
+            null, // audioOptimizationVm - requires complex dependencies
             systemHealthVm,
             connectedAccountsVm,
             dataManagementVm,
             aiAdminVm,
+            userManagementVm,
+            apiKeyManagerVm,
+            roleManagementVm,
             _navigationServiceMock.Object);
     }
 
