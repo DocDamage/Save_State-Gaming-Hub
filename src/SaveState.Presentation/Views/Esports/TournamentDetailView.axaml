@@ -1,0 +1,445 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Esports"
+             xmlns:models="using:SaveState.Core.TournamentManagement.Models"
+             xmlns:local="using:SaveState.Presentation.Views.Esports"
+             x:Class="SaveState.Presentation.Views.Esports.TournamentDetailView"
+             x:DataType="vm:TournamentDetailViewModel">
+
+  <UserControl.Styles>
+    <!-- Glass Card -->
+    <Style Selector="Border.glassCard">
+      <Setter Property="Background" Value="{StaticResource GlassBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource GlassBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="20" />
+    </Style>
+
+    <!-- Status Badge -->
+    <Style Selector="Border.statusBadge">
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="8,4" />
+      <Setter Property="Background" Value="{StaticResource AccentBrush}40" />
+      <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
+    <!-- Tab Style -->
+    <Style Selector="TabItem">
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="FontWeight" Value="Medium" />
+      <Setter Property="Padding" Value="16,8" />
+    </Style>
+
+    <!-- Action Button -->
+    <Style Selector="Button.actionButton">
+      <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Padding" Value="16,8" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Button.secondaryButton">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Padding" Value="12,6" />
+    </Style>
+
+    <!-- Data Grid Style -->
+    <Style Selector="DataGrid">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="GridLinesVisibility" Value="Horizontal" />
+      <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource InputBorderBrush}" />
+    </Style>
+
+    <Style Selector="DataGridColumnHeader">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Padding" Value="12,8" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,Auto,*" Margin="20">
+    <!-- Header -->
+    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+      <StackPanel Grid.Column="0" Spacing="4">
+        <TextBlock Text="{Binding Tournament.Name}"
+                   FontSize="28"
+                   FontWeight="Bold"
+                   Foreground="{StaticResource ForegroundBrush}"
+                   TextTrimming="CharacterEllipsis" />
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <TextBlock Text="{Binding Tournament.GameName}"
+                     FontSize="14"
+                     Opacity="0.8" />
+          <TextBlock Text="•" Opacity="0.5" />
+          <TextBlock Text="{Binding Tournament.Format}"
+                     FontSize="14"
+                     Opacity="0.8" />
+        </StackPanel>
+      </StackPanel>
+
+      <StackPanel Grid.Column="1"
+                  Orientation="Horizontal"
+                  Spacing="8"
+                  VerticalAlignment="Top">
+        <Button Classes="secondaryButton"
+                Content="Share"
+                Command="{Binding ShareTournamentCommand}" />
+        <Button Classes="actionButton"
+                Content="Edit"
+                IsVisible="{Binding IsOrganizer}"
+                Command="{Binding EditTournamentCommand}" />
+      </StackPanel>
+    </Grid>
+
+    <!-- Status Bar -->
+    <Border Grid.Row="1"
+            Classes="glassCard"
+            Margin="0,0,0,16">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <Border Grid.Column="0" Classes="statusBadge">
+          <TextBlock Text="{Binding Tournament.Status}"
+                     FontWeight="SemiBold" />
+        </Border>
+
+        <StackPanel Grid.Column="1"
+                    Orientation="Horizontal"
+                    Spacing="24"
+                    VerticalAlignment="Center"
+                    Margin="16,0">
+          <TextBlock>
+            <TextBlock.Text>
+              <MultiBinding StringFormat="{} 👥 {0}/{1} players">
+                <Binding Path="Tournament.CurrentParticipants" />
+                <Binding Path="Tournament.MaxParticipants" />
+              </MultiBinding>
+            </TextBlock.Text>
+          </TextBlock>
+
+          <TextBlock Text="{Binding Tournament.TournamentStart, StringFormat='📅 {0:MMM d, yyyy}'}" />
+
+          <TextBlock IsVisible="{Binding Tournament.PrizePool.TotalAmount, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <TextBlock.Text>
+              <MultiBinding StringFormat="{} 💰 ${0:N0} Prize Pool">
+                <Binding Path="Tournament.PrizePool.TotalAmount" />
+              </MultiBinding>
+            </TextBlock.Text>
+          </TextBlock>
+        </StackPanel>
+
+        <StackPanel Grid.Column="2"
+                    Orientation="Horizontal"
+                    Spacing="8">
+          <Button Classes="actionButton"
+                  Content="Register Now"
+                  IsVisible="{Binding !IsRegistered}"
+                  Command="{Binding RegisterCommand}" />
+
+          <Button Classes="secondaryButton"
+                  Content="Check In"
+                  IsVisible="{Binding CanCheckIn}"
+                  Command="{Binding CheckInCommand}" />
+
+          <Button Classes="secondaryButton"
+                  Content="Unregister"
+                  IsVisible="{Binding IsRegistered}"
+                  Command="{Binding UnregisterCommand}" />
+
+          <Button Classes="actionButton"
+                  Content="Start Tournament"
+                  IsVisible="{Binding IsOrganizer}"
+                  Command="{Binding StartTournamentCommand}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Tabs -->
+    <TabControl Grid.Row="2" SelectedIndex="{Binding SelectedTabIndex}">
+      <!-- Overview Tab -->
+      <TabItem Header="Overview">
+        <Grid ColumnDefinitions="*,*" Margin="0,16,0,0">
+          <!-- Left Column -->
+          <StackPanel Grid.Column="0" Spacing="16" Margin="0,0,8,0">
+            <!-- Status Card -->
+            <Border Classes="glassCard">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Tournament Status"
+                           FontSize="16"
+                           FontWeight="SemiBold" />
+
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                  <TextBlock Grid.Row="0" Grid.Column="0"
+                             Text="Status:"
+                             Opacity="0.7"
+                             Margin="0,0,12,8" />
+                  <TextBlock Grid.Row="0" Grid.Column="1"
+                             Text="{Binding Tournament.Status}"
+                             FontWeight="Medium" />
+
+                  <TextBlock Grid.Row="1" Grid.Column="0"
+                             Text="Starts:"
+                             Opacity="0.7"
+                             Margin="0,0,12,8" />
+                  <TextBlock Grid.Row="1" Grid.Column="1"
+                             Text="{Binding Tournament.TournamentStart, StringFormat='{}{0:MMM d, yyyy HH:mm}'}" />
+
+                  <TextBlock Grid.Row="2" Grid.Column="0"
+                             Text="Registration closes:"
+                             Opacity="0.7"
+                             Margin="0,0,12,8" />
+                  <TextBlock Grid.Row="2" Grid.Column="1"
+                             Text="{Binding Tournament.RegistrationEnd, StringFormat='{}{0:MMM d, yyyy HH:mm}'}" />
+
+                  <TextBlock Grid.Row="3" Grid.Column="0"
+                             Text="Players:"
+                             Opacity="0.7"
+                             Margin="0,0,12,0" />
+                  <TextBlock Grid.Row="3" Grid.Column="1">
+                    <TextBlock.Text>
+                      <MultiBinding StringFormat="{} {0}/{1}">
+                        <Binding Path="Tournament.CurrentParticipants" />
+                        <Binding Path="Tournament.MaxParticipants" />
+                      </MultiBinding>
+                    </TextBlock.Text>
+                  </TextBlock>
+                </Grid>
+              </StackPanel>
+            </Border>
+
+            <!-- Organizer Card -->
+            <Border Classes="glassCard">
+              <StackPanel Spacing="8">
+                <TextBlock Text="Organizer"
+                           FontSize="16"
+                           FontWeight="SemiBold" />
+                <TextBlock Text="{Binding Tournament.OrganizerName}"
+                           FontSize="14" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+
+          <!-- Right Column -->
+          <StackPanel Grid.Column="1" Spacing="16" Margin="8,0,0,0">
+            <!-- Prize Pool Card -->
+            <Border Classes="glassCard"
+                    IsVisible="{Binding Tournament.PrizePool.TotalAmount, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Prize Pool"
+                           FontSize="16"
+                           FontWeight="SemiBold" />
+
+                <TextBlock>
+                  <TextBlock.Text>
+                    <MultiBinding StringFormat="{} Total: ${0:N0}">
+                      <Binding Path="Tournament.PrizePool.TotalAmount" />
+                    </MultiBinding>
+                  </TextBlock.Text>
+                  <TextBlock.FontSize>24</TextBlock.FontSize>
+                  <TextBlock.FontWeight>Bold</TextBlock.FontWeight>
+                </TextBlock>
+
+                <ItemsControl ItemsSource="{Binding Tournament.PrizePool.Allocations}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="models:PrizeAllocation">
+                      <TextBlock>
+                        <TextBlock.Text>
+                          <MultiBinding StringFormat="{} • {0}. ${1:N0}">
+                            <Binding Path="Place" />
+                            <Binding Path="Amount" />
+                          </MultiBinding>
+                        </TextBlock.Text>
+                      </TextBlock>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+
+            <!-- Stream Card -->
+            <Border Classes="glassCard"
+                    IsVisible="{Binding Tournament.Matches[0].StreamUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+              <StackPanel Spacing="8">
+                <TextBlock Text="Stream"
+                           FontSize="16"
+                           FontWeight="SemiBold" />
+                <TextBlock Text="{Binding Tournament.Matches[0].StreamUrl}"
+                           Foreground="{StaticResource AccentBrush}"
+                           TextDecorations="Underline"
+                           Cursor="Hand" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Grid>
+      </TabItem>
+
+      <!-- Bracket Tab -->
+      <TabItem Header="Bracket">
+        <Panel Margin="0,16,0,0">
+          <local:BracketView Tournament="{Binding Tournament}"
+                             Bracket="{Binding Bracket}" />
+        </Panel>
+      </TabItem>
+
+      <!-- Participants Tab -->
+      <TabItem Header="Participants">
+        <Border Classes="glassCard" Margin="0,16,0,0">
+          <DataGrid ItemsSource="{Binding Participants}"
+                    IsReadOnly="True"
+                    AutoGenerateColumns="False">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Seed"
+                                  Binding="{Binding Seed}"
+                                  Width="60" />
+              <DataGridTextColumn Header="Player"
+                                  Binding="{Binding DisplayName}"
+                                  Width="200" />
+              <DataGridTextColumn Header="Status"
+                                  Binding="{Binding Status}"
+                                  Width="120" />
+              <DataGridTextColumn Header="Team"
+                                  Binding="{Binding TeamName}"
+                                  Width="150" />
+              <DataGridTextColumn Header="Registered"
+                                  Binding="{Binding RegisteredAt, StringFormat='{}{0:MM/dd/yyyy}'}"
+                                  Width="120" />
+            </DataGrid.Columns>
+          </DataGrid>
+        </Border>
+      </TabItem>
+
+      <!-- Matches Tab -->
+      <TabItem Header="Matches">
+        <Border Classes="glassCard" Margin="0,16,0,0">
+          <DataGrid ItemsSource="{Binding Matches}"
+                    IsReadOnly="True"
+                    AutoGenerateColumns="False">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Round"
+                                  Binding="{Binding Round}"
+                                  Width="80" />
+              <DataGridTextColumn Header="Match"
+                                  Binding="{Binding MatchNumber}"
+                                  Width="80" />
+              <DataGridTextColumn Header="Player 1"
+                                  Binding="{Binding Participant1Name}"
+                                  Width="150" />
+              <DataGridTextColumn Header="Score"
+                                  Width="80">
+                <DataGridTextColumn.Binding>
+                  <MultiBinding StringFormat="{}{0} - {1}">
+                    <Binding Path="Participant1Score" TargetNullValue="-" />
+                    <Binding Path="Participant2Score" TargetNullValue="-" />
+                  </MultiBinding>
+                </DataGridTextColumn.Binding>
+              </DataGridTextColumn>
+              <DataGridTextColumn Header="Player 2"
+                                  Binding="{Binding Participant2Name}"
+                                  Width="150" />
+              <DataGridTextColumn Header="Status"
+                                  Binding="{Binding Status}"
+                                  Width="100" />
+              <DataGridTemplateColumn Header="Actions" Width="120">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                      <Button Content="Report"
+                              Classes="secondaryButton"
+                              FontSize="12"
+                              Padding="8,4"
+                              Command="{Binding $parent[DataGrid].((vm:TournamentDetailViewModel)DataContext).ReportResultCommand}"
+                              CommandParameter="{Binding}" />
+                    </StackPanel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Border>
+      </TabItem>
+
+      <!-- Rules Tab -->
+      <TabItem Header="Rules">
+        <ScrollViewer Margin="0,16,0,0">
+          <StackPanel Spacing="16">
+            <Border Classes="glassCard">
+              <StackPanel Spacing="12">
+                <TextBlock Text="Tournament Rules"
+                           FontSize="18"
+                           FontWeight="SemiBold" />
+
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                  <TextBlock Grid.Row="0" Grid.Column="0"
+                             Text="Best of:"
+                             Opacity="0.7"
+                             Margin="0,0,12,8" />
+                  <TextBlock Grid.Row="0" Grid.Column="1"
+                             Text="{Binding Tournament.Rules.BestOf}" />
+
+                  <TextBlock Grid.Row="1" Grid.Column="0"
+                             Text="Time Limit:"
+                             Opacity="0.7"
+                             Margin="0,0,12,8" />
+                  <TextBlock Grid.Row="1" Grid.Column="1"
+                             Text="{Binding Tournament.Rules.MatchTimeLimit}" />
+
+                  <TextBlock Grid.Row="2" Grid.Column="0"
+                             Text="Allow Draws:"
+                             Opacity="0.7"
+                             Margin="0,0,12,8" />
+                  <TextBlock Grid.Row="2" Grid.Column="1"
+                             Text="{Binding Tournament.Rules.AllowDraws}" />
+
+                  <TextBlock Grid.Row="3" Grid.Column="0"
+                             Text="Max Rounds:"
+                             Opacity="0.7"
+                             Margin="0,0,12,0" />
+                  <TextBlock Grid.Row="3" Grid.Column="1"
+                             Text="{Binding Tournament.Rules.MaxRounds}" />
+                </Grid>
+              </StackPanel>
+            </Border>
+
+            <Border Classes="glassCard"
+                    IsVisible="{Binding Tournament.Rules.AllowedMaps.Count}">
+              <StackPanel Spacing="8">
+                <TextBlock Text="Allowed Maps"
+                           FontSize="16"
+                           FontWeight="SemiBold" />
+                <ItemsControl ItemsSource="{Binding Tournament.Rules.AllowedMaps}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding}" Margin="0,2" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+
+            <Border Classes="glassCard"
+                    IsVisible="{Binding Tournament.Rules.BannedItems.Count}">
+              <StackPanel Spacing="8">
+                <TextBlock Text="Banned Items"
+                           FontSize="16"
+                           FontWeight="SemiBold" />
+                <ItemsControl ItemsSource="{Binding Tournament.Rules.BannedItems}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding}" Margin="0,2" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+    </TabControl>
+  </Grid>
+</UserControl>

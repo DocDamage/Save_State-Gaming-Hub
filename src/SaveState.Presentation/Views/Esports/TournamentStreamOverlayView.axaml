@@ -1,0 +1,254 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Esports"
+             x:Class="SaveState.Presentation.Views.Esports.TournamentStreamOverlayView"
+             x:DataType="vm:LiveTournamentTrackerViewModel"
+             Background="Transparent">
+
+  <UserControl.Styles>
+    <!-- Compact Overlay Styles -->
+    <Style Selector="Border.OverlayContainer">
+      <Setter Property="Background" Value="#cc000000" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="15" />
+      <Setter Property="Margin" Value="10" />
+    </Style>
+
+    <Style Selector="TextBlock.PlayerName">
+      <Setter Property="FontSize" Value="24" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="#fff" />
+      <Setter Property="TextShadow">
+        <Setter.Value>
+          <Shadow OffsetX="2" OffsetY="2" BlurRadius="4" Color="#000" />
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style Selector="TextBlock.ScoreDisplay">
+      <Setter Property="FontSize" Value="48" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="#00d9ff" />
+      <Setter Property="TextShadow">
+        <Setter.Value>
+          <Shadow OffsetX="2" OffsetY="2" BlurRadius="4" Color="#000" />
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style Selector="TextBlock.TournamentInfo">
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="Foreground" Value="#ccc" />
+      <Setter Property="TextShadow">
+        <Setter.Value>
+          <Shadow OffsetX="1" OffsetY="1" BlurRadius="2" Color="#000" />
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style Selector="TextBlock.BracketInfo">
+      <Setter Property="FontSize" Value="16" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="#ffd700" />
+      <Setter Property="TextShadow">
+        <Setter.Value>
+          <Shadow OffsetX="1" OffsetY="1" BlurRadius="2" Color="#000" />
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style Selector="Border.ScoreBox">
+      <Setter Property="Background" Value="#80000000" />
+      <Setter Property="BorderBrush" Value="#00d9ff" />
+      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="20,10" />
+      <Setter Property="MinWidth" Value="80" />
+    </Style>
+
+    <Style Selector="Border.UpcomingMatch">
+      <Setter Property="Background" Value="#80000000" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Padding" Value="10,6" />
+      <Setter Property="Margin" Value="0,2" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*,Auto">
+    <!-- Top Bar - Tournament Info -->
+    <Border Grid.Row="0" Classes="OverlayContainer">
+      <Grid ColumnDefinitions="*,Auto,*">
+        <!-- Tournament Name -->
+        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+          <TextBlock Text="{Binding CurrentTournament.Name, FallbackValue='Tournament'}"
+                     FontSize="18"
+                     FontWeight="Bold"
+                     Foreground="#fff" />
+          <TextBlock Text="{Binding LiveMatches[0].RoundName, FallbackValue='Round'}"
+                     Classes="TournamentInfo" />
+        </StackPanel>
+
+        <!-- Center - Live Indicator -->
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+          <Ellipse Width="12" Height="12" Fill="#ff0000">
+            <Ellipse.Styles>
+              <Style Selector="Ellipse">
+                <Style.Animations>
+                  <Animation Duration="0:0:1" IterationCount="INFINITE">
+                    <KeyFrame Cue="0%">
+                      <Setter Property="Opacity" Value="1" />
+                    </KeyFrame>
+                    <KeyFrame Cue="50%">
+                      <Setter Property="Opacity" Value="0.3" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                      <Setter Property="Opacity" Value="1" />
+                    </KeyFrame>
+                  </Animation>
+                </Style.Animations>
+              </Style>
+            </Ellipse.Styles>
+          </Ellipse>
+          <TextBlock Text="LIVE"
+                     FontSize="16"
+                     FontWeight="Bold"
+                     Foreground="#ff4444" />
+        </StackPanel>
+
+        <!-- Bracket Position -->
+        <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+          <TextBlock Text="{Binding LiveMatches[0].RoundName, FallbackValue=''}"
+                     Classes="BracketInfo"
+                     HorizontalAlignment="Right" />
+          <TextBlock Text="{Binding LiveMatches[0].IsWinnersBracket, Converter={StaticResource BoolToStringConverter}, ConverterParameter='Winners Bracket|Losers Bracket', FallbackValue=''}"
+                     Classes="TournamentInfo"
+                     HorizontalAlignment="Right" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Center - Current Match Display -->
+    <Border Grid.Row="1" Classes="OverlayContainer" Margin="20,10">
+      <Panel>
+        <!-- Current Match -->
+        <Grid ColumnDefinitions="*,Auto,Auto,Auto,*"
+              IsVisible="{Binding LiveMatches.Count, Converter={StaticResource CountToBoolConverter}}">
+          <!-- Player 1 -->
+          <StackPanel Grid.Column="0" HorizontalAlignment="Right" Spacing="5">
+            <TextBlock Text="{Binding LiveMatches[0].Player1Name, FallbackValue='Player 1'}"
+                       Classes="PlayerName"
+                       HorizontalAlignment="Right" />
+            <TextBlock Text="{Binding LiveMatches[0].Player1Score}"
+                       Classes="ScoreDisplay"
+                       HorizontalAlignment="Right" />
+          </StackPanel>
+
+          <!-- VS -->
+          <TextBlock Grid.Column="1"
+                     Text="VS"
+                     FontSize="20"
+                     FontWeight="Bold"
+                     Foreground="#666"
+                     VerticalAlignment="Center"
+                     Margin="20,0" />
+
+          <!-- Scores -->
+          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+            <Border Classes="ScoreBox">
+              <TextBlock Text="{Binding LiveMatches[0].Player1Score}"
+                         Classes="ScoreDisplay" />
+            </Border>
+            <TextBlock Text="-"
+                       FontSize="36"
+                       FontWeight="Bold"
+                       Foreground="#fff"
+                       VerticalAlignment="Center" />
+            <Border Classes="ScoreBox">
+              <TextBlock Text="{Binding LiveMatches[0].Player2Score}"
+                         Classes="ScoreDisplay" />
+            </Border>
+          </StackPanel>
+
+          <!-- VS (again for layout) -->
+          <TextBlock Grid.Column="3"
+                     Text="VS"
+                     FontSize="20"
+                     FontWeight="Bold"
+                     Foreground="#666"
+                     VerticalAlignment="Center"
+                     Margin="20,0" />
+
+          <!-- Player 2 -->
+          <StackPanel Grid.Column="4" HorizontalAlignment="Left" Spacing="5">
+            <TextBlock Text="{Binding LiveMatches[0].Player2Name, FallbackValue='Player 2'}"
+                       Classes="PlayerName"
+                       HorizontalAlignment="Left" />
+            <TextBlock Text="{Binding LiveMatches[0].Player2Score}"
+                       Classes="ScoreDisplay"
+                       HorizontalAlignment="Left" />
+          </StackPanel>
+        </Grid>
+
+        <!-- No Match Message -->
+        <TextBlock Text="Waiting for next match..."
+                   FontSize="24"
+                   Foreground="#888"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   IsVisible="{Binding LiveMatches.Count, Converter={StaticResource CountToBoolConverter}, ConverterParameter=Invert}" />
+      </Panel>
+    </Border>
+
+    <!-- Bottom - Upcoming Matches & Info -->
+    <Border Grid.Row="2" Classes="OverlayContainer">
+      <Grid ColumnDefinitions="*,Auto">
+        <!-- Upcoming Matches -->
+        <StackPanel Grid.Column="0" Spacing="5">
+          <TextBlock Text="UP NEXT"
+                     FontSize="12"
+                     FontWeight="Bold"
+                     Foreground="#00d9ff" />
+          <ItemsControl ItemsSource="{Binding UpcomingMatches}" MaxHeight="100">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Classes="UpcomingMatch">
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="{Binding RoundName}"
+                               Foreground="#888"
+                               FontSize="12"
+                               MinWidth="80" />
+                    <TextBlock Text="{Binding Player1Name}"
+                               Foreground="#fff"
+                               FontSize="12"
+                               FontWeight="SemiBold" />
+                    <TextBlock Text="vs"
+                               Foreground="#666"
+                               FontSize="12" />
+                    <TextBlock Text="{Binding Player2Name}"
+                               Foreground="#fff"
+                               FontSize="12"
+                               FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding ScheduledTime, StringFormat='{}{0:HH:mm}'}"
+                               Foreground="#888"
+                               FontSize="12"
+                               IsVisible="{Binding ScheduledTime, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <!-- Connection Status -->
+        <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+          <TextBlock Text="{Binding ConnectionStatus}"
+                     FontSize="10"
+                     Foreground="{Binding IsConnected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter='#00ff88|#ff4444'}" />
+          <TextBlock Text="{Binding StatusMessage}"
+                     FontSize="10"
+                     Foreground="#888" />
+        </StackPanel>
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

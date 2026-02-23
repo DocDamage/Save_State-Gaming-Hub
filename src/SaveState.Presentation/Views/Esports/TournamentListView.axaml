@@ -1,0 +1,337 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Esports"
+             xmlns:models="using:SaveState.Core.TournamentManagement.Models"
+             x:Class="SaveState.Presentation.Views.Esports.TournamentListView"
+             x:DataType="vm:TournamentListViewModel">
+
+  <UserControl.Styles>
+    <!-- Glassmorphism Card Style -->
+    <Style Selector="Border.tournamentCard">
+      <Setter Property="Background" Value="{StaticResource GlassBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource GlassBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="20" />
+      <Setter Property="Margin" Value="0,0,0,12" />
+    </Style>
+
+    <!-- Status Badge Styles -->
+    <Style Selector="Border.statusBadge">
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="8,4" />
+    </Style>
+
+    <Style Selector="Border.statusBadge[Tag=Green]">
+      <Setter Property="Background" Value="#22C55E20" />
+      <Setter Property="BorderBrush" Value="#22C55E" />
+    </Style>
+
+    <Style Selector="Border.statusBadge[Tag=Blue]">
+      <Setter Property="Background" Value="#3B82F620" />
+      <Setter Property="BorderBrush" Value="#3B82F6" />
+    </Style>
+
+    <Style Selector="Border.statusBadge[Tag=Gray]">
+      <Setter Property="Background" Value="#6B728020" />
+      <Setter Property="BorderBrush" Value="#6B7280" />
+    </Style>
+
+    <Style Selector="Border.statusBadge[Tag=Red]">
+      <Setter Property="Background" Value="#EF444420" />
+      <Setter Property="BorderBrush" Value="#EF4444" />
+    </Style>
+
+    <Style Selector="Border.statusBadge[Tag=Orange]">
+      <Setter Property="Background" Value="#F9731620" />
+      <Setter Property="BorderBrush" Value="#F97316" />
+    </Style>
+
+    <Style Selector="Border.statusBadge[Tag=Yellow]">
+      <Setter Property="Background" Value="#EAB30820" />
+      <Setter Property="BorderBrush" Value="#EAB308" />
+    </Style>
+
+    <Style Selector="Border.statusBadge[Tag=Purple]">
+      <Setter Property="Background" Value="#A855F720" />
+      <Setter Property="BorderBrush" Value="#A855F7" />
+    </Style>
+
+    <!-- Filter Bar Style -->
+    <Style Selector="Border.filterBar">
+      <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="16" />
+    </Style>
+
+    <!-- Action Button Styles -->
+    <Style Selector="Button.actionButton">
+      <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Padding" Value="16,8" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Button.secondaryButton">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Padding" Value="12,6" />
+    </Style>
+
+    <!-- Loading Indicator -->
+    <Style Selector="ProgressRing.loadingRing">
+      <Setter Property="Width" Value="48" />
+      <Setter Property="Height" Value="48" />
+      <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*" Margin="20">
+    <!-- Header -->
+    <StackPanel Grid.Row="0" Spacing="16">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Grid.Column="0" Spacing="4">
+          <TextBlock Text="🏆 Tournaments"
+                     FontSize="28"
+                     FontWeight="Bold"
+                     Foreground="{StaticResource ForegroundBrush}" />
+          <TextBlock Text="Join competitive gaming events and tournaments"
+                     FontSize="14"
+                     Opacity="0.7"
+                     Foreground="{StaticResource ForegroundBrush}" />
+        </StackPanel>
+
+        <Button Grid.Column="1"
+                Classes="actionButton"
+                Command="{Binding CreateTournamentCommand}"
+                IsVisible="{Binding IsOrganizer}">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="+" FontSize="16" />
+            <TextBlock Text="Create Tournament" />
+          </StackPanel>
+        </Button>
+      </Grid>
+
+      <!-- Filter Bar -->
+      <Border Classes="filterBar">
+        <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+          <!-- Search -->
+          <TextBox Grid.Column="0"
+                   Text="{Binding SearchQuery}"
+                   Watermark="🔍 Search tournaments..."
+                   Margin="0,0,16,0"
+                   VerticalAlignment="Center">
+            <TextBox.InnerLeftContent>
+              <TextBlock Text="🔍" Margin="8,0,0,0" />
+            </TextBox.InnerLeftContent>
+          </TextBox>
+
+          <!-- Status Filter -->
+          <ComboBox Grid.Column="1"
+                    SelectedItem="{Binding StatusFilter}"
+                    PlaceholderText="All Statuses"
+                    Margin="0,0,12,0"
+                    Width="150"
+                    VerticalAlignment="Center">
+            <ComboBox.ItemsSource>
+              <x:Array Type="models:TournamentStatus?">
+                <x:Null />
+                <models:TournamentStatus>Draft</models:TournamentStatus>
+                <models:TournamentStatus>RegistrationOpen</models:TournamentStatus>
+                <models:TournamentStatus>RegistrationClosed</models:TournamentStatus>
+                <models:TournamentStatus>InProgress</models:TournamentStatus>
+                <models:TournamentStatus>Completed</models:TournamentStatus>
+              </x:Array>
+            </ComboBox.ItemsSource>
+          </ComboBox>
+
+          <!-- Format Filter -->
+          <ComboBox Grid.Column="2"
+                    SelectedItem="{Binding FormatFilter}"
+                    PlaceholderText="All Formats"
+                    Margin="0,0,12,0"
+                    Width="150"
+                    VerticalAlignment="Center">
+            <ComboBox.ItemsSource>
+              <x:Array Type="models:TournamentFormat?">
+                <x:Null />
+                <models:TournamentFormat>SingleElimination</models:TournamentFormat>
+                <models:TournamentFormat>DoubleElimination</models:TournamentFormat>
+                <models:TournamentFormat>RoundRobin</models:TournamentFormat>
+                <models:TournamentFormat>Swiss</models:TournamentFormat>
+              </x:Array>
+            </ComboBox.ItemsSource>
+          </ComboBox>
+
+          <!-- Clear Button -->
+          <Button Grid.Column="3"
+                  Classes="secondaryButton"
+                  Content="Clear"
+                  Command="{Binding ClearFiltersCommand}"
+                  Margin="0,0,12,0"
+                  VerticalAlignment="Center" />
+
+          <!-- Apply Button -->
+          <Button Grid.Column="4"
+                  Classes="actionButton"
+                  Content="Apply Filters"
+                  Command="{Binding ApplyFiltersCommand}"
+                  VerticalAlignment="Center" />
+        </Grid>
+      </Border>
+    </StackPanel>
+
+    <!-- Tournament List -->
+    <ScrollViewer Grid.Row="1" Margin="0,16,0,0">
+      <Panel>
+        <!-- Loading Indicator -->
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    IsVisible="{Binding IsLoading}"
+                    Spacing="16">
+          <ProgressRing Classes="loadingRing" IsIndeterminate="True" />
+          <TextBlock Text="Loading tournaments..."
+                     Opacity="0.7"
+                     HorizontalAlignment="Center" />
+        </StackPanel>
+
+        <!-- Empty State -->
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    IsVisible="{Binding !Tournaments.Count}"
+                    Spacing="16"
+                    Margin="0,40">
+          <TextBlock Text="🏆" FontSize="64" HorizontalAlignment="Center" />
+          <TextBlock Text="No tournaments found"
+                     FontSize="20"
+                     FontWeight="SemiBold"
+                     HorizontalAlignment="Center" />
+          <TextBlock Text="Create a tournament or adjust your filters"
+                     Opacity="0.7"
+                     HorizontalAlignment="Center" />
+        </StackPanel>
+
+        <!-- Tournament Cards -->
+        <ItemsControl ItemsSource="{Binding Tournaments}"
+                      IsVisible="{Binding !IsLoading}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:TournamentListItem">
+              <Border Classes="tournamentCard">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <!-- Game Cover -->
+                  <Border Grid.Column="0"
+                          Width="80"
+                          Height="100"
+                          CornerRadius="8"
+                          Background="{StaticResource CardBackgroundBrush}"
+                          Margin="0,0,16,0">
+                    <Panel>
+                      <Image Source="{Binding GameCover}"
+                             Stretch="UniformToFill"
+                             IsVisible="{Binding GameCover, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                      <TextBlock Text="🎮"
+                                 FontSize="32"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"
+                                 IsVisible="{Binding GameCover, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                    </Panel>
+                  </Border>
+
+                  <!-- Tournament Info -->
+                  <StackPanel Grid.Column="1" Spacing="8">
+                    <TextBlock Text="{Binding Name}"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource ForegroundBrush}" />
+
+                    <TextBlock Text="{Binding GameName}"
+                               FontSize="14"
+                               Opacity="0.8"
+                               Foreground="{StaticResource ForegroundBrush}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                      <!-- Status Badge -->
+                      <Border Classes="statusBadge" Tag="{Binding StatusColor}">
+                        <TextBlock Text="{Binding Status}"
+                                   FontSize="12"
+                                   FontWeight="Medium" />
+                      </Border>
+
+                      <!-- Format -->
+                      <TextBlock Text="{Binding FormatDisplay}"
+                                 FontSize="13"
+                                 Opacity="0.7"
+                                 VerticalAlignment="Center" />
+
+                      <!-- Player Count -->
+                      <TextBlock Text="{Binding ParticipantDisplay}"
+                                 FontSize="13"
+                                 Opacity="0.7"
+                                 VerticalAlignment="Center">
+                        <TextBlock.Text>
+                          <MultiBinding StringFormat="{} 👥 {0} players">
+                            <Binding Path="ParticipantDisplay" />
+                          </MultiBinding>
+                        </TextBlock.Text>
+                      </TextBlock>
+
+                      <!-- Start Date -->
+                      <TextBlock Text="{Binding StartDateDisplay}"
+                                 FontSize="13"
+                                 Opacity="0.7"
+                                 VerticalAlignment="Center">
+                        <TextBlock.Text>
+                          <MultiBinding StringFormat="{} 📅 {0}">
+                            <Binding Path="StartDateDisplay" />
+                          </MultiBinding>
+                        </TextBlock.Text>
+                      </TextBlock>
+                    </StackPanel>
+                  </StackPanel>
+
+                  <!-- Actions -->
+                  <StackPanel Grid.Column="2"
+                              Orientation="Horizontal"
+                              Spacing="8"
+                              VerticalAlignment="Center">
+                    <Button Classes="secondaryButton"
+                            Content="View"
+                            Command="{Binding $parent[ItemsControl].((vm:TournamentListViewModel)DataContext).ViewTournamentCommand}"
+                            CommandParameter="{Binding}" />
+
+                    <Button Classes="actionButton"
+                            Content="Register"
+                            IsVisible="{Binding !IsRegistered}"
+                            Command="{Binding $parent[ItemsControl].((vm:TournamentListViewModel)DataContext).RegisterCommand}"
+                            CommandParameter="{Binding}" />
+
+                    <Button Classes="secondaryButton"
+                            Content="Unregister"
+                            IsVisible="{Binding IsRegistered}"
+                            Command="{Binding $parent[ItemsControl].((vm:TournamentListViewModel)DataContext).UnregisterCommand}"
+                            CommandParameter="{Binding}" />
+
+                    <Button Classes="secondaryButton"
+                            Content="Edit"
+                            IsVisible="{Binding IsOrganizer}"
+                            Command="{Binding $parent[ItemsControl].((vm:TournamentListViewModel)DataContext).EditTournamentCommand}"
+                            CommandParameter="{Binding}" />
+
+                    <Button Classes="secondaryButton"
+                            Content="🗑️"
+                            IsVisible="{Binding IsOrganizer}"
+                            Command="{Binding $parent[ItemsControl].((vm:TournamentListViewModel)DataContext).DeleteTournamentCommand}"
+                            CommandParameter="{Binding}" />
+                  </StackPanel>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Panel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

@@ -1,4 +1,5 @@
 using SaveState.Core.GameLibrary.Entities;
+using SaveState.Core.TournamentManagement.Models;
 using SaveState.Presentation.ViewModels.Automation;
 using SaveState.Presentation.ViewModels.Dialogs;
 using System;
@@ -326,6 +327,29 @@ public record EmulatorConfigResult(
     /// <param name="filePath">Optional path to the import file.</param>
     /// <returns>The import preview result with user selections, or null if cancelled.</returns>
     Task<ImportPreviewResult?> ShowImportPreviewAsync(Models.Data.ImportPreview preview, string? filePath = null);
+
+    /// <summary>
+    /// Shows the create tournament dialog.
+    /// </summary>
+    /// <returns>The tournament creation result, or null if cancelled.</returns>
+    Task<CreateTournamentResult?> ShowCreateTournamentDialogAsync();
+
+    /// <summary>
+    /// Shows the match result dialog.
+    /// </summary>
+    /// <param name="match">The match to report results for.</param>
+    /// <returns>The match result, or null if cancelled.</returns>
+    Task<MatchResultDialogResult?> ShowMatchResultDialogAsync(SaveState.Core.TournamentManagement.Models.TournamentMatch match);
+
+    /// <summary>
+    /// Shows a text input dialog.
+    /// </summary>
+    Task<string?> ShowTextInputAsync(string title, string message, string? defaultValue = null);
+
+    /// <summary>
+    /// Shows an info dialog.
+    /// </summary>
+    Task ShowInfoAsync(string title, string message);
 }
 
 /// <summary>
@@ -556,3 +580,31 @@ public record LaunchExperienceConfigResult(
     bool ShowLastProgress,
     bool ShowAchievementProgress,
     int DurationSeconds);
+
+/// <summary>
+/// Result from the create tournament dialog.
+/// </summary>
+public record CreateTournamentResult(
+    string Name,
+    string Description,
+    string GameId,
+    SaveState.Core.TournamentManagement.Models.TournamentFormat Format,
+    DateTime RegistrationStart,
+    DateTime RegistrationEnd,
+    DateTime TournamentStart,
+    int MaxParticipants,
+    SaveState.Core.TournamentManagement.Models.TournamentRules Rules,
+    SaveState.Core.TournamentManagement.Models.PrizePool? PrizePool,
+    string? StreamUrl);
+
+/// <summary>
+/// Result from the match result dialog.
+/// </summary>
+public record MatchResultDialogResult(
+    string MatchId,
+    int Player1Score,
+    int Player2Score,
+    string WinnerId,
+    IReadOnlyList<GameResult> GameResults,
+    string? ReplayPath,
+    string Notes);

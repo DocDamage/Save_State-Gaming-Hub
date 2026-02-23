@@ -89,6 +89,8 @@ using SaveState.Infrastructure.GameDeals;
 using SaveState.Infrastructure.SmartLauncher;
 using SaveState.Core.SmartLauncher;
 using SaveState.Infrastructure.OpenApi;
+using SaveState.Core.TournamentManagement.Services;
+using SaveState.Infrastructure.Esports.Services;
 
 namespace SaveState.Infrastructure;
 
@@ -248,6 +250,9 @@ public static partial class DependencyInjection
         services.AddScoped<SaveState.Core.Automation.Services.IBackupScheduler, Automation.BackupScheduler>();
         services.AddHostedService<Automation.AutomationWorker>();
         services.AddScoped<SaveState.Core.Automation.Services.IWorkflowAutomationService, Automation.WorkflowAutomationService>();
+
+        // Phase 4: Tournament Management (Esports)
+        services.AddScoped<ITournamentManagementService, TournamentService>();
 
         // Phase 9: MUGEN Tournament Features
         services.AddScoped<SaveState.Core.Mugen.IMugenCharacterRepository, Repositories.MugenCharacterRepository>();

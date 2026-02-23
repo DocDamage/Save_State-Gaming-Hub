@@ -1,0 +1,370 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Esports"
+             x:Class="SaveState.Presentation.Views.Esports.LiveTournamentTrackerView"
+             x:DataType="vm:LiveTournamentTrackerViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="Border.SectionCard">
+      <Setter Property="Background" Value="#16213e" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="20" />
+      <Setter Property="Margin" Value="0,10,0,0" />
+    </Style>
+
+    <Style Selector="TextBlock.SectionTitle">
+      <Setter Property="FontSize" Value="16" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="#00d9ff" />
+    </Style>
+
+    <Style Selector="TextBlock.StatValue">
+      <Setter Property="FontSize" Value="24" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="#fff" />
+    </Style>
+
+    <Style Selector="TextBlock.StatLabel">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="#888" />
+    </Style>
+
+    <Style Selector="Border.LiveMatchCard">
+      <Setter Property="Background" Value="#1a1a2e" />
+      <Setter Property="BorderBrush" Value="#00d9ff" />
+      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="20" />
+      <Setter Property="Margin" Value="0,5" />
+    </Style>
+
+    <Style Selector="Border.ResultCard">
+      <Setter Property="Background" Value="#1a1a2e" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="15" />
+      <Setter Property="Margin" Value="0,3" />
+    </Style>
+
+    <Style Selector="Button.ActionButton">
+      <Setter Property="Padding" Value="15,8" />
+      <Setter Property="Margin" Value="5" />
+      <Setter Property="CornerRadius" Value="6" />
+    </Style>
+
+    <Style Selector="Button.PrimaryButton">
+      <Setter Property="Background" Value="#00d9ff" />
+      <Setter Property="Foreground" Value="#000" />
+    </Style>
+
+    <Style Selector="Ellipse.LiveIndicator">
+      <Setter Property="Width" Value="10" />
+      <Setter Property="Height" Value="10" />
+      <Setter Property="Fill" Value="#ff4444" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*">
+    <!-- Header -->
+    <Border Grid.Row="0" Background="#0f3460" Padding="20,15">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Grid.Column="0" Spacing="5">
+          <TextBlock Text="Live Tournament Tracker"
+                     FontSize="20" FontWeight="Bold" />
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="{Binding CurrentTournament.Name, FallbackValue='No Tournament'}"
+                       FontSize="14" Opacity="0.8" />
+            <TextBlock Text="&#x2022;" Opacity="0.5" />
+            <StackPanel Orientation="Horizontal" Spacing="5">
+              <Ellipse Classes="LiveIndicator">
+                <Ellipse.Styles>
+                  <Style Selector="Ellipse">
+                    <Style.Animations>
+                      <Animation Duration="0:0:1" IterationCount="INFINITE">
+                        <KeyFrame Cue="0%">
+                          <Setter Property="Opacity" Value="1" />
+                        </KeyFrame>
+                        <KeyFrame Cue="50%">
+                          <Setter Property="Opacity" Value="0.3" />
+                        </KeyFrame>
+                        <KeyFrame Cue="100%">
+                          <Setter Property="Opacity" Value="1" />
+                        </KeyFrame>
+                      </Animation>
+                    </Style.Animations>
+                  </Style>
+                </Ellipse.Styles>
+              </Ellipse>
+              <TextBlock Text="{Binding ConnectionStatus}"
+                         FontSize="14"
+                         Foreground="{Binding IsConnected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter='#00ff88|#ffaa00'}" />
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+          <Button Content="{Binding IsConnected, Converter={StaticResource BoolToStringConverter}, ConverterParameter='Disconnect|Connect'}"
+                  Command="{Binding ConnectCommand}"
+                  IsVisible="{Binding IsConnected, Converter={x:Static ObjectConverters.Not}}" />
+          <Button Content="Disconnect"
+                  Command="{Binding DisconnectCommand}"
+                  IsVisible="{Binding IsConnected}" />
+          <Button Content="Refresh"
+                  Command="{Binding RefreshCommand}" />
+          <Button Content="View Bracket"
+                  Command="{Binding ToggleBracketCommand}"
+                  Background="#9146ff"
+                  Foreground="White" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Main Content -->
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+      <Grid ColumnDefinitions="*,350" Margin="20">
+        <!-- Left Column -->
+        <StackPanel Grid.Column="0" Margin="0,0,20,0" Spacing="0">
+          <!-- Stats Overview -->
+          <Grid ColumnDefinitions="*,*,*,*">
+            <Border Background="#16213e" CornerRadius="12" Padding="15" Margin="0,0,10,0">
+              <StackPanel>
+                <TextBlock Text="{Binding TotalMatches}" Classes="StatValue" />
+                <TextBlock Text="Total Matches" Classes="StatLabel" />
+              </StackPanel>
+            </Border>
+            <Border Background="#16213e" CornerRadius="12" Padding="15" Margin="0,0,10,0">
+              <StackPanel>
+                <TextBlock Text="{Binding CompletedMatches}" Classes="StatValue" Foreground="#00ff88" />
+                <TextBlock Text="Completed" Classes="StatLabel" />
+              </StackPanel>
+            </Border>
+            <Border Background="#16213e" CornerRadius="12" Padding="15" Margin="0,0,10,0">
+              <StackPanel>
+                <TextBlock Text="{Binding MatchesInProgress}" Classes="StatValue" Foreground="#00d9ff" />
+                <TextBlock Text="In Progress" Classes="StatLabel" />
+              </StackPanel>
+            </Border>
+            <Border Background="#16213e" CornerRadius="12" Padding="15">
+              <StackPanel>
+                <TextBlock Text="{Binding PendingMatches}" Classes="StatValue" Foreground="#ffaa00" />
+                <TextBlock Text="Pending" Classes="StatLabel" />
+              </StackPanel>
+            </Border>
+          </Grid>
+
+          <!-- Live Matches -->
+          <Border Classes="SectionCard">
+            <StackPanel Spacing="15">
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <Ellipse Classes="LiveIndicator">
+                  <Ellipse.Styles>
+                    <Style Selector="Ellipse">
+                      <Style.Animations>
+                        <Animation Duration="0:0:1" IterationCount="INFINITE">
+                          <KeyFrame Cue="0%">
+                            <Setter Property="Opacity" Value="1" />
+                          </KeyFrame>
+                          <KeyFrame Cue="50%">
+                            <Setter Property="Opacity" Value="0.3" />
+                          </KeyFrame>
+                          <KeyFrame Cue="100%">
+                            <Setter Property="Opacity" Value="1" />
+                          </KeyFrame>
+                        </Animation>
+                      </Style.Animations>
+                    </Style>
+                  </Ellipse.Styles>
+                </Ellipse>
+                <TextBlock Text="LIVE MATCHES" Classes="SectionTitle" />
+              </StackPanel>
+
+              <ItemsControl ItemsSource="{Binding LiveMatches}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Classes="LiveMatchCard">
+                      <Grid ColumnDefinitions="*,Auto,Auto,*">
+                        <!-- Player 1 -->
+                        <StackPanel Grid.Column="0" HorizontalAlignment="Right">
+                          <TextBlock Text="{Binding Player1Name}"
+                                     FontSize="18"
+                                     FontWeight="Bold" />
+                          <TextBlock Text="{Binding RoundName}"
+                                     FontSize="12"
+                                     Foreground="#888" />
+                        </StackPanel>
+
+                        <!-- Score -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="20,0">
+                          <Border Background="#0f3460" CornerRadius="8" Padding="15,8">
+                            <TextBlock Text="{Binding Player1Score}"
+                                       FontSize="28"
+                                       FontWeight="Bold"
+                                       Foreground="#00d9ff" />
+                          </Border>
+                          <TextBlock Text="-"
+                                     FontSize="24"
+                                     VerticalAlignment="Center"
+                                     Foreground="#666" />
+                          <Border Background="#0f3460" CornerRadius="8" Padding="15,8">
+                            <TextBlock Text="{Binding Player2Score}"
+                                       FontSize="28"
+                                       FontWeight="Bold"
+                                       Foreground="#00d9ff" />
+                          </Border>
+                        </StackPanel>
+
+                        <!-- VS -->
+                        <TextBlock Grid.Column="2"
+                                   Text="VS"
+                                   FontSize="16"
+                                   FontWeight="Bold"
+                                   Foreground="#666"
+                                   VerticalAlignment="Center"
+                                   Margin="10,0" />
+
+                        <!-- Player 2 -->
+                        <StackPanel Grid.Column="3" HorizontalAlignment="Left">
+                          <TextBlock Text="{Binding Player2Name}"
+                                     FontSize="18"
+                                     FontWeight="Bold" />
+                          <TextBlock Text="{Binding ElapsedTime, StringFormat='{}{0:mm\\:ss}'}"
+                                     FontSize="12"
+                                     Foreground="#888" />
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <TextBlock Text="No live matches"
+                         HorizontalAlignment="Center"
+                         Opacity="0.5"
+                         IsVisible="{Binding LiveMatches.Count, Converter={StaticResource CountToBoolConverter}, ConverterParameter=Invert}" />
+            </StackPanel>
+          </Border>
+
+          <!-- Recent Results -->
+          <Border Classes="SectionCard">
+            <StackPanel Spacing="15">
+              <TextBlock Text="RECENT RESULTS" Classes="SectionTitle" />
+
+              <ItemsControl ItemsSource="{Binding RecentResults}" MaxHeight="300">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Classes="ResultCard">
+                      <Grid ColumnDefinitions="*,Auto,*,Auto">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding Player1Name}"
+                                   HorizontalAlignment="Right"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding Player1Score, StringFormat='{}{0}-{1}', ConverterParameter={Binding Player2Score}}"
+                                   Margin="10,0"
+                                   FontWeight="Bold"
+                                   Foreground="{Binding WinnerName, Converter={StaticResource WinnerToColorConverter}, ConverterParameter={Binding Player1Name}}" />
+                        <TextBlock Grid.Column="2"
+                                   Text="{Binding Player2Name}"
+                                   FontWeight="SemiBold" />
+                        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="5">
+                          <TextBlock Text="{Binding RoundName}"
+                                     FontSize="11"
+                                     Foreground="#888" />
+                          <TextBlock Text="&#x2022;"
+                                     Foreground="#666"
+                                     FontSize="11" />
+                          <TextBlock Text="{Binding CompletedAt, StringFormat='{}{0:HH:mm}'}"
+                                     FontSize="11"
+                                     Foreground="#888" />
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- Right Column - Sidebar -->
+        <StackPanel Grid.Column="1">
+          <!-- Top Participants -->
+          <Border Classes="SectionCard">
+            <StackPanel Spacing="10">
+              <TextBlock Text="TOP PERFORMERS" Classes="SectionTitle" />
+
+              <ItemsControl ItemsSource="{Binding TopParticipants}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Grid ColumnDefinitions="30,*,Auto" Margin="0,3">
+                      <TextBlock Grid.Column="0"
+                                 Text="{Binding $parent.Index, Converter={StaticResource IndexToRankConverter}}"
+                                 FontWeight="Bold"
+                                 Foreground="#00d9ff" />
+                      <TextBlock Grid.Column="1"
+                                 Text="{Binding DisplayName}"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Grid.Column="2"
+                                 Text="{Binding Wins, StringFormat='{}{0}-{1}', ConverterParameter={Binding Losses}}"
+                                 Foreground="#888" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <!-- Upcoming Matches -->
+          <Border Classes="SectionCard">
+            <StackPanel Spacing="10">
+              <TextBlock Text="UPCOMING" Classes="SectionTitle" />
+
+              <ItemsControl ItemsSource="{Binding UpcomingMatches}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Background="#1a1a2e" CornerRadius="6" Padding="10" Margin="0,2">
+                      <StackPanel Spacing="2">
+                        <TextBlock Text="{Binding RoundName}"
+                                   FontSize="11"
+                                   Foreground="#888" />
+                        <TextBlock Text="{Binding Player1Name}"
+                                   FontSize="12"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Text="vs"
+                                   FontSize="10"
+                                   Foreground="#666" />
+                        <TextBlock Text="{Binding Player2Name}"
+                                   FontSize="12"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding ScheduledTime, StringFormat='{}{0:HH:mm}'}"
+                                   FontSize="11"
+                                   Foreground="#00d9ff"
+                                   IsVisible="{Binding ScheduledTime, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <!-- Status Message -->
+          <TextBlock Text="{Binding StatusMessage}"
+                     HorizontalAlignment="Center"
+                     Opacity="0.6"
+                     FontSize="11"
+                     Margin="0,10,0,0" />
+        </StackPanel>
+      </Grid>
+    </ScrollViewer>
+
+    <!-- Loading Overlay -->
+    <Panel Grid.Row="1"
+           IsVisible="{Binding IsLoading}"
+           Background="#80000000">
+      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        <ProgressBar IsIndeterminate="True" Width="200" Margin="0,0,0,10" />
+        <TextBlock Text="{Binding StatusMessage}" HorizontalAlignment="Center" />
+      </StackPanel>
+    </Panel>
+  </Grid>
+</UserControl>

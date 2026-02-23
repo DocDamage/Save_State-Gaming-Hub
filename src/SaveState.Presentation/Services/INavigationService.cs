@@ -152,4 +152,46 @@ public static class NavigationServiceExtensions
     {
         await navigationService.NavigateToAsync("DataManagement");
     }
+
+    // Tournament Management Navigation
+
+    /// <summary>
+    /// Navigates to the tournament list view.
+    /// </summary>
+    public static async Task ShowTournamentListAsync(this INavigationService navigationService)
+    {
+        await navigationService.NavigateToAsync("Tournaments");
+    }
+
+    /// <summary>
+    /// Shows the tournament detail view.
+    /// </summary>
+    public static async Task ShowTournamentDetailAsync(this INavigationService navigationService, Guid tournamentId)
+    {
+        await navigationService.NavigateToAsync("TournamentDetail", tournamentId);
+    }
+
+    /// <summary>
+    /// Shows the match detail view.
+    /// </summary>
+    public static async Task ShowMatchDetailAsync(this INavigationService navigationService, Guid tournamentId, Guid matchId)
+    {
+        await navigationService.NavigateToAsync("MatchDetail", new { TournamentId = tournamentId, MatchId = matchId });
+    }
+
+    /// <summary>
+    /// Shows the tournament standings view.
+    /// </summary>
+    public static async Task ShowTournamentStandingsAsync(this INavigationService navigationService, Guid tournamentId)
+    {
+        await navigationService.NavigateToAsync("TournamentStandings", tournamentId);
+    }
+
+    /// <summary>
+    /// Shows the live tournament tracker view.
+    /// </summary>
+    public static async Task ShowLiveTournamentTrackerAsync(this INavigationService navigationService, Guid? tournamentId = null)
+    {
+        await navigationService.NavigateToAsync("LiveTournamentTracker", tournamentId);
+    }
 }

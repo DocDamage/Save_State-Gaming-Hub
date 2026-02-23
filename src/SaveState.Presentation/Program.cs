@@ -110,6 +110,15 @@ public static class Program
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.ProviderConfigDialogViewModel>();
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.MemoryDetailsDialogViewModel>();
 
+            // Phase 4: Tournament Management (Esports)
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Esports.TournamentListViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Esports.TournamentDetailViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Esports.MatchDetailViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Esports.LiveTournamentTrackerViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Esports.TournamentStandingsViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.CreateTournamentDialogViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.MatchResultDialogViewModel>();
+
             // Add theme service
             builder.Services.AddSingleton<IThemeService, ThemeService>();
 

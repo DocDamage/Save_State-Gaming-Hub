@@ -1,0 +1,397 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Esports"
+             x:Class="SaveState.Presentation.Views.Esports.MatchDetailView"
+             x:DataType="vm:MatchDetailViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="Border.ScoreBox">
+      <Setter Property="Background" Value="#1a1a2e" />
+      <Setter Property="BorderBrush" Value="#16213e" />
+      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="20" />
+      <Setter Property="MinWidth" Value="100" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Border.PlayerCard">
+      <Setter Property="Background" Value="#16213e" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="20" />
+      <Setter Property="MinWidth" Value="200" />
+    </Style>
+
+    <Style Selector="TextBlock.PlayerName">
+      <Setter Property="FontSize" Value="20" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="TextBlock.ScoreDisplay">
+      <Setter Property="FontSize" Value="48" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="#00d9ff" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="TextBlock.StatusLabel">
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="Foreground" Value="#888" />
+    </Style>
+
+    <Style Selector="TextBlock.StatusValue">
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Button.ActionButton">
+      <Setter Property="Padding" Value="15,8" />
+      <Setter Property="Margin" Value="5" />
+      <Setter Property="CornerRadius" Value="6" />
+    </Style>
+
+    <Style Selector="Button.PrimaryButton">
+      <Setter Property="Background" Value="#00d9ff" />
+      <Setter Property="Foreground" Value="#000" />
+    </Style>
+
+    <Style Selector="Border.GameCard">
+      <Setter Property="Background" Value="#1a1a2e" />
+      <Setter Property="BorderBrush" Value="#16213e" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="15" />
+      <Setter Property="Margin" Value="0,5" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*">
+    <!-- Header -->
+    <Border Grid.Row="0" Background="#0f3460" Padding="20,15">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Grid.Column="0" Spacing="5">
+          <TextBlock Text="{Binding Tournament.Name, FallbackValue='Tournament'}"
+                     FontSize="18" FontWeight="Bold" />
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="{Binding Match.Round, StringFormat='Round {0}'}"
+                       Classes="StatusLabel"
+                       IsVisible="{Binding Match.Round, Converter={x:Static ObjectConverters.IsNotNull}}" />
+            <TextBlock Text="&#x2022;" Foreground="#666" />
+            <TextBlock Text="{Binding Match.Status}"
+                       Classes="StatusValue"
+                       Foreground="{Binding Match.Status, Converter={StaticResource MatchStatusToColorConverter}}" />
+            <TextBlock Text="&#x2022;" Foreground="#666" IsVisible="{Binding IsStreaming}" />
+            <TextBlock Text="LIVE"
+                       Foreground="#ff4444"
+                       FontWeight="Bold"
+                       IsVisible="{Binding IsStreaming}" />
+          </StackPanel>
+        </StackPanel>
+
+        <Button Grid.Column="1"
+                Command="{Binding LoadMatchCommand}"
+                Content="Refresh"
+                Classes="ActionButton" />
+      </Grid>
+    </Border>
+
+    <!-- Main Content -->
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="20" Margin="20">
+
+        <!-- Match Header Card -->
+        <Border Background="#16213e" CornerRadius="12" Padding="30">
+          <Grid ColumnDefinitions="*,Auto,Auto,*" RowDefinitions="Auto,Auto,Auto">
+            <!-- Player 1 -->
+            <Border Grid.Row="0" Grid.Column="0" Classes="PlayerCard" HorizontalAlignment="Right">
+              <StackPanel Spacing="8">
+                <Ellipse Width="60" Height="60" Fill="#333" />
+                <TextBlock Text="{Binding Match.Player1.DisplayName, FallbackValue='TBD'}"
+                           Classes="PlayerName" />
+                <TextBlock Text="{Binding Match.Player1.Seed, StringFormat='Seed #{0}'}"
+                           HorizontalAlignment="Center"
+                           Foreground="#888"
+                           IsVisible="{Binding Match.Player1.Seed, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <TextBlock Text="You"
+                           HorizontalAlignment="Center"
+                           Foreground="#00d9ff"
+                           FontWeight="Bold"
+                           IsVisible="{Binding IsPlayer1}" />
+              </StackPanel>
+            </Border>
+
+            <!-- VS -->
+            <TextBlock Grid.Row="0" Grid.Column="1"
+                       Text="VS"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Foreground="#666"
+                       VerticalAlignment="Center"
+                       Margin="20,0" />
+
+            <!-- Score -->
+            <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Spacing="15" Margin="20,0">
+              <Border Classes="ScoreBox">
+                <TextBlock Text="{Binding Player1Score}"
+                           Classes="ScoreDisplay" />
+              </Border>
+              <TextBlock Text="-"
+                         FontSize="32"
+                         FontWeight="Bold"
+                         VerticalAlignment="Center"
+                         Foreground="#666" />
+              <Border Classes="ScoreBox">
+                <TextBlock Text="{Binding Player2Score}"
+                           Classes="ScoreDisplay" />
+              </Border>
+            </StackPanel>
+
+            <!-- Player 2 -->
+            <Border Grid.Row="0" Grid.Column="3" Classes="PlayerCard" HorizontalAlignment="Left">
+              <StackPanel Spacing="8">
+                <Ellipse Width="60" Height="60" Fill="#333" />
+                <TextBlock Text="{Binding Match.Player2.DisplayName, FallbackValue='TBD'}"
+                           Classes="PlayerName" />
+                <TextBlock Text="{Binding Match.Player2.Seed, StringFormat='Seed #{0}'}"
+                           HorizontalAlignment="Center"
+                           Foreground="#888"
+                           IsVisible="{Binding Match.Player2.Seed, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <TextBlock Text="You"
+                           HorizontalAlignment="Center"
+                           Foreground="#00d9ff"
+                           FontWeight="Bold"
+                           IsVisible="{Binding IsPlayer2}" />
+              </StackPanel>
+            </Border>
+
+            <!-- Status -->
+            <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Margin="0,20,0,0"
+                        Spacing="20">
+              <StackPanel Orientation="Horizontal" Spacing="5">
+                <TextBlock Text="Status:" Classes="StatusLabel" />
+                <TextBlock Text="{Binding Match.Status}"
+                           Classes="StatusValue"
+                           Foreground="{Binding Match.Status, Converter={StaticResource MatchStatusToColorConverter}}" />
+              </StackPanel>
+
+              <StackPanel Orientation="Horizontal" Spacing="5"
+                         IsVisible="{Binding ElapsedTime, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <TextBlock Text="Elapsed:" Classes="StatusLabel" />
+                <TextBlock Text="{Binding ElapsedTime, StringFormat='{}{0:mm\\:ss}'}"
+                           Classes="StatusValue" />
+              </StackPanel>
+
+              <Button Content="Watch Stream"
+                      Command="{Binding OpenStreamCommand}"
+                      IsVisible="{Binding IsStreaming}"
+                      Background="#9146ff"
+                      Foreground="White" />
+            </StackPanel>
+
+            <!-- Start Match Button (for participants) -->
+            <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4"
+                    Content="Start Match"
+                    Command="{Binding StartMatchCommand}"
+                    IsVisible="{Binding CanReportResult}"
+                    Classes="PrimaryButton"
+                    HorizontalAlignment="Center"
+                    Margin="0,15,0,0"
+                    Padding="30,12"
+                    FontSize="16"
+                    FontWeight="Bold" />
+          </Grid>
+        </Border>
+
+        <!-- Game Details Section -->
+        <Border Background="#16213e" CornerRadius="12" Padding="20"
+                IsVisible="{Binding CanReportResult}">
+          <StackPanel Spacing="15">
+            <TextBlock Text="GAME DETAILS"
+                       FontSize="16"
+                       FontWeight="Bold"
+                       Foreground="#00d9ff" />
+
+            <!-- Games List -->
+            <ItemsControl ItemsSource="{Binding Games}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Classes="GameCard">
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
+                      <TextBlock Grid.Column="0"
+                                 Text="{Binding GameNumber, StringFormat='Game {0}:'}"
+                                 FontWeight="Bold"
+                                 VerticalAlignment="Center"
+                                 Margin="0,0,15,0" />
+
+                      <!-- Player 1 Score -->
+                      <NumericUpDown Grid.Column="1"
+                                     Value="{Binding Player1Score}"
+                                     Minimum="0"
+                                     Maximum="99"
+                                     Width="80"
+                                     Margin="5,0" />
+
+                      <TextBlock Grid.Column="2"
+                                 Text="-"
+                                 FontWeight="Bold"
+                                 VerticalAlignment="Center"
+                                 Margin="10,0" />
+
+                      <!-- Player 2 Score -->
+                      <NumericUpDown Grid.Column="3"
+                                     Value="{Binding Player2Score}"
+                                     Minimum="0"
+                                     Maximum="99"
+                                     Width="80"
+                                     Margin="5,0" />
+
+                      <!-- Winner Selection -->
+                      <ComboBox Grid.Column="4"
+                                SelectedItem="{Binding Winner}"
+                                PlaceholderText="Select Winner"
+                                Width="150"
+                                Margin="15,0,5,0">
+                        <ComboBoxItem Content="{Binding $parent[$parent].DataContext.Match.Player1.DisplayName}" />
+                        <ComboBoxItem Content="{Binding $parent[$parent].DataContext.Match.Player2.DisplayName}" />
+                      </ComboBox>
+
+                      <!-- Stage Selection -->
+                      <ComboBox Grid.Column="5"
+                                ItemsSource="{Binding $parent[$parent].DataContext.AvailableStages}"
+                                SelectedItem="{Binding Stage}"
+                                PlaceholderText="Stage"
+                                Width="150" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Add Game Button -->
+            <Button Content="+ Add Game"
+                    Command="{Binding AddGameCommand}"
+                    HorizontalAlignment="Left"
+                    Classes="ActionButton" />
+
+            <!-- Notes -->
+            <StackPanel Spacing="5">
+              <TextBlock Text="Notes:" Classes="StatusLabel" />
+              <TextBox Text="{Binding MatchNotes}"
+                       Watermark="Enter match notes, disputes, or other information..."
+                       AcceptsReturn="True"
+                       TextWrapping="Wrap"
+                       Height="80" />
+            </StackPanel>
+
+            <!-- Submit Result Button -->
+            <Button Content="Submit Result"
+                    Command="{Binding ReportResultCommand}"
+                    Classes="PrimaryButton ActionButton"
+                    HorizontalAlignment="Left"
+                    FontSize="14"
+                    FontWeight="Bold" />
+          </StackPanel>
+        </Border>
+
+        <!-- Completed Match View -->
+        <Border Background="#16213e" CornerRadius="12" Padding="20"
+                IsVisible="{Binding Match.Status, Converter={StaticResource MatchStatusToVisibilityConverter}, ConverterParameter=Completed}">
+          <StackPanel Spacing="15">
+            <TextBlock Text="FINAL RESULT"
+                       FontSize="16"
+                       FontWeight="Bold"
+                       Foreground="#00ff88" />
+
+            <Grid ColumnDefinitions="*,Auto,*">
+              <StackPanel Grid.Column="0" HorizontalAlignment="Right">
+                <TextBlock Text="{Binding Match.Player1.DisplayName}"
+                           FontSize="18" FontWeight="Bold" />
+                <TextBlock Text="{Binding Match.Result.Player1Score, StringFormat='Score: {0}'}"
+                           FontSize="24"
+                           Foreground="#00d9ff" />
+              </StackPanel>
+
+              <TextBlock Grid.Column="1"
+                         Text="VS"
+                         FontSize="20"
+                         FontWeight="Bold"
+                         Foreground="#666"
+                         VerticalAlignment="Center"
+                         Margin="20,0" />
+
+              <StackPanel Grid.Column="2" HorizontalAlignment="Left">
+                <TextBlock Text="{Binding Match.Player2.DisplayName}"
+                           FontSize="18" FontWeight="Bold" />
+                <TextBlock Text="{Binding Match.Result.Player2Score, StringFormat='Score: {0}'}"
+                           FontSize="24"
+                           Foreground="#00d9ff" />
+              </StackPanel>
+            </Grid>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+              <TextBlock Text="Winner:" Classes="StatusLabel" />
+              <TextBlock Text="{Binding Match.Winner.DisplayName}"
+                         FontSize="18"
+                         FontWeight="Bold"
+                         Foreground="#ffd700" />
+            </StackPanel>
+
+            <!-- Action Buttons for Completed Match -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+              <Button Content="Confirm Result"
+                      Command="{Binding ConfirmResultCommand}"
+                      Classes="PrimaryButton ActionButton"
+                      IsVisible="{Binding IsOrganizer}" />
+
+              <Button Content="Dispute Result"
+                      Command="{Binding DisputeResultCommand}"
+                      Background="#ff4444"
+                      Foreground="White"
+                      Classes="ActionButton" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Match Actions -->
+        <Border Background="#16213e" CornerRadius="12" Padding="20">
+          <StackPanel Spacing="15">
+            <TextBlock Text="MATCH ACTIONS"
+                       FontSize="16"
+                       FontWeight="Bold"
+                       Foreground="#00d9ff" />
+
+            <StackPanel Orientation="Horizontal" Spacing="10" Wrap="Wrap">
+              <Button Content="Contact Opponent"
+                      Command="{Binding ContactOpponentCommand}"
+                      Classes="ActionButton" />
+
+              <Button Content="Request Extension"
+                      Classes="ActionButton" />
+
+              <Button Content="View Replay"
+                      Command="{Binding ViewReplayCommand}"
+                      CommandParameter="{Binding Games/}"
+                      Classes="ActionButton" />
+
+              <Button Content="Match History"
+                      Classes="ActionButton" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Loading Indicator -->
+        <Panel IsVisible="{Binding IsLoading}"
+               Background="#80000000">
+          <ProgressBar IsIndeterminate="True"
+                       Width="200"
+                       Height="10" />
+        </Panel>
+
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

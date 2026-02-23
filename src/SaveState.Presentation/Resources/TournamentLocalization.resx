@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Tournament Management -->
+  <data name="Tournament_Title" xml:space="preserve">
+    <value>Tournaments</value>
+  </data>
+  <data name="Tournament_Create" xml:space="preserve">
+    <value>Create Tournament</value>
+  </data>
+  <data name="Tournament_Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Tournament_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Tournament_Register" xml:space="preserve">
+    <value>Register</value>
+  </data>
+  <data name="Tournament_Unregister" xml:space="preserve">
+    <value>Unregister</value>
+  </data>
+  <data name="Tournament_CheckIn" xml:space="preserve">
+    <value>Check In</value>
+  </data>
+  <data name="Tournament_Start" xml:space="preserve">
+    <value>Start Tournament</value>
+  </data>
+  
+  <!-- Tournament Status -->
+  <data name="Tournament_Status_Draft" xml:space="preserve">
+    <value>Draft</value>
+  </data>
+  <data name="Tournament_Status_RegistrationOpen" xml:space="preserve">
+    <value>Registration Open</value>
+  </data>
+  <data name="Tournament_Status_RegistrationClosed" xml:space="preserve">
+    <value>Registration Closed</value>
+  </data>
+  <data name="Tournament_Status_InProgress" xml:space="preserve">
+    <value>In Progress</value>
+  </data>
+  <data name="Tournament_Status_Paused" xml:space="preserve">
+    <value>Paused</value>
+  </data>
+  <data name="Tournament_Status_Completed" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="Tournament_Status_Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  
+  <!-- Tournament Formats -->
+  <data name="Tournament_Format_SingleElimination" xml:space="preserve">
+    <value>Single Elimination</value>
+  </data>
+  <data name="Tournament_Format_DoubleElimination" xml:space="preserve">
+    <value>Double Elimination</value>
+  </data>
+  <data name="Tournament_Format_RoundRobin" xml:space="preserve">
+    <value>Round Robin</value>
+  </data>
+  <data name="Tournament_Format_Swiss" xml:space="preserve">
+    <value>Swiss System</value>
+  </data>
+  <data name="Tournament_Format_BattleRoyale" xml:space="preserve">
+    <value>Battle Royale</value>
+  </data>
+  <data name="Tournament_Format_League" xml:space="preserve">
+    <value>League</value>
+  </data>
+  
+  <!-- Bracket -->
+  <data name="Tournament_Bracket_Winners" xml:space="preserve">
+    <value>Winners Bracket</value>
+  </data>
+  <data name="Tournament_Bracket_Losers" xml:space="preserve">
+    <value>Losers Bracket</value>
+  </data>
+  <data name="Tournament_Bracket_GrandFinals" xml:space="preserve">
+    <value>Grand Finals</value>
+  </data>
+  <data name="Tournament_Bracket_Reset" xml:space="preserve">
+    <value>Bracket Reset</value>
+  </data>
+  
+  <!-- Match Actions -->
+  <data name="Tournament_Match_ReportResult" xml:space="preserve">
+    <value>Report Result</value>
+  </data>
+  <data name="Tournament_Match_ConfirmResult" xml:space="preserve">
+    <value>Confirm Result</value>
+  </data>
+  <data name="Tournament_Match_Dispute" xml:space="preserve">
+    <value>Dispute Result</value>
+  </data>
+  <data name="Tournament_Match_Start" xml:space="preserve">
+    <value>Start Match</value>
+  </data>
+  <data name="Tournament_Match_Schedule" xml:space="preserve">
+    <value>Schedule Match</value>
+  </data>
+  
+  <!-- Sections -->
+  <data name="Tournament_PrizePool" xml:space="preserve">
+    <value>Prize Pool</value>
+  </data>
+  <data name="Tournament_Participants" xml:space="preserve">
+    <value>Participants</value>
+  </data>
+  <data name="Tournament_Standings" xml:space="preserve">
+    <value>Standings</value>
+  </data>
+  <data name="Tournament_Rules" xml:space="preserve">
+    <value>Rules</value>
+  </data>
+  <data name="Tournament_Bracket" xml:space="preserve">
+    <value>Bracket</value>
+  </data>
+  <data name="Tournament_Matches" xml:space="preserve">
+    <value>Matches</value>
+  </data>
+  <data name="Tournament_Overview" xml:space="preserve">
+    <value>Overview</value>
+  </data>
+  
+  <!-- Match Status -->
+  <data name="Match_Status_Scheduled" xml:space="preserve">
+    <value>Scheduled</value>
+  </data>
+  <data name="Match_Status_InProgress" xml:space="preserve">
+    <value>In Progress</value>
+  </data>
+  <data name="Match_Status_Completed" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="Match_Status_Disputed" xml:space="preserve">
+    <value>Disputed</value>
+  </data>
+  <data name="Match_Status_Forfeited" xml:space="preserve">
+    <value>Forfeited</value>
+  </data>
+  <data name="Match_Status_Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  
+  <!-- Participant Status -->
+  <data name="Participant_Status_Registered" xml:space="preserve">
+    <value>Registered</value>
+  </data>
+  <data name="Participant_Status_CheckedIn" xml:space="preserve">
+    <value>Checked In</value>
+  </data>
+  <data name="Participant_Status_Competing" xml:space="preserve">
+    <value>Competing</value>
+  </data>
+  <data name="Participant_Status_Eliminated" xml:space="preserve">
+    <value>Eliminated</value>
+  </data>
+  <data name="Participant_Status_Disqualified" xml:space="preserve">
+    <value>Disqualified</value>
+  </data>
+  <data name="Participant_Status_Withdrawn" xml:space="preserve">
+    <value>Withdrawn</value>
+  </data>
+  
+  <!-- Results -->
+  <data name="Result_Type_Normal" xml:space="preserve">
+    <value>Normal</value>
+  </data>
+  <data name="Result_Type_Forfeit" xml:space="preserve">
+    <value>Forfeit</value>
+  </data>
+  <data name="Result_Type_Disqualification" xml:space="preserve">
+    <value>Disqualification</value>
+  </data>
+  <data name="Result_Type_Draw" xml:space="preserve">
+    <value>Draw</value>
+  </data>
+  
+  <!-- Tournament Actions -->
+  <data name="Tournament_Action_GenerateBracket" xml:space="preserve">
+    <value>Generate Bracket</value>
+  </data>
+  <data name="Tournament_Action_ResetBracket" xml:space="preserve">
+    <value>Reset Bracket</value>
+  </data>
+  <data name="Tournament_Action_Pause" xml:space="preserve">
+    <value>Pause Tournament</value>
+  </data>
+  <data name="Tournament_Action_Resume" xml:space="preserve">
+    <value>Resume Tournament</value>
+  </data>
+  <data name="Tournament_Action_Complete" xml:space="preserve">
+    <value>Complete Tournament</value>
+  </data>
+  <data name="Tournament_Action_Cancel" xml:space="preserve">
+    <value>Cancel Tournament</value>
+  </data>
+  
+  <!-- Labels -->
+  <data name="Label_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Label_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Label_Game" xml:space="preserve">
+    <value>Game</value>
+  </data>
+  <data name="Label_Format" xml:space="preserve">
+    <value>Format</value>
+  </data>
+  <data name="Label_StartDate" xml:space="preserve">
+    <value>Start Date</value>
+  </data>
+  <data name="Label_RegistrationDeadline" xml:space="preserve">
+    <value>Registration Deadline</value>
+  </data>
+  <data name="Label_MaxParticipants" xml:space="preserve">
+    <value>Maximum Participants</value>
+  </data>
+  <data name="Label_MinParticipants" xml:space="preserve">
+    <value>Minimum Participants</value>
+  </data>
+  <data name="Label_StreamUrl" xml:space="preserve">
+    <value>Stream URL</value>
+  </data>
+  <data name="Label_CheckInRequired" xml:space="preserve">
+    <value>Require Check-In</value>
+  </data>
+  <data name="Label_CheckInWindow" xml:space="preserve">
+    <value>Check-In Window</value>
+  </data>
+  
+  <!-- Rules -->
+  <data name="Rules_BestOf" xml:space="preserve">
+    <value>Best Of</value>
+  </data>
+  <data name="Rules_TimeLimit" xml:space="preserve">
+    <value>Time Limit</value>
+  </data>
+  <data name="Rules_AllowCharacterSwitch" xml:space="preserve">
+    <value>Allow Character Switch</value>
+  </data>
+  <data name="Rules_RandomStageSelect" xml:space="preserve">
+    <value>Random Stage Select</value>
+  </data>
+  <data name="Rules_LegalStages" xml:space="preserve">
+    <value>Legal Stages</value>
+  </data>
+  <data name="Rules_BannedStages" xml:space="preserve">
+    <value>Banned Stages</value>
+  </data>
+  <data name="Rules_CustomRules" xml:space="preserve">
+    <value>Custom Rules</value>
+  </data>
+  
+  <!-- Messages -->
+  <data name="Msg_TournamentCreated" xml:space="preserve">
+    <value>Tournament created successfully!</value>
+  </data>
+  <data name="Msg_TournamentUpdated" xml:space="preserve">
+    <value>Tournament updated successfully!</value>
+  </data>
+  <data name="Msg_TournamentDeleted" xml:space="preserve">
+    <value>Tournament deleted successfully!</value>
+  </data>
+  <data name="Msg_RegisteredSuccessfully" xml:space="preserve">
+    <value>You have been registered for the tournament!</value>
+  </data>
+  <data name="Msg_UnregisteredSuccessfully" xml:space="preserve">
+    <value>You have been unregistered from the tournament.</value>
+  </data>
+  <data name="Msg_CheckedInSuccessfully" xml:space="preserve">
+    <value>Successfully checked in!</value>
+  </data>
+  <data name="Msg_BracketGenerated" xml:space="preserve">
+    <value>Bracket generated successfully!</value>
+  </data>
+  <data name="Msg_ResultReported" xml:space="preserve">
+    <value>Match result reported successfully!</value>
+  </data>
+  <data name="Msg_ResultDisputed" xml:space="preserve">
+    <value>Result has been disputed. An admin will review it.</value>
+  </data>
+  
+  <!-- Errors -->
+  <data name="Err_InvalidTournamentName" xml:space="preserve">
+    <value>Please enter a tournament name.</value>
+  </data>
+  <data name="Err_InvalidGame" xml:space="preserve">
+    <value>Please select a game.</value>
+  </data>
+  <data name="Err_InvalidDates" xml:space="preserve">
+    <value>Registration deadline must be before start date.</value>
+  </data>
+  <data name="Err_TournamentFull" xml:space="preserve">
+    <value>This tournament is full.</value>
+  </data>
+  <data name="Err_AlreadyRegistered" xml:space="preserve">
+    <value>You are already registered for this tournament.</value>
+  </data>
+  <data name="Err_NotRegistered" xml:space="preserve">
+    <value>You are not registered for this tournament.</value>
+  </data>
+  <data name="Err_RegistrationClosed" xml:space="preserve">
+    <value>Registration is closed for this tournament.</value>
+  </data>
+  <data name="Err_TournamentStarted" xml:space="preserve">
+    <value>This tournament has already started.</value>
+  </data>
+  <data name="Err_InvalidCheckInCode" xml:space="preserve">
+    <value>Invalid check-in code.</value>
+  </data>
+  <data name="Err_NotEnoughParticipants" xml:space="preserve">
+    <value>Not enough participants to start the tournament.</value>
+  </data>
+</root>

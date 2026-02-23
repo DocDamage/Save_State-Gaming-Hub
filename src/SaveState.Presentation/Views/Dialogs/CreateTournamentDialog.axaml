@@ -1,0 +1,315 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        xmlns:models="using:SaveState.Core.TournamentManagement.Models"
+        x:Class="SaveState.Presentation.Views.Dialogs.CreateTournamentDialog"
+        x:DataType="vm:CreateTournamentDialogViewModel"
+        Title="Create Tournament"
+        Width="700"
+        Height="750"
+        MinWidth="600"
+        MinHeight="600"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True"
+        Background="{StaticResource DialogBackgroundBrush}">
+
+  <Window.Styles>
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Padding" Value="12,8" />
+    </Style>
+
+    <Style Selector="ComboBox">
+      <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Padding" Value="12,8" />
+    </Style>
+
+    <Style Selector="NumericUpDown">
+      <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+    </Style>
+
+    <Style Selector="DatePicker">
+      <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+    </Style>
+
+    <Style Selector="TimePicker">
+      <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+    </Style>
+
+    <Style Selector="Button.primary">
+      <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Padding" Value="24,10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="Button.secondary">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Padding" Value="24,10" />
+    </Style>
+
+    <Style Selector="Border.glassCard">
+      <Setter Property="Background" Value="{StaticResource GlassBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource GlassBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="16" />
+      <Setter Property="Margin" Value="0,0,0,12" />
+    </Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+    <!-- Header -->
+    <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,20">
+      <TextBlock Text="🏆 Create Tournament"
+                 FontSize="24"
+                 FontWeight="Bold"
+                 Foreground="{StaticResource ForegroundBrush}" />
+      <TextBlock Text="Set up a new competitive gaming event"
+                 FontSize="14"
+                 Opacity="0.7"
+                 Foreground="{StaticResource ForegroundBrush}" />
+    </StackPanel>
+
+    <!-- Content -->
+    <ScrollViewer Grid.Row="1">
+      <StackPanel Spacing="16">
+        <!-- Basic Info Card -->
+        <Border Classes="glassCard">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Basic Information"
+                       FontSize="16"
+                       FontWeight="SemiBold" />
+
+            <!-- Tournament Name -->
+            <StackPanel Spacing="4">
+              <TextBlock Text="Tournament Name *"
+                         FontWeight="Medium"
+                         FontSize="13" />
+              <TextBox Text="{Binding Name}"
+                       Watermark="e.g., Weekly Smash Championship" />
+            </StackPanel>
+
+            <!-- Description -->
+            <StackPanel Spacing="4">
+              <TextBlock Text="Description"
+                         FontWeight="Medium"
+                         FontSize="13" />
+              <TextBox Text="{Binding Description}"
+                       Watermark="Describe your tournament..."
+                       AcceptsReturn="True"
+                       TextWrapping="Wrap"
+                       MinHeight="80" />
+            </StackPanel>
+
+            <!-- Game Selection -->
+            <StackPanel Spacing="4">
+              <TextBlock Text="Game *"
+                         FontWeight="Medium"
+                         FontSize="13" />
+              <ComboBox SelectedItem="{Binding SelectedGame}"
+                        ItemsSource="{Binding AvailableGames}"
+                        PlaceholderText="Select a game..."
+                        HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Name}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Format Card -->
+        <Border Classes="glassCard">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Format &amp; Schedule"
+                       FontSize="16"
+                       FontWeight="SemiBold" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+              <!-- Format -->
+              <StackPanel Grid.Column="0" Spacing="4">
+                <TextBlock Text="Tournament Format *"
+                           FontWeight="Medium"
+                           FontSize="13" />
+                <ComboBox SelectedItem="{Binding SelectedFormat}"
+                          ItemsSource="{Binding AvailableFormats}"
+                          HorizontalAlignment="Stretch">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </StackPanel>
+
+              <!-- Max Participants -->
+              <StackPanel Grid.Column="1" Spacing="4">
+                <TextBlock Text="Max Participants *"
+                           FontWeight="Medium"
+                           FontSize="13" />
+                <NumericUpDown Value="{Binding MaxParticipants}"
+                               Minimum="2"
+                               Maximum="512"
+                               Increment="1"
+                               HorizontalAlignment="Stretch" />
+              </StackPanel>
+            </Grid>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+              <!-- Start Date -->
+              <StackPanel Grid.Column="0" Spacing="4">
+                <TextBlock Text="Start Date *"
+                           FontWeight="Medium"
+                           FontSize="13" />
+                <DatePicker SelectedDate="{Binding StartDate}" />
+              </StackPanel>
+
+              <!-- Start Time -->
+              <StackPanel Grid.Column="1" Spacing="4">
+                <TextBlock Text="Start Time *"
+                           FontWeight="Medium"
+                           FontSize="13" />
+                <TimePicker SelectedTime="{Binding StartTime}" />
+              </StackPanel>
+            </Grid>
+
+            <!-- Registration Deadline -->
+            <StackPanel Spacing="4">
+              <TextBlock Text="Registration Deadline *"
+                         FontWeight="Medium"
+                         FontSize="13" />
+              <DatePicker SelectedDate="{Binding RegistrationDeadline}" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Rules Card -->
+        <Border Classes="glassCard">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Rules"
+                       FontSize="16"
+                       FontWeight="SemiBold" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+              <!-- Best Of -->
+              <StackPanel Grid.Column="0" Spacing="4">
+                <TextBlock Text="Best Of"
+                           FontWeight="Medium"
+                           FontSize="13" />
+                <ComboBox SelectedItem="{Binding BestOf}"
+                          ItemsSource="{Binding BestOfOptions}"
+                          HorizontalAlignment="Stretch" />
+              </StackPanel>
+
+              <!-- Time Limit -->
+              <StackPanel Grid.Column="1" Spacing="4">
+                <TextBlock Text="Time Limit (optional)"
+                           FontWeight="Medium"
+                           FontSize="13" />
+                <TimePicker SelectedTime="{Binding TimeLimit}" />
+              </StackPanel>
+            </Grid>
+
+            <CheckBox IsChecked="{Binding AllowDraws}"
+                      Content="Allow draws/ties"
+                      Foreground="{StaticResource ForegroundBrush}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Prize Pool Card -->
+        <Border Classes="glassCard">
+          <StackPanel Spacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <ToggleSwitch IsChecked="{Binding HasPrizePool}" />
+              <TextBlock Text="Add Prize Pool"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         VerticalAlignment="Center" />
+            </StackPanel>
+
+            <StackPanel Spacing="4"
+                        IsVisible="{Binding HasPrizePool}">
+              <TextBlock Text="Total Prize Amount"
+                         FontWeight="Medium"
+                         FontSize="13" />
+              <NumericUpDown Value="{Binding PrizePoolAmount}"
+                             Minimum="0"
+                             Maximum="1000000"
+                             Increment="10"
+                             FormatString="C2"
+                             HorizontalAlignment="Stretch" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Stream Card -->
+        <Border Classes="glassCard">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Stream (Optional)"
+                       FontSize="16"
+                       FontWeight="SemiBold" />
+            <TextBox Text="{Binding StreamUrl}"
+                     Watermark="e.g., https://twitch.tv/channel" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Footer -->
+    <Grid Grid.Row="2"
+          ColumnDefinitions="*,Auto,Auto"
+          Margin="0,20,0,0">
+      <StackPanel Grid.Column="0" VerticalAlignment="Center">
+        <TextBlock Text="* Required fields"
+                   FontSize="12"
+                   Opacity="0.6"
+                   Foreground="{StaticResource ForegroundBrush}" />
+        <TextBlock Text="{Binding ValidationError}"
+                   FontSize="12"
+                   Foreground="{StaticResource ErrorBrush}"
+                   IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+      </StackPanel>
+
+      <Button Grid.Column="1"
+              Classes="secondary"
+              Content="Cancel"
+              Command="{Binding CancelCommand}"
+              Margin="0,0,12,0" />
+
+      <Button Grid.Column="2"
+              Classes="primary"
+              Content="Create Tournament"
+              Command="{Binding CreateCommand}"
+              IsEnabled="{Binding CanCreate}" />
+    </Grid>
+  </Grid>
+</Window>

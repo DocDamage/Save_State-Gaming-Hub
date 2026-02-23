@@ -1,0 +1,155 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Esports"
+             xmlns:models="using:SaveState.Core.TournamentManagement.Models"
+             x:Class="SaveState.Presentation.Views.Esports.BracketView"
+             x:DataType="vm:TournamentDetailViewModel">
+
+  <UserControl.Styles>
+    <!-- Match Card Style -->
+    <Style Selector="Border.matchCard">
+      <Setter Property="Background" Value="{StaticResource GlassBackgroundBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource GlassBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Width" Value="200" />
+      <Setter Property="Margin" Value="0,4" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <Style Selector="Border.matchCard.completed">
+      <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+    </Style>
+
+    <Style Selector="Border.matchCard.inProgress">
+      <Setter Property="BorderBrush" Value="#F59E0B" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+
+    <!-- Player Slot Style -->
+    <Style Selector="Border.playerSlot">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Padding" Value="12,8" />
+    </Style>
+
+    <Style Selector="Border.playerSlot.winner">
+      <Setter Property="Background" Value="{StaticResource AccentBrush}20" />
+    </Style>
+
+    <!-- Round Header -->
+    <Style Selector="TextBlock.roundHeader">
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="Margin" Value="0,0,0,12" />
+    </Style>
+
+    <!-- Connector Lines -->
+    <Style Selector="Border.connector">
+      <Setter Property="Background" Value="{StaticResource GlassBorderBrush}" />
+    </Style>
+
+    <!-- Bracket Container -->
+    <Style Selector="Border.bracketRound">
+      <Setter Property="Margin" Value="20,0" />
+    </Style>
+  </UserControl.Styles>
+
+  <Panel>
+    <!-- Empty State -->
+    <StackPanel HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                IsVisible="{Binding !Matches.Count}"
+                Spacing="16">
+      <TextBlock Text="🏆" FontSize="64" HorizontalAlignment="Center" />
+      <TextBlock Text="Bracket not generated yet"
+                 FontSize="18"
+                 FontWeight="SemiBold"
+                 HorizontalAlignment="Center" />
+      <TextBlock Text="The bracket will be created when the tournament starts"
+                 Opacity="0.7"
+                 HorizontalAlignment="Center" />
+    </StackPanel>
+
+    <!-- Bracket Display -->
+    <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                  VerticalScrollBarVisibility="Auto"
+                  IsVisible="{Binding Matches.Count}">
+      <Panel Margin="20">
+        <!-- Winners Bracket -->
+        <ItemsControl ItemsSource="{Binding Bracket.Rounds}"
+                      IsVisible="{Binding Bracket.Rounds.Count}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="models:BracketRound">
+              <Border Classes="bracketRound">
+                <StackPanel>
+                  <!-- Round Header -->
+                  <TextBlock Text="{Binding Name}" Classes="roundHeader" />
+
+                  <!-- Matches in Round -->
+                  <ItemsControl ItemsSource="{Binding $parent[ItemsControl].((vm:TournamentDetailViewModel)DataContext).Matches}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="models:TournamentMatch">
+                        <!-- Only show matches for this round -->
+                        <Border Classes="matchCard"
+                                Tag="{Binding Status}"
+                                IsVisible="{Binding Round, Converter={StaticResource RoundEqualsConverter}, ConverterParameter={Binding RoundNumber}}">
+                          <Grid RowDefinitions="Auto,1,Auto">
+                            <!-- Player 1 -->
+                            <Border Grid.Row="0"
+                                    Classes="playerSlot"
+                                    Tag="{Binding WinnerId, Converter={StaticResource WinnerEqualsConverter}, ConverterParameter={Binding Participant1Id}}">
+                              <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding Participant1Name, TargetNullValue='TBD'}"
+                                           TextTrimming="CharacterEllipsis"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding Participant1Score}"
+                                           FontWeight="Bold"
+                                           VerticalAlignment="Center"
+                                           Margin="8,0,0,0"
+                                           IsVisible="{Binding Participant1Score, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                              </Grid>
+                            </Border>
+
+                            <!-- Divider -->
+                            <Rectangle Grid.Row="1" Fill="{StaticResource InputBorderBrush}" Height="1" />
+
+                            <!-- Player 2 -->
+                            <Border Grid.Row="2"
+                                    Classes="playerSlot"
+                                    Tag="{Binding WinnerId, Converter={StaticResource WinnerEqualsConverter}, ConverterParameter={Binding Participant2Id}}">
+                              <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding Participant2Name, TargetNullValue='TBD'}"
+                                           TextTrimming="CharacterEllipsis"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding Participant2Score}"
+                                           FontWeight="Bold"
+                                           VerticalAlignment="Center"
+                                           Margin="8,0,0,0"
+                                           IsVisible="{Binding Participant2Score, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                              </Grid>
+                            </Border>
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Panel>
+    </ScrollViewer>
+  </Panel>
+</UserControl>

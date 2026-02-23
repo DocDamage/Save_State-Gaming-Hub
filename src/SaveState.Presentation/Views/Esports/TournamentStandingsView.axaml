@@ -1,0 +1,362 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Esports"
+             x:Class="SaveState.Presentation.Views.Esports.TournamentStandingsView"
+             x:DataType="vm:TournamentStandingsViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="Border.StandingsHeader">
+      <Setter Property="Background" Value="#0f3460" />
+      <Setter Property="Padding" Value="15,10" />
+      <Setter Property="CornerRadius" Value="8,8,0,0" />
+    </Style>
+
+    <Style Selector="Border.StandingsRow">
+      <Setter Property="Background" Value="#16213e" />
+      <Setter Property="Padding" Value="15,12" />
+      <Setter Property="BorderBrush" Value="#1a1a2e" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+
+    <Style Selector="Border.StandingsRow:nth-child(2n)">
+      <Setter Property="Background" Value="#1a1a2e" />
+    </Style>
+
+    <Style Selector="TextBlock.ColumnHeader">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="#888" />
+    </Style>
+
+    <Style Selector="TextBlock.StandingValue">
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="TextBlock.PlacementText">
+      <Setter Property="FontSize" Value="16" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="#00d9ff" />
+      <Setter Property="MinWidth" Value="50" />
+    </Style>
+
+    <Style Selector="Border.TopCutHighlight">
+      <Setter Property="BorderBrush" Value="#ffd700" />
+      <Setter Property="BorderThickness" Value="2,0,0,0" />
+    </Style>
+
+    <Style Selector="Border.ChampionCard">
+      <Setter Property="Background" Value="LinearGradient(90deg, #ffd700 0%, #ffaa00 100%)" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="30" />
+      <Setter Property="Margin" Value="0,0,0,20" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*">
+    <!-- Header -->
+    <Border Grid.Row="0" Background="#0f3460" Padding="20,15">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Grid.Column="0" Spacing="5">
+          <TextBlock Text="Tournament Standings"
+                     FontSize="20" FontWeight="Bold" />
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="{Binding Tournament.Name, FallbackValue='Tournament'}"
+                       FontSize="14" Opacity="0.8" />
+            <TextBlock Text="&#x2022;" Opacity="0.5" />
+            <TextBlock Text="{Binding TournamentFormat}"
+                       FontSize="14" Opacity="0.8" />
+            <TextBlock Text="&#x2022;" Opacity="0.5" IsVisible="{Binding IsComplete}" />
+            <TextBlock Text="Complete"
+                       FontSize="14"
+                       Foreground="#00ff88"
+                       FontWeight="Bold"
+                       IsVisible="{Binding IsComplete}" />
+          </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+          <Button Content="Top Cut Only"
+                  Command="{Binding ToggleTopCutFilterCommand}"
+                  Background="{Binding ShowTopCutOnly, Converter={StaticResource BoolToAccentBrushConverter}}" />
+          <Button Content="Export"
+                  Command="{Binding ExportStandingsCommand}" />
+          <Button Content="Refresh"
+                  Command="{Binding LoadStandingsCommand}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Content -->
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+      <StackPanel Margin="20" Spacing="20">
+
+        <!-- Champion Display -->
+        <Border Classes="ChampionCard"
+                IsVisible="{Binding Champion, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <StackPanel HorizontalAlignment="Center">
+            <TextBlock Text="&#x1F3C6; CHAMPION"
+                       FontSize="14"
+                       FontWeight="Bold"
+                       Foreground="#000"
+                       Opacity="0.7"
+                       HorizontalAlignment="Center" />
+            <TextBlock Text="{Binding Champion.DisplayName}"
+                       FontSize="32"
+                       FontWeight="Bold"
+                       Foreground="#000"
+                       HorizontalAlignment="Center" />
+          </StackPanel>
+        </Border>
+
+        <!-- Elimination Standings -->
+        <Panel IsVisible="{Binding TournamentFormat, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=SingleElimination}">
+          <StackPanel Spacing="0">
+            <!-- Header -->
+            <Border Classes="StandingsHeader">
+              <Grid ColumnDefinitions="60,*,100,100,100,120">
+                <TextBlock Grid.Column="0" Text="Place" Classes="ColumnHeader" />
+                <TextBlock Grid.Column="1" Text="Participant" Classes="ColumnHeader" />
+                <TextBlock Grid.Column="2" Text="Seed" Classes="ColumnHeader" HorizontalAlignment="Center" />
+                <TextBlock Grid.Column="3" Text="W-L" Classes="ColumnHeader" HorizontalAlignment="Center" />
+                <TextBlock Grid.Column="4" Text="Status" Classes="ColumnHeader" HorizontalAlignment="Center" />
+                <TextBlock Grid.Column="5" Text="Bracket" Classes="ColumnHeader" HorizontalAlignment="Center" />
+              </Grid>
+            </Border>
+
+            <!-- Rows -->
+            <ItemsControl ItemsSource="{Binding EliminationStandings}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Classes="StandingsRow, TopCutHighlight"
+                          IsVisible="{Binding IsQualifiedForTopCut}">
+                    <Grid ColumnDefinitions="60,*,100,100,100,120">
+                      <TextBlock Grid.Column="0"
+                                 Text="{Binding PlacementDisplay}"
+                                 Classes="PlacementText" />
+
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                        <Ellipse Width="32" Height="32" Fill="#333" />
+                        <TextBlock Text="{Binding DisplayName}"
+                                   Classes="StandingValue"
+                                   VerticalAlignment="Center" />
+                      </StackPanel>
+
+                      <TextBlock Grid.Column="2"
+                                 Text="{Binding Seed}"
+                                 Classes="StandingValue"
+                                 HorizontalAlignment="Center" />
+
+                      <TextBlock Grid.Column="3"
+                                 Text="{Binding Wins, StringFormat='{}{0}-{1}', ConverterParameter={Binding Losses}}"
+                                 Classes="StandingValue"
+                                 HorizontalAlignment="Center" />
+
+                      <TextBlock Grid.Column="4"
+                                 Text="{Binding Status}"
+                                 Classes="StandingValue"
+                                 HorizontalAlignment="Center"
+                                 Foreground="{Binding Status, Converter={StaticResource ParticipantStatusToColorConverter}}" />
+
+                      <TextBlock Grid.Column="5"
+                                 Text="{Binding IsInWinnersBracket, Converter={StaticResource BoolToStringConverter}, ConverterParameter='Winners|Losers'}"
+                                 Classes="StandingValue"
+                                 HorizontalAlignment="Center" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Panel>
+
+        <!-- Round Robin Standings -->
+        <Panel IsVisible="{Binding TournamentFormat, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=RoundRobin}">
+          <StackPanel Spacing="0">
+            <!-- Header -->
+            <Border Classes="StandingsHeader">
+              <Grid ColumnDefinitions="50,*,80,80,80,80,100,120">
+                <TextBlock Grid.Column="0" Text="Rank" Classes="ColumnHeader" />
+                <TextBlock Grid.Column="1" Text="Participant" Classes="ColumnHeader" />
+                <TextBlock Grid.Column="2" Text="W" Classes="ColumnHeader" HorizontalAlignment="Center" />
+                <TextBlock Grid.Column="3" Text="L" Classes="ColumnHeader" HorizontalAlignment="Center" />
+                <TextBlock Grid.Column="4" Text="T" Classes="ColumnHeader" HorizontalAlignment="Center" />
+                <TextBlock Grid.Column="5" Text="Pts" Classes="ColumnHeader" HorizontalAlignment="Center" />
+                <TextBlock Grid.Column="6" Text="Win%" Classes="ColumnHeader" HorizontalAlignment="Center" />
+                <TextBlock Grid.Column="7" Text="Recent" Classes="ColumnHeader" HorizontalAlignment="Center" />
+              </Grid>
+            </Border>
+
+            <!-- Rows -->
+            <ItemsControl ItemsSource="{Binding RoundRobinStandings}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Classes="StandingsRow, TopCutHighlight"
+                          IsVisible="{Binding IsQualifiedForTopCut}">
+                    <Grid ColumnDefinitions="50,*,80,80,80,80,100,120">
+                      <TextBlock Grid.Column="0"
+                                 Text="{Binding Rank}"
+                                 Classes="PlacementText" />
+
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                        <Ellipse Width="32" Height="32" Fill="#333" />
+                        <TextBlock Text="{Binding DisplayName}"
+                                   Classes="StandingValue"
+                                   VerticalAlignment="Center" />
+                      </StackPanel>
+
+                      <TextBlock Grid.Column="2"
+                                 Text="{Binding Wins}"
+                                 Classes="StandingValue"
+                                 HorizontalAlignment="Center"
+                                 Foreground="#00ff88" />
+
+                      <TextBlock Grid.Column="3"
+                                 Text="{Binding Losses}"
+                                 Classes="StandingValue"
+                                 HorizontalAlignment="Center"
+                                 Foreground="#ff4444" />
+
+                      <TextBlock Grid.Column="4"
+                                 Text="{Binding Ties}"
+                                 Classes="StandingValue"
+                                 HorizontalAlignment="Center"
+                                 Foreground="#ffaa00" />
+
+                      <TextBlock Grid.Column="5"
+                                 Text="{Binding Points}"
+                                 Classes="StandingValue"
+                                 FontWeight="Bold"
+                                 HorizontalAlignment="Center" />
+
+                      <TextBlock Grid.Column="6"
+                                 Text="{Binding WinRateDisplay}"
+                                 Classes="StandingValue"
+                                 HorizontalAlignment="Center" />
+
+                      <TextBlock Grid.Column="7"
+                                 Text="{Binding RecentForm}"
+                                 Classes="StandingValue"
+                                 HorizontalAlignment="Center"
+                                 FontFamily="Consolas" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Panel>
+
+        <!-- Swiss Standings -->
+        <Panel IsVisible="{Binding TournamentFormat, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Swiss}">
+          <StackPanel Spacing="0">
+            <!-- Header -->
+            <Border Classes="StandingsHeader">
+              <Grid ColumnDefinitions="50,*,80,80,100,100,100,80">
+                <TextBlock Grid.Column="0" Text="Rank" Classes="ColumnHeader" />
+                <TextBlock Grid.Column="1" Text="Participant" Classes="ColumnHeader" />
+                <TextBlock Grid.Column="2" Text="W-L" Classes="ColumnHeader" HorizontalAlignment="Center" />
+                <TextBlock Grid.Column="3" Text="Points" Classes="ColumnHeader" HorizontalAlignment="Center" />
+                <TextBlock Grid.Column="4" Text="OMW%" Classes="ColumnHeader" HorizontalAlignment="Center" />
+                <TextBlock Grid.Column="5" Text="GW%" Classes="ColumnHeader" HorizontalAlignment="Center" />
+                <TextBlock Grid.Column="6" Text="OGW%" Classes="ColumnHeader" HorizontalAlignment="Center" />
+                <TextBlock Grid.Column="7" Text="Cut" Classes="ColumnHeader" HorizontalAlignment="Center" />
+              </Grid>
+            </Border>
+
+            <!-- Rows -->
+            <ItemsControl ItemsSource="{Binding SwissStandings}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Classes="StandingsRow, TopCutHighlight"
+                          IsVisible="{Binding IsQualifiedForTopCut}">
+                    <Grid ColumnDefinitions="50,*,80,80,100,100,100,80">
+                      <TextBlock Grid.Column="0"
+                                 Text="{Binding Rank}"
+                                 Classes="PlacementText" />
+
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                        <Ellipse Width="32" Height="32" Fill="#333" />
+                        <TextBlock Text="{Binding DisplayName}"
+                                   Classes="StandingValue"
+                                   VerticalAlignment="Center" />
+                      </StackPanel>
+
+                      <TextBlock Grid.Column="2"
+                                 Text="{Binding Wins, StringFormat='{}{0}-{1}', ConverterParameter={Binding Losses}}"
+                                 Classes="StandingValue"
+                                 HorizontalAlignment="Center" />
+
+                      <TextBlock Grid.Column="3"
+                                 Text="{Binding MatchPoints}"
+                                 Classes="StandingValue"
+                                 FontWeight="Bold"
+                                 HorizontalAlignment="Center" />
+
+                      <TextBlock Grid.Column="4"
+                                 Text="{Binding OMWDisplay}"
+                                 Classes="StandingValue"
+                                 HorizontalAlignment="Center" />
+
+                      <TextBlock Grid.Column="5"
+                                 Text="{Binding GWPDisplay}"
+                                 Classes="StandingValue"
+                                 HorizontalAlignment="Center" />
+
+                      <TextBlock Grid.Column="6"
+                                 Text="{Binding OGWDisplay}"
+                                 Classes="StandingValue"
+                                 HorizontalAlignment="Center" />
+
+                      <TextBlock Grid.Column="7"
+                                 Text="&#x2713;"
+                                 FontSize="18"
+                                 Foreground="#00ff88"
+                                 HorizontalAlignment="Center"
+                                 IsVisible="{Binding IsQualifiedForTopCut}" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Panel>
+
+        <!-- Tiebreaker Information -->
+        <Border Background="#16213e" CornerRadius="12" Padding="20"
+                IsVisible="{Binding TiebreakerInfo.Count, Converter={StaticResource CountToBoolConverter}}">
+          <StackPanel Spacing="10">
+            <TextBlock Text="Tiebreaker Information"
+                       FontSize="16"
+                       FontWeight="Bold"
+                       Foreground="#00d9ff" />
+            <ItemsControl ItemsSource="{Binding TiebreakerInfo}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding}" Opacity="0.8" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
+        <!-- Status Message -->
+        <TextBlock Text="{Binding StatusMessage}"
+                   HorizontalAlignment="Center"
+                   Opacity="0.6"
+                   IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Loading Overlay -->
+    <Panel Grid.Row="1"
+           IsVisible="{Binding IsLoading}"
+           Background="#80000000">
+      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        <ProgressBar IsIndeterminate="True" Width="200" Margin="0,0,0,10" />
+        <TextBlock Text="{Binding StatusMessage}" HorizontalAlignment="Center" />
+      </StackPanel>
+    </Panel>
+  </Grid>
+</UserControl>
