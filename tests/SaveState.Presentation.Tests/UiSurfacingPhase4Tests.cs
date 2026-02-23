@@ -8,6 +8,7 @@ using FluentAssertions;
 using Moq;
 using SaveState.Core.Esports.Models;
 using SaveState.Core.Esports.Services;
+using ITournamentServiceCore = SaveState.Core.Esports.Services.ITournamentService;
 using SaveState.Presentation.ViewModels.Dialogs;
 using SaveState.Presentation.ViewModels.Esports;
 using SaveState.Presentation.Services;
@@ -20,13 +21,13 @@ namespace SaveState.Presentation.Tests;
 /// </summary>
 public class UiSurfacingPhase4Tests
 {
-    private readonly Mock<ITournamentService> _tournamentServiceMock;
+    private readonly Mock<ITournamentServiceCore> _tournamentServiceMock;
     private readonly Mock<IDialogService> _dialogServiceMock;
     private readonly Mock<INavigationService> _navigationServiceMock;
 
     public UiSurfacingPhase4Tests()
     {
-        _tournamentServiceMock = new Mock<ITournamentService>();
+        _tournamentServiceMock = new Mock<ITournamentServiceCore>();
         _dialogServiceMock = new Mock<IDialogService>();
         _navigationServiceMock = new Mock<INavigationService>();
     }

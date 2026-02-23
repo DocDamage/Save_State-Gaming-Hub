@@ -13,7 +13,7 @@ public static class ControlExtensions
     /// <summary>
     /// Finds a control by name within the visual tree.
     /// </summary>
-    public static T? FindControl<T>(this Visual parent, string name) where T : class, Visual
+    public static T? FindControl<T>(this Visual parent, string name) where T : Visual
     {
         return parent.GetVisualDescendants()
             .OfType<T>()
@@ -33,7 +33,7 @@ public static class ControlExtensions
     /// <summary>
     /// Finds all controls of a specific type within the visual tree.
     /// </summary>
-    public static IEnumerable<T> FindControls<T>(this Visual parent) where T : class, Visual
+    public static IEnumerable<T> FindControls<T>(this Visual parent) where T : Visual
     {
         return parent.GetVisualDescendants().OfType<T>();
     }
@@ -41,7 +41,7 @@ public static class ControlExtensions
     /// <summary>
     /// Finds a control by its automation ID/name.
     /// </summary>
-    public static T? FindByAutomationId<T>(this Visual parent, string automationId) where T : class, Visual
+    public static T? FindByAutomationId<T>(this Visual parent, string automationId) where T : Visual
     {
         return parent.GetVisualDescendants()
             .OfType<T>()

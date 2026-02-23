@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using SaveState.Core.Common.Services;
 using SaveState.Presentation.Services;
+using SaveState.Presentation.ViewModels;
 using SaveState.Presentation.ViewModels.Dialogs;
 using SaveState.Presentation.ViewModels.RetroArch;
 using SaveState.Presentation.ViewModels.Settings;

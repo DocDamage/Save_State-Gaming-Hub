@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -7,6 +8,9 @@ using Moq;
 using SaveState.Core.Common;
 using SaveState.Core.MobileCompanion.Models;
 using SaveState.Core.MobileCompanion.Services;
+using IMobileCompanionServiceCore = SaveState.Core.MobileCompanion.Services.IMobileCompanionService;
+using IQRCodeServiceCore = SaveState.Core.MobileCompanion.Services.IQRCodeService;
+using IMobileConnectionManagerCore = SaveState.Core.MobileCompanion.Services.IMobileConnectionManager;
 using SaveState.Presentation.Services;
 using SaveState.Presentation.ViewModels.Dialogs;
 using SaveState.Presentation.ViewModels.MobileCompanion;
@@ -19,16 +23,16 @@ namespace SaveState.Presentation.Tests;
 /// </summary>
 public class UiSurfacingPhase5Tests
 {
-    private readonly Mock<IMobileCompanionService> _mobileServiceMock;
-    private readonly Mock<IQRCodeService> _qrCodeServiceMock;
-    private readonly Mock<IMobileConnectionManager> _connectionManagerMock;
+    private readonly Mock<IMobileCompanionServiceCore> _mobileServiceMock;
+    private readonly Mock<IQRCodeServiceCore> _qrCodeServiceMock;
+    private readonly Mock<IMobileConnectionManagerCore> _connectionManagerMock;
     private readonly Mock<IDialogService> _dialogServiceMock;
 
     public UiSurfacingPhase5Tests()
     {
-        _mobileServiceMock = new Mock<IMobileCompanionService>();
-        _qrCodeServiceMock = new Mock<IQRCodeService>();
-        _connectionManagerMock = new Mock<IMobileConnectionManager>();
+        _mobileServiceMock = new Mock<IMobileCompanionServiceCore>();
+        _qrCodeServiceMock = new Mock<IQRCodeServiceCore>();
+        _connectionManagerMock = new Mock<IMobileConnectionManagerCore>();
         _dialogServiceMock = new Mock<IDialogService>();
     }
 
@@ -183,7 +187,7 @@ public class UiSurfacingPhase5Tests
     [Theory]
     [InlineData(RemoteControlMode.Gamepad)]
     [InlineData(RemoteControlMode.Touchpad)]
-    [InlineData(RemoteControlMode.Media)]
+    [InlineData(RemoteControlMode.MediaControls)]
     public void MobileRemoteControlViewModel_ModeProperties_ShouldReflectCurrentMode(RemoteControlMode mode)
     {
         // Arrange
@@ -196,7 +200,7 @@ public class UiSurfacingPhase5Tests
         // Assert
         viewModel.IsGamepadMode.Should().Be(mode == RemoteControlMode.Gamepad);
         viewModel.IsTouchpadMode.Should().Be(mode == RemoteControlMode.Touchpad);
-        viewModel.IsMediaMode.Should().Be(mode == RemoteControlMode.Media);
+        viewModel.IsMediaMode.Should().Be(mode == RemoteControlMode.MediaControls);
     }
 
     #endregion

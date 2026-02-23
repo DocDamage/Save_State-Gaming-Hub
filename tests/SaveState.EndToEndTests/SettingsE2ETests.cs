@@ -7,7 +7,7 @@ using SaveState.Core.Common.Services;
 using SaveState.EndToEndTests.Infrastructure;
 using SaveState.Presentation.Resources;
 using SaveState.Presentation.ViewModels.Settings;
-using SaveState.Presentation.Views.Settings;
+using SaveState.Presentation.Views;
 using Xunit;
 using Xunit.Abstractions;
 
