@@ -6,23 +6,19 @@ using SaveState.Application.RomManagement.RomValidation.Commands;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Common.Services;
 using SaveState.Core.Common.Interfaces;
-using SaveState.Core.Esports.Services;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Core.Input.Services;
-using SaveState.Core.MobileCompanion.Services;
 using SaveState.Core.RgbSync.Services;
 using SaveState.Core.RomManagement;
 using SaveState.Core.RomManagement.RomValidation.Services;
 using SaveState.Core.SaveStates.Services;
-using SaveState.Core.Theme.Services;
 using SaveState.Core.Sync.Services;
+using SaveState.Core.WebBrowser.Services;
 // Note: Using fake services from SaveState.Tests.Fakes instead of infrastructure implementations
 using SaveState.Infrastructure.Input;
-using SaveState.Infrastructure.MobileCompanion.Services;
 using SaveState.Infrastructure.RgbSync;
 using SaveState.Infrastructure.RomManagement;
-using SaveState.Infrastructure.Theme.Services;
 using SaveState.Tests.Fakes;
 
 namespace SaveState.IntegrationTests;
@@ -66,26 +62,21 @@ public class IntegrationTestFixture : IDisposable
         services.AddSingleton(_ => new Mock<IGameRepository>().Object);
         services.AddSingleton(_ => new Mock<ILaunchExperienceManager>().Object);
         services.AddSingleton(_ => new Mock<ISaveStateManager>().Object);
-        services.AddSingleton(_ => new Mock<ICloudGamingManager>().Object);
+        services.AddSingleton<ICloudGamingManager>(sp => new Mock<ICloudGamingManager>().Object);
         services.AddSingleton<IVoiceCommandService, VoiceCommandService>();
-
-        // Theme Service
-        services.AddSingleton<IThemeService, ThemeService>();
 
         // RGB Sync Service dependencies
         services.AddSingleton<FakeRgbProvider>();
         services.AddSingleton<IEnumerable<IRgbProvider>>(sp => new[] { sp.GetRequiredService<FakeRgbProvider>() });
         services.AddSingleton<IRgbSyncService, RgbSyncService>();
 
-        // Tournament Service
-        // Tournament Service - using fake implementation
-        services.AddSingleton<ITournamentService, FakeTournamentService>();
-
-        // Mobile Companion Service dependencies
-        services.AddSingleton<IMobileCompanionService, MobileCompanionService>();
-        services.AddSingleton<IQRCodeService, FakeQRCodeService>();
-        services.AddSingleton<IPushNotificationService, FakePushNotificationService>();
-        services.AddSingleton<IRemoteCommandExecutor, FakeRemoteCommandExecutor>();
+        // Cloud Gaming Services - using fakes that match the test-defined interfaces
+        services.AddSingleton<FakeCloudGamingManagerForTests>();
+        services.AddSingleton<ICloudGamingManager>(sp => sp.GetRequiredService<FakeCloudGamingManagerForTests>());
+        services.AddSingleton<FakeNetworkQualityMonitor>();
+        services.AddSingleton<INetworkQualityMonitor>(sp => sp.GetRequiredService<FakeNetworkQualityMonitor>());
+        services.AddSingleton<FakeCloudCatalogService>(sp => new FakeCloudCatalogService(sp.GetRequiredService<ICloudGamingManager>()));
+        services.AddSingleton<ICloudCatalogService>(sp => sp.GetRequiredService<FakeCloudCatalogService>());
 
         ServiceProvider = services.BuildServiceProvider();
     }

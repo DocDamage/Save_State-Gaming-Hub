@@ -1,8 +1,22 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using SaveState.Core.Common;
-using SaveState.Core.WebBrowser.Models;
-using SaveState.Core.WebBrowser.Services;
+using BrowserTab = SaveState.Core.WebBrowser.Models.BrowserTab;
+using BrowserTabState = SaveState.Core.WebBrowser.Models.BrowserTabState;
+using BrowserBookmark = SaveState.Core.WebBrowser.Models.BrowserBookmark;
+using BrowserSettings = SaveState.Core.WebBrowser.Models.BrowserSettings;
+using ZoomLevel = SaveState.Core.WebBrowser.Models.ZoomLevel;
+using DownloadSettings = SaveState.Core.WebBrowser.Models.DownloadSettings;
+using BrowserFindOptions = SaveState.Core.WebBrowser.Models.BrowserFindOptions;
+using BrowserDataType = SaveState.Core.WebBrowser.Models.BrowserDataType;
+using BrowserCookie = SaveState.Core.WebBrowser.Models.BrowserCookie;
+using BrowserExtension = SaveState.Core.WebBrowser.Models.BrowserExtension;
+using HistoryItem = SaveState.Core.WebBrowser.Models.HistoryItem;
+using BrowserHistoryItem = SaveState.Core.WebBrowser.Models.BrowserHistoryItem;
+using IBrowserService = SaveState.Core.WebBrowser.Services.IBrowserService;
+using IOAuthIntegrationService = SaveState.Core.WebBrowser.Services.IOAuthIntegrationService;
+using OAuthCallback = SaveState.Core.WebBrowser.Models.OAuthCallback;
+using SaveState.Tests.Fakes;
 using SaveState.IntegrationTests.Helpers;
 
 namespace SaveState.IntegrationTests.WebBrowser;
@@ -318,7 +332,7 @@ public class WebBrowserTests : IClassFixture<IntegrationTestFixture>
         var redirectUri = "http://localhost:5000/oauth/callback";
 
         // Act
-        var result = await _oauthService.InitiateOAuthFlowAsync(provider, redirectUri);
+        var result = await ((FakeOAuthIntegrationService)_oauthService).InitiateOAuthFlowAsync(provider, redirectUri);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -341,7 +355,7 @@ public class WebBrowserTests : IClassFixture<IntegrationTestFixture>
         };
 
         // Act
-        var result = await _oauthService.HandleOAuthCallbackAsync(callback);
+        var result = await ((FakeOAuthIntegrationService)_oauthService).HandleOAuthCallbackAsync(callback);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -351,7 +365,7 @@ public class WebBrowserTests : IClassFixture<IntegrationTestFixture>
     public async Task GetOAuthProviders_ReturnsSupportedProviders()
     {
         // Act
-        var result = await _oauthService.GetSupportedProvidersAsync();
+        var result = await ((FakeOAuthIntegrationService)_oauthService).GetSupportedProvidersAsync();
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -365,7 +379,7 @@ public class WebBrowserTests : IClassFixture<IntegrationTestFixture>
         var provider = "steam";
 
         // Act
-        var result = await _oauthService.IsConnectedAsync(provider);
+        var result = await ((FakeOAuthIntegrationService)_oauthService).IsConnectedAsync(provider);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -378,7 +392,7 @@ public class WebBrowserTests : IClassFixture<IntegrationTestFixture>
         var provider = "steam";
 
         // Act
-        var result = await _oauthService.DisconnectAsync(provider);
+        var result = await ((FakeOAuthIntegrationService)_oauthService).DisconnectAsync(provider);
 
         // Assert
         result.IsSuccess.Should().BeTrue();

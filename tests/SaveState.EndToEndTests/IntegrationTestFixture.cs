@@ -10,7 +10,7 @@ using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.GameLibrary.ValueObjects;
 using SaveState.Core.GameLibrary.Enums;
 using SaveState.EndToEndTests.Infrastructure;
-using Splat;
+using Locator = SaveState.Presentation.Locator;
 
 
 namespace SaveState.EndToEndTests;
@@ -185,16 +185,16 @@ public class IntegrationTestFixture : IDisposable
 /// <summary>
 /// Test logger factory for capturing test output.
 /// </summary>
-public class TestLoggerFactory : ILoggerFactory
+public class TestLoggerFactory : Microsoft.Extensions.Logging.ILoggerFactory
 {
     private readonly List<TestLogger> _loggers = new();
 
-    public void AddProvider(ILoggerProvider provider)
+    public void AddProvider(Microsoft.Extensions.Logging.ILoggerProvider provider)
     {
         // Not needed for tests
     }
 
-    public ILogger CreateLogger(string categoryName)
+    public Microsoft.Extensions.Logging.ILogger CreateLogger(string categoryName)
     {
         var logger = new TestLogger(categoryName);
         _loggers.Add(logger);
@@ -214,7 +214,7 @@ public class TestLoggerFactory : ILoggerFactory
 /// <summary>
 /// Test logger that captures log output for verification.
 /// </summary>
-public class TestLogger : ILogger, IDisposable
+public class TestLogger : Microsoft.Extensions.Logging.ILogger, IDisposable
 {
     private readonly string _categoryName;
     private readonly List<LogEntry> _entries = new();
@@ -228,9 +228,9 @@ public class TestLogger : ILogger, IDisposable
 
     public IDisposable BeginScope<TState>(TState state) => this;
 
-    public bool IsEnabled(LogLevel logLevel) => true;
+    public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel) => true;
 
-    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+    public void Log<TState>(Microsoft.Extensions.Logging.LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
         var entry = new LogEntry
         {
@@ -255,7 +255,7 @@ public class TestLogger : ILogger, IDisposable
 /// </summary>
 public class LogEntry
 {
-    public LogLevel Level { get; set; }
+    public Microsoft.Extensions.Logging.LogLevel Level { get; set; }
     public EventId EventId { get; set; }
     public string Message { get; set; } = string.Empty;
     public Exception? Exception { get; set; }

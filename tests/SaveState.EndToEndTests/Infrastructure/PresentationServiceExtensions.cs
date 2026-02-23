@@ -59,10 +59,10 @@ public static class PresentationServiceExtensions
         services.AddTransient<SettingsViewModel>();
 
         // RetroArch ViewModels
-        services.AddTransient<RetroArchTabViewModel>();
-        services.AddTransient<RetroArchCoreManagerViewModel>();
-        services.AddTransient<RetroArchPlaylistViewModel>();
-        services.AddTransient<RetroArchNetplayViewModel>();
+        services.AddTransient<SaveState.Presentation.ViewModels.RetroArch.RetroArchTabViewModel>();
+        services.AddTransient<SaveState.Presentation.ViewModels.RetroArch.RetroArchCoreManagerViewModel>();
+        services.AddTransient<SaveState.Presentation.ViewModels.RetroArch.RetroArchPlaylistViewModel>();
+        services.AddTransient<SaveState.Presentation.ViewModels.RetroArch.RetroArchNetplayViewModel>();
 
         // System Health & Accounts ViewModels
         services.AddTransient<SystemHealthViewModel>();
@@ -75,13 +75,13 @@ public static class PresentationServiceExtensions
         services.AddTransient<UniversalSearchViewModel>();
 
         // Performance Dashboard & Data Management ViewModels
-        services.AddTransient<PerformanceDashboardViewModel>();
+        services.AddTransient<SaveState.Presentation.ViewModels.Settings.PerformanceDashboardViewModel>();
         services.AddTransient<GamePerformanceDetailViewModel>();
         services.AddTransient<ImportPreviewDialogViewModel>();
 
         // Immersive Launch Experience ViewModels
-        services.AddTransient<LaunchExperienceViewModel>();
-        services.AddTransient<LaunchExperienceConfigDialogViewModel>();
+        services.AddTransient<SaveState.Presentation.ViewModels.BigPicture.LaunchExperienceViewModel>();
+        services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.LaunchExperienceConfigDialogViewModel>();
 
         // Dialog ViewModels
         services.AddTransient<ErrorLogViewerDialogViewModel>();
@@ -206,11 +206,11 @@ public static class PresentationServiceExtensions
         services.AddTransient<DashboardViewModel>();
 
         // Library UI Components
-        services.AddTransient<LibrarySidebarViewModel>();
-        services.AddTransient<LibraryToolbarViewModel>();
-        services.AddTransient<GameGridViewModel>();
-        services.AddTransient<GameListViewModel>();
-        services.AddTransient<LibraryViewModel>();
+        services.AddTransient<SaveState.Presentation.ViewModels.Library.LibrarySidebarViewModel>();
+        services.AddTransient<SaveState.Presentation.ViewModels.Library.LibraryToolbarViewModel>();
+        services.AddTransient<SaveState.Presentation.ViewModels.Library.GameGridViewModel>();
+        services.AddTransient<SaveState.Presentation.ViewModels.Library.GameListViewModel>();
+        services.AddTransient<SaveState.Presentation.ViewModels.Library.LibraryViewModel>();
 
         // Shell ViewModels
         services.AddTransient<MugenHubViewModel>();

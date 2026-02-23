@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless;
 using Avalonia.Input;
+using Avalonia.Platform;
 using Microsoft.Extensions.DependencyInjection;
 using SaveState.Presentation;
 
@@ -13,7 +14,6 @@ namespace SaveState.EndToEndTests.Infrastructure;
 /// </summary>
 public static class AvaloniaTestApp
 {
-    private static AppBuilder? _appBuilder;
     private static bool _initialized;
     private static readonly object _initLock = new();
 
@@ -28,13 +28,30 @@ public static class AvaloniaTestApp
         {
             if (_initialized) return;
 
-            _appBuilder = AppBuilder.Configure<App>()
-                .UseHeadless(new AvaloniaHeadlessPlatformOptions
-                {
-                    UseHeadlessDrawing = true
-                });
+            // Check if Avalonia is already initialized (from a previous test)
+            if (Avalonia.Application.Current != null)
+            {
+                _initialized = true;
+                return;
+            }
 
-            _appBuilder.SetupWithLifetime(new ClassicDesktopStyleApplicationLifetime());
+            try
+            {
+                // Initialize headless platform without requiring XAML compilation
+                var builder = AppBuilder.Configure<App>()
+                    .UseHeadless(new AvaloniaHeadlessPlatformOptions
+                    {
+                        UseHeadlessDrawing = true
+                    });
+
+                // Use a simple lifetime that doesn't require full XAML resources
+                builder.SetupWithoutStarting();
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("already"))
+            {
+                // Avalonia is already initialized, which is fine
+            }
+
             _initialized = true;
         }
     }

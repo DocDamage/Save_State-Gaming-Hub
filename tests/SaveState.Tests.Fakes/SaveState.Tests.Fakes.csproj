@@ -17,7 +17,6 @@
     <!-- Temporarily excluding broken files that need interface updates -->
     <Compile Remove="FakeCloudGamingManager.cs" />
     <Compile Remove="FakeOAuthIntegrationService.cs" />
-    <Compile Remove="FakeNetworkQualityMonitor.cs" />
     <Compile Remove="FakeBrowserService.cs" />
     <Compile Remove="InMemoryCloudGamingManager.cs" />
     <Compile Remove="InMemoryLaunchExperienceManager.cs" />
