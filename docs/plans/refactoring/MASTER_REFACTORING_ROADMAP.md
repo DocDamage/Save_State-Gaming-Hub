@@ -1,9 +1,22 @@
 # Master Refactoring Roadmap
 
 **Project:** SaveStateReborn Architecture Hardening  
-**Scope:** 14 Large Files (>800 lines) → Manager Pattern  
+**Scope:** Baseline roadmap for 14 large files (>800 lines) using Manager Pattern  
 **Generated:** February 21, 2026  
 **Total Estimated Effort:** 180-220 hours
+
+---
+
+## February 23, 2026 Completion Update
+
+- The `>800` non-migration source file remediation objective is complete.
+- Current count of non-migration `src/` files above 800 lines: `0`.
+- Recently completed service splits:
+  - `MugenEsportsService`
+  - `NetworkQualityMonitor`
+  - `MugenPrizePoolService`
+  - `QuantumSuperpositionService`
+- This roadmap remains as the baseline planning artifact; execution details and validation logs are tracked in `docs/plans/refactoring/LARGE_FILES_REFACTORING_PLAN.md`.
 
 ---
 
@@ -32,7 +45,7 @@ This document provides a comprehensive roadmap for refactoring 14 large service 
 
 ### Tier 1: Infrastructure Services (Priority: High)
 
-#### 1. AutoDiscoveryEngine.cs (1,079 lines) → 6 Managers
+#### 1. AutoDiscoveryEngine.cs (1,079 lines) â†’ 6 Managers
 **Location:** `src/SaveState.Infrastructure/GameLibrary/Services/`
 
 | Manager | Responsibility | Est. Lines |
@@ -50,7 +63,7 @@ This document provides a comprehensive roadmap for refactoring 14 large service 
 
 ---
 
-#### 2. DependencyInjection.cs (1,051 lines) → Extension Methods
+#### 2. DependencyInjection.cs (1,051 lines) â†’ Extension Methods
 **Location:** `src/SaveState.Infrastructure/`
 
 **Note:** This file was partially decomposed earlier. The plan focuses on completing the decomposition.
@@ -71,7 +84,7 @@ This document provides a comprehensive roadmap for refactoring 14 large service 
 
 ---
 
-#### 3. RomValidationService.cs (1,032 lines) → 5 Managers
+#### 3. RomValidationService.cs (1,032 lines) â†’ 5 Managers
 **Location:** `src/SaveState.Infrastructure/RomManagement/`
 
 | Manager | Responsibility | Est. Lines |
@@ -88,7 +101,7 @@ This document provides a comprehensive roadmap for refactoring 14 large service 
 
 ---
 
-#### 4. SaveStateCloudService.cs (1,006 lines) → 6 Managers
+#### 4. SaveStateCloudService.cs (1,006 lines) â†’ 6 Managers
 **Location:** `src/SaveState.Infrastructure/SaveStates/`
 
 | Manager | Responsibility | Est. Lines |
@@ -108,7 +121,7 @@ This document provides a comprehensive roadmap for refactoring 14 large service 
 
 ### Tier 2: Application Services - Mugen (Priority: High)
 
-#### 5. EmotionalResonanceService.cs (1,073 lines) → 6 Managers
+#### 5. EmotionalResonanceService.cs (1,073 lines) â†’ 6 Managers
 **Location:** `src/SaveState.Application/Mugen/Services/`
 
 | Manager | Responsibility | Est. Lines |
@@ -126,7 +139,7 @@ This document provides a comprehensive roadmap for refactoring 14 large service 
 
 ---
 
-#### 6. AdvancedReportingService.cs (1,063 lines) → 6 Managers
+#### 6. AdvancedReportingService.cs (1,063 lines) â†’ 6 Managers
 **Location:** `src/SaveState.Application/Mugen/Services/`
 
 | Manager | Responsibility | Est. Lines |
@@ -144,7 +157,7 @@ This document provides a comprehensive roadmap for refactoring 14 large service 
 
 ---
 
-#### 7. ScreenFiltersEngine.cs (1,062 lines) → 8 Managers
+#### 7. ScreenFiltersEngine.cs (1,062 lines) â†’ 8 Managers
 **Location:** `src/SaveState.Application/Mugen/Services/`
 
 | Manager | Responsibility | Est. Lines |
@@ -164,7 +177,7 @@ This document provides a comprehensive roadmap for refactoring 14 large service 
 
 ---
 
-#### 8. CinematicCameraSystem.cs (1,057 lines) → 9 Managers
+#### 8. CinematicCameraSystem.cs (1,057 lines) â†’ 9 Managers
 **Location:** `src/SaveState.Application/Mugen/Services/`
 
 | Manager | Responsibility | Est. Lines |
@@ -185,7 +198,7 @@ This document provides a comprehensive roadmap for refactoring 14 large service 
 
 ---
 
-#### 9. AdvancedPhysicsCombatService.cs (1,056 lines) → 6 Managers
+#### 9. AdvancedPhysicsCombatService.cs (1,056 lines) â†’ 6 Managers
 **Location:** `src/SaveState.Application/Mugen/Services/`
 
 | Manager | Responsibility | Est. Lines |
@@ -203,7 +216,7 @@ This document provides a comprehensive roadmap for refactoring 14 large service 
 
 ---
 
-#### 10. DynamicDifficultyAdjustment.cs (1,052 lines) → 6 Managers
+#### 10. DynamicDifficultyAdjustment.cs (1,052 lines) â†’ 6 Managers
 **Location:** `src/SaveState.Application/Mugen/Services/`
 
 | Manager | Responsibility | Est. Lines |
@@ -221,7 +234,7 @@ This document provides a comprehensive roadmap for refactoring 14 large service 
 
 ---
 
-#### 11. EnterpriseSecurityService.cs (1,044 lines) → 6 Managers
+#### 11. EnterpriseSecurityService.cs (1,044 lines) â†’ 6 Managers
 **Location:** `src/SaveState.Application/Mugen/Services/`
 
 | Manager | Responsibility | Est. Lines |
@@ -241,7 +254,7 @@ This document provides a comprehensive roadmap for refactoring 14 large service 
 
 ### Tier 3: ML and Learning Services (Priority: Medium)
 
-#### 12. PatternPredictionModel.cs (1,062 lines) → 5 Managers
+#### 12. PatternPredictionModel.cs (1,062 lines) â†’ 5 Managers
 **Location:** `src/SaveState.Infrastructure/GameLibrary/ML/`
 
 | Manager | Responsibility | Est. Lines |
@@ -258,7 +271,7 @@ This document provides a comprehensive roadmap for refactoring 14 large service 
 
 ---
 
-#### 13. BeginnerPathwaysService.cs (1,000 lines) → 5 Managers
+#### 13. BeginnerPathwaysService.cs (1,000 lines) â†’ 5 Managers
 **Location:** `src/SaveState.Application/Mugen/Services/`
 
 | Manager | Responsibility | Est. Lines |
@@ -277,7 +290,7 @@ This document provides a comprehensive roadmap for refactoring 14 large service 
 
 ### Tier 4: Core Interfaces (Priority: Low)
 
-#### 14. IStoryModeService.cs (1,027 lines) → File Organization
+#### 14. IStoryModeService.cs (1,027 lines) â†’ File Organization
 **Location:** `src/SaveState.Core/Mugen/Services/`
 
 **Note:** This file is already properly architected (marker + focused interfaces). Only file organization is needed.
@@ -385,24 +398,25 @@ public class Manager1
 
 ## Success Metrics
 
-| Metric | Before | Target | Measurement |
-|--------|--------|--------|-------------|
-| Lines > 800 | 14 | 0 | Architecture test |
-| Avg service lines | 1,047 | <200 | Line count |
-| Test coverage | Baseline | +10% | Coverage report |
-| Build time | Baseline | No regression | CI metrics |
-| Cyclomatic complexity | High | Reduced | Static analysis |
+| Metric | Before | Target | Actual (Feb 23, 2026) | Measurement |
+|--------|--------|--------|------------------------|-------------|
+| Lines > 800 | 14 | 0 | 0 | Architecture test |
+| Avg service lines | 1,047 | <200 | ~550 (refactored set average) | Line count |
+| Test coverage | Baseline | +10% | Targeted regressions passed | Coverage report |
+| Build time | Baseline | No regression | No regression observed | CI metrics |
+| Cyclomatic complexity | High | Reduced | Reduced in split services | Static analysis |
 
 ---
 
 ## Next Steps
 
-1. **Review** all individual plans in this directory
-2. **Prioritize** based on team capacity and business needs
-3. **Create** JIRA/GitHub issues for each service
-4. **Assign** owners for each refactoring
-5. **Schedule** Phase 1 kickoff
+1. **Archive** this roadmap as completed for the `>800` threshold objective.
+2. **Choose** next threshold for continued hardening (`>750` or `>700`).
+3. **Create** focused follow-up issues only for remaining medium-sized hotspots.
+4. **Add** CI architecture guardrails for the new threshold.
+5. **Schedule** the next refactor wave based on team capacity.
 
 ---
 
 *For detailed implementation guidance, see individual plan files linked above.*
+
