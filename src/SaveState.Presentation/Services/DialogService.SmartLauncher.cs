@@ -1,6 +1,7 @@
 // Copyright (c) 2026 SaveStateReborn. All rights reserved.
 
 using Avalonia.Controls;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.GameLibrary.Entities;
 using SaveState.Core.SmartLauncher;
@@ -99,6 +100,34 @@ public partial class DialogService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to show launch profile editor dialog");
+            return null;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<LaunchExperienceConfigResult?> ShowLaunchExperienceConfigAsync()
+    {
+        try
+        {
+            var vm = _serviceProvider.GetRequiredService<ViewModels.Dialogs.LaunchExperienceConfigDialogViewModel>();
+            var dialog = new LaunchExperienceConfigDialog
+            {
+                DataContext = vm
+            };
+
+            var mainWindow = GetMainWindow();
+            if (mainWindow == null)
+            {
+                _logger.LogWarning("Main window not found for launch experience config dialog");
+                return null;
+            }
+
+            var result = await dialog.ShowDialog<LaunchExperienceConfigResult?>(mainWindow);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show launch experience config dialog");
             return null;
         }
     }

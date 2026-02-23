@@ -89,6 +89,11 @@ public static class Program
 
             // Phase 4: Immersive Launch Experience ViewModels
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.BigPicture.LaunchExperienceViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.LaunchExperienceConfigDialogViewModel>();
+
+            // Dialog ViewModels
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.ErrorLogViewerDialogViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.AccountConnectionWizardViewModel>();
 
             // Add theme service
             builder.Services.AddSingleton<IThemeService, ThemeService>();

@@ -23,6 +23,7 @@ public partial class SettingsViewModel : ObservableObject
     private readonly IAiOrchestrator _aiOrchestrator;
     private readonly IUserPreferencesService _preferencesService;
     private readonly IDialogService _dialogService;
+    private readonly INavigationService _navigationService;
 
     [ObservableProperty]
     private CultureInfo _selectedCulture;
@@ -79,7 +80,8 @@ public partial class SettingsViewModel : ObservableObject
         SystemHealthViewModel systemHealthViewModel,
         ConnectedAccountsViewModel connectedAccountsViewModel,
         DataManagementViewModel dataManagementViewModel,
-        AiAdministrationViewModel aiAdministrationViewModel)
+        AiAdministrationViewModel aiAdministrationViewModel,
+        INavigationService navigationService)
     {
         _cultureManager = cultureManager;
         _resources = resources;
@@ -87,6 +89,7 @@ public partial class SettingsViewModel : ObservableObject
         _aiOrchestrator = aiOrchestrator;
         _preferencesService = preferencesService;
         _dialogService = dialogService;
+        _navigationService = navigationService;
         VoiceSettings = voiceSettings;
         AudioOptimizationViewModel = audioOptimizationViewModel;
         SystemHealthViewModel = systemHealthViewModel;
@@ -180,6 +183,24 @@ public partial class SettingsViewModel : ObservableObject
     private void OpenAiAdministration()
     {
         // Navigate to AI Administration view
+    }
+
+    [RelayCommand]
+    private async Task ShowSystemHealthAsync()
+    {
+        await _navigationService.NavigateToAsync("Settings");
+    }
+
+    [RelayCommand]
+    private async Task ShowConnectedAccountsAsync()
+    {
+        await _navigationService.NavigateToAsync("Settings");
+    }
+
+    [RelayCommand]
+    private async Task ShowLaunchExperienceConfigAsync()
+    {
+        await _dialogService.ShowLaunchExperienceConfigAsync();
     }
 
     private async Task LoadAiPreferencesAsync()

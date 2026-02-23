@@ -47,6 +47,10 @@
       <converters:EnumToIntConverter x:Key="EnumToIntConverter" />
       <converters:EnumEqualsConverter x:Key="EnumEqualsConverter" />
       <converters:AlertSeverityToBrushConverter x:Key="AlertSeverityToBrushConverter" />
+      <converters:ProviderToIconConverter x:Key="ProviderToIconConverter" />
+      <converters:ProviderToDisplayNameConverter x:Key="ProviderToDisplayNameConverter" />
+      <converters:PlatformToIconConverter x:Key="PlatformToIconConverter" />
+      <converters:BoolToYesNoConverter x:Key="BoolToYesNoConverter" />
 
       <converters:HealthStatusToBrushConverter x:Key="HealthStatusToBrushConverter" />
       <converters:ErrorSeverityToBrushConverter x:Key="ErrorSeverityToBrushConverter" />

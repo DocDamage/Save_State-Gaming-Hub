@@ -6,144 +6,298 @@
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
              x:Class="SaveState.Presentation.Views.RetroArch.NetplayView"
              x:DataType="vm:RetroArchNetplayViewModel">
+
+  <UserControl.Styles>
+    <!-- Glassmorphism Card Style -->
+    <Style Selector="Border.GlassCard">
+      <Setter Property="Background" Value="{DynamicResource GlassBackgroundBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource GlassBorderBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="12"/>
+      <Setter Property="Padding" Value="16"/>
+      <Setter Property="BoxShadow" Value="0 4 16 0 #33000000"/>
+    </Style>
+    
+    <Style Selector="Border.GlassCard:pointerover">
+      <Setter Property="Background" Value="{DynamicResource GlassHoverBrush}"/>
+    </Style>
+
+    <!-- Status Badge -->
+    <Style Selector="Border.StatusBadge">
+      <Setter Property="Padding" Value="10,5"/>
+      <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+    
+    <Style Selector="Border.StatusBadge.connected">
+      <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+      <Setter Property="Opacity" Value="0.15"/>
+    </Style>
+    
+    <Style Selector="Border.StatusBadge.disconnected">
+      <Setter Property="Background" Value="{DynamicResource HoverBackgroundBrush}"/>
+    </Style>
+    
+    <Style Selector="Border.StatusBadge.connecting">
+      <Setter Property="Background" Value="{DynamicResource WarningBrush}"/>
+      <Setter Property="Opacity" Value="0.15"/>
+    </Style>
+
+    <!-- Lobby Card -->
+    <Style Selector="Border.LobbyCard">
+      <Setter Property="Background" Value="{DynamicResource GlassBackgroundBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource GlassBorderBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="10"/>
+      <Setter Property="Padding" Value="16"/>
+      <Setter Property="Margin" Value="0,6"/>
+    </Style>
+    
+    <Style Selector="Border.LobbyCard:pointerover">
+      <Setter Property="Background" Value="{DynamicResource GlassHoverBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+  </UserControl.Styles>
+
   <Grid RowDefinitions="Auto,Auto,*">
     <!-- Header -->
     <Border Grid.Row="0" 
-            Background="{DynamicResource CardBackgroundBrush}" 
-            Padding="20" 
+            Classes="GlassCard"
             Margin="16,16,16,8">
       <Grid ColumnDefinitions="*,Auto">
-        <StackPanel Grid.Column="0">
-          <TextBlock Text="🌐 Netplay" Classes="H5"/>
-          <TextBlock Text="Play multiplayer games online" 
-                     Opacity="0.7" 
-                     Margin="0,4,0,0"/>
+        <StackPanel Grid.Column="0" Spacing="6">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="🌐" FontSize="28"/>
+            <TextBlock Text="Netplay" Classes="H4"/>
+          </StackPanel>
+          <TextBlock Text="Play multiplayer games online with friends" 
+                     Opacity="0.7"/>
         </StackPanel>
         <StackPanel Grid.Column="1" 
                     Orientation="Horizontal" 
-                    Spacing="8"
+                    Spacing="12"
                     VerticalAlignment="Center">
-          <Border Background="{DynamicResource HoverBackgroundBrush}" 
-                  Padding="12,6" 
-                  CornerRadius="4">
-            <TextBlock Text="{Binding ConnectionStatus}"/>
+          <!-- Connection Status -->
+          <Border Classes.StatusBadge="{Binding ConnectionStatus, Converter={StaticResource ConnectionStatusToStyleConverter}, FallbackValue=disconnected}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Ellipse Width="8" Height="8" 
+                       Fill="{DynamicResource SuccessBrush}"
+                       IsVisible="{Binding ConnectionStatus, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Connected'}"/>
+              <Ellipse Width="8" Height="8" 
+                       Fill="{DynamicResource WarningBrush}"
+                       IsVisible="{Binding ConnectionStatus, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Connecting'}"/>
+              <Ellipse Width="8" Height="8" 
+                       Fill="{DynamicResource NeutralBrush}"
+                       IsVisible="{Binding ConnectionStatus, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Disconnected'}"/>
+              <TextBlock Text="{Binding ConnectionStatus}"
+                         FontWeight="SemiBold"
+                         FontSize="12"/>
+            </StackPanel>
           </Border>
-          <Button Content="🔄 Refresh"
-                  Command="{Binding RefreshLobbiesCommand}"
-                  Classes="Flat"/>
-          <Button Content="🏠 Host Game"
-                  Command="{Binding HostGameCommand}"
-                  Classes="accent"/>
+          
+          <Button Command="{Binding RefreshLobbiesCommand}"
+                  Classes="Flat">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="🔄"/>
+              <TextBlock Text="Refresh"/>
+            </StackPanel>
+          </Button>
+          <Button Command="{Binding HostGameCommand}"
+                  Classes="accent">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="🏠"/>
+              <TextBlock Text="Host Game"/>
+            </StackPanel>
+          </Button>
         </StackPanel>
       </Grid>
     </Border>
     
     <!-- Join by IP -->
     <Border Grid.Row="1" 
-            Background="{DynamicResource CardBackgroundBrush}" 
-            Padding="16" 
+            Classes="GlassCard"
             Margin="16,8">
       <Grid ColumnDefinitions="*,Auto,Auto">
         <TextBox Grid.Column="0" 
                  Text="{Binding HostIp}" 
-                 Watermark="Enter host IP address..."
-                 Margin="0,0,8,0"/>
+                 Watermark="Enter host IP address (e.g., 192.168.1.100)..."
+                 Margin="0,0,12,0">
+          <TextBox.InnerLeftContent>
+            <TextBlock Text="🔗" Margin="10,0,0,0" Opacity="0.6"/>
+          </TextBox.InnerLeftContent>
+        </TextBox>
         <TextBlock Grid.Column="1" 
                    Text="or" 
                    VerticalAlignment="Center"
-                   Margin="0,0,8,0"
+                   Margin="0,0,12,0"
                    Opacity="0.6"/>
         <Button Grid.Column="2" 
-                Content="🔗 Connect"
                 Command="{Binding JoinByIpCommand}"
-                Classes="accent"/>
+                Classes="accent">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <TextBlock Text="🚀"/>
+            <TextBlock Text="Connect"/>
+          </StackPanel>
+        </Button>
       </Grid>
     </Border>
     
     <!-- Lobby List -->
-    <ScrollViewer Grid.Row="2" Margin="16,8,16,16">
-      <StackPanel Spacing="8">
-        <TextBlock Text="AVAILABLE LOBBIES" Classes="H6" Margin="0,0,0,8"/>
-        <ItemsControl ItemsSource="{Binding Lobbies}">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <Border Classes="Card">
-                <Grid ColumnDefinitions="*,Auto,Auto,Auto">
-                  <!-- Game Info -->
-                  <StackPanel Grid.Column="0" Spacing="4">
-                    <TextBlock Text="{Binding GameName}" 
-                               FontWeight="SemiBold"
-                               FontSize="16"/>
-                    <StackPanel Orientation="Horizontal" Spacing="16">
-                      <TextBlock Text="{Binding HostName, StringFormat='👤 Host: {0}'}" 
-                                 Opacity="0.7"/>
-                      <TextBlock Text="{Binding CoreName, StringFormat='🎮 Core: {0}'}" 
-                                 Opacity="0.7"/>
-                    </StackPanel>
-                  </StackPanel>
-                  
-                  <!-- Players -->
-                  <Border Grid.Column="1" 
-                          Background="{DynamicResource HoverBackgroundBrush}" 
-                          Padding="12,6" 
-                          CornerRadius="4"
-                          Margin="0,0,8,0"
-                          VerticalAlignment="Center">
-                    <TextBlock Text="{Binding PlayerCount, StringFormat='{}{0}/{1} Players', FallbackValue='0/2'}"/>
-                  </Border>
-                  
-                  <!-- Ping -->
-                  <Border Grid.Column="2" 
-                          Background="{DynamicResource HoverBackgroundBrush}" 
-                          Padding="12,6" 
-                          CornerRadius="4"
-                          Margin="0,0,8,0"
-                          VerticalAlignment="Center">
-                    <TextBlock Text="{Binding Ping, StringFormat='📶 {0}ms'}"/>
-                  </Border>
-                  
-                  <!-- Actions -->
-                  <StackPanel Grid.Column="3" 
-                              Orientation="Horizontal" 
-                              Spacing="8"
-                              VerticalAlignment="Center">
-                    <TextBlock Text="🔒" 
-                               IsVisible="{Binding HasPassword}"
-                               VerticalAlignment="Center"/>
-                    <Button Content="Join"
-                            Command="{Binding 
-                                    DataContext.JoinLobbyCommand, 
-                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
-                            CommandParameter="{Binding}"
-                            Classes="accent"/>
-                  </StackPanel>
-                </Grid>
-              </Border>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
+    <Border Grid.Row="2" 
+            Classes="GlassCard"
+            Margin="16,8,16,16"
+            Padding="0">
+      <Grid RowDefinitions="Auto,*">
+        <!-- Section Header -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource AccentBrush}"
+                Opacity="0.1"
+                Padding="16,12"
+                CornerRadius="12,12,0,0">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="🎮" FontSize="18"/>
+            <TextBlock Text="AVAILABLE LOBBIES" Classes="H6"/>
+            <Border Background="{DynamicResource AccentBrush}"
+                    Opacity="0.2"
+                    Padding="8,2"
+                    CornerRadius="10">
+              <TextBlock Text="{Binding Lobbies.Count, StringFormat='{}{0}'}"
+                         FontSize="12"
+                         Foreground="{DynamicResource AccentBrush}"
+                         FontWeight="Bold"/>
+            </Border>
+          </StackPanel>
+        </Border>
         
-        <!-- Empty State -->
-        <StackPanel HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Margin="0,40"
-                    Spacing="10"
-                    IsVisible="{Binding !Lobbies.Count}">
-          <TextBlock Text="🌐" 
-                     FontSize="64" 
-                     HorizontalAlignment="Center" 
-                     Opacity="0.3"/>
-          <TextBlock Text="No lobbies available"
-                     FontSize="18"
-                     HorizontalAlignment="Center"
-                     Opacity="0.7"/>
-          <TextBlock Text="Host a game or refresh to find lobbies"
-                     FontSize="14"
-                     HorizontalAlignment="Center"
-                     Opacity="0.5"/>
-        </StackPanel>
-      </StackPanel>
-    </ScrollViewer>
+        <!-- Lobbies -->
+        <ScrollViewer Grid.Row="1" Margin="12">
+          <StackPanel Spacing="4">
+            <ItemsControl ItemsSource="{Binding Lobbies}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Classes="LobbyCard">
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+                      <!-- Game Icon -->
+                      <Border Grid.Column="0"
+                              Width="48"
+                              Height="48"
+                              Background="{DynamicResource HoverBackgroundBrush}"
+                              CornerRadius="10"
+                              Margin="0,0,14,0"
+                              VerticalAlignment="Center">
+                        <TextBlock Text="🎮" 
+                                   FontSize="24"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                      </Border>
+                      
+                      <!-- Game Info -->
+                      <StackPanel Grid.Column="1" Spacing="5">
+                        <TextBlock Text="{Binding GameName}" 
+                                   FontWeight="SemiBold"
+                                   FontSize="16"/>
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                          <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="👤" Opacity="0.6"/>
+                            <TextBlock Text="{Binding HostName}" 
+                                       Opacity="0.7"/>
+                          </StackPanel>
+                          <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="🎮" Opacity="0.6"/>
+                            <TextBlock Text="{Binding CoreName}" 
+                                       Opacity="0.7"/>
+                          </StackPanel>
+                        </StackPanel>
+                      </StackPanel>
+                      
+                      <!-- Players Badge -->
+                      <Border Grid.Column="2" 
+                              Background="{DynamicResource HoverBackgroundBrush}" 
+                              Padding="12,6" 
+                              CornerRadius="8"
+                              Margin="0,0,10,0"
+                              VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                          <TextBlock Text="👥"/>
+                          <TextBlock Text="{Binding PlayerCount, StringFormat='{}{0}/{1}', FallbackValue='0/2'}"
+                                     FontWeight="SemiBold"/>
+                        </StackPanel>
+                      </Border>
+                      
+                      <!-- Ping Badge -->
+                      <Border Grid.Column="3" 
+                              Background="{DynamicResource SuccessBrush}"
+                              Opacity="0.15"
+                              Padding="12,6" 
+                              CornerRadius="8"
+                              Margin="0,0,10,0"
+                              VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                          <TextBlock Text="📶" Foreground="{DynamicResource SuccessBrush}"/>
+                          <TextBlock Text="{Binding Ping, StringFormat='{}{0}ms'}"
+                                     Foreground="{DynamicResource SuccessBrush}"
+                                     FontWeight="SemiBold"/>
+                        </StackPanel>
+                      </Border>
+                      
+                      <!-- Actions -->
+                      <StackPanel Grid.Column="4" 
+                                  Orientation="Horizontal" 
+                                  Spacing="8"
+                                  VerticalAlignment="Center">
+                        <Border Background="{DynamicResource WarningBrush}"
+                                Opacity="0.15"
+                                Padding="8,4"
+                                CornerRadius="6"
+                                IsVisible="{Binding HasPassword}">
+                          <TextBlock Text="🔒" 
+                                     ToolTip.Tip="Password Protected"/>
+                        </Border>
+                        <Button Command="{Binding 
+                                        DataContext.JoinLobbyCommand, 
+                                        RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}"
+                                Classes="accent">
+                          <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="🚀"/>
+                            <TextBlock Text="Join"/>
+                          </StackPanel>
+                        </Button>
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            
+            <!-- Empty State -->
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Margin="0,48"
+                        Spacing="12"
+                        IsVisible="{Binding !Lobbies.Count}">
+              <TextBlock Text="🌐" 
+                         FontSize="72" 
+                         HorizontalAlignment="Center" 
+                         Opacity="0.3"/>
+              <TextBlock Text="No lobbies available"
+                         FontSize="20"
+                         HorizontalAlignment="Center"
+                         Opacity="0.7"
+                         FontWeight="SemiBold"/>
+              <TextBlock Text="Host a game or refresh to find lobbies"
+                         FontSize="14"
+                         HorizontalAlignment="Center"
+                         Opacity="0.5"/>
+              <Button Content="Host a Game"
+                      Command="{Binding HostGameCommand}"
+                      Classes="accent"
+                      HorizontalAlignment="Center"
+                      Margin="0,16,0,0"/>
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
+    </Border>
     
     <!-- Connecting Overlay -->
     <Border Grid.Row="0" Grid.RowSpan="3"
@@ -153,12 +307,16 @@
             VerticalAlignment="Stretch">
       <StackPanel HorizontalAlignment="Center"
                   VerticalAlignment="Center"
-                  Spacing="15">
-        <ProgressBar IsIndeterminate="True" Width="48" Height="48"/>
+                  Spacing="20">
+        <ProgressBar IsIndeterminate="True" Width="64" Height="64"/>
         <TextBlock Text="{Binding ConnectionStatus}"
-                   FontSize="16"
+                   FontSize="20"
+                   FontWeight="SemiBold"
                    HorizontalAlignment="Center"
                    Foreground="White"/>
+        <Button Content="Cancel"
+                Classes="Flat"
+                Foreground="White"/>
       </StackPanel>
     </Border>
   </Grid>

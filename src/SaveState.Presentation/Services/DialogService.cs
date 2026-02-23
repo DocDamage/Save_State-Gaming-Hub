@@ -229,4 +229,66 @@ public partial class DialogService : IDialogService
     }
 
     #endregion
+
+    #region Error Log Viewer
+
+    /// <inheritdoc />
+    public async Task ShowErrorLogViewerAsync()
+    {
+        try
+        {
+            var vm = new ErrorLogViewerDialogViewModel();
+
+            var dialog = new ErrorLogViewerDialog
+            {
+                DataContext = vm
+            };
+
+            var mainWindow = GetMainWindow();
+            if (mainWindow != null)
+            {
+                await dialog.ShowDialog(mainWindow);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show error log viewer dialog");
+        }
+    }
+
+    #endregion
+
+    #region Generic Dialog
+
+    /// <inheritdoc />
+    public async Task<TResult?> ShowDialogAsync<TResult>(object viewModel)
+    {
+        try
+        {
+            Window dialog = viewModel switch
+            {
+                AccountConnectionWizardViewModel => new AccountConnectionWizard(),
+                _ => throw new ArgumentException($"Unknown view model type: {viewModel.GetType().Name}")
+            };
+
+            dialog.DataContext = viewModel;
+
+            var mainWindow = GetMainWindow();
+            if (mainWindow == null)
+            {
+                _logger.LogWarning("Main window not found for dialog");
+                return default;
+            }
+
+            var result = await dialog.ShowDialog<TResult?>(mainWindow);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show dialog for view model {ViewModelType}", viewModel.GetType().Name);
+            return default;
+        }
+    }
+
+    #endregion
 }

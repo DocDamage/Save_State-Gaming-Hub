@@ -5,8 +5,6 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 
 namespace SaveState.Presentation.ViewModels.Dialogs;
@@ -34,13 +32,14 @@ public interface IErrorLogService
 
 /// <summary>
 /// ViewModel for the Error Log Viewer dialog.
+/// Provides filtering, exporting, and detailed viewing of error logs.
 /// </summary>
 public partial class ErrorLogViewerDialogViewModel : ObservableObject
 {
     private readonly ObservableCollection<ErrorLogEntry> _allErrors = new();
     private readonly IErrorLogService? _errorLogService;
 
-    /// <summary>Collection of error log entries.</summary>
+    /// <summary>Collection of filtered error log entries.</summary>
     [ObservableProperty]
     private ObservableCollection<ErrorLogEntry> _errors = new();
 
@@ -48,13 +47,9 @@ public partial class ErrorLogViewerDialogViewModel : ObservableObject
     [ObservableProperty]
     private ErrorLogEntry? _selectedError;
 
-    /// <summary>Search query for filtering errors.</summary>
+    /// <summary>Severity filter (All, Error, Warning, Info).</summary>
     [ObservableProperty]
-    private string _searchQuery = string.Empty;
-
-    /// <summary>Minimum severity filter.</summary>
-    [ObservableProperty]
-    private ErrorSeverity? _minSeverity;
+    private string _severityFilter = "All";
 
     /// <summary>Start date filter.</summary>
     [ObservableProperty]
@@ -64,22 +59,18 @@ public partial class ErrorLogViewerDialogViewModel : ObservableObject
     [ObservableProperty]
     private DateTime? _endDate;
 
-    /// <summary>Selected component filter.</summary>
+    /// <summary>Component filter.</summary>
     [ObservableProperty]
-    private string _selectedComponent = "All";
+    private string _componentFilter = string.Empty;
 
-    /// <summary>Available component filters.</summary>
-    public List<string> Components { get; } = new()
-    {
-        "All",
-        "Database",
-        "Steam API",
-        "Cover Downloader",
-        "Sync Service",
-        "Cloud Sync",
-        "RetroAchievements",
-        "Discord RPC"
-    };
+    /// <summary>Available severity filters.</summary>
+    public List<string> SeverityFilters { get; } = new() { "All", "Critical", "Error", "Warning", "Info" };
+
+    /// <summary>Available components for filtering.</summary>
+    public ObservableCollection<string> AvailableComponents { get; } = new();
+
+    /// <summary>Whether the detail panel is visible.</summary>
+    public bool IsDetailVisible => SelectedError is not null;
 
     /// <summary>
     /// Design-time constructor for XAML preview.
@@ -87,55 +78,90 @@ public partial class ErrorLogViewerDialogViewModel : ObservableObject
     [Obsolete("Design-time constructor only. Use the parameterized constructor in production code.")]
     public ErrorLogViewerDialogViewModel()
     {
-        // Sample data
-        _allErrors = new ObservableCollection<ErrorLogEntry>
+        InitializeSampleData();
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ErrorLogViewerDialogViewModel"/> class.
+    /// </summary>
+    public ErrorLogViewerDialogViewModel(IErrorLogService? errorLogService = null)
+    {
+        _errorLogService = errorLogService;
+        InitializeSampleData();
+        _ = LoadErrorsAsync();
+    }
+
+    private void InitializeSampleData()
+    {
+        var sampleErrors = new List<ErrorLogEntry>
         {
             new()
             {
-                Timestamp = DateTimeOffset.UtcNow.AddHours(-1).DateTime,
+                Timestamp = DateTime.Now.AddHours(-1),
                 Component = "Steam API",
-                Message = "Connection timeout",
-                Severity = ErrorSeverity.Warning
+                Message = "Connection timeout during sync",
+                Severity = ErrorSeverity.Warning,
+                StackTrace = "at SteamAPI.Connect()\n   at SyncService.RunSync()"
             },
             new()
             {
-                Timestamp = DateTimeOffset.UtcNow.AddHours(-2).DateTime,
+                Timestamp = DateTime.Now.AddHours(-2),
                 Component = "Database",
-                Message = "Query took longer than expected",
+                Message = "Query took longer than expected (>5s)",
                 Severity = ErrorSeverity.Info
             },
             new()
             {
-                Timestamp = DateTimeOffset.UtcNow.AddHours(-3).DateTime,
+                Timestamp = DateTime.Now.AddHours(-3),
                 Component = "Cover Downloader",
-                Message = "Image decode failed",
-                Severity = ErrorSeverity.Error
+                Message = "Image decode failed for game ID 12345",
+                Severity = ErrorSeverity.Error,
+                StackTrace = "System.InvalidOperationException: Invalid image format\n   at ImageDecoder.Decode()"
             },
             new()
             {
-                Timestamp = DateTimeOffset.UtcNow.AddHours(-4).DateTime,
+                Timestamp = DateTime.Now.AddHours(-4),
                 Component = "Sync Service",
                 Message = "Cloud sync rate limit exceeded",
                 Severity = ErrorSeverity.Warning
             },
             new()
             {
-                Timestamp = DateTimeOffset.UtcNow.AddHours(-5).DateTime,
+                Timestamp = DateTime.Now.AddHours(-5),
                 Component = "Database",
                 Message = "Backup completed successfully",
                 Severity = ErrorSeverity.Info
+            },
+            new()
+            {
+                Timestamp = DateTime.Now.AddDays(-1),
+                Component = "Discord RPC",
+                Message = "Failed to initialize Discord connection",
+                Severity = ErrorSeverity.Error
             }
         };
-        Errors = new ObservableCollection<ErrorLogEntry>(_allErrors);
+
+        foreach (var error in sampleErrors)
+        {
+            _allErrors.Add(error);
+        }
+
+        UpdateAvailableComponents();
+        ApplyFilters();
     }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ErrorLogViewerDialogViewModel"/> class.
-    /// </summary>
-    public ErrorLogViewerDialogViewModel(IErrorLogService errorLogService)
+    private void UpdateAvailableComponents()
     {
-        _errorLogService = errorLogService;
-        _ = LoadErrorsAsync();
+        AvailableComponents.Clear();
+        AvailableComponents.Add("All");
+        foreach (var component in _allErrors.Select(e => e.Component).Distinct().OrderBy(c => c))
+        {
+            AvailableComponents.Add(component);
+        }
+        if (string.IsNullOrEmpty(ComponentFilter))
+        {
+            ComponentFilter = "All";
+        }
     }
 
     /// <summary>
@@ -153,7 +179,8 @@ public partial class ErrorLogViewerDialogViewModel : ObservableObject
             {
                 _allErrors.Add(entry);
             }
-            Filter();
+            UpdateAvailableComponents();
+            ApplyFilters();
         }
         catch (Exception ex)
         {
@@ -162,32 +189,35 @@ public partial class ErrorLogViewerDialogViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Refreshes the error log list.
+    /// </summary>
+    [RelayCommand]
+    private async Task RefreshAsync()
+    {
+        await LoadErrorsAsync();
+    }
+
+    /// <summary>
     /// Applies filters to the error list.
     /// </summary>
     [RelayCommand]
-    private void Filter()
+    private void ApplyFilters()
     {
         var filtered = _allErrors.AsEnumerable();
 
-        // Apply search query filter
-        if (!string.IsNullOrWhiteSpace(SearchQuery))
-        {
-            var query = SearchQuery.ToLowerInvariant();
-            filtered = filtered.Where(e =>
-                e.Message.ToLowerInvariant().Contains(query) ||
-                e.Component.ToLowerInvariant().Contains(query));
-        }
-
         // Apply severity filter
-        if (MinSeverity.HasValue)
+        if (!string.IsNullOrEmpty(SeverityFilter) && SeverityFilter != "All")
         {
-            filtered = filtered.Where(e => e.Severity >= MinSeverity.Value);
+            if (Enum.TryParse<ErrorSeverity>(SeverityFilter, out var severity))
+            {
+                filtered = filtered.Where(e => e.Severity == severity);
+            }
         }
 
         // Apply component filter
-        if (!string.IsNullOrEmpty(SelectedComponent) && SelectedComponent != "All")
+        if (!string.IsNullOrEmpty(ComponentFilter) && ComponentFilter != "All")
         {
-            filtered = filtered.Where(e => e.Component == SelectedComponent);
+            filtered = filtered.Where(e => e.Component == ComponentFilter);
         }
 
         // Apply date range filters
@@ -201,18 +231,30 @@ public partial class ErrorLogViewerDialogViewModel : ObservableObject
             filtered = filtered.Where(e => e.Timestamp <= EndDate.Value.Date.AddDays(1).AddTicks(-1));
         }
 
-        Errors = new ObservableCollection<ErrorLogEntry>(filtered.ToList());
+        Errors = new ObservableCollection<ErrorLogEntry>(filtered.OrderByDescending(e => e.Timestamp).ToList());
+    }
+
+    /// <summary>
+    /// Clears all filters.
+    /// </summary>
+    [RelayCommand]
+    private void ClearFilters()
+    {
+        SeverityFilter = "All";
+        ComponentFilter = "All";
+        StartDate = null;
+        EndDate = null;
+        ApplyFilters();
     }
 
     /// <summary>
     /// Exports the error log to a file.
     /// </summary>
     [RelayCommand]
-    private async Task ExportLogAsync()
+    private async Task ExportAsync()
     {
         try
         {
-            // Get the top-level window for the file picker
             var window = Avalonia.Application.Current?.ApplicationLifetime
                 is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop
                 ? desktop.MainWindow
@@ -220,17 +262,16 @@ public partial class ErrorLogViewerDialogViewModel : ObservableObject
 
             if (window is null) return;
 
-            // Create file picker options
             var filePickerOptions = new FilePickerSaveOptions
             {
                 Title = "Export Error Log",
                 DefaultExtension = ".txt",
-                SuggestedFileName = $"error_log_{DateTimeOffset.UtcNow:yyyyMMdd_HHmmss}",
+                SuggestedFileName = $"error_log_{DateTime.Now:yyyyMMdd_HHmmss}",
                 FileTypeChoices = new List<FilePickerFileType>
                 {
                     new FilePickerFileType("Text Files") { Patterns = new[] { "*.txt" } },
                     new FilePickerFileType("CSV Files") { Patterns = new[] { "*.csv" } },
-                    new FilePickerFileType("All Files") { Patterns = new[] { "*" } }
+                    new FilePickerFileType("JSON Files") { Patterns = new[] { "*.json" } }
                 }
             };
 
@@ -239,50 +280,104 @@ public partial class ErrorLogViewerDialogViewModel : ObservableObject
             if (result is not null)
             {
                 var path = result.Path.LocalPath;
-                var sb = new StringBuilder();
-                sb.AppendLine($"Error Log Export - {DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss}");
-                sb.AppendLine(new string('=', 80));
-                sb.AppendLine();
+                var extension = Path.GetExtension(path).ToLowerInvariant();
 
-                foreach (var error in _allErrors.OrderByDescending(e => e.Timestamp))
+                string content = extension switch
                 {
-                    sb.AppendLine($"[{error.Timestamp:yyyy-MM-dd HH:mm:ss}] [{error.Severity}] [{error.Component}]");
-                    sb.AppendLine($"  {error.Message}");
-                    if (!string.IsNullOrEmpty(error.StackTrace))
-                    {
-                        sb.AppendLine($"  StackTrace: {error.StackTrace}");
-                    }
-                    sb.AppendLine();
-                }
+                    ".csv" => ExportAsCsv(),
+                    ".json" => ExportAsJson(),
+                    _ => ExportAsText()
+                };
 
-                await File.WriteAllTextAsync(path, sb.ToString());
+                await File.WriteAllTextAsync(path, content);
             }
         }
         catch (Exception ex)
         {
-            // Log the error or show to user
             System.Diagnostics.Debug.WriteLine($"Failed to export log: {ex.Message}");
         }
+    }
+
+    private string ExportAsText()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"Error Log Export - {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+        sb.AppendLine(new string('=', 80));
+        sb.AppendLine();
+
+        foreach (var error in _allErrors.OrderByDescending(e => e.Timestamp))
+        {
+            sb.AppendLine($"[{error.Timestamp:yyyy-MM-dd HH:mm:ss}] [{error.Severity}] [{error.Component}]");
+            sb.AppendLine($"  Message: {error.Message}");
+            if (!string.IsNullOrEmpty(error.StackTrace))
+            {
+                sb.AppendLine($"  StackTrace:");
+                sb.AppendLine($"    {error.StackTrace.Replace("\n", "\n    ")}");
+            }
+            sb.AppendLine();
+        }
+
+        return sb.ToString();
+    }
+
+    private string ExportAsCsv()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("Timestamp,Severity,Component,Message,StackTrace");
+
+        foreach (var error in _allErrors.OrderByDescending(e => e.Timestamp))
+        {
+            var message = EscapeCsvField(error.Message);
+            var stackTrace = EscapeCsvField(error.StackTrace ?? "");
+            sb.AppendLine($"{error.Timestamp:yyyy-MM-dd HH:mm:ss},{error.Severity},{error.Component},{message},{stackTrace}");
+        }
+
+        return sb.ToString();
+    }
+
+    private string ExportAsJson()
+    {
+        var entries = _allErrors.OrderByDescending(e => e.Timestamp).Select(e => new
+        {
+            e.Timestamp,
+            e.Severity,
+            e.Component,
+            e.Message,
+            e.StackTrace
+        });
+
+        return System.Text.Json.JsonSerializer.Serialize(entries, new System.Text.Json.JsonSerializerOptions
+        {
+            WriteIndented = true
+        });
+    }
+
+    private static string EscapeCsvField(string field)
+    {
+        if (field.Contains(',') || field.Contains('"') || field.Contains('\n'))
+        {
+            return "\"" + field.Replace("\"", "\"\"") + "\"";
+        }
+        return field;
     }
 
     /// <summary>
     /// Clears all errors from the log.
     /// </summary>
     [RelayCommand]
-    private async Task ClearLogAsync()
+    private async Task ClearAsync()
     {
         try
         {
-            // Clear through service if available
             if (_errorLogService is not null)
             {
                 await _errorLogService.ClearAllAsync();
             }
 
-            // Clear local collections
             _allErrors.Clear();
             Errors.Clear();
             SelectedError = null;
+            UpdateAvailableComponents();
         }
         catch (Exception ex)
         {
@@ -291,27 +386,11 @@ public partial class ErrorLogViewerDialogViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Views details of the selected error.
-    /// </summary>
-    /// <param name="entry">The error entry to view.</param>
-    [RelayCommand]
-    private void ViewDetails(ErrorLogEntry? entry)
-    {
-        if (entry is null) return;
-        SelectedError = entry;
-    }
-
-    /// <summary>
     /// Closes the dialog.
     /// </summary>
     [RelayCommand]
     private void Close()
     {
-        // Close dialog
-        if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            var window = desktop.Windows.FirstOrDefault(w => w.DataContext == this);
-            window?.Close();
-        }
+        // Dialog close is handled by the view
     }
 }

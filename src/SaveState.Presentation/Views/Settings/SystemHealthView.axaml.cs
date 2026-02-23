@@ -5,8 +5,7 @@ namespace SaveState.Presentation.Views.Settings;
 
 /// <summary>
 /// System Health Dashboard view.
-/// Displays system status, database health, external API status,
-/// cache statistics, and recent errors.
+/// Displays overall system health, database status, API statuses, cache stats, and system resources.
 /// </summary>
 public partial class SystemHealthView : UserControl
 {
@@ -16,5 +15,10 @@ public partial class SystemHealthView : UserControl
     public SystemHealthView()
     {
         InitializeComponent();
+    }
+
+    private void InitializeComponent()
+    {
+        AvaloniaXamlLoader.Load(this);
     }
 }

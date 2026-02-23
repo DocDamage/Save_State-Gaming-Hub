@@ -2,12 +2,102 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
-using PresentationHealth = SaveState.Presentation.Models.Health;
+using SaveState.Presentation.Models.Health;
 using SaveState.Presentation.Services;
 using System.Collections.ObjectModel;
 using System.Timers;
 
 namespace SaveState.Presentation.ViewModels.Settings;
+
+/// <summary>
+/// Overall health status of the system.
+/// </summary>
+public enum HealthStatus
+{
+    /// <summary>All systems operating normally.</summary>
+    Healthy,
+
+    /// <summary>Some systems experiencing issues.</summary>
+    Warning,
+
+    /// <summary>Critical system failures.</summary>
+    Critical
+}
+
+/// <summary>
+/// Database health information.
+/// </summary>
+public class DatabaseHealth
+{
+    /// <summary>Current health status of the database.</summary>
+    public HealthStatus Status { get; set; }
+
+    /// <summary>Database query response time.</summary>
+    public TimeSpan ResponseTime { get; set; }
+
+    /// <summary>Timestamp of the last database backup.</summary>
+    public DateTime? LastBackup { get; set; }
+
+    /// <summary>Size of the database in bytes.</summary>
+    public long DatabaseSize { get; set; }
+}
+
+/// <summary>
+/// Health status of an external API.
+/// </summary>
+public class ApiHealthStatus
+{
+    /// <summary>Name of the API (Steam, GOG, Epic, etc.).</summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>Current health status.</summary>
+    public HealthStatus Status { get; set; }
+
+    /// <summary>Response time of the last check.</summary>
+    public TimeSpan? ResponseTime { get; set; }
+
+    /// <summary>Error message if unhealthy.</summary>
+    public string? ErrorMessage { get; set; }
+
+    /// <summary>Timestamp of the last health check.</summary>
+    public DateTime? LastChecked { get; set; }
+}
+
+/// <summary>
+/// Cache statistics.
+/// </summary>
+public class CacheStatistics
+{
+    /// <summary>Cache hit rate (0.0 to 1.0).</summary>
+    public double HitRate { get; set; }
+
+    /// <summary>Size of the cache in bytes.</summary>
+    public long Size { get; set; }
+
+    /// <summary>Number of entries in the cache.</summary>
+    public int EntryCount { get; set; }
+
+    /// <summary>Number of entries evicted from the cache.</summary>
+    public int EvictionCount { get; set; }
+}
+
+/// <summary>
+/// System resource utilization.
+/// </summary>
+public class SystemResources
+{
+    /// <summary>CPU usage percentage (0-100).</summary>
+    public double CpuPercent { get; set; }
+
+    /// <summary>Memory usage percentage (0-100).</summary>
+    public double MemoryPercent { get; set; }
+
+    /// <summary>GPU usage percentage (0-100).</summary>
+    public double GpuPercent { get; set; }
+
+    /// <summary>Disk usage percentage (0-100).</summary>
+    public double DiskPercent { get; set; }
+}
 
 /// <summary>
 /// Service for system health checks and monitoring.
@@ -22,7 +112,7 @@ public interface ISystemHealthService
     /// <summary>
     /// Clears the application cache.
     /// </summary>
-    Task<Result<PresentationHealth.CacheStatistics>> ClearCacheAsync(CancellationToken ct = default);
+    Task<Result<CacheStatistics>> ClearCacheAsync(CancellationToken ct = default);
 
     /// <summary>
     /// Triggers a database backup.
@@ -45,11 +135,26 @@ public interface ISystemHealthService
 /// </summary>
 public class SystemHealthReport
 {
-    public OverallHealthSummary OverallSummary { get; set; } = new();
+    /// <summary>Overall system health status.</summary>
+    public HealthStatus OverallStatus { get; set; }
+
+    /// <summary>Database health information.</summary>
     public DatabaseHealth DatabaseHealth { get; set; } = new();
+
+    /// <summary>Collection of external API health statuses.</summary>
     public IReadOnlyList<ApiHealthStatus> ApiStatuses { get; set; } = Array.Empty<ApiHealthStatus>();
-    public PresentationHealth.CacheStatistics CacheStats { get; set; } = new();
+
+    /// <summary>Cache statistics.</summary>
+    public CacheStatistics CacheStats { get; set; } = new();
+
+    /// <summary>System resource utilization.</summary>
     public SystemResources Resources { get; set; } = new();
+
+    /// <summary>Recent error log entries.</summary>
+    public IReadOnlyList<ErrorLogEntry> RecentErrors { get; set; } = Array.Empty<ErrorLogEntry>();
+
+    /// <summary>Timestamp of the last update.</summary>
+    public DateTime LastUpdated { get; set; }
 }
 
 /// <summary>
@@ -63,11 +168,10 @@ public partial class SystemHealthViewModel : ObservableObject, IDisposable
     private readonly ISystemHealthService? _healthService;
     private readonly IDialogService? _dialogService;
     private readonly INotificationService? _notificationService;
-    private ObservableCollection<ErrorLogEntry> _allErrors = new();
 
-    /// <summary>Overall system health summary.</summary>
+    /// <summary>Overall system health status.</summary>
     [ObservableProperty]
-    private OverallHealthSummary _overallStatus = new();
+    private HealthStatus _overallStatus;
 
     /// <summary>Database health information.</summary>
     [ObservableProperty]
@@ -79,7 +183,7 @@ public partial class SystemHealthViewModel : ObservableObject, IDisposable
 
     /// <summary>Cache statistics.</summary>
     [ObservableProperty]
-    private PresentationHealth.CacheStatistics _cacheStats = new();
+    private CacheStatistics _cacheStats = new();
 
     /// <summary>System resource utilization.</summary>
     [ObservableProperty]
@@ -89,20 +193,22 @@ public partial class SystemHealthViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private ObservableCollection<ErrorLogEntry> _recentErrors = new();
 
-    /// <summary>Timestamp of the last refresh.</summary>
+    /// <summary>Timestamp of the last update.</summary>
     [ObservableProperty]
-    private DateTime _lastRefresh;
+    private DateTime _lastUpdated;
 
     /// <summary>Whether a refresh is currently in progress.</summary>
     [ObservableProperty]
     private bool _isRefreshing;
 
-    /// <summary>Selected error severity filter.</summary>
-    [ObservableProperty]
-    private string? _selectedErrorFilter;
-
-    /// <summary>Available severity filters.</summary>
-    public List<string> SeverityFilters { get; } = new() { "All", "Critical", "Error", "Warning", "Info" };
+    /// <summary>Gets the overall status message.</summary>
+    public string OverallStatusMessage => OverallStatus switch
+    {
+        HealthStatus.Healthy => "🟢 All Systems Operational",
+        HealthStatus.Warning => "🟡 Some Systems Degraded",
+        HealthStatus.Critical => "🔴 Critical Issues Detected",
+        _ => "⚪ Status Unknown"
+    };
 
     /// <summary>
     /// Design-time constructor for XAML preview.
@@ -116,7 +222,6 @@ public partial class SystemHealthViewModel : ObservableObject, IDisposable
         _refreshTimer.AutoReset = true;
         _refreshTimer.Start();
 
-        // Initialize with sample data
         InitializeSampleData();
     }
 
@@ -138,62 +243,54 @@ public partial class SystemHealthViewModel : ObservableObject, IDisposable
         _refreshTimer.AutoReset = true;
         _refreshTimer.Start();
 
-        // Initialize with sample data
         InitializeSampleData();
     }
 
     private void InitializeSampleData()
     {
-        OverallStatus = new OverallHealthSummary
-        {
-            OverallStatus = HealthStatus.Healthy,
-            HealthyServices = 7,
-            DegradedServices = 0,
-            UnhealthyServices = 0,
-            LastUpdated = DateTimeOffset.UtcNow.DateTime
-        };
+        OverallStatus = HealthStatus.Healthy;
 
         DatabaseHealth = new DatabaseHealth
         {
             Status = HealthStatus.Healthy,
             ResponseTime = TimeSpan.FromMilliseconds(12),
-            LastBackup = DateTimeOffset.UtcNow.AddHours(-2).DateTime,
-            DatabaseSize = 1024 * 1024 * 150 // 150MB
+            LastBackup = _timeProvider.Now.AddHours(-2),
+            DatabaseSize = 1024L * 1024 * 150 // 150MB
         };
 
         ApiStatuses = new ObservableCollection<ApiHealthStatus>
         {
-            new() { ApiName = "Steam", Status = HealthStatus.Healthy, ResponseTime = TimeSpan.FromMilliseconds(45), LastChecked = DateTimeOffset.UtcNow.DateTime },
-            new() { ApiName = "GOG", Status = HealthStatus.Healthy, ResponseTime = TimeSpan.FromMilliseconds(38), LastChecked = DateTimeOffset.UtcNow.DateTime },
-            new() { ApiName = "Epic Games", Status = HealthStatus.Degraded, ResponseTime = TimeSpan.FromMilliseconds(1200), LastChecked = DateTimeOffset.UtcNow.DateTime },
-            new() { ApiName = "IGDB", Status = HealthStatus.Healthy, ResponseTime = TimeSpan.FromMilliseconds(67), LastChecked = DateTimeOffset.UtcNow.DateTime },
-            new() { ApiName = "Discord", Status = HealthStatus.Healthy, ResponseTime = TimeSpan.FromMilliseconds(23), LastChecked = DateTimeOffset.UtcNow.DateTime },
-            new() { ApiName = "RetroAchievements", Status = HealthStatus.Healthy, ResponseTime = TimeSpan.FromMilliseconds(89), LastChecked = DateTimeOffset.UtcNow.DateTime }
+            new() { Name = "Steam", Status = HealthStatus.Healthy, ResponseTime = TimeSpan.FromMilliseconds(45), LastChecked = _timeProvider.Now },
+            new() { Name = "GOG", Status = HealthStatus.Healthy, ResponseTime = TimeSpan.FromMilliseconds(38), LastChecked = _timeProvider.Now },
+            new() { Name = "Epic Games", Status = HealthStatus.Warning, ResponseTime = TimeSpan.FromMilliseconds(1200), LastChecked = _timeProvider.Now },
+            new() { Name = "IGDB", Status = HealthStatus.Healthy, ResponseTime = TimeSpan.FromMilliseconds(67), LastChecked = _timeProvider.Now },
+            new() { Name = "Discord", Status = HealthStatus.Healthy, ResponseTime = TimeSpan.FromMilliseconds(23), LastChecked = _timeProvider.Now },
+            new() { Name = "RetroAchievements", Status = HealthStatus.Healthy, ResponseTime = TimeSpan.FromMilliseconds(89), LastChecked = _timeProvider.Now }
         };
 
-        CacheStats = new Models.Health.CacheStatistics
+        CacheStats = new CacheStatistics
         {
             HitRate = 0.94,
-            SizeInBytes = 1024 * 1024 * 145,
+            Size = 1024L * 1024 * 145,
             EntryCount = 1240,
             EvictionCount = 45
         };
 
         Resources = new SystemResources
         {
-            CpuPercentage = 45,
-            MemoryPercentage = 62,
-            GpuPercentage = 30,
-            DiskPercentage = 85,
-            AvailableMemoryBytes = 1024L * 1024 * 1024 * 6,
-            TotalMemoryBytes = 1024L * 1024 * 1024 * 16
+            CpuPercent = 45,
+            MemoryPercent = 62,
+            GpuPercent = 30,
+            DiskPercent = 85
         };
 
         RecentErrors = new ObservableCollection<ErrorLogEntry>
         {
-            new() { Timestamp = DateTimeOffset.UtcNow.AddHours(-2).DateTime, Component = "Steam API", Message = "Timeout during sync", Severity = ErrorSeverity.Warning },
-            new() { Timestamp = DateTimeOffset.UtcNow.AddHours(-4).DateTime, Component = "Cover Downloader", Message = "Failed to download from IGDB", Severity = ErrorSeverity.Info }
+            new() { Timestamp = _timeProvider.Now.AddHours(-2), Component = "Steam API", Message = "Timeout during sync", Severity = ErrorSeverity.Warning },
+            new() { Timestamp = _timeProvider.Now.AddHours(-4), Component = "Cover Downloader", Message = "Failed to download from IGDB", Severity = ErrorSeverity.Error }
         };
+
+        LastUpdated = _timeProvider.Now;
     }
 
     /// <summary>
@@ -212,11 +309,12 @@ public partial class SystemHealthViewModel : ObservableObject, IDisposable
                 if (result.IsSuccess && result.Value is not null)
                 {
                     var report = result.Value;
-                    OverallStatus = report.OverallSummary;
+                    OverallStatus = report.OverallStatus;
                     DatabaseHealth = report.DatabaseHealth;
                     ApiStatuses = new ObservableCollection<ApiHealthStatus>(report.ApiStatuses);
                     CacheStats = report.CacheStats;
                     Resources = report.Resources;
+                    RecentErrors = new ObservableCollection<ErrorLogEntry>(report.RecentErrors);
                 }
                 else
                 {
@@ -229,9 +327,7 @@ public partial class SystemHealthViewModel : ObservableObject, IDisposable
             _notificationService?.ShowError($"Error refreshing health data: {ex.Message}");
         }
 
-        LastRefresh = _timeProvider.Now;
-        OverallStatus.LastUpdated = _timeProvider.Now;
-
+        LastUpdated = _timeProvider.Now;
         IsRefreshing = false;
     }
 
@@ -259,13 +355,29 @@ public partial class SystemHealthViewModel : ObservableObject, IDisposable
             else
             {
                 await Task.Delay(300);
-                await RefreshAsync();
+                CacheStats = new CacheStatistics
+                {
+                    HitRate = 0,
+                    Size = 0,
+                    EntryCount = 0,
+                    EvictionCount = 0
+                };
+                _notificationService?.ShowSuccess("Cache cleared (demo mode)");
             }
         }
         catch (Exception ex)
         {
             _notificationService?.ShowError($"Error clearing cache: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Opens the error log viewer dialog.
+    /// </summary>
+    [RelayCommand]
+    private async Task ViewErrorLogAsync()
+    {
+        await (_dialogService?.ShowErrorLogViewerAsync() ?? Task.CompletedTask);
     }
 
     /// <summary>
@@ -292,7 +404,8 @@ public partial class SystemHealthViewModel : ObservableObject, IDisposable
             else
             {
                 await Task.Delay(1000);
-                _notificationService?.ShowNotificationAsync("Database backup not available - service not configured", "Backup");
+                DatabaseHealth.LastBackup = _timeProvider.Now;
+                _notificationService?.ShowSuccess("Database backup completed (demo mode)", "Backup Complete");
             }
         }
         catch (Exception ex)
@@ -302,86 +415,12 @@ public partial class SystemHealthViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Opens the error log viewer dialog.
+    /// Opens the full logs viewer.
     /// </summary>
     [RelayCommand]
-    private async Task ViewErrorLogAsync()
+    private async Task ViewLogsAsync()
     {
-        if (_healthService is not null)
-        {
-            var result = await _healthService.GetRecentErrorsAsync(100);
-            if (result.IsSuccess && result.Value is not null)
-            {
-                _allErrors = new ObservableCollection<ErrorLogEntry>(result.Value);
-                ApplyErrorFilter();
-            }
-        }
-
-        await (_dialogService?.ShowInformationAsync("Error Log", $"Total errors: {_allErrors.Count}") ?? Task.CompletedTask);
-    }
-
-    /// <summary>
-    /// Retries a failed API connection.
-    /// </summary>
-    /// <param name="api">The API to retry.</param>
-    [RelayCommand]
-    private async Task RetryApiAsync(ApiHealthStatus? api)
-    {
-        if (api is null) return;
-
-        try
-        {
-            if (_healthService is not null)
-            {
-                var result = await _healthService.RetryApiConnectionAsync(api.ApiName);
-                if (result.IsSuccess)
-                {
-                    _notificationService?.ShowSuccess($"{api.ApiName} connection restored", "API Retry");
-                }
-                else
-                {
-                    _notificationService?.ShowError($"Failed to retry {api.ApiName}: {result.Error}");
-                }
-            }
-            await RefreshAsync();
-        }
-        catch (Exception ex)
-        {
-            _notificationService?.ShowError($"Error retrying API connection: {ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// Called when the selected error filter changes.
-    /// </summary>
-    /// <param name="value">The new filter value.</param>
-    partial void OnSelectedErrorFilterChanged(string? value)
-    {
-        ApplyErrorFilter();
-    }
-
-    /// <summary>
-    /// Applies the current error filter to the RecentErrors collection.
-    /// </summary>
-    private void ApplyErrorFilter()
-    {
-        if (string.IsNullOrEmpty(SelectedErrorFilter) || SelectedErrorFilter == "All")
-        {
-            // Show all errors
-            if (_allErrors.Count == 0)
-            {
-                // Use sample data if no real data loaded
-                return;
-            }
-            RecentErrors = new ObservableCollection<ErrorLogEntry>(_allErrors);
-            return;
-        }
-
-        if (!Enum.TryParse<ErrorSeverity>(SelectedErrorFilter, out var severity))
-            return;
-
-        var filtered = _allErrors.Where(e => e.Severity == severity).ToList();
-        RecentErrors = new ObservableCollection<ErrorLogEntry>(filtered);
+        await ViewErrorLogAsync();
     }
 
     /// <summary>

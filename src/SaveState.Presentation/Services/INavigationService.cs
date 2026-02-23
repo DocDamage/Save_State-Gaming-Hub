@@ -97,3 +97,43 @@ public enum NavigationDirection
     Forward,
     Backward
 }
+
+/// <summary>
+/// Extension methods for navigation service to support Phase 1 UI features.
+/// </summary>
+public static class NavigationServiceExtensions
+{
+    /// <summary>
+    /// Navigates to the RetroArch tab.
+    /// </summary>
+    public static async Task NavigateToRetroArchAsync(this INavigationService navigationService)
+    {
+        await navigationService.NavigateToAsync("RetroArch");
+    }
+
+    /// <summary>
+    /// Shows the launch experience overlay for a game.
+    /// </summary>
+    public static async Task ShowLaunchExperienceAsync(this INavigationService navigationService, object game)
+    {
+        await navigationService.NavigateToAsync("LaunchExperience", game);
+    }
+
+    /// <summary>
+    /// Shows the system health view.
+    /// </summary>
+    public static async Task ShowSystemHealthAsync(this INavigationService navigationService)
+    {
+        await navigationService.NavigateToAsync("Settings");
+        // The System Health view is accessed within Settings
+    }
+
+    /// <summary>
+    /// Shows the connected accounts view.
+    /// </summary>
+    public static async Task ShowConnectedAccountsAsync(this INavigationService navigationService)
+    {
+        await navigationService.NavigateToAsync("Settings");
+        // The Connected Accounts view is accessed within Settings
+    }
+}

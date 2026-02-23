@@ -193,3 +193,103 @@ public class OrConverter : IMultiValueConverter
         return false;
     }
 }
+
+/// <summary>
+/// Converts a provider ID to an emoji icon.
+/// </summary>
+public class ProviderToIconConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var provider = value?.ToString()?.ToLowerInvariant();
+        return provider switch
+        {
+            "steam" => "🎮",
+            "gog" => "🎲",
+            "epic" or "epic games" => "🎯",
+            "retroachievements" => "🏆",
+            "discord" => "💬",
+            "xbox" => "🎮",
+            _ => "🔗"
+        };
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Converts a provider ID to a display name.
+/// </summary>
+public class ProviderToDisplayNameConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var provider = value?.ToString()?.ToLowerInvariant();
+        return provider switch
+        {
+            "steam" => "Steam",
+            "gog" => "GOG",
+            "epic" => "Epic Games",
+            "retroachievements" => "RetroAchievements",
+            "discord" => "Discord",
+            "xbox" => "Xbox",
+            _ => provider ?? "Unknown"
+        };
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Converts a platform name to an emoji icon.
+/// </summary>
+public class PlatformToIconConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var platform = value?.ToString()?.ToLowerInvariant();
+        return platform switch
+        {
+            "steam" => "🎮",
+            "gog" => "🎲",
+            "epic games" or "epic" => "🎯",
+            "retroachievements" => "🏆",
+            "discord" => "💬",
+            "xbox" => "🎮",
+            "origin" => "📦",
+            "ea app" => "📦",
+            "playstation" => "🎮",
+            "nintendo" => "🎮",
+            "battle.net" => "⚔️",
+            "ubisoft" => "🛡️",
+            _ => "🎮"
+        };
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Converts a boolean value to "Yes" or "No" string.
+/// </summary>
+public class BoolToYesNoConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return (value as bool?) == true ? "Yes" : "No";
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}

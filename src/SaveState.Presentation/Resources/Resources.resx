@@ -236,4 +236,75 @@
   <data name="Formatting_Example" xml:space="preserve">
     <value>Example</value>
   </data>
+
+  <!-- RetroArch -->
+  <data name="RetroArch_Title" xml:space="preserve">
+    <value>RetroArch Hub</value>
+  </data>
+  <data name="RetroArch_ScanLibrary" xml:space="preserve">
+    <value>Scan Library</value>
+  </data>
+  <data name="RetroArch_InstallCore" xml:space="preserve">
+    <value>Install Core</value>
+  </data>
+  <data name="RetroArch_Playlist" xml:space="preserve">
+    <value>Playlists</value>
+  </data>
+  <data name="RetroArch_Netplay" xml:space="preserve">
+    <value>Netplay</value>
+  </data>
+
+  <!-- Launch Experience -->
+  <data name="LaunchExperience_Title" xml:space="preserve">
+    <value>Launch Experience</value>
+  </data>
+  <data name="LaunchExperience_Enable" xml:space="preserve">
+    <value>Enable cinematic launch</value>
+  </data>
+  <data name="LaunchExperience_Skip" xml:space="preserve">
+    <value>Press Space or Enter to skip</value>
+  </data>
+  <data name="LaunchExperience_Configuration" xml:space="preserve">
+    <value>Configure Launch Experience</value>
+  </data>
+
+  <!-- System Health -->
+  <data name="SystemHealth_Title" xml:space="preserve">
+    <value>System Health</value>
+  </data>
+  <data name="SystemHealth_Database" xml:space="preserve">
+    <value>Database</value>
+  </data>
+  <data name="SystemHealth_ExternalApis" xml:space="preserve">
+    <value>External APIs</value>
+  </data>
+  <data name="SystemHealth_Cache" xml:space="preserve">
+    <value>Cache</value>
+  </data>
+  <data name="SystemHealth_Diagnostics" xml:space="preserve">
+    <value>Diagnostics</value>
+  </data>
+  <data name="SystemHealth_Logs" xml:space="preserve">
+    <value>Error Logs</value>
+  </data>
+  <data name="SystemHealth_Refresh" xml:space="preserve">
+    <value>Refresh Status</value>
+  </data>
+
+  <!-- Account Linking -->
+  <data name="Accounts_Title" xml:space="preserve">
+    <value>Connected Accounts</value>
+  </data>
+  <data name="Accounts_Connect" xml:space="preserve">
+    <value>Connect</value>
+  </data>
+  <data name="Accounts_Disconnect" xml:space="preserve">
+    <value>Disconnect</value>
+  </data>
+  <data name="Accounts_Sync" xml:space="preserve">
+    <value>Sync</value>
+  </data>
+  <data name="Accounts_ConnectionWizard" xml:space="preserve">
+    <value>Connection Wizard</value>
+  </data>
 </root>

@@ -191,3 +191,26 @@ public class AlertSeverityToBrushConverter : IValueConverter
         return BindingOperations.DoNothing;
     }
 }
+
+/// <summary>
+/// Converts null check to a brush for selection highlighting.
+/// </summary>
+public class NullToBrushConverter : IValueConverter
+{
+    private static readonly SolidColorBrush SelectedBrush = new(Color.Parse("#1A4CAF50"));
+    private static readonly SolidColorBrush TransparentBrush = new(Colors.Transparent);
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        // Compare the current item (value) with the selected item (parameter)
+        if (value is null || parameter is null)
+            return TransparentBrush;
+
+        return value.Equals(parameter) ? SelectedBrush : TransparentBrush;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}

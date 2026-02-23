@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SaveState.Application.RetroArch.Commands;
+using SaveState.Application.RetroArch.Queries;
 using SaveState.Core.RetroArch;
 using SaveState.Presentation.Services;
 using System.Collections.ObjectModel;
@@ -136,6 +137,57 @@ public partial class RetroArchTabViewModel : ObservableObject
         {
             _logger.LogError(ex, "Failed to install RetroArch core: {CoreName}", core.Name);
             _notificationService.ShowError("Failed to install core. Please check your internet connection.", "Installation Failed");
+        }
+    }
+
+    /// <summary>
+    /// Refreshes the list of available and installed RetroArch cores.
+    /// </summary>
+    [RelayCommand]
+    private async Task RefreshCoresAsync()
+    {
+        try
+        {
+            IsScanning = true;
+            ScanStatus = "Refreshing cores...";
+
+            // Get installed cores
+            var installedResult = await _mediator.Send(new GetInstalledCoresQuery());
+            if (installedResult.IsSuccess && installedResult.Value is not null)
+            {
+                foreach (var core in installedResult.Value)
+                {
+                    if (!Cores.Any(c => c.Name == core.Name))
+                    {
+                        Cores.Add(core);
+                    }
+                }
+            }
+
+            // Get available cores
+            var availableResult = await _mediator.Send(new GetAvailableCoresQuery());
+            if (availableResult.IsSuccess && availableResult.Value is not null)
+            {
+                foreach (var core in availableResult.Value)
+                {
+                    if (!Cores.Any(c => c.Name == core.Name))
+                    {
+                        Cores.Add(core);
+                    }
+                }
+            }
+
+            _notificationService.ShowSuccess($"Refreshed {Cores.Count} cores", "Cores Updated");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to refresh RetroArch cores");
+            _notificationService.ShowError("Failed to refresh cores. Please try again.", "Refresh Failed");
+        }
+        finally
+        {
+            IsScanning = false;
+            ScanStatus = "Ready";
         }
     }
 

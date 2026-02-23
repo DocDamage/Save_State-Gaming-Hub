@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using SaveState.Core.Sync;
 using SaveState.Presentation.Models.Accounts;
 using SaveState.Presentation.Services;
+using SaveState.Presentation.ViewModels.Dialogs;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 
@@ -16,6 +17,7 @@ public partial class ConnectedAccountsViewModel : ObservableObject
     private readonly INotificationService? _notificationService;
     private readonly ICloudAuthenticationService? _cloudAuthenticationService;
     private readonly ISyncService? _syncService;
+    private readonly IDialogService? _dialogService;
 
     [ObservableProperty]
     private ObservableCollection<AccountConnectionStatus> _gamingPlatforms = new();
@@ -35,6 +37,25 @@ public partial class ConnectedAccountsViewModel : ObservableObject
     [ObservableProperty]
     private string _connectionStatusMessage = string.Empty;
 
+    // Individual provider status properties for easier binding
+    [ObservableProperty]
+    private AccountConnectionStatus _steamStatus = new() { PlatformName = "Steam" };
+
+    [ObservableProperty]
+    private AccountConnectionStatus _gogStatus = new() { PlatformName = "GOG" };
+
+    [ObservableProperty]
+    private AccountConnectionStatus _epicStatus = new() { PlatformName = "Epic Games" };
+
+    [ObservableProperty]
+    private AccountConnectionStatus _xboxStatus = new() { PlatformName = "Xbox", Status = ConnectionStatus.NotAvailable, ErrorMessage = "Coming Soon" };
+
+    [ObservableProperty]
+    private AccountConnectionStatus _retroAchievementsStatus = new() { PlatformName = "RetroAchievements" };
+
+    [ObservableProperty]
+    private AccountConnectionStatus _discordStatus = new() { PlatformName = "Discord" };
+
     // Discord Rich Presence settings
     [ObservableProperty]
     private bool _discordShowCurrentGame = true;
@@ -53,6 +74,7 @@ public partial class ConnectedAccountsViewModel : ObservableObject
     {
         _cloudAuthenticationService = null;
         _syncService = null;
+        _dialogService = null;
         InitializeSampleData();
     }
 
@@ -62,43 +84,81 @@ public partial class ConnectedAccountsViewModel : ObservableObject
     public ConnectedAccountsViewModel(
         INotificationService notificationService,
         ICloudAuthenticationService? cloudAuthenticationService = null,
-        ISyncService? syncService = null)
+        ISyncService? syncService = null,
+        IDialogService? dialogService = null)
     {
         _notificationService = notificationService;
         _cloudAuthenticationService = cloudAuthenticationService;
         _syncService = syncService;
+        _dialogService = dialogService;
         InitializeSampleData();
     }
 
     private void InitializeSampleData()
     {
+        // Initialize individual status properties
+        SteamStatus = new AccountConnectionStatus
+        {
+            PlatformName = "Steam",
+            Status = ConnectionStatus.Connected,
+            Username = "SteamUser123",
+            ConnectedSince = DateTimeOffset.UtcNow.AddMonths(-6).DateTime,
+            LastSync = DateTimeOffset.UtcNow.AddHours(-1).DateTime,
+            CanSync = true,
+            AvatarUrl = "https://avatars.steamstatic.com/default_avatar.jpg"
+        };
+
+        GogStatus = new AccountConnectionStatus
+        {
+            PlatformName = "GOG",
+            Status = ConnectionStatus.Disconnected,
+            CanSync = false
+        };
+
+        EpicStatus = new AccountConnectionStatus
+        {
+            PlatformName = "Epic Games",
+            Status = ConnectionStatus.Connected,
+            Username = "EpicGamer",
+            ConnectedSince = DateTimeOffset.UtcNow.AddMonths(-3).DateTime,
+            LastSync = DateTimeOffset.UtcNow.AddHours(-2).DateTime,
+            CanSync = true
+        };
+
+        XboxStatus = new AccountConnectionStatus
+        {
+            PlatformName = "Xbox",
+            Status = ConnectionStatus.NotAvailable,
+            ErrorMessage = "Coming Soon"
+        };
+
+        RetroAchievementsStatus = new AccountConnectionStatus
+        {
+            PlatformName = "RetroAchievements",
+            Status = ConnectionStatus.Connected,
+            Username = "RetroHero",
+            ConnectedSince = DateTimeOffset.UtcNow.AddMonths(-1).DateTime,
+            LastSync = DateTimeOffset.UtcNow.AddMinutes(-30).DateTime,
+            CanSync = true,
+            AvatarUrl = "https://retroachievements.org/UserPic/RetroHero.png"
+        };
+
+        DiscordStatus = new AccountConnectionStatus
+        {
+            PlatformName = "Discord",
+            Status = ConnectionStatus.Connected,
+            ConnectedSince = DateTimeOffset.UtcNow.AddDays(-1).DateTime,
+            CanSync = false
+        };
+
+        // Populate collections
         GamingPlatforms = new ObservableCollection<AccountConnectionStatus>
         {
-            new()
-            {
-                PlatformName = "Steam",
-                Status = ConnectionStatus.Connected,
-                Username = "SteamUser123",
-                ConnectedSince = DateTimeOffset.UtcNow.AddMonths(-6).DateTime,
-                LastSync = DateTimeOffset.UtcNow.AddHours(-1).DateTime,
-                CanSync = true
-            },
-            new()
-            {
-                PlatformName = "GOG",
-                Status = ConnectionStatus.Disconnected,
-                CanSync = false
-            },
-            new()
-            {
-                PlatformName = "Epic Games",
-                Status = ConnectionStatus.Connected,
-                Username = "EpicGamer",
-                ConnectedSince = DateTimeOffset.UtcNow.AddMonths(-3).DateTime,
-                LastSync = DateTimeOffset.UtcNow.AddHours(-2).DateTime,
-                CanSync = true
-            },
-            new()
+            SteamStatus,
+            GogStatus,
+            EpicStatus,
+            XboxStatus,
+            new AccountConnectionStatus
             {
                 PlatformName = "Origin",
                 Status = ConnectionStatus.NotAvailable,
@@ -108,28 +168,196 @@ public partial class ConnectedAccountsViewModel : ObservableObject
 
         AchievementServices = new ObservableCollection<AccountConnectionStatus>
         {
-            new()
-            {
-                PlatformName = "RetroAchievements",
-                Status = ConnectionStatus.Connected,
-                Username = "RetroHero",
-                ConnectedSince = DateTimeOffset.UtcNow.AddMonths(-1).DateTime,
-                LastSync = DateTimeOffset.UtcNow.AddMinutes(-30).DateTime,
-                CanSync = true
-            }
+            RetroAchievementsStatus
         };
 
         SocialPlatforms = new ObservableCollection<AccountConnectionStatus>
         {
-            new()
-            {
-                PlatformName = "Discord",
-                Status = ConnectionStatus.Connected,
-                ConnectedSince = DateTimeOffset.UtcNow.AddDays(-1).DateTime,
-                CanSync = false
-            }
+            DiscordStatus
         };
     }
+
+    #region Steam Commands
+
+    [RelayCommand]
+    private async Task ConnectSteamAsync()
+    {
+        if (_dialogService != null)
+        {
+            var wizard = new AccountConnectionWizardViewModel(
+                _notificationService!,
+                _cloudAuthenticationService);
+            var result = await _dialogService.ShowDialogAsync<AccountConnectionResult>(wizard);
+
+            if (result != null)
+            {
+                SteamStatus.Status = ConnectionStatus.Connected;
+                SteamStatus.Username = result.Username;
+                SteamStatus.ConnectedSince = DateTime.UtcNow;
+                SteamStatus.CanSync = true;
+                SteamStatus.AvatarUrl = result.ProfileImageUrl;
+                await _notificationService!.ShowNotificationAsync("Steam account connected successfully!", "Account Linked");
+            }
+        }
+        else
+        {
+            await ConnectAccountAsync(SteamStatus);
+        }
+    }
+
+    [RelayCommand]
+    private async Task DisconnectSteamAsync()
+    {
+        await DisconnectAccountAsync(SteamStatus);
+    }
+
+    [RelayCommand]
+    private async Task SyncSteamAsync()
+    {
+        await SyncAccountAsync(SteamStatus);
+    }
+
+    #endregion
+
+    #region GOG Commands
+
+    [RelayCommand]
+    private async Task ConnectGogAsync()
+    {
+        if (_dialogService != null)
+        {
+            var wizard = new AccountConnectionWizardViewModel(
+                _notificationService!,
+                _cloudAuthenticationService);
+            var result = await _dialogService.ShowDialogAsync<AccountConnectionResult>(wizard);
+
+            if (result != null)
+            {
+                GogStatus.Status = ConnectionStatus.Connected;
+                GogStatus.Username = result.Username;
+                GogStatus.ConnectedSince = DateTime.UtcNow;
+                GogStatus.CanSync = true;
+                await _notificationService!.ShowNotificationAsync("GOG account connected successfully!", "Account Linked");
+            }
+        }
+        else
+        {
+            await ConnectAccountAsync(GogStatus);
+        }
+    }
+
+    [RelayCommand]
+    private async Task DisconnectGogAsync()
+    {
+        await DisconnectAccountAsync(GogStatus);
+    }
+
+    #endregion
+
+    #region Epic Games Commands
+
+    [RelayCommand]
+    private async Task ConnectEpicAsync()
+    {
+        if (_dialogService != null)
+        {
+            var wizard = new AccountConnectionWizardViewModel(
+                _notificationService!,
+                _cloudAuthenticationService);
+            var result = await _dialogService.ShowDialogAsync<AccountConnectionResult>(wizard);
+
+            if (result != null)
+            {
+                EpicStatus.Status = ConnectionStatus.Connected;
+                EpicStatus.Username = result.Username;
+                EpicStatus.ConnectedSince = DateTime.UtcNow;
+                EpicStatus.CanSync = true;
+                await _notificationService!.ShowNotificationAsync("Epic Games account connected successfully!", "Account Linked");
+            }
+        }
+        else
+        {
+            await ConnectAccountAsync(EpicStatus);
+        }
+    }
+
+    [RelayCommand]
+    private async Task DisconnectEpicAsync()
+    {
+        await DisconnectAccountAsync(EpicStatus);
+    }
+
+    #endregion
+
+    #region RetroAchievements Commands
+
+    [RelayCommand]
+    private async Task ConnectRetroAchievementsAsync()
+    {
+        if (_dialogService != null)
+        {
+            var wizard = new AccountConnectionWizardViewModel(
+                _notificationService!,
+                _cloudAuthenticationService);
+            var result = await _dialogService.ShowDialogAsync<AccountConnectionResult>(wizard);
+
+            if (result != null)
+            {
+                RetroAchievementsStatus.Status = ConnectionStatus.Connected;
+                RetroAchievementsStatus.Username = result.Username;
+                RetroAchievementsStatus.ConnectedSince = DateTime.UtcNow;
+                RetroAchievementsStatus.CanSync = true;
+                RetroAchievementsStatus.AvatarUrl = result.ProfileImageUrl;
+                await _notificationService!.ShowNotificationAsync("RetroAchievements account connected successfully!", "Account Linked");
+            }
+        }
+        else
+        {
+            await ConnectAccountAsync(RetroAchievementsStatus);
+        }
+    }
+
+    [RelayCommand]
+    private async Task DisconnectRetroAchievementsAsync()
+    {
+        await DisconnectAccountAsync(RetroAchievementsStatus);
+    }
+
+    #endregion
+
+    #region Discord Commands
+
+    [RelayCommand]
+    private async Task ConnectDiscordAsync()
+    {
+        if (_dialogService != null)
+        {
+            var wizard = new AccountConnectionWizardViewModel(
+                _notificationService!,
+                _cloudAuthenticationService);
+            var result = await _dialogService.ShowDialogAsync<AccountConnectionResult>(wizard);
+
+            if (result != null)
+            {
+                DiscordStatus.Status = ConnectionStatus.Connected;
+                DiscordStatus.Username = result.Username;
+                DiscordStatus.ConnectedSince = DateTime.UtcNow;
+                await _notificationService!.ShowNotificationAsync("Discord connected successfully!", "Account Linked");
+            }
+        }
+        else
+        {
+            await ConnectAccountAsync(DiscordStatus);
+        }
+    }
+
+    [RelayCommand]
+    private async Task DisconnectDiscordAsync()
+    {
+        await DisconnectAccountAsync(DiscordStatus);
+    }
+
+    #endregion
 
     /// <summary>
     /// Initiates connection to the specified account platform.
@@ -137,7 +365,7 @@ public partial class ConnectedAccountsViewModel : ObservableObject
     [RelayCommand]
     private async Task ConnectAccountAsync(AccountConnectionStatus? account)
     {
-        if (account is null) return;
+        if (account is null || _notificationService is null) return;
 
         IsConnecting = true;
         ConnectionStatusMessage = $"Connecting to {account.PlatformName}...";
@@ -244,7 +472,7 @@ public partial class ConnectedAccountsViewModel : ObservableObject
                 new[] { "library.read" },
                 "https://auth.gog.com/token"),
 
-            "epic games" => (
+            "epic games" or "epic" => (
                 "https://www.epicgames.com/id/authorize",
                 "savestate_epic_client",
                 new[] { "basic_profile", "library" },
@@ -270,7 +498,7 @@ public partial class ConnectedAccountsViewModel : ObservableObject
     [RelayCommand]
     private async Task DisconnectAccountAsync(AccountConnectionStatus? account)
     {
-        if (account is null) return;
+        if (account is null || _notificationService is null) return;
 
         try
         {
@@ -279,6 +507,7 @@ public partial class ConnectedAccountsViewModel : ObservableObject
             account.ConnectedSince = null;
             account.LastSync = null;
             account.CanSync = false;
+            account.AvatarUrl = null;
 
             await _notificationService.ShowNotificationAsync(
                 $"Disconnected from {account.PlatformName}",
@@ -296,7 +525,7 @@ public partial class ConnectedAccountsViewModel : ObservableObject
     [RelayCommand]
     private async Task SyncAccountAsync(AccountConnectionStatus? account)
     {
-        if (account is null || !account.CanSync) return;
+        if (account is null || !account.CanSync || _notificationService is null) return;
 
         try
         {
@@ -342,6 +571,8 @@ public partial class ConnectedAccountsViewModel : ObservableObject
     [RelayCommand]
     private async Task SyncAllAsync()
     {
+        if (_notificationService is null) return;
+
         var syncableAccounts = GamingPlatforms.Where(a => a.CanSync)
             .Concat(AchievementServices.Where(a => a.CanSync))
             .ToList();
@@ -371,5 +602,46 @@ public partial class ConnectedAccountsViewModel : ObservableObject
         await _notificationService.ShowNotificationAsync(
             $"Synchronized {successCount} of {syncableAccounts.Count} accounts",
             "Bulk Sync Complete");
+    }
+
+    /// <summary>
+    /// Refreshes all connections by checking their status with the respective services.
+    /// </summary>
+    [RelayCommand]
+    private async Task RefreshAllAsync()
+    {
+        if (_notificationService is null) return;
+
+        IsConnecting = true;
+        ConnectionStatusMessage = "Refreshing all connections...";
+
+        try
+        {
+            var allAccounts = GamingPlatforms
+                .Concat(AchievementServices)
+                .Concat(SocialPlatforms)
+                .Where(a => a.Status == ConnectionStatus.Connected)
+                .ToList();
+
+            foreach (var account in allAccounts)
+            {
+                // In a real implementation, we would verify the token validity
+                // and refresh if necessary
+                await Task.Delay(200); // Simulate API call
+            }
+
+            await _notificationService.ShowNotificationAsync(
+                $"Refreshed {allAccounts.Count} connections",
+                "Refresh Complete");
+        }
+        catch (Exception ex)
+        {
+            await _notificationService.ShowErrorAsync($"Failed to refresh: {ex.Message}");
+        }
+        finally
+        {
+            IsConnecting = false;
+            ConnectionStatusMessage = string.Empty;
+        }
     }
 }

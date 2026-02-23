@@ -1,5 +1,7 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Markup.Xaml;
+using SaveState.Presentation.ViewModels.Dialogs;
 
 namespace SaveState.Presentation.Views.Dialogs;
 
@@ -15,5 +17,24 @@ public partial class ErrorLogViewerDialog : Window
     public ErrorLogViewerDialog()
     {
         InitializeComponent();
+    }
+
+    private void InitializeComponent()
+    {
+        AvaloniaXamlLoader.Load(this);
+    }
+
+    /// <summary>
+    /// Handles pointer pressed event on error items to select them.
+    /// </summary>
+    private void OnErrorItemPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is Control control && control.DataContext is SaveState.Presentation.Models.Health.ErrorLogEntry entry)
+        {
+            if (DataContext is ErrorLogViewerDialogViewModel vm)
+            {
+                vm.SelectedError = entry;
+            }
+        }
     }
 }

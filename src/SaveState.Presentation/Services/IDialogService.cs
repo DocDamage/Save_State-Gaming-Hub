@@ -290,6 +290,24 @@ public record EmulatorConfigResult(
     /// </summary>
     /// <returns>Import result containing imported signatures and statistics.</returns>
     Task<ImportCheatTableResult?> ShowImportCheatTableDialogAsync();
+
+    /// <summary>
+    /// Shows the error log viewer dialog.
+    /// </summary>
+    Task ShowErrorLogViewerAsync();
+
+    /// <summary>
+    /// Shows a generic dialog with the specified ViewModel.
+    /// </summary>
+    /// <typeparam name="TResult">The type of result returned by the dialog.</typeparam>
+    /// <param name="viewModel">The ViewModel for the dialog.</param>
+    /// <returns>The result from the dialog, or null if cancelled.</returns>
+    Task<TResult?> ShowDialogAsync<TResult>(object viewModel);
+
+    /// <summary>
+    /// Shows the launch experience configuration dialog.
+    /// </summary>
+    Task<LaunchExperienceConfigResult?> ShowLaunchExperienceConfigAsync();
 }
 
 /// <summary>
@@ -510,3 +528,13 @@ public record ImportCheatTableResult(
     int Skipped,
     int Failed,
     List<string> ErrorMessages);
+
+/// <summary>
+/// Result from the launch experience configuration dialog.
+/// </summary>
+public record LaunchExperienceConfigResult(
+    bool EnableCinematicLaunch,
+    bool ShowGameFacts,
+    bool ShowLastProgress,
+    bool ShowAchievementProgress,
+    int DurationSeconds);

@@ -6,97 +6,252 @@
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
              x:Class="SaveState.Presentation.Views.RetroArch.CoreManagerView"
              x:DataType="vm:RetroArchCoreManagerViewModel">
+
+  <UserControl.Styles>
+    <!-- Glassmorphism Card Style -->
+    <Style Selector="Border.GlassCard">
+      <Setter Property="Background" Value="{DynamicResource GlassBackgroundBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource GlassBorderBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="12"/>
+      <Setter Property="Padding" Value="16"/>
+      <Setter Property="BoxShadow" Value="0 4 16 0 #33000000"/>
+    </Style>
+    
+    <Style Selector="Border.GlassCard:pointerover">
+      <Setter Property="Background" Value="{DynamicResource GlassHoverBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+
+    <!-- Core Icon Container -->
+    <Style Selector="Border.CoreIcon">
+      <Setter Property="Background">
+        <Setter.Value>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="{DynamicResource AccentColor}" Offset="0" Opacity="0.4"/>
+            <GradientStop Color="{DynamicResource AccentColor}" Offset="1" Opacity="0.1"/>
+          </LinearGradientBrush>
+        </Setter.Value>
+      </Setter>
+      <Setter Property="Width" Value="48"/>
+      <Setter Property="Height" Value="48"/>
+      <Setter Property="CornerRadius" Value="10"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+  </UserControl.Styles>
+
   <Grid RowDefinitions="Auto,Auto,*">
     <!-- Header -->
-    <Border Grid.Row="0" Background="{DynamicResource CardBackgroundBrush}" 
-            Padding="20" Margin="16,16,16,8">
+    <Border Grid.Row="0" 
+            Classes="GlassCard"
+            Margin="16,16,16,8">
       <Grid ColumnDefinitions="*,Auto">
-        <StackPanel Grid.Column="0">
-          <TextBlock Text="Core Manager" Classes="H5"/>
+        <StackPanel Grid.Column="0" Spacing="4">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="💿" FontSize="24"/>
+            <TextBlock Text="Core Manager" Classes="H5"/>
+          </StackPanel>
           <TextBlock Text="Install and manage RetroArch emulator cores" 
-                     Opacity="0.7" Margin="0,4,0,0"/>
+                     Opacity="0.7"/>
         </StackPanel>
         <Button Grid.Column="1" 
-                Content="🔄 Update All" 
-                Command="{Binding UpdateAllCoresCommand}"
                 Classes="accent"
-                VerticalAlignment="Center"/>
+                VerticalAlignment="Center"
+                Command="{Binding UpdateAllCoresCommand}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <TextBlock Text="🔄"/>
+            <TextBlock Text="Update All"/>
+          </StackPanel>
+        </Button>
       </Grid>
     </Border>
     
     <!-- Search -->
-    <TextBox Grid.Row="1" 
-             Text="{Binding SearchQuery}" 
-             Watermark="🔍 Search cores..."
-             Margin="16,8,16,8"/>
+    <Border Grid.Row="1" 
+            Classes="GlassCard"
+            Margin="16,8">
+      <TextBox Text="{Binding SearchQuery}" 
+               Watermark="🔍 Search cores by name or system..."
+               Classes="Search"/>
+    </Border>
     
     <!-- Content -->
     <ScrollViewer Grid.Row="2" Margin="16,8,16,16">
       <StackPanel Spacing="16">
         <!-- Installed Cores Section -->
-        <TextBlock Text="INSTALLED CORES" Classes="H6" Margin="0,0,0,8"/>
-        <ItemsControl ItemsSource="{Binding InstalledCores}">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <Border Classes="Card" Margin="0,4">
-                <Grid ColumnDefinitions="*,Auto,Auto">
-                  <StackPanel Grid.Column="0" Spacing="4">
-                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-                    <TextBlock Text="{Binding System}" Opacity="0.7" FontSize="12"/>
-                    <TextBlock Text="{Binding Version, StringFormat='Version: {0}'}" 
-                               Opacity="0.5" FontSize="11"/>
-                  </StackPanel>
-                  <TextBlock Grid.Column="1" 
-                             Text="✅ Installed" 
-                             VerticalAlignment="Center"
-                             Margin="0,0,16,0"
-                             Foreground="{DynamicResource SuccessBrush}"/>
-                  <StackPanel Grid.Column="2" 
-                              Orientation="Horizontal" 
-                              Spacing="8">
-                    <Button Content="🔄 Update"
-                            Command="{Binding 
-                                    DataContext.InstallCoreCommand, 
-                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
-                            CommandParameter="{Binding}"
-                            IsVisible="{Binding IsUpdateAvailable}"/>
-                    <Button Content="🗑️ Uninstall"
-                            Command="{Binding 
-                                    DataContext.UninstallCoreCommand, 
-                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
-                            CommandParameter="{Binding}"
-                            Classes="danger"/>
-                  </StackPanel>
-                </Grid>
+        <Border Classes="GlassCard">
+          <StackPanel Spacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="✅" FontSize="18"/>
+              <TextBlock Text="INSTALLED CORES" Classes="H6"/>
+              <Border Background="{DynamicResource SuccessBrush}" 
+                      Opacity="0.2"
+                      Padding="8,2"
+                      CornerRadius="10"
+                      VerticalAlignment="Center">
+                <TextBlock Text="{Binding InstalledCores.Count, StringFormat='{}{0}'}"
+                           FontSize="12"
+                           Foreground="{DynamicResource SuccessBrush}"
+                           FontWeight="Bold"/>
               </Border>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
+            </StackPanel>
+            <ItemsControl ItemsSource="{Binding InstalledCores}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Classes="GlassCard" Margin="0,6">
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                      <!-- Icon -->
+                      <Border Grid.Column="0" Classes="CoreIcon" Margin="0,0,12,0">
+                        <TextBlock Text="🎮" 
+                                   FontSize="24"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                      </Border>
+                      
+                      <!-- Info -->
+                      <StackPanel Grid.Column="1" Spacing="4">
+                        <TextBlock Text="{Binding Name}" 
+                                   FontWeight="SemiBold"
+                                   FontSize="15"/>
+                        <TextBlock Text="{Binding System}" 
+                                   Opacity="0.7" 
+                                   FontSize="12"/>
+                        <Border Background="{DynamicResource HoverBackgroundBrush}" 
+                                Padding="6,2"
+                                CornerRadius="4"
+                                HorizontalAlignment="Left">
+                          <TextBlock Text="{Binding Version, StringFormat='Version: {0}'}" 
+                                     Opacity="0.6" 
+                                     FontSize="11"/>
+                        </Border>
+                      </StackPanel>
+                      
+                      <!-- Status -->
+                      <Border Grid.Column="2" 
+                              Background="{DynamicResource SuccessBrush}"
+                              Opacity="0.15"
+                              Padding="10,4"
+                              CornerRadius="6"
+                              Margin="0,0,12,0"
+                              VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                          <TextBlock Text="✓" Foreground="{DynamicResource SuccessBrush}"/>
+                          <TextBlock Text="Installed" 
+                                     Foreground="{DynamicResource SuccessBrush}"
+                                     FontWeight="SemiBold"
+                                     FontSize="12"/>
+                        </StackPanel>
+                      </Border>
+                      
+                      <!-- Actions -->
+                      <StackPanel Grid.Column="3" 
+                                  Orientation="Horizontal" 
+                                  Spacing="8">
+                        <Button Content="🔄 Update"
+                                Command="{Binding 
+                                        DataContext.InstallCoreCommand, 
+                                        RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}"
+                                IsVisible="{Binding IsUpdateAvailable}"/>
+                        <Button Content="🗑️"
+                                ToolTip.Tip="Uninstall Core"
+                                Command="{Binding 
+                                        DataContext.UninstallCoreCommand, 
+                                        RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}"
+                                Classes="Flat danger"/>
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            
+            <!-- Empty State -->
+            <StackPanel IsVisible="{Binding !InstalledCores.Count}"
+                        HorizontalAlignment="Center"
+                        Margin="0,24"
+                        Spacing="8">
+              <TextBlock Text="📦" FontSize="48" Opacity="0.3"/>
+              <TextBlock Text="No cores installed" 
+                         Opacity="0.6"/>
+              <TextBlock Text="Install cores from the Available Cores section below" 
+                         Opacity="0.5"
+                         FontSize="12"/>
+            </StackPanel>
+          </StackPanel>
+        </Border>
         
         <!-- Available Cores Section -->
-        <TextBlock Text="AVAILABLE CORES" Classes="H6" Margin="0,16,0,8"/>
-        <ItemsControl ItemsSource="{Binding AvailableCores}">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <Border Classes="Card" Margin="0,4">
-                <Grid ColumnDefinitions="*,Auto">
-                  <StackPanel Grid.Column="0" Spacing="4">
-                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-                    <TextBlock Text="{Binding System}" Opacity="0.7" FontSize="12"/>
-                  </StackPanel>
-                  <Button Grid.Column="1" 
-                          Content="⬇️ Install"
-                          Command="{Binding 
-                                  DataContext.InstallCoreCommand, 
-                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
-                          CommandParameter="{Binding}"
-                          Classes="accent"
-                          VerticalAlignment="Center"/>
-                </Grid>
+        <Border Classes="GlassCard">
+          <StackPanel Spacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="📥" FontSize="18"/>
+              <TextBlock Text="AVAILABLE CORES" Classes="H6"/>
+              <Border Background="{DynamicResource InfoBrush}" 
+                      Opacity="0.2"
+                      Padding="8,2"
+                      CornerRadius="10"
+                      VerticalAlignment="Center">
+                <TextBlock Text="{Binding AvailableCores.Count, StringFormat='{}{0}'}"
+                           FontSize="12"
+                           Foreground="{DynamicResource InfoBrush}"
+                           FontWeight="Bold"/>
               </Border>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
+            </StackPanel>
+            <ItemsControl ItemsSource="{Binding AvailableCores}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Classes="GlassCard" Margin="0,6">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                      <!-- Icon -->
+                      <Border Grid.Column="0" Classes="CoreIcon" Margin="0,0,12,0">
+                        <TextBlock Text="📦" 
+                                   FontSize="24"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                      </Border>
+                      
+                      <!-- Info -->
+                      <StackPanel Grid.Column="1" Spacing="4">
+                        <TextBlock Text="{Binding Name}" 
+                                   FontWeight="SemiBold"
+                                   FontSize="15"/>
+                        <TextBlock Text="{Binding System}" 
+                                   Opacity="0.7" 
+                                   FontSize="12"/>
+                      </StackPanel>
+                      
+                      <!-- Install Button -->
+                      <Button Grid.Column="2" 
+                              Classes="accent"
+                              VerticalAlignment="Center"
+                              Command="{Binding 
+                                      DataContext.InstallCoreCommand, 
+                                      RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              CommandParameter="{Binding}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <TextBlock Text="⬇️"/>
+                          <TextBlock Text="Install"/>
+                        </StackPanel>
+                      </Button>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            
+            <!-- Empty State -->
+            <StackPanel IsVisible="{Binding !AvailableCores.Count}"
+                        HorizontalAlignment="Center"
+                        Margin="0,24"
+                        Spacing="8">
+              <TextBlock Text="🌐" FontSize="48" Opacity="0.3"/>
+              <TextBlock Text="Loading available cores..." 
+                         Opacity="0.6"/>
+            </StackPanel>
+          </StackPanel>
+        </Border>
       </StackPanel>
     </ScrollViewer>
     
@@ -108,10 +263,11 @@
             VerticalAlignment="Stretch">
       <StackPanel HorizontalAlignment="Center"
                   VerticalAlignment="Center"
-                  Spacing="15">
-        <ProgressBar IsIndeterminate="True" Width="48" Height="48"/>
+                  Spacing="16">
+        <ProgressBar IsIndeterminate="True" Width="56" Height="56"/>
         <TextBlock Text="Loading cores..."
-                   FontSize="16"
+                   FontSize="18"
+                   FontWeight="SemiBold"
                    HorizontalAlignment="Center"
                    Foreground="White"/>
       </StackPanel>
