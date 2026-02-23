@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Common.ValueObjects;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Entities;
@@ -32,6 +33,7 @@ public sealed class SmartLauncherIntegrationTests : IDisposable
 
         // Logging
         services.AddLogging();
+        services.AddSingleton<ITimeProvider>(_ => SystemTimeProvider.Instance);
 
         // Services
         services.AddScoped<ILaunchProfileRepository, LaunchProfileRepository>();

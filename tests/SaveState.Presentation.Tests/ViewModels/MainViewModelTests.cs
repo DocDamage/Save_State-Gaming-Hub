@@ -37,6 +37,11 @@ public class MainViewModelTests
         PresentationTestLocator.EnsureGameLibraryRegistered();
     }
 
+    public MainViewModelTests()
+    {
+        PresentationTestLocator.EnsureGameLibraryRegistered();
+    }
+
     private readonly Mock<IMediator> _mediatorMock = new();
     private readonly TestOnboardingService _onboardingService = new();
     private readonly Mock<ILogger<SaveState.Presentation.ViewModels.Onboarding.OnboardingViewModel>> _onboardingLoggerMock = new();

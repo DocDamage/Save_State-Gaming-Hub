@@ -17,15 +17,15 @@ internal static class PresentationTestLocator
     /// </summary>
     public static void EnsureGameLibraryRegistered()
     {
-        if (_serviceProvider != null)
+        if (_serviceProvider == null)
         {
-            return;
+            var services = new ServiceCollection();
+            services.AddTransient<GameLibraryViewModel>(_ =>
+                (GameLibraryViewModel)Activator.CreateInstance(typeof(GameLibraryViewModel), nonPublic: true)!);
+            _serviceProvider = services.BuildServiceProvider();
         }
 
-        var services = new ServiceCollection();
-        // Note: GameLibraryViewModel has complex dependencies and required members.
-        // Tests that need it should provide their own mock or use the full DI container.
-        _serviceProvider = services.BuildServiceProvider();
+        // Reset Locator for each call to avoid cross-test contamination from other suites.
         Locator.Current.SetServices(_serviceProvider);
     }
 }
