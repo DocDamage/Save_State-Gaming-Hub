@@ -203,6 +203,18 @@ public partial class SettingsViewModel : ObservableObject
         await _dialogService.ShowLaunchExperienceConfigAsync();
     }
 
+    [RelayCommand]
+    private async Task ShowPerformanceDashboardAsync()
+    {
+        await _navigationService.ShowPerformanceDashboardAsync();
+    }
+
+    [RelayCommand]
+    private async Task ShowDataManagementAsync()
+    {
+        await _navigationService.ShowDataManagementAsync();
+    }
+
     private async Task LoadAiPreferencesAsync()
     {
         SelectedAiProvider = await _preferencesService.GetPreferredAiProviderAsync();

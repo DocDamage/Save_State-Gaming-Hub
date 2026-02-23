@@ -307,4 +307,32 @@
   <data name="Accounts_ConnectionWizard" xml:space="preserve">
     <value>Connection Wizard</value>
   </data>
+
+  <!-- Performance Dashboard -->
+  <data name="Performance_Title" xml:space="preserve">
+    <value>Performance Dashboard</value>
+  </data>
+  <data name="Performance_RealTimeMetrics" xml:space="preserve">
+    <value>Real-Time Metrics</value>
+  </data>
+  <data name="Performance_GameStats" xml:space="preserve">
+    <value>Game Statistics</value>
+  </data>
+  <data name="Performance_Recommendations" xml:space="preserve">
+    <value>AI Recommendations</value>
+  </data>
+
+  <!-- Data Management -->
+  <data name="DataManagement_Title" xml:space="preserve">
+    <value>Data Management</value>
+  </data>
+  <data name="DataManagement_Export" xml:space="preserve">
+    <value>Export Data</value>
+  </data>
+  <data name="DataManagement_Import" xml:space="preserve">
+    <value>Import Data</value>
+  </data>
+  <data name="DataManagement_Backup" xml:space="preserve">
+    <value>Backup &amp; Restore</value>
+  </data>
 </root>

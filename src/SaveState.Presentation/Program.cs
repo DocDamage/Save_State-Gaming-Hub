@@ -87,6 +87,11 @@ public static class Program
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Analytics.GamerDnaViewModel>();
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Search.UniversalSearchViewModel>();
 
+            // Phase 2: Performance Dashboard & Data Management ViewModels
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Settings.PerformanceDashboardViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.GamePerformanceDetailViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.ImportPreviewDialogViewModel>();
+
             // Phase 4: Immersive Launch Experience ViewModels
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.BigPicture.LaunchExperienceViewModel>();
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Dialogs.LaunchExperienceConfigDialogViewModel>();

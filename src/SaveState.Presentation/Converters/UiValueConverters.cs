@@ -3,6 +3,7 @@ using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using SaveState.Core.Health.Models;
+using SaveState.Presentation.Models.Data;
 
 namespace SaveState.Presentation.Converters;
 
@@ -212,5 +213,63 @@ public class NullToBrushConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Converts item type to an icon emoji for display.
+/// </summary>
+public class ItemTypeToIconConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return value?.ToString()?.ToLowerInvariant() switch
+        {
+            "game" => "🎮",
+            "savestate" or "save state" => "💾",
+            "achievement" => "🏆",
+            "collection" => "📚",
+            "setting" or "settings" => "⚙️",
+            "mugen" or "mugen data" => "🥊",
+            "macro" or "macros" => "⌨️",
+            "rom" or "roms" => "🎲",
+            "playsession" or "play session" => "⏱️",
+            _ => "📄"
+        };
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return BindingOperations.DoNothing;
+    }
+}
+
+/// <summary>
+/// Converts ConflictResolution enum to ComboBox SelectedIndex.
+/// </summary>
+public class ConflictResolutionToIndexConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return value switch
+        {
+            ConflictResolution.KeepCurrent => 0,
+            ConflictResolution.UseImported => 1,
+            ConflictResolution.KeepBoth => 2,
+            ConflictResolution.Skip => 3,
+            _ => 0
+        };
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return value switch
+        {
+            0 => ConflictResolution.KeepCurrent,
+            1 => ConflictResolution.UseImported,
+            2 => ConflictResolution.KeepBoth,
+            3 => ConflictResolution.Skip,
+            _ => ConflictResolution.KeepCurrent
+        };
     }
 }

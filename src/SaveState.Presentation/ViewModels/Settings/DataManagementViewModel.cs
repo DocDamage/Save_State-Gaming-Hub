@@ -5,6 +5,9 @@ using SaveState.Core.Common;
 using SaveState.Core.Common.Services;
 using SaveState.Presentation.Models.Data;
 using SaveState.Presentation.Services;
+using SaveState.Presentation.ViewModels.Dialogs;
+using SaveState.Presentation.Views.Dialogs;
+using System.Collections.ObjectModel;
 
 namespace SaveState.Presentation.ViewModels.Settings;
 
@@ -27,6 +30,16 @@ public interface IDataManagementService
     /// Gets current auto-backup configuration.
     /// </summary>
     Task<Result<AutoBackupConfiguration>> GetAutoBackupConfigurationAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets list of available backups.
+    /// </summary>
+    Task<Result<List<BackupInfo>>> GetBackupsAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Deletes a backup file.
+    /// </summary>
+    Task<Result> DeleteBackupAsync(string backupPath, CancellationToken ct = default);
 }
 
 /// <summary>
@@ -122,6 +135,12 @@ public partial class DataManagementViewModel : ObservableObject
     [ObservableProperty]
     private string _statusMessage = string.Empty;
 
+    [ObservableProperty]
+    private ObservableCollection<BackupInfo> _availableBackups = new();
+
+    [ObservableProperty]
+    private BackupInfo? _selectedBackup;
+
     /// <summary>
     /// Design-time constructor for XAML preview.
     /// </summary>
@@ -130,6 +149,7 @@ public partial class DataManagementViewModel : ObservableObject
     {
         _timeProvider = new SystemTimeProvider();
         InitializeDefaults();
+        LoadSampleBackups();
     }
 
     /// <summary>
@@ -146,6 +166,7 @@ public partial class DataManagementViewModel : ObservableObject
         _timeProvider = timeProvider;
         _dataManagementService = dataManagementService;
         InitializeDefaults();
+        _ = LoadBackupsAsync();
     }
 
     private void InitializeDefaults()
@@ -157,11 +178,64 @@ public partial class DataManagementViewModel : ObservableObject
             "Backups");
     }
 
+    private void LoadSampleBackups()
+    {
+        AvailableBackups.Add(new BackupInfo
+        {
+            Name = "Manual Backup - Feb 20",
+            CreatedAt = _timeProvider.Now.AddDays(-2),
+            SizeInBytes = 152_345_678,
+            Path = @"C:\Backups\savestate_backup_20260220.zip",
+            Version = "2.5.2",
+            Description = "Full backup before system update"
+        });
+        AvailableBackups.Add(new BackupInfo
+        {
+            Name = "Auto Backup - Feb 21",
+            CreatedAt = _timeProvider.Now.AddDays(-1),
+            SizeInBytes = 158_234_567,
+            Path = @"C:\Backups\savestate_auto_20260221.zip",
+            Version = "2.5.2",
+            Description = "Daily automatic backup"
+        });
+        AvailableBackups.Add(new BackupInfo
+        {
+            Name = "Pre-Migration Backup",
+            CreatedAt = _timeProvider.Now.AddDays(-7),
+            SizeInBytes = 145_123_456,
+            Path = @"C:\Backups\savestate_pre_migration.zip",
+            Version = "2.5.1",
+            Description = "Backup before data migration"
+        });
+    }
+
+    private async Task LoadBackupsAsync()
+    {
+        if (_dataManagementService is null) return;
+
+        try
+        {
+            var result = await _dataManagementService.GetBackupsAsync();
+            if (result.IsSuccess && result.Value is not null)
+            {
+                AvailableBackups.Clear();
+                foreach (var backup in result.Value.OrderByDescending(b => b.CreatedAt))
+                {
+                    AvailableBackups.Add(backup);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to load backups: {ex.Message}";
+        }
+    }
+
     /// <summary>
     /// Opens a folder picker to select the export destination.
     /// </summary>
     [RelayCommand]
-    private async Task SelectExportPathAsync()
+    private async Task BrowseExportPathAsync()
     {
         try
         {
@@ -181,6 +255,12 @@ public partial class DataManagementViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Alias for BrowseExportPathAsync for backward compatibility.
+    /// </summary>
+    [RelayCommand]
+    private async Task SelectExportPathAsync() => await BrowseExportPathAsync();
+
+    /// <summary>
     /// Executes the export operation.
     /// </summary>
     [RelayCommand]
@@ -194,14 +274,21 @@ public partial class DataManagementViewModel : ObservableObject
             return;
         }
 
+        var items = GetExportItems();
+        if (items.Count == 0)
+        {
+            await _notificationService.ShowNotificationAsync(
+                "Please select at least one data type to export",
+                "Export");
+            return;
+        }
+
         IsExporting = true;
         OperationProgress = 0;
         StatusMessage = "Starting export...";
 
         try
         {
-            // Simulate export progress
-            var items = GetExportItems();
             int totalItems = items.Count;
             int processedItems = 0;
 
@@ -234,7 +321,7 @@ public partial class DataManagementViewModel : ObservableObject
     /// Opens a file picker to select the import file.
     /// </summary>
     [RelayCommand]
-    private async Task SelectImportPathAsync()
+    private async Task BrowseImportPathAsync()
     {
         try
         {
@@ -245,6 +332,8 @@ public partial class DataManagementViewModel : ObservableObject
             if (!string.IsNullOrEmpty(path))
             {
                 SelectedImportPath = path;
+                // Clear previous preview when file changes
+                ImportPreview = null;
             }
         }
         catch (Exception ex)
@@ -252,6 +341,12 @@ public partial class DataManagementViewModel : ObservableObject
             await _notificationService.ShowErrorAsync($"Failed to select file: {ex.Message}");
         }
     }
+
+    /// <summary>
+    /// Alias for BrowseImportPathAsync for backward compatibility.
+    /// </summary>
+    [RelayCommand]
+    private async Task SelectImportPathAsync() => await BrowseImportPathAsync();
 
     /// <summary>
     /// Generates a preview of the import operation.
@@ -278,6 +373,9 @@ public partial class DataManagementViewModel : ObservableObject
                 {
                     ImportPreview = result.Value;
                     StatusMessage = "Preview ready";
+
+                    // Show detailed preview dialog
+                    await ShowImportPreviewDialogAsync(result.Value);
                 }
                 else
                 {
@@ -295,15 +393,52 @@ public partial class DataManagementViewModel : ObservableObject
                     GamesToUpdate = 15,
                     SaveStatesToImport = 128,
                     AchievementsToImport = 256,
+                    CollectionsToImport = 8,
                     Conflicts = 3,
                     EstimatedDuration = TimeSpan.FromMinutes(2),
                     Warnings = new List<string>
                     {
                         "Some save states may conflict with existing data",
                         "Achievement data will be merged with existing records"
+                    },
+                    ConflictDetails = new List<ImportConflict>
+                    {
+                        new()
+                        {
+                            ItemId = "game_001",
+                            ItemName = "The Witcher 3",
+                            ItemType = "Game",
+                            FieldName = "Playtime",
+                            CurrentValue = "120 hours",
+                            ImportedValue = "135 hours",
+                            SelectedResolution = ConflictResolution.KeepCurrent
+                        },
+                        new()
+                        {
+                            ItemId = "save_042",
+                            ItemName = "Hollow Knight - Save Slot 1",
+                            ItemType = "SaveState",
+                            FieldName = "Progress",
+                            CurrentValue = "78%",
+                            ImportedValue = "82%",
+                            SelectedResolution = ConflictResolution.UseImported
+                        },
+                        new()
+                        {
+                            ItemId = "ach_128",
+                            ItemName = "Platinum Trophy",
+                            ItemType = "Achievement",
+                            FieldName = "Unlock Date",
+                            CurrentValue = "2025-12-25",
+                            ImportedValue = "2025-12-20",
+                            SelectedResolution = ConflictResolution.KeepCurrent
+                        }
                     }
                 };
                 StatusMessage = "Preview ready (sample data)";
+
+                // Show detailed preview dialog
+                await ShowImportPreviewDialogAsync(ImportPreview);
             }
         }
         catch (Exception ex)
@@ -314,7 +449,105 @@ public partial class DataManagementViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Executes the import operation.
+    /// Shows the import preview dialog.
+    /// </summary>
+    private async Task ShowImportPreviewDialogAsync(ImportPreview preview)
+    {
+        if (_dialogService is null) return;
+
+        var dialog = new ImportPreviewDialog();
+        var viewModel = new ImportPreviewDialogViewModel(_dialogService, _notificationService, _timeProvider);
+        viewModel.Initialize(SelectedImportPath!, preview);
+        dialog.Initialize(viewModel);
+
+        if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var result = await dialog.ShowDialog<ImportPreviewResult?>(desktop.MainWindow!);
+
+            if (result is not null)
+            {
+                // User confirmed import with selected strategy and conflict resolutions
+                ImportStrategy = result.SelectedStrategy;
+                await ExecuteImportWithResultAsync(result);
+            }
+            else
+            {
+                StatusMessage = "Import cancelled by user";
+            }
+        }
+    }
+
+    /// <summary>
+    /// Executes the import with the result from the preview dialog.
+    /// </summary>
+    private async Task ExecuteImportWithResultAsync(ImportPreviewResult result)
+    {
+        IsImporting = true;
+        OperationProgress = 0;
+        StatusMessage = "Starting import...";
+
+        try
+        {
+            // Simulate import with progress
+            int totalSteps = result.GamesToAdd + result.GamesToUpdate + result.SaveStatesToImport + result.AchievementsToImport;
+            int currentStep = 0;
+
+            // Import games
+            for (int i = 0; i < result.GamesToAdd; i++)
+            {
+                currentStep++;
+                OperationProgress = (currentStep / (double)totalSteps) * 100;
+                StatusMessage = $"Adding new games... {i + 1}/{result.GamesToAdd}";
+                await Task.Delay(50);
+            }
+
+            // Update games
+            for (int i = 0; i < result.GamesToUpdate; i++)
+            {
+                currentStep++;
+                OperationProgress = (currentStep / (double)totalSteps) * 100;
+                StatusMessage = $"Updating games... {i + 1}/{result.GamesToUpdate}";
+                await Task.Delay(50);
+            }
+
+            // Import save states
+            for (int i = 0; i < result.SaveStatesToImport; i++)
+            {
+                currentStep++;
+                OperationProgress = (currentStep / (double)totalSteps) * 100;
+                StatusMessage = $"Importing save states... {i + 1}/{result.SaveStatesToImport}";
+                await Task.Delay(30);
+            }
+
+            // Import achievements
+            for (int i = 0; i < result.AchievementsToImport; i++)
+            {
+                currentStep++;
+                OperationProgress = (currentStep / (double)totalSteps) * 100;
+                StatusMessage = $"Importing achievements... {i + 1}/{result.AchievementsToImport}";
+                await Task.Delay(20);
+            }
+
+            StatusMessage = "Import complete!";
+            await _notificationService.ShowNotificationAsync(
+                $"Successfully imported {result.GamesToAdd} games, {result.SaveStatesToImport} save states, {result.AchievementsToImport} achievements",
+                "Import Complete");
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Import failed: {ex.Message}";
+            await _notificationService.ShowErrorAsync($"Import failed: {ex.Message}");
+        }
+        finally
+        {
+            IsImporting = false;
+            OperationProgress = 0;
+            ImportPreview = null;
+        }
+    }
+
+    /// <summary>
+    /// Executes the import operation (legacy method).
     /// </summary>
     [RelayCommand]
     private async Task ImportAsync()
@@ -397,6 +630,9 @@ public partial class DataManagementViewModel : ObservableObject
             await _notificationService.ShowNotificationAsync(
                 $"Backup created at {BackupLocation}",
                 "Backup Complete");
+
+            // Refresh backup list
+            await LoadBackupsAsync();
         }
         catch (Exception ex)
         {
@@ -416,11 +652,19 @@ public partial class DataManagementViewModel : ObservableObject
     [RelayCommand]
     private async Task RestoreBackupAsync()
     {
+        if (SelectedBackup is null)
+        {
+            await _notificationService.ShowNotificationAsync(
+                "Please select a backup to restore",
+                "Restore");
+            return;
+        }
+
         try
         {
             var confirmed = await _dialogService.ShowConfirmationAsync(
                 "Restore Backup",
-                "This will replace all current data. Are you sure?",
+                $"This will replace all current data with the backup from {SelectedBackup.CreatedAt:g}.\n\nAre you sure?",
                 "Restore",
                 "Cancel");
 
@@ -437,7 +681,7 @@ public partial class DataManagementViewModel : ObservableObject
             }
 
             await _notificationService.ShowNotificationAsync(
-                "Backup restored successfully",
+                $"Backup from {SelectedBackup.CreatedAt:g} restored successfully",
                 "Restore Complete");
         }
         catch (Exception ex)
@@ -448,6 +692,60 @@ public partial class DataManagementViewModel : ObservableObject
         {
             IsImporting = false;
             OperationProgress = 0;
+        }
+    }
+
+    /// <summary>
+    /// Deletes the selected backup.
+    /// </summary>
+    [RelayCommand]
+    private async Task DeleteBackupAsync()
+    {
+        if (SelectedBackup is null)
+        {
+            await _notificationService.ShowNotificationAsync(
+                "Please select a backup to delete",
+                "Delete");
+            return;
+        }
+
+        try
+        {
+            var confirmed = await _dialogService.ShowConfirmationAsync(
+                "Delete Backup",
+                $"Are you sure you want to delete the backup '{SelectedBackup.Name}'?\n\nThis action cannot be undone.",
+                "Delete",
+                "Cancel");
+
+            if (!confirmed) return;
+
+            if (_dataManagementService is not null)
+            {
+                var result = await _dataManagementService.DeleteBackupAsync(SelectedBackup.Path);
+                if (result.IsSuccess)
+                {
+                    await _notificationService.ShowNotificationAsync(
+                        "Backup deleted successfully",
+                        "Delete Complete");
+                    await LoadBackupsAsync();
+                }
+                else
+                {
+                    await _notificationService.ShowErrorAsync($"Failed to delete backup: {result.Error}");
+                }
+            }
+            else
+            {
+                AvailableBackups.Remove(SelectedBackup);
+                SelectedBackup = null;
+                await _notificationService.ShowNotificationAsync(
+                    "Backup deleted",
+                    "Delete Complete");
+            }
+        }
+        catch (Exception ex)
+        {
+            await _notificationService.ShowErrorAsync($"Delete failed: {ex.Message}");
         }
     }
 

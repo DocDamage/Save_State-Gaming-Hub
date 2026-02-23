@@ -260,14 +260,27 @@
         </StackPanel>
       </Border>
 
+      <!-- Performance Dashboard Section -->
+      <Border Classes="Card" Padding="16">
+        <StackPanel Spacing="12">
+          <TextBlock Text="📊 Performance Dashboard" Classes="Header" />
+          <TextBlock Text="Monitor real-time performance metrics, game statistics, and AI recommendations."
+                    Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
+          <Button Content="{x:Static res:Resources.Performance_Title}"
+                  Command="{Binding ShowPerformanceDashboardCommand}"
+                  Classes="Primary"
+                  HorizontalAlignment="Left" />
+        </StackPanel>
+      </Border>
+
       <!-- Data Management Section -->
       <Border Classes="Card" Padding="16">
         <StackPanel Spacing="12">
           <TextBlock Text="💾 Data Management" Classes="Header" />
           <TextBlock Text="Export, import, and backup your game library data and settings."
                     Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
-          <Button Content="Open Data Management"
-                  Command="{Binding OpenDataManagementCommand}"
+          <Button Content="{x:Static res:Resources.DataManagement_Title}"
+                  Command="{Binding ShowDataManagementCommand}"
                   Classes="Primary"
                   HorizontalAlignment="Left" />
         </StackPanel>

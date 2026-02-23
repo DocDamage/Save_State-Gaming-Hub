@@ -52,6 +52,11 @@
     
     <!-- OpenAPI/Swagger Documentation -->
     <PackageReference Include="NSwag.Generation" />
+    
+    <!-- LiveCharts - Real-time Charts -->
+    <PackageReference Include="LiveChartsCore" />
+    <PackageReference Include="LiveChartsCore.SkiaSharpView" />
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" />
   </ItemGroup>
 
 </Project>

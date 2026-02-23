@@ -6,6 +6,8 @@ using SaveState.Core.Automation.Services;
 using SaveState.Core.Common.Services;
 using SaveState.Presentation.Views.Dialogs;
 using SaveState.Presentation.ViewModels.Dialogs;
+using SaveState.Presentation.ViewModels.Settings;
+using SaveState.Presentation.Models.Data;
 using System;
 using System.Threading.Tasks;
 
@@ -287,6 +289,84 @@ public partial class DialogService : IDialogService
         {
             _logger.LogError(ex, "Failed to show dialog for view model {ViewModelType}", viewModel.GetType().Name);
             return default;
+        }
+    }
+
+    #endregion
+
+    #region Performance Dashboard Dialogs
+
+    /// <inheritdoc />
+    public async Task ShowGamePerformanceDetailAsync(GamePerformanceStats gameStats)
+    {
+        try
+        {
+            // Note: GamePerformanceDetailViewModel requires GamePerformanceStats in constructor
+            // We'll create a new instance with the required parameters
+            var timeProvider = _serviceProvider.GetRequiredService<ITimeProvider>();
+            var detailedVm = new GamePerformanceDetailViewModel(
+                timeProvider,
+                gameStats,
+                _serviceProvider.GetService<IPerformanceService>(),
+                _serviceProvider.GetService<ISystemResourceManager>(),
+                _serviceProvider.GetService<IPerformanceMonitor>(),
+                _serviceProvider.GetService<ErrorTrackingService>(),
+                _serviceProvider.GetService<INotificationService>());
+
+            var dialog = new GamePerformanceDetailView
+            {
+                DataContext = detailedVm
+            };
+
+            var mainWindow = GetMainWindow();
+            if (mainWindow != null)
+            {
+                await dialog.ShowDialog(mainWindow);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show game performance detail dialog");
+        }
+    }
+
+    #endregion
+
+    #region Data Management Dialogs
+
+    /// <inheritdoc />
+    public async Task<ImportPreviewResult?> ShowImportPreviewAsync(ImportPreview preview, string? filePath = null)
+    {
+        try
+        {
+            var vm = _serviceProvider.GetRequiredService<ImportPreviewDialogViewModel>();
+            var timeProvider = _serviceProvider.GetRequiredService<ITimeProvider>();
+            
+            // Create a new instance with required services since it needs them in constructor
+            var previewVm = new ImportPreviewDialogViewModel(
+                this,
+                _serviceProvider.GetRequiredService<INotificationService>(),
+                timeProvider);
+            
+            previewVm.Initialize(filePath ?? "import_file.json", preview);
+
+            var dialog = new ImportPreviewDialog();
+            dialog.Initialize(previewVm);
+
+            var mainWindow = GetMainWindow();
+            if (mainWindow == null)
+            {
+                _logger.LogWarning("Main window not found for import preview dialog");
+                return null;
+            }
+
+            var result = await dialog.ShowDialog<ImportPreviewResult?>(mainWindow);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show import preview dialog");
+            return null;
         }
     }
 

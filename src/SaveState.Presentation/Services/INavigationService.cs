@@ -136,4 +136,20 @@ public static class NavigationServiceExtensions
         await navigationService.NavigateToAsync("Settings");
         // The Connected Accounts view is accessed within Settings
     }
+
+    /// <summary>
+    /// Shows the performance dashboard view.
+    /// </summary>
+    public static async Task ShowPerformanceDashboardAsync(this INavigationService navigationService)
+    {
+        await navigationService.NavigateToAsync("PerformanceDashboard");
+    }
+
+    /// <summary>
+    /// Shows the data management view.
+    /// </summary>
+    public static async Task ShowDataManagementAsync(this INavigationService navigationService)
+    {
+        await navigationService.NavigateToAsync("DataManagement");
+    }
 }

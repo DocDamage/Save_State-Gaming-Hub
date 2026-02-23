@@ -308,6 +308,24 @@ public record EmulatorConfigResult(
     /// Shows the launch experience configuration dialog.
     /// </summary>
     Task<LaunchExperienceConfigResult?> ShowLaunchExperienceConfigAsync();
+
+    /// <summary>
+    /// Shows the game performance detail dialog.
+    /// </summary>
+    Task ShowGamePerformanceDetailAsync(ViewModels.Settings.GamePerformanceStats gameStats);
+
+    /// <summary>
+    /// Shows a simple message dialog.
+    /// </summary>
+    Task ShowMessageAsync(string title, string message);
+
+    /// <summary>
+    /// Shows the import preview dialog with conflict resolution.
+    /// </summary>
+    /// <param name="preview">The import preview data.</param>
+    /// <param name="filePath">Optional path to the import file.</param>
+    /// <returns>The import preview result with user selections, or null if cancelled.</returns>
+    Task<ImportPreviewResult?> ShowImportPreviewAsync(Models.Data.ImportPreview preview, string? filePath = null);
 }
 
 /// <summary>

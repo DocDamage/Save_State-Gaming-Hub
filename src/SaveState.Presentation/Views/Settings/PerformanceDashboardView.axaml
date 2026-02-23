@@ -1,0 +1,454 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveState.Presentation.ViewModels.Settings"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             xmlns:converters="using:SaveState.Presentation.Converters"
+             mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="1200"
+             x:Class="SaveState.Presentation.Views.Settings.PerformanceDashboardView"
+             x:DataType="vm:PerformanceDashboardViewModel">
+
+  <UserControl.Resources>
+    <converters:BytesToHumanReadableConverter x:Key="BytesToHumanReadableConverter" />
+  </UserControl.Resources>
+
+  <ScrollViewer>
+    <StackPanel Margin="24" Spacing="24">
+      
+      <!-- Header -->
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0" Text="⚙️ SETTINGS > PERFORMANCE DASHBOARD" Classes="H5" />
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+          <Button Command="{Binding ToggleRealTimeMonitoringCommand}" Classes="Secondary">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="⏸ Pause" IsVisible="{Binding IsRealtimeMonitoring}" />
+              <TextBlock Text="▶️ Resume" IsVisible="{Binding !IsRealtimeMonitoring}" />
+            </StackPanel>
+          </Button>
+          <Button Command="{Binding RefreshCommand}" IsEnabled="{Binding !IsLoading}" Classes="Primary">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <ProgressBar IsIndeterminate="True" Width="16" Height="16" 
+                          IsVisible="{Binding IsLoading}"/>
+              <TextBlock Text="🔄 Refresh"/>
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </Grid>
+
+      <!-- Real-time Metrics Card -->
+      <Border Classes="Card" Padding="20">
+        <StackPanel Spacing="16">
+          <TextBlock Text="📊 REAL-TIME METRICS" Classes="H6" FontSize="18"/>
+          
+          <!-- Current Values Row -->
+          <Grid ColumnDefinitions="*,*,*,*" Margin="0,0,0,8">
+            <!-- CPU -->
+            <StackPanel Grid.Column="0" Spacing="4">
+              <TextBlock Text="🖥️ CPU" FontSize="12" Opacity="0.7"/>
+              <TextBlock FontSize="28" FontWeight="Bold" Foreground="DodgerBlue">
+                <TextBlock.Text>
+                  <MultiBinding StringFormat="{}{0:F0}%">
+                    <Binding Path="CurrentCpuPercent"/>
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+            </StackPanel>
+            
+            <!-- GPU -->
+            <StackPanel Grid.Column="1" Spacing="4">
+              <TextBlock Text="🎮 GPU" FontSize="12" Opacity="0.7"/>
+              <TextBlock FontSize="28" FontWeight="Bold" Foreground="LimeGreen">
+                <TextBlock.Text>
+                  <MultiBinding StringFormat="{}{0:F0}%">
+                    <Binding Path="CurrentGpuPercent"/>
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+            </StackPanel>
+            
+            <!-- Memory -->
+            <StackPanel Grid.Column="2" Spacing="4">
+              <TextBlock Text="🧠 RAM" FontSize="12" Opacity="0.7"/>
+              <TextBlock FontSize="28" FontWeight="Bold" Foreground="Orange">
+                <TextBlock.Text>
+                  <MultiBinding StringFormat="{}{0:F0}%">
+                    <Binding Path="CurrentMemoryPercent"/>
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+            </StackPanel>
+            
+            <!-- FPS -->
+            <StackPanel Grid.Column="3" Spacing="4">
+              <TextBlock Text="⚡ FPS" FontSize="12" Opacity="0.7"/>
+              <TextBlock FontSize="28" FontWeight="Bold" Foreground="Purple">
+                <TextBlock.Text>
+                  <MultiBinding StringFormat="{}{0:F0}">
+                    <Binding Path="CurrentFps"/>
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+            </StackPanel>
+          </Grid>
+
+          <!-- Charts -->
+          <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" RowSpacing="16" ColumnSpacing="16">
+            <!-- CPU Chart -->
+            <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
+              <TextBlock Text="CPU Usage History" FontSize="12" Opacity="0.7"/>
+              <Border BorderBrush="Gray" BorderThickness="0.5" Height="180">
+                <lvc:CartesianChart Series="{Binding CpuSeries}"
+                                    XAxes="{Binding TimeAxis}"
+                                    YAxes="{Binding PercentageAxis}"
+                                    ZoomMode="None"
+                                    TooltipPosition="Hidden"/>
+              </Border>
+            </StackPanel>
+            
+            <!-- GPU Chart -->
+            <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
+              <TextBlock Text="GPU Usage History" FontSize="12" Opacity="0.7"/>
+              <Border BorderBrush="Gray" BorderThickness="0.5" Height="180">
+                <lvc:CartesianChart Series="{Binding GpuSeries}"
+                                    XAxes="{Binding TimeAxis}"
+                                    YAxes="{Binding PercentageAxis}"
+                                    ZoomMode="None"
+                                    TooltipPosition="Hidden"/>
+              </Border>
+            </StackPanel>
+            
+            <!-- Memory Chart -->
+            <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4">
+              <TextBlock Text="Memory Usage History" FontSize="12" Opacity="0.7"/>
+              <Border BorderBrush="Gray" BorderThickness="0.5" Height="180">
+                <lvc:CartesianChart Series="{Binding MemorySeries}"
+                                    XAxes="{Binding TimeAxis}"
+                                    YAxes="{Binding PercentageAxis}"
+                                    ZoomMode="None"
+                                    TooltipPosition="Hidden"/>
+              </Border>
+            </StackPanel>
+            
+            <!-- FPS Chart -->
+            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+              <TextBlock Text="FPS History" FontSize="12" Opacity="0.7"/>
+              <Border BorderBrush="Gray" BorderThickness="0.5" Height="180">
+                <lvc:CartesianChart Series="{Binding FpsSeries}"
+                                    XAxes="{Binding TimeAxis}"
+                                    YAxes="{Binding FpsAxis}"
+                                    ZoomMode="None"
+                                    TooltipPosition="Hidden"/>
+              </Border>
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <!-- AI Recommendations Card -->
+      <Border Classes="Card" Padding="20">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="🎯 AI RECOMMENDATIONS" Classes="H6" FontSize="18"/>
+              <Border Background="Red" CornerRadius="12" Padding="6,2" 
+                      IsVisible="{Binding HasCriticalRecommendations}">
+                <TextBlock Text="CRITICAL" FontSize="10" Foreground="White" FontWeight="Bold"/>
+              </Border>
+            </StackPanel>
+            <Button Grid.Column="1" Content="Run Benchmark" 
+                    Command="{Binding RunBenchmarkCommand}"
+                    Classes="Secondary Small"/>
+          </Grid>
+          
+          <ItemsControl ItemsSource="{Binding Recommendations}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:OptimizationRecommendation">
+                <Border Classes="ListItem" Padding="16,12" Margin="0,4">
+                  <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                    <!-- Severity Icon -->
+                    <TextBlock Grid.Column="0" 
+                               Text="{Binding SeverityIcon}" 
+                               FontSize="20"
+                               VerticalAlignment="Center"
+                               Margin="0,0,12,0"/>
+                    
+                    <!-- Content -->
+                    <StackPanel Grid.Column="1" Spacing="4">
+                      <TextBlock Text="{Binding Title}" 
+                                 FontWeight="SemiBold" 
+                                 FontSize="14"/>
+                      <TextBlock Text="{Binding Description}" 
+                                 TextWrapping="Wrap"
+                                 Opacity="0.8"
+                                 FontSize="12"/>
+                      <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,4,0,0">
+                        <TextBlock FontSize="11" Opacity="0.6">
+                          <TextBlock.Text>
+                            <MultiBinding StringFormat="Category: {0}">
+                              <Binding Path="Category"/>
+                            </MultiBinding>
+                          </TextBlock.Text>
+                        </TextBlock>
+                        <TextBlock FontSize="11" Opacity="0.6" Foreground="Green">
+                          <TextBlock.Text>
+                            <MultiBinding StringFormat="+{0:F0}% improvement">
+                              <Binding Path="EstimatedImprovement"/>
+                            </MultiBinding>
+                          </TextBlock.Text>
+                        </TextBlock>
+                      </StackPanel>
+                    </StackPanel>
+                    
+                    <!-- Actions -->
+                    <Button Grid.Column="2" 
+                            Content="{Binding ActionText, FallbackValue='Apply'}"
+                            Command="{Binding $parent[ItemsControl].((vm:PerformanceDashboardViewModel)DataContext).ApplyRecommendationCommand}"
+                            CommandParameter="{Binding}"
+                            Classes="Primary Small"
+                            Margin="16,0,8,0"
+                            IsVisible="{Binding CanAutoApply}"/>
+                    
+                    <Button Grid.Column="3" 
+                            Content="✕"
+                            Command="{Binding $parent[ItemsControl].((vm:PerformanceDashboardViewModel)DataContext).DismissRecommendationCommand}"
+                            CommandParameter="{Binding}"
+                            Classes="Small"
+                            ToolTip.Tip="Dismiss recommendation"/>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          
+          <TextBlock Text="No recommendations at this time" 
+                     HorizontalAlignment="Center" 
+                     Opacity="0.5"
+                     Margin="0,16"
+                     IsVisible="{Binding Recommendations.Count, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=0}"/>
+        </StackPanel>
+      </Border>
+
+      <!-- Per-Game Stats and Top Performers Row -->
+      <Grid ColumnDefinitions="*,*" ColumnSpacing="24">
+        
+        <!-- Per-Game Stats -->
+        <Border Classes="Card" Padding="20" Grid.Column="0">
+          <StackPanel Spacing="12">
+            <TextBlock Text="🎮 PER-GAME STATS" Classes="H6" FontSize="18"/>
+            
+            <ItemsControl ItemsSource="{Binding GameStats}" MaxHeight="400">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:GamePerformanceStats">
+                  <Border Classes="ListItem" Padding="12" Margin="0,4">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                      <!-- Game Icon/Placeholder -->
+                      <Border Grid.Column="0" Width="48" Height="48" 
+                              Background="Gray" CornerRadius="4" Margin="0,0,12,0">
+                        <TextBlock Text="🎮" FontSize="24" HorizontalAlignment="Center" 
+                                   VerticalAlignment="Center"/>
+                      </Border>
+                      
+                      <!-- Game Info -->
+                      <StackPanel Grid.Column="1" Spacing="2">
+                        <TextBlock Text="{Binding GameName}" FontWeight="SemiBold"/>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                          <TextBlock FontSize="12" Opacity="0.7">
+                            <TextBlock.Text>
+                              <MultiBinding StringFormat="Avg: {0:F0} FPS">
+                                <Binding Path="AverageFps"/>
+                              </MultiBinding>
+                            </TextBlock.Text>
+                          </TextBlock>
+                          <TextBlock FontSize="12" Opacity="0.5">
+                            <TextBlock.Text>
+                              <MultiBinding StringFormat="({0:F0}-{1:F0})">
+                                <Binding Path="MinFps"/>
+                                <Binding Path="MaxFps"/>
+                              </MultiBinding>
+                            </TextBlock.Text>
+                          </TextBlock>
+                        </StackPanel>
+                        <TextBlock FontSize="11" Opacity="0.5">
+                          <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0} • {1} sessions">
+                              <Binding Path="FormattedPlaytime"/>
+                              <Binding Path="SessionCount"/>
+                            </MultiBinding>
+                          </TextBlock.Text>
+                        </TextBlock>
+                      </StackPanel>
+                      
+                      <!-- View Button -->
+                      <Button Grid.Column="2" 
+                              Content="Details"
+                              Command="{Binding $parent[ItemsControl].((vm:PerformanceDashboardViewModel)DataContext).OpenGameDetailsCommand}"
+                              CommandParameter="{Binding}"
+                              Classes="Small Secondary"
+                              VerticalAlignment="Center"/>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            
+            <Button Content="View All Games" Classes="Secondary" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+          </StackPanel>
+        </Border>
+
+        <!-- Top Performers -->
+        <Border Classes="Card" Padding="20" Grid.Column="1">
+          <StackPanel Spacing="12">
+            <TextBlock Text="🏆 TOP PERFORMERS" Classes="H6" FontSize="18"/>
+            
+            <StackPanel Spacing="16">
+              <!-- Best FPS -->
+              <Border Background="#1a1a2e" Padding="16" CornerRadius="8">
+                <Grid ColumnDefinitions="Auto,*">
+                  <TextBlock Grid.Column="0" Text="⚡" FontSize="32" Margin="0,0,16,0"/>
+                  <StackPanel Grid.Column="1">
+                    <TextBlock Text="Best FPS" FontSize="12" Opacity="0.6"/>
+                    <TextBlock Text="Hades" FontSize="18" FontWeight="Bold"/>
+                    <TextBlock Text="144 avg FPS" FontSize="14" Opacity="0.8" Foreground="Green"/>
+                  </StackPanel>
+                </Grid>
+              </Border>
+              
+              <!-- Most Played -->
+              <Border Background="#1a1a2e" Padding="16" CornerRadius="8">
+                <Grid ColumnDefinitions="Auto,*">
+                  <TextBlock Grid.Column="0" Text="⏰" FontSize="32" Margin="0,0,16,0"/>
+                  <StackPanel Grid.Column="1">
+                    <TextBlock Text="Most Played" FontSize="12" Opacity="0.6"/>
+                    <TextBlock Text="Elden Ring" FontSize="18" FontWeight="Bold"/>
+                    <TextBlock Text="200 hours" FontSize="14" Opacity="0.8" Foreground="Orange"/>
+                  </StackPanel>
+                </Grid>
+              </Border>
+              
+              <!-- Most Sessions -->
+              <Border Background="#1a1a2e" Padding="16" CornerRadius="8">
+                <Grid ColumnDefinitions="Auto,*">
+                  <TextBlock Grid.Column="0" Text="🎯" FontSize="32" Margin="0,0,16,0"/>
+                  <StackPanel Grid.Column="1">
+                    <TextBlock Text="Most Sessions" FontSize="12" Opacity="0.6"/>
+                    <TextBlock Text="Elden Ring" FontSize="18" FontWeight="Bold"/>
+                    <TextBlock Text="78 sessions" FontSize="14" Opacity="0.8" Foreground="DodgerBlue"/>
+                  </StackPanel>
+                </Grid>
+              </Border>
+              
+              <!-- Best Optimization -->
+              <Border Background="#1a1a2e" Padding="16" CornerRadius="8">
+                <Grid ColumnDefinitions="Auto,*">
+                  <TextBlock Grid.Column="0" Text="🚀" FontSize="32" Margin="0,0,16,0"/>
+                  <StackPanel Grid.Column="1">
+                    <TextBlock Text="Best Stability" FontSize="12" Opacity="0.6"/>
+                    <TextBlock Text="Hades" FontSize="18" FontWeight="Bold"/>
+                    <TextBlock Text="±5 FPS variance" FontSize="14" Opacity="0.8" Foreground="LimeGreen"/>
+                  </StackPanel>
+                </Grid>
+              </Border>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+      </Grid>
+
+      <!-- Cache Performance Card -->
+      <Border Classes="Card" Padding="20">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Text="💾 CACHE PERFORMANCE" Classes="H6" FontSize="18"/>
+            <Button Grid.Column="1" Content="Clear Cache" 
+                    Command="{Binding ClearCacheCommand}"
+                    Classes="Small Danger"/>
+          </Grid>
+          
+          <Grid ColumnDefinitions="*,*,*,*">
+            <!-- Hit Rate -->
+            <StackPanel Grid.Column="0" Spacing="4">
+              <TextBlock Text="Hit Rate" FontSize="12" Opacity="0.6"/>
+              <TextBlock FontSize="24" FontWeight="Bold">
+                <TextBlock.Text>
+                  <MultiBinding StringFormat="{}{0:P0}">
+                    <Binding Path="CacheHitRate"/>
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+            </StackPanel>
+            
+            <!-- Size -->
+            <StackPanel Grid.Column="1" Spacing="4">
+              <TextBlock Text="Size" FontSize="12" Opacity="0.6"/>
+              <TextBlock FontSize="24" FontWeight="Bold"
+                         Text="{Binding CacheSize, Converter={StaticResource BytesToHumanReadableConverter}}"/>
+            </StackPanel>
+            
+            <!-- Entries -->
+            <StackPanel Grid.Column="2" Spacing="4">
+              <TextBlock Text="Entries" FontSize="12" Opacity="0.6"/>
+              <TextBlock FontSize="24" FontWeight="Bold">
+                <TextBlock.Text>
+                  <MultiBinding StringFormat="{}{0:N0}">
+                    <Binding Path="CacheEntries"/>
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+            </StackPanel>
+            
+            <!-- Evictions -->
+            <StackPanel Grid.Column="3" Spacing="4">
+              <TextBlock Text="Evictions" FontSize="12" Opacity="0.6"/>
+              <TextBlock FontSize="24" FontWeight="Bold">
+                <TextBlock.Text>
+                  <MultiBinding StringFormat="{}{0:N0}">
+                    <Binding Path="CacheEvictions"/>
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <!-- Session Summary and Actions -->
+      <Grid ColumnDefinitions="*,Auto">
+        <!-- Session Info -->
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="24" VerticalAlignment="Center">
+          <TextBlock>
+            <TextBlock.Text>
+              <MultiBinding StringFormat="Session: {0:hh\:mm}">
+                <Binding Path="SessionDuration"/>
+              </MultiBinding>
+            </TextBlock.Text>
+          </TextBlock>
+          <TextBlock>
+            <TextBlock.Text>
+              <MultiBinding StringFormat="Games: {0}">
+                <Binding Path="GamesLaunchedThisSession"/>
+              </MultiBinding>
+            </TextBlock.Text>
+          </TextBlock>
+          <TextBlock>
+            <TextBlock.Text>
+              <MultiBinding StringFormat="Avg FPS: {0:F0}">
+                <Binding Path="AverageFpsThisSession"/>
+              </MultiBinding>
+            </TextBlock.Text>
+          </TextBlock>
+        </StackPanel>
+        
+        <!-- Actions -->
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+          <Button Content="📊 Export Report" 
+                  Command="{Binding ExportReportCommand}"
+                  Classes="Secondary"/>
+          <Button Content="🗑️ Clear History" 
+                  Command="{Binding ClearHistoryCommand}"
+                  Classes="Danger"/>
+        </StackPanel>
+      </Grid>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

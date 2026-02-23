@@ -41,6 +41,12 @@ public partial class NotificationService : ObservableObject, INotificationServic
         AddNotification(message, title ?? "Info", NotificationType.Info, durationMs);
     }
 
+    public Task ShowNotificationAsync(string message, string? title = null, int durationMs = 3000)
+    {
+        AddNotification(message, title ?? "Notification", NotificationType.Info, durationMs);
+        return Task.CompletedTask;
+    }
+
     public void ClearAll()
     {
         Notifications.Clear();

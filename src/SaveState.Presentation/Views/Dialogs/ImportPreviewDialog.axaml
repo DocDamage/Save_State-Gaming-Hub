@@ -1,0 +1,458 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:SaveState.Presentation.ViewModels.Dialogs"
+        xmlns:data="using:SaveState.Presentation.Models.Data"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="700"
+        x:Class="SaveState.Presentation.Views.Dialogs.ImportPreviewDialog"
+        x:DataType="vm:ImportPreviewDialogViewModel"
+        Title="Import Preview"
+        Width="900" Height="700"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True"
+        MinWidth="700"
+        MinHeight="500"
+        Background="Transparent"
+        TransparencyLevelHint="AcrylicBlur">
+
+    <Window.Styles>
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="24,12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style Selector="Button.secondary">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="16,10" />
+        </Style>
+
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="#dc2626" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="24,12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style Selector="Border.stat-card">
+            <Setter Property="Background" Value="#1AFFFFFF" />
+            <Setter Property="BorderBrush" Value="#33FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="20" />
+        </Style>
+
+        <Style Selector="Border.conflict-item">
+            <Setter Property="Background" Value="#1AFFFFFF" />
+            <Setter Property="BorderBrush" Value="#33FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+
+        <Style Selector="Border.warning-banner">
+            <Setter Property="Background" Value="#2a1a1a" />
+            <Setter Property="BorderBrush" Value="#dc2626" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16" />
+        </Style>
+    </Window.Styles>
+
+    <Panel>
+        <!-- Acrylic Background -->
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"
+                    TintColor="#1a1a2e"
+                    TintOpacity="0.85"
+                    MaterialOpacity="0.75" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+
+        <Border BorderBrush="{DynamicResource SurfaceStrokeColorDefault}"
+                BorderThickness="1"
+                CornerRadius="12"
+                ClipToBounds="True">
+
+            <Grid RowDefinitions="Auto,*,Auto">
+                <!-- Header -->
+                <Border Grid.Row="0" Padding="28,24" Background="#252538">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <TextBlock Text="📥" FontSize="24" VerticalAlignment="Center"/>
+                                <TextBlock Text="Import Preview"
+                                           FontSize="24"
+                                           FontWeight="Light"
+                                           Foreground="White"/>
+                            </StackPanel>
+                            <TextBlock Text="Review what will be imported before proceeding"
+                                       FontSize="13"
+                                       Foreground="#aaaaaa"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="1"
+                                Content="?"
+                                Command="{Binding ShowHelpCommand}"
+                                Classes="secondary"
+                                Width="36"
+                                Height="36"
+                                FontSize="16"
+                                VerticalAlignment="Top"/>
+                    </Grid>
+                </Border>
+
+                <!-- Content -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="28,24" Spacing="24">
+                        <!-- Warning Banner for Destructive Operations -->
+                        <Border Classes="warning-banner"
+                                IsVisible="{Binding IsDestructive}">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <TextBlock Text="⚠️" FontSize="24" VerticalAlignment="Center"/>
+                                <StackPanel>
+                                    <TextBlock Text="Destructive Operation Warning"
+                                               FontWeight="SemiBold"
+                                               Foreground="#ff6b6b"
+                                               FontSize="14"/>
+                                    <TextBlock Text="This import may overwrite existing data. Please review carefully."
+                                               Foreground="#cc9999"
+                                               FontSize="12"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- File Info -->
+                        <Border Classes="stat-card">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <TextBlock Grid.Column="0" Text="📄" FontSize="32" Margin="0,0,16,0"/>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding ImportFileName}"
+                                               FontWeight="SemiBold"
+                                               FontSize="16"
+                                               Foreground="White"/>
+                                    <TextBlock Text="{Binding ImportFileSize, StringFormat='{}{0:N0} bytes'}"
+                                               FontSize="12"
+                                               Foreground="#888888"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                    <TextBlock Text="Import Strategy" FontSize="11" Foreground="#888888" Margin="0,0,0,4"/>
+                                    <ComboBox ItemsSource="{Binding Source={x:Static data:ImportStrategy.Merge}, Converter={StaticResource EnumToItemsConverter}}"
+                                              SelectedItem="{Binding SelectedStrategy}"
+                                              Width="150"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Statistics Grid -->
+                        <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto" Margin="0,8">
+                            <!-- Games -->
+                            <Border Grid.Row="0" Grid.Column="0" Classes="stat-card" Margin="0,0,8,8">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="🎮" FontSize="28" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                    <TextBlock Text="{Binding Preview.GamesToAdd}"
+                                               FontSize="32"
+                                               FontWeight="Bold"
+                                               Foreground="#10b981"
+                                               HorizontalAlignment="Center"/>
+                                    <TextBlock Text="New Games"
+                                               FontSize="12"
+                                               Foreground="#888888"
+                                               HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Updates -->
+                            <Border Grid.Row="0" Grid.Column="1" Classes="stat-card" Margin="4,0,4,8">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="🔄" FontSize="28" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                    <TextBlock Text="{Binding Preview.GamesToUpdate}"
+                                               FontSize="32"
+                                               FontWeight="Bold"
+                                               Foreground="#f59e0b"
+                                               HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Updates"
+                                               FontSize="12"
+                                               Foreground="#888888"
+                                               HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Conflicts -->
+                            <Border Grid.Row="0" Grid.Column="2" Classes="stat-card" Margin="8,0,0,8">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="⚡" FontSize="28" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                    <TextBlock Text="{Binding Preview.Conflicts}"
+                                               FontSize="32"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center">
+                                        <TextBlock.Foreground>
+                                            <Binding Path="Preview.Conflicts" Converter="{StaticResource IntToStatusBrushConverter}"/>
+                                        </TextBlock.Foreground>
+                                    </TextBlock>
+                                    <TextBlock Text="Conflicts"
+                                               FontSize="12"
+                                               Foreground="#888888"
+                                               HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Save States -->
+                            <Border Grid.Row="1" Grid.Column="0" Classes="stat-card" Margin="0,8,8,0">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="💾" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{Binding Preview.SaveStatesToImport}"
+                                               FontSize="24"
+                                               FontWeight="SemiBold"
+                                               Foreground="White"
+                                               HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Save States"
+                                               FontSize="11"
+                                               Foreground="#888888"
+                                               HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Achievements -->
+                            <Border Grid.Row="1" Grid.Column="1" Classes="stat-card" Margin="4,8,4,0">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="🏆" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{Binding Preview.AchievementsToImport}"
+                                               FontSize="24"
+                                               FontWeight="SemiBold"
+                                               Foreground="White"
+                                               HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Achievements"
+                                               FontSize="11"
+                                               Foreground="#888888"
+                                               HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Collections -->
+                            <Border Grid.Row="1" Grid.Column="2" Classes="stat-card" Margin="8,8,0,0">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="📚" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{Binding Preview.CollectionsToImport}"
+                                               FontSize="24"
+                                               FontWeight="SemiBold"
+                                               Foreground="White"
+                                               HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Collections"
+                                               FontSize="11"
+                                               Foreground="#888888"
+                                               HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- Estimated Time -->
+                        <Border Background="#0DFFFFFF" CornerRadius="8" Padding="16">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <TextBlock Text="⏱️" FontSize="20"/>
+                                <StackPanel>
+                                    <TextBlock Text="Estimated Import Time" FontWeight="SemiBold" Foreground="White"/>
+                                    <TextBlock Text="{Binding Preview.EstimatedDuration, StringFormat='{}{0:mm\\:ss}'}"
+                                               FontSize="14"
+                                               Foreground="#10b981"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Warnings -->
+                        <Border Background="#2a2a1a" CornerRadius="8" Padding="16"
+                                IsVisible="{Binding Preview.Warnings.Count, Converter={StaticResource GreaterThanConverter}, ConverterParameter=0}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="⚠️ Warnings" FontWeight="SemiBold" Foreground="#fbbf24"/>
+                                <ItemsControl ItemsSource="{Binding Preview.Warnings}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4">
+                                                <TextBlock Text="•" Foreground="#fbbf24" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding}" Foreground="#cccc99" FontSize="13"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Conflicts Section -->
+                        <StackPanel Spacing="12" IsVisible="{Binding ShowConflictDetails}">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0"
+                                           Text="Conflicts Requiring Resolution"
+                                           FontWeight="SemiBold"
+                                           FontSize="16"
+                                           Foreground="White"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                    <Button Content="Resolve All: Keep Current"
+                                            Command="{Binding ResolveAllConflictsCommand}"
+                                            CommandParameter="{x:Static data:ConflictResolution.KeepCurrent}"
+                                            Classes="secondary"
+                                            Padding="12,6"
+                                            FontSize="12"/>
+                                    <Button Content="Resolve All: Use Imported"
+                                            Command="{Binding ResolveAllConflictsCommand}"
+                                            CommandParameter="{x:Static data:ConflictResolution.UseImported}"
+                                            Classes="secondary"
+                                            Padding="12,6"
+                                            FontSize="12"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Conflict List -->
+                            <ItemsControl ItemsSource="{Binding Conflicts}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ImportConflictViewModel">
+                                        <Border Classes="conflict-item">
+                                            <Grid RowDefinitions="Auto,Auto,Auto">
+                                                <!-- Header -->
+                                                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+                                                        <TextBlock Text="{Binding ItemType, Converter={StaticResource ItemTypeToIconConverter}}"
+                                                                   FontSize="18"/>
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding ItemName}"
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="White"
+                                                                       FontSize="14"/>
+                                                            <TextBlock Text="{Binding ItemType}"
+                                                                       FontSize="11"
+                                                                       Foreground="#888888"/>
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                    <ComboBox Grid.Column="1"
+                                                              ItemsSource="{Binding ResolutionOptions}"
+                                                              SelectedIndex="{Binding SelectedResolution, Converter={StaticResource ConflictResolutionToIndexConverter}}"
+                                                              Width="140"/>
+                                                </Grid>
+
+                                                <!-- Field Info -->
+                                                <TextBlock Grid.Row="1"
+                                                           Text="{Binding FieldName, StringFormat='Field: {0}'}"
+                                                           FontSize="12"
+                                                           Foreground="#888888"
+                                                           Margin="0,0,0,8"/>
+
+                                                <!-- Value Comparison -->
+                                                <Grid Grid.Row="2" ColumnDefinitions="*,Auto,*">
+                                                    <!-- Current Value -->
+                                                    <Border Grid.Column="0" Background="#0D3b82f6" CornerRadius="6" Padding="12">
+                                                        <StackPanel>
+                                                            <TextBlock Text="CURRENT"
+                                                                       FontWeight="Bold"
+                                                                       Foreground="#3b82f6"
+                                                                       FontSize="10"
+                                                                       LetterSpacing="1"/>
+                                                            <TextBlock Text="{Binding CurrentValue}"
+                                                                       Foreground="White"
+                                                                       TextWrapping="Wrap"
+                                                                       Margin="0,4,0,0"/>
+                                                            <TextBlock Text="{Binding CurrentModifiedDate, StringFormat='Modified: {0:g}'}"
+                                                                       FontSize="10"
+                                                                       Foreground="#888888"
+                                                                       IsVisible="{Binding CurrentModifiedDate, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                                        </StackPanel>
+                                                    </Border>
+
+                                                    <!-- Arrow -->
+                                                    <TextBlock Grid.Column="1" Text="→" FontSize="20" Foreground="#888888"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12,0"/>
+
+                                                    <!-- Imported Value -->
+                                                    <Border Grid.Column="2" Background="#0D10b981" CornerRadius="6" Padding="12">
+                                                        <StackPanel>
+                                                            <TextBlock Text="IMPORTED"
+                                                                       FontWeight="Bold"
+                                                                       Foreground="#10b981"
+                                                                       FontSize="10"
+                                                                       LetterSpacing="1"/>
+                                                            <TextBlock Text="{Binding ImportedValue}"
+                                                                       Foreground="White"
+                                                                       TextWrapping="Wrap"
+                                                                       Margin="0,4,0,0"/>
+                                                            <TextBlock Text="{Binding ImportedModifiedDate, StringFormat='Modified: {0:g}'}"
+                                                                       FontSize="10"
+                                                                       Foreground="#888888"
+                                                                       IsVisible="{Binding ImportedModifiedDate, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </Grid>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- Error Message -->
+                        <Border Background="#2a1a1a" CornerRadius="8" Padding="16"
+                                IsVisible="{Binding HasErrors}">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <TextBlock Text="❌" FontSize="20"/>
+                                <TextBlock Text="{Binding ErrorMessage}"
+                                           Foreground="#ff6b6b"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Loading -->
+                        <StackPanel Spacing="8" IsVisible="{Binding IsLoading}">
+                            <ProgressBar IsIndeterminate="True" Height="4"/>
+                            <TextBlock Text="{Binding StatusMessage}"
+                                       HorizontalAlignment="Center"
+                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Footer -->
+                <Border Grid.Row="2"
+                        Padding="28,20"
+                        Background="#252538"
+                        BorderBrush="{DynamicResource SurfaceStrokeColorDefault}"
+                        BorderThickness="0,1,0,0">
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                        <TextBlock Grid.Column="0"
+                                   VerticalAlignment="Center"
+                                   FontSize="12"
+                                   Foreground="#888888">
+                            <Run Text="File: "/>
+                            <Run Text="{Binding ImportFileName}" Foreground="White"/>
+                        </TextBlock>
+
+                        <Button Grid.Column="1"
+                                Content="Cancel"
+                                Command="{Binding CancelCommand}"
+                                Classes="secondary"
+                                Margin="0,0,12,0"
+                                Width="100"/>
+
+                        <Button Grid.Column="2"
+                                Content="Start Import"
+                                Command="{Binding ConfirmImportCommand}"
+                                IsVisible="{Binding !IsDestructive}"
+                                Classes="primary"/>
+
+                        <Button Grid.Column="2"
+                                Content="⚠️ Start Import"
+                                Command="{Binding ConfirmImportCommand}"
+                                IsVisible="{Binding IsDestructive}"
+                                Classes="danger"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Panel>
+</Window>

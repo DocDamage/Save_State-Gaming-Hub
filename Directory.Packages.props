@@ -190,6 +190,13 @@
     <PackageVersion Include="Tobii.Interaction" Version="0.7.3" />
   </ItemGroup>
 
+  <!-- LiveCharts - Real-time Charts for Avalonia -->
+  <ItemGroup>
+    <PackageVersion Include="LiveChartsCore" Version="2.0.0-rc5.4" />
+    <PackageVersion Include="LiveChartsCore.SkiaSharpView" Version="2.0.0-rc5.4" />
+    <PackageVersion Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.0-rc5.4" />
+  </ItemGroup>
+
   <!-- OpenAPI/Swagger Documentation -->
   <ItemGroup>
     <PackageVersion Include="NSwag.AspNetCore" Version="14.0.0" />

@@ -26,6 +26,11 @@ public interface INotificationService
     void ShowInfo(string message, string? title = null, int durationMs = 3000);
 
     /// <summary>
+    /// Shows a notification (async version).
+    /// </summary>
+    Task ShowNotificationAsync(string message, string? title = null, int durationMs = 3000);
+
+    /// <summary>
     /// Clears all active notifications.
     /// </summary>
     void ClearAll();
