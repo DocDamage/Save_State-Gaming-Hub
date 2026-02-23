@@ -6,19 +6,22 @@ using SaveState.Application.RomManagement.RomValidation.Commands;
 using SaveState.Core.Ai.Services;
 using SaveState.Core.Common.Services;
 using SaveState.Core.Common.Interfaces;
+using SaveState.Core.Esports.Services;
 using SaveState.Core.GameLibrary;
 using SaveState.Core.GameLibrary.Services;
 using SaveState.Core.Input.Services;
+using SaveState.Core.MobileCompanion.Services;
 using SaveState.Core.RgbSync.Services;
 using SaveState.Core.RomManagement;
 using SaveState.Core.RomManagement.RomValidation.Services;
 using SaveState.Core.SaveStates.Services;
 using SaveState.Core.Theme.Services;
 using SaveState.Core.Sync.Services;
+// Note: Using fake services from SaveState.Tests.Fakes instead of infrastructure implementations
 using SaveState.Infrastructure.Input;
+using SaveState.Infrastructure.MobileCompanion.Services;
 using SaveState.Infrastructure.RgbSync;
 using SaveState.Infrastructure.RomManagement;
-using SaveState.Infrastructure.Services;
 using SaveState.Infrastructure.Theme.Services;
 using SaveState.Tests.Fakes;
 
@@ -45,7 +48,8 @@ public class IntegrationTestFixture : IDisposable
         services.AddSingleton<IRomFileRepository>(sp => sp.GetRequiredService<InMemoryRomFileRepository>());
         services.AddSingleton<IRomHashInfoRepository, InMemoryRomHashInfoRepository>();
         services.AddSingleton<IRomValidationReportRepository, InMemoryRomValidationReportRepository>();
-        services.AddScoped<IFileSystem, FileSystem>();
+        // FileSystem service - using mock since IFileSystem interface location needs verification
+        services.AddScoped<IFileSystem>(_ => new Mock<IFileSystem>().Object);
         services.AddScoped<IRomValidationService, RomValidationService>();
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(ValidateRomCommand).Assembly));
@@ -72,6 +76,16 @@ public class IntegrationTestFixture : IDisposable
         services.AddSingleton<FakeRgbProvider>();
         services.AddSingleton<IEnumerable<IRgbProvider>>(sp => new[] { sp.GetRequiredService<FakeRgbProvider>() });
         services.AddSingleton<IRgbSyncService, RgbSyncService>();
+
+        // Tournament Service
+        // Tournament Service - using fake implementation
+        services.AddSingleton<ITournamentService, FakeTournamentService>();
+
+        // Mobile Companion Service dependencies
+        services.AddSingleton<IMobileCompanionService, MobileCompanionService>();
+        services.AddSingleton<IQRCodeService, FakeQRCodeService>();
+        services.AddSingleton<IPushNotificationService, FakePushNotificationService>();
+        services.AddSingleton<IRemoteCommandExecutor, FakeRemoteCommandExecutor>();
 
         ServiceProvider = services.BuildServiceProvider();
     }

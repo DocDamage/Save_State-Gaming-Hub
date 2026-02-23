@@ -135,6 +135,17 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
         }
     }
 
+    public async Task<Result> RestartAsync()
+    {
+        await ShutdownAsync();
+        return await InitializeAsync(_settings);
+    }
+
+    public Task<Result<bool>> IsInitializedAsync()
+    {
+        return Task.FromResult(Result<bool>.Success(_isInitialized));
+    }
+
     public Task<Result<BrowserTab>> CreateTabAsync(string? url = null, bool activate = true, bool isIncognito = false)
     {
         if (!_isInitialized)
@@ -238,6 +249,18 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
         }
     }
 
+    public Task<Result> CloseAllTabsExceptAsync(Guid tabIdToKeep)
+    {
+        var tabsToClose = _tabs.Values.Where(t => t.Model.Id != tabIdToKeep).ToList();
+        foreach (var tab in tabsToClose)
+        {
+            _tabs.TryRemove(tab.Model.Id, out _);
+            tab.Browser?.Dispose();
+            TabClosed?.Invoke(this, tab.Model);
+        }
+        return Task.FromResult(Result.Success());
+    }
+
     public Task<Result> ActivateTabAsync(Guid tabId)
     {
         if (!_tabs.ContainsKey(tabId))
@@ -258,6 +281,65 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
     public Task<Result> ReorderTabsAsync(List<Guid> tabOrder)
     {
         // Tabs are stored in dictionary, ordering is handled by UI
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result<IReadOnlyList<BrowserTab>>> GetTabsAsync()
+    {
+        return Task.FromResult(Result<IReadOnlyList<BrowserTab>>.Success(
+            _tabs.Values.Select(t => t.Model).ToList()));
+    }
+
+    public Task<Result<BrowserTab>> GetTabAsync(Guid tabId)
+    {
+        if (!_tabs.TryGetValue(tabId, out var tab))
+            return Task.FromResult(Result<BrowserTab>.Failure("Tab not found"));
+        return Task.FromResult(Result<BrowserTab>.Success(tab.Model));
+    }
+
+    public Task<Result<BrowserTab?>> GetActiveTabAsync()
+    {
+        return Task.FromResult(Result<BrowserTab?>.Success(ActiveTab));
+    }
+
+    public Task<Result> SwitchTabAsync(Guid tabId)
+    {
+        return ActivateTabAsync(tabId);
+    }
+
+    public Task<Result> PinTabAsync(Guid tabId)
+    {
+        if (_tabs.TryGetValue(tabId, out var tab))
+        {
+            tab.Model = tab.Model with { IsPinned = true };
+        }
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result> UnpinTabAsync(Guid tabId)
+    {
+        if (_tabs.TryGetValue(tabId, out var tab))
+        {
+            tab.Model = tab.Model with { IsPinned = false };
+        }
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result> MuteTabAsync(Guid tabId)
+    {
+        if (_tabs.TryGetValue(tabId, out var tab))
+        {
+            tab.Model = tab.Model with { IsMuted = true };
+        }
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result> UnmuteTabAsync(Guid tabId)
+    {
+        if (_tabs.TryGetValue(tabId, out var tab))
+        {
+            tab.Model = tab.Model with { IsMuted = false };
+        }
         return Task.FromResult(Result.Success());
     }
 
@@ -283,6 +365,11 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
             _logger.LogError(ex, "Error navigating to {Url}", url);
             return Task.FromResult(Result.Failure($"Navigation error: {ex.Message}"));
         }
+    }
+
+    public Task<Result> NavigateToAsync(Guid tabId, string url)
+    {
+        return NavigateAsync(tabId, url);
     }
 
     public Task<Result> GoBackAsync(Guid tabId)
@@ -319,6 +406,11 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
 
         tab.Browser.Stop();
         return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result> StopLoadingAsync(Guid tabId)
+    {
+        return StopAsync(tabId);
     }
 
     public async Task<Result<string>> GetSourceAsync(Guid tabId)
@@ -470,6 +562,16 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
         return Task.FromResult(Result.Success());
     }
 
+    public Task<Result<BrowserBookmark>> AddBookmarkAsync(BrowserBookmark bookmark)
+    {
+        lock (_bookmarkLock)
+        {
+            bookmark.CreatedAt = DateTime.Now;
+            _bookmarks.Add(bookmark);
+            return Task.FromResult(Result<BrowserBookmark>.Success(bookmark));
+        }
+    }
+
     public Task<Result> RemoveBookmarkAsync(Guid bookmarkId)
     {
         lock (_bookmarkLock)
@@ -482,6 +584,25 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
         }
         
         return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result> DeleteBookmarkAsync(Guid bookmarkId)
+    {
+        return RemoveBookmarkAsync(bookmarkId);
+    }
+
+    public Task<Result> UpdateBookmarkAsync(BrowserBookmark bookmark)
+    {
+        lock (_bookmarkLock)
+        {
+            var existing = _bookmarks.FirstOrDefault(b => b.Id == bookmark.Id);
+            if (existing != null)
+            {
+                var index = _bookmarks.IndexOf(existing);
+                _bookmarks[index] = bookmark;
+            }
+            return Task.FromResult(Result.Success());
+        }
     }
 
     public Task<Result<IReadOnlyList<BrowserBookmark>>> GetBookmarksAsync(string? folder = null)
@@ -510,6 +631,25 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
         }
     }
 
+    public Task<Result> ImportBookmarksAsync(string htmlContent)
+    {
+        // Stub implementation - would parse HTML in real implementation
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result<string>> ExportBookmarksAsync()
+    {
+        // Stub implementation - would generate HTML in real implementation
+        const string html = @"<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<html>
+<head><title>Bookmarks</title></head>
+<body>
+<h1>Bookmarks</h1>
+</body>
+</html>";
+        return Task.FromResult(Result<string>.Success(html));
+    }
+
     public Task<Result> AddHistoryItemAsync(string title, string url)
     {
         lock (_historyLock)
@@ -534,6 +674,22 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
         return Task.FromResult(Result.Success());
     }
 
+    public Task<Result<BrowserHistoryItem>> AddToHistoryAsync(HistoryItem item)
+    {
+        lock (_historyLock)
+        {
+            var historyItem = new BrowserHistoryItem
+            {
+                Id = Guid.NewGuid(),
+                Title = item.Title,
+                Url = item.Url,
+                VisitedAt = item.VisitedAt
+            };
+            _history.Add(historyItem);
+            return Task.FromResult(Result<BrowserHistoryItem>.Success(historyItem));
+        }
+    }
+
     public Task<Result<IReadOnlyList<BrowserHistoryItem>>> GetHistoryAsync(DateTime? from = null, DateTime? to = null)
     {
         lock (_historyLock)
@@ -548,6 +704,17 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
             
             var result = query.OrderByDescending(h => h.VisitedAt).ToList();
             return Task.FromResult(Result<IReadOnlyList<BrowserHistoryItem>>.Success(result));
+        }
+    }
+
+    public Task<Result<IReadOnlyList<BrowserHistoryItem>>> SearchHistoryAsync(string query)
+    {
+        lock (_historyLock)
+        {
+            var results = _history.Where(h => 
+                h.Title.Contains(query, StringComparison.OrdinalIgnoreCase) || 
+                h.Url.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
+            return Task.FromResult(Result<IReadOnlyList<BrowserHistoryItem>>.Success(results));
         }
     }
 
@@ -573,6 +740,12 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
         }
         
         return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result<IReadOnlyList<BrowserDownload>>> GetDownloadsAsync()
+    {
+        return Task.FromResult(Result<IReadOnlyList<BrowserDownload>>.Success(
+            _downloads.Values.ToList()));
     }
 
     public Task<Result> CancelDownloadAsync(Guid downloadId)
@@ -613,6 +786,22 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
         return Task.FromResult(Result.Success());
     }
 
+    public Task<Result<DownloadSettings>> GetDownloadSettingsAsync()
+    {
+        return Task.FromResult(Result<DownloadSettings>.Success(new DownloadSettings 
+        { 
+            DownloadPath = _settings.DownloadPath,
+            EnableDownloads = _settings.EnableDownloads
+        }));
+    }
+
+    public Task<Result> UpdateDownloadSettingsAsync(DownloadSettings settings)
+    {
+        _settings.DownloadPath = settings.DownloadPath;
+        _settings.EnableDownloads = settings.EnableDownloads;
+        return Task.FromResult(Result.Success());
+    }
+
     public Task<Result> FindAsync(Guid tabId, BrowserFindOptions options)
     {
         if (!_tabs.TryGetValue(tabId, out var tab))
@@ -625,12 +814,116 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
         return Task.FromResult(Result.Success());
     }
 
+    public Task<Result> FindInPageAsync(Guid tabId, BrowserFindOptions options)
+    {
+        return FindAsync(tabId, options);
+    }
+
+    public Task<Result> FindNextAsync(Guid tabId)
+    {
+        if (!_tabs.TryGetValue(tabId, out var tab))
+            return Task.FromResult(Result.Failure("Tab not found"));
+
+        // Re-run find with findNext=true
+        tab.Browser.Find(string.Empty, true, false, true);
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result> FindPreviousAsync(Guid tabId)
+    {
+        if (!_tabs.TryGetValue(tabId, out var tab))
+            return Task.FromResult(Result.Failure("Tab not found"));
+
+        // Re-run find with forward=false and findNext=true
+        tab.Browser.Find(string.Empty, false, false, true);
+        return Task.FromResult(Result.Success());
+    }
+
     public Task<Result> StopFindingAsync(Guid tabId, bool clearSelection = false)
     {
         if (!_tabs.TryGetValue(tabId, out var tab))
             return Task.FromResult(Result.Failure("Tab not found"));
 
         tab.Browser.StopFinding(clearSelection);
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result<IReadOnlyList<BrowserCookie>>> GetCookiesAsync(string url)
+    {
+        // Stub - would use CefCookieManager in real implementation
+        return Task.FromResult(Result<IReadOnlyList<BrowserCookie>>.Success(new List<BrowserCookie>()));
+    }
+
+    public Task<Result> SetCookieAsync(BrowserCookie cookie)
+    {
+        // Stub - would use CefCookieManager in real implementation
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result> ClearCookiesAsync()
+    {
+        Cef.GetGlobalCookieManager().DeleteCookies(string.Empty, string.Empty);
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result> ClearCookiesForDomainAsync(string domain)
+    {
+        Cef.GetGlobalCookieManager().DeleteCookies(domain, string.Empty);
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result<BrowserSettingsModel>> GetSettingsAsync()
+    {
+        return Task.FromResult(Result<BrowserSettingsModel>.Success(_settings));
+    }
+
+    public Task<Result> SetHomePageAsync(string homePage)
+    {
+        _settings.HomePage = homePage;
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result> SetSearchEngineAsync(string searchEngine)
+    {
+        _settings.SearchEngine = searchEngine;
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result> SetDefaultZoomAsync(ZoomLevel zoom)
+    {
+        _settings.DefaultZoom = zoom;
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result> ClearBrowserDataAsync(BrowserDataType dataTypes)
+    {
+        if (dataTypes.HasFlag(BrowserDataType.Cookies))
+        {
+            Cef.GetGlobalCookieManager().DeleteCookies(string.Empty, string.Empty);
+        }
+        // Other data types would be cleared via CefRequestContext
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result<IReadOnlyList<BrowserExtension>>> GetExtensionsAsync()
+    {
+        // Extension support is limited in CefSharp
+        return Task.FromResult(Result<IReadOnlyList<BrowserExtension>>.Success(new List<BrowserExtension>()));
+    }
+
+    public Task<Result> LoadExtensionAsync(string extensionPath)
+    {
+        // Extension loading would be implemented via CefRequestContext.LoadExtension
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result> EnableExtensionAsync(string extensionId)
+    {
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result> DisableExtensionAsync(string extensionId)
+    {
         return Task.FromResult(Result.Success());
     }
 

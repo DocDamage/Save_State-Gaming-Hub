@@ -107,6 +107,7 @@ public record BrowserSettings
     public string? ProxyAddress { get; set; }
     public int? ProxyPort { get; set; }
     public bool IsIncognito { get; set; } = false;
+    public ZoomLevel DefaultZoom { get; set; } = ZoomLevel.Default;
 }
 
 public record BrowserContextMenuItem
@@ -134,4 +135,59 @@ public record OAuthCallback
     public string? State { get; set; }
     public string? Error { get; set; }
     public Dictionary<string, string> AdditionalData { get; set; } = new();
+}
+
+public record HistoryItem
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Title { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+    public DateTime VisitedAt { get; set; } = DateTime.UtcNow;
+}
+
+public record DownloadSettings
+{
+    public string DownloadPath { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+    public bool EnableDownloads { get; set; } = true;
+    public int MaxConcurrentDownloads { get; set; } = 3;
+    public bool AskBeforeDownload { get; set; } = true;
+}
+
+public record BrowserCookie
+{
+    public string Name { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
+    public string Domain { get; set; } = string.Empty;
+    public string Path { get; set; } = "/";
+    public DateTime? Expires { get; set; }
+    public bool IsSecure { get; set; }
+    public bool IsHttpOnly { get; set; }
+    public string? SameSite { get; set; }
+}
+
+public record BrowserExtension
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? Version { get; set; }
+    public string? Author { get; set; }
+    public string? IconPath { get; set; }
+    public bool IsEnabled { get; set; }
+    public bool IsLoaded { get; set; }
+    public string? Path { get; set; }
+}
+
+[Flags]
+public enum BrowserDataType
+{
+    None = 0,
+    Cache = 1,
+    Cookies = 2,
+    History = 4,
+    FormData = 8,
+    Passwords = 16,
+    LocalStorage = 32,
+    SessionStorage = 64,
+    All = Cache | Cookies | History | FormData | Passwords | LocalStorage | SessionStorage
 }
