@@ -227,7 +227,6 @@ public sealed class UserInteractionManager
     /// <param name="characterId">The character ID.</param>
     /// <param name="reason">The report reason.</param>
     /// <param name="details">Optional details about the report.</param>
-    /// <param name="logger">The logger instance.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>A result indicating success or failure.</returns>
     public Task<Result> ReportCharacterAsync(
@@ -264,7 +263,6 @@ public sealed class UserInteractionManager
     /// <param name="characterId">The character ID.</param>
     /// <param name="options">The share options.</param>
     /// <param name="characters">The character storage.</param>
-    /// <param name="logger">The logger instance.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>A result containing the share URL.</returns>
     public Task<Result<string>> ShareCharacterAsync(

@@ -102,6 +102,8 @@ public interface IWebToGameBridge
     event EventHandler<LoadSaveStateRequest>? OnLoadSaveStateRequested;
 }
 
+#pragma warning disable CA1710 // Identifiers should have correct suffix - Request suffix is domain-specific for web bridge events
+
 /// <summary>
 /// Request to launch a game from the web.
 /// </summary>
@@ -164,3 +166,5 @@ public class LoadSaveStateRequest : EventArgs
     /// </summary>
     public bool AutoLaunch { get; init; } = true;
 }
+
+#pragma warning restore CA1710

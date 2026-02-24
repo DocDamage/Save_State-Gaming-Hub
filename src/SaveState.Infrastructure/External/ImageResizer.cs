@@ -18,7 +18,7 @@ public sealed record ImageResizeOptions(
     bool MaintainAspectRatio = true,
     ImageFormat? OutputFormat = null)
 {
-    public ImageFormat OutputFormat => OutputFormat ?? ImageFormat.Jpeg;
+    public ImageFormat Format => OutputFormat ?? ImageFormat.Jpeg;
 }
 
 public sealed record ImageOptimizationOptions(
@@ -26,7 +26,7 @@ public sealed record ImageOptimizationOptions(
     int Quality = 85,
     ImageFormat? OutputFormat = null)
 {
-    public ImageFormat OutputFormat => OutputFormat ?? ImageFormat.Jpeg;
+    public ImageFormat Format => OutputFormat ?? ImageFormat.Jpeg;
 }
 
 public sealed record ImageResizeResult(

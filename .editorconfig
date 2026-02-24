@@ -47,7 +47,8 @@ dotnet_diagnostic.CA1707.severity = none
 # Heuristic files - cyclomatic complexity is intentional for pattern matching
 [src/SaveState.Infrastructure/GameLibrary/Heuristics/**/*.cs]
 # CA1502: Cyclomatic complexity - heuristics need complex pattern matching to detect game values
-dotnet_diagnostic.CA1502.severity = warning
+# Per AGENTS.md: "Cyclomatic complexity >15 - 46 warnings accepted as algorithmic code"
+dotnet_diagnostic.CA1502.severity = none
 
 # Performance warnings that are acceptable for non-hot-path code
 [*.cs]

@@ -34,7 +34,7 @@ public class GamingHealthMonitorService : IGamingHealthMonitorService
     // Current status tracking
     private PostureStatus _currentPosture = PostureStatus.Good;
     private EyeStrainLevel _currentEyeStrain = EyeStrainLevel.None;
-    private int? _currentHeartRate;
+    private int? _currentHeartRate = null;
     private FocusLevel _currentFocus = FocusLevel.Medium;
     private StressLevel _currentStress = StressLevel.Normal;
     private FatigueLevel _currentFatigue = FatigueLevel.Rested;

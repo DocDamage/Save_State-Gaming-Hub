@@ -129,6 +129,7 @@ public class VirtualCollectionRepository : IVirtualCollectionRepository
             .OrderBy(vcg => vcg.SortOrder)
             .ThenBy(vcg => vcg.AddedAt)
             .Select(vcg => vcg.Game)
+            .OfType<Game>()
             .ToList();
     }
 
@@ -138,6 +139,7 @@ public class VirtualCollectionRepository : IVirtualCollectionRepository
             .Where(vcg => vcg.GameId == gameId)
             .Include(vcg => vcg.Collection)
             .Select(vcg => vcg.Collection)
+            .OfType<VirtualCollection>()
             .ToListAsync(ct)
             .ConfigureAwait(false);
     }

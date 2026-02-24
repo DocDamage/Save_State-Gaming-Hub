@@ -32,7 +32,6 @@ public class CollectionsManager
     /// <param name="description">Optional description.</param>
     /// <param name="isPublic">Whether the collection is public.</param>
     /// <param name="userId">The user ID creating the collection.</param>
-    /// <param name="timeProvider">The time provider for timestamps.</param>
     /// <param name="collections">The collections dictionary.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>The created collection.</returns>
@@ -85,7 +84,6 @@ public class CollectionsManager
     /// </summary>
     /// <param name="collectionId">The collection ID.</param>
     /// <param name="characterId">The character ID to add.</param>
-    /// <param name="timeProvider">The time provider for timestamps.</param>
     /// <param name="collections">The collections dictionary.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>Result of the operation.</returns>
