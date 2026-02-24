@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -106,6 +107,8 @@ public static partial class DependencyInjection
             {
                 sqliteOptions.CommandTimeout(30);
             });
+            options.ConfigureWarnings(w =>
+                w.Log(RelationalEventId.PendingModelChangesWarning));
         })
         .AddDbContextFactory<SaveStateDbContext>(options =>
         {
@@ -113,6 +116,8 @@ public static partial class DependencyInjection
             {
                 sqliteOptions.CommandTimeout(30);
             });
+            options.ConfigureWarnings(w =>
+                w.Log(RelationalEventId.PendingModelChangesWarning));
         });
 
         // Repositories

@@ -28,7 +28,7 @@ internal class TestCachePerformanceMonitor : ICachePerformanceMonitor
 // Minimal test to isolate the infrastructure issue
 public class AiOrchestratorInfrastructureTest
 {
-    [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
+    [Fact]
     public void Constructor_WithMinimalSetup_ShouldNotThrow()
     {
         // Arrange - minimal setup to isolate the issue
@@ -104,7 +104,7 @@ public class AiOrchestratorTests
             new SystemTimeProvider());
     }
 
-    [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
+    [Fact]
     public async Task ProcessRequestAsync_WithCacheHit_ReturnsCachedResponse()
     {
         // Arrange
@@ -138,7 +138,7 @@ public class AiOrchestratorTests
         result.Should().Be(cachedResponse);
     }
 
-    [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
+    [Fact]
     public async Task ProcessRequestAsync_WithCacheDisabled_SkipsCache()
     {
         // Arrange
@@ -154,7 +154,7 @@ public class AiOrchestratorTests
         result.Content.Should().Be("Response"); // Verify the provider was called and returned the expected result
     }
 
-    [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
+    [Fact]
     public async Task ProcessRequestAsync_WithNoProvidersAvailable_ReturnsFailure()
     {
         // Arrange
@@ -182,7 +182,7 @@ public class AiOrchestratorTests
         result.Error.Should().Be("No AI providers available");
     }
 
-    [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
+    [Fact]
     public async Task ProcessRequestAsync_WithPreferredProvider_UsesCorrectProvider()
     {
         // Arrange
@@ -199,7 +199,7 @@ public class AiOrchestratorTests
         _groqProviderMock.Verify(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
+    [Fact]
     public async Task ProcessRequestAsync_WithProviderFailure_FallsBackToNextProvider()
     {
         // Arrange
@@ -220,7 +220,7 @@ public class AiOrchestratorTests
         result.Provider.Should().Be("Groq");
     }
 
-    [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
+    [Fact]
     public void GetAvailableProviders_ReturnsProviderNames()
     {
         // Act
@@ -232,7 +232,7 @@ public class AiOrchestratorTests
         providers.Should().Contain("Groq");
     }
 
-    [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
+    [Fact]
     public async Task IsProviderHealthyAsync_WithAvailableProvider_ReturnsTrue()
     {
         // Arrange
@@ -245,7 +245,7 @@ public class AiOrchestratorTests
         result.Should().BeTrue();
     }
 
-    [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
+    [Fact]
     public async Task IsProviderHealthyAsync_WithUnavailableProvider_ReturnsFalse()
     {
         // Arrange
@@ -258,7 +258,7 @@ public class AiOrchestratorTests
         result.Should().BeFalse();
     }
 
-    [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
+    [Fact]
     public async Task IsProviderHealthyAsync_WithUnknownProvider_ReturnsFalse()
     {
         // Act
@@ -268,7 +268,7 @@ public class AiOrchestratorTests
         result.Should().BeFalse();
     }
 
-    [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
+    [Fact]
     public void GetCacheStatistics_ReturnsCorrectStats()
     {
         // Act
@@ -280,7 +280,7 @@ public class AiOrchestratorTests
         stats.HitRate.Should().BeInRange(0, 100);
     }
 
-    [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
+    [Fact]
     public async Task ProcessRequestAsync_WithChatRequest_UsesChatProvider()
     {
         // Arrange
@@ -299,7 +299,7 @@ public class AiOrchestratorTests
         _openAiProviderMock.Verify(p => p.ChatAsync(It.IsAny<ChatRequest>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
+    [Fact]
     public async Task ProcessRequestAsync_WithEmbeddingRequest_ThrowsNotImplemented()
     {
         // Arrange
@@ -310,7 +310,7 @@ public class AiOrchestratorTests
             _sut.ProcessRequestAsync(request));
     }
 
-    [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
+    [Fact]
     public async Task ProcessRequestAsync_WithNullRequest_ThrowsArgumentNullException()
     {
         // Act & Assert
@@ -318,7 +318,7 @@ public class AiOrchestratorTests
             _sut.ProcessRequestAsync(null!));
     }
 
-    [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
+    [Fact]
     public async Task ProcessRequestAsync_WhenProviderFailsAfterRetries_ReturnsFailure()
     {
         // Arrange - Both providers fail
@@ -337,7 +337,7 @@ public class AiOrchestratorTests
         result.Error.Should().NotBeNullOrEmpty();
     }
 
-    [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
+    [Fact]
     public async Task ProcessRequestAsync_WithCustomModel_UsesSpecifiedModel()
     {
         // Arrange
@@ -356,4 +356,3 @@ public class AiOrchestratorTests
         _openAiProviderMock.Verify(p => p.CompleteAsync(It.IsAny<CompletionRequest>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }
-

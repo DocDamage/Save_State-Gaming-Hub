@@ -101,6 +101,15 @@ public static partial class DependencyInjection
     {
         // MUGEN Fusion, Move, and Creative Services
         services.AddScoped<SaveState.Core.Mugen.Services.IMugenFusionService, Mugen.MugenFusionService>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenRosterService, Mugen.MugenRosterService>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenMoveListService, Mugen.MugenMoveListService>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenNetplayService, Mugen.MugenNetplayService>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenAssetPreviewService, Mugen.MugenAssetPreviewService>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenCompatibilityService, Mugen.MugenCompatibilityService>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenEloService, Mugen.MugenEloService>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenDiscoveryService, Mugen.MugenDiscoveryService>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenConfigService, Mugen.MugenConfigService>();
+        services.AddScoped<SaveState.Core.Mugen.Services.IMugenLauncher, Mugen.MugenLauncher>();
         services.AddScoped<SaveState.Core.Mugen.Services.IMoveCreationService, SaveState.Infrastructure.Mugen.MoveCreationService>();
         services.AddScoped<SaveState.Core.Mugen.Services.IMugenGraphicsEngine, SaveState.Infrastructure.Mugen.MugenGraphicsEngine>();
         services.AddScoped<SaveState.Core.Mugen.Services.IMugenSoundDesignStudio, SaveState.Infrastructure.Mugen.MugenSoundDesignStudio>();

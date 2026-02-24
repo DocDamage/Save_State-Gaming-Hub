@@ -2,19 +2,42 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SaveState.Core.Configuration;
 
-public class KimiOptions
+/// <summary>
+/// Configuration options for Kimi AI service.
+/// </summary>
+public class KimiOptions : IValidatableObject
 {
     public const string SectionName = "Kimi";
 
-    [Required(ErrorMessage = "BaseUrl is required")]
+    /// <summary>
+    /// Base URL for the Kimi API.
+    /// </summary>
     [Url(ErrorMessage = "BaseUrl must be a valid URL")]
     public string BaseUrl { get; set; } = "https://api.moonshot.cn/v1/";
 
-    [Required(ErrorMessage = "ApiKey is required")]
-    [MinLength(1, ErrorMessage = "ApiKey cannot be empty")]
+    /// <summary>
+    /// API key for authentication. Required for actual usage.
+    /// </summary>
     public string ApiKey { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "DefaultModel is required")]
-    [MinLength(1, ErrorMessage = "DefaultModel cannot be empty")]
+    /// <summary>
+    /// Default model to use for requests.
+    /// </summary>
     public string DefaultModel { get; set; } = "moonshot-v1-8k";
+
+    /// <summary>
+    /// Validates the configuration. API key may be supplied later from user preferences.
+    /// </summary>
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        var results = new List<ValidationResult>();
+
+        // Validate BaseUrl format if provided.
+        if (!string.IsNullOrWhiteSpace(BaseUrl) && !Uri.IsWellFormedUriString(BaseUrl, UriKind.Absolute))
+        {
+            results.Add(new ValidationResult("BaseUrl must be a valid URL", [nameof(BaseUrl)]));
+        }
+
+        return results;
+    }
 }

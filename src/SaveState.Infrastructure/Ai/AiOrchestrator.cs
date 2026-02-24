@@ -60,6 +60,15 @@ public class AiOrchestrator : IAiOrchestrator
 
     public async Task<AiResponse> ProcessRequestAsync(AiRequest request, CancellationToken ct = default)
     {
+        var attemptedProviders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        return await ProcessRequestInternalAsync(request, attemptedProviders, ct).ConfigureAwait(false);
+    }
+
+    private async Task<AiResponse> ProcessRequestInternalAsync(
+        AiRequest request,
+        ISet<string> attemptedProviders,
+        CancellationToken ct = default)
+    {
         ArgumentNullException.ThrowIfNull(request);
 
         var startTime = _timeProvider.UtcNow;
@@ -88,13 +97,20 @@ public class AiOrchestrator : IAiOrchestrator
             }
         }
 
-        var provider = SelectProvider(request.PreferredProvider);
+        if (request.Type == AiRequestType.Embedding)
+        {
+            throw new NotImplementedException("Embedding requests are not implemented by AiOrchestrator");
+        }
+
+        var provider = SelectProvider(request.PreferredProvider, attemptedProviders);
         if (provider is null)
         {
             var duration = _timeProvider.UtcNow - startTime;
             _metrics.RecordAiRequest("None", "NoProvider", duration, false);
             return new AiResponse("", "", new TokenUsage(0, 0, 0), "", "", false, "No AI providers available");
         }
+
+        attemptedProviders.Add(provider.ProviderName);
 
         try
         {
@@ -113,7 +129,7 @@ public class AiOrchestrator : IAiOrchestrator
 
                     if (_options.EnableFallback)
                     {
-                        return await TryFallbackAsync(request, provider, ct).ConfigureAwait(false);
+                        return await TryFallbackAsync(request, provider, attemptedProviders, ct).ConfigureAwait(false);
                     }
 
                     return new AiResponse("", "", new TokenUsage(0, 0, 0), "", provider.ProviderName, false, chatResult.Error);
@@ -137,7 +153,7 @@ public class AiOrchestrator : IAiOrchestrator
 
                     if (_options.EnableFallback)
                     {
-                        return await TryFallbackAsync(request, provider, ct).ConfigureAwait(false);
+                        return await TryFallbackAsync(request, provider, attemptedProviders, ct).ConfigureAwait(false);
                     }
 
                     return new AiResponse("", "", new TokenUsage(0, 0, 0), "", provider.ProviderName, false, completionResult.Error);
@@ -171,7 +187,7 @@ public class AiOrchestrator : IAiOrchestrator
 
             if (_options.EnableFallback)
             {
-                return await TryFallbackAsync(request, provider, ct).ConfigureAwait(false);
+                return await TryFallbackAsync(request, provider, attemptedProviders, ct).ConfigureAwait(false);
             }
 
             return new AiResponse("", "", new TokenUsage(0, 0, 0), "", provider.ProviderName, false, ex.Message);
@@ -254,26 +270,43 @@ public class AiOrchestrator : IAiOrchestrator
         return (requests, hits, hitRate);
     }
 
-    private ILlmProvider? SelectProvider(string? preferredProvider)
+    private ILlmProvider? SelectProvider(string? preferredProvider, ISet<string> attemptedProviders)
     {
         if (!string.IsNullOrEmpty(preferredProvider))
         {
             var preferred = _providers.FirstOrDefault(p =>
-                p.ProviderName.Equals(preferredProvider, StringComparison.OrdinalIgnoreCase) && p.IsAvailable);
+                p.ProviderName.Equals(preferredProvider, StringComparison.OrdinalIgnoreCase) &&
+                p.IsAvailable &&
+                !attemptedProviders.Contains(p.ProviderName));
             if (preferred is not null) return preferred;
         }
 
-        return _providers.FirstOrDefault(p => p.IsAvailable);
+        return _providers.FirstOrDefault(p =>
+            p.IsAvailable &&
+            !attemptedProviders.Contains(p.ProviderName));
     }
 
-    private async Task<AiResponse> TryFallbackAsync(AiRequest request, ILlmProvider failedProvider, CancellationToken ct)
+    private async Task<AiResponse> TryFallbackAsync(
+        AiRequest request,
+        ILlmProvider failedProvider,
+        ISet<string> attemptedProviders,
+        CancellationToken ct)
     {
-        var fallback = _providers.FirstOrDefault(p => p != failedProvider && p.IsAvailable);
+        var fallback = _providers.FirstOrDefault(p =>
+            p != failedProvider &&
+            p.IsAvailable &&
+            !attemptedProviders.Contains(p.ProviderName));
+
         if (fallback is null)
+        {
             return new AiResponse("", "", new TokenUsage(0, 0, 0), "", "", false, "All providers failed");
+        }
 
         _logger.LogInformation("Trying fallback provider {Provider}", fallback.ProviderName);
-        return await ProcessRequestAsync(request with { PreferredProvider = fallback.ProviderName }, ct).ConfigureAwait(false);
+        return await ProcessRequestInternalAsync(
+            request with { PreferredProvider = fallback.ProviderName },
+            attemptedProviders,
+            ct).ConfigureAwait(false);
     }
 
     public async Task<AiResponse> ProcessRequestWithContextAsync(

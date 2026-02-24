@@ -66,17 +66,17 @@ public class MugenCharacter : EntityBase, ISoftDelete
     /// <summary>
     /// The sprite/stage/music directories.
     /// </summary>
-    public CharacterDirectories Directories { get; private set; } = CharacterDirectories.Empty;
+    public CharacterDirectories Directories { get; private set; } = new();
 
     /// <summary>
     /// The character's palette information.
     /// </summary>
-    public PaletteInfo PaletteInfo { get; private set; } = PaletteInfo.Default;
+    public PaletteInfo PaletteInfo { get; private set; } = new();
 
     /// <summary>
     /// The character's arcade mode information.
     /// </summary>
-    public ArcadeInfo ArcadeInfo { get; private set; } = ArcadeInfo.Default;
+    public ArcadeInfo ArcadeInfo { get; private set; } = new();
 
     // Basic combat attributes used by AI and analytics engines. These default to typical values
     // and may be populated during character parsing or extended metadata processing in the future.
@@ -141,9 +141,9 @@ public class MugenCharacter : EntityBase, ISoftDelete
             CharacterDirectory = characterDirectory,
             LastScannedAt = UtcNow,
             IsValid = true,
-            PaletteInfo = PaletteInfo.Default,
-            ArcadeInfo = ArcadeInfo.Default,
-            Directories = CharacterDirectories.Empty,
+            PaletteInfo = new PaletteInfo(),
+            ArcadeInfo = new ArcadeInfo(),
+            Directories = new CharacterDirectories(),
 
             // Default combat attributes (can be updated later from parsed metadata)
             Health = 1000,

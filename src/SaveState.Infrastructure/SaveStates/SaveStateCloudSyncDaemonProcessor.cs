@@ -90,6 +90,16 @@ public sealed class SaveStateCloudSyncDaemonProcessor
                 return;
             }
 
+            // Cancelled = cloud auth was skipped (e.g. headless/no-display environment).
+            // Not a failure — record as a skip so the log stays clean.
+            if (syncResult.ErrorType == ErrorType.Cancelled)
+            {
+                _monitor.RecordSkipped(
+                    game.Id,
+                    $"Skipped {game.Title}: cloud provider authentication requires an interactive session.");
+                return;
+            }
+
             var error = syncResult.Error ?? $"Background sync failed for {game.Title}.";
             _logger.LogWarning(
                 "Background save-state cloud sync failed for game {GameId}: {Error}",

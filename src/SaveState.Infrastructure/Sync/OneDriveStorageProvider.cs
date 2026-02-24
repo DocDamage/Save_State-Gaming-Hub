@@ -67,7 +67,14 @@ public class OneDriveStorageProvider : ICloudStorageProvider
                 return true;
             }
 
-            _logger.LogWarning("OneDrive authentication failed: {Error}", result.Error);
+            if (result.ErrorType == ErrorType.Cancelled)
+            {
+                _logger.LogInformation("OneDrive authentication skipped: {Reason}", result.Error);
+            }
+            else
+            {
+                _logger.LogWarning("OneDrive authentication failed: {Error}", result.Error);
+            }
             return false;
         }
         catch (Exception ex)

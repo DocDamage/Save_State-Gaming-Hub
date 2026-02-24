@@ -11,5 +11,5 @@ public record ArcadeInfo(
     /// <summary>
     /// Default arcade info (no storyboards).
     /// </summary>
-    public static readonly ArcadeInfo Default = new(0, 0);
+    public static ArcadeInfo Default => new(0, 0);
 }

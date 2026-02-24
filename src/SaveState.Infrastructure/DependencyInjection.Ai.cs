@@ -107,6 +107,7 @@ public static partial class DependencyInjection
 
         // Gamer DNA Service
         services.AddScoped<IGamerDnaService, GamerDnaService>();
+        services.AddScoped<INaturalLanguageGameSearch, SaveState.Infrastructure.Ai.Services.NaturalLanguageGameSearch>();
 
         // AI Content Generation (use ContentGeneration namespace to avoid ambiguity)
         services.AddScoped<

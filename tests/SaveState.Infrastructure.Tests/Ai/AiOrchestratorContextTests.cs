@@ -88,7 +88,7 @@ public class AiOrchestratorContextTests
             new SystemTimeProvider());
     }
 
-    [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
+    [Fact]
     public async Task ProcessRequestWithContextAsync_MaintainsHistory()
     {
         // Arrange
@@ -113,7 +113,7 @@ public class AiOrchestratorContextTests
         history.Value.Should().HaveCount(4); // 2 user + 2 assistant messages
     }
 
-    [Fact(Skip = "Stack overflow when running multiple async tests together - xUnit infrastructure issue")]
+    [Fact]
     public async Task ClearConversationAsync_RemovesHistory()
     {
         // Arrange

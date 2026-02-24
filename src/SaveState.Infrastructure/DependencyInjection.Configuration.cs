@@ -105,7 +105,6 @@ public static partial class DependencyInjection
             .Validate(options =>
             {
                 return !string.IsNullOrEmpty(options.BaseUrl) &&
-                       !string.IsNullOrEmpty(options.ApiKey) &&
                        !string.IsNullOrEmpty(options.DefaultModel) &&
                        Uri.IsWellFormedUriString(options.BaseUrl, UriKind.Absolute);
             }, "Invalid OpenAI configuration")
@@ -117,7 +116,6 @@ public static partial class DependencyInjection
             .Validate(options =>
             {
                 return !string.IsNullOrEmpty(options.BaseUrl) &&
-                       !string.IsNullOrEmpty(options.ApiKey) &&
                        !string.IsNullOrEmpty(options.DefaultModel) &&
                        Uri.IsWellFormedUriString(options.BaseUrl, UriKind.Absolute);
             }, "Invalid Groq configuration")
@@ -129,7 +127,6 @@ public static partial class DependencyInjection
             .Validate(options =>
             {
                 return !string.IsNullOrEmpty(options.BaseUrl) &&
-                       !string.IsNullOrEmpty(options.ApiKey) &&
                        !string.IsNullOrEmpty(options.DefaultModel) &&
                        Uri.IsWellFormedUriString(options.BaseUrl, UriKind.Absolute);
             }, "Invalid Kimi configuration")
@@ -141,7 +138,6 @@ public static partial class DependencyInjection
             .Validate(options =>
             {
                 return !string.IsNullOrEmpty(options.BaseUrl) &&
-                       !string.IsNullOrEmpty(options.ApiKey) &&
                        !string.IsNullOrEmpty(options.DefaultModel) &&
                        Uri.IsWellFormedUriString(options.BaseUrl, UriKind.Absolute);
             }, "Invalid Gemini configuration")
@@ -153,7 +149,6 @@ public static partial class DependencyInjection
             .Validate(options =>
             {
                 return !string.IsNullOrEmpty(options.BaseUrl) &&
-                       !string.IsNullOrEmpty(options.ApiKey) &&
                        !string.IsNullOrEmpty(options.DefaultModel) &&
                        Uri.IsWellFormedUriString(options.BaseUrl, UriKind.Absolute);
             }, "Invalid GLM configuration")

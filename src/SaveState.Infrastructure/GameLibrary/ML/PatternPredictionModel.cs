@@ -242,7 +242,7 @@ public sealed class PatternPredictionModel
                 .GroupBy(d => d.Genre)
                 .ToDictionary(
                     g => g.Key,
-                    g => g.Count() > 0
+                    g => g.Any()
                         ? (double)g.Count(d => d.IsValidated) / g.Count() * 100
                         : 0);
 
@@ -251,7 +251,7 @@ public sealed class PatternPredictionModel
                 .GroupBy(d => d.PatternType)
                 .ToDictionary(
                     g => g.Key,
-                    g => g.Count() > 0
+                    g => g.Any()
                         ? (double)g.Count(d => d.IsValidated) / g.Count() * 100
                         : 0);
 

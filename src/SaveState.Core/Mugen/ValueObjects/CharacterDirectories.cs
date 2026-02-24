@@ -12,5 +12,5 @@ public record CharacterDirectories(
     /// <summary>
     /// Empty directories instance.
     /// </summary>
-    public static readonly CharacterDirectories Empty = new();
+    public static CharacterDirectories Empty => new();
 }

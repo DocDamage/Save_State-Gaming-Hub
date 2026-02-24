@@ -11,5 +11,5 @@ public record PaletteInfo(
     /// <summary>
     /// Default palette info (single palette, no file).
     /// </summary>
-    public static readonly PaletteInfo Default = new(1, null);
+    public static PaletteInfo Default => new(1, null);
 }

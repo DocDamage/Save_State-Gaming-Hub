@@ -35,6 +35,19 @@ public class CloudAuthenticationService : ICloudAuthenticationService
         string tokenUrl,
         CancellationToken ct = default)
     {
+        // Browser-redirect OAuth requires an interactive desktop session.
+        // Skip the flow entirely in headless contexts (CI, server, background service without a display)
+        // to avoid a silent hang waiting for a localhost callback that will never arrive.
+        if (!Environment.UserInteractive)
+        {
+            _logger.LogInformation(
+                "{Provider} OAuth skipped: no interactive user session (headless environment).",
+                providerName);
+            return Result.Failure<OAuth2TokenResponse>(
+                "Authentication was cancelled",
+                ErrorType.Cancelled);
+        }
+
         var redirectUri = "http://localhost:5000/callback/";
         using var listener = new HttpListener();
         listener.Prefixes.Add(redirectUri);
