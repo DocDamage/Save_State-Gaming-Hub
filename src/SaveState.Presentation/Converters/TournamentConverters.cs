@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Esports.Models;
 
 namespace SaveState.Presentation.Converters;
@@ -220,7 +221,7 @@ public class TournamentDateDisplayConverter : IMultiValueConverter
             return "Unknown";
 
         var endDate = values[1] as DateTime?;
-        var now = DateTime.Now;
+        var now = SystemTimeProvider.Instance.Now;
 
         if (startDate > now)
         {

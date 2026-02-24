@@ -1,5 +1,6 @@
 using MediatR;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.MobileCompanion.Models;
 using SaveState.Core.MobileCompanion.Services;
 
@@ -15,10 +16,12 @@ public sealed record SendRemoteCommand(
 public sealed class SendRemoteCommandHandler : IRequestHandler<SendRemoteCommand, Result>
 {
     private readonly IMobileCompanionService _companionService;
+    private readonly ITimeProvider _timeProvider;
 
-    public SendRemoteCommandHandler(IMobileCompanionService companionService)
+    public SendRemoteCommandHandler(IMobileCompanionService companionService, ITimeProvider timeProvider)
     {
         _companionService = companionService;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result> Handle(SendRemoteCommand request, CancellationToken cancellationToken)
@@ -28,7 +31,7 @@ public sealed class SendRemoteCommandHandler : IRequestHandler<SendRemoteCommand
             Id = Guid.NewGuid(),
             Command = request.Command,
             Parameters = request.Parameters,
-            Timestamp = DateTime.UtcNow,
+            Timestamp = _timeProvider.UtcNow,
             GameId = request.GameId
         };
 

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.MobileCompanion.Models;
 using SaveState.Core.MobileCompanion.Services;
 
@@ -54,13 +55,16 @@ public class MobileCompanionHub : Hub<IMobileCompanionClient>
 {
     private readonly IMobileCompanionService _companionService;
     private readonly ILogger<MobileCompanionHub> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     public MobileCompanionHub(
         IMobileCompanionService companionService,
-        ILogger<MobileCompanionHub> logger)
+        ILogger<MobileCompanionHub> logger,
+        ITimeProvider timeProvider)
     {
         _companionService = companionService;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -126,7 +130,7 @@ public class MobileCompanionHub : Hub<IMobileCompanionClient>
                 Id = Guid.NewGuid(),
                 Command = command,
                 Parameters = parameters,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = _timeProvider.UtcNow,
                 GameId = gameId
             };
 

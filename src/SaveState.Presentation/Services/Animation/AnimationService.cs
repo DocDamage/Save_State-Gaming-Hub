@@ -10,6 +10,7 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
@@ -29,6 +30,7 @@ namespace SaveState.Presentation.Services.Animation;
 public class AnimationService : IAnimationService
 {
     private readonly ILogger<AnimationService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<Control, CancellationTokenSource> _activeAnimations = new();
     private readonly Subject<AnimationFrame> _animationFrameSubject = new();
 
@@ -56,9 +58,10 @@ public class AnimationService : IAnimationService
     /// <inheritdoc />
     public bool IsReducedMotionPreferred => CheckReducedMotionPreference();
 
-    public AnimationService(ILogger<AnimationService> logger)
+    public AnimationService(ILogger<AnimationService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         _logger.LogDebug("AnimationService initialized");
     }
 
@@ -823,11 +826,11 @@ public class AnimationService : IAnimationService
         var distance = offset - startOffset;
         var duration = TimeSpan.FromMilliseconds(Math.Min(500, Math.Abs(distance) * 0.5));
 
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
 
-        while (DateTime.UtcNow - startTime < duration)
+        while (_timeProvider.UtcNow - startTime < duration)
         {
-            var elapsed = (DateTime.UtcNow - startTime).TotalMilliseconds;
+            var elapsed = (_timeProvider.UtcNow - startTime).TotalMilliseconds;
             var progress = elapsed / duration.TotalMilliseconds;
             var eased = DefaultEasingInstance.Ease(progress);
 
@@ -861,11 +864,11 @@ public class AnimationService : IAnimationService
         }
 
         var animDuration = duration ?? DefaultTransitionDuration;
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
 
-        while (DateTime.UtcNow - startTime < animDuration)
+        while (_timeProvider.UtcNow - startTime < animDuration)
         {
-            var elapsed = (DateTime.UtcNow - startTime).TotalMilliseconds;
+            var elapsed = (_timeProvider.UtcNow - startTime).TotalMilliseconds;
             var progress = elapsed / animDuration.TotalMilliseconds;
             var eased = DefaultEasingInstance.Ease(progress);
             var current = from + ((to - from) * eased);
@@ -887,11 +890,11 @@ public class AnimationService : IAnimationService
         }
 
         var animDuration = duration ?? DefaultTransitionDuration;
-        var startTime = DateTime.UtcNow;
+        var startTime = _timeProvider.UtcNow;
 
-        while (DateTime.UtcNow - startTime < animDuration)
+        while (_timeProvider.UtcNow - startTime < animDuration)
         {
-            var elapsed = (DateTime.UtcNow - startTime).TotalMilliseconds;
+            var elapsed = (_timeProvider.UtcNow - startTime).TotalMilliseconds;
             var progress = elapsed / animDuration.TotalMilliseconds;
             var eased = DefaultEasingInstance.Ease(progress);
 

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Models.PluginStore;
 using SaveState.Presentation.Services;
 
@@ -14,6 +15,7 @@ public partial class PluginReviewViewModel : ObservableObject
 {
     private readonly ILogger<PluginReviewViewModel> _logger;
     private readonly IDialogService _dialogService;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private ObservableCollection<PluginReview> _reviews = new();
@@ -44,10 +46,12 @@ public partial class PluginReviewViewModel : ObservableObject
 
     public PluginReviewViewModel(
         ILogger<PluginReviewViewModel> logger,
-        IDialogService dialogService)
+        IDialogService dialogService,
+        ITimeProvider? timeProvider = null)
     {
         _logger = logger;
         _dialogService = dialogService;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
 
         // Initialize with sample data for demonstration
         InitializeSampleData();
@@ -225,7 +229,7 @@ public partial class PluginReviewViewModel : ObservableObject
                 Rating = 5,
                 Title = "Absolutely amazing plugin!",
                 Content = "This plugin has completely transformed how I manage my game library. The integration is seamless and the features are exactly what I needed.",
-                CreatedAt = DateTime.Now.AddDays(-5),
+                CreatedAt = _timeProvider.UtcNow.AddDays(-5),
                 HelpfulCount = 24
             },
             new()
@@ -236,7 +240,7 @@ public partial class PluginReviewViewModel : ObservableObject
                 Rating = 4,
                 Title = "Great functionality, minor issues",
                 Content = "Works really well for the most part. I've noticed a few small bugs when syncing with cloud storage, but overall it's solid.",
-                CreatedAt = DateTime.Now.AddDays(-12),
+                CreatedAt = _timeProvider.UtcNow.AddDays(-12),
                 HelpfulCount = 15
             },
             new()
@@ -246,7 +250,7 @@ public partial class PluginReviewViewModel : ObservableObject
                 Rating = 5,
                 Title = "Developer Response",
                 Content = "Thank you for the feedback! We've addressed the cloud sync issues in version 2.1.0.",
-                CreatedAt = DateTime.Now.AddDays(-11),
+                CreatedAt = _timeProvider.UtcNow.AddDays(-11),
                 HelpfulCount = 8,
                 IsDeveloperResponse = true,
                 DeveloperResponse = "Developer Response"
@@ -258,7 +262,7 @@ public partial class PluginReviewViewModel : ObservableObject
                 Rating = 5,
                 Title = "Perfect for speedrunners",
                 Content = "The save state management features are incredible. Being able to branch and organize attempts has improved my PB tracking significantly.",
-                CreatedAt = DateTime.Now.AddDays(-20),
+                CreatedAt = _timeProvider.UtcNow.AddDays(-20),
                 HelpfulCount = 42
             },
             new()
@@ -268,7 +272,7 @@ public partial class PluginReviewViewModel : ObservableObject
                 Rating = 3,
                 Title = "Good but complex",
                 Content = "There are lots of features, but the learning curve is steep. Would appreciate more tutorials or a simpler mode.",
-                CreatedAt = DateTime.Now.AddDays(-30),
+                CreatedAt = _timeProvider.UtcNow.AddDays(-30),
                 HelpfulCount = 7
             }
         };

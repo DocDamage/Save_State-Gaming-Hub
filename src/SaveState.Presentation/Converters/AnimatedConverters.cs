@@ -6,6 +6,7 @@ using Avalonia.Data.Converters;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
+using SaveState.Core.Common.Services;
 using System.Globalization;
 
 namespace SaveState.Presentation.Converters;
@@ -48,11 +49,11 @@ public class AnimatedDoubleConverter : IValueConverter
         TimeSpan? duration = null)
     {
         var animDuration = duration ?? DefaultDuration;
-        var startTime = DateTime.UtcNow;
+        var startTime = SystemTimeProvider.Instance.UtcNow;
 
-        while (DateTime.UtcNow - startTime < animDuration)
+        while (SystemTimeProvider.Instance.UtcNow - startTime < animDuration)
         {
-            var elapsed = (DateTime.UtcNow - startTime).TotalMilliseconds;
+            var elapsed = (SystemTimeProvider.Instance.UtcNow - startTime).TotalMilliseconds;
             var progress = elapsed / animDuration.TotalMilliseconds;
             var eased = DefaultEasing.Ease(progress);
             var current = fromValue + ((toValue - fromValue) * eased);
@@ -121,11 +122,11 @@ public class AnimatedColorConverter : IValueConverter
         TimeSpan? duration = null)
     {
         var animDuration = duration ?? DefaultDuration;
-        var startTime = DateTime.UtcNow;
+        var startTime = SystemTimeProvider.Instance.UtcNow;
 
-        while (DateTime.UtcNow - startTime < animDuration)
+        while (SystemTimeProvider.Instance.UtcNow - startTime < animDuration)
         {
-            var elapsed = (DateTime.UtcNow - startTime).TotalMilliseconds;
+            var elapsed = (SystemTimeProvider.Instance.UtcNow - startTime).TotalMilliseconds;
             var progress = elapsed / animDuration.TotalMilliseconds;
             var eased = DefaultEasing.Ease(progress);
 
@@ -210,7 +211,7 @@ public class CountUpConverter : IValueConverter
         CancellationToken cancellationToken)
     {
         var startValue = state.CurrentValue;
-        var startTime = DateTime.UtcNow;
+        var startTime = SystemTimeProvider.Instance.UtcNow;
         var duration = DefaultDuration;
 
         // Adjust duration based on distance
@@ -226,11 +227,11 @@ public class CountUpConverter : IValueConverter
 
         try
         {
-            while (DateTime.UtcNow - startTime < duration)
+            while (SystemTimeProvider.Instance.UtcNow - startTime < duration)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var elapsed = (DateTime.UtcNow - startTime).TotalMilliseconds;
+                var elapsed = (SystemTimeProvider.Instance.UtcNow - startTime).TotalMilliseconds;
                 var progress = elapsed / duration.TotalMilliseconds;
                 var eased = DefaultEasing.Ease(progress);
 
@@ -391,11 +392,11 @@ public class AnimatedThicknessConverter : IValueConverter
         TimeSpan? duration = null)
     {
         var animDuration = duration ?? DefaultDuration;
-        var startTime = DateTime.UtcNow;
+        var startTime = SystemTimeProvider.Instance.UtcNow;
 
-        while (DateTime.UtcNow - startTime < animDuration)
+        while (SystemTimeProvider.Instance.UtcNow - startTime < animDuration)
         {
-            var elapsed = (DateTime.UtcNow - startTime).TotalMilliseconds;
+            var elapsed = (SystemTimeProvider.Instance.UtcNow - startTime).TotalMilliseconds;
             var progress = elapsed / animDuration.TotalMilliseconds;
             var eased = DefaultEasing.Ease(progress);
 

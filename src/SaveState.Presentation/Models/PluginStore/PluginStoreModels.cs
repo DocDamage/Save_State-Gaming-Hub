@@ -1,3 +1,5 @@
+using SaveState.Core.Common.Services;
+
 namespace SaveState.Presentation.Models.PluginStore;
 
 /// <summary>
@@ -127,7 +129,7 @@ public record PluginPricing
     public string DisplayPrice => Type switch
     {
         PricingType.Free => "Free",
-        PricingType.Paid when SalePrice.HasValue && SaleEndsAt > DateTime.Now => $"${SalePrice.Value:F2}",
+        PricingType.Paid when SalePrice.HasValue && SaleEndsAt > SystemTimeProvider.Instance.Now => $"${SalePrice.Value:F2}",
         PricingType.Paid when Price.HasValue => $"${Price.Value:F2}",
         PricingType.Subscription => $"${Price:F2}/mo",
         _ => "Free"
@@ -136,7 +138,7 @@ public record PluginPricing
     /// <summary>
     /// Gets whether the plugin is currently on sale.
     /// </summary>
-    public bool IsOnSale => Type == PricingType.Paid && SalePrice.HasValue && SaleEndsAt > DateTime.Now;
+    public bool IsOnSale => Type == PricingType.Paid && SalePrice.HasValue && SaleEndsAt > SystemTimeProvider.Instance.Now;
 }
 
 /// <summary>

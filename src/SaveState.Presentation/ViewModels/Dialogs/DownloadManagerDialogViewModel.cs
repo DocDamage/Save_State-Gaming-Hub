@@ -5,6 +5,7 @@ using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.WebBrowser.Models;
 using SaveState.Core.WebBrowser.Services;
 
@@ -17,6 +18,7 @@ public sealed partial class DownloadManagerDialogViewModel : ObservableObject
 {
     private readonly IBrowserService _browserService;
     private readonly ILogger<DownloadManagerDialogViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private ObservableCollection<DownloadItemViewModel> _activeDownloads = new();
@@ -48,10 +50,12 @@ public sealed partial class DownloadManagerDialogViewModel : ObservableObject
 
     public DownloadManagerDialogViewModel(
         IBrowserService browserService,
-        ILogger<DownloadManagerDialogViewModel> logger)
+        ILogger<DownloadManagerDialogViewModel> logger,
+        ITimeProvider? timeProvider = null)
     {
         _browserService = browserService ?? throw new ArgumentNullException(nameof(browserService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
 
         // Subscribe to download events
         _browserService.DownloadStarted += OnDownloadStarted;
@@ -374,7 +378,8 @@ public sealed partial class DownloadItemViewModel : ObservableObject
         // Calculate speed (simplified)
         if (State == DownloadState.InProgress)
         {
-            var elapsed = DateTime.Now - StartedAt;
+            var timeProvider = SystemTimeProvider.Instance;
+            var elapsed = timeProvider.Now - StartedAt;
             if (elapsed.TotalSeconds > 0 && ReceivedBytes > 0)
             {
                 var bytesPerSecond = ReceivedBytes / elapsed.TotalSeconds;

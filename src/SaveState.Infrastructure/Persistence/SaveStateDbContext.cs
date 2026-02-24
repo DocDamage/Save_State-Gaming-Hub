@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Options;
 using SaveState.Application.Common.Events;
 using SaveState.Core.Common.Base;
@@ -283,25 +284,29 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
             .Property(a => a.Patterns)
             .HasConversion(
                 v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
-                v => System.Text.Json.JsonSerializer.Deserialize<List<DetectedPattern>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<DetectedPattern>());
+                v => System.Text.Json.JsonSerializer.Deserialize<List<DetectedPattern>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<DetectedPattern>(),
+                CreateCollectionValueComparer<List<DetectedPattern>, DetectedPattern>());
 
         modelBuilder.Entity<AiBattleAnalysisModel>()
             .Property(a => a.Weaknesses)
             .HasConversion(
                 v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
-                v => System.Text.Json.JsonSerializer.Deserialize<List<PlayerWeakness>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<PlayerWeakness>());
+                v => System.Text.Json.JsonSerializer.Deserialize<List<PlayerWeakness>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<PlayerWeakness>(),
+                CreateCollectionValueComparer<List<PlayerWeakness>, PlayerWeakness>());
 
         modelBuilder.Entity<AiBattleAnalysisModel>()
             .Property(a => a.Opportunities)
             .HasConversion(
                 v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
-                v => System.Text.Json.JsonSerializer.Deserialize<List<ImprovementOpportunity>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<ImprovementOpportunity>());
+                v => System.Text.Json.JsonSerializer.Deserialize<List<ImprovementOpportunity>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<ImprovementOpportunity>(),
+                CreateCollectionValueComparer<List<ImprovementOpportunity>, ImprovementOpportunity>());
 
         modelBuilder.Entity<AiBattleAnalysisModel>()
             .Property(a => a.Recommendations)
             .HasConversion(
                 v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
-                v => System.Text.Json.JsonSerializer.Deserialize<List<CounterStrategy>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<CounterStrategy>());
+                v => System.Text.Json.JsonSerializer.Deserialize<List<CounterStrategy>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<CounterStrategy>(),
+                CreateCollectionValueComparer<List<CounterStrategy>, CounterStrategy>());
 
         modelBuilder.Entity<AiBattleAnalysisModel>()
             .Property(a => a.Insights)
@@ -322,13 +327,15 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
             .Property(p => p.ProcessesToSuspend)
             .HasConversion(
                 v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
-                v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>());
+                v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>(),
+                CreateCollectionValueComparer<List<string>, string>());
 
         modelBuilder.Entity<LaunchProfile>()
             .Property(p => p.ServicesToStop)
             .HasConversion(
                 v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
-                v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>());
+                v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>(),
+                CreateCollectionValueComparer<List<string>, string>());
 
         modelBuilder.Entity<LaunchProfile>()
             .Property(p => p.DisplaySettings)
@@ -356,6 +363,18 @@ public class SaveStateDbContext : DbContext, ISaveStateDbContext
             .HasConversion(
                 v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
                 v => System.Text.Json.JsonSerializer.Deserialize<SessionPerformanceMetrics>(v, (System.Text.Json.JsonSerializerOptions?)null));
+    }
+
+    /// <summary>
+    /// Creates a ValueComparer for collection types to enable proper EF Core change tracking.
+    /// </summary>
+    private static ValueComparer<TCollection> CreateCollectionValueComparer<TCollection, TItem>()
+        where TCollection : class, ICollection<TItem>, new()
+    {
+        return new ValueComparer<TCollection>(
+            (c1, c2) => c1 != null && c2 != null && c1.Count == c2.Count && !c1.Except(c2).Any(),
+            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v != null ? v.GetHashCode() : 0)),
+            c => new TCollection());
     }
 
     private static void ConfigureIndexes(ModelBuilder modelBuilder)

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Models.CloudGaming;
 using System.Collections.ObjectModel;
 
@@ -12,13 +13,15 @@ namespace SaveState.Presentation.ViewModels.CloudGaming;
 public partial class CloudGamingDashboardViewModel : ObservableObject
 {
     private readonly ILogger<CloudGamingDashboardViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     /// <summary>
     /// Initializes a new instance of the CloudGamingDashboardViewModel.
     /// </summary>
-    public CloudGamingDashboardViewModel(ILogger<CloudGamingDashboardViewModel> logger)
+    public CloudGamingDashboardViewModel(ILogger<CloudGamingDashboardViewModel> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         InitializeMockData();
     }
 
@@ -130,7 +133,7 @@ public partial class CloudGamingDashboardViewModel : ObservableObject
             Id = Guid.NewGuid(),
             Game = game,
             Provider = game.Provider,
-            StartedAt = DateTime.UtcNow,
+            StartedAt = _timeProvider.UtcNow,
             Quality = StreamSettings.Quality,
             IsActive = true
         };
@@ -192,7 +195,7 @@ public partial class CloudGamingDashboardViewModel : ObservableObject
 
             var result = new ConnectionTestResult
             {
-                TestedAt = DateTime.UtcNow,
+                TestedAt = _timeProvider.UtcNow,
                 Ping = 12,
                 Jitter = 2,
                 PacketLoss = 0.1f,
@@ -275,7 +278,7 @@ public partial class CloudGamingDashboardViewModel : ObservableObject
         _logger.LogInformation("Stopping stream session: {SessionId}", ActiveSession.Id);
 
         ActiveSession.IsActive = false;
-        ActiveSession.Duration = DateTime.UtcNow - ActiveSession.StartedAt;
+        ActiveSession.Duration = _timeProvider.UtcNow - ActiveSession.StartedAt;
 
         // NOTE: This is a demo implementation. Replace with actual session termination.
 
@@ -414,7 +417,7 @@ public partial class CloudGamingDashboardViewModel : ObservableObject
                 Status = CloudGameStatus.Available,
                 Genres = new List<string> { "RPG", "Action", "Sci-Fi" },
                 IsFavorite = true,
-                LastPlayed = DateTime.UtcNow.AddHours(-3),
+                LastPlayed = _timeProvider.UtcNow.AddHours(-3),
                 TotalPlayTime = TimeSpan.FromHours(45),
                 MetacriticScore = 86
             },
@@ -426,7 +429,7 @@ public partial class CloudGamingDashboardViewModel : ObservableObject
                 Status = CloudGameStatus.Available,
                 Genres = new List<string> { "RPG", "Action", "Souls-like" },
                 IsFavorite = true,
-                LastPlayed = DateTime.UtcNow.AddDays(-1),
+                LastPlayed = _timeProvider.UtcNow.AddDays(-1),
                 TotalPlayTime = TimeSpan.FromHours(120),
                 MetacriticScore = 96
             },
@@ -438,7 +441,7 @@ public partial class CloudGamingDashboardViewModel : ObservableObject
                 Status = CloudGameStatus.Available,
                 Genres = new List<string> { "Shooter", "FPS", "Sci-Fi" },
                 IsFavorite = false,
-                LastPlayed = DateTime.UtcNow.AddDays(-2),
+                LastPlayed = _timeProvider.UtcNow.AddDays(-2),
                 TotalPlayTime = TimeSpan.FromHours(25),
                 MetacriticScore = 87
             },
@@ -450,7 +453,7 @@ public partial class CloudGamingDashboardViewModel : ObservableObject
                 Status = CloudGameStatus.Available,
                 Genres = new List<string> { "RPG", "Sci-Fi", "Exploration" },
                 IsFavorite = true,
-                LastPlayed = DateTime.UtcNow.AddDays(-5),
+                LastPlayed = _timeProvider.UtcNow.AddDays(-5),
                 TotalPlayTime = TimeSpan.FromHours(60),
                 MetacriticScore = 83
             },
@@ -462,7 +465,7 @@ public partial class CloudGamingDashboardViewModel : ObservableObject
                 Status = CloudGameStatus.Available,
                 Genres = new List<string> { "Racing", "Open World" },
                 IsFavorite = false,
-                LastPlayed = DateTime.UtcNow.AddDays(-7),
+                LastPlayed = _timeProvider.UtcNow.AddDays(-7),
                 TotalPlayTime = TimeSpan.FromHours(15),
                 MetacriticScore = 92
             },
@@ -474,7 +477,7 @@ public partial class CloudGamingDashboardViewModel : ObservableObject
                 Status = CloudGameStatus.Available,
                 Genres = new List<string> { "Action", "RPG", "Open World" },
                 IsFavorite = true,
-                LastPlayed = DateTime.UtcNow.AddDays(-3),
+                LastPlayed = _timeProvider.UtcNow.AddDays(-3),
                 TotalPlayTime = TimeSpan.FromHours(40),
                 MetacriticScore = 84
             },
@@ -486,7 +489,7 @@ public partial class CloudGamingDashboardViewModel : ObservableObject
                 Status = CloudGameStatus.Available,
                 Genres = new List<string> { "Sports", "Soccer" },
                 IsFavorite = false,
-                LastPlayed = DateTime.UtcNow.AddDays(-10),
+                LastPlayed = _timeProvider.UtcNow.AddDays(-10),
                 TotalPlayTime = TimeSpan.FromHours(8),
                 MetacriticScore = 78
             },
@@ -498,7 +501,7 @@ public partial class CloudGamingDashboardViewModel : ObservableObject
                 Status = CloudGameStatus.Available,
                 Genres = new List<string> { "Shooter", "FPS", "Action" },
                 IsFavorite = false,
-                LastPlayed = DateTime.UtcNow.AddDays(-14),
+                LastPlayed = _timeProvider.UtcNow.AddDays(-14),
                 TotalPlayTime = TimeSpan.FromHours(12),
                 MetacriticScore = 65
             }
@@ -512,7 +515,7 @@ public partial class CloudGamingDashboardViewModel : ObservableObject
                 Id = Guid.NewGuid(),
                 Game = Games[0],
                 Provider = CloudProvider.GeForceNow,
-                StartedAt = DateTime.UtcNow.AddHours(-3),
+                StartedAt = _timeProvider.UtcNow.AddHours(-3),
                 Duration = TimeSpan.FromHours(2),
                 Quality = SessionQuality.Ultra,
                 AverageLatency = 12.5f,
@@ -524,7 +527,7 @@ public partial class CloudGamingDashboardViewModel : ObservableObject
                 Id = Guid.NewGuid(),
                 Game = Games[1],
                 Provider = CloudProvider.GeForceNow,
-                StartedAt = DateTime.UtcNow.AddDays(-1),
+                StartedAt = _timeProvider.UtcNow.AddDays(-1),
                 Duration = TimeSpan.FromHours(3.5),
                 Quality = SessionQuality.High,
                 AverageLatency = 15.2f,
@@ -536,7 +539,7 @@ public partial class CloudGamingDashboardViewModel : ObservableObject
                 Id = Guid.NewGuid(),
                 Game = Games[3],
                 Provider = CloudProvider.XboxCloudGaming,
-                StartedAt = DateTime.UtcNow.AddDays(-2),
+                StartedAt = _timeProvider.UtcNow.AddDays(-2),
                 Duration = TimeSpan.FromHours(1.5),
                 Quality = SessionQuality.High,
                 AverageLatency = 18.0f,

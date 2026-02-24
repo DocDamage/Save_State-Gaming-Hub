@@ -55,9 +55,9 @@ public record ThemeDefinition
     /// <summary>
     /// Creates a copy of this theme with a new ID.
     /// </summary>
-    public ThemeDefinition Copy(string newName)
+    public ThemeDefinition Copy(string newName, ITimeProvider? timeProvider = null)
     {
-        var now = DateTime.UtcNow;
+        var now = (timeProvider ?? SystemTimeProvider.Instance).UtcNow;
         return new ThemeDefinition
         {
             Id = Guid.NewGuid(),

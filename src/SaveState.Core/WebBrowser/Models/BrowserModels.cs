@@ -28,7 +28,7 @@ public record BrowserTab
     public bool CanGoForward { get; set; }
     public bool IsLoading { get; set; }
     public double LoadingProgress { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; }
     public DateTime? LastActiveAt { get; set; }
     public bool IsMuted { get; set; }
     public bool IsPinned { get; set; }
@@ -52,7 +52,7 @@ public record BrowserBookmark
     public string Url { get; set; } = string.Empty;
     public string? Favicon { get; set; }
     public string? Folder { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; }
     public int VisitCount { get; set; }
     public DateTime? LastVisited { get; set; }
 }
@@ -63,7 +63,7 @@ public record BrowserHistoryItem
     public string Title { get; set; } = string.Empty;
     public string Url { get; set; } = string.Empty;
     public string? Favicon { get; set; }
-    public DateTime VisitedAt { get; set; } = DateTime.Now;
+    public DateTime VisitedAt { get; set; }
     public int VisitCount { get; set; } = 1;
 }
 
@@ -78,7 +78,7 @@ public record BrowserDownload
     public double Progress => TotalBytes > 0 ? (double)ReceivedBytes / TotalBytes : 0;
     public DownloadState State { get; set; } = DownloadState.InProgress;
     public string? SavePath { get; set; }
-    public DateTime StartedAt { get; set; } = DateTime.Now;
+    public DateTime StartedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
 }
 
@@ -142,7 +142,7 @@ public record HistoryItem
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Title { get; set; } = string.Empty;
     public string Url { get; set; } = string.Empty;
-    public DateTime VisitedAt { get; set; } = DateTime.UtcNow;
+    public DateTime VisitedAt { get; set; }
 }
 
 public record DownloadSettings

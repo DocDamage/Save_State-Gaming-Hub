@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Models.Mobile;
 using System.Collections.ObjectModel;
 
@@ -14,6 +15,7 @@ public partial class MobileLandingViewModel : ObservableObject
 {
     private readonly ILogger<MobileLandingViewModel> _logger;
     private readonly IMobileCompanionService? _companionService;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private string _pairingCode = string.Empty;
@@ -41,10 +43,12 @@ public partial class MobileLandingViewModel : ObservableObject
 
     public MobileLandingViewModel(
         ILogger<MobileLandingViewModel> logger,
-        IMobileCompanionService? companionService = null)
+        IMobileCompanionService? companionService = null,
+        ITimeProvider? timeProvider = null)
     {
         _logger = logger;
         _companionService = companionService;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
         _ = InitializeAsync();
     }
 
@@ -143,7 +147,7 @@ public partial class MobileLandingViewModel : ObservableObject
                     DeviceName = "Demo Device",
                     DeviceType = "iPhone",
                     OsVersion = "iOS 17",
-                    PairedAt = DateTime.Now,
+                    PairedAt = _timeProvider.Now,
                     IsOnline = true
                 };
             }
@@ -203,7 +207,7 @@ public partial class MobileLandingViewModel : ObservableObject
                     IsPaired = true;
                     MobileConnectionStatus = MobileConnectionStatus.Connected;
                     PairedDevice = device;
-                    device.LastConnectedAt = DateTime.Now;
+                    device.LastConnectedAt = _timeProvider.Now;
                     device.IsOnline = true;
                 }
                 else
@@ -219,7 +223,7 @@ public partial class MobileLandingViewModel : ObservableObject
                 IsPaired = true;
                 MobileConnectionStatus = MobileConnectionStatus.Connected;
                 PairedDevice = device;
-                device.LastConnectedAt = DateTime.Now;
+                device.LastConnectedAt = _timeProvider.Now;
                 device.IsOnline = true;
             }
         }

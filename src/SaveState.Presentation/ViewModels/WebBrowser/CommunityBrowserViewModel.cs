@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Services;
 
 namespace SaveState.Presentation.ViewModels.WebBrowser;
@@ -13,6 +14,7 @@ public partial class CommunityBrowserViewModel : ObservableObject
 {
     private readonly ILogger<CommunityBrowserViewModel> _logger;
     private readonly INotificationService _notificationService;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private ObservableCollection<CommunitySection> _sections = new();
@@ -43,10 +45,12 @@ public partial class CommunityBrowserViewModel : ObservableObject
 
     public CommunityBrowserViewModel(
         ILogger<CommunityBrowserViewModel> logger,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        ITimeProvider? timeProvider = null)
     {
         _logger = logger;
         _notificationService = notificationService;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
 
         LoadSections();
         LoadMockData();
@@ -134,7 +138,7 @@ public partial class CommunityBrowserViewModel : ObservableObject
             Author = "FightingFan99",
             Replies = 24,
             Views = 342,
-            PostedAt = DateTime.Now.AddHours(-2),
+            PostedAt = _timeProvider.Now.AddHours(-2),
             Category = "MUGEN"
         });
 
@@ -144,7 +148,7 @@ public partial class CommunityBrowserViewModel : ObservableObject
             Author = "RetroGamer42",
             Replies = 56,
             Views = 891,
-            PostedAt = DateTime.Now.AddHours(-5),
+            PostedAt = _timeProvider.Now.AddHours(-5),
             Category = "Retro Gaming"
         });
 
@@ -154,7 +158,7 @@ public partial class CommunityBrowserViewModel : ObservableObject
             Author = "TechSupportPlz",
             Replies = 12,
             Views = 156,
-            PostedAt = DateTime.Now.AddHours(-8),
+            PostedAt = _timeProvider.Now.AddHours(-8),
             Category = "Support"
         });
 
@@ -164,7 +168,7 @@ public partial class CommunityBrowserViewModel : ObservableObject
             Author = "ThemeCreator_X",
             Replies = 38,
             Views = 523,
-            PostedAt = DateTime.Now.AddHours(-12),
+            PostedAt = _timeProvider.Now.AddHours(-12),
             Category = "Themes"
         });
 
@@ -174,7 +178,7 @@ public partial class CommunityBrowserViewModel : ObservableObject
             Author = "Tarnished_One",
             Replies = 89,
             Views = 1247,
-            PostedAt = DateTime.Now.AddDays(-1),
+            PostedAt = _timeProvider.Now.AddDays(-1),
             Category = "Save States"
         });
 
@@ -183,7 +187,7 @@ public partial class CommunityBrowserViewModel : ObservableObject
         {
             Name = "SaveState Fighting Championship",
             Game = "MUGEN",
-            StartDate = DateTime.Now.AddDays(3),
+            StartDate = _timeProvider.Now.AddDays(3),
             Prize = "$500",
             Participants = 64,
             MaxParticipants = 128,
@@ -194,7 +198,7 @@ public partial class CommunityBrowserViewModel : ObservableObject
         {
             Name = "Retro Speedrun Challenge",
             Game = "Super Mario World",
-            StartDate = DateTime.Now.AddDays(7),
+            StartDate = _timeProvider.Now.AddDays(7),
             Prize = "$200",
             Participants = 32,
             MaxParticipants = 100,
@@ -205,7 +209,7 @@ public partial class CommunityBrowserViewModel : ObservableObject
         {
             Name = "Weekly Race Night",
             Game = "Mario Kart 8",
-            StartDate = DateTime.Now.AddDays(1),
+            StartDate = _timeProvider.Now.AddDays(1),
             Prize = "Trophy + Badge",
             Participants = 48,
             MaxParticipants = 64,
@@ -216,7 +220,7 @@ public partial class CommunityBrowserViewModel : ObservableObject
         {
             Name = "Elden Ring PvP Invitational",
             Game = "Elden Ring",
-            StartDate = DateTime.Now.AddDays(14),
+            StartDate = _timeProvider.Now.AddDays(14),
             Prize = "$1000",
             Participants = 16,
             MaxParticipants = 32,
@@ -476,9 +480,9 @@ public class CommunityPost
 
     public string TimeAgo => FormatTimeAgo(PostedAt);
 
-    private static string FormatTimeAgo(DateTime dateTime)
+    private string FormatTimeAgo(DateTime dateTime)
     {
-        var span = DateTime.Now - dateTime;
+        var span = SystemTimeProvider.Instance.Now - dateTime;
         if (span.TotalMinutes < 1) return "just now";
         if (span.TotalHours < 1) return $"{(int)span.TotalMinutes}m ago";
         if (span.TotalDays < 1) return $"{(int)span.TotalHours}h ago";
@@ -503,9 +507,9 @@ public class TournamentListing
     public string TimeUntil => FormatTimeUntil(StartDate);
     public double Progress => (double)Participants / MaxParticipants * 100;
 
-    private static string FormatTimeUntil(DateTime dateTime)
+    private string FormatTimeUntil(DateTime dateTime)
     {
-        var span = dateTime - DateTime.Now;
+        var span = dateTime - SystemTimeProvider.Instance.Now;
         if (span.TotalDays < 1) return $"Starts in {(int)span.TotalHours}h";
         return $"Starts in {(int)span.TotalDays}d";
     }

@@ -1,0 +1,9 @@
+{
+  "parallelizeAssembly": false,
+  "parallelizeTestCollections": false,
+  "maxParallelThreads": 1,
+  "longRunningTestSeconds": 60,
+  "defaultTimeoutMinutes": 5,
+  "diagnosticMessages": true,
+  "internalDiagnosticMessages": true
+}

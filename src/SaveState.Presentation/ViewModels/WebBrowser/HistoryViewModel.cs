@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.WebBrowser.Models;
 using SaveState.Core.WebBrowser.Services;
 
@@ -16,6 +17,7 @@ public sealed partial class HistoryViewModel : ObservableObject
 {
     private readonly IBrowserService _browserService;
     private readonly ILogger<HistoryViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private ObservableCollection<BrowserHistoryItem> _historyItems = new();
@@ -45,10 +47,12 @@ public sealed partial class HistoryViewModel : ObservableObject
 
     public HistoryViewModel(
         IBrowserService browserService,
-        ILogger<HistoryViewModel> logger)
+        ILogger<HistoryViewModel> logger,
+        ITimeProvider? timeProvider = null)
     {
         _browserService = browserService ?? throw new ArgumentNullException(nameof(browserService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
 
         _ = LoadHistoryAsync();
     }
@@ -264,7 +268,7 @@ public sealed partial class HistoryViewModel : ObservableObject
     {
         GroupedHistory.Clear();
 
-        var today = DateTime.Today;
+        var today = _timeProvider.Today;
         var yesterday = today.AddDays(-1);
         var lastWeek = today.AddDays(-7);
         var lastMonth = today.AddDays(-30);

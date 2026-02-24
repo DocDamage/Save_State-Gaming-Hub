@@ -95,7 +95,7 @@ public record RemoteSession
 {
     public Guid Id { get; set; }
     public Guid DeviceId { get; set; }
-    public MobileDevice Device { get; set; } = null!;
+    public required MobileDevice Device { get; set; }
     public DateTime StartedAt { get; set; }
     public DateTime? LastActivityAt { get; set; }
     public RemoteControlMode CurrentMode { get; set; }

@@ -31,7 +31,7 @@ public static class DatabaseInitializer
             await BackfillMigrationHistoryForLegacySqliteAsync(context, logger).ConfigureAwait(false);
 
             // Ensure database is created and migrations are applied
-            await context.Database.MigrateAsync().ConfigureAwait(false);
+            await ApplyMigrationsWithRetryAsync(context, logger).ConfigureAwait(false);
             logger.LogInformation("Database migrations applied successfully");
 
             // Run seeders
@@ -43,6 +43,106 @@ public static class DatabaseInitializer
         {
             logger.LogError(ex, "An error occurred while initializing the database");
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Applies migrations with retry logic for schema drift scenarios.
+    /// Handles cases where legacy databases have tables but missing columns.
+    /// </summary>
+    private static async Task ApplyMigrationsWithRetryAsync(SaveStateDbContext context, ILogger logger)
+    {
+        try
+        {
+            await context.Database.MigrateAsync().ConfigureAwait(false);
+        }
+        catch (Microsoft.Data.Sqlite.SqliteException ex) when (ex.SqliteErrorCode == 1)
+        {
+            // SQLite Error 1: Generic error - often indicates schema mismatch
+            // (e.g., missing columns from owned entity types in legacy databases)
+            logger.LogWarning(ex, "Initial migration failed due to schema mismatch. Attempting recovery...");
+
+            if (context.Database.IsSqlite())
+            {
+                await HandleSchemaMismatchAsync(context, logger).ConfigureAwait(false);
+            }
+            else
+            {
+                throw;
+            }
+        }
+        catch (Exception ex) when (ex.Message.Contains("NOT NULL constraint failed") && context.Database.IsSqlite())
+        {
+            // Handle NOT NULL constraint failures (e.g., missing owned entity values)
+            logger.LogWarning(ex, "Migration failed due to NOT NULL constraint. Attempting recovery...");
+            await HandleSchemaMismatchAsync(context, logger).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Attempts to recover from schema mismatches by adding missing columns.
+    /// This handles legacy databases created before owned entity types were added.
+    /// </summary>
+    private static async Task HandleSchemaMismatchAsync(SaveStateDbContext context, ILogger logger)
+    {
+        var connection = context.Database.GetDbConnection();
+        var shouldClose = connection.State != ConnectionState.Open;
+        if (shouldClose)
+        {
+            await connection.OpenAsync().ConfigureAwait(false);
+        }
+
+        try
+        {
+            // Check for missing PaletteInfo columns on MugenCharacters
+            await AddColumnIfMissingAsync(connection, "MugenCharacters", "PaletteInfo_PaletteCount", "INTEGER NOT NULL DEFAULT 1", logger);
+            await AddColumnIfMissingAsync(connection, "MugenCharacters", "PaletteInfo_PaletteFile", "TEXT", logger);
+
+            // Check for missing ArcadeInfo columns on MugenCharacters
+            await AddColumnIfMissingAsync(connection, "MugenCharacters", "ArcadeInfo_IntroStoryboard", "INTEGER NOT NULL DEFAULT 0", logger);
+            await AddColumnIfMissingAsync(connection, "MugenCharacters", "ArcadeInfo_EndingStoryboard", "INTEGER NOT NULL DEFAULT 0", logger);
+
+            // Check for missing CharacterDirectories columns on MugenCharacters
+            await AddColumnIfMissingAsync(connection, "MugenCharacters", "Directories_SpriteDirectory", "TEXT", logger);
+            await AddColumnIfMissingAsync(connection, "MugenCharacters", "Directories_SoundDirectory", "TEXT", logger);
+            await AddColumnIfMissingAsync(connection, "MugenCharacters", "Directories_PaletteDirectory", "TEXT", logger);
+
+            logger.LogInformation("Schema mismatch recovery completed. Retrying migrations...");
+
+            // Retry migrations after fixing schema
+            await context.Database.MigrateAsync().ConfigureAwait(false);
+        }
+        finally
+        {
+            if (shouldClose)
+            {
+                await connection.CloseAsync().ConfigureAwait(false);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Adds a column to a table if it doesn't already exist.
+    /// </summary>
+    private static async Task AddColumnIfMissingAsync(DbConnection connection, string tableName, string columnName, string columnType, ILogger logger)
+    {
+        var checkColumnSql = $@"
+            SELECT COUNT(1)
+            FROM pragma_table_info('{tableName}')
+            WHERE name = '{columnName}';";
+
+        await using var checkCommand = connection.CreateCommand();
+        checkCommand.CommandText = checkColumnSql;
+        var result = await checkCommand.ExecuteScalarAsync().ConfigureAwait(false);
+        var columnExists = Convert.ToInt32(result) > 0;
+
+        if (!columnExists)
+        {
+            var alterSql = $"ALTER TABLE \"{tableName}\" ADD COLUMN \"{columnName}\" {columnType};";
+            await using var alterCommand = connection.CreateCommand();
+            alterCommand.CommandText = alterSql;
+            await alterCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
+            logger.LogInformation("Added missing column {ColumnName} to {TableName}", columnName, tableName);
         }
     }
 

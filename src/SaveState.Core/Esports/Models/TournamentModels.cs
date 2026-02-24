@@ -60,7 +60,7 @@ public record Tournament
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public GameInfo Game { get; set; } = null!;
+    public required GameInfo Game { get; set; }
     public TournamentFormat Format { get; set; }
     public TournamentStatus Status { get; set; }
     public DateTime StartDate { get; set; }
@@ -157,7 +157,7 @@ public record MatchGame
 /// </summary>
 public record MatchResult
 {
-    public Participant Winner { get; set; } = null!;
+    public required Participant Winner { get; set; }
     public int Player1Score { get; set; }
     public int Player2Score { get; set; }
     public MatchResultType Type { get; set; }

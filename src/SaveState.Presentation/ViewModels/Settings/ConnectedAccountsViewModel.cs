@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Sync;
 using SaveState.Presentation.Models.Accounts;
 using SaveState.Presentation.Services;
@@ -18,6 +19,7 @@ public partial class ConnectedAccountsViewModel : ObservableObject
     private readonly ICloudAuthenticationService? _cloudAuthenticationService;
     private readonly ISyncService? _syncService;
     private readonly IDialogService? _dialogService;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private ObservableCollection<AccountConnectionStatus> _gamingPlatforms = new();
@@ -75,6 +77,7 @@ public partial class ConnectedAccountsViewModel : ObservableObject
         _cloudAuthenticationService = null;
         _syncService = null;
         _dialogService = null;
+        _timeProvider = SystemTimeProvider.Instance;
         InitializeSampleData();
     }
 
@@ -85,12 +88,14 @@ public partial class ConnectedAccountsViewModel : ObservableObject
         INotificationService notificationService,
         ICloudAuthenticationService? cloudAuthenticationService = null,
         ISyncService? syncService = null,
-        IDialogService? dialogService = null)
+        IDialogService? dialogService = null,
+        ITimeProvider? timeProvider = null)
     {
         _notificationService = notificationService;
         _cloudAuthenticationService = cloudAuthenticationService;
         _syncService = syncService;
         _dialogService = dialogService;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
         InitializeSampleData();
     }
 
@@ -193,7 +198,7 @@ public partial class ConnectedAccountsViewModel : ObservableObject
             {
                 SteamStatus.Status = ConnectionStatus.Connected;
                 SteamStatus.Username = result.Username;
-                SteamStatus.ConnectedSince = DateTime.UtcNow;
+                SteamStatus.ConnectedSince = _timeProvider.UtcNow;
                 SteamStatus.CanSync = true;
                 SteamStatus.AvatarUrl = result.ProfileImageUrl;
                 await _notificationService!.ShowNotificationAsync("Steam account connected successfully!", "Account Linked");
@@ -235,7 +240,7 @@ public partial class ConnectedAccountsViewModel : ObservableObject
             {
                 GogStatus.Status = ConnectionStatus.Connected;
                 GogStatus.Username = result.Username;
-                GogStatus.ConnectedSince = DateTime.UtcNow;
+                GogStatus.ConnectedSince = _timeProvider.UtcNow;
                 GogStatus.CanSync = true;
                 await _notificationService!.ShowNotificationAsync("GOG account connected successfully!", "Account Linked");
             }
@@ -270,7 +275,7 @@ public partial class ConnectedAccountsViewModel : ObservableObject
             {
                 EpicStatus.Status = ConnectionStatus.Connected;
                 EpicStatus.Username = result.Username;
-                EpicStatus.ConnectedSince = DateTime.UtcNow;
+                EpicStatus.ConnectedSince = _timeProvider.UtcNow;
                 EpicStatus.CanSync = true;
                 await _notificationService!.ShowNotificationAsync("Epic Games account connected successfully!", "Account Linked");
             }
@@ -305,7 +310,7 @@ public partial class ConnectedAccountsViewModel : ObservableObject
             {
                 RetroAchievementsStatus.Status = ConnectionStatus.Connected;
                 RetroAchievementsStatus.Username = result.Username;
-                RetroAchievementsStatus.ConnectedSince = DateTime.UtcNow;
+                RetroAchievementsStatus.ConnectedSince = _timeProvider.UtcNow;
                 RetroAchievementsStatus.CanSync = true;
                 RetroAchievementsStatus.AvatarUrl = result.ProfileImageUrl;
                 await _notificationService!.ShowNotificationAsync("RetroAchievements account connected successfully!", "Account Linked");
@@ -341,7 +346,7 @@ public partial class ConnectedAccountsViewModel : ObservableObject
             {
                 DiscordStatus.Status = ConnectionStatus.Connected;
                 DiscordStatus.Username = result.Username;
-                DiscordStatus.ConnectedSince = DateTime.UtcNow;
+                DiscordStatus.ConnectedSince = _timeProvider.UtcNow;
                 await _notificationService!.ShowNotificationAsync("Discord connected successfully!", "Account Linked");
             }
         }

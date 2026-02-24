@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Models.Health;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -38,6 +39,7 @@ public partial class ErrorLogViewerDialogViewModel : ObservableObject
 {
     private readonly ObservableCollection<ErrorLogEntry> _allErrors = new();
     private readonly IErrorLogService? _errorLogService;
+    private readonly ITimeProvider _timeProvider;
 
     /// <summary>Collection of filtered error log entries.</summary>
     [ObservableProperty]
@@ -84,9 +86,10 @@ public partial class ErrorLogViewerDialogViewModel : ObservableObject
     /// <summary>
     /// Initializes a new instance of the <see cref="ErrorLogViewerDialogViewModel"/> class.
     /// </summary>
-    public ErrorLogViewerDialogViewModel(IErrorLogService? errorLogService = null)
+    public ErrorLogViewerDialogViewModel(IErrorLogService? errorLogService = null, ITimeProvider? timeProvider = null)
     {
         _errorLogService = errorLogService;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
         InitializeSampleData();
         _ = LoadErrorsAsync();
     }
@@ -97,7 +100,7 @@ public partial class ErrorLogViewerDialogViewModel : ObservableObject
         {
             new()
             {
-                Timestamp = DateTime.Now.AddHours(-1),
+                Timestamp = _timeProvider.Now.AddHours(-1),
                 Component = "Steam API",
                 Message = "Connection timeout during sync",
                 Severity = ErrorSeverity.Warning,
@@ -105,14 +108,14 @@ public partial class ErrorLogViewerDialogViewModel : ObservableObject
             },
             new()
             {
-                Timestamp = DateTime.Now.AddHours(-2),
+                Timestamp = _timeProvider.Now.AddHours(-2),
                 Component = "Database",
                 Message = "Query took longer than expected (>5s)",
                 Severity = ErrorSeverity.Info
             },
             new()
             {
-                Timestamp = DateTime.Now.AddHours(-3),
+                Timestamp = _timeProvider.Now.AddHours(-3),
                 Component = "Cover Downloader",
                 Message = "Image decode failed for game ID 12345",
                 Severity = ErrorSeverity.Error,
@@ -120,21 +123,21 @@ public partial class ErrorLogViewerDialogViewModel : ObservableObject
             },
             new()
             {
-                Timestamp = DateTime.Now.AddHours(-4),
+                Timestamp = _timeProvider.Now.AddHours(-4),
                 Component = "Sync Service",
                 Message = "Cloud sync rate limit exceeded",
                 Severity = ErrorSeverity.Warning
             },
             new()
             {
-                Timestamp = DateTime.Now.AddHours(-5),
+                Timestamp = _timeProvider.Now.AddHours(-5),
                 Component = "Database",
                 Message = "Backup completed successfully",
                 Severity = ErrorSeverity.Info
             },
             new()
             {
-                Timestamp = DateTime.Now.AddDays(-1),
+                Timestamp = _timeProvider.Now.AddDays(-1),
                 Component = "Discord RPC",
                 Message = "Failed to initialize Discord connection",
                 Severity = ErrorSeverity.Error
@@ -266,7 +269,7 @@ public partial class ErrorLogViewerDialogViewModel : ObservableObject
             {
                 Title = "Export Error Log",
                 DefaultExtension = ".txt",
-                SuggestedFileName = $"error_log_{DateTime.Now:yyyyMMdd_HHmmss}",
+                SuggestedFileName = $"error_log_{_timeProvider.Now:yyyyMMdd_HHmmss}",
                 FileTypeChoices = new List<FilePickerFileType>
                 {
                     new FilePickerFileType("Text Files") { Patterns = new[] { "*.txt" } },
@@ -301,7 +304,7 @@ public partial class ErrorLogViewerDialogViewModel : ObservableObject
     private string ExportAsText()
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"Error Log Export - {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+        sb.AppendLine($"Error Log Export - {_timeProvider.Now:yyyy-MM-dd HH:mm:ss}");
         sb.AppendLine(new string('=', 80));
         sb.AppendLine();
 

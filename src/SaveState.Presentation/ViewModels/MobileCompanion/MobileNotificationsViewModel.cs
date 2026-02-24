@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Models.Mobile;
 using System.Collections.ObjectModel;
 
@@ -14,6 +15,7 @@ public partial class MobileNotificationsViewModel : ObservableObject
 {
     private readonly ILogger<MobileNotificationsViewModel> _logger;
     private readonly IMobileCompanionService? _companionService;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private ObservableCollection<CompanionNotification> _notifications = new();
@@ -51,10 +53,12 @@ public partial class MobileNotificationsViewModel : ObservableObject
 
     public MobileNotificationsViewModel(
         ILogger<MobileNotificationsViewModel> logger,
-        IMobileCompanionService? companionService = null)
+        IMobileCompanionService? companionService = null,
+        ITimeProvider? timeProvider = null)
     {
         _logger = logger;
         _companionService = companionService;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
         _ = InitializeAsync();
     }
 
@@ -313,7 +317,7 @@ public partial class MobileNotificationsViewModel : ObservableObject
                 Title = "Achievement Unlocked!",
                 Message = "You earned 'First Blood' in Elden Ring",
                 Type = "Achievement",
-                Timestamp = DateTime.Now.AddMinutes(-5),
+                Timestamp = _timeProvider.UtcNow.AddMinutes(-5),
                 IsRead = false,
                 ActionUrl = "savestate://games/elden-ring/achievements"
             },
@@ -323,7 +327,7 @@ public partial class MobileNotificationsViewModel : ObservableObject
                 Title = "Save State Created",
                 Message = "Auto-save: Before Malenia boss fight",
                 Type = "SaveState",
-                Timestamp = DateTime.Now.AddHours(-1),
+                Timestamp = _timeProvider.UtcNow.AddHours(-1),
                 IsRead = false,
                 ActionUrl = "savestate://games/elden-ring/saves"
             },
@@ -333,7 +337,7 @@ public partial class MobileNotificationsViewModel : ObservableObject
                 Title = "Game Launch Complete",
                 Message = "Hades II is now ready to play",
                 Type = "Game",
-                Timestamp = DateTime.Now.AddHours(-2),
+                Timestamp = _timeProvider.UtcNow.AddHours(-2),
                 IsRead = true,
                 ActionUrl = "savestate://games/hades-2"
             },
@@ -343,7 +347,7 @@ public partial class MobileNotificationsViewModel : ObservableObject
                 Title = "Screenshot Captured",
                 Message = "Screenshot saved to Cyberpunk 2077 gallery",
                 Type = "Game",
-                Timestamp = DateTime.Now.AddHours(-3),
+                Timestamp = _timeProvider.UtcNow.AddHours(-3),
                 IsRead = true,
                 ActionUrl = "savestate://games/cyberpunk/screenshots"
             },
@@ -353,7 +357,7 @@ public partial class MobileNotificationsViewModel : ObservableObject
                 Title = "System Update Available",
                 Message = "SaveState Reborn 2.5.3 is available",
                 Type = "System",
-                Timestamp = DateTime.Now.AddDays(-1),
+                Timestamp = _timeProvider.UtcNow.AddDays(-1),
                 IsRead = true,
                 ActionUrl = "savestate://settings/updates"
             },
@@ -363,7 +367,7 @@ public partial class MobileNotificationsViewModel : ObservableObject
                 Title = "Cloud Sync Complete",
                 Message = "3 save states synced successfully",
                 Type = "SaveState",
-                Timestamp = DateTime.Now.AddDays(-1).AddHours(-2),
+                Timestamp = _timeProvider.UtcNow.AddDays(-1).AddHours(-2),
                 IsRead = true,
                 ActionUrl = "savestate://cloud-sync"
             },
@@ -373,7 +377,7 @@ public partial class MobileNotificationsViewModel : ObservableObject
                 Title = "Playtime Milestone",
                 Message = "You've played 100 hours of Baldur's Gate 3!",
                 Type = "Achievement",
-                Timestamp = DateTime.Now.AddDays(-2),
+                Timestamp = _timeProvider.UtcNow.AddDays(-2),
                 IsRead = true,
                 ActionUrl = "savestate://games/bg3"
             }

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Models.Mobile;
 using System.Collections.ObjectModel;
 
@@ -14,6 +15,7 @@ public partial class MobileScreenshotsViewModel : ObservableObject
 {
     private readonly ILogger<MobileScreenshotsViewModel> _logger;
     private readonly IMobileCompanionService? _companionService;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private ObservableCollection<ScreenshotInfo> _screenshots = new();
@@ -47,10 +49,12 @@ public partial class MobileScreenshotsViewModel : ObservableObject
 
     public MobileScreenshotsViewModel(
         ILogger<MobileScreenshotsViewModel> logger,
-        IMobileCompanionService? companionService = null)
+        IMobileCompanionService? companionService = null,
+        ITimeProvider? timeProvider = null)
     {
         _logger = logger;
         _companionService = companionService;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
         _ = InitializeAsync();
     }
 
@@ -92,7 +96,7 @@ public partial class MobileScreenshotsViewModel : ObservableObject
                 Id = Guid.NewGuid().ToString(),
                 GameId = SelectedGame,
                 GameTitle = SelectedGame,
-                CapturedAt = DateTime.Now,
+                CapturedAt = _timeProvider.Now,
                 Resolution = "1920x1080",
                 FileSize = 1024 * 1024 * 2
             };
@@ -363,7 +367,7 @@ public partial class MobileScreenshotsViewModel : ObservableObject
                 Id = "1",
                 GameId = "elden-ring",
                 GameTitle = "Elden Ring",
-                CapturedAt = DateTime.Now.AddHours(-1),
+                CapturedAt = _timeProvider.Now.AddHours(-1),
                 Resolution = "2560x1440",
                 FileSize = 1024 * 1024 * 3
             },
@@ -372,7 +376,7 @@ public partial class MobileScreenshotsViewModel : ObservableObject
                 Id = "2",
                 GameId = "elden-ring",
                 GameTitle = "Elden Ring",
-                CapturedAt = DateTime.Now.AddHours(-3),
+                CapturedAt = _timeProvider.Now.AddHours(-3),
                 Resolution = "2560x1440",
                 FileSize = 1024 * 1024 * 2
             },
@@ -381,7 +385,7 @@ public partial class MobileScreenshotsViewModel : ObservableObject
                 Id = "3",
                 GameId = "hades-2",
                 GameTitle = "Hades II",
-                CapturedAt = DateTime.Now.AddDays(-1),
+                CapturedAt = _timeProvider.Now.AddDays(-1),
                 Resolution = "1920x1080",
                 FileSize = 1024 * 1024 * 1
             },
@@ -390,7 +394,7 @@ public partial class MobileScreenshotsViewModel : ObservableObject
                 Id = "4",
                 GameId = "bg3",
                 GameTitle = "Baldur's Gate 3",
-                CapturedAt = DateTime.Now.AddDays(-2),
+                CapturedAt = _timeProvider.Now.AddDays(-2),
                 Resolution = "3840x2160",
                 FileSize = 1024 * 1024 * 5
             },
@@ -399,7 +403,7 @@ public partial class MobileScreenshotsViewModel : ObservableObject
                 Id = "5",
                 GameId = "cyberpunk",
                 GameTitle = "Cyberpunk 2077",
-                CapturedAt = DateTime.Now.AddDays(-5),
+                CapturedAt = _timeProvider.Now.AddDays(-5),
                 Resolution = "2560x1440",
                 FileSize = 1024 * 1024 * 4
             },
@@ -408,7 +412,7 @@ public partial class MobileScreenshotsViewModel : ObservableObject
                 Id = "6",
                 GameId = "cyberpunk",
                 GameTitle = "Cyberpunk 2077",
-                CapturedAt = DateTime.Now.AddDays(-6),
+                CapturedAt = _timeProvider.Now.AddDays(-6),
                 Resolution = "2560x1440",
                 FileSize = 1024 * 1024 * 3
             }

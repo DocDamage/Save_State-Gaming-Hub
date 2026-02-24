@@ -2,6 +2,7 @@ using System.Globalization;
 using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using SaveState.Core.Common.Services;
 using SettingsHealth = SaveState.Presentation.ViewModels.Settings;
 
 namespace SaveState.Presentation.Converters;
@@ -230,7 +231,7 @@ public class RelativeTimeConverter : IValueConverter
             }
         }
 
-        var now = DateTime.Now;
+        var now = SystemTimeProvider.Instance.Now;
         var diff = now - dt;
 
         if (diff.TotalSeconds < 60)

@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.WebBrowser.Models;
 using SaveState.Core.WebBrowser.Services;
 using SaveState.Infrastructure.WebBrowser.Handlers;
@@ -18,6 +19,7 @@ namespace SaveState.Infrastructure.WebBrowser.Services;
 public sealed class CefSharpBrowserService : IBrowserService, IDisposable
 {
     private readonly ILogger<CefSharpBrowserService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly ConcurrentDictionary<Guid, BrowserTabInstance> _tabs = new();
     private readonly ConcurrentDictionary<Guid, BrowserDownload> _downloads = new();
     private readonly List<BrowserBookmark> _bookmarks = new();
@@ -50,9 +52,10 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
     public event EventHandler<OAuthCallback>? OAuthCallbackReceived;
     public event EventHandler<(Guid TabId, List<BrowserContextMenuItem> MenuItems)>? ContextMenuRequested;
 
-    public CefSharpBrowserService(ILogger<CefSharpBrowserService> logger)
+    public CefSharpBrowserService(ILogger<CefSharpBrowserService> logger, ITimeProvider timeProvider)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
     }
 
     public Task<Result> InitializeAsync(BrowserSettingsModel? settings = null)
@@ -172,7 +175,7 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
             var requestContext = new RequestContext(requestContextSettings);
             
             // Create handlers
-            var downloadHandler = new CustomDownloadHandler(_logger, OnDownloadStarted, OnDownloadProgress, OnDownloadCompleted);
+            var downloadHandler = new CustomDownloadHandler(_logger, _timeProvider, OnDownloadStarted, OnDownloadProgress, OnDownloadCompleted);
             var lifeSpanHandler = new CustomLifeSpanHandler(_logger, OnPopup, OnBeforePopupClose);
             var displayHandler = new CustomDisplayHandler(_logger, OnAddressChanged, OnTitleChanged, OnLoadingProgress, OnLoadingStateChanged);
             var contextMenuHandler = new CustomContextMenuHandler(_logger, OnContextMenuRequested);
@@ -554,7 +557,7 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
                 Title = title,
                 Url = url,
                 Folder = folder,
-                CreatedAt = DateTime.Now
+                CreatedAt = _timeProvider.Now
             };
             _bookmarks.Add(bookmark);
         }
@@ -566,7 +569,7 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
     {
         lock (_bookmarkLock)
         {
-            bookmark.CreatedAt = DateTime.Now;
+            bookmark.CreatedAt = _timeProvider.Now;
             _bookmarks.Add(bookmark);
             return Task.FromResult(Result<BrowserBookmark>.Success(bookmark));
         }
@@ -658,7 +661,7 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
             if (existing != null)
             {
                 existing.VisitCount++;
-                existing.VisitedAt = DateTime.Now;
+                existing.VisitedAt = _timeProvider.Now;
             }
             else
             {
@@ -666,7 +669,7 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
                 {
                     Title = title,
                     Url = url,
-                    VisitedAt = DateTime.Now
+                    VisitedAt = _timeProvider.Now
                 });
             }
         }
@@ -1051,7 +1054,7 @@ public sealed class CefSharpBrowserService : IBrowserService, IDisposable
             tab.IsActive = tab.Model.Id == tabId;
             if (tab.IsActive)
             {
-                tab.Model.LastActiveAt = DateTime.Now;
+                tab.Model.LastActiveAt = _timeProvider.Now;
                 ActiveTabChanged?.Invoke(this, tab.Model);
             }
         }

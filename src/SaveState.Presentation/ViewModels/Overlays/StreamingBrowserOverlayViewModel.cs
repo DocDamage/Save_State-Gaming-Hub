@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Services;
 
 namespace SaveState.Presentation.ViewModels.Overlays;
@@ -13,6 +14,7 @@ public partial class StreamingBrowserOverlayViewModel : ObservableObject
 {
     private readonly ILogger<StreamingBrowserOverlayViewModel> _logger;
     private readonly INotificationService _notificationService;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private string _currentUrl = "about:blank";
@@ -67,10 +69,12 @@ public partial class StreamingBrowserOverlayViewModel : ObservableObject
 
     public StreamingBrowserOverlayViewModel(
         ILogger<StreamingBrowserOverlayViewModel> logger,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        ITimeProvider? timeProvider = null)
     {
         _logger = logger;
         _notificationService = notificationService;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
 
         LoadQuickLinks();
         LoadMockChat();
@@ -144,7 +148,7 @@ public partial class StreamingBrowserOverlayViewModel : ObservableObject
             Color = "#FF6B6B",
             IsModerator = false,
             IsSubscriber = true,
-            Timestamp = DateTime.Now.AddMinutes(-5)
+            Timestamp = _timeProvider.Now.AddMinutes(-5)
         });
 
         ChatMessages.Add(new StreamChatMessage
@@ -154,7 +158,7 @@ public partial class StreamingBrowserOverlayViewModel : ObservableObject
             Color = "#4ECDC4",
             IsModerator = true,
             IsSubscriber = true,
-            Timestamp = DateTime.Now.AddMinutes(-3)
+            Timestamp = _timeProvider.Now.AddMinutes(-3)
         });
 
         ChatMessages.Add(new StreamChatMessage
@@ -164,7 +168,7 @@ public partial class StreamingBrowserOverlayViewModel : ObservableObject
             Color = "#95E1D3",
             IsModerator = false,
             IsSubscriber = false,
-            Timestamp = DateTime.Now.AddMinutes(-1)
+            Timestamp = _timeProvider.Now.AddMinutes(-1)
         });
     }
 
@@ -232,7 +236,7 @@ public partial class StreamingBrowserOverlayViewModel : ObservableObject
             Message = message,
             Color = "#FFD93D",
             IsStreamer = true,
-            Timestamp = DateTime.Now
+            Timestamp = _timeProvider.Now
         });
     }
 

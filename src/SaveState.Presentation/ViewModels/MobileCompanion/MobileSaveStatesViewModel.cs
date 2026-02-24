@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Models.Mobile;
 using System.Collections.ObjectModel;
 
@@ -14,6 +15,7 @@ public partial class MobileSaveStatesViewModel : ObservableObject
 {
     private readonly ILogger<MobileSaveStatesViewModel> _logger;
     private readonly IMobileCompanionService? _companionService;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private ObservableCollection<SaveStateInfo> _saveStates = new();
@@ -47,10 +49,12 @@ public partial class MobileSaveStatesViewModel : ObservableObject
 
     public MobileSaveStatesViewModel(
         ILogger<MobileSaveStatesViewModel> logger,
-        IMobileCompanionService? companionService = null)
+        IMobileCompanionService? companionService = null,
+        ITimeProvider? timeProvider = null)
     {
         _logger = logger;
         _companionService = companionService;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
         _ = InitializeAsync();
     }
 
@@ -136,7 +140,7 @@ public partial class MobileSaveStatesViewModel : ObservableObject
                 GameTitle = SelectedGame,
                 Name = NewSaveStateName,
                 Description = NewSaveStateDescription,
-                CreatedAt = DateTime.Now,
+                CreatedAt = _timeProvider.Now,
                 IsCloudSynced = false,
                 FileSize = 1024 * 1024 * 15 // 15MB demo
             };
@@ -354,7 +358,7 @@ public partial class MobileSaveStatesViewModel : ObservableObject
                 GameTitle = SelectedGame,
                 Name = "Boss Fight - Phase 2",
                 Description = "Just before the final boss",
-                CreatedAt = DateTime.Now.AddHours(-2),
+                CreatedAt = _timeProvider.Now.AddHours(-2),
                 IsCloudSynced = true,
                 FileSize = 1024 * 1024 * 12
             },
@@ -365,7 +369,7 @@ public partial class MobileSaveStatesViewModel : ObservableObject
                 GameTitle = SelectedGame,
                 Name = "Exploring Caelid",
                 Description = "Found a secret area",
-                CreatedAt = DateTime.Now.AddDays(-1),
+                CreatedAt = _timeProvider.Now.AddDays(-1),
                 IsCloudSynced = true,
                 FileSize = 1024 * 1024 * 10
             },
@@ -376,7 +380,7 @@ public partial class MobileSaveStatesViewModel : ObservableObject
                 GameTitle = SelectedGame,
                 Name = "Character Build - Mage",
                 Description = "Full sorcery build at level 80",
-                CreatedAt = DateTime.Now.AddDays(-3),
+                CreatedAt = _timeProvider.Now.AddDays(-3),
                 IsCloudSynced = false,
                 FileSize = 1024 * 1024 * 15
             },
@@ -387,7 +391,7 @@ public partial class MobileSaveStatesViewModel : ObservableObject
                 GameTitle = SelectedGame,
                 Name = "New Game+ Start",
                 Description = "Beginning of second playthrough",
-                CreatedAt = DateTime.Now.AddDays(-7),
+                CreatedAt = _timeProvider.Now.AddDays(-7),
                 IsCloudSynced = true,
                 FileSize = 1024 * 1024 * 8
             }

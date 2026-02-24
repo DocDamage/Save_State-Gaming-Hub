@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Models.Security;
 using SaveState.Presentation.Services;
 using System.Collections.ObjectModel;
@@ -53,6 +54,7 @@ public partial class ApiKeyManagerViewModel : ObservableObject
     private readonly IClipboardService? _clipboardService;
     private readonly IDialogService? _dialogService;
     private readonly INotificationService? _notificationService;
+    private readonly ITimeProvider _timeProvider;
 
     /// <summary>Collection of API keys.</summary>
     [ObservableProperty]
@@ -124,6 +126,7 @@ public partial class ApiKeyManagerViewModel : ObservableObject
     [Obsolete("Design-time constructor only. Use the parameterized constructor in production code.")]
     public ApiKeyManagerViewModel()
     {
+        _timeProvider = SystemTimeProvider.Instance;
         InitializeSampleData();
     }
 
@@ -134,12 +137,14 @@ public partial class ApiKeyManagerViewModel : ObservableObject
         IClipboardService clipboardService,
         INotificationService notificationService,
         IApiKeyService? apiKeyService = null,
-        IDialogService? dialogService = null)
+        IDialogService? dialogService = null,
+        ITimeProvider? timeProvider = null)
     {
         _clipboardService = clipboardService;
         _notificationService = notificationService;
         _apiKeyService = apiKeyService;
         _dialogService = dialogService;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
         InitializeSampleData();
     }
 
@@ -153,8 +158,8 @@ public partial class ApiKeyManagerViewModel : ObservableObject
                 Name = "Plugin Dev",
                 Description = "Development key for plugin testing",
                 MaskedKey = "ssk_••••••••xxxx",
-                CreatedAt = DateTime.UtcNow.AddMonths(-1),
-                LastUsed = DateTime.UtcNow.AddDays(-1),
+                CreatedAt = _timeProvider.UtcNow.AddMonths(-1),
+                LastUsed = _timeProvider.UtcNow.AddDays(-1),
                 ExpiresAt = null,
                 Scopes = new() { "read:library", "write:games", "plugin:install" },
                 Permissions = new() { "read:library", "write:games", "plugin:install" },
@@ -167,9 +172,9 @@ public partial class ApiKeyManagerViewModel : ObservableObject
                 Name = "External App",
                 Description = "Integration with external dashboard",
                 MaskedKey = "ssk_••••••••yyyy",
-                CreatedAt = DateTime.UtcNow.AddDays(-20),
-                LastUsed = DateTime.UtcNow.AddHours(-2),
-                ExpiresAt = DateTime.UtcNow.AddDays(30),
+                CreatedAt = _timeProvider.UtcNow.AddDays(-20),
+                LastUsed = _timeProvider.UtcNow.AddHours(-2),
+                ExpiresAt = _timeProvider.UtcNow.AddDays(30),
                 Scopes = new() { "read:library", "read:savestates", "read:achievements" },
                 Permissions = new() { "read:library", "read:savestates", "read:achievements" },
                 IsActive = true,
@@ -181,9 +186,9 @@ public partial class ApiKeyManagerViewModel : ObservableObject
                 Name = "Automation",
                 Description = "CI/CD automation scripts",
                 MaskedKey = "ssk_••••••••zzzz",
-                CreatedAt = DateTime.UtcNow.AddDays(-60),
-                LastUsed = DateTime.UtcNow.AddDays(-45),
-                ExpiresAt = DateTime.UtcNow.AddDays(-5),
+                CreatedAt = _timeProvider.UtcNow.AddDays(-60),
+                LastUsed = _timeProvider.UtcNow.AddDays(-45),
+                ExpiresAt = _timeProvider.UtcNow.AddDays(-5),
                 Scopes = new() { "write:games", "api:full" },
                 Permissions = new() { "write:games", "api:full" },
                 IsActive = false,
@@ -195,9 +200,9 @@ public partial class ApiKeyManagerViewModel : ObservableObject
                 Name = "Mobile Sync",
                 Description = "Mobile app synchronization",
                 MaskedKey = "ssk_••••••••wwww",
-                CreatedAt = DateTime.UtcNow.AddDays(-5),
-                LastUsed = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddYears(1),
+                CreatedAt = _timeProvider.UtcNow.AddDays(-5),
+                LastUsed = _timeProvider.UtcNow,
+                ExpiresAt = _timeProvider.UtcNow.AddYears(1),
                 Scopes = new() { "read:library", "read:savestates", "write:savestates", "read:user" },
                 Permissions = new() { "read:library", "read:savestates", "write:savestates", "read:user" },
                 IsActive = true,
@@ -346,7 +351,7 @@ public partial class ApiKeyManagerViewModel : ObservableObject
                     Name = NewKeyName,
                     Description = NewKeyDescription,
                     MaskedKey = maskedKey,
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = _timeProvider.UtcNow,
                     ExpiresAt = NewKeyExpiresAt,
                     Scopes = new List<string>(NewKeyScopes),
                     Permissions = new List<string>(NewKeyScopes),
@@ -571,10 +576,10 @@ public partial class ApiKeyManagerViewModel : ObservableObject
     {
         NewKeyExpiresAt = duration switch
         {
-            "7days" => DateTime.UtcNow.AddDays(7),
-            "30days" => DateTime.UtcNow.AddDays(30),
-            "90days" => DateTime.UtcNow.AddDays(90),
-            "1year" => DateTime.UtcNow.AddYears(1),
+            "7days" => _timeProvider.UtcNow.AddDays(7),
+            "30days" => _timeProvider.UtcNow.AddDays(30),
+            "90days" => _timeProvider.UtcNow.AddDays(90),
+            "1year" => _timeProvider.UtcNow.AddYears(1),
             _ => null
         };
     }

@@ -403,7 +403,7 @@ public class MobileCompanionService : IMobileCompanionService
                 ["axisX"] = input.AxisX,
                 ["axisY"] = input.AxisY
             },
-            Timestamp = DateTime.UtcNow
+            Timestamp = _timeProvider.UtcNow
         };
 
         return SendCommandAsync(deviceId, command, ct);
@@ -423,7 +423,7 @@ public class MobileCompanionService : IMobileCompanionService
                 ["action"] = input.Action.ToString(),
                 ["fingerId"] = input.FingerId
             },
-            Timestamp = DateTime.UtcNow
+            Timestamp = _timeProvider.UtcNow
         };
 
         return SendCommandAsync(deviceId, command, ct);
@@ -442,7 +442,7 @@ public class MobileCompanionService : IMobileCompanionService
                 ["isPressed"] = input.IsPressed,
                 ["modifiers"] = input.Modifiers
             },
-            Timestamp = DateTime.UtcNow
+            Timestamp = _timeProvider.UtcNow
         };
 
         return SendCommandAsync(deviceId, command, ct);

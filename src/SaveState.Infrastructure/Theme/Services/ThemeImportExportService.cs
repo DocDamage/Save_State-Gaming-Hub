@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using System.Xml.Linq;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.Theme.Models;
 
 namespace SaveState.Infrastructure.Theme.Services;
@@ -65,6 +66,13 @@ public interface IThemeImportExportService
 public sealed class ThemeImportExportService : IThemeImportExportService
 {
     private readonly ILogger<ThemeImportExportService> _logger;
+    private readonly ITimeProvider _timeProvider;
+
+    public ThemeImportExportService(ILogger<ThemeImportExportService> logger, ITimeProvider timeProvider)
+    {
+        _logger = logger;
+        _timeProvider = timeProvider;
+    }
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -87,9 +95,8 @@ public sealed class ThemeImportExportService : IThemeImportExportService
         ThemeFormat.Xml
     };
 
-    public ThemeImportExportService(ILogger<ThemeImportExportService> logger)
+    public ThemeImportExportService(ILogger<ThemeImportExportService> logger) : this(logger, SystemTimeProvider.Instance)
     {
-        _logger = logger;
     }
 
     public Task<Result<string>> ExportAsync(ThemeDefinition theme, ThemeFormat format, CancellationToken cancellationToken = default)
@@ -425,7 +432,7 @@ public sealed class ThemeImportExportService : IThemeImportExportService
         return doc.ToString();
     }
 
-    private static ThemeDefinition ImportFromJson(string data)
+    private ThemeDefinition ImportFromJson(string data)
     {
         var theme = JsonSerializer.Deserialize<ThemeDefinition>(data, JsonOptions);
         if (theme == null)
@@ -434,13 +441,13 @@ public sealed class ThemeImportExportService : IThemeImportExportService
         // Ensure new ID for imported themes
         theme.Id = Guid.NewGuid();
         theme.IsBuiltIn = false;
-        theme.CreatedAt = DateTime.UtcNow;
+        theme.CreatedAt = _timeProvider.UtcNow;
         theme.ModifiedAt = theme.CreatedAt;
 
         return theme;
     }
 
-    private static ThemeDefinition ImportFromXml(string data)
+    private ThemeDefinition ImportFromXml(string data)
     {
         var doc = XDocument.Parse(data);
         var root = doc.Element("Theme") ?? throw new InvalidOperationException("Invalid XML: missing Theme element");
@@ -454,8 +461,8 @@ public sealed class ThemeImportExportService : IThemeImportExportService
             Colors = new ThemeColors(),
             Typography = new ThemeTypography(),
             Effects = new ThemeEffects(),
-            CreatedAt = DateTime.UtcNow,
-            ModifiedAt = DateTime.UtcNow
+            CreatedAt = _timeProvider.UtcNow,
+            ModifiedAt = _timeProvider.UtcNow
         };
 
         // Parse colors

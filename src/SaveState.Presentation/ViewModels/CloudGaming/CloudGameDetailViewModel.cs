@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Models.CloudGaming;
 
 namespace SaveState.Presentation.ViewModels.CloudGaming;
@@ -11,13 +12,15 @@ namespace SaveState.Presentation.ViewModels.CloudGaming;
 public partial class CloudGameDetailViewModel : ObservableObject
 {
     private readonly ILogger<CloudGameDetailViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     /// <summary>
     /// Initializes a new instance of the CloudGameDetailViewModel.
     /// </summary>
-    public CloudGameDetailViewModel(ILogger<CloudGameDetailViewModel> logger)
+    public CloudGameDetailViewModel(ILogger<CloudGameDetailViewModel> logger, ITimeProvider? timeProvider = null)
     {
         _logger = logger;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
     }
 
     #region Observable Properties
@@ -72,7 +75,7 @@ public partial class CloudGameDetailViewModel : ObservableObject
         {
             if (Game?.LastPlayed is null) return "Never played";
 
-            var diff = DateTime.UtcNow - Game.LastPlayed.Value;
+            var diff = _timeProvider.UtcNow - Game.LastPlayed.Value;
             if (diff.TotalMinutes < 60) return $"{diff.TotalMinutes:F0}m ago";
             if (diff.TotalHours < 24) return $"{diff.TotalHours:F0}h ago";
             return $"{diff.TotalDays:F0}d ago";

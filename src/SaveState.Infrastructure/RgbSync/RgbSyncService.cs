@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Core.RgbSync.Models;
 using SaveState.Core.RgbSync.Services;
 
@@ -11,6 +12,7 @@ namespace SaveState.Infrastructure.RgbSync;
 public sealed class RgbSyncService : IRgbSyncService
 {
     private readonly ILogger<RgbSyncService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly List<IRgbProvider> _providers;
     private readonly HashSet<string> _enabledProviders = new();
     private readonly List<RgbDevice> _devices = new();
@@ -22,9 +24,11 @@ public sealed class RgbSyncService : IRgbSyncService
 
     public RgbSyncService(
         ILogger<RgbSyncService> logger,
+        ITimeProvider timeProvider,
         IEnumerable<IRgbProvider> providers)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         _providers = providers?.ToList() ?? new List<IRgbProvider>();
     }
 
@@ -292,8 +296,8 @@ public sealed class RgbSyncService : IRgbSyncService
         {
             Id = Guid.NewGuid(),
             Name = name,
-            CreatedAt = DateTime.UtcNow,
-            ModifiedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
+            ModifiedAt = _timeProvider.UtcNow,
             DeviceEffects = new Dictionary<Guid, RgbEffect>(),
             IsDefault = false
         };
@@ -369,8 +373,8 @@ public sealed class RgbSyncService : IRgbSyncService
         {
             Id = Guid.NewGuid(),
             Name = newName,
-            CreatedAt = DateTime.UtcNow,
-            ModifiedAt = DateTime.UtcNow,
+            CreatedAt = _timeProvider.UtcNow,
+            ModifiedAt = _timeProvider.UtcNow,
             DeviceEffects = new Dictionary<Guid, RgbEffect>(profile.DeviceEffects),
             IsDefault = false
         };
@@ -417,8 +421,8 @@ public sealed class RgbSyncService : IRgbSyncService
 
             // Generate new ID to avoid conflicts
             profile.Id = Guid.NewGuid();
-            profile.CreatedAt = DateTime.UtcNow;
-            profile.ModifiedAt = DateTime.UtcNow;
+            profile.CreatedAt = _timeProvider.UtcNow;
+            profile.ModifiedAt = _timeProvider.UtcNow;
             profile.IsDefault = false;
 
             _profiles.Add(profile);

@@ -1,5 +1,6 @@
 using CefSharp;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.WebBrowser.Models;
 
 namespace SaveState.Infrastructure.WebBrowser.Handlers;
@@ -10,6 +11,7 @@ namespace SaveState.Infrastructure.WebBrowser.Handlers;
 public sealed class CustomDownloadHandler : IDownloadHandler
 {
     private readonly ILogger _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Action<BrowserDownload> _onDownloadStarted;
     private readonly Action<BrowserDownload> _onDownloadProgress;
     private readonly Action<BrowserDownload> _onDownloadCompleted;
@@ -17,11 +19,13 @@ public sealed class CustomDownloadHandler : IDownloadHandler
 
     public CustomDownloadHandler(
         ILogger logger,
+        ITimeProvider timeProvider,
         Action<BrowserDownload> onDownloadStarted,
         Action<BrowserDownload> onDownloadProgress,
         Action<BrowserDownload> onDownloadCompleted)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         _onDownloadStarted = onDownloadStarted ?? throw new ArgumentNullException(nameof(onDownloadStarted));
         _onDownloadProgress = onDownloadProgress ?? throw new ArgumentNullException(nameof(onDownloadProgress));
         _onDownloadCompleted = onDownloadCompleted ?? throw new ArgumentNullException(nameof(onDownloadCompleted));
@@ -47,7 +51,7 @@ public sealed class CustomDownloadHandler : IDownloadHandler
             MimeType = downloadItem.MimeType,
             TotalBytes = downloadItem.TotalBytes,
             State = DownloadState.InProgress,
-            StartedAt = DateTime.Now
+            StartedAt = _timeProvider.Now
         };
 
         lock (_activeDownloads)
@@ -89,7 +93,7 @@ public sealed class CustomDownloadHandler : IDownloadHandler
         {
             download.State = downloadItem.IsCancelled ? DownloadState.Canceled : 
                             downloadItem.FullPath != null ? DownloadState.Completed : DownloadState.Failed;
-            download.CompletedAt = DateTime.Now;
+            download.CompletedAt = _timeProvider.Now;
             
             if (download.State == DownloadState.Completed)
             {

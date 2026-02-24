@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using System.Text;
 using System.Text.Json;
 
@@ -18,10 +19,12 @@ namespace SaveState.Presentation.Services.Accessibility;
 public class AccessibilityAuditor
 {
     private readonly ILogger<AccessibilityAuditor> _logger;
+    private readonly ITimeProvider _timeProvider;
 
-    public AccessibilityAuditor(ILogger<AccessibilityAuditor> logger)
+    public AccessibilityAuditor(ILogger<AccessibilityAuditor> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -33,7 +36,7 @@ public class AccessibilityAuditor
     {
         var result = new AccessibilityAuditResult
         {
-            AuditDate = DateTime.UtcNow,
+            AuditDate = _timeProvider.UtcNow,
             TotalElements = 0
         };
 

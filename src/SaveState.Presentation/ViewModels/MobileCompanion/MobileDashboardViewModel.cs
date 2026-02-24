@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Models.Mobile;
 using System.Collections.ObjectModel;
 
@@ -14,6 +15,7 @@ public partial class MobileDashboardViewModel : ObservableObject
 {
     private readonly ILogger<MobileDashboardViewModel> _logger;
     private readonly IMobileCompanionService? _companionService;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private SystemStatus _systemStatus = new();
@@ -44,10 +46,12 @@ public partial class MobileDashboardViewModel : ObservableObject
 
     public MobileDashboardViewModel(
         ILogger<MobileDashboardViewModel> logger,
-        IMobileCompanionService? companionService = null)
+        IMobileCompanionService? companionService = null,
+        ITimeProvider? timeProvider = null)
     {
         _logger = logger;
         _companionService = companionService;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
         _ = InitializeAsync();
     }
 
@@ -336,7 +340,7 @@ public partial class MobileDashboardViewModel : ObservableObject
                     Title = "Elden Ring",
                     Platform = "Steam",
                     TotalPlayTime = TimeSpan.FromHours(45),
-                    LastPlayedAt = DateTime.Now.AddHours(-2)
+                    LastPlayedAt = _timeProvider.Now.AddHours(-2)
                 },
                 new GameSummary
                 {
@@ -344,7 +348,7 @@ public partial class MobileDashboardViewModel : ObservableObject
                     Title = "Hades II",
                     Platform = "Steam",
                     TotalPlayTime = TimeSpan.FromHours(23),
-                    LastPlayedAt = DateTime.Now.AddDays(-1)
+                    LastPlayedAt = _timeProvider.Now.AddDays(-1)
                 },
                 new GameSummary
                 {
@@ -352,7 +356,7 @@ public partial class MobileDashboardViewModel : ObservableObject
                     Title = "Baldur's Gate 3",
                     Platform = "Steam",
                     TotalPlayTime = TimeSpan.FromHours(120),
-                    LastPlayedAt = DateTime.Now.AddDays(-3)
+                    LastPlayedAt = _timeProvider.Now.AddDays(-3)
                 },
                 new GameSummary
                 {
@@ -360,7 +364,7 @@ public partial class MobileDashboardViewModel : ObservableObject
                     Title = "Cyberpunk 2077",
                     Platform = "Steam",
                     TotalPlayTime = TimeSpan.FromHours(67),
-                    LastPlayedAt = DateTime.Now.AddDays(-5)
+                    LastPlayedAt = _timeProvider.Now.AddDays(-5)
                 }
             };
 

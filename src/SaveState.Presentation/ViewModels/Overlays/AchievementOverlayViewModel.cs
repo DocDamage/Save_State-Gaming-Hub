@@ -84,7 +84,7 @@ public partial class AchievementOverlayViewModel : ObservableObject, IDisposable
                 Description = "Complete the campaign on Legendary difficulty",
                 Points = 50,
                 GameName = "Halo: The Master Chief Collection",
-                UnlockedAt = DateTime.Now.AddMinutes(-5),
+                UnlockedAt = (_timeProvider ?? SystemTimeProvider.Instance).Now.AddMinutes(-5),
                 IsHardcore = true,
                 Rarity = AchievementRarity.Rare,
                 UnlockPercentage = 12.5
@@ -96,7 +96,7 @@ public partial class AchievementOverlayViewModel : ObservableObject, IDisposable
                 Description = "Complete all missions on Heroic or higher",
                 Points = 25,
                 GameName = "Halo: The Master Chief Collection",
-                UnlockedAt = DateTime.Now.AddHours(-1),
+                UnlockedAt = (_timeProvider ?? SystemTimeProvider.Instance).Now.AddHours(-1),
                 Rarity = AchievementRarity.Uncommon,
                 UnlockPercentage = 35.0
             })

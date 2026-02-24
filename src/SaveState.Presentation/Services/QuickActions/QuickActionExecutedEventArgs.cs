@@ -1,5 +1,7 @@
 using SaveState.Presentation.Models.QuickActions;
 
+using SaveState.Core.Common.Services;
+
 namespace SaveState.Presentation.Services.QuickActions;
 
 /// <summary>
@@ -29,7 +31,7 @@ public class QuickActionExecutedEventArgs : EventArgs
     {
         Action = action ?? throw new ArgumentNullException(nameof(action));
         Result = result ?? throw new ArgumentNullException(nameof(result));
-        ExecutedAt = executedAt ?? DateTime.Now;
+        ExecutedAt = executedAt ?? SystemTimeProvider.Instance.Now;
     }
 }
 

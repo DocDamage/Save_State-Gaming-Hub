@@ -398,7 +398,7 @@ public sealed class ThemeService : IThemeService
 
     public ThemeDefinition GetDefaultLightTheme()
     {
-        var now = _timeProvider?.UtcNow ?? DateTime.UtcNow;
+        var now = _timeProvider.UtcNow;
         return new ThemeDefinition
         {
             Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
@@ -449,7 +449,7 @@ public sealed class ThemeService : IThemeService
 
     public ThemeDefinition GetDefaultDarkTheme()
     {
-        var now = _timeProvider?.UtcNow ?? DateTime.UtcNow;
+        var now = _timeProvider.UtcNow;
         return new ThemeDefinition
         {
             Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
@@ -500,7 +500,7 @@ public sealed class ThemeService : IThemeService
 
     public ThemeDefinition GetSystemTheme()
     {
-        var now = _timeProvider?.UtcNow ?? DateTime.UtcNow;
+        var now = _timeProvider.UtcNow;
         return new ThemeDefinition
         {
             Id = Guid.Parse("33333333-3333-3333-3333-333333333333"),

@@ -8,6 +8,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using System.IO;
 using System.Text.Json;
 
@@ -19,6 +20,7 @@ namespace SaveState.Presentation.Services.Keyboard;
 public class KeyboardNavigationService : IKeyboardNavigationService
 {
     private readonly ILogger<KeyboardNavigationService> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<Hotkey, Func<Task>> _hotkeys = new();
     private readonly List<Control> _navigationRoots = new();
     private readonly Dictionary<string, ShortcutDefinition> _shortcuts = new();
@@ -42,9 +44,10 @@ public class KeyboardNavigationService : IKeyboardNavigationService
         }
     }
 
-    public KeyboardNavigationService(ILogger<KeyboardNavigationService> logger)
+    public KeyboardNavigationService(ILogger<KeyboardNavigationService> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         _shortcutsFilePath = System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "SaveStateReborn",
@@ -225,7 +228,7 @@ public class KeyboardNavigationService : IKeyboardNavigationService
             var data = new ShortcutExportData
             {
                 Version = 1,
-                ExportedAt = DateTime.UtcNow,
+                ExportedAt = _timeProvider.UtcNow,
                 Shortcuts = _shortcuts.ToDictionary(
                     s => s.Key,
                     s => new ShortcutData

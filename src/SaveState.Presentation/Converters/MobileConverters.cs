@@ -1,5 +1,6 @@
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Models.Mobile;
 using System.Globalization;
 
@@ -46,7 +47,7 @@ public class TimeAgoConverter : IValueConverter
         if (value is not DateTime dateTime)
             return "Unknown";
 
-        var now = DateTime.Now;
+        var now = SystemTimeProvider.Instance.Now;
         var diff = now - dateTime;
 
         return diff.TotalSeconds switch

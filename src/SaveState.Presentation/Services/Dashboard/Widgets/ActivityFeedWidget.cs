@@ -129,10 +129,10 @@ public record ActivityItem(string Message, DateTime Timestamp, ActivityType Type
 
     /// <summary>
     /// Gets the formatted time string relative to a specific time (for binding).
-    /// Note: UI-only computed property. Uses DateTime.UtcNow directly for binding convenience.
+    /// Note: UI-only computed property. Uses SystemTimeProvider.Instance.UtcNow directly for binding convenience.
     /// For testable code paths, use GetTimeAgo(ITimeProvider) instead.
     /// </summary>
-    public string TimeAgo => FormatTimeAgo(Timestamp, DateTime.UtcNow);  // UI-only
+    public string TimeAgo => FormatTimeAgo(Timestamp, SystemTimeProvider.Instance.UtcNow);  // UI-only
 
     private static string FormatTimeAgo(DateTime timestamp, DateTime currentTime)
     {

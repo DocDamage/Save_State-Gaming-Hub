@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Models.Security;
 using SaveState.Presentation.Services;
 using System.Collections.ObjectModel;
@@ -77,6 +78,7 @@ public partial class UserManagementViewModel : ObservableObject
     private readonly IUserManagementService? _userManagementService;
     private readonly IDialogService? _dialogService;
     private readonly INotificationService? _notificationService;
+    private readonly ITimeProvider _timeProvider;
 
     /// <summary>Collection of user accounts.</summary>
     [ObservableProperty]
@@ -140,6 +142,7 @@ public partial class UserManagementViewModel : ObservableObject
     [Obsolete("Design-time constructor only. Use the parameterized constructor in production code.")]
     public UserManagementViewModel()
     {
+        _timeProvider = SystemTimeProvider.Instance;
         InitializeSampleData();
     }
 
@@ -149,11 +152,13 @@ public partial class UserManagementViewModel : ObservableObject
     public UserManagementViewModel(
         IUserManagementService? userManagementService = null,
         IDialogService? dialogService = null,
-        INotificationService? notificationService = null)
+        INotificationService? notificationService = null,
+        ITimeProvider? timeProvider = null)
     {
         _userManagementService = userManagementService;
         _dialogService = dialogService;
         _notificationService = notificationService;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
         InitializeSampleData();
     }
 
@@ -183,8 +188,8 @@ public partial class UserManagementViewModel : ObservableObject
                 Email = "admin@savestate.local",
                 Role = "Admin",
                 Roles = new() { adminRole },
-                CreatedAt = DateTime.UtcNow.AddYears(-1),
-                LastLogin = DateTime.UtcNow.AddHours(-1),
+                CreatedAt = _timeProvider.UtcNow.AddYears(-1),
+                LastLogin = _timeProvider.UtcNow.AddHours(-1),
                 IsActive = true,
                 ProfileImageUrl = null
             },
@@ -195,8 +200,8 @@ public partial class UserManagementViewModel : ObservableObject
                 Email = "gamer@example.com",
                 Role = "User",
                 Roles = new() { userRole },
-                CreatedAt = DateTime.UtcNow.AddMonths(-6),
-                LastLogin = DateTime.UtcNow.AddDays(-2),
+                CreatedAt = _timeProvider.UtcNow.AddMonths(-6),
+                LastLogin = _timeProvider.UtcNow.AddDays(-2),
                 IsActive = true,
                 ProfileImageUrl = null
             },
@@ -207,8 +212,8 @@ public partial class UserManagementViewModel : ObservableObject
                 Email = "moderator@savestate.local",
                 Role = "Moderator",
                 Roles = new() { moderatorRole, userRole },
-                CreatedAt = DateTime.UtcNow.AddMonths(-3),
-                LastLogin = DateTime.UtcNow.AddDays(-5),
+                CreatedAt = _timeProvider.UtcNow.AddMonths(-3),
+                LastLogin = _timeProvider.UtcNow.AddDays(-5),
                 IsActive = true,
                 ProfileImageUrl = null
             },
@@ -219,8 +224,8 @@ public partial class UserManagementViewModel : ObservableObject
                 Email = "old@email.com",
                 Role = "User",
                 Roles = new() { userRole },
-                CreatedAt = DateTime.UtcNow.AddMonths(-8),
-                LastLogin = DateTime.UtcNow.AddMonths(-2),
+                CreatedAt = _timeProvider.UtcNow.AddMonths(-8),
+                LastLogin = _timeProvider.UtcNow.AddMonths(-2),
                 IsActive = false,
                 ProfileImageUrl = null
             },
@@ -231,8 +236,8 @@ public partial class UserManagementViewModel : ObservableObject
                 Email = "developer@example.com",
                 Role = "Developer",
                 Roles = new() { AvailableRoles.First(r => r.Id == "developer"), userRole },
-                CreatedAt = DateTime.UtcNow.AddMonths(-1),
-                LastLogin = DateTime.UtcNow.AddDays(-1),
+                CreatedAt = _timeProvider.UtcNow.AddMonths(-1),
+                LastLogin = _timeProvider.UtcNow.AddDays(-1),
                 IsActive = true,
                 ProfileImageUrl = null
             }
@@ -382,7 +387,7 @@ public partial class UserManagementViewModel : ObservableObject
                     Email = NewUserEmail,
                     Role = NewUserRole,
                     Roles = new() { AvailableRoles.FirstOrDefault(r => r.Name == NewUserRole) ?? AvailableRoles.First(r => r.Id == "user") },
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = _timeProvider.UtcNow,
                     IsActive = true
                 };
                 Users.Add(newUser);
@@ -698,11 +703,11 @@ public partial class UserManagementViewModel : ObservableObject
                 var sampleSessions = $"Device: Windows PC - Chrome\n" +
                     $"IP: 192.168.1.100\n" +
                     $"Location: Local Network\n" +
-                    $"Last Active: {DateTime.UtcNow.AddMinutes(-5):g}\n\n" +
+                    $"Last Active: {_timeProvider.UtcNow.AddMinutes(-5):g}\n\n" +
                     $"Device: Mobile - iOS App\n" +
                     $"IP: 203.0.113.42\n" +
                     $"Location: Remote\n" +
-                    $"Last Active: {DateTime.UtcNow.AddDays(-1):g}";
+                    $"Last Active: {_timeProvider.UtcNow.AddDays(-1):g}";
 
                 await (_dialogService?.ShowInformationAsync(
                     $"Active Sessions - {user.Username} (Sample)",

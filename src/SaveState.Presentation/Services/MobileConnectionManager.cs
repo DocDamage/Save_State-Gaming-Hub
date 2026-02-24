@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.MobileCompanion.Models;
 using CompanionNotification = SaveState.Core.MobileCompanion.Models.CompanionNotification;
 using SystemStatus = SaveState.Core.MobileCompanion.Models.SystemStatus;
@@ -41,6 +42,7 @@ public class MobileConnectionManager : IMobileConnectionManager, IAsyncDisposabl
 {
     private HubConnection _hubConnection;
     private readonly ILogger<MobileConnectionManager> _logger;
+    private readonly ITimeProvider _timeProvider;
     #pragma warning disable CS0414 // Field is assigned but never used - incomplete feature
     private int _reconnectAttempt;
 #pragma warning restore CS0414
@@ -54,9 +56,10 @@ public class MobileConnectionManager : IMobileConnectionManager, IAsyncDisposabl
     public event EventHandler<CompanionNotification> OnNotificationReceived;
     public event EventHandler<SystemStatus> OnStatusUpdate;
 
-    public MobileConnectionManager(ILogger<MobileConnectionManager> logger)
+    public MobileConnectionManager(ILogger<MobileConnectionManager> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task ConnectAsync(string hubUrl, string pairingCode)
@@ -168,7 +171,7 @@ public class MobileConnectionManager : IMobileConnectionManager, IAsyncDisposabl
             Id = Guid.NewGuid(),
             Command = command,
             Parameters = parameters,
-            Timestamp = DateTime.UtcNow
+            Timestamp = _timeProvider.UtcNow
         };
 
         await _hubConnection.InvokeAsync("SendCommand", message);

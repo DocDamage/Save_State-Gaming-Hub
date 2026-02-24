@@ -27,7 +27,20 @@ using SaveState.Presentation.Views.GameLibrary;
 using SaveState.Presentation.Views.Health;
 using SaveState.Presentation.Views.RetroArch;
 
+// Assembly-level attribute to ensure Avalonia is initialized with the main App
+// which contains all the converters and resources
+[assembly: AvaloniaTestApplication(typeof(SaveState.Presentation.UITests.Smoke.TestApp))]
+
 namespace SaveState.Presentation.UITests.Smoke;
+
+/// <summary>
+/// Test application for UI smoke tests.
+/// Provides the AppBuilder that initializes the full application with all resources.
+/// </summary>
+public static class TestApp
+{
+    public static AppBuilder BuildAvaloniaApp() => TestAppBuilder.BuildAvaloniaApp();
+}
 
 /// <summary>
 /// Smoke checks for views touched by Avalonia XAML remediation.

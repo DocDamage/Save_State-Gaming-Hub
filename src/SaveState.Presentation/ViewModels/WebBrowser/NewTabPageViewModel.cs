@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Core.WebBrowser.Services;
 
 namespace SaveState.Presentation.ViewModels.WebBrowser;
@@ -15,6 +16,7 @@ public sealed partial class NewTabPageViewModel : ObservableObject
 {
     private readonly IBrowserService _browserService;
     private readonly ILogger<NewTabPageViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private string _searchQuery = string.Empty;
@@ -27,10 +29,12 @@ public sealed partial class NewTabPageViewModel : ObservableObject
 
     public NewTabPageViewModel(
         IBrowserService browserService,
-        ILogger<NewTabPageViewModel> logger)
+        ILogger<NewTabPageViewModel> logger,
+        ITimeProvider? timeProvider = null)
     {
         _browserService = browserService ?? throw new ArgumentNullException(nameof(browserService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
 
         LoadDefaultShortcuts();
         _ = LoadRecentlyVisitedAsync();
@@ -81,7 +85,7 @@ public sealed partial class NewTabPageViewModel : ObservableObject
     {
         try
         {
-            var result = await _browserService.GetHistoryAsync(DateTime.Now.AddDays(-7), null);
+            var result = await _browserService.GetHistoryAsync(_timeProvider.Now.AddDays(-7), null);
 
             if (result.IsSuccess && result.Value != null)
             {

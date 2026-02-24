@@ -1,3 +1,6 @@
+using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
+
 namespace SaveState.Presentation.Models.Security;
 
 /// <summary>
@@ -114,17 +117,17 @@ public class ApiKey
         {
             if (!IsActive) return "Revoked";
             if (ExpiresAt is null) return "Never";
-            if (ExpiresAt < DateTime.UtcNow) return "Expired";
-            var days = (ExpiresAt.Value - DateTime.UtcNow).Days;
+            if (ExpiresAt < SystemTimeProvider.Instance.UtcNow) return "Expired";
+            var days = (ExpiresAt.Value - SystemTimeProvider.Instance.UtcNow).Days;
             return days <= 7 ? $"{days} days" : $"{days} days";
         }
     }
 
     /// <summary>Whether the key is expired.</summary>
-    public bool IsExpired => ExpiresAt.HasValue && ExpiresAt.Value < DateTime.UtcNow;
+    public bool IsExpired => ExpiresAt.HasValue && ExpiresAt.Value < SystemTimeProvider.Instance.UtcNow;
 
     /// <summary>Days until expiration (negative if expired).</summary>
-    public int DaysUntilExpiration => ExpiresAt.HasValue ? (ExpiresAt.Value - DateTime.UtcNow).Days : int.MaxValue;
+    public int DaysUntilExpiration => ExpiresAt.HasValue ? (ExpiresAt.Value - SystemTimeProvider.Instance.UtcNow).Days : int.MaxValue;
 }
 
 /// <summary>

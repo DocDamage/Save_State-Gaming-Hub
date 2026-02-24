@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Controls.Loading;
 using SaveState.Presentation.Services.Animation;
 
@@ -449,14 +450,14 @@ public static class ViewModelLoadingExtensions
 
         if (ThrottleLastExecution.TryGetValue(key, out var lastExecution))
         {
-            var elapsed = DateTime.UtcNow - lastExecution;
+            var elapsed = SystemTimeProvider.Instance.UtcNow - lastExecution;
             if (elapsed.TotalMilliseconds < throttleMs)
             {
                 return default!;
             }
         }
 
-        ThrottleLastExecution[key] = DateTime.UtcNow;
+        ThrottleLastExecution[key] = SystemTimeProvider.Instance.UtcNow;
         return await action();
     }
 

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SaveState.Core.Common;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Infrastructure.WebBrowser.ExtensionSupport;
 
@@ -10,12 +11,14 @@ namespace SaveState.Infrastructure.WebBrowser.ExtensionSupport;
 public class ExtensionManager : IExtensionManager
 {
     private readonly ILogger<ExtensionManager> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly Dictionary<string, BrowserExtension> _extensions = new();
     private readonly string _extensionsDirectory;
 
-    public ExtensionManager(ILogger<ExtensionManager> logger)
+    public ExtensionManager(ILogger<ExtensionManager> logger, ITimeProvider timeProvider)
     {
         _logger = logger;
+        _timeProvider = timeProvider;
         _extensionsDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "SaveState",
@@ -84,7 +87,7 @@ public class ExtensionManager : IExtensionManager
                 IsPacked = false,
                 Manifest = manifest,
                 Permissions = manifest.Permissions,
-                InstalledAt = DateTime.UtcNow,
+                InstalledAt = _timeProvider.UtcNow,
                 Icon = LoadExtensionIcon(directoryPath, manifest.Icons)
             };
 

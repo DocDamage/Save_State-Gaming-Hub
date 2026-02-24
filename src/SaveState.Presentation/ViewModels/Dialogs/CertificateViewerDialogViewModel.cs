@@ -6,6 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 
 namespace SaveState.Presentation.ViewModels.Dialogs;
 
@@ -15,6 +16,7 @@ namespace SaveState.Presentation.ViewModels.Dialogs;
 public sealed partial class CertificateViewerDialogViewModel : ObservableObject
 {
     private readonly ILogger<CertificateViewerDialogViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
     private readonly X509Certificate2? _certificate;
 
     [ObservableProperty]
@@ -74,19 +76,22 @@ public sealed partial class CertificateViewerDialogViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasWarnings;
 
-    public CertificateViewerDialogViewModel(ILogger<CertificateViewerDialogViewModel> logger)
+    public CertificateViewerDialogViewModel(ILogger<CertificateViewerDialogViewModel> logger, ITimeProvider? timeProvider = null)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
     }
 
     public CertificateViewerDialogViewModel(
         X509Certificate2 certificate,
         string domain,
-        ILogger<CertificateViewerDialogViewModel> logger)
+        ILogger<CertificateViewerDialogViewModel> logger,
+        ITimeProvider? timeProvider = null)
     {
         _certificate = certificate;
         Domain = domain;
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
 
         LoadCertificateDetails();
     }
@@ -132,7 +137,7 @@ public sealed partial class CertificateViewerDialogViewModel : ObservableObject
 #pragma warning restore SYSLIB0027
 
             // Check validity
-            IsValid = _certificate.NotBefore <= DateTime.Now && _certificate.NotAfter >= DateTime.Now;
+            IsValid = _certificate.NotBefore <= _timeProvider.UtcNow && _certificate.NotAfter >= _timeProvider.UtcNow;
             ValidityStatus = IsValid ? "Valid" : "Invalid";
 
             // Check if self-signed
@@ -215,11 +220,11 @@ public sealed partial class CertificateViewerDialogViewModel : ObservableObject
 
         if (!IsValid)
         {
-            if (DateTime.Now < ValidFrom)
+            if (_timeProvider.UtcNow < ValidFrom)
             {
                 Warnings.Add("This certificate is not yet valid.");
             }
-            else if (DateTime.Now > ValidTo)
+            else if (_timeProvider.UtcNow > ValidTo)
             {
                 Warnings.Add("This certificate has expired.");
             }
@@ -230,9 +235,9 @@ public sealed partial class CertificateViewerDialogViewModel : ObservableObject
             Warnings.Add("This is a self-signed certificate. It may not be trusted by your system.");
         }
 
-        if (ValidTo < DateTime.Now.AddDays(30) && ValidTo > DateTime.Now)
+        if (ValidTo < _timeProvider.UtcNow.AddDays(30) && ValidTo > _timeProvider.UtcNow)
         {
-            Warnings.Add($"This certificate expires in {(ValidTo - DateTime.Now).Days} days.");
+            Warnings.Add($"This certificate expires in {(ValidTo - _timeProvider.UtcNow).Days} days.");
         }
 
         // Check for weak algorithms

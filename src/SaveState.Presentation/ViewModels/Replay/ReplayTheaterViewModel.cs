@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Models.Replay;
 using SaveState.Presentation.Services;
 
@@ -16,6 +17,7 @@ public partial class ReplayTheaterViewModel : ObservableObject, IDisposable
     private readonly IDialogService _dialogService;
     private readonly ILogger<ReplayTheaterViewModel> _logger;
     private readonly System.Timers.Timer _playbackTimer;
+    private readonly ITimeProvider _timeProvider;
 
     [ObservableProperty]
     private ObservableCollection<SaveStateReplay> _replays = new();
@@ -72,10 +74,12 @@ public partial class ReplayTheaterViewModel : ObservableObject, IDisposable
 
     public ReplayTheaterViewModel(
         IDialogService dialogService,
-        ILogger<ReplayTheaterViewModel> logger)
+        ILogger<ReplayTheaterViewModel> logger,
+        ITimeProvider? timeProvider = null)
     {
         _dialogService = dialogService;
         _logger = logger;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
 
         // Initialize playback timer for position updates
         _playbackTimer = new System.Timers.Timer(100);
@@ -153,14 +157,14 @@ public partial class ReplayTheaterViewModel : ObservableObject, IDisposable
                     Title = "Elden Ring - Margit Boss Fight",
                     Description = "First attempt at Margit, the Fell Omen",
                     GameName = "Elden Ring",
-                    CreatedAt = DateTime.Now.AddDays(-2),
+                    CreatedAt = _timeProvider.UtcNow.AddDays(-2),
                     Duration = TimeSpan.FromHours(2) + TimeSpan.FromMinutes(34) + TimeSpan.FromSeconds(15),
                     FileSize = 156_000_000,
                     IsFavorite = true,
                     Tags = new List<string> { "boss", "first-playthrough" },
                     Metadata = new ReplayMetadata
                     {
-                        GameDate = DateTime.Now.AddDays(-2),
+                        GameDate = _timeProvider.UtcNow.AddDays(-2),
                         PlayTimeAtSave = TimeSpan.FromHours(45),
                         Location = "Stormveil Castle",
                         PlayerLevel = 35,
@@ -179,13 +183,13 @@ public partial class ReplayTheaterViewModel : ObservableObject, IDisposable
                     Title = "Cyberpunk 2077 - Secret Ending",
                     Description = "Discovered the secret ending path",
                     GameName = "Cyberpunk 2077",
-                    CreatedAt = DateTime.Now.AddDays(-5),
+                    CreatedAt = _timeProvider.UtcNow.AddDays(-5),
                     Duration = TimeSpan.FromMinutes(45) + TimeSpan.FromSeconds(30),
                     FileSize = 89_000_000,
                     Tags = new List<string> { "secret", "ending" },
                     Metadata = new ReplayMetadata
                     {
-                        GameDate = DateTime.Now.AddDays(-5),
+                        GameDate = _timeProvider.UtcNow.AddDays(-5),
                         PlayTimeAtSave = TimeSpan.FromHours(120),
                         Location = "Embers",
                         PlayerLevel = 50,
@@ -198,14 +202,14 @@ public partial class ReplayTheaterViewModel : ObservableObject, IDisposable
                     Title = "Hades - 32 Heat Clear",
                     Description = "Finally cleared 32 heat with the Rail",
                     GameName = "Hades",
-                    CreatedAt = DateTime.Now.AddDays(-1),
+                    CreatedAt = _timeProvider.UtcNow.AddDays(-1),
                     Duration = TimeSpan.FromMinutes(28) + TimeSpan.FromSeconds(15),
                     FileSize = 45_000_000,
                     IsFavorite = true,
                     Tags = new List<string> { "heat-32", "rail", "victory" },
                     Metadata = new ReplayMetadata
                     {
-                        GameDate = DateTime.Now.AddDays(-1),
+                        GameDate = _timeProvider.UtcNow.AddDays(-1),
                         PlayTimeAtSave = TimeSpan.FromHours(200),
                         Location = "Temple of Styx",
                         CompletionPercentage = 88.5f

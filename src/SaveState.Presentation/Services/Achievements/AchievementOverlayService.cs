@@ -148,7 +148,7 @@ public partial class AchievementOverlayService : ObservableObject, IAchievementO
             Name = milestone,
             Value = value,
             Description = $"Reached {milestone} milestone: {value}",
-            ReachedAt = _timeProvider?.Now ?? DateTime.Now
+            ReachedAt = _timeProvider?.Now ?? SystemTimeProvider.Instance.Now
         };
 
         ShowMilestone(milestoneObj);
@@ -276,7 +276,7 @@ public partial class AchievementOverlayService : ObservableObject, IAchievementO
             BadgeUrl = e.BadgeUrl,
             Points = e.Points,
             GameName = e.GameTitle,
-            UnlockedAt = _timeProvider?.Now ?? DateTime.Now,
+            UnlockedAt = _timeProvider?.Now ?? SystemTimeProvider.Instance.Now,
             IsHardcore = e.IsHardcore,
             Rarity = rarity
         };

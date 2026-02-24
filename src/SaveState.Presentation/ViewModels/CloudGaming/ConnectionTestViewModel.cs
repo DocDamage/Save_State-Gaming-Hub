@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Models.CloudGaming;
 using System.Collections.ObjectModel;
 
@@ -12,13 +13,15 @@ namespace SaveState.Presentation.ViewModels.CloudGaming;
 public partial class ConnectionTestViewModel : ObservableObject
 {
     private readonly ILogger<ConnectionTestViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     /// <summary>
     /// Initializes a new instance of the ConnectionTestViewModel.
     /// </summary>
-    public ConnectionTestViewModel(ILogger<ConnectionTestViewModel> logger)
+    public ConnectionTestViewModel(ILogger<ConnectionTestViewModel> logger, ITimeProvider? timeProvider = null)
     {
         _logger = logger;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
         TestHistory = new ObservableCollection<ConnectionTestResult>();
         AvailableProviders = new ObservableCollection<CloudProvider>();
     }
@@ -161,7 +164,7 @@ public partial class ConnectionTestViewModel : ObservableObject
             // Generate results (in real implementation, these would be actual measurements)
             CurrentResult = new ConnectionTestResult
             {
-                TestedAt = DateTime.UtcNow,
+                TestedAt = _timeProvider.UtcNow,
                 Ping = Random.Shared.Next(10, 80),
                 Jitter = Random.Shared.Next(1, 10),
                 PacketLoss = Random.Shared.NextSingle() * 2,

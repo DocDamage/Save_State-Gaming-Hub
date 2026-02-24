@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Core.Common.Services;
 using SaveState.Presentation.Models.CloudGaming;
 using System.Collections.ObjectModel;
 
@@ -12,13 +13,15 @@ namespace SaveState.Presentation.ViewModels.Overlays;
 public partial class StreamOverlayViewModel : ObservableObject
 {
     private readonly ILogger<StreamOverlayViewModel> _logger;
+    private readonly ITimeProvider _timeProvider;
 
     /// <summary>
     /// Initializes a new instance of the StreamOverlayViewModel.
     /// </summary>
-    public StreamOverlayViewModel(ILogger<StreamOverlayViewModel> logger)
+    public StreamOverlayViewModel(ILogger<StreamOverlayViewModel> logger, ITimeProvider? timeProvider = null)
     {
         _logger = logger;
+        _timeProvider = timeProvider ?? SystemTimeProvider.Instance;
         LatencyHistory = new ObservableCollection<float>();
         PerformanceHistory = new ObservableCollection<PerformanceDataPoint>();
     }
@@ -99,7 +102,7 @@ public partial class StreamOverlayViewModel : ObservableObject
         get
         {
             if (Session is null) return "00:00:00";
-            var duration = DateTime.UtcNow - Session.StartedAt;
+            var duration = _timeProvider.UtcNow - Session.StartedAt;
             return duration.ToString(@"hh\:mm\:ss");
         }
     }
@@ -242,7 +245,7 @@ public partial class StreamOverlayViewModel : ObservableObject
 
         PerformanceHistory.Add(new PerformanceDataPoint
         {
-            Timestamp = DateTime.UtcNow,
+            Timestamp = _timeProvider.UtcNow,
             Latency = latency,
             Fps = fps,
             Bitrate = bitrate
