@@ -107,31 +107,38 @@ public class NavigationService : ObservableObject, INavigationService
             return;
         }
 
-        // Add current entry to history if different tab
-        if (_currentEntry != null && _currentEntry.Tab != tabName)
+        try
         {
-            _history.Add(_currentEntry);
+            // Add current entry to history if different tab
+            if (_currentEntry != null && _currentEntry.Tab != tabName)
+            {
+                _history.Add(_currentEntry);
+            }
+
+            // Create new entry
+            var viewModel = GetOrCreateViewModel(tab.ViewModelType);
+            var entry = new NavigationEntry(tabName, tab.ViewModelType, parameter, _timeProvider.UtcNow);
+
+            // Update state
+            CurrentTab = tabName;
+            CurrentViewModel = viewModel;
+            _currentEntry = entry;
+
+            // Notify the view model if it implements INavigationAware
+            if (viewModel is INavigationAware navigationAware)
+            {
+                await navigationAware.OnNavigatedToAsync(parameter);
+            }
+
+            _logger.LogInformation("Navigated to tab: {TabName}", tabName);
+
+            // Raise event
+            Navigated?.Invoke(this, new NavigationEventArgs(entry, NavigationDirection.Forward));
         }
-
-        // Create new entry
-        var viewModel = GetOrCreateViewModel(tab.ViewModelType);
-        var entry = new NavigationEntry(tabName, tab.ViewModelType, parameter, _timeProvider.UtcNow);
-
-        // Update state
-        CurrentTab = tabName;
-        CurrentViewModel = viewModel;
-        _currentEntry = entry;
-
-        // Notify the view model if it implements INavigationAware
-        if (viewModel is INavigationAware navigationAware)
+        catch (Exception ex)
         {
-            await navigationAware.OnNavigatedToAsync(parameter);
+            _logger.LogError(ex, "Navigation to tab {TabName} failed; staying on current view", tabName);
         }
-
-        _logger.LogInformation("Navigated to tab: {TabName}", tabName);
-
-        // Raise event
-        Navigated?.Invoke(this, new NavigationEventArgs(entry, NavigationDirection.Forward));
     }
 
     /// <inheritdoc />
@@ -146,16 +153,23 @@ public class NavigationService : ObservableObject, INavigationService
         var previousEntry = _history[^1];
         _history.RemoveAt(_history.Count - 1);
 
-        // Navigate to previous entry
-        var viewModel = GetOrCreateViewModel(previousEntry.ViewModelType);
-        CurrentTab = previousEntry.Tab;
-        CurrentViewModel = viewModel;
-        _currentEntry = previousEntry;
+        try
+        {
+            // Navigate to previous entry
+            var viewModel = GetOrCreateViewModel(previousEntry.ViewModelType);
+            CurrentTab = previousEntry.Tab;
+            CurrentViewModel = viewModel;
+            _currentEntry = previousEntry;
 
-        _logger.LogInformation("Navigated back to tab: {TabName}", previousEntry.Tab);
+            _logger.LogInformation("Navigated back to tab: {TabName}", previousEntry.Tab);
 
-        // Raise event
-        Navigated?.Invoke(this, new NavigationEventArgs(previousEntry, NavigationDirection.Backward));
+            // Raise event
+            Navigated?.Invoke(this, new NavigationEventArgs(previousEntry, NavigationDirection.Backward));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "GoBack failed for tab {TabName}; remaining on current view", previousEntry.Tab);
+        }
     }
 
     /// <inheritdoc />

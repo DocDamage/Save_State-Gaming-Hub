@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SaveState.Presentation.ViewModels"
+             xmlns:res="using:SaveState.Presentation.Resources"
              xmlns:audio="using:SaveState.Presentation.Views.Settings"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
              x:Class="SaveState.Presentation.Views.SettingsView"
@@ -266,7 +267,7 @@
           <TextBlock Text="📊 Performance Dashboard" Classes="Header" />
           <TextBlock Text="Monitor real-time performance metrics, game statistics, and AI recommendations."
                     Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
-          <Button Content="{x:Static res:Resources.Performance_Title}"
+          <Button Content="Performance Dashboard"
                   Command="{Binding ShowPerformanceDashboardCommand}"
                   Classes="Primary"
                   HorizontalAlignment="Left" />
@@ -279,7 +280,7 @@
           <TextBlock Text="💾 Data Management" Classes="Header" />
           <TextBlock Text="Export, import, and backup your game library data and settings."
                     Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
-          <Button Content="{x:Static res:Resources.DataManagement_Title}"
+          <Button Content="Data Management"
                   Command="{Binding ShowDataManagementCommand}"
                   Classes="Primary"
                   HorizontalAlignment="Left" />

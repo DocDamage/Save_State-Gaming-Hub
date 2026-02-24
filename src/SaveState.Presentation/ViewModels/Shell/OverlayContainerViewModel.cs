@@ -100,6 +100,11 @@ public partial class OverlayContainerViewModel : ObservableObject
     public bool IsVoiceActive => _overlayService.IsVoiceActive;
 
     /// <summary>
+    /// Gets whether the dashboard customization overlay is visible.
+    /// </summary>
+    public bool ShowDashboardCustomization => _overlayService.ShowDashboardCustomization;
+
+    /// <summary>
     /// Gets whether the dimming overlay should be shown.
     /// </summary>
     public bool ShowDim => _overlayService.ShowDim;
@@ -220,6 +225,7 @@ public partial class OverlayContainerViewModel : ObservableObject
     {
         _overlayService.HideCommandPaletteOverlay();
         _overlayService.HideQuickSearchOverlay();
+        _overlayService.HideDashboardCustomizationDialog();
         _overlayService.HideSessionDetailsOverlay();
         _overlayService.HideAchievementDetailsOverlay();
         _overlayService.HideModDetailsOverlay();
@@ -271,6 +277,10 @@ public partial class OverlayContainerViewModel : ObservableObject
                     ModDetailsViewModel.Initialize(_overlayService.CurrentModId.Value);
                 }
                 OnPropertyChanged(nameof(ShowModDetails));
+                OnPropertyChanged(nameof(ShowDim));
+                break;
+            case "DashboardCustomization":
+                OnPropertyChanged(nameof(ShowDashboardCustomization));
                 OnPropertyChanged(nameof(ShowDim));
                 break;
         }

@@ -19,14 +19,14 @@
             <Setter Property="Width" Value="56" />
             <Setter Property="Height" Value="56" />
             <Setter Property="CornerRadius" Value="28" />
-            <Setter Property="Background" value="{StaticResource CardBackgroundBrush}" />
-            <Setter Property="Foreground" value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
         </Style>
         <Style Selector="Button.GamepadButton:pointerover">
-            <Setter Property="Background" value="{StaticResource CardHoverBrush}" />
+            <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
         </Style>
         <Style Selector="Button.GamepadButton:pressed">
-            <Setter Property="Background" value="{StaticResource AccentBrush}" />
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
         </Style>
     </UserControl.Styles>
 
@@ -69,9 +69,8 @@
                                  Command="{Binding SwitchModeCommand}"
                                  CommandParameter="Keyboard" />
                         <MenuItem Header="-" IsEnabled="False" />
-                        <MenuItem Header="Haptic Feedback"
-                                 IsCheckable="True"
-                                 IsChecked="{Binding HapticFeedbackEnabled}" />
+                        <MenuItem Header="✓ Haptic Feedback"
+                                 Command="{Binding ToggleHapticFeedbackCommand}" />
                     </MenuFlyout>
                 </DropDownButton.Flyout>
             </DropDownButton>

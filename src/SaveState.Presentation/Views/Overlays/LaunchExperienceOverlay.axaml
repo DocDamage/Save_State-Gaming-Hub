@@ -35,7 +35,7 @@
     <Style Selector="Border.animated-bg">
       <Setter Property="Background">
         <Setter.Value>
-          <RadialGradientBrush Center="50%,50%" Radius="0.8,0.8">
+          <RadialGradientBrush Center="50%,50%" RadiusX="0.8" RadiusY="0.8">
             <GradientStop Offset="0" Color="#FF1A1A2E"/>
             <GradientStop Offset="0.5" Color="#FF16213E"/>
             <GradientStop Offset="1" Color="#FF0F0F1A"/>
@@ -192,7 +192,7 @@
             <Animation Duration="0:0:10" IterationCount="Infinite" PlaybackDirection="Alternate">
               <KeyFrame Cue="0%">
                 <Setter Property="Background">
-                  <RadialGradientBrush Center="30%,30%" Radius="1,1">
+                  <RadialGradientBrush Center="30%,30%" RadiusX="100%" RadiusY="100%">
                     <GradientStop Offset="0" Color="#FF1A1A3E"/>
                     <GradientStop Offset="0.5" Color="#FF16213E"/>
                     <GradientStop Offset="1" Color="#FF0F0F1A"/>
@@ -201,7 +201,7 @@
               </KeyFrame>
               <KeyFrame Cue="100%">
                 <Setter Property="Background">
-                  <RadialGradientBrush Center="70%,70%" Radius="1,1">
+                  <RadialGradientBrush Center="70%,70%" RadiusX="100%" RadiusY="100%">
                     <GradientStop Offset="0" Color="#FF1E1E3E"/>
                     <GradientStop Offset="0.5" Color="#FF1A1A3E"/>
                     <GradientStop Offset="1" Color="#FF0F0F1A"/>

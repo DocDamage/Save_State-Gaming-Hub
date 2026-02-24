@@ -10,7 +10,7 @@ namespace SaveState.Presentation.Controls.ThemePreview;
 /// </summary>
 public partial class ThemePreview : UserControl
 {
-    public static readonly StyledProperty<ThemeDefinition?> ThemeProperty =
+    public static new readonly StyledProperty<ThemeDefinition?> ThemeProperty =
         AvaloniaProperty.Register<ThemePreview, ThemeDefinition?>(nameof(Theme));
 
     public static readonly StyledProperty<bool> ShowButtonsProperty =
@@ -34,7 +34,7 @@ public partial class ThemePreview : UserControl
     /// <summary>
     /// Gets or sets the theme to preview.
     /// </summary>
-    public ThemeDefinition? Theme
+    public new ThemeDefinition? Theme
     {
         get => GetValue(ThemeProperty);
         set => SetValue(ThemeProperty, value);

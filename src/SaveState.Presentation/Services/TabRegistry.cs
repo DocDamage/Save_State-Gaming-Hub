@@ -29,7 +29,7 @@ public static class TabRegistry
         ["Automation"] = new("Automation", "🎬", typeof(ViewModels.Shell.AutomationViewModel), Key.D8, KeyModifiers.Control),
         ["Tools"] = new("Tools", "🛠️", typeof(ViewModels.Shell.ToolsViewModel), Key.D9, KeyModifiers.Control),
         ["Terminal"] = new("Terminal", "💻", typeof(ViewModels.Shell.TerminalViewModel), Key.D0, KeyModifiers.Control),
-        ["GamerDNA"] = new("Gamer DNA", "🧬", typeof(ViewModels.Analytics.GamerDnaViewModel), Key.None, KeyModifiers.None),
+        ["Gamer DNA"] = new("Gamer DNA", "🧬", typeof(ViewModels.Analytics.GamerDnaViewModel), Key.None, KeyModifiers.None),
         ["Settings"] = new("Settings", "⚙️", typeof(ViewModels.SettingsViewModel), Key.F10, KeyModifiers.None),
     };
 
@@ -45,7 +45,7 @@ public static class TabRegistry
         yield return Tabs["MUGEN"];
         yield return Tabs["RetroArch"];
         yield return Tabs["Analytics"];
-        yield return Tabs["GamerDNA"];
+        yield return Tabs["Gamer DNA"];
         yield return Tabs["Social"];
         yield return Tabs["Subscriptions"];
         yield return Tabs["Deals"];
@@ -107,3 +107,4 @@ public record TabDefinition(
     /// </summary>
     public string TooltipText => $"{Name} (Ctrl+{Shortcut.ToString().TrimStart('D')})";
 }
+

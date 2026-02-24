@@ -16,8 +16,19 @@ public class TestAppBuilder
     public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions
         {
-            UseHeadlessDrawing = true
+            UseHeadlessDrawing = true  // Enable headless drawing for layout/rendering tests
         });
+
+    /// <summary>
+    /// Ensures Avalonia headless platform is initialized for tests that don't use AvaloniaFact attribute.
+    /// </summary>
+    public static void EnsurePlatformInitialized()
+    {
+        if (global::Avalonia.Application.Current is null)
+        {
+            BuildAvaloniaApp().SetupWithoutStarting();
+        }
+    }
 }
 
 /// <summary>

@@ -244,7 +244,7 @@
                                    TextTrimming="CharacterEllipsis" />
                         <TextBlock Text="{Binding StarRating}"
                                    Classes="rating-stars" />
-                        <TextBlock Text="{Binding FormattedDownloads, StringFormat='{0} downloads'}"
+                        <TextBlock Text="{Binding FormattedDownloads, StringFormat='{}{0} downloads'}"
                                    FontSize="12"
                                    Foreground="{StaticResource TextSecondaryBrush}" />
                       </StackPanel>

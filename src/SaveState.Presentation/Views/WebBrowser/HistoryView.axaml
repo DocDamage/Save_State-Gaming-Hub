@@ -62,7 +62,7 @@
                 <Button Content="🗑️ Delete Selected"
                         Command="{Binding DeleteSelectedCommand}"
                         Classes="Secondary"
-                        IsEnabled="{Binding SelectedItems.Count, Converter={x:Static ObjectConverters.IsGreaterThan}, ConverterParameter=0}" />
+                        IsEnabled="{Binding SelectedItems.Count, Converter={StaticResource GreaterThanConverter}, ConverterParameter=0}" />
             </StackPanel>
         </Grid>
 

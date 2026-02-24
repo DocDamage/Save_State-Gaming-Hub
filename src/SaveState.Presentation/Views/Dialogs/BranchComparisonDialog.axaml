@@ -88,7 +88,7 @@
                         <Border Padding="10" Margin="0,5" CornerRadius="4" Background="{DynamicResource LayerFillColorDefault}">
                             <Grid ColumnDefinitions="*, Auto, *">
                                 <!-- Left Side -->
-                                <Grid Grid.Column="0" RowDefinitions="Auto, Auto" Opacity="{Binding LeftTimestamp, Converter={x:Static ObjectConverters.IsNotNull}, ConverterParameter=1.0, FallbackValue=0.3}">
+                                <Grid Grid.Column="0" RowDefinitions="Auto, Auto" Opacity="{Binding LeftTimestamp, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter=1.0, FallbackValue=0.3}">
                                     <TextBlock Text="{Binding Name}" FontWeight="SemiBold" HorizontalAlignment="Right"/>
                                     <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5">
                                         <TextBlock Text="{Binding LeftTimestampText}" FontSize="11" Opacity="0.7"/>
@@ -107,7 +107,7 @@
                                 </Border>
 
                                 <!-- Right Side -->
-                                <Grid Grid.Column="2" RowDefinitions="Auto, Auto" Opacity="{Binding RightTimestamp, Converter={x:Static ObjectConverters.IsNotNull}, ConverterParameter=1.0, FallbackValue=0.3}">
+                                <Grid Grid.Column="2" RowDefinitions="Auto, Auto" Opacity="{Binding RightTimestamp, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter=1.0, FallbackValue=0.3}">
                                     <TextBlock Text="{Binding Name}" FontWeight="SemiBold" HorizontalAlignment="Left"/>
                                     <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="5">
                                         <TextBlock Text="{Binding RightTimestampText}" FontSize="11" Opacity="0.7"/>

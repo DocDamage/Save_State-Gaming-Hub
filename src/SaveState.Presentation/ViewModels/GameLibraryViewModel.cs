@@ -39,7 +39,7 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
     private GameId? _selectedGameId;
 
     // New Library Components
-    public required LibraryViewModel LibraryViewModel { get; init; }
+    public LibraryViewModel LibraryViewModel { get; }
     public LibrarySidebarViewModel SidebarViewModel => LibraryViewModel.SidebarViewModel;
     public LibraryToolbarViewModel ToolbarViewModel => LibraryViewModel.ToolbarViewModel;
 
@@ -61,6 +61,8 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
         ILoggerFactory loggerFactory,
         ITimeProvider timeProvider)
     {
+        ArgumentNullException.ThrowIfNull(libraryViewModel);
+
         _mediator = mediator;
         _navigationService = navigationService;
         _overlayService = overlayService;
@@ -76,6 +78,7 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
         _logger = logger;
         _loggerFactory = loggerFactory;
         _timeProvider = timeProvider;
+        LibraryViewModel = libraryViewModel;
 
         // Subscribe to natural language search requests
         WeakReferenceMessenger.Default.Register<SaveState.Presentation.Messages.NaturalLanguageSearchRequestedMessage>(this, (r, m) =>
@@ -190,8 +193,16 @@ public partial class GameLibraryViewModel : ObservableObject, INavigationAware
 
         CurrentView = LibraryViewModel;
 
-        // Ensure library data is loaded
-        await LibraryViewModel.LoadLibraryDataAsync();
+        try
+        {
+            // Ensure library data is loaded
+            await LibraryViewModel.LoadLibraryDataAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load library overview data");
+            _notificationService.ShowError("Failed to load library data", "Library");
+        }
 
         _logger.LogInformation("Navigated to library overview");
     }

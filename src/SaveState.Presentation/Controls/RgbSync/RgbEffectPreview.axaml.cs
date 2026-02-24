@@ -13,7 +13,7 @@ public partial class RgbEffectPreview : UserControl
     private int _currentFrame;
     private List<RgbColor> _frameColors = new();
 
-    public static readonly StyledProperty<RgbEffect?> EffectProperty =
+    public static new readonly StyledProperty<RgbEffect?> EffectProperty =
         AvaloniaProperty.Register<RgbEffectPreview, RgbEffect?>(nameof(Effect));
 
     public static readonly StyledProperty<bool> IsPlayingProperty =
@@ -22,7 +22,7 @@ public partial class RgbEffectPreview : UserControl
     public static readonly StyledProperty<int> CurrentFrameProperty =
         AvaloniaProperty.Register<RgbEffectPreview, int>(nameof(CurrentFrame));
 
-    public RgbEffect? Effect
+    public new RgbEffect? Effect
     {
         get => GetValue(EffectProperty);
         set => SetValue(EffectProperty, value);

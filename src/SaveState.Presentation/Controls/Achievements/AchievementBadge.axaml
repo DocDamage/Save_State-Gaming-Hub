@@ -106,7 +106,7 @@
                     <!-- Locked State Overlay -->
                     <Border Background="#80000000"
                            CornerRadius="8,8,0,0"
-                           IsVisible="{Binding IsUnlocked, ElementName=Root, Converter={x:Static converters:InverseBoolConverter.Instance}}">
+                           IsVisible="{Binding IsUnlocked, ElementName=Root, Converter={StaticResource InverseBoolConverter}}">
                         <TextBlock Text="🔒"
                                   FontSize="24"
                                   HorizontalAlignment="Center"

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using SaveState.Presentation.Services;
 using SaveState.Presentation.Services.Dashboard;
 using System.Collections.ObjectModel;
 
@@ -12,13 +13,16 @@ namespace SaveState.Presentation.ViewModels.Shell;
 public partial class DashboardViewModel : ObservableObject
 {
     private readonly ILogger<DashboardViewModel> _logger;
+    private readonly IOverlayService _overlayService;
     private readonly IServiceProvider _serviceProvider;
 
     public DashboardViewModel(
         ILogger<DashboardViewModel> logger,
+        IOverlayService overlayService,
         IServiceProvider serviceProvider)
     {
         _logger = logger;
+        _overlayService = overlayService;
         _serviceProvider = serviceProvider;
 
         Widgets = new ObservableCollection<WidgetInstance>();
@@ -95,8 +99,7 @@ public partial class DashboardViewModel : ObservableObject
     private void Customize()
     {
         _logger.LogInformation("Dashboard customization requested");
-        // Future: Show widget selection and layout customization dialog
-        // For now, log the action
+        _overlayService.ShowDashboardCustomizationDialog();
     }
 
     /// <summary>

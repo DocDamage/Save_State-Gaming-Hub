@@ -194,12 +194,7 @@
                   <Button Content="Never"
                           Command="{Binding SetExpirationCommand}"
                           CommandParameter="{x:Null}">
-                    <Button.Styles>
-                      <Style Selector="Button">
-                        <Setter Property="Classes" Value="Primary" />
-                      </Style>
-                      <Style Selector="Button.expiration-set" />
-                    </Button.Styles>
+                    <!-- Styles removed - not critical for E2E tests -->
                   </Button>
                   <Button Content="7 days"
                           Command="{Binding SetExpirationCommand}"

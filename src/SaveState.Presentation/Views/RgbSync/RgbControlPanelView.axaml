@@ -177,7 +177,7 @@
                                         <StackPanel Grid.Row="0" Grid.Column="0" Spacing="8" Margin="0,0,15,0">
                                             <TextBlock Text="Effect Type" Classes="Caption" FontWeight="SemiBold"/>
                                             <ComboBox SelectedItem="{Binding SelectedEffectType}"
-                                                      ItemsSource="{x:Static rgb:EffectTypeValues.Values}"
+                                                      ItemsSource="{Binding AvailableEffectTypes}"
                                                       HorizontalAlignment="Stretch"/>
                                         </StackPanel>
 
@@ -185,7 +185,7 @@
                                         <StackPanel Grid.Row="0" Grid.Column="1" Spacing="8">
                                             <TextBlock Text="Direction" Classes="Caption" FontWeight="SemiBold"/>
                                             <ComboBox SelectedItem="{Binding EffectDirection}"
-                                                      ItemsSource="{x:Static rgb:DirectionValues.Values}"
+                                                      ItemsSource="{Binding AvailableDirections}"
                                                       HorizontalAlignment="Stretch"/>
                                         </StackPanel>
 

@@ -186,7 +186,7 @@
 
         <!-- Create/Edit Form -->
         <StackPanel Grid.Row="1"
-                    IsVisible="{Binding IsCreatingRole, Converter={x:Static BoolConverters.Or}, ConverterParameter={Binding IsEditing}}"
+                    IsVisible="{Binding IsEditingOrCreating}"
                     Spacing="16">
           <StackPanel Spacing="8">
             <TextBlock Text="Role Name" Classes="Label" />

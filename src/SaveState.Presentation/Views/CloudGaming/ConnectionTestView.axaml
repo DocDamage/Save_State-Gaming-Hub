@@ -241,7 +241,7 @@
                             <ItemsControl ItemsSource="{Binding TestHistory}" MaxHeight="150">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="models:ConnectionTestResult">
-                                        <Grid ColumnDefinitions="*,*,*,Auto" Padding="8,4">
+                                        <Grid ColumnDefinitions="*,*,*,Auto" Margin="8,4">
                                             <TextBlock Grid.Column="0" Text="{Binding TestedAt, StringFormat='{}{0:g}'}"/>
                                             <TextBlock Grid.Column="1" Text="{Binding Ping, StringFormat='{}{0}ms'}"/>
                                             <TextBlock Grid.Column="2" Text="{Binding RecommendedQuality}"/>

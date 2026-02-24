@@ -81,7 +81,14 @@ public partial class QuickActionsWidget : WidgetBase
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to navigate to last played game");
-            await _navigationService.NavigateToAsync("Library");
+            try
+            {
+                await _navigationService.NavigateToAsync("Library");
+            }
+            catch (Exception navigationEx)
+            {
+                Logger.LogError(navigationEx, "Fallback navigation to library failed");
+            }
         }
     }
 
@@ -118,7 +125,14 @@ public partial class QuickActionsWidget : WidgetBase
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to pick random game");
-            await _navigationService.NavigateToAsync("Library");
+            try
+            {
+                await _navigationService.NavigateToAsync("Library");
+            }
+            catch (Exception navigationEx)
+            {
+                Logger.LogError(navigationEx, "Fallback navigation to library failed");
+            }
         }
     }
 

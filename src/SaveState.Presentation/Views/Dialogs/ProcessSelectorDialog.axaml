@@ -264,7 +264,7 @@
                     </MultiBinding>
                 </TextBlock.Text>
                 <TextBlock.IsVisible>
-                    <Binding Path="SelectedProcess" Converter="{x:Static ObjectConverters.IsNotNull}" />
+                    <Binding Path="SelectedProcess" Converter="{StaticResource ObjectToBoolConverter}" />
                 </TextBlock.IsVisible>
             </TextBlock>
 
@@ -278,7 +278,7 @@
                     Content="Attach"
                     Command="{Binding AttachCommand}"
                     Classes="primary"
-                    IsEnabled="{Binding SelectedProcess, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                    IsEnabled="{Binding SelectedProcess, Converter={StaticResource ObjectToBoolConverter}}" />
         </Grid>
     </Grid>
 </Window>

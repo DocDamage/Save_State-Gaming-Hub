@@ -41,7 +41,9 @@ public class MobileConnectionManager : IMobileConnectionManager, IAsyncDisposabl
 {
     private HubConnection _hubConnection;
     private readonly ILogger<MobileConnectionManager> _logger;
+    #pragma warning disable CS0414 // Field is assigned but never used - incomplete feature
     private int _reconnectAttempt;
+#pragma warning restore CS0414
     private const int MaxReconnectAttempts = 5;
     
     public MobileConnectionStatus Status { get; private set; } = MobileConnectionStatus.Disconnected;

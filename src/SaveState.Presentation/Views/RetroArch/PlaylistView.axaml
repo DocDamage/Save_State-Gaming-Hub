@@ -43,10 +43,7 @@
     <Style Selector="Border.GameCover">
       <Setter Property="Background">
         <Setter.Value>
-          <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-            <GradientStop Color="{DynamicResource AccentColor}" Offset="0" Opacity="0.3"/>
-            <GradientStop Color="{DynamicResource AccentColor}" Offset="1" Opacity="0.1"/>
-          </LinearGradientBrush>
+          <SolidColorBrush Color="{DynamicResource AccentColor}" Opacity="0.2" />
         </Setter.Value>
       </Setter>
       <Setter Property="CornerRadius" Value="6"/>

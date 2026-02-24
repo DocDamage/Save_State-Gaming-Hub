@@ -105,7 +105,7 @@
                       HorizontalAlignment="Center"
                       Command="{Binding SetWinnerCommand}"
                       CommandParameter="1"
-                      IsVisible="{Binding WinnerId, Converter={x:Static ObjectConverters.IsNull}}" />
+                      IsVisible="{Binding WinnerId, Converter={StaticResource InverseBoolConverter}}" />
             </StackPanel>
           </Border>
 
@@ -133,14 +133,14 @@
                       HorizontalAlignment="Center"
                       Command="{Binding SetWinnerCommand}"
                       CommandParameter="2"
-                      IsVisible="{Binding WinnerId, Converter={x:Static ObjectConverters.IsNull}}" />
+                      IsVisible="{Binding WinnerId, Converter={StaticResource InverseBoolConverter}}" />
             </StackPanel>
           </Border>
 
           <!-- Winner Display -->
           <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
                   Classes="playerCard winner"
-                  IsVisible="{Binding WinnerId, Converter={x:Static ObjectConverters.IsNotNull}}"
+                  IsVisible="{Binding WinnerId, Converter={StaticResource ObjectToBoolConverter}}"
                   Margin="0,16,0,0">
             <StackPanel HorizontalAlignment="Center">
               <TextBlock Text="🏆 WINNER"

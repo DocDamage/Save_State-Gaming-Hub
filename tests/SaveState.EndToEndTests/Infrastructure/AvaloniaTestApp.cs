@@ -58,20 +58,15 @@ public static class AvaloniaTestApp
             try
             {
                 // Use the minimal TestApp that doesn't require XAML compilation
+                // Note: UseHeadless() must be called to register the headless rendering system
                 var builder = AppBuilder.Configure<TestApp>()
                     .UseHeadless(new AvaloniaHeadlessPlatformOptions
                     {
-                        UseHeadlessDrawing = false  // Disable drawing to avoid issues
+                        UseHeadlessDrawing = true  // Enable headless drawing for layout/rendering tests
                     });
 
-                // Use a simple lifetime that doesn't require full XAML resources
-                // This is crucial - we need a lifetime for the app to work
-                var lifetime = new ClassicDesktopStyleApplicationLifetime
-                {
-                    ShutdownMode = ShutdownMode.OnLastWindowClose
-                };
-                
-                builder.SetupWithLifetime(lifetime);
+                // Setup without lifetime first to initialize the app
+                builder.SetupWithoutStarting();
                 
                 _initialized = true;
             }

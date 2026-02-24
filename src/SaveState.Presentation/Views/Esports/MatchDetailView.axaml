@@ -364,7 +364,7 @@
                        FontWeight="Bold"
                        Foreground="#00d9ff" />
 
-            <StackPanel Orientation="Horizontal" Spacing="10" Wrap="Wrap">
+            <WrapPanel Orientation="Horizontal">
               <Button Content="Contact Opponent"
                       Command="{Binding ContactOpponentCommand}"
                       Classes="ActionButton" />
@@ -379,7 +379,7 @@
 
               <Button Content="Match History"
                       Classes="ActionButton" />
-            </StackPanel>
+            </WrapPanel>
           </StackPanel>
         </Border>
 

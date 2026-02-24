@@ -362,7 +362,7 @@
                                                             <TextBlock Text="{Binding CurrentModifiedDate, StringFormat='Modified: {0:g}'}"
                                                                        FontSize="10"
                                                                        Foreground="#888888"
-                                                                       IsVisible="{Binding CurrentModifiedDate, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                                                       IsVisible="{Binding CurrentModifiedDate, Converter={StaticResource ObjectToBoolConverter}}"/>
                                                         </StackPanel>
                                                     </Border>
 
@@ -385,7 +385,7 @@
                                                             <TextBlock Text="{Binding ImportedModifiedDate, StringFormat='Modified: {0:g}'}"
                                                                        FontSize="10"
                                                                        Foreground="#888888"
-                                                                       IsVisible="{Binding ImportedModifiedDate, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                                                       IsVisible="{Binding ImportedModifiedDate, Converter={StaticResource ObjectToBoolConverter}}"/>
                                                         </StackPanel>
                                                     </Border>
                                                 </Grid>

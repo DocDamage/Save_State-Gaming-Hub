@@ -96,7 +96,7 @@
                        FontSize="14"
                        Foreground="{StaticResource TextSecondaryBrush}" />
             <TextBlock Text="•" Foreground="{StaticResource TextSecondaryBrush}" />
-            <TextBlock Text="{Binding SelectedPlugin.FormattedDownloads, StringFormat='{0} downloads'}"
+            <TextBlock Text="{Binding SelectedPlugin.FormattedDownloads, StringFormat='{}{0} downloads'}"
                        FontSize="14"
                        Foreground="{StaticResource TextSecondaryBrush}" />
           </StackPanel>

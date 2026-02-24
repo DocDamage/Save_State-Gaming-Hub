@@ -354,7 +354,7 @@
                                 Command="{Binding ImportCommand}"
                                 Classes="primary"
                                 IsVisible="{Binding !ShowResults}"
-                                IsEnabled="{Binding SelectedEntryCount, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                IsEnabled="{Binding SelectedEntryCount, Converter={StaticResource ObjectToBoolConverter}}"/>
 
                         <Button Grid.Column="2"
                                 Content="Done"

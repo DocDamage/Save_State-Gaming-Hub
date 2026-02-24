@@ -115,7 +115,8 @@ public sealed partial class CertificateViewerDialogViewModel : ObservableObject
             // Public key info
             PublicKeyAlgorithm = _certificate.PublicKey.Oid.FriendlyName ?? "Unknown";
 
-            // Key size
+            // Key size - using Get[Algorithm]PublicKey methods for .NET 9 compatibility
+#pragma warning disable SYSLIB0027 // PublicKey.Key is obsolete
             if (_certificate.PublicKey.Key is RSA rsa)
             {
                 KeySize = rsa.KeySize;
@@ -128,6 +129,7 @@ public sealed partial class CertificateViewerDialogViewModel : ObservableObject
             {
                 KeySize = ecdsa.KeySize;
             }
+#pragma warning restore SYSLIB0027
 
             // Check validity
             IsValid = _certificate.NotBefore <= DateTime.Now && _certificate.NotAfter >= DateTime.Now;

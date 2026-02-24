@@ -18,43 +18,27 @@
       <Setter Property="FontSize" Value="24" />
       <Setter Property="FontWeight" Value="Bold" />
       <Setter Property="Foreground" Value="#fff" />
-      <Setter Property="TextShadow">
-        <Setter.Value>
-          <Shadow OffsetX="2" OffsetY="2" BlurRadius="4" Color="#000" />
-        </Setter.Value>
-      </Setter>
+      <!-- TextShadow not supported in Avalonia -->
     </Style>
 
     <Style Selector="TextBlock.ScoreDisplay">
       <Setter Property="FontSize" Value="48" />
       <Setter Property="FontWeight" Value="Bold" />
       <Setter Property="Foreground" Value="#00d9ff" />
-      <Setter Property="TextShadow">
-        <Setter.Value>
-          <Shadow OffsetX="2" OffsetY="2" BlurRadius="4" Color="#000" />
-        </Setter.Value>
-      </Setter>
+      <!-- TextShadow not supported in Avalonia -->
     </Style>
 
     <Style Selector="TextBlock.TournamentInfo">
       <Setter Property="FontSize" Value="14" />
       <Setter Property="Foreground" Value="#ccc" />
-      <Setter Property="TextShadow">
-        <Setter.Value>
-          <Shadow OffsetX="1" OffsetY="1" BlurRadius="2" Color="#000" />
-        </Setter.Value>
-      </Setter>
+      <!-- TextShadow not supported in Avalonia -->
     </Style>
 
     <Style Selector="TextBlock.BracketInfo">
       <Setter Property="FontSize" Value="16" />
       <Setter Property="FontWeight" Value="Bold" />
       <Setter Property="Foreground" Value="#ffd700" />
-      <Setter Property="TextShadow">
-        <Setter.Value>
-          <Shadow OffsetX="1" OffsetY="1" BlurRadius="2" Color="#000" />
-        </Setter.Value>
-      </Setter>
+      <!-- TextShadow not supported in Avalonia -->
     </Style>
 
     <Style Selector="Border.ScoreBox">

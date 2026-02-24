@@ -67,7 +67,7 @@
                             Margin="0,8" />
 
                 <!-- Empty State -->
-                <StackPanel IsVisible="{Binding FilteredSaveStates.Count, Converter={x:Static BoolConverters.Equal}, ConverterParameter=0}"
+                <StackPanel IsVisible="{Binding FilteredSaveStates.Count, Converter={StaticResource EqualityConverter}, ConverterParameter=0}"
                            Spacing="16"
                            Margin="0,48"
                            HorizontalAlignment="Center">

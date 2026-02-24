@@ -80,7 +80,7 @@
                     Classes.valid-badge="{Binding IsValid}"
                     Classes.invalid-badge="{Binding !IsValid}"
                     VerticalAlignment="Center"
-                    IsVisible="{Binding IsSelfSigned, Converter={x:Static ObjectConverters.Not}}">
+                    IsVisible="{Binding IsSelfSigned, Converter={StaticResource InverseBoolConverter}}">
                 <TextBlock Text="{Binding ValidityStatus}"
                            Foreground="White"
                            FontWeight="SemiBold"
@@ -194,7 +194,7 @@
 
                         <TextBlock Text="Subject Alternative Names" Classes="cert-label" />
                         <ItemsControl ItemsSource="{Binding SubjectAlternativeNames}"
-                                      IsVisible="{Binding SubjectAlternativeNames.Count, Converter={x:Static ObjectConverters.IsGreaterThan}, ConverterParameter=0}">
+                                      IsVisible="{Binding SubjectAlternativeNames.Count, Converter={StaticResource GreaterThanConverter}, ConverterParameter=0}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding}"
@@ -207,7 +207,7 @@
                         <TextBlock Text="None"
                                    FontSize="13"
                                    Foreground="{StaticResource TextSecondaryBrush}"
-                                   IsVisible="{Binding SubjectAlternativeNames.Count, Converter={x:Static ObjectConverters.IsLessThanOrEqual}, ConverterParameter=0}" />
+                                   IsVisible="{Binding SubjectAlternativeNames.Count, Converter={StaticResource GreaterThanConverter}, ConverterParameter=0, FallbackValue=Visible}" />
                     </StackPanel>
                 </Border>
 

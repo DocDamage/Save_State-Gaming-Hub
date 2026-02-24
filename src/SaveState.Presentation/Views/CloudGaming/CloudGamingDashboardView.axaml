@@ -335,7 +335,7 @@
                     <ItemsControl ItemsSource="{Binding RecentSessions}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="models:CloudSession">
-                                <Grid ColumnDefinitions="Auto,*,Auto,Auto" Padding="16,12">
+                                <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="16,12">
                                     <TextBlock Grid.Column="0" 
                                                Text="🎮"
                                                FontSize="20"

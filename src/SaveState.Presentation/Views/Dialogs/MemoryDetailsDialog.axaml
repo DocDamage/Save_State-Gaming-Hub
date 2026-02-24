@@ -168,7 +168,7 @@
 
           <!-- Empty State -->
           <Panel Grid.Row="0"
-                 IsVisible="{Binding FilteredConversations.Count, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=0}"
+                 IsVisible="{Binding FilteredConversations.Count, Converter={StaticResource EqualityConverter}, ConverterParameter=0}"
                  HorizontalAlignment="Center"
                  VerticalAlignment="Center">
             <StackPanel Spacing="8" HorizontalAlignment="Center">
@@ -192,7 +192,7 @@
               <Button Content="Delete All"
                       Command="{Binding DeleteAllConversationsCommand}"
                       Classes="Danger"
-                      IsEnabled="{Binding Conversations.Count, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter=0}" />
+                      IsEnabled="{Binding Conversations.Count, Converter={StaticResource InequalityConverter}, ConverterParameter=0}" />
             </StackPanel>
           </Border>
         </Grid>
@@ -214,11 +214,11 @@
           <ScrollViewer Grid.Row="1" Margin="12">
             <TextBlock Text="{Binding ConversationPreview}"
                        TextWrapping="Wrap"
-                       IsVisible="{Binding SelectedConversation, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                       IsVisible="{Binding SelectedConversation, Converter={StaticResource ObjectToBoolConverter}}" />
           </ScrollViewer>
           
           <Panel Grid.Row="1"
-                 IsVisible="{Binding SelectedConversation, Converter={x:Static ObjectConverters.IsNull}}"
+                 IsVisible="{Binding SelectedConversation, Converter={StaticResource InverseBoolConverter}}"
                  HorizontalAlignment="Center"
                  VerticalAlignment="Center">
             <StackPanel Spacing="8" HorizontalAlignment="Center">

@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:SaveState.Presentation.ViewModels.Overlays"
-             xmlns:models="using:SaveState.Presentation.Models.Achievements"
+             xmlns:models="using:SaveState.Presentation.ViewModels.Achievements"
              xmlns:converters="using:SaveState.Presentation.Converters"
              x:Class="SaveState.Presentation.Views.Overlays.AchievementOverlayView"
              x:DataType="vm:AchievementOverlayViewModel"
@@ -90,7 +90,7 @@
     <Grid>
         <!-- Main Achievement Toast Panel (Center) -->
         <Border Background="#E6000000"
-                IsVisible="{Binding ActiveNotifications.Count, Converter={x:Static converters:ObjectToBoolConverter.Instance}}"
+                IsVisible="{Binding ActiveNotifications.Count, Converter={StaticResource ObjectToBoolConverter}}"
                 PointerPressed="OnBackgroundClick">
 
             <ScrollViewer HorizontalScrollBarVisibility="Disabled"
@@ -287,11 +287,11 @@
                             <!-- Recent Unlocks -->
                             <StackPanel Orientation="Horizontal"
                                        Spacing="8"
-                                       IsVisible="{Binding CurrentProgress.RecentUnlocks.Count, Converter={x:Static converters:ObjectToBoolConverter.Instance}}">
+                                       IsVisible="{Binding CurrentProgress.RecentUnlocks.Count, Converter={StaticResource ObjectToBoolConverter}}">
                                 <TextBlock Text="Recent:"
                                           FontSize="12"
                                           Foreground="#80FFFFFF" />
-                                <TextBlock Text="{Binding CurrentProgress.RecentUnlocks, Converter={x:Static StringConverters.Join}}"
+                                <TextBlock Text="{Binding CurrentProgress.RecentUnlocks.Count, StringFormat='{}{0} items'}"
                                           FontSize="12"
                                           Foreground="#B0FFFFFF" />
                             </StackPanel>
@@ -365,7 +365,7 @@
                     <!-- Achievement Content -->
                     <Grid ColumnDefinitions="Auto,*"
                          DataContext="{Binding CornerPopupNotification}"
-                         IsVisible="{Binding CornerPopupNotification, Converter={x:Static converters:ObjectToBoolConverter.Instance}}">
+                         IsVisible="{Binding CornerPopupNotification, Converter={StaticResource ObjectToBoolConverter}}">
                         <!-- Badge -->
                         <Border Grid.Column="0"
                                Width="56"

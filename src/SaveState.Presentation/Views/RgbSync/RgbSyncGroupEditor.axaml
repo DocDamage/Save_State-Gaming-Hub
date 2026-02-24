@@ -40,7 +40,7 @@
             <Setter Property="Background" Value="{StaticResource InputBackgroundBrush}"/>
             <Setter Property="BorderThickness" Value="2"/>
             <Setter Property="BorderBrush" Value="#30FFFFFF"/>
-            <Setter Property="BorderDashArray" Value="4,4"/>
+            <!-- BorderDashArray not supported in Avalonia - using solid border -->
             <Setter Property="CornerRadius" Value="8"/>
         </Style>
 
@@ -106,6 +106,7 @@
             <Grid Grid.Column="1" RowDefinitions="*, Auto">
                 <!-- Groups List or New Group Editor -->
                 <Border Grid.Row="0" Classes="GlassContainer" Padding="20">
+                    <Panel>
                     <Grid IsVisible="{Binding IsCreatingNew}">
                         <Grid RowDefinitions="Auto, *, Auto">
                             <!-- New Group Header -->
@@ -255,7 +256,7 @@
                             </ItemsControl>
 
                             <!-- Empty State -->
-                            <Border IsVisible="{Binding SyncGroups.Count, Converter={x:Static ObjectConverters.IsNullOrEmpty}}"
+                            <Border IsVisible="{Binding SyncGroups.Count, Converter={StaticResource EqualityConverter}, ConverterParameter=0}"
                                     Background="{StaticResource InputBackgroundBrush}"
                                     CornerRadius="8"
                                     Padding="40"
@@ -273,6 +274,7 @@
                             </Border>
                         </StackPanel>
                     </Grid>
+                    </Panel>
                 </Border>
             </Grid>
         </Grid>

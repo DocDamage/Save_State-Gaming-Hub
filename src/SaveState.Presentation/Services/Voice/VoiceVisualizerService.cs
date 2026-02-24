@@ -154,10 +154,7 @@ public sealed class VoiceVisualizerService : IVoiceVisualizerService, IDisposabl
     /// <inheritdoc />
     public void StartVisualization()
     {
-        if (_isDisposed)
-        {
-            throw new ObjectDisposedException(nameof(VoiceVisualizerService));
-        }
+        ObjectDisposedException.ThrowIf(_isDisposed, nameof(VoiceVisualizerService));
 
         IsVisible = true;
         _animationTimer.Change(TimeSpan.Zero, TimeSpan.FromMilliseconds(16)); // ~60fps

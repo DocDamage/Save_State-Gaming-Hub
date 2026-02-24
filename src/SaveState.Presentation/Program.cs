@@ -39,6 +39,8 @@ public static class Program
     [STAThread]
     public static async Task Main(string[] args)
     {
+        RegisterGlobalExceptionHandlers();
+
         // Initialize bootstrap logger for early logging
         Log.Logger = new LoggerConfiguration()
             .WriteTo.Console()
@@ -50,12 +52,23 @@ public static class Program
 
             var builder = Host.CreateApplicationBuilder(args);
 
-            // Configure Serilog
-            builder.Logging.ClearProviders();
-            var serilogConfig = SerilogConfiguration.CreateConfiguration(builder.Configuration)
-                .AddSeq(builder.Configuration["Seq:ServerUrl"]);
-            Log.Logger = serilogConfig.CreateLogger();
-            builder.Logging.AddSerilog(Log.Logger);
+            // Configure logging
+            builder.Services.AddLogging(loggingBuilder =>
+            {
+                loggingBuilder.ClearProviders();
+                var serilogConfig = SerilogConfiguration.CreateConfiguration(builder.Configuration)
+                    .AddSeq(builder.Configuration["Seq:ServerUrl"]);
+                Log.Logger = serilogConfig.CreateLogger();
+                loggingBuilder.AddSerilog(Log.Logger);
+            });
+            
+            // Ensure ILogger<T> factory is available
+            builder.Services.AddSingleton<ILoggerFactory>(sp => 
+            {
+                var factory = new LoggerFactory();
+                factory.AddSerilog(Log.Logger);
+                return factory;
+            });
 
             // Add layers
             builder.Services.AddInfrastructure(builder.Configuration);
@@ -189,6 +202,10 @@ public static class Program
             builder.Services.AddSingleton<IUiGameContextService, UiGameContextService>();
             builder.Services.AddSingleton<ICommandPaletteService, CommandPaletteService>();
 
+            // Add missing analytics and performance services
+            builder.Services.AddSingleton<SaveState.Core.Analytics.Services.IAnalyticsService, SaveState.Infrastructure.Analytics.AnalyticsService>();
+            builder.Services.AddSingleton<SaveState.Core.Performance.Services.IPerformanceMonitor, SaveState.Infrastructure.Performance.PerformanceMonitor>();
+
             // Add terminal services
             builder.Services.AddSingleton<SaveState.Presentation.Services.Terminal.ICommandExecutor, SaveState.Presentation.Services.Terminal.CommandExecutor>();
 
@@ -220,6 +237,12 @@ public static class Program
             // Add tab ViewModels
             // Add tab ViewModels
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.DashboardViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.RomManagementViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.RetroArchViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Shell.AchievementHubViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.Subscriptions.SubscriptionManagerViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.GameDeals.GameDealsViewModel>();
+            builder.Services.AddTransient<SaveState.Presentation.ViewModels.GameLibrary.SmartRecommendationsViewModel>();
 
             // Add Library UI components
             builder.Services.AddTransient<SaveState.Presentation.ViewModels.Library.LibrarySidebarViewModel>();
@@ -271,7 +294,7 @@ public static class Program
 
             var host = builder.Build();
 
-            // Initialize database and seed test game
+            // Initialize database and seed lightweight development content
             using (var scope = host.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<SaveStateDbContext>();
@@ -282,50 +305,8 @@ public static class Program
                     dbContext.Database.SetConnectionString("Data Source=savestate.db");
                 }
 
-                // Ensure database is created
-                await dbContext.Database.EnsureCreatedAsync();
-
-                // Seed "Test Game" if library is empty
-                if (!await dbContext.Games.AnyAsync())
-                {
-                    var platform = await dbContext.Platforms.FirstOrDefaultAsync(p => p.Name == "PC");
-                    if (platform == null)
-                    {
-                        platform = new Platform(
-                            SaveState.Core.GameLibrary.ValueObjects.PlatformName.From("PC"),
-                            SaveState.Core.GameLibrary.ValueObjects.PlatformShortName.From("PC"),
-                            SaveState.Core.GameLibrary.Enums.PlatformType.Computer);
-                        dbContext.Platforms.Add(platform);
-                        await dbContext.SaveChangesAsync();
-                    }
-
-                    var testGame = Game.Create("Test Game", platform.Id);
-                    dbContext.Games.Add(testGame);
-                    await dbContext.SaveChangesAsync();
-                }
-
-                // Seed MUGEN characters if empty
-                if (!await dbContext.MugenCharacters.AnyAsync())
-                {
-                    try
-                    {
-                        var kfm = MugenCharacter.Create("Kung Fu Man", "chars/kfm/kfm.def", "chars/kfm");
-                        var ryu = MugenCharacter.Create("Ryu", "chars/ryu/ryu.def", "chars/ryu");
-                        dbContext.MugenCharacters.AddRange(kfm, ryu);
-                        await dbContext.SaveChangesAsync();
-                    }
-                    catch (DbUpdateException ex)
-                    {
-                        // Guard startup from seed-shape drift; continue boot even if demo seed fails.
-                        dbContext.ChangeTracker.Clear();
-                        Log.Warning(ex, "Skipping default MUGEN character seed due to database constraint mismatch.");
-                    }
-                }
-
-                // Enable WAL Mode for performance
-                dbContext.EnableWalMode();
-
-                // Run database initialization and seeding
+                // Run database initialization (migrations + RetroArch seeding).
+                // Important: do not mix EnsureCreated with Migrate, or migration history becomes inconsistent.
                 try
                 {
                     await SaveState.Infrastructure.Persistence.DatabaseInitializer.InitializeAsync(host.Services);
@@ -335,6 +316,11 @@ public static class Program
                     // Allow UI startup in dev scenarios even when migration/model drift blocks initializer.
                     Log.Warning(ex, "Database initializer failed; continuing startup for interactive UI session.");
                 }
+
+                await SeedDevelopmentDataAsync(dbContext);
+
+                // Enable WAL Mode for performance.
+                dbContext.EnableWalMode();
             }
 
             Log.Information("Database initialization complete");
@@ -344,6 +330,20 @@ public static class Program
 
             // Setup the service locator for Avalonia
             Locator.Current.SetServices(host.Services);
+
+            // Test resolving logger factory
+            try
+            {
+                var loggerFactory = host.Services.GetService<ILoggerFactory>();
+                Log.Information("LoggerFactory resolved: {Factory}", loggerFactory?.GetType().Name ?? "null");
+                
+                var testLogger = host.Services.GetService<ILogger<SaveState.Presentation.ViewModels.Shell.MainShellViewModel>>();
+                Log.Information("ILogger<MainShellViewModel> resolved: {Logger}", testLogger?.GetType().Name ?? "null");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to resolve logger services");
+            }
 
             Log.Information("Starting background services...");
             var hostStarted = false;
@@ -362,13 +362,11 @@ public static class Program
             // Run the Avalonia application
             try
             {
-                Log.Information("Building AppBuilder...");
-                var appBuilder = AppBuilder.Configure<App>()
+                Log.Information("Starting Avalonia desktop lifetime...");
+                AppBuilder.Configure<App>()
                     .UsePlatformDetect()
-                    .LogToTrace();
-
-                Log.Information("Starting with ClassicDesktopLifetime...");
-                appBuilder.StartWithClassicDesktopLifetime(args);
+                    .LogToTrace()
+                    .StartWithClassicDesktopLifetime(args);
 
                 if (hostStarted)
                 {
@@ -377,6 +375,19 @@ public static class Program
                 }
 
                 Log.Information("Application exited normally");
+            }
+            catch (PlatformNotSupportedException ex)
+            {
+                // Happens in headless/non-interactive sessions (CI/agent shells) where no desktop UI loop exists.
+                Log.Warning(ex, "Desktop UI platform is unavailable in this runtime session. Run from a local interactive desktop terminal.");
+
+                if (hostStarted)
+                {
+                    Log.Information("Stopping background services after headless startup guard...");
+                    await host.StopAsync();
+                }
+
+                return;
             }
             catch (Exception ex)
             {
@@ -392,6 +403,46 @@ public static class Program
         finally
         {
             Log.CloseAndFlush();
+        }
+    }
+
+    private static async Task SeedDevelopmentDataAsync(SaveStateDbContext dbContext)
+    {
+        // Seed "Test Game" if library is empty.
+        if (!await dbContext.Games.AnyAsync())
+        {
+            var platform = await dbContext.Platforms.FirstOrDefaultAsync(p => p.Name == "PC");
+            if (platform is null)
+            {
+                platform = new Platform(
+                    SaveState.Core.GameLibrary.ValueObjects.PlatformName.From("PC"),
+                    SaveState.Core.GameLibrary.ValueObjects.PlatformShortName.From("PC"),
+                    SaveState.Core.GameLibrary.Enums.PlatformType.Computer);
+
+                dbContext.Platforms.Add(platform);
+                await dbContext.SaveChangesAsync();
+            }
+
+            var testGame = Game.Create("Test Game", platform.Id);
+            dbContext.Games.Add(testGame);
+            await dbContext.SaveChangesAsync();
+        }
+
+        // Seed starter MUGEN characters for first-run demo scenarios.
+        if (!await dbContext.MugenCharacters.AnyAsync())
+        {
+            try
+            {
+                var kfm = MugenCharacter.Create("Kung Fu Man", "chars/kfm/kfm.def", "chars/kfm");
+                var ryu = MugenCharacter.Create("Ryu", "chars/ryu/ryu.def", "chars/ryu");
+                dbContext.MugenCharacters.AddRange(kfm, ryu);
+                await dbContext.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                dbContext.ChangeTracker.Clear();
+                Log.Warning(ex, "Default MUGEN character seed failed; skipping.");
+            }
         }
     }
 
@@ -446,4 +497,27 @@ public static class Program
             // Don't throw - app should still start even if scan fails
         }
     }
+
+    private static void RegisterGlobalExceptionHandlers()
+    {
+        AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
+        {
+            if (eventArgs.ExceptionObject is Exception ex)
+            {
+                Log.Error(ex, "Unhandled AppDomain exception");
+            }
+            else
+            {
+                Log.Error("Unhandled AppDomain exception (non-Exception type): {Type}", eventArgs.ExceptionObject?.GetType().FullName ?? "null");
+            }
+        };
+
+        TaskScheduler.UnobservedTaskException += (_, eventArgs) =>
+        {
+            Log.Error(eventArgs.Exception, "Unobserved task exception");
+            eventArgs.SetObserved();
+        };
+
+    }
 }
+

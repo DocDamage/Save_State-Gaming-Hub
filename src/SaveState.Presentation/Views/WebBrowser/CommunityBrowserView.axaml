@@ -178,12 +178,13 @@
                                                     <TextBlock Text="{Binding Author}"
                                                                FontSize="12"
                                                                Foreground="{StaticResource AccentBrush}"/>
-                                                    <TextBlock Text="{Binding Category}"
-                                                               FontSize="12"
-                                                               Foreground="{StaticResource TextSecondaryBrush}"
-                                                               Background="{StaticResource ControlBackgroundBrush}"
-                                                               Padding="6,2"
-                                                               CornerRadius="4"/>
+                                                    <Border Background="{StaticResource ControlBackgroundBrush}"
+                                                            Padding="6,2"
+                                                            CornerRadius="4">
+                                                        <TextBlock Text="{Binding Category}"
+                                                                   FontSize="12"
+                                                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                    </Border>
                                                     <TextBlock Text="{Binding TimeAgo}"
                                                                FontSize="12"
                                                                Foreground="{StaticResource TextSecondaryBrush}"/>
@@ -241,17 +242,17 @@
                                             BorderThickness="0,0,0,1"
                                             Padding="8,12">
                                         <Grid ColumnDefinitions="Auto, *, Auto">
-                                            <StackPanel Grid.Column="0" 
-                                                        Width="48" 
-                                                        Height="48"
-                                                        Background="{StaticResource ControlBackgroundBrush}"
-                                                        CornerRadius="8"
-                                                        VerticalAlignment="Center">
+                                            <Border Grid.Column="0" 
+                                                    Width="48" 
+                                                    Height="48"
+                                                    Background="{StaticResource ControlBackgroundBrush}"
+                                                    CornerRadius="8"
+                                                    VerticalAlignment="Center">
                                                 <TextBlock Text="🏆"
                                                            FontSize="24"
                                                            HorizontalAlignment="Center"
                                                            VerticalAlignment="Center"/>
-                                            </StackPanel>
+                                            </Border>
 
                                             <StackPanel Grid.Column="1" 
                                                         Margin="12,0,0,0"
@@ -357,11 +358,12 @@
                                                         </ItemsControl.ItemsPanel>
                                                         <ItemsControl.ItemTemplate>
                                                             <DataTemplate>
-                                                                <TextBlock Text="{Binding}"
-                                                                           FontSize="10"
-                                                                           Background="{StaticResource ControlBackgroundBrush}"
-                                                                           Padding="4,2"
-                                                                           CornerRadius="4"/>
+                                                                <Border Background="{StaticResource ControlBackgroundBrush}"
+                                                                        Padding="4,2"
+                                                                        CornerRadius="4">
+                                                                    <TextBlock Text="{Binding}"
+                                                                               FontSize="10"/>
+                                                                </Border>
                                                             </DataTemplate>
                                                         </ItemsControl.ItemTemplate>
                                                     </ItemsControl>

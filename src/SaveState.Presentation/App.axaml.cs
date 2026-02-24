@@ -4,8 +4,10 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Serilog;
 using SaveState.Presentation.ViewModels;
 using SaveState.Presentation.Views;
 using System.Linq;
@@ -31,6 +33,12 @@ public partial class App : Application
     /// </summary>
     public override void OnFrameworkInitializationCompleted()
     {
+        Dispatcher.UIThread.UnhandledException += (_, eventArgs) =>
+        {
+            Log.Error(eventArgs.Exception, "Unhandled UI thread exception");
+            eventArgs.Handled = true;
+        };
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit.

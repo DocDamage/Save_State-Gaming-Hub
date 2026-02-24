@@ -161,42 +161,46 @@
               <!-- Quick Actions -->
               <StackPanel Spacing="8">
                 <TextBlock Text="Quick Actions" Classes="Label"/>
-                <StackPanel Orientation="Horizontal" Spacing="8" Wrap="Wrap">
+                <WrapPanel Orientation="Horizontal">
                   <TextBox Text="{Binding SeedColor}" 
                            Watermark="Seed Color (#RRGGBB)"
-                           Width="120"/>
+                           Width="120" Margin="0,0,8,8"/>
                   <Button Content="🎨 Generate from Seed"
                           Command="{Binding GenerateFromSeedCommand}"
-                          Classes="Secondary"/>
+                          Classes="Secondary" Margin="0,0,8,8"/>
                   <Button Content="🖼️ Extract from Image"
                           Command="{Binding GenerateFromImageCommand}"
-                          Classes="Secondary"/>
+                          Classes="Secondary" Margin="0,0,8,8"/>
                   <Button Content="🔄 Reset"
                           Command="{Binding ResetToDefaultCommand}"
-                          Classes="Ghost"/>
-                </StackPanel>
+                          Classes="Ghost" Margin="0,0,8,8"/>
+                </WrapPanel>
               </StackPanel>
               
               <!-- Primary Colors -->
               <StackPanel Spacing="8">
                 <TextBlock Text="Primary Colors" Classes="Label"/>
                 <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto">
-                  <ColorPicker Grid.Row="0" Grid.Column="0"
-                              Header="Primary"
-                              Color="{Binding PrimaryColor, Mode=TwoWay}"
-                              IsEnabled="{Binding CanEditSelectedTheme}"/>
-                  <ColorPicker Grid.Row="0" Grid.Column="1"
-                              Header="On Primary"
-                              Color="{Binding Colors.OnPrimary, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
-                              IsEnabled="{Binding CanEditSelectedTheme}"/>
-                  <ColorPicker Grid.Row="1" Grid.Column="0"
-                              Header="Primary Container"
-                              Color="{Binding Colors.PrimaryContainer, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
-                              IsEnabled="{Binding CanEditSelectedTheme}"/>
-                  <ColorPicker Grid.Row="1" Grid.Column="1"
-                              Header="On Primary Container"
-                              Color="{Binding Colors.OnPrimaryContainer, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
-                              IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
+                    <TextBlock Text="Primary" FontSize="12" Opacity="0.7"/>
+                    <ColorPicker Color="{Binding PrimaryColor, Mode=TwoWay}"
+                                IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  </StackPanel>
+                  <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
+                    <TextBlock Text="On Primary" FontSize="12" Opacity="0.7"/>
+                    <ColorPicker Color="{Binding Colors.OnPrimary, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
+                                IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  </StackPanel>
+                  <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4">
+                    <TextBlock Text="Primary Container" FontSize="12" Opacity="0.7"/>
+                    <ColorPicker Color="{Binding Colors.PrimaryContainer, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
+                                IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  </StackPanel>
+                  <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+                    <TextBlock Text="On Primary Container" FontSize="12" Opacity="0.7"/>
+                    <ColorPicker Color="{Binding Colors.OnPrimaryContainer, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
+                                IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  </StackPanel>
                 </Grid>
               </StackPanel>
               
@@ -204,22 +208,26 @@
               <StackPanel Spacing="8">
                 <TextBlock Text="Secondary Colors" Classes="Label"/>
                 <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto">
-                  <ColorPicker Grid.Row="0" Grid.Column="0"
-                              Header="Secondary"
-                              Color="{Binding SecondaryColor, Mode=TwoWay}"
-                              IsEnabled="{Binding CanEditSelectedTheme}"/>
-                  <ColorPicker Grid.Row="0" Grid.Column="1"
-                              Header="On Secondary"
-                              Color="{Binding Colors.OnSecondary, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
-                              IsEnabled="{Binding CanEditSelectedTheme}"/>
-                  <ColorPicker Grid.Row="1" Grid.Column="0"
-                              Header="Secondary Container"
-                              Color="{Binding Colors.SecondaryContainer, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
-                              IsEnabled="{Binding CanEditSelectedTheme}"/>
-                  <ColorPicker Grid.Row="1" Grid.Column="1"
-                              Header="On Secondary Container"
-                              Color="{Binding Colors.OnSecondaryContainer, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
-                              IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
+                    <TextBlock Text="Secondary" FontSize="12" Opacity="0.7"/>
+                    <ColorPicker Color="{Binding SecondaryColor, Mode=TwoWay}"
+                                IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  </StackPanel>
+                  <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
+                    <TextBlock Text="On Secondary" FontSize="12" Opacity="0.7"/>
+                    <ColorPicker Color="{Binding Colors.OnSecondary, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
+                                IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  </StackPanel>
+                  <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4">
+                    <TextBlock Text="Secondary Container" FontSize="12" Opacity="0.7"/>
+                    <ColorPicker Color="{Binding Colors.SecondaryContainer, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
+                                IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  </StackPanel>
+                  <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+                    <TextBlock Text="On Secondary Container" FontSize="12" Opacity="0.7"/>
+                    <ColorPicker Color="{Binding Colors.OnSecondaryContainer, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
+                                IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  </StackPanel>
                 </Grid>
               </StackPanel>
               
@@ -227,22 +235,26 @@
               <StackPanel Spacing="8">
                 <TextBlock Text="Background &amp; Surface" Classes="Label"/>
                 <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto">
-                  <ColorPicker Grid.Row="0" Grid.Column="0"
-                              Header="Background"
-                              Color="{Binding BackgroundColor, Mode=TwoWay}"
-                              IsEnabled="{Binding CanEditSelectedTheme}"/>
-                  <ColorPicker Grid.Row="0" Grid.Column="1"
-                              Header="On Background"
-                              Color="{Binding Colors.OnBackground, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
-                              IsEnabled="{Binding CanEditSelectedTheme}"/>
-                  <ColorPicker Grid.Row="1" Grid.Column="0"
-                              Header="Surface"
-                              Color="{Binding SurfaceColor, Mode=TwoWay}"
-                              IsEnabled="{Binding CanEditSelectedTheme}"/>
-                  <ColorPicker Grid.Row="1" Grid.Column="1"
-                              Header="On Surface"
-                              Color="{Binding Colors.OnSurface, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
-                              IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
+                    <TextBlock Text="Background" FontSize="12" Opacity="0.7"/>
+                    <ColorPicker Color="{Binding BackgroundColor, Mode=TwoWay}"
+                                IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  </StackPanel>
+                  <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
+                    <TextBlock Text="On Background" FontSize="12" Opacity="0.7"/>
+                    <ColorPicker Color="{Binding Colors.OnBackground, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
+                                IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  </StackPanel>
+                  <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4">
+                    <TextBlock Text="Surface" FontSize="12" Opacity="0.7"/>
+                    <ColorPicker Color="{Binding SurfaceColor, Mode=TwoWay}"
+                                IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  </StackPanel>
+                  <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+                    <TextBlock Text="On Surface" FontSize="12" Opacity="0.7"/>
+                    <ColorPicker Color="{Binding Colors.OnSurface, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
+                                IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  </StackPanel>
                 </Grid>
               </StackPanel>
               
@@ -250,14 +262,16 @@
               <StackPanel Spacing="8">
                 <TextBlock Text="Error Colors" Classes="Label"/>
                 <Grid ColumnDefinitions="*, *" RowDefinitions="Auto">
-                  <ColorPicker Grid.Row="0" Grid.Column="0"
-                              Header="Error"
-                              Color="{Binding ErrorColor, Mode=TwoWay}"
-                              IsEnabled="{Binding CanEditSelectedTheme}"/>
-                  <ColorPicker Grid.Row="0" Grid.Column="1"
-                              Header="On Error"
-                              Color="{Binding Colors.OnError, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
-                              IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
+                    <TextBlock Text="Error" FontSize="12" Opacity="0.7"/>
+                    <ColorPicker Color="{Binding ErrorColor, Mode=TwoWay}"
+                                IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  </StackPanel>
+                  <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4">
+                    <TextBlock Text="On Error" FontSize="12" Opacity="0.7"/>
+                    <ColorPicker Color="{Binding Colors.OnError, Converter={StaticResource HexToColorConverter}, Mode=TwoWay}"
+                                IsEnabled="{Binding CanEditSelectedTheme}"/>
+                  </StackPanel>
                 </Grid>
               </StackPanel>
               
@@ -300,20 +314,20 @@
               <!-- Color Harmonies -->
               <StackPanel Spacing="8">
                 <TextBlock Text="Color Harmonies" Classes="Label"/>
-                <StackPanel Orientation="Horizontal" Spacing="8" Wrap="Wrap">
+                <WrapPanel Orientation="Horizontal">
                   <Button Content="Analogous"
                           Command="{Binding GenerateAnalogousColorsCommand}"
-                          Classes="Ghost"/>
+                          Classes="Ghost" Margin="0,0,8,8"/>
                   <Button Content="Complementary"
                           Command="{Binding GenerateComplementaryColorsCommand}"
-                          Classes="Ghost"/>
+                          Classes="Ghost" Margin="0,0,8,8"/>
                   <Button Content="Triadic"
                           Command="{Binding GenerateTriadicColorsCommand}"
-                          Classes="Ghost"/>
+                          Classes="Ghost" Margin="0,0,8,8"/>
                   <Button Content="Harmonize"
                           Command="{Binding HarmonizeColorsCommand}"
-                          Classes="Ghost"/>
-                </StackPanel>
+                          Classes="Ghost" Margin="0,0,8,8"/>
+                </WrapPanel>
               </StackPanel>
               
             </StackPanel>

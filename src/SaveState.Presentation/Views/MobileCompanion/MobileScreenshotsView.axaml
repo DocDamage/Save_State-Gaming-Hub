@@ -68,7 +68,7 @@
                             Margin="0,8" />
 
                 <!-- Empty State -->
-                <StackPanel IsVisible="{Binding FilteredScreenshots.Count, Converter={x:Static BoolConverters.Equal}, ConverterParameter=0}"
+                <StackPanel IsVisible="{Binding FilteredScreenshots.Count, Converter={StaticResource EqualityConverter}, ConverterParameter=0}"
                            Spacing="16"
                            Margin="0,48"
                            HorizontalAlignment="Center">
@@ -99,9 +99,9 @@
                                    Classes="ScreenshotCard"
                                    Margin="4">
                                 <Grid>
-                                    <Border Aspect="16/9"
-                                           CornerRadius="8"
-                                           Background="{StaticResource SurfaceBrush}">
+                                    <Border CornerRadius="8"
+                                           Background="{StaticResource SurfaceBrush}"
+                                           Height="90">
                                         <Image Source="{Binding ImageUrl, FallbackValue={StaticResource DefaultScreenshot}}"
                                               Stretch="UniformToFill" />
                                     </Border>

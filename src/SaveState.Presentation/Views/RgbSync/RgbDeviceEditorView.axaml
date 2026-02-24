@@ -85,7 +85,7 @@
                                     Classes="Small Secondary"/>
                             <Button Content="Set All White" 
                                     Command="{Binding SetAllLedsCommand}"
-                                    CommandParameter="{x:Static vm:RGBWhite}"
+                                    CommandParameter="{x:Static vm:RGBWhite.Value}"
                                     Classes="Small Secondary"/>
                         </StackPanel>
                     </Grid>

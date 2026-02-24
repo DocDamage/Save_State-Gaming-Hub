@@ -99,7 +99,7 @@
                             Margin="0,8" />
 
                 <!-- Empty State -->
-                <StackPanel IsVisible="{Binding FilteredNotifications.Count, Converter={x:Static BoolConverters.Equal}, ConverterParameter=0}"
+                <StackPanel IsVisible="{Binding FilteredNotifications.Count, Converter={StaticResource EqualityConverter}, ConverterParameter=0}"
                            Spacing="16"
                            Margin="0,48"
                            HorizontalAlignment="Center">
@@ -117,17 +117,8 @@
                 <ItemsControl ItemsSource="{Binding FilteredNotifications}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="models:CompanionNotification">
-                            <SwipeControl RightItems="{Binding SwipeItems}">
-                                <SwipeControl.RightItems>
-                                    <SwipeItems>
-                                        <SwipeItem Text="Delete"
-                                                  Background="{StaticResource ErrorBrush}"
-                                                  Command="{Binding $parent[ItemsControl].((vm:MobileNotificationsViewModel)DataContext).DeleteNotificationCommand}"
-                                                  CommandParameter="{Binding}" />
-                                    </SwipeItems>
-                                </SwipeControl.RightItems>
-                                
-                                <Button Command="{Binding $parent[ItemsControl].((vm:MobileNotificationsViewModel)DataContext).OpenNotificationCommand}"
+                            <Grid ColumnDefinitions="*, Auto">
+                                <Button Grid.Column="0" Command="{Binding $parent[ItemsControl].((vm:MobileNotificationsViewModel)DataContext).OpenNotificationCommand}"
                                        CommandParameter="{Binding}"
                                        HorizontalAlignment="Stretch"
                                        Classes="NotificationCard"
@@ -176,7 +167,13 @@
                                                   Margin="8,0,0,0" />
                                     </Grid>
                                 </Button>
-                            </SwipeControl>
+                                <Button Grid.Column="1"
+                                        Content="🗑️"
+                                        Command="{Binding $parent[ItemsControl].((vm:MobileNotificationsViewModel)DataContext).DeleteNotificationCommand}"
+                                        CommandParameter="{Binding}"
+                                        Classes="Ghost"
+                                        VerticalAlignment="Center"/>
+                            </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -186,7 +183,7 @@
         <!-- Clear All Button -->
         <Button Grid.Row="3"
                Command="{Binding ClearAllCommand}"
-               IsEnabled="{Binding Notifications.Count, Converter={x:Static BoolConverters.NotEqual}, ConverterParameter=0}"
+               IsEnabled="{Binding Notifications.Count, Converter={StaticResource InequalityConverter}, ConverterParameter=0}"
                HorizontalAlignment="Stretch"
                Height="48"
                Classes="Secondary MobileButton"

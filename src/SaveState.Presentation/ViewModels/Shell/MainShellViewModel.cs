@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using SaveState.Core.Common.Services;
 using SaveState.Presentation.Services;
 using Splat;
+using Avalonia.Threading;
 
 namespace SaveState.Presentation.ViewModels.Shell;
 
@@ -16,6 +17,7 @@ public partial class MainShellViewModel : ObservableObject, IDisposable
     private readonly INotificationService _notificationService;
     private readonly ILogger<MainShellViewModel> _logger;
     private readonly ITimeProvider _timeProvider;
+    private readonly IOverlayService _overlayService;
 
     public MainShellViewModel(
         INavigationService navigationService,
@@ -23,18 +25,21 @@ public partial class MainShellViewModel : ObservableObject, IDisposable
         ILogger<MainShellViewModel> logger,
         ITimeProvider timeProvider)
     {
-        _logger.LogDebug("MainShellViewModel constructor started");
+        // Assign logger first since we use it immediately
+        _logger = logger;
         _navigationService = navigationService;
         _notificationService = notificationService;
-        _logger = logger;
         _timeProvider = timeProvider;
+        _overlayService = GetOverlayService();
+
+        _logger.LogDebug("MainShellViewModel constructor started");
 
         _logger.LogDebug("Creating TitleBarViewModel");
         // Initialize child view models
         TitleBarViewModel = new TitleBarViewModel();
 
         _logger.LogDebug("Creating HeaderBarViewModel");
-        HeaderBarViewModel = new HeaderBarViewModel(navigationService, GetOverlayService());
+        HeaderBarViewModel = new HeaderBarViewModel(navigationService, _overlayService);
 
         _logger.LogDebug("Creating StatusBarViewModel");
         // Resolve required services for StatusBarViewModel
@@ -43,11 +48,11 @@ public partial class MainShellViewModel : ObservableObject, IDisposable
         var gameRepository = Locator.Current.GetService<SaveState.Core.GameLibrary.IGameRepository>()!;
         var analyticsService = Locator.Current.GetService<SaveState.Core.Analytics.Services.IAnalyticsService>()!;
         var performanceMonitor = Locator.Current.GetService<SaveState.Core.Performance.Services.IPerformanceMonitor>();
-        StatusBarViewModel = new StatusBarViewModel(navigationService, GetOverlayService(), gameRepository, analyticsService, performanceMonitor, statusBarLogger, timeProvider);
+        StatusBarViewModel = new StatusBarViewModel(navigationService, _overlayService, gameRepository, analyticsService, performanceMonitor, statusBarLogger, timeProvider);
 
         _logger.LogDebug("Creating OverlayContainerViewModel");
         var gameContextService = Locator.Current.GetService<IUiGameContextService>()!;
-        OverlayContainerViewModel = new OverlayContainerViewModel(GetOverlayService(), gameContextService, timeProvider);
+        OverlayContainerViewModel = new OverlayContainerViewModel(_overlayService, gameContextService, timeProvider);
 
         // Note: We no longer call InitializeTabViewModels here.
         // The NavigationService will resolve them lazily as needed.
@@ -55,6 +60,12 @@ public partial class MainShellViewModel : ObservableObject, IDisposable
         _logger.LogDebug("Subscribing to navigation events");
         // Subscribe to navigation changes
         _navigationService.Navigated += OnNavigated;
+
+        // Hard reset overlays before the first frame to avoid stale startup modals.
+        CloseAllOverlaysForStartup();
+
+        // Enforce deterministic startup state after UI thread is available.
+        Dispatcher.UIThread.Post(async () => await EnsureStartupStateAsync().ConfigureAwait(false));
 
         _logger.LogDebug("MainShellViewModel constructor finished");
         _logger.LogInformation("MainShellViewModel initialized");
@@ -105,6 +116,23 @@ public partial class MainShellViewModel : ObservableObject, IDisposable
         _logger.LogInformation("MainShellViewModel disposed");
     }
 
+    /// <summary>
+    /// Ensures the shell starts on Dashboard with all overlays closed.
+    /// </summary>
+    public async Task EnsureStartupStateAsync()
+    {
+        try
+        {
+            CloseAllOverlaysForStartup();
+            await _navigationService.NavigateToAsync("Dashboard").ConfigureAwait(false);
+            _logger.LogInformation("Startup state enforced: Dashboard with all overlays closed");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to enforce startup state");
+        }
+    }
+
     private void InitializeTabViewModels()
     {
         // Ensure all tab ViewModels are created and cached by the navigation service
@@ -131,6 +159,28 @@ public partial class MainShellViewModel : ObservableObject, IDisposable
     {
         // Notify that current view has changed
         OnPropertyChanged(nameof(CurrentView));
+    }
+
+    private void CloseAllOverlaysForStartup()
+    {
+        _overlayService.HideCommandPaletteOverlay();
+        _overlayService.HideQuickSearchOverlay();
+        _overlayService.HideUniversalSearchOverlay();
+        _overlayService.HideAiAssistantOverlay();
+        _overlayService.HidePerformanceHudOverlay();
+        _overlayService.HideVoiceVisualizerOverlay();
+        _overlayService.SetVoiceActive(false);
+        _overlayService.HideNotificationsOverlay();
+        _overlayService.HideUserProfileOverlay();
+        _overlayService.HideNetworkDiagnosticsOverlay();
+        _overlayService.HideSyncStatusOverlay();
+        _overlayService.HideConflictsResolutionOverlay();
+        _overlayService.HideProviderConfigurationDialog();
+        _overlayService.HideDashboardCustomizationDialog();
+        _overlayService.HideCreateCollectionDialog();
+        _overlayService.HideSessionDetailsOverlay();
+        _overlayService.HideAchievementDetailsOverlay();
+        _overlayService.HideModDetailsOverlay();
     }
 
     private IOverlayService GetOverlayService()

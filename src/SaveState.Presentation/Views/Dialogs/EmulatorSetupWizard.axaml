@@ -50,7 +50,7 @@
                 <Panel Grid.Row="1" Margin="24">
 
                     <!-- Step 0: Selection -->
-                    <Grid IsVisible="{Binding CurrentStep, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=0}"
+                    <Grid IsVisible="{Binding CurrentStep, Converter={StaticResource EqualityConverter}, ConverterParameter=0}"
                           RowDefinitions="*,Auto">
                         <ScrollViewer Grid.Row="0">
                             <ItemsControl ItemsSource="{Binding AvailableEmulators}">
@@ -76,7 +76,7 @@
                     </Grid>
 
                     <!-- Step 1: Progress -->
-                    <StackPanel IsVisible="{Binding CurrentStep, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=1}"
+                    <StackPanel IsVisible="{Binding CurrentStep, Converter={StaticResource EqualityConverter}, ConverterParameter=1}"
                                 VerticalAlignment="Center" Spacing="24">
                         <TextBlock Text="Installing your selected emulators..."
                                    HorizontalAlignment="Center" FontSize="18"/>
@@ -93,7 +93,7 @@
                     </StackPanel>
 
                     <!-- Step 2: Success -->
-                    <StackPanel IsVisible="{Binding CurrentStep, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=2}"
+                    <StackPanel IsVisible="{Binding CurrentStep, Converter={StaticResource EqualityConverter}, ConverterParameter=2}"
                                 VerticalAlignment="Center" Spacing="16">
                         <TextBlock Text="✅" FontSize="64" HorizontalAlignment="Center"/>
                         <TextBlock Text="All set!" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
@@ -108,16 +108,16 @@
                         BorderBrush="{DynamicResource SurfaceStrokeColorDefault}" BorderThickness="0,1,0,0">
                     <Grid ColumnDefinitions="Auto,*,Auto">
                         <Button Grid.Column="0" Content="Cancel" Command="{Binding CancelCommand}"
-                                IsVisible="{Binding CurrentStep, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter=2}"/>
+                                IsVisible="{Binding CurrentStep, Converter={StaticResource InequalityConverter}, ConverterParameter=2}"/>
 
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12">
                             <Button Content="Install Now" Command="{Binding StartInstallationCommand}"
                                     Classes="primary"
-                                    IsVisible="{Binding CurrentStep, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=0}"/>
+                                    IsVisible="{Binding CurrentStep, Converter={StaticResource EqualityConverter}, ConverterParameter=0}"/>
 
                             <Button Content="Finish" Command="{Binding FinishCommand}"
                                     Classes="primary"
-                                    IsVisible="{Binding CurrentStep, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=2}"/>
+                                    IsVisible="{Binding CurrentStep, Converter={StaticResource EqualityConverter}, ConverterParameter=2}"/>
                         </StackPanel>
                     </Grid>
                 </Border>

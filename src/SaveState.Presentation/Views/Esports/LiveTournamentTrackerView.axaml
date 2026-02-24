@@ -104,7 +104,7 @@
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
           <Button Content="{Binding IsConnected, Converter={StaticResource BoolToStringConverter}, ConverterParameter='Disconnect|Connect'}"
                   Command="{Binding ConnectCommand}"
-                  IsVisible="{Binding IsConnected, Converter={x:Static ObjectConverters.Not}}" />
+                  IsVisible="{Binding IsConnected, Converter={StaticResource InverseBoolConverter}}" />
           <Button Content="Disconnect"
                   Command="{Binding DisconnectCommand}"
                   IsVisible="{Binding IsConnected}" />

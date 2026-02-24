@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SaveState.Presentation.ViewModels.Settings"
+             xmlns:models="using:SaveState.Presentation.Models.Health"
              xmlns:converters="using:SaveState.Presentation.Converters"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="900"
              x:Class="SaveState.Presentation.Views.Settings.SystemHealthView"
@@ -268,7 +269,7 @@
           
           <ItemsControl ItemsSource="{Binding RecentErrors}">
             <ItemsControl.ItemTemplate>
-              <DataTemplate DataType="vm:ErrorLogEntry">
+              <DataTemplate DataType="models:ErrorLogEntry">
                 <Border Classes="ListItem" Padding="12,8" Margin="0,2">
                   <Grid ColumnDefinitions="Auto,Auto,*,Auto">
                     <TextBlock Grid.Column="0"

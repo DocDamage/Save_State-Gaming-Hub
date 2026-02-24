@@ -12,7 +12,9 @@ namespace SaveState.Presentation.ViewModels.Library;
 public partial class GameCardViewModel
 {
     private LaunchExperienceViewModel? _launchExperienceViewModel;
+#pragma warning disable CS0649 // Field is never assigned - reserved for future use
     private ILaunchExperienceManager? _launchExperienceManager;
+#pragma warning restore CS0649
 
     /// <summary>
     /// Gets or sets the launch experience view model (injected).

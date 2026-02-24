@@ -156,7 +156,7 @@
                        Foreground="{StaticResource AccentBrush}" />
 
                 <!-- Paired Devices -->
-                <StackPanel IsVisible="{Binding AvailableDevices.Count, Converter={x:Static BoolConverters.NotEqual}, ConverterParameter=0}"
+                <StackPanel IsVisible="{Binding AvailableDevices.Count, Converter={StaticResource InequalityConverter}, ConverterParameter=0}"
                            Spacing="12"
                            Margin="0,16,0,0">
                     <TextBlock Text="Previously Paired"

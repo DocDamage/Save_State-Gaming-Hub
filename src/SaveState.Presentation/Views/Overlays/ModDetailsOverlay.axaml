@@ -2,7 +2,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:SaveState.Presentation.ViewModels.Overlays"
              x:Class="SaveState.Presentation.Views.Overlays.ModDetailsOverlay"
-             x:DataType="vm:ModDetailsOverlayViewModel">
+             x:DataType="vm:ModDetailsOverlayViewModel"
+             Focusable="True"
+             KeyDown="OnOverlayKeyDown">
 
     <UserControl.Styles>
         <Style Selector="Border.overlay-panel">
@@ -48,14 +50,15 @@
 
     <!-- Dimming Background -->
     <Border Classes="overlay-panel"
-            PointerPressed="OnCloseClick">
+            PointerPressed="OnBackdropPressed">
 
         <!-- Content Panel -->
         <Border Classes="content-panel"
                 Width="800"
                 Height="700"
                 MaxWidth="1000"
-                MaxHeight="900">
+                MaxHeight="900"
+                PointerPressed="OnContentPressed">
 
             <Grid RowDefinitions="Auto,*,Auto">
                 <!-- Header -->
@@ -77,6 +80,7 @@
                     <Button Grid.Column="1"
                            Classes="close"
                            Content="✕"
+                           Command="{Binding CloseCommand}"
                            Click="OnCloseClick"
                            VerticalAlignment="Top" />
                 </Grid>

@@ -147,7 +147,7 @@ public class AccessibilityAuditor
             var foreground = textBlock.Foreground;
             var background = GetBackgroundColor(element);
 
-            if (foreground != null && background != null)
+            if (foreground != null)
             {
                 var validation = ColorContrastChecker.ValidateContrast(
                     GetColorFromBrush(foreground),

@@ -23,26 +23,50 @@
         </Style>
     </UserControl.Styles>
 
+    <!-- Root grid remains hit-testable so visible overlays can receive input -->
     <Grid>
+        <!-- Dimming overlay - only blocks input when actually visible -->
         <Border Classes="dimming-overlay"
                 IsVisible="{Binding ShowDim}"
-                IsHitTestVisible="True"
+                IsHitTestVisible="{Binding ShowDim}"
                 PointerPressed="OnDimPressed" />
 
+        <!-- Dashboard Customization Overlay -->
+        <Border Classes="overlay-base"
+                Width="640"
+                MinHeight="220"
+                Padding="24"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                IsVisible="{Binding ShowDashboardCustomization, FallbackValue=False}"
+                IsHitTestVisible="True">
+            <StackPanel Spacing="12">
+                <TextBlock Text="Dashboard Customization"
+                           FontSize="22"
+                           FontWeight="SemiBold" />
+                <TextBlock Text="Widget layout customization is enabled in this preview."
+                           Opacity="0.9"
+                           TextWrapping="Wrap" />
+                <TextBlock Text="Click outside this panel to close."
+                           Opacity="0.7"
+                           FontSize="12" />
+            </StackPanel>
+        </Border>
+
         <!-- Session Details Overlay -->
-        <overlays:SessionDetailsOverlay IsVisible="{Binding ShowSessionDetails}"
+        <overlays:SessionDetailsOverlay IsVisible="{Binding ShowSessionDetails, FallbackValue=False}"
                                       DataContext="{Binding SessionDetailsViewModel}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center" />
 
         <!-- Achievement Details Overlay -->
-        <overlays:AchievementDetailsOverlay IsVisible="{Binding ShowAchievementDetails}"
+        <overlays:AchievementDetailsOverlay IsVisible="{Binding ShowAchievementDetails, FallbackValue=False}"
                                            DataContext="{Binding AchievementDetailsViewModel}"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center" />
 
         <!-- Mod Details Overlay -->
-        <overlays:ModDetailsOverlay IsVisible="{Binding ShowModDetails}"
+        <overlays:ModDetailsOverlay IsVisible="{Binding ShowModDetails, FallbackValue=False}"
                                    DataContext="{Binding ModDetailsViewModel}"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center" />
