@@ -50,19 +50,18 @@ public sealed class GameDealsRepository : IGameDealsRepository
     /// <inheritdoc />
     public async Task<IReadOnlyList<GameDeal>> GetDealsAsync(DealFilterOptions? filter = null, CancellationToken ct = default)
     {
-        var query = _dbContext.GameDeals
-            .AsNoTracking()
-            .Where(d => d.IsActive)
-            .AsQueryable();
+        var query = CreateActiveDealsQuery();
 
         if (filter?.StoreIds?.Any() == true)
         {
-            query = query.Where(d => filter.StoreIds.Contains(d.Store.Id));
-        }
+            var storeIds = filter.StoreIds
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .ToList();
 
-        if (filter?.MinDiscountPercent.HasValue == true)
-        {
-            query = query.Where(d => d.DiscountPercent >= filter.MinDiscountPercent.Value);
+            if (storeIds.Count > 0)
+            {
+                query = query.Where(d => storeIds.Contains(EF.Property<string?>(d, "StoreId")));
+            }
         }
 
         if (filter?.MaxPrice.HasValue == true)
@@ -75,36 +74,61 @@ public sealed class GameDealsRepository : IGameDealsRepository
             query = query.Where(d => d.IsHistoricalLow);
         }
 
-        query = filter?.SortOrder switch
+        var deals = await query.ToListAsync(ct);
+
+        if (filter?.MinDiscountPercent.HasValue == true)
         {
-            DealSortOrder.DiscountPercent => query.OrderByDescending(d => d.DiscountPercent),
-            DealSortOrder.Price => query.OrderBy(d => d.CurrentPrice),
-            DealSortOrder.Title => query.OrderBy(d => d.Title),
-            DealSortOrder.Newest => query.OrderByDescending(d => d.DealStart),
-            _ => query.OrderByDescending(d => d.DiscountPercent)
+            deals = deals
+                .Where(d => d.DiscountPercent.HasValue && d.DiscountPercent.Value >= filter.MinDiscountPercent.Value)
+                .ToList();
+        }
+
+        var orderedDeals = filter?.SortOrder switch
+        {
+            DealSortOrder.DiscountPercent => deals.OrderByDescending(d => d.DiscountPercent ?? decimal.MinValue),
+            DealSortOrder.Price => deals.OrderBy(d => d.CurrentPrice),
+            DealSortOrder.Title => deals.OrderBy(d => d.Title),
+            DealSortOrder.Newest => deals.OrderByDescending(d => d.DealStart ?? DateTime.MinValue),
+            _ => deals.OrderByDescending(d => d.DiscountPercent ?? decimal.MinValue)
         };
 
-        return await query.ToListAsync(ct);
+        return orderedDeals.ToList();
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<GameDeal>> GetDealsForGameAsync(string gameTitle, CancellationToken ct = default)
     {
-        return await _dbContext.GameDeals
-            .AsNoTracking()
-            .Where(d => d.Title.ToLower() == gameTitle.ToLower() && d.IsActive)
-            .OrderBy(d => d.CurrentPrice)
+        if (string.IsNullOrWhiteSpace(gameTitle))
+        {
+            return Array.Empty<GameDeal>();
+        }
+
+        var normalizedTitle = gameTitle.Trim().ToLowerInvariant();
+        var deals = await CreateActiveDealsQuery()
+            .Where(d => d.Title.ToLower() == normalizedTitle)
             .ToListAsync(ct);
+
+        return deals
+            .OrderBy(d => d.CurrentPrice)
+            .ToList();
     }
 
     /// <inheritdoc />
     public async Task<GameDeal?> GetBestDealAsync(string gameTitle, CancellationToken ct = default)
     {
-        return await _dbContext.GameDeals
-            .AsNoTracking()
-            .Where(d => d.Title.ToLower() == gameTitle.ToLower() && d.IsActive)
+        if (string.IsNullOrWhiteSpace(gameTitle))
+        {
+            return null;
+        }
+
+        var normalizedTitle = gameTitle.Trim().ToLowerInvariant();
+        var deals = await CreateActiveDealsQuery()
+            .Where(d => d.Title.ToLower() == normalizedTitle)
+            .ToListAsync(ct);
+
+        return deals
             .OrderBy(d => d.CurrentPrice)
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefault();
     }
 
     /// <inheritdoc />
@@ -182,5 +206,13 @@ public sealed class GameDealsRepository : IGameDealsRepository
 
         _dbContext.GameDeals.RemoveRange(oldDeals);
         await _dbContext.SaveChangesAsync(ct);
+    }
+
+    private IQueryable<GameDeal> CreateActiveDealsQuery()
+    {
+        var now = _timeProvider.UtcNow;
+        return _dbContext.GameDeals
+            .AsNoTracking()
+            .Where(d => d.DealEnd == null || d.DealEnd > now);
     }
 }

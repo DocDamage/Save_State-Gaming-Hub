@@ -38,17 +38,17 @@ public sealed class XboxGamePassProvider : ISubscriptionProvider
         try
         {
             _logger.LogInformation("Fetching Xbox Game Pass catalog...");
-            
+
             // Xbox Game Pass PC catalog ID
             var pcCatalogId = "fdd9e2a7-0fee-49f6-ad69-4354098401ff";
             var url = $"{GamePassApiBaseUrl}?id={pcCatalogId}&language=en-us&market=US";
-            
+
             var response = await _httpClient.GetAsync(url, ct);
             response.EnsureSuccessStatusCode();
-            
+
             var json = await response.Content.ReadAsStringAsync(ct);
             var games = ParseGamePassCatalog(json);
-            
+
             _logger.LogInformation("Fetched {Count} games from Xbox Game Pass", games.Count);
             return Result.Success<IReadOnlyList<SubscriptionGame>>(games);
         }
@@ -63,23 +63,36 @@ public sealed class XboxGamePassProvider : ISubscriptionProvider
     {
         try
         {
-            // Xbox Game Pass leaving soon uses a different catalog
+            // Xbox Game Pass leaving soon uses a different catalog.
+            // A 404 from this endpoint means the slot is empty (no games leaving soon) — return empty success.
             var leavingSoonId = "a2d7a76e-50c4-4533-8753-265832a1e786";
             var url = $"{GamePassApiBaseUrl}?id={leavingSoonId}&language=en-us&market=US";
-            
-            var response = await _httpClient.GetAsync(url, ct);
+
+            var response = await _httpClient.GetAsync(url, ct).ConfigureAwait(false);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                _logger.LogDebug("Xbox leaving-soon catalog returned 404 — no games leaving soon at this time.");
+                return Result.Success<IReadOnlyList<SubscriptionGame>>(Array.Empty<SubscriptionGame>());
+            }
+
             response.EnsureSuccessStatusCode();
-            
-            var json = await response.Content.ReadAsStringAsync(ct);
+
+            var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
             var games = ParseGamePassCatalog(json);
-            
+
             // Mark as leaving soon (typically 14 days)
             foreach (var game in games)
             {
                 game.LeavingSoonDate = _timeProvider.UtcNow.AddDays(14);
             }
-            
+
             return Result.Success<IReadOnlyList<SubscriptionGame>>(games);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogWarning(ex, "Xbox leaving-soon catalog request failed — service may be temporarily unavailable.");
+            return Result.Success<IReadOnlyList<SubscriptionGame>>(Array.Empty<SubscriptionGame>());
         }
         catch (Exception ex)
         {
@@ -92,23 +105,30 @@ public sealed class XboxGamePassProvider : ISubscriptionProvider
     {
         try
         {
-            // New arrivals/recently added catalog
+            // New arrivals/recently added catalog.
+            // A 404 indicates the slot is empty — return empty success.
             var recentId = "9b9b4b07-3368-4898-8bb1-019cfd5e3d5e";
             var url = $"{GamePassApiBaseUrl}?id={recentId}&language=en-us&market=US";
-            
-            var response = await _httpClient.GetAsync(url, ct);
-            response.EnsureSuccessStatusCode();
-            
-            var json = await response.Content.ReadAsStringAsync(ct);
-            var games = ParseGamePassCatalog(json);
-            
-            // Mark as new arrivals
-            foreach (var game in games)
+
+            var response = await _httpClient.GetAsync(url, ct).ConfigureAwait(false);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
-                game.AddedDate = _timeProvider.UtcNow.AddDays(-new Random().Next(1, 30));
+                _logger.LogDebug("Xbox new-arrivals catalog returned 404 — no new arrivals at this time.");
+                return Result.Success<IReadOnlyList<SubscriptionGame>>(Array.Empty<SubscriptionGame>());
             }
-            
+
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+            var games = ParseGamePassCatalog(json);
+
             return Result.Success<IReadOnlyList<SubscriptionGame>>(games);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogWarning(ex, "Xbox new-arrivals catalog request failed — service may be temporarily unavailable.");
+            return Result.Success<IReadOnlyList<SubscriptionGame>>(Array.Empty<SubscriptionGame>());
         }
         catch (Exception ex)
         {
@@ -142,17 +162,24 @@ public sealed class XboxGamePassProvider : ISubscriptionProvider
     private List<SubscriptionGame> ParseGamePassCatalog(string json)
     {
         var games = new List<SubscriptionGame>();
-        
+
         try
         {
             using var doc = JsonDocument.Parse(json);
-            var products = doc.RootElement.GetProperty("Products");
-            
-            foreach (var product in products.EnumerateArray())
+            foreach (var product in EnumerateProducts(doc.RootElement))
             {
-                var productId = product.GetProperty("ProductId").GetString();
-                var title = product.GetProperty("LocalizedProperties")[0].GetProperty("ProductTitle").GetString();
-                
+                if (product.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
+                var productId = GetStringProperty(product, "ProductId")
+                    ?? GetStringProperty(product, "Id");
+
+                var title = GetLocalizedProductTitle(product)
+                    ?? GetStringProperty(product, "ProductTitle")
+                    ?? GetStringProperty(product, "Title");
+
                 var game = new SubscriptionGame
                 {
                     GameId = productId ?? Guid.NewGuid().ToString(),
@@ -160,7 +187,7 @@ public sealed class XboxGamePassProvider : ISubscriptionProvider
                     AvailableOn = new List<SubscriptionServiceType> { SubscriptionServiceType.XboxGamePass },
                     CoverImageUrl = $"https://store-images.s-microsoft.com/image/apps.12345.12345-0000-0000-000000000000.12345-0000-0000-0000-000000000000?w=400&h=600"
                 };
-                
+
                 games.Add(game);
             }
         }
@@ -168,7 +195,77 @@ public sealed class XboxGamePassProvider : ISubscriptionProvider
         {
             _logger.LogWarning(ex, "Error parsing Game Pass catalog");
         }
-        
+
         return games;
+    }
+
+    private static IEnumerable<JsonElement> EnumerateProducts(JsonElement root)
+    {
+        if (root.ValueKind == JsonValueKind.Array)
+        {
+            return root.EnumerateArray();
+        }
+
+        if (root.ValueKind == JsonValueKind.Object)
+        {
+            if (root.TryGetProperty("Products", out var products))
+            {
+                if (products.ValueKind == JsonValueKind.Array)
+                {
+                    return products.EnumerateArray();
+                }
+
+                if (products.ValueKind == JsonValueKind.Object &&
+                    products.TryGetProperty("Items", out var productItems) &&
+                    productItems.ValueKind == JsonValueKind.Array)
+                {
+                    return productItems.EnumerateArray();
+                }
+            }
+
+            if (root.TryGetProperty("Items", out var items) &&
+                items.ValueKind == JsonValueKind.Array)
+            {
+                return items.EnumerateArray();
+            }
+        }
+
+        return [];
+    }
+
+    private static string? GetLocalizedProductTitle(JsonElement product)
+    {
+        if (!product.TryGetProperty("LocalizedProperties", out var localizedProperties) ||
+            localizedProperties.ValueKind != JsonValueKind.Array)
+        {
+            return null;
+        }
+
+        foreach (var localizedProperty in localizedProperties.EnumerateArray())
+        {
+            var title = GetStringProperty(localizedProperty, "ProductTitle");
+            if (!string.IsNullOrWhiteSpace(title))
+            {
+                return title;
+            }
+        }
+
+        return null;
+    }
+
+    private static string? GetStringProperty(JsonElement element, string propertyName)
+    {
+        if (element.ValueKind != JsonValueKind.Object ||
+            !element.TryGetProperty(propertyName, out var propertyValue))
+        {
+            return null;
+        }
+
+        return propertyValue.ValueKind switch
+        {
+            JsonValueKind.String => propertyValue.GetString(),
+            JsonValueKind.Number => propertyValue.GetRawText(),
+            _ => null
+        };
     }
 }

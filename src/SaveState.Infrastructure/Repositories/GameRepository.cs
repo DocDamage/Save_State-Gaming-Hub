@@ -437,12 +437,52 @@ public class GameRepository : IGameRepository
 
     public async Task<IReadOnlyDictionary<string, int>> GetPlatformStatisticsAsync(CancellationToken ct = default)
     {
-        var stats = await _context.Games
-            .Where(g => g.Platform != null && g.Platform.Name != null && g.Platform.Name.Value != null)
-            .GroupBy(g => g.Platform!.Name!.Value)
-            .Select(g => new { PlatformName = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(g => g.PlatformName, g => g.Count, ct)
+        var groupedCounts = await _context.Games
+            .AsNoTracking()
+            .Where(g => g.PlatformId.HasValue)
+            .GroupBy(g => g.PlatformId!.Value)
+            .Select(g => new { PlatformId = g.Key, Count = g.Count() })
+            .ToListAsync(ct)
             .ConfigureAwait(false);
+
+        if (groupedCounts.Count == 0)
+        {
+            return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        var platformIds = groupedCounts
+            .Select(g => g.PlatformId)
+            .Distinct()
+            .ToList();
+
+        var platforms = await _context.Platforms
+            .AsNoTracking()
+            .Where(p => platformIds.Contains(p.Id))
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+        var platformNamesById = platforms
+            .Where(p => p.Name != null && !string.IsNullOrWhiteSpace(p.Name.Value))
+            .ToDictionary(p => p.Id, p => p.Name.Value, EqualityComparer<Guid>.Default);
+
+        var stats = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var item in groupedCounts)
+        {
+            if (!platformNamesById.TryGetValue(item.PlatformId, out var platformName))
+            {
+                continue;
+            }
+
+            if (stats.TryGetValue(platformName, out var existingCount))
+            {
+                stats[platformName] = existingCount + item.Count;
+            }
+            else
+            {
+                stats[platformName] = item.Count;
+            }
+        }
 
         return stats;
     }
